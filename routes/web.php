@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::redirect('/', '/dashboard-general-dashboard');
-
+// Route::redirect('/', '/dashboard-general-dashboard');
+Route::get('/', function () {
+    return view('pages.login', ['type_menu' => 'auth']);
+});
 // Dashboard
 Route::get('/dashboard-general-dashboard', function () {
     return view('pages.dashboard-general-dashboard', ['type_menu' => 'dashboard']);
@@ -196,9 +198,7 @@ Route::get('/auth-forgot-password', function () {
 Route::get('/auth-login', function () {
     return view('pages.auth-login', ['type_menu' => 'auth']);
 });
-Route::get('/auth-login2', function () {
-    return view('pages.auth-login2', ['type_menu' => 'auth']);
-});
+
 Route::get('/auth-register', function () {
     return view('pages.auth-register', ['type_menu' => 'auth']);
 });
