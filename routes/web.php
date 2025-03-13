@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,11 +13,18 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-// Route::redirect('/', '/dashboard-general-dashboard');
-Route::get('/', function () {
-    return view('pages.login', ['type_menu' => 'auth']);
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
+        return view('pages.login', ['type_menu' => 'auth']);
+    });
+    Route::post('/login', [LoginController::class, 'store']) ->middleware('throttle:5,1')->name('login'); 
 });
+Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+// Route::redirect('/', '/dashboard-general-dashboard');
+
+Route::post('/login', [LoginController::class, 'store'])
+    ->middleware('throttle:5,1')->name('loginakun');
+
 // Dashboard
 Route::get('/dashboard-general-dashboard', function () {
     return view('pages.dashboard-general-dashboard', ['type_menu' => 'dashboard']);

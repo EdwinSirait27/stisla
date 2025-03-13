@@ -13,6 +13,7 @@ class LoginController extends Controller
 {
     public function index()
     {
+        
         return view('pages.login');
     }
     /**
@@ -20,6 +21,7 @@ class LoginController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         $attributes = $request->validate([
             'username' => [
                 'required',
@@ -65,9 +67,11 @@ class LoginController extends Controller
         
                 $user = Auth::user();
                 $dashboards = [
+                    'isSU' => 'dashboard-general-dashboard',
                     'isKasir' => 'dashboardKasir',
-                    'isManager' => 'dashboardManager',
                     'isSupervisor' => 'dashboardSupervisor',
+                    'isManager' => 'dashboardManager',
+                    
                 ];
         
                 foreach ($dashboards as $gate => $dashboard) {

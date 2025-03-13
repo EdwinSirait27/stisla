@@ -40,11 +40,26 @@
                                 Jaya Mandiri</span>
                         </h4>
                         <p class="text-muted">Please Login.</p>
-                        <form method="POST" action="#" class="needs-validation" novalidate="">
+                        <form action="{{ route('loginakun') }}" method="POST" class="needs-validation" novalidate="">
+                            @csrf
+                            @if ($errors->has('throttle'))
+                            <div class="alert alert-danger">
+                                {{ $errors->first('throttle') }}
+                            </div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                             <div class="form-group">
                                 <label class="text-muted" for="Username">Username</label>
                                 <input id="username" type="text" class="form-control" name="username" tabindex="1"
-                                    required autofocus placeholder="Masukkan username Anda">
+                                    required autofocus placeholder="Username">
                                 <div class="invalid-feedback">
                                     Please fill your username
                                 </div>
@@ -52,20 +67,43 @@
 
                             <div class="form-group">
                                 <div class="d-block">
-                                    <label for="password" class="control-label">Password</label>
+                                    <label class="text-muted" for="password" class="control-label">Password</label>
                                 </div>
-                                <input id="password" type="password" class="form-control" name="password"
-                                    tabindex="2" required placeholder="Password">
+                                <div class="input-group">
+                                    <input id="password" type="password" class="form-control" name="password"
+                                        tabindex="2" required placeholder="Password">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" onclick="togglePassword()" style="cursor: pointer;">
+                                            <i id="eyeIcon" class="fa fa-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
                                 <div class="invalid-feedback">
                                     Please fill your password
                                 </div>
                             </div>
+                            <script>
+                                function togglePassword() {
+                                    let passwordInput = document.getElementById('password');
+                                    let eyeIcon = document.getElementById('eyeIcon');
+                            
+                                    if (passwordInput.type === "password") {
+                                        passwordInput.type = "text";
+                                        eyeIcon.classList.remove("fa-eye");
+                                        eyeIcon.classList.add("fa-eye-slash");
+                                    } else {
+                                        passwordInput.type = "password";
+                                        eyeIcon.classList.remove("fa-eye-slash");
+                                        eyeIcon.classList.add("fa-eye");
+                                    }
+                                }
+                            </script>
 
                             <div class="form-group">
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" name="remember" class="custom-control-input" tabindex="3"
-                                        id="remember-me">
-                                    <label class="custom-control-label" for="remember-me">Remember Me</label>
+                                        id="remember">
+                                    <label class="custom-control-label" for="remember">Remember Me</label>
                                 </div>
                             </div>
 

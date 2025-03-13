@@ -14,14 +14,14 @@ return new class extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->uuid('id')->primary(); // Menggunakan UUID sebagai primary key
-            $table->string('username')->unique(); // Mengubah email menjadi username
+            $table->uuid('id')->primary();
+            $table->string('name');
+            $table->string('username')->unique(); // Ganti email dengan username
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', [
-                'SU', 'GM', 'HR', 'Gudang', 'Head Warehouse',
-                'Head Buyer', 'Buyer', 'Finance', 'Head Finance'
-            ]); // Menambahkan role dengan default 'GM'
+            $table->enum('user_type', ['Admin', 'Kasir', 'Manager'])->default('Kasir');
+            $table->string('phone')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });
