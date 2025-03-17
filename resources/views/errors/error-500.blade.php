@@ -1,6 +1,6 @@
 @extends('layouts.error')
 
-@section('title', '404')
+@section('title', '500')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -9,9 +9,9 @@
 @section('main')
     <div class="page-error">
         <div class="page-inner">
-            <h1>404</h1>
+            <h1>500</h1>
             <div class="page-description">
-                The page you were looking for could not be found.
+                Whoopps, something went wrong.
             </div>
             <div class="page-search">
                 <form>
@@ -19,22 +19,29 @@
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <div class="input-group-text">
-                                    <i class="fas fa-search"></i>
+                                    {{-- <i class="fas fa-search"></i> --}}
                                 </div>
                             </div>
-                            <input type="text"
+                            {{-- <input type="text"
                                 class="form-control"
-                                placeholder="Search">
+                                placeholder="Search"> --}}
                             <div class="input-group-append">
-                                <button class="btn btn-primary btn-lg">
+                                {{-- <button class="btn btn-primary btn-lg">
                                     Search
-                                </button>
+                                </button> --}}
                             </div>
                         </div>
                     </div>
                 </form>
                 <div class="mt-3">
-                    <a href="index.html">Back to Home</a>
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit">Logout</button>
+                        </form>
+                    @else
+                        <a href="/">Back to login</a>
+                    @endauth
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\dashboardAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 
@@ -13,22 +14,95 @@ use App\Http\Controllers\LoginController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return view('pages.login', ['type_menu' => 'auth']);
-    });
-    Route::post('/login', [LoginController::class, 'store']) ->middleware('throttle:5,1')->name('login'); 
-});
-Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-// Route::redirect('/', '/dashboard-general-dashboard');
+Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+    ->name('logout')
+    ->middleware('auth');
 
-Route::post('/login', [LoginController::class, 'store'])
-    ->middleware('throttle:5,1')->name('loginakun');
+
+
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/cek', function () {
+            dd(auth()->user()->user_type);
+        });
+    });
+    Route::get('/debug', function () {
+        return auth()->check() ? 'User is logged in as ' . auth()->user()->user_type : 'User is NOT logged in';
+    });
+    
+
+Route::middleware(['can:isAdmin', 'auth'])->group(function () {
+    Route::get('/dashboardAdmin', [dashboardAdminController::class, 'index'])->name('pages.dashboardAdmin');
+    Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create');
+    Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store');
+    Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
+    Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
+    Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+
+
+});
+
+
+Route::group(['middleware' => 'guest'], function () {
+    Route::middleware(['throttle:10,1'])->group(function () {
+        Route::post('/session', [LoginController::class, 'store'])->name('session');
+        Route::get('/', [LoginController::class, 'index'])->name('login');
+
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Dashboard
-Route::get('/dashboard-general-dashboard', function () {
-    return view('pages.dashboard-general-dashboard', ['type_menu' => 'dashboard']);
-});
+
 Route::get('/dashboard-ecommerce-dashboard', function () {
     return view('pages.dashboard-ecommerce-dashboard', ['type_menu' => 'dashboard']);
 });
@@ -217,16 +291,22 @@ Route::get('/auth-reset-password', function () {
 
 // error
 Route::get('/error-403', function () {
-    return view('pages.error-403', ['type_menu' => 'error']);
+    return view('errors.error-403', ['type_menu' => 'error']);
+});
+Route::get('/error-419', function () {
+    return view('errors.error-419', ['type_menu' => 'error']);
 });
 Route::get('/error-404', function () {
-    return view('pages.error-404', ['type_menu' => 'error']);
+    return view('errors.error-404', ['type_menu' => 'error']);
 });
 Route::get('/error-500', function () {
-    return view('pages.error-500', ['type_menu' => 'error']);
+    return view('errors.error-500', ['type_menu' => 'error']);
 });
 Route::get('/error-503', function () {
-    return view('pages.error-503', ['type_menu' => 'error']);
+    return view('errors.error-503', ['type_menu' => 'error']);
+});
+Route::get('/error-429', function () {
+    return view('errors.error-429', ['type_menu' => 'error']);
 });
 
 // features

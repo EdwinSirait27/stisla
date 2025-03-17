@@ -1,29 +1,32 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
-        <div class="sidebar-brand">
-            <a href="index.html">Stisla</a>
+        <div class="sidebar-brand bg-dark">
+            {{-- <a href="index.html">Stisla</a> --}}
+            <img src="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png') }}"
+            {{-- alt="logo" width="80" class="shadow-light mb-5 mt-2"> --}}
+            alt="logo" width="80" class="light mb-5 mt-2"> 
+
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
-            <a href="index.html">St</a>
+            <a href="">MJM</a>
         </div>
         <ul class="sidebar-menu">
             <li class="menu-header">Dashboard</li>
-            <li class="nav-item dropdown {{ $type_menu === 'dashboard' ? 'active' : '' }}">
-                <a href="#"
-                    class="nav-link has-dropdown"><i class="fas fa-fire"></i><span>Dashboard</span></a>
-                <ul class="dropdown-menu">
-                    <li class='{{ Request::is('dashboard-general-dashboard') ? 'active' : '' }}'>
-                        <a class="nav-link"
-                            href="{{ url('dashboard-general-dashboard') }}">General Dashboard</a>
-                    </li>
-                    <li class="{{ Request::is('dashboard-ecommerce-dashboard') ? 'active' : '' }}">
-                        <a class="nav-link"
-                            href="{{ url('dashboard-ecommerce-dashboard') }}">Ecommerce Dashboard</a>
-                    </li>
-                </ul>
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'dashboard' ? 'active' : '' }}"> --}}
+                <li class="{{ Request::is('ProfileAdmin') ? 'active' : '' }}">
+                    <a class="nav-link"
+                    href="{{ url('ProfileAdmin') }}"><i class="fas fa-male">
+                    </i> <span>Profile Admin</span>
+                </a>
             </li>
-            <li class="menu-header">Starter</li>
-            <li class="nav-item dropdown {{ $type_menu === 'layout' ? 'active' : '' }}">
+            <li class='{{ Request::is('dashboardAdmin') ? 'active' : '' }}'>
+                <a class="nav-link"
+                    href="{{ url('dashboardAdmin') }}"><i class="fas fa-male"></i>Dashboard</a>
+            </li>
+ 
+            <li class="menu-header">Select Menu</li>
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'layout' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"
                     data-toggle="dropdown"><i class="fas fa-columns"></i> <span>Layout</span></a>
@@ -46,7 +49,8 @@
                 <a class="nav-link"
                     href="{{ url('blank-page') }}"><i class="far fa-square"></i> <span>Blank Page</span></a>
             </li>
-            <li class="nav-item dropdown {{ $type_menu === 'bootstrap' ? 'active' : '' }}">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'bootstrap' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-th"></i> <span>Bootstrap</span></a>
                 <ul class="dropdown-menu">
@@ -132,8 +136,9 @@
                     </li>
                 </ul>
             </li>
-            <li class="menu-header">Stisla</li>
-            <li class="nav-item dropdown {{ $type_menu === 'components' ? 'active' : '' }}">
+            <li class="menu-header">MJM</li>
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'components' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-th-large"></i>
                     <span>Components</span></a>
@@ -192,7 +197,8 @@
                     </li>
                 </ul>
             </li>
-            <li class="nav-item dropdown {{ $type_menu === 'forms' ? 'active' : '' }}">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'forms' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="far fa-file-alt"></i> <span>Forms</span></a>
                 <ul class="dropdown-menu">
@@ -225,7 +231,8 @@
                     <li><a href="gmaps-simple.html">Simple</a></li>
                 </ul>
             </li> --}}
-            <li class="nav-item dropdown {{ $type_menu === 'modules' ? 'active' : '' }}">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'modules' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-plug"></i> <span>Modules</span></a>
                 <ul class="dropdown-menu">
@@ -280,7 +287,8 @@
                 </ul>
             </li>
             <li class="menu-header">Pages</li>
-            <li class="nav-item dropdown {{ $type_menu === 'auth' ? 'active' : '' }}">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'auth' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="far fa-user"></i> <span>Auth</span></a>
                 <ul class="dropdown-menu">
@@ -302,7 +310,8 @@
                     </li>
                 </ul>
             </li>
-            <li class="nav-item dropdown {{ $type_menu === 'error' ? 'active' : '' }}">
+            <li class="nav-item dropdown ">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'error' ? 'active' : '' }}"> --}}
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-exclamation"></i>
                     <span>Errors</span></a>
@@ -325,7 +334,8 @@
                     </li>
                 </ul>
             </li>
-            <li class="nav-item dropdown {{ $type_menu === 'features' ? 'active' : '' }}">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'features' ? 'active' : '' }}"> --}}
+            <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-bicycle"></i> <span>Features</span></a>
                 <ul class="dropdown-menu">
@@ -359,7 +369,9 @@
                     </li>
                 </ul>
             </li>
-            <li class="nav-item dropdown {{ $type_menu === 'utilities' ? 'active' : '' }}">
+            <li class="nav-item dropdown">
+            <li class="nav-item dropdown">
+            {{-- <li class="nav-item dropdown {{ $type_menu === 'utilities' ? 'active' : '' }}"> --}}
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-ellipsis-h"></i>
                     <span>Utilities</span></a>

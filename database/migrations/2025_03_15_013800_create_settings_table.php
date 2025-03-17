@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('settings', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
     $table->string('store_name');                     // Nama toko
     $table->string('store_address')->nullable();      // Alamat toko
     $table->string('store_phone')->nullable();        // Telepon toko

@@ -14,9 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('purchases', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('supplier_id')->constrained();                               // ID pemasok
-            $table->uuid('user_id')->constrained();                                   // ID pengguna
+            $table->uuid('id')->primary();
+            $table->foreignUuid('supplier_id')->constrained();                               // ID pemasok
+            $table->foreignUuid('user_id')->constrained();                                   // ID pengguna
             $table->string('invoice_number');                                              // Nomor faktur
             $table->decimal('total_amount', 12, 2);                                        // Total
             $table->enum('payment_status', ['lunas', 'tertunda', 'sebagian'])->default('lunas'); // Status pembayaran

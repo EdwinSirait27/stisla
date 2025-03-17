@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
         name="viewport">
-    <title>@yield('title') &mdash; Stisla</title>
+    <title>@yield('title') &mdash; Mahendradata Jaya Mandiri</title>
 
     <!-- General CSS Files -->
     <link rel="stylesheet"
@@ -15,7 +15,8 @@
         integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
         crossorigin="anonymous"
         referrerpolicy="no-referrer" />
-
+        <link rel="icon" type="image/png"
+        href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
     @stack('style')
 
     <!-- Template CSS -->

@@ -1,6 +1,6 @@
 @extends('layouts.error')
 
-@section('title', '503')
+@section('title', '429')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -9,9 +9,9 @@
 @section('main')
     <div class="page-error">
         <div class="page-inner">
-            <h1>503</h1>
+            <h1>429</h1>
             <div class="page-description">
-                Be right back.
+                Error too Many Request.
             </div>
             <div class="page-search">
                 <form>
@@ -19,23 +19,31 @@
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <div class="input-group-text">
-                                    <i class="fas fa-search"></i>
+                                    {{-- <i class="fas fa-search"></i> --}}
                                 </div>
                             </div>
-                            <input type="text"
+                            {{-- <input type="text"
                                 class="form-control"
-                                placeholder="Search">
+                                placeholder="Search"> --}}
                             <div class="input-group-append">
-                                <button class="btn btn-primary btn-lg">
+                                {{-- <button class="btn btn-primary btn-lg">
                                     Search
-                                </button>
+                                </button> --}}
                             </div>
                         </div>
                     </div>
                 </form>
                 <div class="mt-3">
-                    <a href="index.html">Back to Home</a>
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit">Logout</button>
+                        </form>
+                    @else
+                        <a href="/">Back to login</a>
+                    @endauth
                 </div>
+                
             </div>
         </div>
     </div>

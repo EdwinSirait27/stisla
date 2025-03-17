@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
+
 
 class User extends Authenticatable
 {
@@ -19,12 +21,14 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'id',
+        'name',
         'username',
-        'role',
-        'employee_id',
+        'username',
         'password',
-        'remember_token',
+        'user_type',
+        'role',
+        'phone',
+        'is_active',
     ];
 
     /**
@@ -43,11 +47,42 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+        'id' => 'string', // Cast UUID sebagai string
+
         'email_verified_at' => 'datetime',
     ];
-    public function employee()
+    protected static function boot()
     {
-        return $this->belongsTo(Employee::class, 'employee_id');
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
     }
-    
+        public function findForAuth($username)
+    {
+        return $this->where('username', $username)->first();
+    }
+    public function Sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
+
+    // Relasi ke tabel StockAdjustment
+    public function StockAdjustments()
+    {
+        return $this->hasMany(StockAdjustment::class);
+    }
+
+    // Relasi ke tabel Purchase
+    public function Purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
+
+
+
 }

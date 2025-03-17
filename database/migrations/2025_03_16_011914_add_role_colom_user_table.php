@@ -13,15 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');                         // Nama kategori
-            $table->text('description')->nullable();        // Deskripsi kategori
-            $table->boolean('is_active')->default(true);    // Status aktif
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->set('role', ['Admin', 'Manager', 'Kasir'])->after('user_type')->nullable();       
         });
     }
-
     /**
      * Reverse the migrations.
      *
@@ -29,6 +24,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('categories');
+        //
     }
 };

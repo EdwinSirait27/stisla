@@ -14,13 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('category_id')->constrained();      // ID kategori
             $table->string('name');                               // Nama produk
             $table->text('description')->nullable();              // Deskripsi produk
             $table->decimal('price', 12, 2);                      // Harga jual
             $table->decimal('cost_price', 12, 2);                 // Harga modal
             $table->integer('stock')->default(0);                 // Jumlah stok
-            $table->foreignId('category_id')->constrained();      // ID kategori
             $table->string('barcode')->unique()->nullable();      // Kode barcode produk
             $table->string('sku')->unique()->nullable();          // Kode SKU
             $table->string('image')->nullable();                  // Gambar produk

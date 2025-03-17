@@ -13,8 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
+        Schema::create('categories', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name');                         // Nama kategori
+            $table->text('description')->nullable();        // Deskripsi kategori
+            $table->boolean('is_active')->default(true);    // Status aktif
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('categories');
     }
 };

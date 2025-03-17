@@ -43,6 +43,7 @@
         "prismjs": "^1.15.0",
         "select2": "^4.0.6-rc.1",
         "selectric": "^1.13.0",
+        "simple-keyboard": "^3.8.43",
         "simpleweather": "^3.1.0",
         "sticky-kit": "^1.1.3",
         "summernote": "^0.8.11",

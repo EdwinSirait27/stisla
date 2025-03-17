@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('username')->unique(); // Ganti email dengan username
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('user_type', ['Admin', 'Kasir', 'Manager'])->default('Kasir');
+            $table->enum('user_type', ['Admin', 'Kasir', 'Manager','tes'])->default('Kasir');
             $table->string('phone')->nullable();
             $table->boolean('is_active')->default(true);
             $table->rememberToken();

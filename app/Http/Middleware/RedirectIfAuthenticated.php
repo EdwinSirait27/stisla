@@ -13,20 +13,32 @@ class RedirectIfAuthenticated
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @param  \Closure  $next
      * @param  string|null  ...$guards
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     * @return mixed
      */
-    public function handle(Request $request, Closure $next, ...$guards)
-    {
-        $guards = empty($guards) ? [null] : $guards;
-
-        foreach ($guards as $guard) {
-            if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
-            }
+    public function handle($request, Closure $next, ...$guards)
+{
+    if (Auth::check()) {
+        $user = auth()->user();
+        
+        if ($user->can('isAdmin')) {
+            return redirect('/dashboardAdmin');
+        }
+        if ($user->can('isKasir')) {
+            return redirect('/dashboardKasir');
+        }
+        if ($user->can('isManager')) {
+            return redirect('/dashboardManager');
         }
 
-        return $next($request);
+        // Jika user_type tidak valid, logout dan kembali ke login
+        Auth::logout();
+        return redirect('/')->withErrors(['error' => 'Akses ditolak.']);
     }
+
+    return $next($request);
+}
+
+    
 }
