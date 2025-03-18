@@ -271,7 +271,7 @@
 </body>
 
 </html> --}}
-ini yang dipake
+{{-- ini yang dipake --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -356,6 +356,13 @@ ini yang dipake
 .keyboard .btn-clear:hover, .keyboard .btn-close:hover {
     opacity: 0.9; 
 }
+.keyboard .btn-clear,
+.keyboard .btn-close {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 50px;
+}
+
         
     </style>
 </head>

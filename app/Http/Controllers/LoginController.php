@@ -75,6 +75,7 @@ class LoginController extends Controller
                     'isManager' => 'pages.dashboardManager',
                     'isKasir' => 'pages.dashboardKasir',
                     'isAdmin' => 'pages.dashboardAdmin',
+                    'isSupervisor' => 'pages.dashboardSupervisor',
                 ];
         
                 foreach ($dashboards as $gate => $dashboard) {

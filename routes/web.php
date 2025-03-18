@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\dashboardAdminController;
+use App\Http\Controllers\dashboardManagerController;
+use App\Http\Controllers\dashboardKasirController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 
@@ -21,16 +23,14 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
 
 
 
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/cek', function () {
-            dd(auth()->user()->user_type);
-        });
-    });
-    Route::get('/debug', function () {
-        return auth()->check() ? 'User is logged in as ' . auth()->user()->user_type : 'User is NOT logged in';
-    });
-    
-
+    // Route::middleware(['auth'])->group(function () {
+    //     Route::get('/cek', function () {
+    //         dd(auth()->user()->user_type);
+    //     });
+    // });
+    // Route::get('/debug', function () {
+    //     return auth()->check() ? 'User is logged in as ' . auth()->user()->user_type : 'User is NOT logged in';
+    // });
 Route::middleware(['can:isAdmin', 'auth'])->group(function () {
     Route::get('/dashboardAdmin', [dashboardAdminController::class, 'index'])->name('pages.dashboardAdmin');
     Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create');
@@ -38,16 +38,17 @@ Route::middleware(['can:isAdmin', 'auth'])->group(function () {
     Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
     Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
     Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
-
-
 });
-
-
+Route::middleware(['can:isManager', 'auth'])->group(function () {
+    Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
+});
+Route::middleware(['can:isKasir', 'auth'])->group(function () {
+    Route::get('/dashboardKasir', [dashboardKasirController::class, 'index'])->name('pages.dashboardKasir');
+});
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
         Route::get('/', [LoginController::class, 'index'])->name('login');
-
     });
 });
 

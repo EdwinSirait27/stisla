@@ -994,7 +994,7 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <style>
-        /* .text-center {
+        .text-center {
             text-align: center;
         }
         .users-table-container {
@@ -1065,12 +1065,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-        } */
+        }
     </style>
 @endpush
-
-@section('main')
-    <div class="main-content">
+@section('main')<div class="main-content">
         <section class="section">
             <div class="section-header">
                 <h1>Set Users</h1>

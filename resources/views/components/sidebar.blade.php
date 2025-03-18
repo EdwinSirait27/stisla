@@ -1,9 +1,7 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand bg-dark">
-            {{-- <a href="index.html">Stisla</a> --}}
             <img src="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png') }}"
-            {{-- alt="logo" width="80" class="shadow-light mb-5 mt-2"> --}}
             alt="logo" width="80" class="light mb-5 mt-2"> 
 
         </div>
@@ -12,20 +10,24 @@
         </div>
         <ul class="sidebar-menu">
             <li class="menu-header">Dashboard</li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'dashboard' ? 'active' : '' }}"> --}}
-                <li class="{{ Request::is('ProfileAdmin') ? 'active' : '' }}">
-                    <a class="nav-link"
-                    href="{{ url('ProfileAdmin') }}"><i class="fas fa-male">
-                    </i> <span>Profile Admin</span>
-                </a>
-            </li>
-            <li class='{{ Request::is('dashboardAdmin') ? 'active' : '' }}'>
+           
+            @if (Gate::allows('isAdmin'))
+            
+            <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('dashboardAdmin') }}"><i class="fas fa-male"></i>Dashboard</a>
+                    href="{{ url('dashboardAdmin') }}"><i class="far fa-male"></i> <span>Dashboard</span></a>
             </li>
+            @endif
+            @if (Gate::allows('isManager'))
+            
+            <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
+                <a class="nav-link"
+                    href="{{ url('dashboardManager') }}"><i class="fas fa-female"></i> <span>Dashboard</span></a>
+            </li>
+            @endif
+           
  
             <li class="menu-header">Select Menu</li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'layout' ? 'active' : '' }}"> --}}
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"
@@ -49,7 +51,6 @@
                 <a class="nav-link"
                     href="{{ url('blank-page') }}"><i class="far fa-square"></i> <span>Blank Page</span></a>
             </li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'bootstrap' ? 'active' : '' }}"> --}}
             <li class="nav-item dropdown">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-th"></i> <span>Bootstrap</span></a>
@@ -137,7 +138,6 @@
                 </ul>
             </li>
             <li class="menu-header">MJM</li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'components' ? 'active' : '' }}"> --}}
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-th-large"></i>
@@ -197,7 +197,6 @@
                     </li>
                 </ul>
             </li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'forms' ? 'active' : '' }}"> --}}
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="far fa-file-alt"></i> <span>Forms</span></a>
@@ -216,7 +215,7 @@
                     </li>
                 </ul>
             </li>
-            {{-- <li class="nav-item dropdown">
+            <li class="nav-item dropdown">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-map-marker-alt"></i> <span>Google
                         Maps</span></a>
@@ -230,8 +229,7 @@
                     <li><a href="gmaps-route.html">Route</a></li>
                     <li><a href="gmaps-simple.html">Simple</a></li>
                 </ul>
-            </li> --}}
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'modules' ? 'active' : '' }}"> --}}
+            </li>
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-plug"></i> <span>Modules</span></a>
@@ -287,7 +285,6 @@
                 </ul>
             </li>
             <li class="menu-header">Pages</li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'auth' ? 'active' : '' }}"> --}}
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="far fa-user"></i> <span>Auth</span></a>
@@ -311,7 +308,6 @@
                 </ul>
             </li>
             <li class="nav-item dropdown ">
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'error' ? 'active' : '' }}"> --}}
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-exclamation"></i>
                     <span>Errors</span></a>
@@ -334,7 +330,6 @@
                     </li>
                 </ul>
             </li>
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'features' ? 'active' : '' }}"> --}}
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-bicycle"></i> <span>Features</span></a>
@@ -371,7 +366,6 @@
             </li>
             <li class="nav-item dropdown">
             <li class="nav-item dropdown">
-            {{-- <li class="nav-item dropdown {{ $type_menu === 'utilities' ? 'active' : '' }}"> --}}
                 <a href="#"
                     class="nav-link has-dropdown"><i class="fas fa-ellipsis-h"></i>
                     <span>Utilities</span></a>
@@ -396,11 +390,11 @@
             </li>
         </ul>
 
-        <div class="hide-sidebar-mini mt-4 mb-4 p-3">
+        {{-- <div class="hide-sidebar-mini mt-4 mb-4 p-3">
             <a href="https://getstisla.com/docs"
                 class="btn btn-primary btn-lg btn-block btn-icon-split">
                 <i class="fas fa-rocket"></i> Documentation
             </a>
-        </div>
+        </div> --}}
     </aside>
 </div>

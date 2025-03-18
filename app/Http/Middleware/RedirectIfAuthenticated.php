@@ -31,6 +31,9 @@ class RedirectIfAuthenticated
         if ($user->can('isManager')) {
             return redirect('/dashboardManager');
         }
+        if ($user->can('isSupervisor')) {
+            return redirect('/dashboardSupervisor');
+        }
 
         // Jika user_type tidak valid, logout dan kembali ke login
         Auth::logout();
