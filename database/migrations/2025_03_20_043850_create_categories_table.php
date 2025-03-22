@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name');                         // Nama kategori
-            $table->text('description')->nullable();        // Deskripsi kategori
-            $table->boolean('is_active')->default(true);    // Status aktif
+            $table->string('name');                         
+            $table->text('description')->nullable();        
+            $table->enum('is_active', ['Active','Inactive']);    
             $table->timestamps();
         });
     }

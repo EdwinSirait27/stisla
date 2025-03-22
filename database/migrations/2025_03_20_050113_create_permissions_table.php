@@ -13,11 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('device_id')->unique(); 
+            $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      *
@@ -25,8 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('permissions');
     }
 };

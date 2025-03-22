@@ -70,7 +70,7 @@ class LoginController extends Controller
                     $user->remember_me = $user->getRememberToken();
                     $user->save();
                 }
-                
+            
                 $dashboards = [
                     'isManager' => 'pages.dashboardManager',
                     'isKasir' => 'pages.dashboardKasir',

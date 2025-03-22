@@ -13,16 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('permission', function (Blueprint $table) {
+        Schema::create('members', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained();    
-            $table->string('maclan');                         
-            $table->text('macwifi')->nullable();              
-            $table->enum('status')->nullable();              
+            $table->string('code_member')->unique()->nullable();
+            $table->enum('member',['Bronze','Silver','Gold','Guide'])->nullable();        
+            $table->string('name')->nullable();        
+            $table->string('address');   
+            $table->string('telph')->nullable();
+            $table->string('point')->nullable();
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      *
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permission');
+        Schema::dropIfExists('members');
     }
 };

@@ -13,7 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN role SET('Admin', 'Kasir', 'Supervisor', 'Manager') DEFAULT 'Kasir'");
+        Schema::table('permissions', function (Blueprint $table) {
+            $table->uuid('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+         
+        });   
     }
 
     /**
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN role SET('Admin', 'Kasir', 'Manager') DEFAULT 'Kasir'");
+        //
     }
 };
