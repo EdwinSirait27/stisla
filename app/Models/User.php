@@ -11,26 +11,37 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 
 
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasUuids;
-
+    public $incrementing = false; // Nonaktifkan auto-increment
+    protected $keyType = 'string'; // Pastikan tipe data adalah string
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
+        'permission_id',
         'name',
-        'username',
         'username',
         'password',
         'user_type',
         'role',
         'phone',
-        'is_active',
+        'status',
     ];
-
+    
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (!$model->id) {
+                $model->id = Str::uuid();
+            }
+        });
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -51,16 +62,7 @@ class User extends Authenticatable
 
         'email_verified_at' => 'datetime',
     ];
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
-        });
-    }
+    
         public function findForAuth($username)
     {
         return $this->where('username', $username)->first();
@@ -68,6 +70,10 @@ class User extends Authenticatable
     public function Sales()
     {
         return $this->hasMany(Sale::class);
+    }
+    public function Permissions()
+    {
+        return $this->belongsTo(Permission::class);
     }
 
     // Relasi ke tabel StockAdjustment
@@ -86,3 +92,5 @@ class User extends Authenticatable
 
 
 }
+
+

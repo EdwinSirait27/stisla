@@ -13,11 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('permissions', function (Blueprint $table) {
-            $table->uuid('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
-         
-        });   
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('phone')->after('permission_id')->nullable();
+            $table->string('name')->before('permission_id')->nullable();
+            
+        });
+               
     }
 
     /**

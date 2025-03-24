@@ -13,12 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('name');                         
-            $table->text('description')->nullable();        
-            $table->enum('is_active', ['Active','Inactive']);    
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('remember_token')->after('status')->nullable();
+            
         });
     }
 
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('categories');
+        //
     }
 };
