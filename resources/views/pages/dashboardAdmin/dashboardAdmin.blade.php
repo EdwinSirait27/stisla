@@ -1102,6 +1102,10 @@
                                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                                     Account Creation</th>
                                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                    MAC Wifi</th>
+                                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                                    MAC Lan</th>
+                                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                                     Action</th>
                                             </tr>
                                         </thead>
@@ -1186,6 +1190,16 @@
                     {
                         data: 'created_at',
                         name: 'created_at',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'device_wifi_mac',
+                        name: 'device_wifi_mac',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'device_lan_mac',
+                        name: 'device_lan_mac',
                         className: 'text-center'
                     },
                     {

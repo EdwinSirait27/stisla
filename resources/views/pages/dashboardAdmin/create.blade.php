@@ -446,6 +446,42 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="device_lan_mac" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control" value="{{ old('device_lan_mac', $user->Permissions->device_lan_mac ?? '') }}"
+                                                            type="text" id="device_lan_mac" name="device_lan_mac" value="{{ old('device_lan_mac') }}"aria-describedby="info-device_lan_mac"
+                                                            maxlength="255" required placeholder="Insert Mac Lan">
+                                                        @error('device_lan_mac')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="device_wifi_mac" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control" value="{{ old('device_wifi_mac', $user->Permissions->device_wifi_mac ?? '') }}"
+                                                            type="text" id="device_wifi_mac" name="device_wifi_mac" value="{{ old('device_wifi_mac') }}"aria-describedby="info-device_wifi_mac"
+                                                            maxlength="255" required placeholder="Insert Mac Lan">
+                                                        @error('device_wifi_mac')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

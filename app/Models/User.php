@@ -73,7 +73,7 @@ class User extends Authenticatable
     }
     public function Permissions()
     {
-        return $this->belongsTo(Permission::class);
+        return $this->belongsTo(Permission::class,'permission_id');
     }
 
     // Relasi ke tabel StockAdjustment
@@ -87,7 +87,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Purchase::class);
     }
-
+    public function Activity()
+    {
+        return $this->hasMany(Activity::class, 'user_id', 'id');
+    }
 
 
 

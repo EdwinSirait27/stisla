@@ -5,17 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Illuminate\Notifications\Notifiable;
-class Permission extends Model
-{
-    use HasFactory, Notifiable;
 
-    public $incrementing = false; // Nonaktifkan auto-increment
+
+class Activity extends Model
+{
+    use HasFactory;
+    public $incrementing = false; 
+    protected $table = 'activity'; // Tentukan nama tabel secara eksplisit
+
+   
     protected $keyType = 'string'; // Pastikan tipe data adalah string
     protected $fillable = [
-        'id', 'device_wifi_mac', 'device_lan_mac'
+        'user_id',
+        'activity_type',
+        'activity_time',
     ];
-
     protected static function boot()
     {
         parent::boot();
@@ -25,9 +29,9 @@ class Permission extends Model
             }
         });
     }
-    public function users()
+
+    public function user()
     {
-        return $this->hasOne(User::class, 'permission_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
- 
 }

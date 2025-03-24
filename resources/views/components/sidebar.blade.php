@@ -15,7 +15,11 @@
             
             <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('dashboardAdmin') }}"><i class="far fa-male"></i> <span>Dashboard</span></a>
+                    href="{{ url('dashboardAdmin') }}"><i class="fas fa-male"></i> <span>Dashboard</span></a>
+            </li>
+            <li class="{{ Request::is('Activity') ? 'active' : '' }}">
+                <a class="nav-link"
+                    href="{{ url('Activity') }}"><i class="fas fa-female"></i> <span>Activity Log</span></a>
             </li>
             @endif
             @if (Gate::allows('isManager'))

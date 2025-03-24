@@ -5,6 +5,7 @@ use App\Http\Controllers\dashboardManagerController;
 use App\Http\Controllers\dashboardKasirController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ActivityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,21 +24,21 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
 
 
 
-    // Route::middleware(['auth'])->group(function () {
-    //     Route::get('/cek', function () {
-    //         dd(auth()->user()->user_type);
-    //     });
-    // });
-    // Route::get('/debug', function () {
-    //     return auth()->check() ? 'User is logged in as ' . auth()->user()->user_type : 'User is NOT logged in';
-    // });
 Route::middleware(['can:isAdmin', 'auth'])->group(function () {
+    //   dashboardadmin
     Route::get('/dashboardAdmin', [dashboardAdminController::class, 'index'])->name('pages.dashboardAdmin');
     Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create');
     Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store');
     Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
     Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
     Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+    // activity log
+    Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
+    Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
+    Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
+    Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
+
+
 });
 Route::middleware(['can:isManager', 'auth'])->group(function () {
     Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
