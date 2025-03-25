@@ -420,6 +420,75 @@ protected function logoutOtherDevices($user)
     // Optional: Terminate session lain jika perlu
     Session::getHandler()->destroy($user->session_id);
 }
+
+/**
+     * Mendapatkan semua MAC addresses dari perangkat
+     * 
+     * @return array
+     */
+    private function getAllMacAddresses()
+    {
+        $macAddresses = [];
+
+        // Deteksi berdasarkan sistem operasi
+        if (PHP_OS_FAMILY === 'Windows') {
+            // Windows - gunakan ipconfig
+            $output = [];
+            exec('ipconfig /all', $output);
+
+            foreach ($output as $line) {
+                // Format dengan dash: xx-xx-xx-xx-xx-xx
+                if (preg_match('/Physical Address.*: ([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})/i', $line, $matches)) {
+                    // Konversi format MAC dari xx-xx-xx-xx-xx-xx menjadi xx:xx:xx:xx:xx:xx untuk konsistensi
+                    $mac = str_replace('-', ':', $matches[1]);
+                    $macAddresses[] = ($mac);
+                }
+
+                // Format dengan colon: xx:xx:xx:xx:xx:xx
+                if (preg_match('/Physical Address.*: ([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $line, $matches)) {
+                    $macAddresses[] = ($matches[1]);
+                }
+            }
+        } else {
+            // Linux/Unix/macOS - gunakan ifconfig atau ip
+            if ($this->command_exists('ifconfig')) {
+                $output = [];
+                exec('ifconfig', $output);
+                $outputStr = implode(' ', $output);
+
+                if (preg_match_all('/([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $outputStr, $matches)) {
+                    foreach ($matches[1] as $mac) {
+                        $macAddresses[] = ($mac);
+                    }
+                }
+            } elseif ($this->command_exists('ip')) {
+                $output = [];
+                exec('ip link', $output);
+                $outputStr = implode(' ', $output);
+
+                if (preg_match_all('/([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $outputStr, $matches)) {
+                    foreach ($matches[1] as $mac) {
+                        $macAddresses[] = ($mac);
+                    }
+                }
+            }
+        }
+
+        // Hapus duplikat dan kembalikan hasilnya
+        return array_unique($macAddresses);
+    }
+
+    /**
+     * Memeriksa apakah perintah tertentu tersedia
+     * 
+     * @param string $cmd
+     * @return bool
+     */
+    private function command_exists($cmd)
+    {
+        $return = shell_exec(sprintf("which %s 2>/dev/null", escapeshellarg($cmd)));
+        return !empty($return);
+    }
     public function destroy(Request $request)
     {
 
