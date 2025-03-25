@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Models\Permission;
 use App\Models\Activity;
@@ -23,217 +24,402 @@ class LoginController extends Controller
     }
 
 
+    // public function store(Request $request)
+    // {
+    //     // Validasi tetap sama
+    //     $attributes = $request->validate([
+    //         'username' => [
+    //             'required',
+    //             'string',
+    //             'min:7', // Diubah untuk konsisten dengan pesan error
+    //             'max:12',
+    //             'regex:/^[a-zA-Z0-9_-]+$/',
+    //             new NoXSSInput(),
+    //             function ($attribute, $value, $fail) {
+    //                 if (strip_tags($value) !== $value) {
+    //                     $fail("Input $attribute mengandung tag HTML yang tidak diperbolehkan.");
+    //                 }
+    //             }
+    //         ],
+    //         'password' => [
+    //             'required',
+    //             'string',
+    //             'min:4', // Diubah untuk konsisten dengan pesan error
+    //             'max:12',
+    //         ],
+    //     ], [
+    //         'username.required' => 'Username is required.',
+    //         'username.min' => 'Username must be at least 7 characters.',
+    //         'username.max' => 'Username cannot be more than 12 characters.',
+    //         'password.required' => 'Password is required.',
+    //         'password.min' => 'Password must be at least 7 characters.',
+    //         'password.max' => 'Password cannot be more than 12 characters.',
+    //     ]);
+    //     // Rate limiting tetap sama
+    //     $normalizedUsername = strtolower($request->username);
+    //     $rateLimiterKey = "/:{$request->ip()}:{$normalizedUsername}";
+
+    //     if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+    //         Log::warning("Rate limiter triggered for username: {$normalizedUsername}");
+    //         return back()->withErrors(['/' => 'Terlalu banyak percobaan login. Silakan coba lagi nanti.']);
+    //     }
+
+    //     try {
+    //         $attributes['username'] = $normalizedUsername;
+
+    //         if (!Auth::attempt($attributes, $request->boolean('remember'))) {
+    //             Log::warning("Failed login attempt for username: {$normalizedUsername}");
+    //             RateLimiter::hit($rateLimiterKey, 60);
+    //             return back()->withErrors(['/' => 'Username atau Password salah.']);
+    //         }
+
+    //         $request->session()->regenerate();
+    //         RateLimiter::clear($rateLimiterKey);
+
+    //         $user = Auth::user();
+
+    //         // Daftar role yang boleh bypass MAC check
+    //         $privilegedRoles = [
+    //             'Admin',
+    //             'Head Warehouse',
+    //             'Head Buyer',
+    //             'Head Finance',
+    //             'GM',
+    //             'Finance',
+    //             'Buyer',
+    //             'Warehouse'
+    //         ];
+
+    //         // Role yang harus selalu cek MAC (termasuk Manager Store)
+    //         $mustCheckMacRoles = [
+    //             'Manager Store',
+    //             'Supervisor Store',
+    //             'Cashier Store'
+    //         ];
+
+    //         // Logika pengecekan MAC
+    //         $shouldCheckMac = !in_array($user->user_type, $privilegedRoles) ||
+    //             in_array($user->user_type, $mustCheckMacRoles);
+
+    //         if ($shouldCheckMac) {
+    //             $macAddresses = $this->getAllMacAddresses();
+
+    //             if (empty($macAddresses)) {
+    //                 Log::warning("No MAC addresses detected for IP: {$request->ip()}");
+    //                 Auth::logout();
+    //                 return back()->withErrors(['/' => 'Gagal mendapatkan identitas perangkat. Silakan hubungi administrator.'])->withInput();
+    //             }
+
+    //             Log::info("Detected MAC addresses: " . implode(', ', $macAddresses));
+
+    //             $permission = null;
+    //             foreach ($macAddresses as $mac) {
+    //                 $normalizedMac = str_replace(':', '-', strtoupper($mac));
+    //                 $permission = Permission::where('device_wifi_mac', $normalizedMac)
+    //                     ->orWhere('device_lan_mac', $normalizedMac)
+    //                     ->first();
+
+    //                 if ($permission)
+    //                     break;
+    //             }
+
+    //             if (!$permission) {
+    //                 Log::warning("Unauthorized device attempt from IP: {$request->ip()}");
+    //                 Auth::logout();
+    //                 return back()->withErrors(['/' => 'Perangkat ini tidak diizinkan untuk login.'])->withInput();
+    //             }
+
+    //             Log::info("User {$normalizedUsername} passed MAC address verification");
+    //         } else {
+    //             Log::info("Bypassed MAC check for privileged user: {$normalizedUsername}");
+    //         }
+
+    //         // Set remember token
+    //         if ($request->boolean('remember')) {
+    //             $user->setRememberToken(Str::random(60));
+    //             $user->save();
+    //         }
+
+    //         // Redirect berdasarkan role
+    //         $dashboardRoutes = [
+    //             'isAdmin' => 'pages.dashboardAdmin',
+    //             'isHead Warehouse' => 'pages.dashboarHeadWarehouse',
+    //             'isHead Buyer' => 'pages.dashboardHeadBuyer',
+    //             'isKasir' => 'pages.dashboardKasir',
+    //             'isSupervisor' => 'pages.dashboardSupervisor',
+    //             'isManager Store' => 'pages.dashboardManagerStore' // Pastikan ada route ini
+    //         ];
+
+    //         foreach ($dashboardRoutes as $gate => $route) {
+    //             if (Gate::allows($gate, $user)) {
+    //                 Log::info("User {$normalizedUsername} logged in with role: {$user->user_type}");
+    //                 return redirect()->route($route)->with('success', 'Anda berhasil login, semangat bekerja!!!');
+    //             }
+    //         }
+
+    //         // Fallback untuk role tidak dikenal
+    //         Log::warning("User {$normalizedUsername} has no valid role assigned");
+    //         Auth::logout();
+    //         return redirect('/')->with('warning', 'Akun Anda tidak memiliki peran yang valid.');
+
+    //     } catch (\Exception $e) {
+    //         Log::error("Login error: " . $e->getMessage());
+    //         return back()->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
+    //     }
+    // }
+    // /**
+    //  * Mendapatkan semua MAC addresses dari perangkat
+    //  * 
+    //  * @return array
+    //  */
+    // private function getAllMacAddresses()
+    // {
+    //     $macAddresses = [];
+
+    //     // Deteksi berdasarkan sistem operasi
+    //     if (PHP_OS_FAMILY === 'Windows') {
+    //         // Windows - gunakan ipconfig
+    //         $output = [];
+    //         exec('ipconfig /all', $output);
+
+    //         foreach ($output as $line) {
+    //             // Format dengan dash: xx-xx-xx-xx-xx-xx
+    //             if (preg_match('/Physical Address.*: ([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})/i', $line, $matches)) {
+    //                 // Konversi format MAC dari xx-xx-xx-xx-xx-xx menjadi xx:xx:xx:xx:xx:xx untuk konsistensi
+    //                 $mac = str_replace('-', ':', $matches[1]);
+    //                 $macAddresses[] = ($mac);
+    //             }
+
+    //             // Format dengan colon: xx:xx:xx:xx:xx:xx
+    //             if (preg_match('/Physical Address.*: ([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $line, $matches)) {
+    //                 $macAddresses[] = ($matches[1]);
+    //             }
+    //         }
+    //     } else {
+    //         // Linux/Unix/macOS - gunakan ifconfig atau ip
+    //         if ($this->command_exists('ifconfig')) {
+    //             $output = [];
+    //             exec('ifconfig', $output);
+    //             $outputStr = implode(' ', $output);
+
+    //             if (preg_match_all('/([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $outputStr, $matches)) {
+    //                 foreach ($matches[1] as $mac) {
+    //                     $macAddresses[] = ($mac);
+    //                 }
+    //             }
+    //         } elseif ($this->command_exists('ip')) {
+    //             $output = [];
+    //             exec('ip link', $output);
+    //             $outputStr = implode(' ', $output);
+
+    //             if (preg_match_all('/([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $outputStr, $matches)) {
+    //                 foreach ($matches[1] as $mac) {
+    //                     $macAddresses[] = ($mac);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // Hapus duplikat dan kembalikan hasilnya
+    //     return array_unique($macAddresses);
+    // }
+
+    // /**
+    //  * Memeriksa apakah perintah tertentu tersedia
+    //  * 
+    //  * @param string $cmd
+    //  * @return bool
+    //  */
+    // private function command_exists($cmd)
+    // {
+    //     $return = shell_exec(sprintf("which %s 2>/dev/null", escapeshellarg($cmd)));
+    //     return !empty($return);
+    // }
     public function store(Request $request)
-    {
-        // Validasi tetap sama
-        $attributes = $request->validate([
-            'username' => [
-                'required',
-                'string',
-                'min:7', // Diubah untuk konsisten dengan pesan error
-                'max:12',
-                'regex:/^[a-zA-Z0-9_-]+$/',
-                new NoXSSInput(),
-                function ($attribute, $value, $fail) {
-                    if (strip_tags($value) !== $value) {
-                        $fail("Input $attribute mengandung tag HTML yang tidak diperbolehkan.");
-                    }
-                }
-            ],
-            'password' => [
-                'required',
-                'string',
-                'min:4', // Diubah untuk konsisten dengan pesan error
-                'max:12',
-            ],
-        ], [
-            'username.required' => 'Username is required.',
-            'username.min' => 'Username must be at least 7 characters.',
-            'username.max' => 'Username cannot be more than 12 characters.',
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 7 characters.',
-            'password.max' => 'Password cannot be more than 12 characters.',
-        ]);
-        // Rate limiting tetap sama
-        $normalizedUsername = strtolower($request->username);
-        $rateLimiterKey = "/:{$request->ip()}:{$normalizedUsername}";
-
-        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
-            Log::warning("Rate limiter triggered for username: {$normalizedUsername}");
-            return back()->withErrors(['/' => 'Terlalu banyak percobaan login. Silakan coba lagi nanti.']);
-        }
-
-        try {
-            $attributes['username'] = $normalizedUsername;
-
-            if (!Auth::attempt($attributes, $request->boolean('remember'))) {
-                Log::warning("Failed login attempt for username: {$normalizedUsername}");
-                RateLimiter::hit($rateLimiterKey, 60);
-                return back()->withErrors(['/' => 'Username atau Password salah.']);
-            }
-
-            $request->session()->regenerate();
-            RateLimiter::clear($rateLimiterKey);
-
-            $user = Auth::user();
-
-            // Daftar role yang boleh bypass MAC check
-            $privilegedRoles = [
-                'Admin',
-                'Head Warehouse',
-                'Head Buyer',
-                'Head Finance',
-                'GM',
-                'Finance',
-                'Buyer',
-                'Warehouse'
-            ];
-
-            // Role yang harus selalu cek MAC (termasuk Manager Store)
-            $mustCheckMacRoles = [
-                'Manager Store',
-                'Supervisor Store',
-                'Cashier Store'
-            ];
-
-            // Logika pengecekan MAC
-            $shouldCheckMac = !in_array($user->user_type, $privilegedRoles) ||
-                in_array($user->user_type, $mustCheckMacRoles);
-
-            if ($shouldCheckMac) {
-                $macAddresses = $this->getAllMacAddresses();
-
-                if (empty($macAddresses)) {
-                    Log::warning("No MAC addresses detected for IP: {$request->ip()}");
-                    Auth::logout();
-                    return back()->withErrors(['/' => 'Gagal mendapatkan identitas perangkat. Silakan hubungi administrator.'])->withInput();
-                }
-
-                Log::info("Detected MAC addresses: " . implode(', ', $macAddresses));
-
-                $permission = null;
-                foreach ($macAddresses as $mac) {
-                    $normalizedMac = str_replace(':', '-', strtoupper($mac));
-                    $permission = Permission::where('device_wifi_mac', $normalizedMac)
-                        ->orWhere('device_lan_mac', $normalizedMac)
-                        ->first();
-
-                    if ($permission)
-                        break;
-                }
-
-                if (!$permission) {
-                    Log::warning("Unauthorized device attempt from IP: {$request->ip()}");
-                    Auth::logout();
-                    return back()->withErrors(['/' => 'Perangkat ini tidak diizinkan untuk login.'])->withInput();
-                }
-
-                Log::info("User {$normalizedUsername} passed MAC address verification");
-            } else {
-                Log::info("Bypassed MAC check for privileged user: {$normalizedUsername}");
-            }
-
-            // Set remember token
-            if ($request->boolean('remember')) {
-                $user->setRememberToken(Str::random(60));
-                $user->save();
-            }
-
-            // Redirect berdasarkan role
-            $dashboardRoutes = [
-                'isAdmin' => 'pages.dashboardAdmin',
-                'isHead Warehouse' => 'pages.dashboarHeadWarehouse',
-                'isHead Buyer' => 'pages.dashboardHeadBuyer',
-                'isKasir' => 'pages.dashboardKasir',
-                'isSupervisor' => 'pages.dashboardSupervisor',
-                'isManager Store' => 'pages.dashboardManagerStore' // Pastikan ada route ini
-            ];
-
-            foreach ($dashboardRoutes as $gate => $route) {
-                if (Gate::allows($gate, $user)) {
-                    Log::info("User {$normalizedUsername} logged in with role: {$user->user_type}");
-                    return redirect()->route($route)->with('success', 'Anda berhasil login, semangat bekerja!!!');
+{
+    // Validasi tetap sama
+    $attributes = $request->validate([
+        'username' => [
+            'required',
+            'string',
+            'min:7',
+            'max:12',
+            'regex:/^[a-zA-Z0-9_-]+$/',
+            new NoXSSInput(),
+            function ($attribute, $value, $fail) {
+                if (strip_tags($value) !== $value) {
+                    $fail("Input $attribute mengandung tag HTML yang tidak diperbolehkan.");
                 }
             }
+        ],
+        'password' => [
+            'required',
+            'string',
+            'min:4',
+            'max:12',
+        ],
+    ], [
+        'username.required' => 'Username is required.',
+        'username.min' => 'Username must be at least 7 characters.',
+        'username.max' => 'Username cannot be more than 12 characters.',
+        'password.required' => 'Password is required.',
+        'password.min' => 'Password must be at least 7 characters.',
+        'password.max' => 'Password cannot be more than 12 characters.',
+    ]);
 
-            // Fallback untuk role tidak dikenal
-            Log::warning("User {$normalizedUsername} has no valid role assigned");
-            Auth::logout();
-            return redirect('/')->with('warning', 'Akun Anda tidak memiliki peran yang valid.');
+    // Rate limiting tetap sama
+    $normalizedUsername = strtolower($request->username);
+    $rateLimiterKey = "/:{$request->ip()}:{$normalizedUsername}";
 
-        } catch (\Exception $e) {
-            Log::error("Login error: " . $e->getMessage());
-            return back()->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
-        }
+    if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+        Log::warning("Rate limiter triggered for username: {$normalizedUsername}");
+        return back()->withErrors(['/' => 'Terlalu banyak percobaan login. Silakan coba lagi nanti.']);
     }
-    /**
-     * Mendapatkan semua MAC addresses dari perangkat
-     * 
-     * @return array
-     */
-    private function getAllMacAddresses()
-    {
-        $macAddresses = [];
 
-        // Deteksi berdasarkan sistem operasi
-        if (PHP_OS_FAMILY === 'Windows') {
-            // Windows - gunakan ipconfig
-            $output = [];
-            exec('ipconfig /all', $output);
+    try {
+        $attributes['username'] = $normalizedUsername;
 
-            foreach ($output as $line) {
-                // Format dengan dash: xx-xx-xx-xx-xx-xx
-                if (preg_match('/Physical Address.*: ([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})/i', $line, $matches)) {
-                    // Konversi format MAC dari xx-xx-xx-xx-xx-xx menjadi xx:xx:xx:xx:xx:xx untuk konsistensi
-                    $mac = str_replace('-', ':', $matches[1]);
-                    $macAddresses[] = ($mac);
-                }
+        if (!Auth::attempt($attributes, $request->boolean('remember'))) {
+            Log::warning("Failed login attempt for username: {$normalizedUsername}");
+            RateLimiter::hit($rateLimiterKey, 60);
+            return back()->withErrors(['/' => 'Username atau Password salah.']);
+        }
 
-                // Format dengan colon: xx:xx:xx:xx:xx:xx
-                if (preg_match('/Physical Address.*: ([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $line, $matches)) {
-                    $macAddresses[] = ($matches[1]);
-                }
+        $request->session()->regenerate();
+        RateLimiter::clear($rateLimiterKey);
+
+        $user = Auth::user();
+        $currentSessionId = $request->session()->getId();
+
+        // =============================================
+        // PENAMBAHAN FITUR SINGLE LOGIN DENGAN UUID
+        // =============================================
+        
+        // Cek apakah user sudah memiliki sesi aktif di perangkat lain
+        if ($user->session_id && $user->session_id !== $currentSessionId) {
+            // Jika user tidak memilih "force login", tampilkan konfirmasi
+            if (!$request->has('force_login')) {
+                Auth::logout();
+                return back()->with('confirm_force_login', [
+                    'message' => 'Anda sudah login di perangkat lain. Lanjutkan akan logout dari perangkat tersebut?',
+                    'username' => $request->username,
+                    'password' => $request->password,
+                    'remember' => $request->boolean('remember')
+                ]);
             }
+            
+            // Jika memilih "Ya", hapus sesi lama
+            $this->logoutOtherDevices($user);
+        }
+
+        // Simpan session ID baru (UUID)
+        $user->update(['session_id' => $currentSessionId]);
+        
+        // =============================================
+        // LANJUTAN LOGIKA SEBELUMNYA
+        // =============================================
+
+        // Daftar role yang boleh bypass MAC check
+        $privilegedRoles = [
+            'Admin',
+            'Head Warehouse',
+            'Head Buyer',
+            'Head Finance',
+            'GM',
+            'Finance',
+            'Buyer',
+            'Warehouse'
+        ];
+
+        // Role yang harus selalu cek MAC (termasuk Manager Store)
+        $mustCheckMacRoles = [
+            'Manager Store',
+            'Supervisor Store',
+            'Cashier Store'
+        ];
+
+        // Logika pengecekan MAC
+        $shouldCheckMac = !in_array($user->user_type, $privilegedRoles) ||
+            in_array($user->user_type, $mustCheckMacRoles);
+
+        if ($shouldCheckMac) {
+            $macAddresses = $this->getAllMacAddresses();
+
+            if (empty($macAddresses)) {
+                Log::warning("No MAC addresses detected for IP: {$request->ip()}");
+                Auth::logout();
+                return back()->withErrors(['/' => 'Gagal mendapatkan identitas perangkat. Silakan hubungi administrator.'])->withInput();
+            }
+
+            Log::info("Detected MAC addresses: " . implode(', ', $macAddresses));
+
+            $permission = null;
+            foreach ($macAddresses as $mac) {
+                $normalizedMac = str_replace(':', '-', strtoupper($mac));
+                $permission = Permission::where('device_wifi_mac', $normalizedMac)
+                    ->orWhere('device_lan_mac', $normalizedMac)
+                    ->first();
+
+                if ($permission)
+                    break;
+            }
+
+            if (!$permission) {
+                Log::warning("Unauthorized device attempt from IP: {$request->ip()}");
+                Auth::logout();
+                return back()->withErrors(['/' => 'Perangkat ini tidak diizinkan untuk login.'])->withInput();
+            }
+
+            Log::info("User {$normalizedUsername} passed MAC address verification");
         } else {
-            // Linux/Unix/macOS - gunakan ifconfig atau ip
-            if ($this->command_exists('ifconfig')) {
-                $output = [];
-                exec('ifconfig', $output);
-                $outputStr = implode(' ', $output);
+            Log::info("Bypassed MAC check for privileged user: {$normalizedUsername}");
+        }
 
-                if (preg_match_all('/([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $outputStr, $matches)) {
-                    foreach ($matches[1] as $mac) {
-                        $macAddresses[] = ($mac);
-                    }
-                }
-            } elseif ($this->command_exists('ip')) {
-                $output = [];
-                exec('ip link', $output);
-                $outputStr = implode(' ', $output);
+        // Set remember token
+        if ($request->boolean('remember')) {
+            $user->setRememberToken(Str::random(60));
+            $user->save();
+        }
 
-                if (preg_match_all('/([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})/i', $outputStr, $matches)) {
-                    foreach ($matches[1] as $mac) {
-                        $macAddresses[] = ($mac);
-                    }
-                }
+        // Redirect berdasarkan role
+        $dashboardRoutes = [
+            'isAdmin' => 'pages.dashboardAdmin',
+            'isHead Warehouse' => 'pages.dashboarHeadWarehouse',
+            'isHead Buyer' => 'pages.dashboardHeadBuyer',
+            'isKasir' => 'pages.dashboardKasir',
+            'isSupervisor' => 'pages.dashboardSupervisor',
+            'isManager Store' => 'pages.dashboardManagerStore'
+        ];
+
+        foreach ($dashboardRoutes as $gate => $route) {
+            if (Gate::allows($gate, $user)) {
+                Log::info("User {$normalizedUsername} logged in with role: {$user->user_type}");
+                return redirect()->route($route)->with('success', 'Anda berhasil login, semangat bekerja!!!');
             }
         }
 
-        // Hapus duplikat dan kembalikan hasilnya
-        return array_unique($macAddresses);
-    }
+        // Fallback untuk role tidak dikenal
+        Log::warning("User {$normalizedUsername} has no valid role assigned");
+        Auth::logout();
+        return redirect('/')->with('warning', 'Akun Anda tidak memiliki peran yang valid.');
 
-    /**
-     * Memeriksa apakah perintah tertentu tersedia
-     * 
-     * @param string $cmd
-     * @return bool
-     */
-    private function command_exists($cmd)
-    {
-        $return = shell_exec(sprintf("which %s 2>/dev/null", escapeshellarg($cmd)));
-        return !empty($return);
+    } catch (\Exception $e) {
+        Log::error("Login error: " . $e->getMessage());
+        return back()->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
     }
+}
+
+/**
+ * Logout dari perangkat lain
+ */
+protected function logoutOtherDevices($user)
+{
+    // Hapus session ID dari database
+    $user->update(['session_id' => null]);
+    
+    // Optional: Terminate session lain jika perlu
+    Session::getHandler()->destroy($user->session_id);
+}
     public function destroy(Request $request)
     {
 
