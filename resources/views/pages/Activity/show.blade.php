@@ -333,6 +333,8 @@
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Activity Type</th>
                                                 <th class="text-center">Activity Time</th>
+                                                <th class="text-center">Mac Wifi</th>
+                                                <th class="text-center">Mac Lan</th>
                                             </tr>
                                         </thead>
                                     </table>
@@ -434,7 +436,24 @@
                         data: 'activity_time',
                         name: 'activity_time',
                         className: 'text-center align-middle'
-                    }
+                    },
+                    {
+    data: 'device_wifi_mac',
+    name: 'device_wifi_mac',
+    className: 'text-center align-middle',
+    render: function(data, type, row) {
+        return data === null ? 'Empty' : data;
+    }
+},
+{
+    data: 'device_lan_mac',
+    name: 'device_lan_mac',
+    className: 'text-center align-middle',
+    render: function(data, type, row) {
+        return data === null ? 'Empty' : data;
+    }
+}
+
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');

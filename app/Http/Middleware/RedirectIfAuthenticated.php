@@ -28,7 +28,7 @@ class RedirectIfAuthenticated
         if ($user->can('isKasir')) {
             return redirect('/dashboardKasir');
         }
-        if ($user->can('isManager')) {
+        if ($user->can('isManager Store')) {
             return redirect('/dashboardManager');
         }
         if ($user->can('isSupervisor')) {

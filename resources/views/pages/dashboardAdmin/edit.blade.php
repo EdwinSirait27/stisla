@@ -546,7 +546,7 @@
                                                     </label>
                                                     <div class="@error('user_type') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="user_type" id="user_type" required>
-                                                            <option value="" disabled
+                                                            {{-- <option value="" disabled
                                                                 {{ old('user_type', $user->user_type ?? '') == '' ? 'selected' : '' }}>
                                                                 Select Access Rights</option>
                                                             <option value="Admin"
@@ -557,7 +557,11 @@
                                                                 Manager</option>
                                                             <option value="Kasir"
                                                                 {{ old('user_type', $user->user_type ?? '') == 'Kasir' ? 'selected' : '' }}>
-                                                                Kasir</option>
+                                                                Kasir</option> --}}
+                                                                <option value="" disabled {{ $selectedUserType == '' ? 'selected' : '' }}>Choose Access Rights</option>
+                                                                @foreach ($userTypes as $type)
+                                                                    <option value="{{ $type }}" {{ $selectedUserType == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                                                @endforeach
                                                         </select>
                                                         @error('user_type')
                                                             <span class="invalid-feedback" role="alert">
@@ -576,12 +580,9 @@
                                                         <i class="fas fa-user-tag"></i> {{ __('Role') }}
                                                     </label>
                                                     <div class="@error('role') border border-danger rounded-3 p-3 @enderror">
-                                                        @php
-                                                            $roles = ['Admin', 'Manager', 'Kasir'];
-                                                            $selectedRoles = old('role', explode(',', $user->role ?? ''));
-                                                        @endphp
+                                                      
 
-                                                        @foreach ($roles as $role)
+                                                        @foreach ($allRoles as $role)
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="checkbox" name="role[]"
                                                                     id="role_{{ $role }}" value="{{ $role }}"
@@ -657,6 +658,40 @@
                                                 </div>
                                             </div>
                                          </div>
+                                        <div class="row mt-3">
+                                         <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="status" class="form-control-label">
+                                                    <i class="fas fa-shield-alt"></i> {{ __('Status') }}
+                                                </label>
+                                                <div class="@error('status') border border-danger rounded-3 @enderror">
+                                                    <select class="form-control" name="status" id="status" required>
+                                                        {{-- <option value="" disabled
+                                                            {{ old('user_type', $user->user_type ?? '') == '' ? 'selected' : '' }}>
+                                                            Select Access Rights</option>
+                                                        <option value="Admin"
+                                                            {{ old('user_type', $user->user_type ?? '') == 'Admin' ? 'selected' : '' }}>
+                                                            Admin</option>
+                                                        <option value="Manager"
+                                                            {{ old('user_type', $user->user_type ?? '') == 'Manager' ? 'selected' : '' }}>
+                                                            Manager</option>
+                                                        <option value="Kasir"
+                                                            {{ old('user_type', $user->user_type ?? '') == 'Kasir' ? 'selected' : '' }}>
+                                                            Kasir</option> --}}
+                                                            <option value="" disabled {{ $selectedStatusType == '' ? 'selected' : '' }}>Choose Status</option>
+                                                            @foreach ($userStatus as $status)
+                                                                <option value="{{ $status }}" {{ $selectedStatusType == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                                            @endforeach
+                                                    </select>
+                                                    @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

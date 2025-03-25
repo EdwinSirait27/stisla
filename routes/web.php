@@ -40,7 +40,7 @@ Route::middleware(['can:isAdmin', 'auth'])->group(function () {
 
 
 });
-Route::middleware(['can:isManager', 'auth'])->group(function () {
+Route::middleware(['can:isManager Store', 'auth'])->group(function () {
     Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
 });
 Route::middleware(['can:isKasir', 'auth'])->group(function () {

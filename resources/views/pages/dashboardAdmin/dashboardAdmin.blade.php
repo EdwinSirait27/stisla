@@ -408,7 +408,7 @@
     <!-- Script Libraries -->
     <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="{{ asset('library/sweetalert/dist/sweetalert.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
         $(document).ready(function() {
@@ -491,5 +491,13 @@
                 }
             });
         });
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
     </script>
+   
 @endpush

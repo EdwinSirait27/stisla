@@ -74,7 +74,7 @@ class ActivityController extends Controller
 // }
 public function getActivity1(Request $request)
 {
-    $query = Activity::with('user')->select(['activity_time', 'activity_type']);
+    $query = Activity::with('user')->select(['activity_time', 'activity_type','device_wifi_mac','device_lan_mac']);
     
     // Filter by activity_type jika parameter ada dan valid (Login/Logout)
     if ($request->has('activity_type') && in_array($request->activity_type, ['Login', 'Logout'])) {

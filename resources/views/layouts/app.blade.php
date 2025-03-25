@@ -76,6 +76,7 @@
         let inactivityTime = function() {
             let time;
             
+            // Reset timer pada aktivitas berikut
             window.onload = resetTimer;
             document.onmousemove = resetTimer;
             document.onkeypress = resetTimer;
@@ -89,14 +90,14 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     }
                 }).then(() => {
-                    window.location.href = '/'; 
+                    window.location.href = '/'; // Redirect setelah logout
                 });
             }
             
             function resetTimer() {
                 clearTimeout(time);
-                // Set timeout 15 menit 
-                time = setTimeout(logout, 900000);
+                // Set timeout 1 menit (60000 ms)
+                time = setTimeout(logout, 600000);
             }
         };
         

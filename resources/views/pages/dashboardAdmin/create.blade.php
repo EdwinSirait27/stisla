@@ -184,22 +184,24 @@
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
-                                    <div class="alert alert-danger">
-                                        <ul>
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-                                
+                                        <div class="alert alert-danger">
+                                            <ul>
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+
 
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
@@ -214,9 +216,10 @@
                                                         <i class="fas fa-user"></i> {{ __('Username') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="username" name="username"
-                                                            value="{{ old('username') }}" required
-                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')" placeholder="Fill Username">
+                                                        <input type="text" class="form-control" id="username"
+                                                            name="username" value="{{ old('username') }}" required
+                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')"
+                                                            placeholder="Fill Username">
                                                         @error('username')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -266,39 +269,42 @@
                                                 }
                                             }
                                         </script> --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="password" class="form-control-label">
-                                                    <i class="fas fa-lock"></i> {{ __('Password') }}
-                                                </label>
-                                                <div class="input-group">
-                                                    <input type="password" class="form-control" id="password" name="password"
-                                                        placeholder="Leave blank to keep current password" aria-describedby="password-addon" 
-                                                        maxlength="12" required
-                                                        oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text" onclick="togglePassword()" style="cursor: pointer;">
-                                                            <i id="eyeIcon" class="fa fa-eye"></i>
-                                                        </span>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="password" class="form-control-label">
+                                                        <i class="fas fa-lock"></i> {{ __('Password') }}
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <input type="password" class="form-control" id="password"
+                                                            name="password"
+                                                            placeholder="Leave blank to keep current password"
+                                                            aria-describedby="password-addon" maxlength="12" required
+                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text" onclick="togglePassword()"
+                                                                style="cursor: pointer;">
+                                                                <i id="eyeIcon" class="fa fa-eye"></i>
+                                                            </span>
+                                                        </div>
                                                     </div>
+                                                    <small class="text-muted">
+                                                        Only letters, numbers, underscore, and dash allowed. Max 12
+                                                        characters.
+                                                    </small>
+                                                    @error('password')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
                                                 </div>
-                                                <small class="text-muted">
-                                                    Only letters, numbers, underscore, and dash allowed. Max 12 characters.
-                                                </small>
-                                                @error('password')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
                                             </div>
                                         </div>
-                                    </div>
-                                        
+
                                         <script>
                                             function togglePassword() {
                                                 let passwordInput = document.getElementById('password');
                                                 let eyeIcon = document.getElementById('eyeIcon');
-                                        
+
                                                 if (passwordInput.type === "password") {
                                                     passwordInput.type = "text";
                                                     eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
@@ -308,7 +314,7 @@
                                                 }
                                             }
                                         </script>
-                                        
+
 
 
                                         {{-- <div class="form-group">
@@ -359,8 +365,10 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Full Name') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control" value="{{ old('name', $user->name ?? '') }}"
-                                                            type="text" id="name" name="name" value="{{ old('name') }}"aria-describedby="info-name"
+                                                        <input class="form-control"
+                                                            value="{{ old('name', $user->name ?? '') }}" type="text"
+                                                            id="name" name="name"
+                                                            value="{{ old('name') }}"aria-describedby="info-name"
                                                             maxlength="255" required placeholder="Fill Full Name">
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
@@ -371,7 +379,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="user_type" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Access Rights') }}
@@ -392,7 +400,35 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="user_type" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Access Rights') }}
+                                                    </label>
+                                                    <div
+                                                        class="@error('user_type') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="user_type" id="user_type"
+                                                            required>
+                                                            <option value="" disabled
+                                                                {{ $selectedUserType == '' ? 'selected' : '' }}>Choose
+                                                                Access Rights</option>
+                                                            @foreach ($userTypes as $type)
+                                                                <option value="{{ $type }}"
+                                                                    {{ $selectedUserType == $type ? 'selected' : '' }}>
+                                                                    {{ $type }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('user_type')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
 
                                         <div class="row mt-3">
                                             <div class="col-md-6">
@@ -400,19 +436,22 @@
                                                     <label for="role" class="form-control-label">
                                                         <i class="fas fa-user-tag"></i> {{ __('Role') }}
                                                     </label>
-                                                    <div class="@error('role') border border-danger rounded-3 p-3 @enderror">
-                                                        @php
-                                                        $roles = ['Admin', 'Manager', 'Kasir'];
+                                                    <div
+                                                        class="@error('role') border border-danger rounded-3 p-3 @enderror">
+                                                        {{-- @php
+                                                        // $roles = ['Admin', 'Manager', 'Kasir'];
                                                         // Jika old('Role') sudah berupa array, gunakan langsung, jika tidak, explode dulu
-                                                        $selectedRoles = is_array(old('role')) ? old('role') : (old('role') ? explode(',', old('role')) : []);
-                                                    @endphp
+                                                        // $selectedRoles = is_array(old('role')) ? old('role') : (old('role') ? explode(',', old('role')) : []);
+                                                    @endphp --}}
 
                                                         @foreach ($roles as $role)
                                                             <div class="form-check">
-                                                                <input class="form-check-input" type="checkbox" name="role[]"
-                                                                    id="role_{{ $role }}" value="{{ $role }}"
+                                                                <input class="form-check-input" type="checkbox"
+                                                                    name="role[]" id="role_{{ $role }}"
+                                                                    value="{{ $role }}"
                                                                     {{ in_array($role, $selectedRoles) ? 'checked' : '' }}>
-                                                                <label class="form-check-label" for="role_{{ $role }}">
+                                                                <label class="form-check-label"
+                                                                    for="role_{{ $role }}">
                                                                     {{ $role }}
                                                                 </label>
                                                             </div>
@@ -435,7 +474,8 @@
                                                         <input class="form-control" value="{{ old('phone') }}"
                                                             type="text" id="phone" name="phone"
                                                             aria-describedby="info-phone" maxlength="13" required
-                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Fill Phone Number">
+                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                                            placeholder="Fill Phone Number">
                                                         <small class="text-muted">Numbers only. Max 13 digits.</small>
                                                         @error('phone')
                                                             <span class="invalid-feedback" role="alert">
@@ -453,8 +493,10 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control" value="{{ old('device_lan_mac', $user->Permissions->device_lan_mac ?? '') }}"
-                                                            type="text" id="device_lan_mac" name="device_lan_mac" value="{{ old('device_lan_mac') }}"aria-describedby="info-device_lan_mac"
+                                                        <input class="form-control"
+                                                            value="{{ old('device_lan_mac', $user->Permissions->device_lan_mac ?? '') }}"
+                                                            type="text" id="device_lan_mac" name="device_lan_mac"
+                                                            value="{{ old('device_lan_mac') }}"aria-describedby="info-device_lan_mac"
                                                             maxlength="255" required placeholder="Insert Mac Lan">
                                                         @error('device_lan_mac')
                                                             <span class="invalid-feedback" role="alert">
@@ -470,8 +512,10 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control" value="{{ old('device_wifi_mac', $user->Permissions->device_wifi_mac ?? '') }}"
-                                                            type="text" id="device_wifi_mac" name="device_wifi_mac" value="{{ old('device_wifi_mac') }}"aria-describedby="info-device_wifi_mac"
+                                                        <input class="form-control"
+                                                            value="{{ old('device_wifi_mac', $user->Permissions->device_wifi_mac ?? '') }}"
+                                                            type="text" id="device_wifi_mac" name="device_wifi_mac"
+                                                            value="{{ old('device_wifi_mac') }}"aria-describedby="info-device_wifi_mac"
                                                             maxlength="255" required placeholder="Insert Mac Lan">
                                                         @error('device_wifi_mac')
                                                             <span class="invalid-feedback" role="alert">
@@ -482,7 +526,6 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
@@ -511,21 +554,21 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-          @if (session('success'))
-        Swal.fire({
-            title: 'Berhasil!',
-            text: "{{ session('success') }}",
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
-    @endif
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        @endif
 
-    @if (session('error'))
-        Swal.fire({
-            title: 'Gagal!',
-            text: "{{ session('error') }}",
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-    @endif
-</script>
+        @if (session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>

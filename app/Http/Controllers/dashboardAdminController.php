@@ -20,13 +20,26 @@ class dashboardAdminController extends Controller
         $totaluser = User::count();
         return view('pages.dashboardAdmin.dashboardAdmin');
     }
+    // public function create()
+    // {
+    //     $roles = ['Admin', 'Head Warehouse', 'Warehouse','Head Finance','Finance','Head Buyer','Byuer','GM'];
+
+    //     return view('pages.dashboardAdmin.create', compact('roles'));
+    // }
     public function create()
     {
-        return view('pages.dashboardAdmin.create');
+        $roles = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
+
+        // Mengambil nilai lama dari input 'role' dan memprosesnya
+        $selectedRoles = is_array(old('role')) ? old('role') : (old('role') ? explode(',', old('role')) : []);
+        $userTypes = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
+        $selectedUserType = old('user_type', '');
+        return view('pages.dashboardAdmin.create', compact('roles', 'selectedRoles', 'userTypes', 'selectedUserType'));
     }
+
     public function getUsers()
     {
-        $users = User::with('Permissions')->select(['id', 'name', 'username', 'password', 'phone', 'user_type', 'role', 'permission_id', 'created_at','status'])->get()
+        $users = User::with('Permissions')->select(['id', 'name', 'username', 'password', 'phone', 'user_type', 'role', 'permission_id', 'created_at', 'status'])->get()
             ->map(function ($user) {
                 $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
                 $user->action = '
@@ -55,11 +68,21 @@ class dashboardAdminController extends Controller
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
+        // $roles = explode(',', $user->getRawOriginal('role'));
+        $allRoles = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
+
+        // Role yang dimiliki oleh user
+        // $roles = explode(',', $user->getRawOriginal('role'));
         $roles = explode(',', $user->getRawOriginal('role'));
+        $selectedRoles = old('role', explode(',', $user->role ?? ''));
+        $userTypes = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
+        $selectedUserType = old('user_type', $user->user_type ?? '');
+        $userStatus = ['Active','Inactive'];
+        $selectedStatusType = old('status', $user->status ?? '');
         if (!$user) {
             abort(404, 'User not found.');
         }
-        return view('pages.dashboardAdmin.edit', compact('user', 'hashedId', 'roles'));
+        return view('pages.dashboardAdmin.edit', compact('user', 'hashedId', 'roles','allRoles','selectedRoles','userTypes','selectedUserType','userStatus','selectedStatusType'));
     }
 
     public function update(Request $request, $hashedId)
@@ -79,7 +102,7 @@ class dashboardAdminController extends Controller
             'device_lan_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_wifi_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'role' => ['required', 'array', 'min:1', new NoXSSInput()],
-            'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse','Head Buyer','Buyer','Head Finance','Finance','GM','Manager Store','Supervisor Store','Store Cashier'])], // Validasi per elemen array
+            'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse', 'Head Buyer', 'Buyer', 'Head Finance', 'Finance', 'GM', 'Manager Store', 'Supervisor Store', 'Store Cashier'])], // Validasi per elemen array
 
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'phone' => ['nullable', 'string', 'max:13', new NoXSSInput()],
@@ -160,7 +183,7 @@ class dashboardAdminController extends Controller
             'user_type' => ['required', 'string', 'in:Admin,Head Warehouse,Warehouse,Head Buyer,Buyer,Head Finance,Finance,GM,Manager Store,Supervisor Store,Store Cashier', new NoXSSInput()],
             'name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'role' => ['required', 'array', 'min:1', new NoXSSInput()],
-            'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse','Head Buyer','Buyer','Head Finance','Finance','GM','Manager Store','Supervisor Store','Store Cashier'])],
+            'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse', 'Head Buyer', 'Buyer', 'Head Finance', 'Finance', 'GM', 'Manager Store', 'Supervisor Store', 'Store Cashier'])],
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'phone' => ['nullable', 'string', 'max:13', new NoXSSInput()],
             'username' => [
@@ -219,7 +242,7 @@ class dashboardAdminController extends Controller
                 'role' => implode(',', (array) $validatedData['role']),
                 'phone' => $validatedData['phone'] ?? null, // Menambahkan field phone jika ada
                 'permission_id' => $Permissions->id,
-               'status' => $validatedData['status'] ?? 'Active',
+                'status' => $validatedData['status'] ?? 'Active',
             ]);
 
 
