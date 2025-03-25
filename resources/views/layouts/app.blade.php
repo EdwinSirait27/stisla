@@ -72,6 +72,36 @@
     <!-- Template JS File -->
     <script src="{{ asset('js/scripts.js') }}"></script>
     <script src="{{ asset('js/custom.js') }}"></script>
+    <script>
+        let inactivityTime = function() {
+            let time;
+            
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+            
+            function logout() {
+                // Panggil route logout
+                fetch('{{ route("logout") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                }).then(() => {
+                    window.location.href = '/'; 
+                });
+            }
+            
+            function resetTimer() {
+                clearTimeout(time);
+                // Set timeout 15 menit 
+                time = setTimeout(logout, 900000);
+            }
+        };
+        
+        inactivityTime();
+        </script>
 </body>
 
 </html>

@@ -199,8 +199,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-       
-
         // Create users table
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();

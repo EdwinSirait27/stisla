@@ -24,10 +24,9 @@ class dashboardAdminController extends Controller
     {
         return view('pages.dashboardAdmin.create');
     }
-   
     public function getUsers()
     {
-        $users = User::with('Permissions')->select(['id', 'name', 'username', 'password', 'phone', 'user_type', 'role', 'permission_id', 'created_at'])->get()
+        $users = User::with('Permissions')->select(['id', 'name', 'username', 'password', 'phone', 'user_type', 'role', 'permission_id', 'created_at','status'])->get()
             ->map(function ($user) {
                 $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
                 $user->action = '
@@ -75,12 +74,12 @@ class dashboardAdminController extends Controller
         }
 
         $validatedData = $request->validate([
-            'user_type' => ['required', 'string', 'in:Admin,Kasir,Manager', new NoXSSInput()],
+            'user_type' => ['required', 'string', 'in:Admin,Head Warehouse,Warehouse,Head Buyer,Buyer,Head Finance,Finance,GM,Manager Store,Supervisor Store,Store Cashier', new NoXSSInput()],
             'name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_lan_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_wifi_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'role' => ['required', 'array', 'min:1', new NoXSSInput()],
-            'role.*' => ['string', Rule::in(['Admin', 'Kasir', 'Manager'])], // Validasi per elemen array
+            'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse','Head Buyer','Buyer','Head Finance','Finance','GM','Manager Store','Supervisor Store','Store Cashier'])], // Validasi per elemen array
 
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'phone' => ['nullable', 'string', 'max:13', new NoXSSInput()],
@@ -93,6 +92,8 @@ class dashboardAdminController extends Controller
                 Rule::unique('users')->ignore($user->id),
                 new NoXSSInput()
             ],
+            'status' => ['nullable', 'string', 'in:Active,Inactive', new NoXSSInput()],
+
         ], [
             'username.required' => 'Username is required.',
             'username.string' => 'Username must be a text.',
@@ -132,6 +133,8 @@ class dashboardAdminController extends Controller
             'hakakses' => $validatedData['user_type'], // Perbaiki agar sesuai dengan field database
             'user_type' => $user_type,
             'role' => $roles,
+            'status' => $validatedData['status'],
+
         ];
 
         if (!empty($validatedData['password'])) {
@@ -154,10 +157,10 @@ class dashboardAdminController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'user_type' => ['required', 'string', 'in:Admin,Kasir,Manager', new NoXSSInput()],
+            'user_type' => ['required', 'string', 'in:Admin,Head Warehouse,Warehouse,Head Buyer,Buyer,Head Finance,Finance,GM,Manager Store,Supervisor Store,Store Cashier', new NoXSSInput()],
             'name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'role' => ['required', 'array', 'min:1', new NoXSSInput()],
-            'role.*' => ['string', Rule::in(['Admin', 'Kasir', 'Manager'])],
+            'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse','Head Buyer','Buyer','Head Finance','Finance','GM','Manager Store','Supervisor Store','Store Cashier'])],
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'phone' => ['nullable', 'string', 'max:13', new NoXSSInput()],
             'username' => [
@@ -176,6 +179,8 @@ class dashboardAdminController extends Controller
             ],
             'device_lan_mac' => ['required', 'string', 'max:255', 'unique:permissions,device_lan_mac', new NoXSSInput()],
             'device_wifi_mac' => ['required', 'string', 'max:255', 'unique:permissions,device_wifi_mac', new NoXSSInput()],
+            'status' => ['nullable', 'string', 'in:Active,Inactive', new NoXSSInput()],
+
         ], [
             'username.required' => 'Username wajib diisi.',
             'username.string' => 'Username hanya boleh berupa teks.',
@@ -214,7 +219,7 @@ class dashboardAdminController extends Controller
                 'role' => implode(',', (array) $validatedData['role']),
                 'phone' => $validatedData['phone'] ?? null, // Menambahkan field phone jika ada
                 'permission_id' => $Permissions->id,
-
+               'status' => $validatedData['status'] ?? 'Active',
             ]);
 
 

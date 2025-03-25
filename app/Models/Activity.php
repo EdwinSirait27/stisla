@@ -19,6 +19,8 @@ class Activity extends Model
         'user_id',
         'activity_type',
         'activity_time',
+        'device_lan_mac',
+        'device_wifi_mac',
     ];
     protected static function boot()
     {

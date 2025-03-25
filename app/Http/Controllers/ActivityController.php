@@ -63,12 +63,29 @@ class ActivityController extends Controller
         ->rawColumns(['action'])
         ->make(true);
 }
-    public function getActivity1()
+//     public function getActivity1()
+// {
+//     $activity = Activity::with('user')->select(['activity_time','activity_type'])->get()
+//         ->map(function ($activity) {
+//             return $activity;
+//         }); // Menghapus duplikat berdasarkan user_id
+//     return DataTables::of($activity)
+//         ->make(true);
+// }
+public function getActivity1(Request $request)
 {
-    $activity = Activity::with('user')->select(['activity_time','activity_type'])->get()
+    $query = Activity::with('user')->select(['activity_time', 'activity_type']);
+    
+    // Filter by activity_type jika parameter ada dan valid (Login/Logout)
+    if ($request->has('activity_type') && in_array($request->activity_type, ['Login', 'Logout'])) {
+        $query->where('activity_type', $request->activity_type);
+    }
+    
+    $activity = $query->get()
         ->map(function ($activity) {
             return $activity;
-        }); // Menghapus duplikat berdasarkan user_id
+        });
+        
     return DataTables::of($activity)
         ->make(true);
 }

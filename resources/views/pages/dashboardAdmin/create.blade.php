@@ -487,7 +487,6 @@
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a username is already registered, you cannot register it again.<br>
-                                               
                                             </span>
                                         </div>
 
@@ -496,7 +495,7 @@
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
                                             <button type="submit" class="btn bg-gradient-dark">
-                                                <i class="fas fa-save"></i> {{ __('Update') }}
+                                                <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>
                                     </form>
