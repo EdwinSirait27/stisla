@@ -236,7 +236,7 @@
             </div>
         </section>
     </div>
-    @if(session('confirm_force_login'))
+    {{-- @if(session('confirm_force_login'))
     <div class="modal fade show" id="confirmForceLoginModal" style="display: block; padding-right: 15px;">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -260,7 +260,22 @@
             </div>
         </div>
     </div>
-    @endif
+    @endif --}}
+    @if(session('confirm_force_login'))
+<div class="modal">
+    <p>{{ session('confirm_force_login')['message'] }}</p>
+    <form method="POST" action="{{ route('session') }}">
+        @csrf
+        <input type="hidden" name="username" value="{{ session('confirm_force_login')['username'] }}">
+        <input type="hidden" name="password" value="{{ session('confirm_force_login')['password'] }}">
+        <input type="hidden" name="force_login" value="1">
+        <input type="hidden" name="remember" value="{{ session('confirm_force_login')['remember'] }}">
+        
+        <button type="submit">Confirm</button>
+        <button type="button" onclick="window.history.back()">Abort</button>
+    </form>
+</div>
+@endif
     <!-- Menggunakan asset dari AIO -->
     <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ asset('library/popper.js/dist/umd/popper.js') }}"></script>
