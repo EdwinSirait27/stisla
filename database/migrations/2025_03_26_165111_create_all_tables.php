@@ -203,10 +203,33 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('permission_id');
+            $table->string('phone')->nullable();
+            $table->string('name')->nullable();
             $table->string('username', 255);
             $table->string('password', 255);
-            $table->enum('user_type', ['Edwin', 'Admin', 'Head Warehouse','Head Buyer','Buyer','Head Finance','Finance','GM','Manager Store','Supervisor Store','Store Cashier'])->nullable();
-            $table->set('role', ['Edwin', 'Admin', 'Head Warehouse','Head Buyer','Buyer','Head Finance','Finance','GM','Manager Store','Supervisor Store','Store Cashier'])->nullable();
+            $table->enum('user_type', [ 'Admin', 
+            'Head Warehouse',
+            'Warehouse',
+            'Head Buyer',
+            'Buyer',
+            'Head Finance',
+            'Finance',
+            'GM',
+            'Manager Store',
+            'Supervisor Store',
+            'Store Cashier'])->nullable();
+            $table->set('role', ['Admin','Head Warehouse',
+            'Warehouse',
+            'Head Buyer',
+            'Buyer',
+            'Head Finance',
+            'Finance',
+            'GM',
+            'Manager Store',
+            'Supervisor Store',
+            'Store Cashier'])->nullable();
+            $table->string('remember_token')->nullable();
+
             $table->enum('status', ['Active','Inactive'])->nullable();
             $table->timestamps();
         });
@@ -448,8 +471,37 @@ return new class extends Migration
                   ->references('id')
                   ->on('chart_of_accounts');
         });
+
+        Schema::create('activity', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid('user_id');
+            $table->string('activity_type'); // Misalnya: 'login', 'logout'
+            $table->timestamp('activity_time')->useCurrent();
+            $table->string('device_lan_mac')->nullable();
+            $table->string('device_wifi_mac')->nullable();
+            $table->timestamps();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+        Schema::create('user_sessions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->uuid('user_id');
+            $table->string('session_id')->unique();
+            $table->string('ip_address')->nullable();
+            $table->timestamp('last_activity')->nullable();
+            $table->string('device_type')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('cascade');
+        });
     
     }
+
+
 
     /**
      * Reverse the migrations.
