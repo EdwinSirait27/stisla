@@ -154,14 +154,14 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
-            title: 'Konfirmasi Login',
+            title: 'Confirmation Login',
             html: `{{ session('confirm_force_login')['message'] }}`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Lanjutkan',
-            cancelButtonText: 'Batal',
+            confirmButtonText: 'Yes, Continue',
+            cancelButtonText: 'Abort',
             backdrop: 'rgba(0,0,0,0.5)'
         }).then((result) => {
             if (result.isConfirmed) {

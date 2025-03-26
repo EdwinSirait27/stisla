@@ -365,7 +365,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> Dashboard Admin</h6>
+                                <h6><i class="fas fa-user-shield"></i> Create Role & Permissions</h6>
                             </div>
                             
                             <div class="card-body">

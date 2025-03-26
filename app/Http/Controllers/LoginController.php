@@ -276,7 +276,7 @@ public function store(Request $request)
             if (!$request->has('force_login')) {
                 Auth::logout();
                 return back()->with('confirm_force_login', [
-                    'message' => 'Anda sudah login di perangkat lain. Lanjutkan akan logout dari perangkat tersebut?',
+                    'message' => 'You are already logged in on another device. Will you continue to log out from that device?',
                     'username' => $request->username,
                     'password' => $request->password,
                     'remember' => $request->boolean('remember')
