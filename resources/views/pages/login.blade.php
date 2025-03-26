@@ -123,6 +123,32 @@
                                     </ul>
                                 </div>
                             @endif
+                             {{-- Force Login Modal (Hidden by default) --}}
+            @if(session('confirm_force_login'))
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white p-6 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold mb-4">Konfirmasi Login</h2>
+                    <p class="mb-4">{{ session('confirm_force_login')['message'] }}</p>
+                    
+                    <form action="{{ route('login') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="username" value="{{ session('confirm_force_login')['username'] }}">
+                        <input type="hidden" name="password" value="{{ session('confirm_force_login')['password'] }}">
+                        <input type="hidden" name="remember" value="{{ session('confirm_force_login')['remember'] ? '1' : '0' }}">
+                        <input type="hidden" name="force_login" value="1">
+                        
+                        <div class="flex justify-between">
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                Ya, Lanjutkan
+                            </button>
+                            <button type="button" onclick="window.location.reload()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
                             <div class="form-group">
                                 <label class="text-muted" for="Username">Username</label>
                                 <input id="username" type="text" class="form-control" name="username" tabindex="1"
@@ -261,10 +287,10 @@
         </div>
     </div>
     @endif --}}
-    @if(session('confirm_force_login'))
+    {{-- @if(session('confirm_force_login'))
 <div class="modal">
     <p>{{ session('confirm_force_login')['message'] }}</p>
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('session') }}">
         @csrf
         <input type="hidden" name="username" value="{{ session('confirm_force_login')['username'] }}">
         <input type="hidden" name="password" value="{{ session('confirm_force_login')['password'] }}">
@@ -275,7 +301,7 @@
         <button type="button" onclick="window.history.back()">Abort</button>
     </form>
 </div>
-@endif
+@endif --}}
     <!-- Menggunakan asset dari AIO -->
     <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ asset('library/popper.js/dist/umd/popper.js') }}"></script>
