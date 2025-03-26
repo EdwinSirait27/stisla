@@ -415,11 +415,8 @@ class LoginController extends Controller
  */
 protected function logoutOtherDevices($user)
 {
-    // Hapus session ID dari database
-    $user->update(['session_id' => null]);
-    
-    // Optional: Terminate session lain jika perlu
-    Session::getHandler()->destroy($user->session_id);
+    $user->session_id = null;
+    $user->save();
 }
 
 /**

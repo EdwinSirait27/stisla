@@ -264,7 +264,7 @@
     @if(session('confirm_force_login'))
 <div class="modal">
     <p>{{ session('confirm_force_login')['message'] }}</p>
-    <form method="POST" action="{{ route('session') }}">
+    <form method="POST" action="{{ route('login') }}">
         @csrf
         <input type="hidden" name="username" value="{{ session('confirm_force_login')['username'] }}">
         <input type="hidden" name="password" value="{{ session('confirm_force_login')['password'] }}">
