@@ -124,7 +124,7 @@
                                 </div>
                             @endif
                              {{-- Force Login Modal (Hidden by default) --}}
-            @if(session('confirm_force_login'))
+            {{-- @if(session('confirm_force_login'))
             <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white p-6 rounded-lg shadow-xl">
                     <h2 class="text-xl font-bold mb-4">Konfirmasi Login</h2>
@@ -148,7 +148,57 @@
                     </form>
                 </div>
             </div>
-            @endif
+            @endif --}}
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            @if(session('confirm_force_login'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            title: 'Konfirmasi Login',
+            html: `{{ session('confirm_force_login')['message'] }}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Lanjutkan',
+            cancelButtonText: 'Batal',
+            backdrop: 'rgba(0,0,0,0.5)'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit form secara otomatis
+                const form = document.createElement('form');
+                form.action = '{{ route("session") }}';
+                form.method = 'POST';
+                form.style.display = 'none';
+                // Tambahkan CSRF token
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = '{{ csrf_token() }}';
+                form.appendChild(csrf);
+                // Tambahkan input fields
+                const fields = {
+                    username: '{{ session("confirm_force_login")["username"] }}',
+                    password: '{{ session("confirm_force_login")["password"] }}',
+                    remember: '{{ session("confirm_force_login")["remember"] ? "1" : "0" }}',
+                    force_login: '1'
+                };
+
+                for (const [name, value] of Object.entries(fields)) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    form.appendChild(input);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+</script>
+@endif
                             <div class="form-group">
                                 <label class="text-muted" for="Username">Username</label>
                                 <input id="username" type="text" class="form-control" name="username" tabindex="1"
