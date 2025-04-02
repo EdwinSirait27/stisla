@@ -433,8 +433,8 @@
                         render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1
                     },
                     {
-                        data: 'name',
-                        name: 'name',
+                        data: 'fullName',
+                        name: 'fullName',
                         className: 'text-center'
                     },
                     {

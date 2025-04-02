@@ -24,7 +24,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'permission_id',
-        'session_id',
+        'employee_id',
         'name',
         'username',
         'password',
@@ -75,6 +75,10 @@ class User extends Authenticatable
     public function Permissions()
     {
         return $this->belongsTo(Permission::class,'permission_id');
+    }
+    public function Employee()
+    {
+        return $this->belongsTo(Employee::class,'employee_id');
     }
 
     // Relasi ke tabel StockAdjustment

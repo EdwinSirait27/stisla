@@ -1,235 +1,3 @@
-{{-- @extends('layouts.app')
-@section('title', 'Create User')
-@push('style')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-@endpush
-@section('title', 'Edit User')
-<style>
-    .avatar {
-        position: relative;
-    }
-
-    .iframe-container {
-        position: relative;
-        overflow: hidden;
-        padding-top: 56.25%;
-        /* Aspect ratio 16:9 */
-    }
-
-    .iframe-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 0;
-    }
-</style>
-<div>
-    <div class="container-fluid">
-
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form action="{{ route('dashboardAdmin.update', $hashedId) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="container-fluid py-4">
-                <div class="card">
-                    <div class="card-header pb-0 px-3">
-                        <h6 class="mb-0">{{ __('Update User') }}</h6>
-                    </div>
-                    <div class="card-body pt-4 p-3">
-
-                        @if ($errors->any())
-                            <div class="mt-3  alert alert-primary alert-dismissible fade show" role="alert">
-                                @foreach ($errors->all() as $error)
-                                    <span class="alert-text text-white">
-                                        {{ $error }}</span>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                                        <i class="fa fa-close" aria-hidden="true"></i>
-                                    </button>
-                                @endforeach
-                            </div>
-                        @endif
-                        @if (session('success'))
-                            <div class="m-3  alert alert-success alert-dismissible fade show" id="alert-success"
-                                role="alert">
-                                <span class="alert-text text-white">
-                                    {{ session('success') }}</span>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                                    <i class="fa fa-close" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        @endif
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="username" class="form-control-label">
-                                        <i class="fas fa-lock"></i> {{ __('Username') }}
-                                    </label>
-                                    <div>
-                                        <input type="text" class="form-control" id="username" name="username"
-                                            value="{{ old('username', $user->username) }}" required
-                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')">
-                                        @error('username')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="password" class="form-control-label">
-                                        <i class="fas fa-lock"></i> {{ __('Password') }}
-                                    </label>
-                                    <div>
-                                        <input type="password" class="form-control" id="password" name="password"
-                                            placeholder="Password" aria-describedby="password-addon" maxlength="12"
-                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
-                                        @error('password')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="name" class="form-control-label">
-                                        <i class="fas fa-lock"></i> {{ __('Full Name') }}
-                                    </label>
-                                    <div>
-                                        <input class="form-control" value="{{ old('name', $user->name ?? '') }}"
-                                            type="text" id="name" name="name" aria-describedby="info-name"
-                                            maxlength="255">
-                                        @error('name')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="user_type" class="form-control-label">{{ __('Access Rights') }}</label>
-                                    <div class="@error('user_type') border border-danger rounded-3 @enderror">
-                                        <select class="form-control" name="user_type" id="user_type" required>
-                                            <option value="" disabled
-                                                {{ old('user_type', $user->user_type ?? '') == '' ? 'selected' : '' }}>
-                                                Select Access Rights</option>
-                                            <option value="Admin"
-                                                {{ old('user_type', $user->user_type ?? '') == 'Admin' ? 'selected' : '' }}>
-                                                Admin</option>
-                                            <option value="Manager"
-                                                {{ old('user_type', $user->user_type ?? '') == 'Manager' ? 'selected' : '' }}>
-                                                Manager</option>
-                                            <option value="Kasir"
-                                                {{ old('user_type', $user->user_type ?? '') == 'Kasir' ? 'selected' : '' }}>
-                                                Kasir</option>
-                                        </select>
-                                        @error('user_type')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    @php
-                                        $roles = ['Admin', 'Manager', 'Kasir'];
-                                        $selectedRoles = old('role', explode(',', $user->role ?? ''));
-                                    @endphp
-
-                                    <label for="role" class="form-control-label">{{ __('Role') }}</label>
-                                    <div class="@error('role') border border-danger rounded-3 @enderror">
-                                        @foreach ($roles as $role)
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="role[]"
-                                                    id="role_{{ $role }}" value="{{ $role }}"
-                                                    {{ in_array($role, $selectedRoles) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="role_{{ $role }}">
-                                                    {{ $role }}
-                                                </label>
-                                            </div>
-                                        @endforeach
-                                        @error('role')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-
-
-                                    </div>
-                                </div>
-                            </div>
-
-
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="phone" class="form-control-label">
-                                        <i class="fas fa-lock"></i> {{ __('Phone Number') }}
-                                    </label>
-                                    <div>
-                                        <input class="form-control" value="{{ old('phone', $user->phone ?? '') }}"
-                                            type="text" id="phone" name="phone"
-                                            aria-describedby="info-phone" maxlength="13">
-                                        @error('phone')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn bg-gradient-dark btn-md mt-4 mb-4">
-                                    {{ __('Update') }}
-                                </button>
-                                <a href="{{ route('pages.dashboardAdmin') }}" class="btn btn-secondary mt-4 mb-4">
-                                    {{ __('Cancel') }}
-                                </a>
-                            </div>
-        </form>
-        <div class="alert alert-secondary mx-4" role="alert">
-            <span class="text-white">
-                <strong>Keterangan</strong> <br>
-            </span>
-            <span class="text-white">-
-                <strong> Jika sudah ada Username yang sudah terdaftar, maka tidak bisa menginputkan data kembali
-                </strong> <br>
-                <br>
-
-            </span>
-        </div>
-    </div>
-</div>
-</div>
-</div> --}}
 @extends('layouts.app')
 @section('title', 'Update User')
 @push('style')
@@ -448,7 +216,7 @@
                                                     </label>
                                                     <div>
                                                         <input type="text" class="form-control" id="username" name="username"
-                                                            value="{{ old('username', $user->username) }}" required
+                                                            value="{{ old('username', $user->username) }}" placeholder="edwinsirait27" required
                                                             oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')">
                                                         @error('username')
                                                             <span class="invalid-feedback" role="alert">
@@ -458,26 +226,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="password" class="form-control-label">
-                                                        <i class="fas fa-lock"></i> {{ __('Password') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="password" class="form-control" id="password" name="password"
-                                                            placeholder="Leave blank to keep current password" aria-describedby="password-addon" 
-                                                            maxlength="12"
-                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
-                                                        <small class="text-muted">Only letters, numbers, underscore and dash allowed. Max 12 characters.</small>
-                                                        @error('password')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> --}}
+                                          
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="password" class="form-control-label">
@@ -523,14 +272,14 @@
                                         <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name" class="form-control-label">
+                                                    <label for="fullName" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Full Name') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control" value="{{ old('name', $user->name ?? '') }}"
-                                                            type="text" id="name" name="name" aria-describedby="info-name"
-                                                            maxlength="255">
-                                                        @error('name')
+                                                        <input class="form-control" value="{{ old('name', $user->Employee->fullName ?? '') }}"
+                                                            type="text" id="fullName" name="fullName" aria-describedby="info-fullName"
+                                                            maxlength="255"placeholder="Christopher Edwin Sirait, S.Kom.">
+                                                        @error('fullName')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -538,32 +287,140 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="position" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Position') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control" value="{{ old('position', $user->Employee->position ?? '') }}"
+                                                            type="text" id="position" name="position" aria-describedby="info-position"
+                                                            maxlength="255" placeholder="Programmer">
+                                                        @error('position')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="department_id" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Department') }}
+                                                    </label>
+                                                    <div class="@error('department_id') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="department_id" id="department_id" required>
+                                                         
+                                                                <option value="" disabled {{ $selectedDepartments == '' ? 'selected' : '' }}>Choose Department</option>
+                                                                @foreach ($departments as $type)
+                                                                    <option value="{{ $type }}" {{ $selectedDepartments == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                                                @endforeach
+                                                        </select>
+                                                        @error('department_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="hireDate" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Hire Date') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control" value="{{ old('hireDate', $user->Employee->hireDate ?? '') }}"
+                                                            type="date" id="hireDate" name="hireDate" aria-describedby="info-hireDate"
+                                                            required>
+                                                        @error('hireDate')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="phone" class="form-control-label">
+                                                    <i class="fas fa-phone"></i> {{ __('Phone Number') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control" value="{{ old('phone', $user->Employee->phone ?? '') }}"
+                                                        type="text" id="phone" name="phone"
+                                                        aria-describedby="info-phone" maxlength="13" placeholder="088xxxxxxx"
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                                    <small class="text-muted">Numbers only. Max 13 digits.</small>
+                                                    @error('phone')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="email" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Email') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control" value="{{ old('email', $user->Employee->email ?? '') }}"
+                                                        type="email" id="email" name="email" aria-describedby="info-email" placeholder="edwin.sirait7994@gmail.com"
+                                                        required>
+                                                    @error('email')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="salary" class="form-control-label">
+                                                    <i class="fas fa-dollar"></i> {{ __('Salary') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control" value="{{ old('salary', $user->Employee->salary ?? '') }}"
+                                                        type="number" id="salary" name="salary"
+                                                        aria-describedby="info-salary" placeholder="expl: 3000000.00" required >
+                                                    <small class="text-muted">Numbers only.</small>
+                                                    @error('salary')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="user_type" class="form-control-label">
-                                                        <i class="fas fa-shield-alt"></i> {{ __('Access Rights') }}
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Status Employee') }}
                                                     </label>
-                                                    <div class="@error('user_type') border border-danger rounded-3 @enderror">
-                                                        <select class="form-control" name="user_type" id="user_type" required>
-                                                            {{-- <option value="" disabled
-                                                                {{ old('user_type', $user->user_type ?? '') == '' ? 'selected' : '' }}>
-                                                                Select Access Rights</option>
-                                                            <option value="Admin"
-                                                                {{ old('user_type', $user->user_type ?? '') == 'Admin' ? 'selected' : '' }}>
-                                                                Admin</option>
-                                                            <option value="Manager"
-                                                                {{ old('user_type', $user->user_type ?? '') == 'Manager' ? 'selected' : '' }}>
-                                                                Manager</option>
-                                                            <option value="Kasir"
-                                                                {{ old('user_type', $user->user_type ?? '') == 'Kasir' ? 'selected' : '' }}>
-                                                                Kasir</option> --}}
-                                                                <option value="" disabled {{ $selectedUserType == '' ? 'selected' : '' }}>Choose Access Rights</option>
-                                                                @foreach ($userTypes as $type)
-                                                                    <option value="{{ $type }}" {{ $selectedUserType == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                                    <div class="@error('status') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="status" id="status" required>
+                                                         
+                                                                <option value="" disabled {{ $selectedStatus == '' ? 'selected' : '' }}>Choose Status</option>
+                                                                @foreach ($status as $type)
+                                                                    <option value="{{ $type }}" {{ $selectedStatus == $type ? 'selected' : '' }}>{{ $type }}</option>
                                                                 @endforeach
                                                         </select>
-                                                        @error('user_type')
+                                                        @error('status')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -601,28 +458,8 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="phone" class="form-control-label">
-                                                        <i class="fas fa-phone"></i> {{ __('Phone Number') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control" value="{{ old('phone', $user->phone ?? '') }}"
-                                                            type="text" id="phone" name="phone"
-                                                            aria-describedby="info-phone" maxlength="13"
-                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                                        <small class="text-muted">Numbers only. Max 13 digits.</small>
-                                                        @error('phone')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                         
 
-                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="device_wifi_mac" class="form-control-label">
@@ -630,7 +467,7 @@
                                                     </label>
                                                     <div>
                                                         <input class="form-control" value="{{ old('device_wifi_mac', $user->Permissions->device_wifi_mac ?? '') }}"
-                                                            type="text" id="device_wifi_mac" name="device_wifi_mac" aria-describedby="info-device_wifi_mac"
+                                                            type="text" id="device_wifi_mac" name="device_wifi_mac" aria-describedby="info-device_wifi_mac" placeholder="xx-xx-xx-xx-xx"
                                                             maxlength="255">
                                                         @error('device_wifi_mac')
                                                             <span class="invalid-feedback" role="alert">
@@ -640,6 +477,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </div>
+                                        <div class="row mt-3">
+                                            
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="device_lan_mac" class="form-control-label">
@@ -647,7 +487,7 @@
                                                     </label>
                                                     <div>
                                                         <input class="form-control" value="{{ old('device_lan_mac', $user->Permissions->device_lan_mac ?? '') }}"
-                                                            type="text" id="device_lan_mac" name="device_lan_mac" aria-describedby="info-device_lan_mac"
+                                                            type="text" id="device_lan_mac" name="device_lan_mac" aria-describedby="info-device_lan_mac" placeholder="xx-xx-xx-xx-xx"
                                                             maxlength="255">
                                                         @error('device_lan_mac')
                                                             <span class="invalid-feedback" role="alert">
@@ -657,8 +497,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                         </div>
-                                        <div class="row mt-3">
+
                                          <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="status" class="form-control-label">

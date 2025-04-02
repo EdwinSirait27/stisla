@@ -268,7 +268,8 @@
 
 
                         <div class="text-small mt-5 text-center">
-                            Copyright &copy; Edwin Sirait.
+                            Copyright &copy; Edwin Sirait</span>
+                            
                             <div class="mt-2">
 
                             </div>

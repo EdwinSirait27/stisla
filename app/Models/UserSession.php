@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class UserSession extends Model
 {
     use HasFactory, HasUuids;
+    protected $table = 'user_sessions'; 
+    protected $primaryKey = 'id';
     public $incrementing = false; // Nonaktifkan auto-increment
     protected $keyType = 'string'; // Pastikan tipe data adalah string
     protected $fillable = [

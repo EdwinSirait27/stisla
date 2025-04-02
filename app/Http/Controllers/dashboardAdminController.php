@@ -20,12 +20,6 @@ class dashboardAdminController extends Controller
         $totaluser = User::count();
         return view('pages.dashboardAdmin.dashboardAdmin');
     }
-    // public function create()
-    // {
-    //     $roles = ['Admin', 'Head Warehouse', 'Warehouse','Head Finance','Finance','Head Buyer','Byuer','GM'];
-
-    //     return view('pages.dashboardAdmin.create', compact('roles'));
-    // }
     public function create()
     {
         $roles = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
@@ -39,7 +33,7 @@ class dashboardAdminController extends Controller
 
     public function getUsers()
     {
-        $users = User::with('Permissions')->select(['id', 'name', 'username', 'password', 'phone', 'user_type', 'role', 'permission_id', 'created_at', 'status'])->get()
+        $users = User::with('Permissions','Employee')->select(['id', 'username', 'password', 'user_type', 'role', 'permission_id','employee_id', 'created_at', 'status'])->get()
             ->map(function ($user) {
                 $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
                 $user->action = '
@@ -59,22 +53,36 @@ class dashboardAdminController extends Controller
             ->addColumn('device_lan_mac', function ($user) {
                 return $user->Permissions ? $user->Permissions->device_lan_mac : 'No Permission'; // Tampilkan nama permission
             })
+            ->addColumn('fullName', function ($user) {
+                return $user->Employee ? $user->Employee->fullName : 'No Name'; // Tampilkan nama permission
+            })
+            ->addColumn('phone', function ($user) {
+                return $user->Employee ? $user->Employee->phone : 'No Name'; // Tampilkan nama permission
+            })
             ->rawColumns(['action'])
             ->make(true);
     }
     public function edit($hashedId)
     {
-        $user = User::with('Permissions')->get()->first(function ($u) use ($hashedId) {
+        $user = User::with('Permissions','Employee.department')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-        // $roles = explode(',', $user->getRawOriginal('role'));
-        $allRoles = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
-
-        // Role yang dimiliki oleh user
-        // $roles = explode(',', $user->getRawOriginal('role'));
+        $allRoles = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];       
         $roles = explode(',', $user->getRawOriginal('role'));
         $selectedRoles = old('role', explode(',', $user->role ?? ''));
+        $departments = $user->Employee && $user->Employee->department
+        ? explode(',', $user->Employee->department->getRawOriginal('departmentName'))
+        : [];
+    $selectedDepartments = old('departmentName', $user->Employee && $user->Employee->department
+        ? explode(',', $user->Employee->department->departmentName ?? '')
+        : []);
+        $status = $user->Employee && $user->Employee
+        ? explode(',', $user->Employee->getRawOriginal('status'))
+        : [];
+    $selectedStatus = old('status', $user->Employee && $user->Employee
+        ? explode(',', $user->Employee->status ?? '')
+        : []);
         $userTypes = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
         $selectedUserType = old('user_type', $user->user_type ?? '');
         $userStatus = ['Active','Inactive'];
@@ -82,28 +90,26 @@ class dashboardAdminController extends Controller
         if (!$user) {
             abort(404, 'User not found.');
         }
-        return view('pages.dashboardAdmin.edit', compact('user', 'hashedId', 'roles','allRoles','selectedRoles','userTypes','selectedUserType','userStatus','selectedStatusType'));
+        return view('pages.dashboardAdmin.edit', compact('user', 'hashedId', 'roles','allRoles','selectedRoles','userTypes','selectedUserType','userStatus','selectedStatusType','departments','selectedDepartments','status','selectedStatus'));
     }
-
     public function update(Request $request, $hashedId)
     {
-        $user = User::with('Permissions')->get()->first(function ($u) use ($hashedId) {
+        $user = User::with('Permissions','Employee.department')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-
         if (!$user) {
             return redirect()->route('pages.dashboardAdmin')->with('error', 'ID tidak valid.');
         }
-
         $validatedData = $request->validate([
             'user_type' => ['required', 'string', 'in:Admin,Head Warehouse,Warehouse,Head Buyer,Buyer,Head Finance,Finance,GM,Manager Store,Supervisor Store,Store Cashier', new NoXSSInput()],
-            'name' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'fullName' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'position' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'department_id' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_lan_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_wifi_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'role' => ['required', 'array', 'min:1', new NoXSSInput()],
             'role.*' => ['string', Rule::in(['Admin', 'Head Warehouse', 'Warehouse', 'Head Buyer', 'Buyer', 'Head Finance', 'Finance', 'GM', 'Manager Store', 'Supervisor Store', 'Store Cashier'])], // Validasi per elemen array
-
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'phone' => ['nullable', 'string', 'max:13', new NoXSSInput()],
             'username' => [

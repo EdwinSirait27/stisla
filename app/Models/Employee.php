@@ -4,22 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Str;
+
 
 class Employee extends Model
 {
-    use HasFactory;
-    protected $table = 'employees'; // Nama tabel di database
-
+    use HasFactory, HasUuids;
+    protected $table = 'employees';
+    protected $primaryKey = 'employee_id';
+    public $incrementing = false;
+    protected $keyTypes = 'string';
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
+        'fullName',
         'position',
-        'salary'
+        'department_id',
+        'hireDate',
+        'phone',
+        'email',
+        'salary',
+        'status'
     ];
-    public function user()
-{
-    return $this->hasOne(User::class, 'employee_id');
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (!$model->employee_id) {
+                $model->employee_id = Str::uuid();
+            }
+        });
+    }
+    public function department()
+    {
+        return $this->belongsTo(Departments::class, 'department_id');
+    }
 }
 
-}

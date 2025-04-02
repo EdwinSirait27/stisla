@@ -50,6 +50,9 @@ Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
         Route::get('/', [LoginController::class, 'index'])->name('login');
+        Route::get('/portofolio', function () {
+            return view('pages.portofolio');
+        });
     });
 });
 

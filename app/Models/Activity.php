@@ -11,7 +11,7 @@ class Activity extends Model
 {
     use HasFactory;
     public $incrementing = false; 
-    protected $table = 'activity'; // Tentukan nama tabel secara eksplisit
+    protected $table = 'activity_logs'; // Tentukan nama tabel secara eksplisit
 
    
     protected $keyType = 'string'; // Pastikan tipe data adalah string
