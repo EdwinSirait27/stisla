@@ -56,9 +56,9 @@ class dashboardAdminController extends Controller
             ->addColumn('fullName', function ($user) {
                 return $user->Employee ? $user->Employee->fullName : 'No Name'; // Tampilkan nama permission
             })
-            ->addColumn('phone', function ($user) {
-                return $user->Employee ? $user->Employee->phone : 'No Name'; // Tampilkan nama permission
-            })
+            // ->addColumn('phone', function ($user) {
+            //     return $user->Employee ? $user->Employee->phone : 'No Name'; // Tampilkan nama permission
+            // })
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -83,14 +83,20 @@ class dashboardAdminController extends Controller
     $selectedStatus = old('status', $user->Employee && $user->Employee
         ? explode(',', $user->Employee->status ?? '')
         : []);
-        $userTypes = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
-        $selectedUserType = old('user_type', $user->user_type ?? '');
+        $usertype = $user && $user
+        ? explode(',', $user->getRawOriginal('user_type'))
+        : [];
+    $selectedUser = old('user_type', $user && $user
+        ? explode(',', $user->user_type ?? '')
+        : []);
+        // $userTypes = ['Admin', 'Head Warehouse', 'Warehouse', 'Head Finance', 'Finance', 'Head Buyer', 'Buyer', 'GM'];
+        // $selectedUserType = old('user_type', $user->user_type ?? '');
         $userStatus = ['Active','Inactive'];
         $selectedStatusType = old('status', $user->status ?? '');
         if (!$user) {
             abort(404, 'User not found.');
         }
-        return view('pages.dashboardAdmin.edit', compact('user', 'hashedId', 'roles','allRoles','selectedRoles','userTypes','selectedUserType','userStatus','selectedStatusType','departments','selectedDepartments','status','selectedStatus'));
+        return view('pages.dashboardAdmin.edit', compact('user', 'hashedId', 'roles','allRoles','selectedRoles','userStatus','selectedStatusType','departments','selectedDepartments','status','selectedStatus','selectedUser','usertype'));
     }
     public function update(Request $request, $hashedId)
     {
@@ -104,8 +110,6 @@ class dashboardAdminController extends Controller
         $validatedData = $request->validate([
             'user_type' => ['required', 'string', 'in:Admin,Head Warehouse,Warehouse,Head Buyer,Buyer,Head Finance,Finance,GM,Manager Store,Supervisor Store,Store Cashier', new NoXSSInput()],
             'fullName' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'position' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'department_id' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_lan_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'device_wifi_mac' => ['required', 'string', 'max:255', new NoXSSInput()],
             'role' => ['required', 'array', 'min:1', new NoXSSInput()],

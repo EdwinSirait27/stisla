@@ -378,7 +378,7 @@
                                                 <th class="text-center">Username</th>
                                                 <th class="text-center">Access Right</th>
                                                 <th class="text-center">Role</th>
-                                                <th class="text-center">Phone</th>
+                                                {{-- <th class="text-center">Phone</th> --}}
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Mac Wifi</th>
                                                 <th class="text-center">Mac Lan</th>
@@ -452,11 +452,11 @@
                         name: 'role',
                         className: 'text-center'
                     },
-                    {
-                        data: 'phone',
-                        name: 'phone',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'phone',
+                    //     name: 'phone',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'created_at',
                         name: 'created_at',

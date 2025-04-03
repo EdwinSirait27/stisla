@@ -28,7 +28,7 @@ return new class extends Migration {
                 'Finance',
                 'GM',
                 'Manager Store',
-                'Supervisor Store',
+                'Supervisor Store',     
                 'Store Cashier'
             ])->nullable();
             $table->set('role', [
