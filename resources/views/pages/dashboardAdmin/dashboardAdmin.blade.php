@@ -175,7 +175,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> Create Role & Permissions</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Users</h6>
                             </div>
 
                             <div class="card-body">
@@ -288,16 +288,14 @@
                 }
             });
 
-            // SweetAlert notifications
             @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            @endif
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
+    
         });
     </script>
 @endpush

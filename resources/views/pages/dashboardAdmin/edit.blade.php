@@ -513,11 +513,6 @@
                                                     </div>
                                                 </div>
                                             </div> --}}
-
-
-
-                                          
-
                                             <div class="row mt-3">
 
                                             <div class="col-md-6">
@@ -545,7 +540,8 @@
                                                     </div>
                                                 </div>
                                         </div>
-                                            <div class="col-md-6">
+                                        </div>
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="name" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Roles') }}
@@ -571,7 +567,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                            </div> --}}
 
                                                 <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
@@ -585,7 +581,7 @@
                                             <a href="{{ route('pages.dashboardAdmin') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-gradient-dark">
+                                            <button type="submit" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>

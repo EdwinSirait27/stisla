@@ -51,10 +51,10 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update')->middleware('permission:updateUser');
     Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users')->middleware('permission:viewtableUser');
     // activity log
-    Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
-    Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
-    Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
-    Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
+    Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
+    Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
+    Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity')->middleware('permission:viewtableActivity');
+    Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
     
    
 });

@@ -355,7 +355,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="role" class="form-control-label">
@@ -402,7 +402,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                            </div> --}}
 
 
                                             {{-- <div class="form-group row">
@@ -637,7 +637,7 @@
                                             <a href="{{ route('pages.dashboardAdmin') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-gradient-dark">
+                                            <button type="submit" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>

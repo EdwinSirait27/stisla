@@ -9,11 +9,11 @@
             <a href="">MJM</a>
         </div>
         <ul class="sidebar-menu">
-            <li class="menu-header">Dashboard</li>
+            <li class="menu-header">Menu</li>
            
             @role('Admin')
             
-            <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
+            {{-- <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                 <a class="nav-link"
                     href="{{ url('dashboardAdmin') }}"><i class="fas fa-male"></i> <span>Dashboard</span></a>
             </li>
@@ -26,6 +26,22 @@
             <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
                 <a class="nav-link"
                     href="{{ url('dashboardManager') }}"><i class="fas fa-female"></i> <span>Dashboard</span></a>
+            </li> --}}
+            <li class="nav-item dropdown ">
+                <a href="#"
+                    class="nav-link has-dropdown"
+                    data-toggle="dropdown"><i class="fas fa-lock"></i> <span>Admin</span></a>
+                <ul class="dropdown-menu">
+                    <li class="{{ Request::is('layout-default-layout') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('dashboardAdmin') }}">List Users</a>
+                    </li>
+                    <li class="{{ Request::is('transparent-sidebar') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('Activity') }}">Activity Logs</a>
+                    </li>
+                    
+                </ul>
             </li>
             @endrole
            

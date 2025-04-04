@@ -433,9 +433,6 @@ public function store(Request $request)
                 }
             },
         ],
-        'role' => ['required', 'string', 'exists:roles,name'], 
-        'permissions' => ['required', 'array'], 
-        'permissions.*' => ['string', 'exists:permissions,name'],
         'device_wifi_mac' => [
             'nullable', 'string', 'max:255',
             function ($attribute, $value, $fail) {
@@ -455,10 +452,7 @@ public function store(Request $request)
         'password.string' => 'Password harus berupa teks.',
         'password.min' => 'Password minimal terdiri dari 7 karakter.',
         'password.max' => 'Password maksimal terdiri dari 12 karakter.',
-        'role.required' => 'Role wajib dipilih.',
-        'role.exists' => 'Role yang dipilih tidak valid.',
-        'permissions.required' => 'Setidaknya satu permission harus dipilih.',
-        'permissions.*.exists' => 'Permission yang dipilih tidak valid.',
+        
     ]);
     try {
         DB::beginTransaction();
@@ -473,8 +467,6 @@ public function store(Request $request)
             'status' => $validatedData['status'] ?? 'Active',
             'terms_id' => $terms->id,
         ]);
-        $user->assignRole($validatedData['role']);
-        $user->syncPermissions($validatedData['permissions']);
         DB::commit();
         return redirect()->route('pages.dashboardAdmin')->with('success', 'User berhasil dibuat!');
     } catch (\Exception $e) {
