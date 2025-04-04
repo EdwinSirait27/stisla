@@ -5,6 +5,8 @@ use App\Http\Controllers\dashboardManagerController;
 use App\Http\Controllers\dashboardKasirController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ActivityController;
 
 /*
@@ -57,6 +59,18 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
     
    
+    Route::resource('roles', RoleController::class);
+    
+    // Permissions Routes
+    Route::resource('permissions', PermissionController::class)->except(['show']);
+    Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role')->middleware('permission:viewtableActivity1');
+    
+    // User Role Assignment (optional)
+    // Route::get('/users/{user}/edit-roles', [UserController::class, 'editRoles'])->name('users.editRoles');
+    // Route::put('/users/{user}/update-roles', [UserController::class, 'updateRoles'])->name('users.updateRoles');
+
+
+
 });
 Route::middleware(['auth', 'role:Manager Store'])->group(function () {
     Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager')->middleware('permission:dashboardManager');
