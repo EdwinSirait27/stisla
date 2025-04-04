@@ -57,24 +57,35 @@ class ActivityController extends Controller
         ->unique('user_id'); // Menghapus duplikat berdasarkan user_id
 
     return DataTables::of($activity)
-        ->addColumn('name', function ($activity) {
-            return $activity->user_name; // Menampilkan name di tabel DataTables
+        ->addColumn('username', function ($activity) {
+            return $activity->user->username; // Menampilkan name di tabel DataTables
         })
         ->rawColumns(['action'])
         ->make(true);
 }
-//     public function getActivity1()
+
+// public function getActivity1(Request $request)
 // {
-//     $activity = Activity::with('user')->select(['activity_time','activity_type'])->get()
+//     $query = Activity::with('user')->select(['activity_time', 'activity_type','device_wifi_mac','device_lan_mac']);
+    
+//     // Filter by activity_type jika parameter ada dan valid (Login/Logout)
+//     if ($request->has('activity_type') && in_array($request->activity_type, ['Login', 'Logout'])) {
+//         $query->where('activity_type', $request->activity_type);
+//     }
+    
+//     $activity = $query->get()
 //         ->map(function ($activity) {
 //             return $activity;
-//         }); // Menghapus duplikat berdasarkan user_id
+//         });
+        
 //     return DataTables::of($activity)
 //         ->make(true);
 // }
 public function getActivity1(Request $request)
 {
-    $query = Activity::with('user')->select(['activity_time', 'activity_type','device_wifi_mac','device_lan_mac']);
+    $query = Activity::with('user')
+        ->select(['activity_time', 'activity_type','device_wifi_mac','device_lan_mac'])
+        ->orderBy('activity_time', 'desc'); // Urutkan dari yang terbaru
     
     // Filter by activity_type jika parameter ada dan valid (Login/Logout)
     if ($request->has('activity_type') && in_array($request->activity_type, ['Login', 'Logout'])) {

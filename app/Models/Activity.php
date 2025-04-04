@@ -10,11 +10,8 @@ use Illuminate\Support\Str;
 class Activity extends Model
 {
     use HasFactory;
-    public $incrementing = false; 
-    protected $table = 'activity_logs'; // Tentukan nama tabel secara eksplisit
-
-   
-    protected $keyType = 'string'; // Pastikan tipe data adalah string
+    protected $table = 'activity_logs'; 
+    protected $primaryKey = 'id';
     protected $fillable = [
         'user_id',
         'activity_type',
@@ -22,15 +19,7 @@ class Activity extends Model
         'device_lan_mac',
         'device_wifi_mac',
     ];
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($model) {
-            if (!$model->id) {
-                $model->id = Str::uuid();
-            }
-        });
-    }
+ 
 
     public function user()
     {

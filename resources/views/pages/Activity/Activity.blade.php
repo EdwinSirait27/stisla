@@ -297,7 +297,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Name</th>
+                                                <th class="text-center">Username</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -341,8 +341,8 @@
                         render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1
                     },
                     {
-                        data: 'user_name',
-                        name: 'user_name',
+                        data: 'username',
+                        name: 'username',
                         className: 'text-center align-middle'
                     },
                     {

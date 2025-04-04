@@ -10,39 +10,26 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 
-
-
+use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasUuids;
-    public $incrementing = false; // Nonaktifkan auto-increment
-    protected $keyType = 'string'; // Pastikan tipe data adalah string
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
+    protected $table = 'users'; 
+    protected $primaryKey = 'id';
     protected $fillable = [
-        'permission_id',
-        'employee_id',
-        'name',
+        'id',
+        'terms_id',
         'username',
         'password',
-        'user_type',
-        'role',
-        'phone',
         'status',
     ];
     
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($model) {
-            if (!$model->id) {
-                $model->id = Str::uuid();
-            }
-        });
-    }
+    
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -52,17 +39,17 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
+    
+// app/Models/User.php
+protected $casts = [
+    'created_at' => 'datetime:Y-m-d H:i:s', // Format default MySQL
+    'updated_at' => 'datetime:Y-m-d H:i:s',
+];
     /**
      * The attributes that should be cast.
      *
      * @var array<string, string>
      */
-    protected $casts = [
-        'id' => 'string', // Cast UUID sebagai string
-
-        'email_verified_at' => 'datetime',
-    ];
     
         public function findForAuth($username)
     {
@@ -72,9 +59,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Sale::class);
     }
-    public function Permissions()
+    public function Terms()
     {
-        return $this->belongsTo(Permission::class,'permission_id');
+        return $this->belongsTo(Terms::class,'terms_id');
     }
     public function Employee()
     {

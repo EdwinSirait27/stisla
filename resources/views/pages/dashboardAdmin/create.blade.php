@@ -315,7 +315,149 @@
                                             }
                                         </script>
 
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="device_lan_mac" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control"
+                                                            value="{{ old('device_lan_mac', $user->Terms->device_lan_mac ?? '') }}"
+                                                            type="text" id="device_lan_mac" name="device_lan_mac"
+                                                            value="{{ old('device_lan_mac') }}"aria-describedby="info-device_lan_mac"
+                                                            maxlength="255"  placeholder="Insert Mac Lan">
+                                                        @error('device_lan_mac')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="device_wifi_mac" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control"
+                                                            value="{{ old('device_wifi_mac', $user->Terms->device_wifi_mac ?? '') }}"
+                                                            type="text" id="device_wifi_mac" name="device_wifi_mac"
+                                                            value="{{ old('device_wifi_mac') }}"aria-describedby="info-device_wifi_mac"
+                                                            maxlength="255"  placeholder="Insert Mac Lan">
+                                                        @error('device_wifi_mac')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="role" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Roles') }}
+                                                    </label>
+                                                    <div class="@error('role') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="role" id="role" required>
+                                                            <option value="" disabled selected>Select Role </option>
+                                                            @foreach($Roles as $role)
+                                                                <option value="{{ $role }}" {{ old('role') == $role ? 'selected' : '' }}>
+                                                                    {{ $role }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        
+                                                        @error('role')
+                                                            <div class="text-danger small mt-1">
+                                                                {{ $message }}
+                                                            </div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="permissions" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Permissions') }}
+                                                    </label>
+                                                    <div class="@error('permissions') border border-danger rounded-3 @enderror">
+                                                        @foreach($permissions as $permission)
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="permissions[]" id="permission-{{ $permission->id }}" value="{{ $permission->name }}" {{ in_array($permission->name, old('permissions', [])) ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="permission-{{ $permission->id }}">
+                                                                {{ $permission->name }}
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                        
+                                                        @error('permissions')
+                                                            <div class="text-danger small mt-1">
+                                                                {{ $message }}
+                                                            </div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
 
+
+                                            {{-- <div class="form-group row">
+                                                <label class="col-md-4 col-form-label text-md-right">Permissions</label>
+                                                <div class="col-md-6">
+                                                    @foreach($permissions as $permission)
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="permissions[]" id="permission-{{ $permission->id }}" value="{{ $permission->name }}" {{ in_array($permission->name, old('permissions', [])) ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="permission-{{ $permission->id }}">
+                                                                {{ $permission->name }}
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                    @error('permissions')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
+
+
+
+
+
+
+
+
+
+                                        {{-- <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Status') }}
+                                                    </label>
+                                                    <div class="@error('status') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="status" id="status"
+                                                            required>
+                                                            <option value="" disabled
+                                                                {{ $selectedStatusType == '' ? 'selected' : '' }}>Choose
+                                                                Status</option>
+                                                            @foreach ($userStatus as $status)
+                                                                <option value="{{ $status }}"
+                                                                    {{ $selectedStatusType == $status ? 'selected' : '' }}>
+                                                                    {{ $status }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('status')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                        </div> --}}
 
                                         {{-- <div class="form-group">
                                             <div class="d-block">
@@ -358,7 +500,7 @@
 
 
 
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="name" class="form-control-label">
@@ -377,9 +519,9 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
 
-                                            {{-- <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="user_type" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Access Rights') }}
@@ -401,7 +543,7 @@
                                                 </div>
                                             </div>
                                         </div> --}}
-                                            <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="user_type" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Access Rights') }}
@@ -427,10 +569,10 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
 
 
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="role" class="form-control-label">
@@ -438,11 +580,7 @@
                                                     </label>
                                                     <div
                                                         class="@error('role') border border-danger rounded-3 p-3 @enderror">
-                                                        {{-- @php
-                                                        // $roles = ['Admin', 'Manager', 'Kasir'];
-                                                        // Jika old('Role') sudah berupa array, gunakan langsung, jika tidak, explode dulu
-                                                        // $selectedRoles = is_array(old('role')) ? old('role') : (old('role') ? explode(',', old('role')) : []);
-                                                    @endphp --}}
+                                                     
 
                                                         @foreach ($roles as $role)
                                                             <div class="form-check">
@@ -463,9 +601,9 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
 
-                                            <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="phone" class="form-control-label">
                                                         <i class="fas fa-phone"></i> {{ __('Phone Number') }}
@@ -485,47 +623,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="device_lan_mac" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control"
-                                                            value="{{ old('device_lan_mac', $user->Permissions->device_lan_mac ?? '') }}"
-                                                            type="text" id="device_lan_mac" name="device_lan_mac"
-                                                            value="{{ old('device_lan_mac') }}"aria-describedby="info-device_lan_mac"
-                                                            maxlength="255" required placeholder="Insert Mac Lan">
-                                                        @error('device_lan_mac')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="device_wifi_mac" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control"
-                                                            value="{{ old('device_wifi_mac', $user->Permissions->device_wifi_mac ?? '') }}"
-                                                            type="text" id="device_wifi_mac" name="device_wifi_mac"
-                                                            value="{{ old('device_wifi_mac') }}"aria-describedby="info-device_wifi_mac"
-                                                            maxlength="255" required placeholder="Insert Mac Lan">
-                                                        @error('device_wifi_mac')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        </div> --}}
+
+
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

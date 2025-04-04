@@ -234,8 +234,8 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            
                                         </div>
-
                                         <script>
                                             function togglePassword() {
                                                 let passwordInput = document.getElementById('password');
@@ -250,7 +250,48 @@
                                                 }
                                             }
                                         </script>
-                                        <div class="row mt-3">
+                                    <div class="row mt-3">
+                                          <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="device_wifi_mac" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control"
+                                                        value="{{ old('device_wifi_mac', $user->Terms->device_wifi_mac ?? '') }}"
+                                                        type="text" id="device_wifi_mac" name="device_wifi_mac"
+                                                        aria-describedby="info-device_wifi_mac"
+                                                        placeholder="xx-xx-xx-xx-xx" maxlength="255">
+                                                    @error('device_wifi_mac')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="device_lan_mac" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control"
+                                                        value="{{ old('device_lan_mac', $user->Terms->device_lan_mac ?? '') }}"
+                                                        type="text" id="device_lan_mac" name="device_lan_mac"
+                                                        aria-describedby="info-device_lan_mac"
+                                                        placeholder="xx-xx-xx-xx-xx" maxlength="255">
+                                                    @error('device_lan_mac')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="fullName" class="form-control-label">
@@ -269,7 +310,7 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                             {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="position" class="form-control-label">
@@ -413,7 +454,7 @@
                                             </div>
                                         </div> --}}
 
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="role" class="form-control-label">
                                                         <i class="fas fa-user-tag"></i> {{ __('Role') }}
@@ -442,8 +483,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
+                                        </div> --}}
+                                        {{-- <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -454,18 +495,7 @@
                                                         class="@error('user_type') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="user_type" id="user_type"
                                                             required>
-                                                            {{-- <option value="" disabled
-                                                                {{ old('user_type', $user->user_type ?? '') == '' ? 'selected' : '' }}>
-                                                                Select Access Rights</option>
-                                                            <option value="Admin"
-                                                                {{ old('user_type', $user->user_type ?? '') == 'Admin' ? 'selected' : '' }}>
-                                                                Admin</option>
-                                                            <option value="Manager"
-                                                                {{ old('user_type', $user->user_type ?? '') == 'Manager' ? 'selected' : '' }}>
-                                                                Manager</option>
-                                                            <option value="Kasir"
-                                                                {{ old('user_type', $user->user_type ?? '') == 'Kasir' ? 'selected' : '' }}>
-                                                                Kasir</option> --}}
+                                                            
                                                             <option value="" disabled
                                                                 {{ $selectedUser == '' ? 'selected' : '' }}>Choose Access
                                                                 Rights</option>
@@ -482,52 +512,13 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
 
 
 
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="device_wifi_mac" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control"
-                                                            value="{{ old('device_wifi_mac', $user->Permissions->device_wifi_mac ?? '') }}"
-                                                            type="text" id="device_wifi_mac" name="device_wifi_mac"
-                                                            aria-describedby="info-device_wifi_mac"
-                                                            placeholder="xx-xx-xx-xx-xx" maxlength="255">
-                                                        @error('device_wifi_mac')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                          
 
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="device_lan_mac" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control"
-                                                            value="{{ old('device_lan_mac', $user->Permissions->device_lan_mac ?? '') }}"
-                                                            type="text" id="device_lan_mac" name="device_lan_mac"
-                                                            aria-describedby="info-device_lan_mac"
-                                                            placeholder="xx-xx-xx-xx-xx" maxlength="255">
-                                                        @error('device_lan_mac')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-
+                                            <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -537,18 +528,6 @@
                                                     <div class="@error('status') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="status" id="status"
                                                             required>
-                                                            {{-- <option value="" disabled
-                                                            {{ old('user_type', $user->user_type ?? '') == '' ? 'selected' : '' }}>
-                                                            Select Access Rights</option>
-                                                        <option value="Admin"
-                                                            {{ old('user_type', $user->user_type ?? '') == 'Admin' ? 'selected' : '' }}>
-                                                            Admin</option>
-                                                        <option value="Manager"
-                                                            {{ old('user_type', $user->user_type ?? '') == 'Manager' ? 'selected' : '' }}>
-                                                            Manager</option>
-                                                        <option value="Kasir"
-                                                            {{ old('user_type', $user->user_type ?? '') == 'Kasir' ? 'selected' : '' }}>
-                                                            Kasir</option> --}}
                                                             <option value="" disabled
                                                                 {{ $selectedStatusType == '' ? 'selected' : '' }}>Choose
                                                                 Status</option>
@@ -565,9 +544,36 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
                                         </div>
-                                        <div class="alert alert-secondary mt-4" role="alert">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="name" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Roles') }}
+                                                    </label>
+                                                    <div class="@error('name') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="roles[]" id="roles[]"
+                                                            required>
+                                                            <option value="" disabled
+                                                                {{ $selectedRolesType == '' ? 'selected' : '' }}>Choose
+                                                                Roles</option>
+                                                            @foreach ($Roles as $role)
+                                                                <option value="{{ $role }}"
+                                                                    {{ $selectedRolesType == $role ? 'selected' : '' }}>
+                                                                    {{ $role }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        
+                                                        @error('name')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+
+                                                <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a username is already registered, you cannot register it again.<br>

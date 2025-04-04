@@ -24,24 +24,42 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
 
 
 
-Route::middleware(['can:isAdmin', 'auth'])->group(function () {
-    //   dashboardadmin
-    Route::get('/dashboardAdmin', [dashboardAdminController::class, 'index'])->name('pages.dashboardAdmin');
-    Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create');
-    Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store');
-    Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
-    Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
-    Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+// Route::middleware(['role:Admin', 'auth'])->group(function () {
+//     //   dashboardadmin
+//     Route::get('/dashboardAdmin', [dashboardAdminController::class, 'index'])->name('pages.dashboardAdmin');
+//     Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create');
+//     Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store');
+//     Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
+//     Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
+//     Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+//     // activity log
+//     Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
+//     Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
+//     Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
+//     Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
+
+
+// });
+Route::middleware(['auth', 'role:Admin'])->group(function () {
+    // Dashboard
+    Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
+        ->name('pages.dashboardAdmin')
+        ->middleware('permission:dashboardAdmin');
+            Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create')->middleware('permission:viewcreateUser');
+    Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store')->middleware('permission:createUser');
+    Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit')->middleware('permission:vieweditUser');
+    Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update')->middleware('permission:updateUser');
+    Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users')->middleware('permission:viewtableUser');
     // activity log
     Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
     Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
     Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
     Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
-
-
+    
+   
 });
-Route::middleware(['can:isManager Store', 'auth'])->group(function () {
-    Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
+Route::middleware(['auth', 'role:Manager Store'])->group(function () {
+    Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager')->middleware('permission:dashboardManager');
 });
 Route::middleware(['can:isKasir', 'auth'])->group(function () {
     Route::get('/dashboardKasir', [dashboardKasirController::class, 'index'])->name('pages.dashboardKasir');

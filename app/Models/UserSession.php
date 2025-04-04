@@ -7,11 +7,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class UserSession extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
     protected $table = 'user_sessions'; 
     protected $primaryKey = 'id';
-    public $incrementing = false; // Nonaktifkan auto-increment
-    protected $keyType = 'string'; // Pastikan tipe data adalah string
     protected $fillable = [
         'user_id', 
         'session_id', 
@@ -19,15 +17,7 @@ class UserSession extends Model
         'last_activity', 
         'device_type'
     ];
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($model) {
-            if (!$model->id) {
-                $model->id = Str::uuid();
-            }
-        });
-    }
+   
     // Relationship with User model
     public function user()
     {

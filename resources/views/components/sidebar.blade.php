@@ -11,7 +11,7 @@
         <ul class="sidebar-menu">
             <li class="menu-header">Dashboard</li>
            
-            @if (Gate::allows('isAdmin'))
+            @role('Admin')
             
             <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                 <a class="nav-link"
@@ -21,14 +21,13 @@
                 <a class="nav-link"
                     href="{{ url('Activity') }}"><i class="fas fa-female"></i> <span>Activity Log</span></a>
             </li>
-            @endif
-            @if (Gate::allows('isManager'))
+           
             
             <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
                 <a class="nav-link"
                     href="{{ url('dashboardManager') }}"><i class="fas fa-female"></i> <span>Dashboard</span></a>
             </li>
-            @endif
+            @endrole
            
  
             <li class="menu-header">Select Menu</li>
