@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\DataTables;
+use App\Rules\NoXSSInput;
+use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
@@ -62,7 +64,6 @@ class RoleController extends Controller
                     </a>';
                 return $role;
             });
-    
         return DataTables::of($roles)
             ->addIndexColumn()
             ->addColumn('permissions', function($role) {
@@ -103,38 +104,84 @@ class RoleController extends Controller
         $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
         return $expectedHash === $hashedId;
     });
-
     if (!$role) {
         abort(404, 'Role not found.');
     }
-
     // Ambil semua permissions
     $permissions = Permission::all();
-    
     // Ambil permission IDs yang dimiliki role
     $rolePermissions = $role->permissions->pluck('id')->toArray();
-
     return view('roles.edit', compact('role', 'permissions', 'rolePermissions', 'hashedId'));
 }
 
-    public function update(Request $request, Role $role)
+//     public function update(Request $request, Role $role)
+// {
+//     $request->validate([
+//         'name' => [
+//             'required',
+//             'unique',
+//             'regex:/^[a-zA-Z0-9_-]+$/',
+//             Rule::unique('roles')->ignore($role->id),
+//             new NoXSSInput()
+//         ],
+//         'permissions' => 'array',
+//     ]);
+
+//     $role->update(['name' => $request->name]);
+
+//     // Convert permission IDs to names
+//     $permissions = Permission::whereIn('id', $request->permissions)
+//         ->pluck('name')
+//         ->toArray();
+
+//     $role->syncPermissions($permissions);
+
+//     return redirect()->route('roles.index')->with('success', 'Role updated successfully');
+// }
+
+public function update(Request $request, $hashedId)
 {
-    $request->validate([
-        'name' => 'required|unique:roles,name,' . $role->id,
-        'permissions' => 'array',
+    $roles = Role::with('permissions')->get()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+    if (!$roles) {
+        return redirect()->route('roles.index')->with('error', 'ID tidak valid.');
+    }
+    $validatedData = $request->validate([
+        'name' => [
+            'nullable',
+            'regex:/^[a-zA-Z0-9_-]+$/',
+            Rule::unique('roles')->ignore($roles->id),
+            new NoXSSInput()
+        ],
+        'permissions' => 'array','regex:/^[a-zA-Z0-9_-]+$/',
+             new NoXSSInput()
     ]);
 
-    $role->update(['name' => $request->name]);
+    $roles->update(['name' => $request->name]);
 
     // Convert permission IDs to names
     $permissions = Permission::whereIn('id', $request->permissions)
         ->pluck('name')
         ->toArray();
-
-    $role->syncPermissions($permissions);
-
+    $roles->syncPermissions($permissions);
     return redirect()->route('roles.index')->with('success', 'Role updated successfully');
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function destroy(Role $role)
     {

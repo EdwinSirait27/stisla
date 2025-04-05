@@ -179,7 +179,8 @@
                             <div class="card-header">
                                 <h4>Editing Role: {{ $role->name }}</h4>
                             </div>
-                            <form action="{{ route('roles.update', $role->id) }}" method="POST">
+                            <form action="{{ route('roles.update', $hashedId) }}" method="POST">
+                          
                                 @csrf
                                 @method('PUT')
                                 <div class="card-body">
@@ -189,7 +190,7 @@
                                                class="form-control @error('name') is-invalid @enderror" 
                                                name="name" 
                                                value="{{ old('name', $role->name) }}" 
-                                               required>
+                                               readonly>
                                         @error('name')
                                             <div class="invalid-feedback">
                                                 {{ $message }}

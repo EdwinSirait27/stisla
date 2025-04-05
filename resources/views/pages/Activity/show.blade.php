@@ -209,97 +209,7 @@
         </section>
     </div>
 @endsection
-{{-- @push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('activity1.activity1') }}',
-                    data: function(d) {
-                        d.activity_type = $('#activity-type-filter').val();
-                    },
-                    error: function(xhr, error, thrown) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Failed to load data!'
-                        });
-                        console.error(xhr.responseText);
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [
-                    {
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'activity_type',
-                        name: 'activity_type',
-                        className: 'text-center align-middle'
-                    },
-                    {
-                        data: 'activity_time',
-                        name: 'activity_time',
-                        className: 'text-center align-middle',
-                        render: function(data) {
-                            return data ? new Date(data).toLocaleString() : 'N/A';
-                        }
-                    },
-                    {
-                        data: 'device_wifi_mac',
-                        name: 'device_wifi_mac',
-                        className: 'text-center align-middle',
-                        render: function(data) {
-                            return data || 'Empty';
-                        }
-                    },
-                    {
-                        data: 'device_lan_mac',
-                        name: 'device_lan_mac',
-                        className: 'text-center align-middle',
-                        render: function(data) {
-                            return data || 'Empty';
-                        }
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
 
-            $('#activity-type-filter').change(function() {
-                table.ajax.reload();
-            });
-
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000
-                });
-            @endif
-        });
-    </script>
-@endpush --}}
 
 @push('scripts')
     <!-- Load required libraries -->
@@ -311,7 +221,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
+    {{-- <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
                 dom: '<"row"<"col-md-6"B><"col-md-6"f>>rtip',
@@ -425,4 +335,297 @@
             @endif
         });
     </script>
+@endpush --}}
+@section('main')
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Users Activity Logs</h1>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-user-shield"></i> Users Activity Logs {{$activity->user->username}}</h6>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <select id="activity-type-filter" class="form-control">
+                                            <option value="">All Activity Types</option>
+                                            <option value="Login">Login</option>
+                                            <option value="Logout">Logout</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="users-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">No.</th>
+                                                <th class="text-center">Activity Type</th>
+                                                <th class="text-center">Activity Time</th>
+                                                <th class="text-center">Mac Wifi</th>
+                                                <th class="text-center">Mac Lan</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+@endsection
+
+@push('scripts')
+    <!-- Load required libraries -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* Custom CSS to ensure lengthMenu visibility */
+        .dataTables_wrapper .dataTables_length {
+            float: left;
+            padding-top: 0.5em;
+        }
+        .dataTables_wrapper .dataTables_filter {
+            float: right;
+            text-align: right;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            margin-left: 0.5em;
+        }
+        .dataTables_wrapper .dataTables_paginate {
+            float: right;
+        }
+        .dt-buttons {
+            margin-bottom: 10px;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            var table = $('#users-table').DataTable({
+        dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"p>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
+        buttons: [
+                    {
+                        extend: 'copy',
+                        text: '<i class="fas fa-copy"></i> Copy',
+                        className: 'btn btn-sm btn-secondary',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        text: '<i class="fas fa-file-csv"></i> CSV',
+                        className: 'btn btn-sm btn-primary',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-sm btn-success',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ],
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('activity1.activity1') }}',
+                    data: function(d) {
+                        d.activity_type = $('#activity-type-filter').val();
+                    },
+                    error: function(xhr, error, thrown) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Failed to load data!'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    },
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                columns: [
+                    {
+                        data: null,
+                        name: 'id',
+                        className: 'text-center align-middle',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'activity_type',
+                        name: 'activity_type',
+                        className: 'text-center align-middle'
+                    },
+                    {
+                        data: 'activity_time',
+                        name: 'activity_time',
+                        className: 'text-center align-middle',
+                        render: function(data) {
+                            return data ? new Date(data).toLocaleString() : 'N/A';
+                        }
+                    },
+                    {
+                        data: 'device_wifi_mac',
+                        name: 'device_wifi_mac',
+                        className: 'text-center align-middle',
+                        render: function(data) {
+                            return data || 'Empty';
+                        }
+                    },
+                    {
+                        data: 'device_lan_mac',
+                        name: 'device_lan_mac',
+                        className: 'text-center align-middle',
+                        render: function(data) {
+                            return data || 'Empty';
+                        }
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                }
+            });
+
+            $('#activity-type-filter').change(function() {
+                table.ajax.reload();
+            });
+
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    timer: 3000
+                });
+            @endif
+        });
+    </script>
 @endpush
+{{-- @push('scripts')
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('activity1.activity1') }}',
+                    data: function(d) {
+                        d.activity_type = $('#activity-type-filter').val();
+                    },
+                    error: function(xhr, error, thrown) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Failed to load data!'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                },
+                columns: [
+                    {
+                        data: null,
+                        name: 'id',
+                        className: 'text-center align-middle',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'activity_type',
+                        name: 'activity_type',
+                        className: 'text-center align-middle'
+                    },
+                    {
+                        data: 'activity_time',
+                        name: 'activity_time',
+                        className: 'text-center align-middle',
+                        render: function(data) {
+                            return data ? new Date(data).toLocaleString() : 'N/A';
+                        }
+                    },
+                    {
+                        data: 'device_wifi_mac',
+                        name: 'device_wifi_mac',
+                        className: 'text-center align-middle',
+                        render: function(data) {
+                            return data || 'Empty';
+                        }
+                    },
+                    {
+                        data: 'device_lan_mac',
+                        name: 'device_lan_mac',
+                        className: 'text-center align-middle',
+                        render: function(data) {
+                            return data || 'Empty';
+                        }
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                }
+            });
+
+            $('#activity-type-filter').change(function() {
+                table.ajax.reload();
+            });
+
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    timer: 3000
+                });
+            @endif
+        });
+    </script>
+@endpush --}}

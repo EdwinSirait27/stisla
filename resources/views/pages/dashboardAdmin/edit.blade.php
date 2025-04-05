@@ -541,12 +541,12 @@
                                                 </div>
                                         </div>
                                         </div>
-                                            {{-- <div class="col-md-6">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name" class="form-control-label">
+                                                    <label for="roles[]" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Roles') }}
                                                     </label>
-                                                    <div class="@error('name') border border-danger rounded-3 @enderror">
+                                                    <div class="@error('roles[]') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="roles[]" id="roles[]"
                                                             required>
                                                             <option value="" disabled
@@ -559,7 +559,7 @@
                                                             @endforeach
                                                         </select>
                                                         
-                                                        @error('name')
+                                                        @error('roles[]')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -567,7 +567,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div> --}}
+                                            </div>
 
                                                 <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

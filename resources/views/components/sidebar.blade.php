@@ -32,13 +32,29 @@
                     class="nav-link has-dropdown"
                     data-toggle="dropdown"><i class="fas fa-lock"></i> <span>Admin</span></a>
                 <ul class="dropdown-menu">
-                    <li class="{{ Request::is('layout-default-layout') ? 'active' : '' }}">
+                    <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                         <a class="nav-link"
                             href="{{ url('dashboardAdmin') }}">List Users</a>
                     </li>
-                    <li class="{{ Request::is('transparent-sidebar') ? 'active' : '' }}">
+                    <li class="{{ Request::is('Activity') ? 'active' : '' }}">
                         <a class="nav-link"
                             href="{{ url('Activity') }}">Activity Logs</a>
+                    </li>
+                    
+                </ul>
+            </li>
+            <li class="nav-item dropdown ">
+                <a href="#"
+                    class="nav-link has-dropdown"
+                    data-toggle="dropdown"><i class="fas fa-key"></i> <span>Roles & Permission</span></a>
+                <ul class="dropdown-menu">
+                    <li class="{{ Request::is('roles') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('roles') }}">Roles</a>
+                    </li>
+                    <li class="{{ Request::is('permission') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('permissions') }}">Permission</a>
                     </li>
                     
                 </ul>

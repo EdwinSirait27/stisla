@@ -47,20 +47,52 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
         ->name('pages.dashboardAdmin')
         ->middleware('permission:dashboardAdmin');
+        Route::group(['middleware' => ['permission:ManageUser']], function () {
+            // Bisa diakses oleh siapa saja yang memiliki permission ini
             Route::get('dashboardAdmin/create', [dashboardAdminController::class, 'create'])->name('dashboardAdmin.create')->middleware('permission:viewcreateUser');
-    Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store')->middleware('permission:createUser');
-    Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit')->middleware('permission:vieweditUser');
-    Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update')->middleware('permission:updateUser');
-    Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users')->middleware('permission:viewtableUser');
-    // activity log
+            Route::post('/dashboardAdmin', [dashboardAdminController::class, 'store'])->name('dashboardAdmin.store')->middleware('permission:createUser');
+            Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit')->middleware('permission:vieweditUser');
+            Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update')->middleware('permission:updateUser');
+            Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users')->middleware('permission:viewtableUser');
+        });
+        Route::group(['middleware' => ['permission:ManageActivity']], function () {
+            // activity log
     Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
     Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
     Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity')->middleware('permission:viewtableActivity');
     Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
+        });
+    //     Route::group(['middleware' => ['permission:ManageActivity']], function () {
+    //         // activity log
+    // Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
+    // Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
+    // Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity')->middleware('permission:viewtableActivity');
+    // Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
+    //     });
+            
+ 
+//    roles
+    // Route::resource('roles', RoleController::class);
+    Route::get('/roles', [RoleController::class, 'index'])
+    ->name('roles.index');
+    Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store')->middleware('permission:createUser');
+    Route::get('/roles/edit/{hashedId}', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles/{hashedId}', [RoleController::class, 'update'])->name('roles.update');
+    Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role');
+//     // activity log
+//     Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
+//     Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
+//     Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity')->middleware('permission:viewtableActivity');
+//     Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
     
-   
-    Route::resource('roles', RoleController::class);
-    
+        
+// // activity log
+// Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
+// Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
+// Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity')->middleware('permission:viewtableActivity');
+// Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
+
     // Permissions Routes
     Route::resource('permissions', PermissionController::class)->except(['show']);
     Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role')->middleware('permission:viewtableActivity1');
@@ -68,12 +100,18 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     // User Role Assignment (optional)
     // Route::get('/users/{user}/edit-roles', [UserController::class, 'editRoles'])->name('users.editRoles');
     // Route::put('/users/{user}/update-roles', [UserController::class, 'updateRoles'])->name('users.updateRoles');
+    
+    
+    });
 
-
-
-});
 Route::middleware(['auth', 'role:Manager Store'])->group(function () {
-    Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager')->middleware('permission:dashboardManager');
+   
+    Route::group(['middleware' => ['permission:dashboardManager']], function () {
+        
+        Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
+
+    });
+   
 });
 Route::middleware(['can:isKasir', 'auth'])->group(function () {
     Route::get('/dashboardKasir', [dashboardKasirController::class, 'index'])->name('pages.dashboardKasir');

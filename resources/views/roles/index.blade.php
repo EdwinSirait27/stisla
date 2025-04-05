@@ -175,7 +175,7 @@
                         <div class="card-header">
                             <h4><i class="fas fa-user-shield"></i> List Roles</h4>
                             <div class="card-header-action">
-                                @can('role-create')
+                                @can('role create')
                                 <a href="{{ route('roles.create') }}" class="btn btn-primary">
                                     <i class="fas fa-plus-circle"></i> Create Role
                                 </a>

@@ -71,10 +71,11 @@
     
     <div class="mt-3">
         @auth
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn-custom">Logout</button>
-            </form>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="btn-custom">Logout</button>
+        </form>
+        <button onclick="window.history.back()" class="btn-custom">go back</button>
         @else
             <a href="/" class="btn-custom">Back to Login</a>
         @endauth

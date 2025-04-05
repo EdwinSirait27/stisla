@@ -72,17 +72,17 @@
             // Inactivity timer
             let inactivityTime = function() {
                 let time;
-
+    
                 // Reset timer on these events
                 window.onload = resetTimer;
                 document.onmousemove = resetTimer;
                 document.onkeypress = resetTimer;
-
+    
                 function logout() {
                     // Check if we're already logging out to prevent multiple calls
                     if (window.loggingOut) return;
                     window.loggingOut = true;
-
+    
                     // Panggil route logout
                     fetch('{{ route('logout') }}', {
                         method: 'POST',
@@ -96,14 +96,14 @@
                         window.loggingOut = false;
                     });
                 }
-
+    
                 function resetTimer() {
                     clearTimeout(time);
-                    // Set timeout 10 menit (600000 ms)
+                    // Set timeout 1 menit (60000 ms)
                     time = setTimeout(logout, 600000);
                 }
             };
-
+    
             // Initialize only if not already initialized
             if (!window.inactivityTimerInitialized) {
                 inactivityTime();
