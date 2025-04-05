@@ -8,6 +8,8 @@ use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+
 
 class RoleController extends Controller
 {
@@ -72,31 +74,120 @@ class RoleController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
+    // public function create()
+    // {
+    //     try {
+    //         $permissions = Permission::orderBy('name')->get(); // Grupkan permission jika ada kategori
+    //         $role = new Role();
+            
+    //         return view('roles.create', compact('permissions', 'role'));
+            
+    //     } catch (\Exception $e) {
+    //         \Log::error('Error accessing role creation page: ' . $e->getMessage());
+            
+    //         return redirect()->route('roles.index')
+    //             ->with('error', 'Failed to access role creation page. Please try again.');
+    //     }
+    // }
+
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'name' => 'required|unique:roles,name|max:255|string',
+    //         'permissions' => 'nullable|array',
+    //         'permissions.*' => 'exists:permissions,id'
+    //     ]);
+    
+    //     try {
+    //         DB::beginTransaction();
+            
+    //         $role = Role::create([
+    //             'name' => $validated['name'],
+    //             'guard_name' => 'web' // atau config('auth.defaults.guard')
+    //         ]);
+            
+    //         $role->syncPermissions($validated['permissions'] ?? []);
+            
+    //         DB::commit();
+            
+    //         return redirect()->route('roles.index')
+    //             ->with('success', 'Role created successfully');
+                
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         \Log::error('Role creation failed: ' . $e->getMessage());
+            
+    //         return redirect()->back()
+    //             ->withInput()
+    //             ->with('error', 'Role creation failed: ' . $e->getMessage()); // Tambahkan pesan error spesifik
+    //     }
+    // }
     public function create()
     {
-        $permissions = Permission::all();
-        return view('roles.create', compact('permissions'));
+        try {
+            $permissions = Permission::orderBy('name')->get();
+            $role = new Role();
+            $rolePermissions = []; // Inisialisasi array kosong
+            
+            return view('roles.create', compact('permissions', 'role', 'rolePermissions'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error accessing role creation page: ' . $e->getMessage());
+            
+            return redirect()->route('roles.index')
+                ->with('error', 'Failed to access role creation page. Please try again.');
+        }
     }
 
+    
+    
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|unique:roles,name',
-            'permissions' => 'array',
+        $validatedData = $request->validate([
+            'name' => [
+                'required',
+                'regex:/^[a-zA-Z0-9_-]+$/',
+                'unique:roles,name',
+                'max:255',
+                new NoXSSInput()
+            ],
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'exists:permissions,id'
         ]);
-
-        $role = Role::create(['name' => $request->name, 'guard_name' => 'web']);
-        $role->syncPermissions($request->permissions);
-
-        return redirect()->route('roles.index')->with('success', 'Role created successfully');
+    
+        try {
+            DB::beginTransaction();
+            
+            // Buat role baru
+            $role = Role::create([
+                'name' => $validatedData['name'],
+                'guard_name' => 'web'
+            ]);
+            
+            // Convert permission IDs to names dan sync
+            $permissions = Permission::whereIn('id', $request->permissions ?? [])
+                ->pluck('name')
+                ->toArray();
+                
+            $role->syncPermissions($permissions);
+            
+            DB::commit();
+          
+            return redirect()->route('roles.index')
+                ->with('success', 'Role created successfully');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Role creation failed: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create role. Please try again.');
+        }
     }
 
-    // public function edit(Role $role)
-    // {
-    //     $permissions = Permission::all();
-    //     $rolePermissions = $role->permissions->pluck('id')->toArray();
-    //     return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
-    // }
+
+   
     public function edit($hashedId)
 {
     // Cari role berdasarkan hashed ID
@@ -113,31 +204,6 @@ class RoleController extends Controller
     $rolePermissions = $role->permissions->pluck('id')->toArray();
     return view('roles.edit', compact('role', 'permissions', 'rolePermissions', 'hashedId'));
 }
-
-//     public function update(Request $request, Role $role)
-// {
-//     $request->validate([
-//         'name' => [
-//             'required',
-//             'unique',
-//             'regex:/^[a-zA-Z0-9_-]+$/',
-//             Rule::unique('roles')->ignore($role->id),
-//             new NoXSSInput()
-//         ],
-//         'permissions' => 'array',
-//     ]);
-
-//     $role->update(['name' => $request->name]);
-
-//     // Convert permission IDs to names
-//     $permissions = Permission::whereIn('id', $request->permissions)
-//         ->pluck('name')
-//         ->toArray();
-
-//     $role->syncPermissions($permissions);
-
-//     return redirect()->route('roles.index')->with('success', 'Role updated successfully');
-// }
 
 public function update(Request $request, $hashedId)
 {

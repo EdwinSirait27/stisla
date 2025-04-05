@@ -524,11 +524,11 @@
                                                         <select class="form-control" name="status" id="status"
                                                             required>
                                                             <option value="" disabled
-                                                                {{ $selectedStatusType == '' ? 'selected' : '' }}>Choose
+                                                                {{ $selectedStatus == '' ? 'selected' : '' }}>Choose
                                                                 Status</option>
                                                             @foreach ($userStatus as $status)
                                                                 <option value="{{ $status }}"
-                                                                    {{ $selectedStatusType == $status ? 'selected' : '' }}>
+                                                                    {{ $selectedStatus == $status ? 'selected' : '' }}>
                                                                     {{ $status }}</option>
                                                             @endforeach
                                                         </select>
@@ -540,8 +540,7 @@
                                                     </div>
                                                 </div>
                                         </div>
-                                        </div>
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="roles[]" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Roles') }}
@@ -560,6 +559,31 @@
                                                         </select>
                                                         
                                                         @error('roles[]')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="role" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Role') }}
+                                                    </label>
+                                                    <div class="@error('role') border border-danger rounded-3 @enderror">
+                                                        <select class="form-control" name="role" id="role" required>
+                                                            <option value="" disabled>Choose Role</option>
+                                                            @foreach ($roles as $roleName => $displayName)
+                                                                <option value="{{ $roleName }}" 
+                                                                    {{ $selectedRole == $roleName ? 'selected' : '' }}>
+                                                                    {{ $displayName }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        
+                                                        @error('role')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
