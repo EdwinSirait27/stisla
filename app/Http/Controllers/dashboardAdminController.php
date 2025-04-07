@@ -43,7 +43,6 @@ class dashboardAdminController extends Controller
                     </a>';
                 return $user;
             });
-
         return DataTables::of($users)
         ->addColumn('roles', function ($user) {
             // return $user->roles->pluck('name')->implode(', '); // Contoh: "admin, writer"
@@ -112,13 +111,16 @@ class dashboardAdminController extends Controller
     }
     public function create()
     {   
-        $Roles = Role::pluck('name');
+        $roles = Role::pluck('name', 'name')->all();
+
         $permissions = Permission::all();
-        return view('pages.dashboardAdmin.create',compact('Roles','permissions'));
+        return view('pages.dashboardAdmin.create', compact('roles', 'permissions'));
     }
     
 public function store(Request $request)
 {
+    // dd($request->all());
+
     $validatedData = $request->validate([
         'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
         'username' => [
@@ -153,8 +155,9 @@ public function store(Request $request)
             },
         ],
         'status' => ['nullable', 'string', 'in:Active,Inactive', new NoXSSInput()],
-        'roles' => ['required', 'array', 'min:1'],
-        'roles.*' => ['exists:roles,id'],
+        'role' => ['required', 'string', 'exists:roles,name'],
+
+       
     ], [
         'username.required' => 'Username wajib diisi.',
         'username.string' => 'Username hanya boleh berupa teks.',
@@ -165,6 +168,9 @@ public function store(Request $request)
         'password.string' => 'Password harus berupa teks.',
         'password.min' => 'Password minimal terdiri dari 7 karakter.',
         'password.max' => 'Password maksimal terdiri dari 12 karakter.',
+        'roles.required' => 'Paling sedikit satu role harus dipilih.',
+        'roles.string' => 'Format roles tidak valid.',
+
     ]);
     try {
         DB::beginTransaction();
@@ -179,7 +185,7 @@ public function store(Request $request)
             'status' => $validatedData['status'] ?? 'Active',
             'terms_id' => $terms->id,
         ]);
-        $user->syncRoles($validatedData['roles']);
+        $user->syncRoles($validatedData['role']);
         DB::commit();
         return redirect()->route('pages.dashboardAdmin')->with('success', 'User berhasil dibuat!');
     } catch (\Exception $e) {
@@ -212,7 +218,8 @@ public function store(Request $request)
                 new NoXSSInput()
             ],
             'status' => ['nullable', 'string', 'in:Active,Inactive', new NoXSSInput()],
-         'role' => ['required', 'string', 'exists:roles,name'],
+            'role' => ['required', 'string', 'exists:roles,name'],
+
 
         ], [
             'username.required' => 'Username is required.',
