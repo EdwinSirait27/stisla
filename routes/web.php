@@ -62,13 +62,7 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
     Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
         });
-    //     Route::group(['middleware' => ['permission:ManageActivity']], function () {
-    //         // activity log
-    // Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
-    // Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
-    // Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity')->middleware('permission:viewtableActivity');
-    // Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
-    //     });
+
             
  
 //    roles
@@ -82,6 +76,10 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/roles/edit/{hashedId}', [RoleController::class, 'edit'])->name('roles.edit');
     Route::put('/roles/{hashedId}', [RoleController::class, 'update'])->name('roles.update');
     Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role');
+// roles
+    Route::resource('permissions', PermissionController::class)->except(['show']);
+    Route::get('/permission/permission', [PermissionController::class, 'getPermissions'])->name('permission.permission');
+    
 //     // activity log
 //     Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity')->middleware('permission:viewActivity');
 //     Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show')->middleware('permission:showActivity');
@@ -96,9 +94,7 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
 // Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1')->middleware('permission:viewtableActivity1');
 
     // Permissions Routes
-    Route::resource('permissions', PermissionController::class)->except(['show']);
-    Route::get('/permission/permission', [PermissionController::class, 'getPermissions'])->name('permission.permission');
-    
+
     // Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role');
     
     // User Role Assignment (optional)
@@ -106,8 +102,8 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     // Route::put('/users/{user}/update-roles', [UserController::class, 'updateRoles'])->name('users.updateRoles');
     
     
-    });
     Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+    });
 });
 
 Route::middleware(['auth', 'role:Manager Store'])->group(function () {
