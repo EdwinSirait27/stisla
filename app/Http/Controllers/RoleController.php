@@ -38,9 +38,15 @@ class RoleController extends Controller
             });
         return DataTables::of($roles)
             ->addIndexColumn()
+            // ->addColumn('permissions', function($role) {
+            //     return $role->permissions->pluck('name')->implode(', ');
+            // })
             ->addColumn('permissions', function($role) {
-                return $role->permissions->pluck('name')->implode(', ');
+                return $role->permissions->count()
+                    ? $role->permissions->pluck('name')->implode(', ')
+                    : 'Empty';
             })
+            
             ->rawColumns(['action'])
             ->make(true);
     }

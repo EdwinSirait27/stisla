@@ -1,6 +1,66 @@
 {{-- @extends('layouts.app')
 
-@section('title', 'Create Permission')
+@section('title', 'Create New Permissions')
+
+@section('main')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Create New Permission</h5>
+                </div>
+
+                <div class="card-body">
+                    <form method="POST" action="{{ route('permissions.store') }}">
+                        @csrf
+
+                        <div class="form-group row mb-3">
+                            <label for="name" class="col-md-2 col-form-label">Permissions Name</label>
+                            <div class="col-md-10">
+                                <input id="name" type="text" 
+                                       class="form-control @error('name') is-invalid @enderror" 
+                                       name="name" value="{{ old('name') }}" 
+                                       required autofocus
+                                       placeholder="Enter role name (letters, numbers, underscore, hyphen only)">
+                                
+                                @error('name')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
+
+                        <div class="form-group row mb-0">
+                            <div class="col-md-10 offset-md-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Create Role
+                                </button>
+                                <a href="{{ route('permissions.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+    .form-check-label {
+        word-break: break-word;
+    }
+</style>
+@endpush --}}
+@extends('layouts.app')
+
+@section('title', 'Create Roles')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -21,6 +81,7 @@
             border-top-left-radius: 12px !important;
             border-top-right-radius: 12px !important;
         }
+        
         .card-body {
             padding: 25px;
         }
@@ -159,22 +220,67 @@
         }
     </style>
 @endpush
+
 @section('main')
-<div class="container">
-    <h2>{{ isset($permission) ? 'Edit' : 'Create' }} Permission</h2>
-    <form action="{{ isset($permission) ? route('permissions.update', $permission->id) : route('permissions.store') }}" method="POST">
-        @csrf
-        @if(isset($permission))
-            @method('PUT')
-        @endif
-        <div class="mb-3">
-            <label for="name" class="form-label">Permission Name</label>
-            <input type="text" class="form-control" id="name" name="name" 
-                   value="{{ old('name', $permission->name ?? '') }}" required>
+<div class="main-content">
+    <section class="section">
+        <!-- Section Header -->
+        <div class="section-header">
+            <h1>Create Permissions</h1>
+            <div class="section-header-breadcrumb">
+                <div class="breadcrumb-item"><a href="{{ route('permissions.index') }}">Permissions</a></div>
+                <div class="breadcrumb-item">Create Permissions</div>
+            </div>
         </div>
-        
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+
+        <!-- Section Body -->
+        <div class="section-body">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Create Permissions</h4>
+                        </div>
+                        
+                        <div class="card-body">
+                            <form method="POST" action="{{ route('permissions.store') }}">
+                                @csrf
+                                
+                                <!-- Role Name Input -->
+                                <div class="form-group row mb-3">
+                                    <label for="name" class="col-md-2 col-form-label">Permissions Name</label>
+                                    <div class="col-md-10">
+                                        <input id="name" type="text" 
+                                               class="form-control @error('name') is-invalid @enderror" 
+                                               name="name" value="{{ old('name') }}" 
+                                               required autofocus
+                                               placeholder="Enter role name (letters, numbers, underscore, hyphen only)">
+                                        
+                                        @error('name')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                </div>  
+                                <!-- Form Buttons -->
+                                <div class="form-group row mb-0">
+                                    <div class="col-md-10 offset-md-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Create Permission
+                                        </button>
+                                        <a href="{{ route('permissions.index') }}" class="btn btn-secondary">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 @endsection
 @push('scripts')
@@ -185,64 +291,4 @@
     <script>
         // You can add any specific JavaScript for this page here
     </script>
-@endpush --}}
-@extends('layouts.app')
-
-@section('title', 'Create New Permissions')
-
-@section('main')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Create New Permission</h5>
-                </div>
-
-                <div class="card-body">
-                    <form method="POST" action="{{ route('permissions.store') }}">
-                        @csrf
-
-                        <div class="form-group row mb-3">
-                            <label for="name" class="col-md-2 col-form-label">Permissions Name</label>
-                            <div class="col-md-10">
-                                <input id="name" type="text" 
-                                       class="form-control @error('name') is-invalid @enderror" 
-                                       name="name" value="{{ old('name') }}" 
-                                       required autofocus
-                                       placeholder="Enter role name (letters, numbers, underscore, hyphen only)">
-                                
-                                @error('name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-
-                        <div class="form-group row mb-0">
-                            <div class="col-md-10 offset-md-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Create Role
-                                </button>
-                                <a href="{{ route('permissions.index') }}" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> Cancel
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@push('styles')
-<style>
-    .form-check-label {
-        word-break: break-word;
-    }
-</style>
 @endpush
