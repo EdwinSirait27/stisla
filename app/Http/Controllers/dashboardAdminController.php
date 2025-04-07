@@ -46,7 +46,8 @@ class dashboardAdminController extends Controller
 
         return DataTables::of($users)
         ->addColumn('roles', function ($user) {
-            return $user->roles->pluck('name')->implode(', '); // Contoh: "admin, writer"
+            // return $user->roles->pluck('name')->implode(', '); // Contoh: "admin, writer"
+            return !empty($user->roles->pluck('name')->toArray()) ? $user->roles->pluck('name')->implode(', ') : 'Empty';
         })
             ->addColumn('device_lan_mac', function ($user) {
                 return !empty($user->Terms) && !empty($user->Terms->device_lan_mac)

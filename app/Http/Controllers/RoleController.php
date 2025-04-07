@@ -7,8 +7,9 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use Illuminate\Validation\Rule;
 
 
 class RoleController extends Controller
@@ -17,42 +18,8 @@ class RoleController extends Controller
     {
         return view('roles.index');
     }
-    // public function getRoles()
-    // {
-    //     $roles = Role::with('permissions')->get()
-    //         ->map(function ($role) {
-    //             $role->id_hashed = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
-    //             $role->action = '
-    //                 <div class="btn-group">
-    //                     <a href="' . route('roles.edit', $role->id) . '" class="btn btn-sm btn-warning">
-    //                         <i class="fas fa-edit"></i> Edit
-    //                     </a>
-    //                     <form action="' . route('roles.destroy', $role->id) . '" method="POST" class="d-inline">
-    //                         ' . csrf_field() . '
-    //                         ' . method_field('DELETE') . '
-    //                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Are you sure?\')">
-    //                             <i class="fas fa-trash"></i> Delete
-    //                         </button>
-    //                     </form>
-    //                 </div>
-    //             ';
-    //             // Format permissions
-    //             $role->permission_list = $role->permissions->map(function ($permission) {
-    //                 return '<span class="badge ">' . $permission->name . '</span>';
-    //             })->implode(' ');
-    //             return $role;
-    //         });
-
-    //     return DataTables::of($roles)
-    //         ->addColumn('permissions', function ($role) {
-    //             return $role->permission_list;
-    //         })
-    //         ->addColumn('action', function ($role) {
-    //             return $role->action;
-    //         })
-    //         ->rawColumns(['permissions', 'action'])
-    //         ->make(true);
-    // }
+   
+    
     public function getRoles()
     {
         $roles = Role::with('permissions')
@@ -61,9 +28,12 @@ class RoleController extends Controller
             ->map(function ($role) {
                 $role->id_hashed = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
                 $role->action = '
-                    <a href="' . route('roles.edit', $role->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit roles">
-                        <i class="fas fa-user-edit text-secondary"></i>
-                    </a>';
+                <a href="' . route('roles.edit', $role->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit role" title="Edit Role: ' . e($role->name) . '">
+                    <i class="fas fa-user-edit text-secondary"></i>
+                </a>
+                <a href="#" onclick="deleteRole(\'' . route('roles.destroy', $role->id_hashed) . '\')" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Delete role"title="Delete Role: ' . e($role->name) . '">
+                    <i class="fas fa-trash text-danger"></i>
+                </a>';
                 return $role;
             });
         return DataTables::of($roles)
@@ -74,54 +44,6 @@ class RoleController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    // public function create()
-    // {
-    //     try {
-    //         $permissions = Permission::orderBy('name')->get(); // Grupkan permission jika ada kategori
-    //         $role = new Role();
-            
-    //         return view('roles.create', compact('permissions', 'role'));
-            
-    //     } catch (\Exception $e) {
-    //         \Log::error('Error accessing role creation page: ' . $e->getMessage());
-            
-    //         return redirect()->route('roles.index')
-    //             ->with('error', 'Failed to access role creation page. Please try again.');
-    //     }
-    // }
-
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'name' => 'required|unique:roles,name|max:255|string',
-    //         'permissions' => 'nullable|array',
-    //         'permissions.*' => 'exists:permissions,id'
-    //     ]);
-    
-    //     try {
-    //         DB::beginTransaction();
-            
-    //         $role = Role::create([
-    //             'name' => $validated['name'],
-    //             'guard_name' => 'web' // atau config('auth.defaults.guard')
-    //         ]);
-            
-    //         $role->syncPermissions($validated['permissions'] ?? []);
-            
-    //         DB::commit();
-            
-    //         return redirect()->route('roles.index')
-    //             ->with('success', 'Role created successfully');
-                
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         \Log::error('Role creation failed: ' . $e->getMessage());
-            
-    //         return redirect()->back()
-    //             ->withInput()
-    //             ->with('error', 'Role creation failed: ' . $e->getMessage()); // Tambahkan pesan error spesifik
-    //     }
-    // }
     public function create()
     {
         try {
@@ -249,9 +171,58 @@ public function update(Request $request, $hashedId)
 
 
 
-    public function destroy(Role $role)
+    // public function destroy(Role $role)
+    // {
+    //     $role->delete();
+    //     return redirect()->route('roles.index')->with('success', 'Role deleted successfully');
+    // }
+    public function destroy($id_hashed)
     {
-        $role->delete();
-        return redirect()->route('roles.index')->with('success', 'Role deleted successfully');
+        try {
+            // Decode hashed ID
+            $roleId = null;
+            $roles = Role::all();
+            foreach ($roles as $role) {
+                $hashed = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
+                if ($hashed === $id_hashed) {
+                    $roleId = $role->id;
+                    break;
+                }
+            }
+    
+            if (!$roleId) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Role not found'
+                ], 404);
+            }
+    
+            // Cek apakah role sedang digunakan oleh user (cara Spatie)
+            $usersCount = DB::table('model_has_roles')
+                          ->where('role_id', $roleId)
+                          ->count();
+    
+            if ($usersCount > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot delete role because it is assigned to '.$usersCount.' user(s)'
+                ], 400);
+            }
+    
+            // Hapus role
+            $role = Role::findOrFail($roleId);
+            $role->delete();
+    
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Role deleted successfully'
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete role: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

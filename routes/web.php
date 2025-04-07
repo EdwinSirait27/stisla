@@ -73,10 +73,12 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
  
 //    roles
     // Route::resource('roles', RoleController::class);
+    Route::group(['middleware' => ['permission:ManageRoles']], function () {
+        
     Route::get('/roles', [RoleController::class, 'index'])
     ->name('roles.index');
     Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
-    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store')->middleware('permission:createUser');
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
     Route::get('/roles/edit/{hashedId}', [RoleController::class, 'edit'])->name('roles.edit');
     Route::put('/roles/{hashedId}', [RoleController::class, 'update'])->name('roles.update');
     Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role');
@@ -95,7 +97,9 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
 
     // Permissions Routes
     Route::resource('permissions', PermissionController::class)->except(['show']);
-    Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role')->middleware('permission:viewtableActivity1');
+    Route::get('/permission/permission', [PermissionController::class, 'getPermissions'])->name('permission.permission');
+    
+    // Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role');
     
     // User Role Assignment (optional)
     // Route::get('/users/{user}/edit-roles', [UserController::class, 'editRoles'])->name('users.editRoles');
@@ -103,6 +107,8 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     
     
     });
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+});
 
 Route::middleware(['auth', 'role:Manager Store'])->group(function () {
    

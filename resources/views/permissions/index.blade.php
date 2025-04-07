@@ -5,42 +5,6 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
-@section('main')
-<div class="container">
-    <h2>Permissions</h2>
-    <a href="{{ route('permissions.create') }}" class="btn btn-primary mb-3">Create Permission</a>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($permissions as $permission)
-            <tr>
-                <td>{{ $permission->name }}</td>
-                <td>
-                    <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="{{ route('permissions.destroy', $permission->id) }}" method="POST" style="display:inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endsection
-{{-- @extends('layouts.app')
-@section('title', 'Roles')
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-@endpush
 <style>
     /* Card Styles */
     .card {
@@ -202,22 +166,19 @@
 <div class="main-content">
     <section class="section">
         <div class="section-header">
-            <h1>Roles Management</h1>
-    <a href="{{ route('permissions.create') }}" class="btn btn-primary mb-3">Create Permission</a>
-
+            <h1>Permissions Management</h1>
         </div>
         <div class="section-body">
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4><i class="fas fa-user-shield"></i> List Roles</h4>
+                            <h4><i class="fas fa-user-shield"></i> List Permissions</h4>
                             <div class="card-header-action">
-                                @can('role-create')
                                 <a href="{{ route('permissions.create') }}" class="btn btn-primary">
                                     <i class="fas fa-plus-circle"></i> Create Permission
                                 </a>
-                                @endcan
+                               
                             </div>
                         </div>
 
@@ -227,8 +188,7 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center">No.</th>
-                                            <th class="text-center">Name</th>
-                                            <th class="text-center">Permissions</th>
+                                            <th class="text-center">Permission Name</th>
                                             <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -257,7 +217,7 @@ $(document).ready(function() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: '{{ route('role.role') }}',
+            url: '{{ route('permission.permission') }}',
             type: 'GET'
         },
         responsive: true,
@@ -284,13 +244,6 @@ $(document).ready(function() {
                 data: 'name',
                 name: 'name',
                 className: 'text-center align-middle'
-            },
-            {
-                data: 'permissions',
-                name: 'permissions',
-                className: 'text-center align-middle',
-                orderable: false,
-                searchable: false
             },
             {
                 data: 'action',
@@ -333,5 +286,90 @@ $(document).ready(function() {
         showConfirmButton: false
     });
 @endif
+function deleteRole(url) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire(
+                            'Deleted!',
+                            response.message,
+                            'success'
+                        ).then(() => {
+                            $('#roles-table').DataTable().ajax.reload();
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            response.message,
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Something went wrong';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    Swal.fire(
+                        'Error!',
+                        errorMsg,
+                        'error'
+                    );
+                }
+            });
+        }
+    });
+}
 </script>
-@endpush --}}
+@endpush
+{{-- @extends('layouts.app')
+@section('title', 'Permissions')
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+@endpush
+@section('main')
+<div class="container">
+    <h2>Permissions</h2>
+    <a href="{{ route('permissions.create') }}" class="btn btn-primary mb-3">Create Permission</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($permissions as $permission)
+            <tr>
+                <td>{{ $permission->name }}</td>
+                <td>
+                    <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                    <form action="{{ route('permissions.destroy', $permission->id) }}" method="POST" style="display:inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+@endsection --}}

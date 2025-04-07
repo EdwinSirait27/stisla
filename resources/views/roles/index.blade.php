@@ -175,11 +175,10 @@
                         <div class="card-header">
                             <h4><i class="fas fa-user-shield"></i> List Roles</h4>
                             <div class="card-header-action">
-                                @can('role create')
                                 <a href="{{ route('roles.create') }}" class="btn btn-primary">
                                     <i class="fas fa-plus-circle"></i> Create Role
                                 </a>
-                                @endcan
+                               
                             </div>
                         </div>
 
@@ -295,6 +294,55 @@ $(document).ready(function() {
         showConfirmButton: false
     });
 @endif
+function deleteRole(url) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire(
+                            'Deleted!',
+                            response.message,
+                            'success'
+                        ).then(() => {
+                            $('#roles-table').DataTable().ajax.reload();
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            response.message,
+                            'error'
+                        );
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Something went wrong';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    Swal.fire(
+                        'Error!',
+                        errorMsg,
+                        'error'
+                    );
+                }
+            });
+        }
+    });
+}
 </script>
 @endpush
 {{-- 

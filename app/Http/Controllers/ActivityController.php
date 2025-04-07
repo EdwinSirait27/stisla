@@ -20,27 +20,7 @@ class ActivityController extends Controller
     {
         return view('pages.Activity.Activity');
     }
-    // public function getActivity()
-    // {
-    //     $activity = Activity::with('user')->select(['id', 'user_id'])->get()
-    //         ->map(function ($activity) {
-    //             $activity->id_hashed = substr(hash('sha256', $activity->id . env('APP_KEY')), 0, 8);
-    //             $activity->user_name = $activity->user ? $activity->user->name : 'Unknown'; // Ambil nama dari relasi user
-
-    //             $activity->action = '
-    //             <a href="' . route('Activity.show', $activity->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="See Activity">
-    //                 <i class="fas fa-user-edit text-secondary"></i>
-    //             </a>';
-    //             return $activity;
-    //         });
-
-    //     return DataTables::of($activity)
-    //     ->addColumn('name', function ($activity) {
-    //         return $activity->user_name; // Menampilkan name di tabel DataTables
-    //     })
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
+ 
     public function getActivity()
 {
     $activity = Activity::with('user')->select(['id', 'user_id'])->get()
@@ -64,23 +44,7 @@ class ActivityController extends Controller
         ->make(true);
 }
 
-// public function getActivity1(Request $request)
-// {
-//     $query = Activity::with('user')->select(['activity_time', 'activity_type','device_wifi_mac','device_lan_mac']);
-    
-//     // Filter by activity_type jika parameter ada dan valid (Login/Logout)
-//     if ($request->has('activity_type') && in_array($request->activity_type, ['Login', 'Logout'])) {
-//         $query->where('activity_type', $request->activity_type);
-//     }
-    
-//     $activity = $query->get()
-//         ->map(function ($activity) {
-//             return $activity;
-//         });
-        
-//     return DataTables::of($activity)
-//         ->make(true);
-// }
+
 public function getActivity1(Request $request)
 {
     $query = Activity::with('user')
