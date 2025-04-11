@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Dashboard Admin')
+@section('title', 'Departments')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -168,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Dashboard Admin</h1>
+                <h1>Departments</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Users</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Departments</h6>
                             </div>
 
                             <div class="card-body">
@@ -184,24 +184,18 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Name</th>
-                                                <th class="text-center">Username</th>
-                                                <th class="text-center">Account Creation</th>
-                                                <th class="text-center">Mac Wifi</th>
-                                                <th class="text-center">Mac Lan</th>
-                                                {{-- <th class="text-center">Status</th> --}}
-                                                <th class="text-center">Roles</th>
+                                                <th class="text-center">Department Name</th>
+                                                <th class="text-center">Manager Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('dashboardAdmin.create') }}'"
+                                    <button type="button" onclick="window.location='{{ route('Department.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create User
+                                        <i class="fas fa-plus-circle"></i> Create Departments
                                     </button>
-
                                 </div>
                             </div>
                         </div>
@@ -222,7 +216,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('users.users') }}',
+                    url: '{{ route('departments.departments') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -243,34 +237,13 @@
                         }
                     },
                     {
+                        data: 'department_name',
+                        name: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'employee_name',
                         name: 'employee_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'username',
-                        name: 'username',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'device_wifi_mac',
-                        name: 'device_wifi_mac',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'device_lan_mac',
-                        name: 'device_lan_mac',
-                        className: 'text-center'
-                    },
-                   
-                    {
-                        data: 'roles',
-                        name: 'roles',
                         className: 'text-center'
                     },
                     {

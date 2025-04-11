@@ -14,7 +14,7 @@ class PermissionController extends Controller
 {
     public function index()
     {
-        
+
         return view('permissions.index');
     }
     public function getPermissions()
@@ -38,22 +38,11 @@ class PermissionController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
     public function create()
     {
         return view('permissions.create');
     }
 
-    // public function store(Request $request)
-    // {
-    //     $request->validate([
-    //         'name' => 'required|unique:permissions,name',
-    //     ]);
-
-    //     Permission::create(['name' => $request->name, 'guard_name' => 'web']);
-
-    //     return redirect()->route('permissions.index')->with('success', 'Permission created successfully');
-    // }
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -64,60 +53,47 @@ class PermissionController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
-           
+
         ]);
-    
+
         try {
             DB::beginTransaction();
-            
+
             Permission::create(['name' => $request->name, 'guard_name' => 'web']);
 
-          
+
             DB::commit();
-          
+
             return redirect()->route('permissions.index')
                 ->with('success', 'Role created successfully');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Role creation failed: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Failed to create role. Please try again.');
         }
     }
 
-    // public function edit(Permission $permission)
-    // {
-    //     return view('permissions.edit', compact('permission'));
-    // }
     public function edit($hashedId)
-{
-    // Cari role berdasarkan hashed ID
-    $permission = Permission::get()->first(function ($role) use ($hashedId) {
-        $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
-        return $expectedHash === $hashedId;
-    });
-    if (!$permission) {
-        abort(404, 'permission not found.');
+    {
+        // Cari role berdasarkan hashed ID
+        $permission = Permission::get()->first(function ($role) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+        if (!$permission) {
+            abort(404, 'permission not found.');
+        }
+        // Ambil semua permissions
+        $permissions = Permission::all();
+
+        return view('permissions.edit', compact('permission', 'permissions', 'hashedId'));
     }
-    // Ambil semua permissions
-    $permissions = Permission::all();
-   
-    return view('permissions.edit', compact('permission', 'permissions','hashedId'));
-}
 
-    // public function update(Request $request, Permission $permission)
-    // {
-    //     $request->validate([
-    //         'name' => 'required|unique:permissions,name,'.$permission->id,
-    //     ]);
 
-    //     $permission->update(['name' => $request->name]);
-
-    //     return redirect()->route('permissions.index')->with('success', 'Permission updated successfully');
-    // }
 
     public function destroy(Permission $permission)
     {
@@ -125,32 +101,32 @@ class PermissionController extends Controller
         return redirect()->route('permissions.index')->with('success', 'Permission deleted successfully');
     }
     public function update(Request $request, $hashedId)
-{
-    // Cari permission dengan hash yang lebih aman
-    $permissions = Permission::all()->first(function ($permission) use ($hashedId) {
-        $expectedHash = substr(hash('sha256', $permission->id . config('app.key')), 0, 16); // Panjang hash diperbesar
-        return hash_equals($expectedHash, $hashedId); // Gunakan hash_equals untuk prevent timing attack
-    });
+    {
+        // Cari permission dengan hash yang lebih aman
+        $permissions = Permission::all()->first(function ($permission) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $permission->id . config('app.key')), 0, 16); // Panjang hash diperbesar
+            return hash_equals($expectedHash, $hashedId); // Gunakan hash_equals untuk prevent timing attack
+        });
 
-    if (!$permissions) {
-        return redirect()->route('permissions.index')->with('error', 'ID tidak valid atau data tidak ditemukan.');
+        if (!$permissions) {
+            return redirect()->route('permissions.index')->with('error', 'ID tidak valid atau data tidak ditemukan.');
+        }
+
+        $validatedData = $request->validate([
+            'name' => [
+                'required', // Ubah dari nullable ke required jika field harus diisi
+                'regex:/^[a-zA-Z0-9_-]+$/',
+                Rule::unique('permissions')->ignore($permissions->id),
+                new NoXSSInput()
+            ],
+        ]);
+
+        try {
+            $permissions->update($validatedData);
+            return redirect()->route('permissions.index')->with('success', 'Permission berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memperbarui permission: ' . $e->getMessage());
+        }
     }
-
-    $validatedData = $request->validate([
-        'name' => [
-            'required', // Ubah dari nullable ke required jika field harus diisi
-            'regex:/^[a-zA-Z0-9_-]+$/',
-            Rule::unique('permissions')->ignore($permissions->id),
-            new NoXSSInput()
-        ],
-    ]);
-
-    try {
-        $permissions->update($validatedData);
-        return redirect()->route('permissions.index')->with('success', 'Permission berhasil diperbarui.');
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Gagal memperbarui permission: ' . $e->getMessage());
-    }
-}
 
 }

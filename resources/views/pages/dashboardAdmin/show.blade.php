@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Update User')
+@section('title', 'View User')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -165,11 +165,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update User{{$user->username}}</h1>
+                <h1>View User {{$user->username}}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
                     <div class="breadcrumb-item"><a href="{{ route('pages.dashboardAdmin') }}">Users</a></div>
-                    <div class="breadcrumb-item">Update User {{$user->username}}</div>
+                    <div class="breadcrumb-item">View User {{$user->username}}</div>
                 </div>
             </div>
 
@@ -179,7 +179,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Update User') }}</h6>
+                                    <h6 class="mb-0">{{ __('View User') }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -205,10 +205,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('dashboardAdmin.update', $hashedId) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-
+                                   
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -218,7 +215,7 @@
                                                     <div>
                                                         <input type="text" class="form-control" id="username"
                                                             name="username" value="{{ old('username', $user->username) }}"
-                                                            placeholder="edwinsirait27" required
+                                                            placeholder="edwinsirait27" disabled
                                                             oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')">
                                                         @error('username')
                                                             <span class="invalid-feedback" role="alert">
@@ -229,52 +226,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="password" class="form-control-label">
-                                                        <i class="fas fa-lock"></i> {{ __('Password') }}
-                                                    </label>
-                                                    <div class="input-group">
-                                                        <input type="password" class="form-control" id="password"
-                                                            name="password"
-                                                            placeholder="Leave blank to keep current password"
-                                                            aria-describedby="password-addon" maxlength="12"
-                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
-                                                        <div class="input-group-append">
-                                                            <span class="input-group-text" onclick="togglePassword()"
-                                                                style="cursor: pointer;">
-                                                                <i id="eyeIcon" class="fa fa-eye"></i>
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <small class="text-muted">
-                                                        Only letters, numbers, underscore, and dash allowed. Max 12
-                                                        characters.
-                                                    </small>
-                                                    @error('password')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                        <script>
-                                            function togglePassword() {
-                                                let passwordInput = document.getElementById('password');
-                                                let eyeIcon = document.getElementById('eyeIcon');
-
-                                                if (passwordInput.type === "password") {
-                                                    passwordInput.type = "text";
-                                                    eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
-                                                } else {
-                                                    passwordInput.type = "password";
-                                                    eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
-                                                }
-                                            }
-                                        </script>
-                                        <div class="row mt-3">
+                                           
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="device_wifi_mac" class="form-control-label">
@@ -285,7 +237,7 @@
                                                             value="{{ old('device_wifi_mac', $user->Terms->device_wifi_mac ?? '') }}"
                                                             type="text" id="device_wifi_mac" name="device_wifi_mac"
                                                             aria-describedby="info-device_wifi_mac"
-                                                            placeholder="xx-xx-xx-xx-xx" maxlength="255">
+                                                            placeholder="xx-xx-xx-xx-xx" maxlength="255"disabled>
                                                         @error('device_wifi_mac')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -294,6 +246,8 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </div>
+                                            <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -305,7 +259,7 @@
                                                             value="{{ old('device_lan_mac', $user->Terms->device_lan_mac ?? '') }}"
                                                             type="text" id="device_lan_mac" name="device_lan_mac"
                                                             aria-describedby="info-device_lan_mac"
-                                                            placeholder="xx-xx-xx-xx-xx" maxlength="255">
+                                                            placeholder="xx-xx-xx-xx-xx" maxlength="255"disabled>
                                                         @error('device_lan_mac')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -314,9 +268,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -325,7 +277,7 @@
                                                     </label>
                                                     <div class="@error('status') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="status" id="status"
-                                                            required>
+                                                        disabled>
                                                             <option value="" disabled
                                                                 {{ $selectedStatus == '' ? 'selected' : '' }}>Choose
                                                                 Status</option>
@@ -343,6 +295,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </div>
+
+                                            <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -351,7 +306,7 @@
                                                     </label>
                                                     <div class="@error('role') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="role" id="role"
-                                                            required>
+                                                        disabled>
                                                             <option value="" disabled>Choose Role</option>
                                                             @foreach ($roles as $roleName => $displayName)
                                                                 <option value="{{ $roleName }}"
@@ -368,26 +323,17 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                        </div>
                                         </div>
 
-                                        <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a username is already registered, you cannot register it again.<br>
-                                                - Leave the password field empty if you don't want to change it.
-                                            </span>
-                                        </div>
+                                      
 
                                         <div class="d-flex justify-content-end mt-4">
                                             <a href="{{ route('pages.dashboardAdmin') }}" class="btn btn-secondary">
-                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                                <i class="fas fa-times"></i> {{ __('Back') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
-                                                <i class="fas fa-save"></i> {{ __('Update') }}
-                                            </button>
+                                        
                                         </div>
-                                    </form>
                                 </div>
                             </div>
                         </div>

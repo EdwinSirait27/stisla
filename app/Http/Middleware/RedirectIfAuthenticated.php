@@ -25,10 +25,10 @@ class RedirectIfAuthenticated
         if ($user->can('isAdmin')) {
             return redirect('/dashboardAdmin');
         }
-        if ($user->can('isKasir')) {
-            return redirect('/dashboardKasir');
+        if ($user->can('isHeadHR')) {
+            return redirect('/dashboardHR');
         }
-        if ($user->can('isManager Store')) {
+        if ($user->can('isManagerStore')) {
             return redirect('/dashboardManager');
         }
         if ($user->can('isSupervisor')) {

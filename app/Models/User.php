@@ -8,25 +8,37 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Str;
-
+use Ramsey\Uuid\Uuid;
 use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!$model->getKey()) {
+                $model->{$model->getKeyName()} = Uuid::uuid7()->toString();
+            }
+        });
+    }
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $table = 'users'; 
-    protected $primaryKey = 'id';
+  
     protected $fillable = [
         'id',
         'terms_id',
+        'employee_id',
         'username',
         'password',
-        'status',
     ];
     
     
@@ -50,7 +62,6 @@ protected $casts = [
      *
      * @var array<string, string>
      */
-    
         public function findForAuth($username)
     {
         return $this->where('username', $username)->first();

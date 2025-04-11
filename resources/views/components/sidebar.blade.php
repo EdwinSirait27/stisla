@@ -11,26 +11,26 @@
         <ul class="sidebar-menu">
             <li class="menu-header">Menu</li>
            
-            @role('Admin')
             
             {{-- <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('dashboardAdmin') }}"><i class="fas fa-male"></i> <span>Dashboard</span></a>
+                href="{{ url('dashboardAdmin') }}"><i class="fas fa-male"></i> <span>Dashboard</span></a>
             </li>
             <li class="{{ Request::is('Activity') ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('Activity') }}"><i class="fas fa-female"></i> <span>Activity Log</span></a>
+                href="{{ url('Activity') }}"><i class="fas fa-female"></i> <span>Activity Log</span></a>
             </li>
-           
+            
             
             <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
                 <a class="nav-link"
-                    href="{{ url('dashboardManager') }}"><i class="fas fa-female"></i> <span>Dashboard</span></a>
+                href="{{ url('dashboardManager') }}"><i class="fas fa-female"></i> <span>Dashboard</span></a>
             </li> --}}
+            @role('Admin')
             <li class="nav-item dropdown ">
                 <a href="#"
                     class="nav-link has-dropdown"
-                    data-toggle="dropdown"><i class="fas fa-lock"></i> <span>Admin</span></a>
+                    data-toggle="dropdown"><i class="fas fa-lock"></i> <span>Users</span></a>
                 <ul class="dropdown-menu">
                     <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                         <a class="nav-link"
@@ -40,14 +40,6 @@
                         <a class="nav-link"
                             href="{{ url('Activity') }}">Activity Logs</a>
                     </li>
-                    
-                </ul>
-            </li>
-            <li class="nav-item dropdown ">
-                <a href="#"
-                    class="nav-link has-dropdown"
-                    data-toggle="dropdown"><i class="fas fa-key"></i> <span>Roles & Permission</span></a>
-                <ul class="dropdown-menu">
                     <li class="{{ Request::is('roles') ? 'active' : '' }}">
                         <a class="nav-link"
                             href="{{ url('roles') }}">Roles</a>
@@ -55,6 +47,54 @@
                     <li class="{{ Request::is('permission') ? 'active' : '' }}">
                         <a class="nav-link"
                             href="{{ url('permissions') }}">Permission</a>
+                    </li>
+                </ul>
+            </li>
+            {{-- <li class="nav-item dropdown ">
+                <a href="#"
+                    class="nav-link has-dropdown"
+                    data-toggle="dropdown"><i class="fas fa-key"></i> <span>Roles & Permission</span></a>
+                <ul class="dropdown-menu">
+                </ul>
+            </li> --}}
+            @endrole
+            @role('HeadHR')
+            <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">
+                <a class="nav-link"
+                    href="{{ url('dashboardHR') }}"><i class="fas fa-house"></i> <span>Dashboard</span></a>
+            </li>
+            <li class="nav-item dropdown ">
+                <a href="#"
+                    class="nav-link has-dropdown"
+                    data-toggle="dropdown"><i class="fas fa-lock"></i> <span>Employee</span></a>
+                <ul class="dropdown-menu">
+                    <li class="{{ Request::is('Employee') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('Employee') }}">List Employees</a>
+                    </li>
+                    {{-- <li class="{{ Request::is('Activity') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('Activity') }}">Activity Logs</a>
+                    </li> --}}
+                    
+                </ul>
+            </li>
+            <li class="nav-item dropdown ">
+                <a href="#"
+                    class="nav-link has-dropdown"
+                    data-toggle="dropdown"><i class="fas fa-lock"></i> <span>Create Data</span></a>
+                <ul class="dropdown-menu">
+                    <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('Position') }}">Position</a>
+                    </li>
+                    <li class="{{ Request::is('Department') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('Department') }}">Departments</a>
+                    </li>
+                    <li class="{{ Request::is('Store') ? 'active' : '' }}">
+                        <a class="nav-link"
+                            href="{{ url('Store') }}">Stores</a>
                     </li>
                     
                 </ul>

@@ -248,7 +248,7 @@
                     
                 <div class="d-sm-none d-lg-inline-block">Hi, 
                     @auth
-                    {{ auth()->user()->username }}
+                    {{ auth()->user()->employee->employee_name }}
                 @endauth
                 </div>
             </a>

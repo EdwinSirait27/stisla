@@ -4,14 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Ramsey\Uuid\Uuid;
 
-
-
-class Activity extends Model
+class Stores extends Model
 {
     use HasFactory;
+    protected $table = 'stores_tables';
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -25,19 +23,8 @@ class Activity extends Model
             }
         });
     }
-    protected $table = 'activity_logs'; 
-
     protected $fillable = [
-        'user_id',
-        'activity_type',
-        'activity_time',
-        'device_lan_mac',
-        'device_wifi_mac',
+        'name','address','phone_num'
     ];
- 
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
-    }
 }
+

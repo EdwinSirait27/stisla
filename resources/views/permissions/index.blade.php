@@ -184,7 +184,7 @@
 
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="roles-table">
+                                <table class="table table-striped table-hover" id="permissions-table">
                                     <thead>
                                         <tr>
                                             <th class="text-center">No.</th>
@@ -213,11 +213,11 @@
 
 <script>
 $(document).ready(function() {
-    var table = $('#roles-table').DataTable({
+    var table = $('#permissions-table').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
-            url: '{{ route('permission.permission') }}',
+            url: '{{ route('permissions.permissions') }}',
             type: 'GET'
         },
         responsive: true,
@@ -286,7 +286,7 @@ $(document).ready(function() {
         showConfirmButton: false
     });
 @endif
-function deleteRole(url) {
+function deletePermission(url) {
     Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -310,7 +310,7 @@ function deleteRole(url) {
                             response.message,
                             'success'
                         ).then(() => {
-                            $('#roles-table').DataTable().ajax.reload();
+                            $('#permission-table').DataTable().ajax.reload();
                         });
                     } else {
                         Swal.fire(
