@@ -197,10 +197,7 @@
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('dashboardAdmin.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create User
-                                    </button>
+                                  
 
                                 </div>
                             </div>

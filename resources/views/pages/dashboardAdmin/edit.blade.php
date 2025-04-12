@@ -165,11 +165,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update User{{$user->username}}</h1>
+                <h1>Update User : {{$user->Employee->employee_name}}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
                     <div class="breadcrumb-item"><a href="{{ route('pages.dashboardAdmin') }}">Users</a></div>
-                    <div class="breadcrumb-item">Update User {{$user->username}}</div>
+                    <div class="breadcrumb-item">Update User : {{$user->Employee->employee_name}}</div>
                 </div>
             </div>
 
@@ -314,36 +314,10 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div class="row mt-3">
-
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="status" class="form-control-label">
-                                                        <i class="fas fa-shield-alt"></i> {{ __('Status') }}
-                                                    </label>
-                                                    <div class="@error('status') border border-danger rounded-3 @enderror">
-                                                        <select class="form-control" name="status" id="status"
-                                                            required>
-                                                            <option value="" disabled
-                                                                {{ $selectedStatus == '' ? 'selected' : '' }}>Choose
-                                                                Status</option>
-                                                            @foreach ($userStatus as $status)
-                                                                <option value="{{ $status }}"
-                                                                    {{ $selectedStatus == $status ? 'selected' : '' }}>
-                                                                    {{ $status }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('status')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
                                             </div>
+                                            <div class="row mt-3">
 
+                                       
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="role" class="form-control-label">
@@ -352,7 +326,7 @@
                                                     <div class="@error('role') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="role" id="role"
                                                             required>
-                                                            <option value="" disabled>Choose Role</option>
+                                                            <option value="">Choose Role</option>
                                                             @foreach ($roles as $roleName => $displayName)
                                                                 <option value="{{ $roleName }}"
                                                                     {{ $selectedRole == $roleName ? 'selected' : '' }}>
@@ -368,7 +342,7 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                                </div>
                                         </div>
 
                                         <div class="alert alert-secondary mt-4" role="alert">

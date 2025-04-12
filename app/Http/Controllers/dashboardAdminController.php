@@ -207,7 +207,7 @@ class dashboardAdminController extends Controller
     }
     public function update(Request $request, $hashedId)
     {
-        $user = User::with('Terms', 'roles')->get()->first(function ($u) use ($hashedId) {
+        $user = User::with('Terms', 'roles','Employee')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -217,6 +217,7 @@ class dashboardAdminController extends Controller
         $validatedData = $request->validate([
             'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'status' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'username' => [
                 'required',
@@ -255,8 +256,6 @@ class dashboardAdminController extends Controller
 
         $userData = [
             'username' => $validatedData['username'],
-            'status' => $validatedData['status'],
-
         ];
 
         if (!empty($validatedData['password'])) {
@@ -270,6 +269,11 @@ class dashboardAdminController extends Controller
             $user->Terms->update([
                 'device_wifi_mac' => !empty($validatedData['device_wifi_mac']) ? $validatedData['device_wifi_mac'] : null,
                 'device_lan_mac' => !empty($validatedData['device_lan_mac']) ? $validatedData['device_lan_mac'] : null,
+            ]);
+        }
+        if ($user->Employee) {
+            $user->Employee->update([
+                'status' => $validatedData['status'] ?? 'Active',
             ]);
         }
         $user->syncRoles([$validatedData['role']]);

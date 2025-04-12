@@ -83,6 +83,7 @@ class EmployeeController extends Controller
             ->rawColumns(['employ','position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name_store', 'action'])
             ->make(true);
     }
+ 
   
     public function getEmployeesall()
     {
@@ -266,6 +267,7 @@ class EmployeeController extends Controller
             })
             ->make(true);
     }
+
   
     public function edit($hashedId)
 {
@@ -429,7 +431,7 @@ class EmployeeController extends Controller
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik' => ['required', 'max:20', new NoXSSInput()],
-            'employee_id' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
+            'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
             'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
             'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
@@ -441,12 +443,12 @@ class EmployeeController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            $lastEmployee = Employee::orderBy('employee_id', 'desc')->first();
+            $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
 
             $currentYearMonth = date('Ym'); // Format: TahunBulan (contoh: 202504)
 
             if ($lastEmployee) {
-                $lastId = $lastEmployee->employee_id;
+                $lastId = $lastEmployee->employee_pengenal;
 
                 // Ambil 5 digit terakhir
                 $lastSequence = (int) substr($lastId, -5);
@@ -476,7 +478,7 @@ class EmployeeController extends Controller
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 // 'employee_name' => $request->employee_name,
                 'nik' => $validatedData['nik'] ?? '',
-                'employee_id' => $employeeId,
+                'employee_pengenal' => $employeeId,
                 'position_id' => $validatedData['position_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
                 'department_id' => $validatedData['department_id'] ?? '',

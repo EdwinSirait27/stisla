@@ -270,7 +270,7 @@
                                             </div>
 
 
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="status" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Status') }}
@@ -295,10 +295,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                            </div> --}}
 
-                                            <div class="row mt-3">
-
+                                        
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="role" class="form-control-label">
