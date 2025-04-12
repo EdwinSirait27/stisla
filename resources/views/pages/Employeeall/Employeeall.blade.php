@@ -239,9 +239,14 @@
         </section>
     </div>
 @endsection
-@push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{{-- @push('scripts')
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
@@ -472,4 +477,350 @@
     
         });
     </script>
+@endpush --}}
+@push('scripts')
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_processing,
+    .dataTables_wrapper .dataTables_paginate {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px 8px;
+        margin: 0 5px;
+        background-color: white;
+    }
+    
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+        background-color: white;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 5px 10px;
+        margin: 0 2px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: #333;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #6777ef;
+        color: white !important;
+        border: 1px solid #6777ef;
+    }
+    
+    .dataTables_wrapper .dt-buttons {
+        margin-bottom: 15px;
+    }
+    
+    .dataTables_wrapper .dt-buttons button {
+        background: #6777ef;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        margin-right: 5px;
+        font-size: 13px;
+    }
+    
+    .dataTables_wrapper .dt-buttons button:hover {
+        background: #4e5acf;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    jQuery(document).ready(function($) {
+        var table = $('#users-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('employeesall.employeesall') }}',
+                type: 'GET'
+            },
+            responsive: true,
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
+                 "<'row'<'col-sm-12 col-md-6'B>>",
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-sm btn-primary',
+                    text: '<i class="fas fa-copy"></i> Copy'
+                },
+                {
+                    extend: 'csv',
+                    className: 'btn btn-sm btn-success',
+                    text: '<i class="fas fa-file-csv"></i> CSV'
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-sm btn-info',
+                    text: '<i class="fas fa-file-excel"></i> Excel'
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm btn-warning',
+                    text: '<i class="fas fa-print"></i> Print'
+                }
+                
+            ],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            language: {
+                lengthMenu: "Show _MENU_ entries",
+                search: "_INPUT_",
+                searchPlaceholder: "Search...",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoEmpty: "Showing 0 to 0 of 0 entries",
+                infoFiltered: "(filtered from _MAX_ total entries)",
+                paginate: {
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
+                }
+            },
+            columns: [{
+                        data: null,
+                        name: 'id',
+                        className: 'text-center align-middle',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'username',
+                        name: 'username',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'employee_pengenal',
+                        name: 'employee_pengenal',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_name',
+                        name: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name_store',
+                        name: 'name_store',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status_employee',
+                        name: 'name_store',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'join_date',
+                        name: 'join_date',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'marriage',
+                        name: 'marriage',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'child',
+                        name: 'child',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'telp_number',
+                        name: 'telp_number',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nik',
+                        name: 'nik',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'gender',
+                        name: 'gender',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'date_of_birth',
+                        name: 'date_of_birth',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'place_of_birth',
+                        name: 'place_of_birth',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'biological_mother_name',
+                        name: 'biological_mother_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'religion',
+                        name: 'religion',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'current_address',
+                        name: 'current_address',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'id_card_address',
+                        name: 'id_card_address',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'last_education',
+                        name: 'last_education',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'institution',
+                        name: 'institution',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'npwp',
+                        name: 'npwp',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bpjs_kes',
+                        name: 'bpjs_kes',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bpjs_ket',
+                        name: 'bpjs_ket',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'email',
+                        name: 'email',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'emergency_contact_name',
+                        name: 'emergency_contact_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'salary',
+                        name: 'salary',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'house_allowance',
+                        name: 'house_allowance',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'meal_allowance',
+                        name: 'meal_allowance',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'transport_allowance',
+                        name: 'transport_allowance',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'total_salary',
+                        name: 'total_salary',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'notes',
+                        name: 'notes',
+                        className: 'text-center'
+                    },
+                  
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-center'
+                    },
+                    {
+    data: 'status',
+    name: 'status',
+    className: 'text-center',
+    render: function (data, type, row) {
+        if (data === 'Active') {
+            return '<span class="badge bg-success">Active</span>';
+        } else if (data === 'Inactive') {
+            return '<span class="badge bg-danger">Inactive</span>';
+        } else if (data === 'On leave') {
+            return '<span class="badge bg-warning">On Leave</span>';
+        } else if (data === 'Mutation') {
+            return '<span class="badge bg-info">Tidak Aktif</span>';
+        } else if (data === 'Pending') {
+            return '<span class="badge bg-secondary">Pending</span>';
+        }
+        return '<span class="badge bg-secondary">Pending</span>';
+    }
+}
+                // Your existing columns configuration...
+                // (Keep all your existing columns configuration here)
+            ],
+            initComplete: function() {
+                $('.dataTables_filter input').addClass('form-control');
+                $('.dataTables_length select').addClass('form-control');
+                
+                // Add margin to buttons container
+                $('.dt-buttons').addClass('mb-3');
+            }
+        });
+
+        @if (session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '{{ session('success') }}',
+        });
+        @endif
+    });
+</script>
 @endpush
