@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Employees')
+@section('title', 'Employees Details')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -168,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Employees Table</h1>
+                <h1>Employees Detail Table</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Employees</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Employees Details</h6>
                             </div>
 
                             <div class="card-body">
@@ -184,28 +184,51 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Name</th>
+                                                <th class="text-center">Username</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Employee ID</th>
                                                 <th class="text-center">Position</th>
-                                                <th class="text-center">Departments</th>
+                                                <th class="text-center">Department</th>
                                                 <th class="text-center">Store</th>
+                                                <th class="text-center">Status Employee</th>
+                                                <th class="text-center">Join Date</th>
+                                                <th class="text-center">Marriage</th>
+                                                <th class="text-center">Child</th>
+                                                <th class="text-center">Telephone Number</th>
+                                                <th class="text-center">NIK</th>
+                                                <th class="text-center">Gender</th>
+                                                <th class="text-center">Date of Birth</th>
+                                                <th class="text-center">Place of Birth</th>
+                                                <th class="text-center">Mother's Name</th>
+                                                <th class="text-center">Religion</th>
+                                                <th class="text-center">Current Address</th>
+                                                <th class="text-center">ID Card Address</th>
+                                                <th class="text-center">Last Education</th>
+                                                <th class="text-center">Institution</th>
+                                                <th class="text-center">NPWP</th>
+                                                <th class="text-center">BPJS Kesehatan</th>
+                                                <th class="text-center">BPJS Ketenagakerjaan</th>
+                                                <th class="text-center">Email</th>
+                                                <th class="text-center">Emergency Contact Name</th>
+                                                <th class="text-center">Salary</th>
+                                                <th class="text-center">House Allowance</th>
+                                                <th class="text-center">Meal Allowance</th>
+                                                <th class="text-center">Transport Allowance</th>
+                                                <th class="text-center">Total Salary</th>
+                                                <th class="text-center">Notes</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
-                                                {{-- <th class="text-center">Length of service</th> --}}
-                                                <th class="text-center">Action</th>
+                                               
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Employee.create') }}'" 
-                                            class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Employee
-                                    </button>
-                                    
+                                
                                     <!-- New button added here -->
-                                    <button type="button" onclick="window.location='{{ route('pages.Employeeall') }}'" 
-                                    class="btn btn-success btn-sm ml-2">
-                                <i class="fas fa-users"></i> All Employees
+                                    <button type="button" onclick="window.location='{{ route('pages.Employee') }}'" 
+                                    class="btn btn-danger btn-sm ml-2">
+                                <i class="fas fa-users"></i> Back To Employee
                             </button>
                                 </div>
                             </div>
@@ -227,7 +250,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('employees.employees') }}',
+                    url: '{{ route('employeesall.employeesall') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -248,8 +271,18 @@
                         }
                     },
                     {
+                        data: 'username',
+                        name: 'username',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'employee_pengenal',
+                        name: 'employee_pengenal',
                         className: 'text-center'
                     },
                     {
@@ -267,6 +300,137 @@
                         name: 'name_store',
                         className: 'text-center'
                     },
+                    {
+                        data: 'status_employee',
+                        name: 'name_store',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'join_date',
+                        name: 'join_date',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'marriage',
+                        name: 'marriage',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'child',
+                        name: 'child',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'telp_number',
+                        name: 'telp_number',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nik',
+                        name: 'nik',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'gender',
+                        name: 'gender',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'date_of_birth',
+                        name: 'date_of_birth',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'place_of_birth',
+                        name: 'place_of_birth',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'biological_mother_name',
+                        name: 'biological_mother_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'religion',
+                        name: 'religion',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'current_address',
+                        name: 'current_address',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'id_card_address',
+                        name: 'id_card_address',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'last_education',
+                        name: 'last_education',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'institution',
+                        name: 'institution',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'npwp',
+                        name: 'npwp',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bpjs_kes',
+                        name: 'bpjs_kes',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bpjs_ket',
+                        name: 'bpjs_ket',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'email',
+                        name: 'email',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'emergency_contact_name',
+                        name: 'emergency_contact_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'salary',
+                        name: 'salary',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'house_allowance',
+                        name: 'house_allowance',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'meal_allowance',
+                        name: 'meal_allowance',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'transport_allowance',
+                        name: 'transport_allowance',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'total_salary',
+                        name: 'total_salary',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'notes',
+                        name: 'notes',
+                        className: 'text-center'
+                    },
+                  
                     {
                         data: 'created_at',
                         name: 'created_at',
@@ -290,22 +454,7 @@
         }
         return '<span class="badge bg-secondary">Pending</span>';
     }
-},
-
-                    // {
-                    //     data: 'length_of_service',
-                    //     name: 'length_of_service',
-                    //     className: 'text-center'
-                    // },
-                   
-                 
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
+}
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');

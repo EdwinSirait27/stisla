@@ -118,6 +118,11 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
     Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
     
+// employeeall
+    Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
+    ->name('pages.Employeeall');
+    Route::get('/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
+    
 // Position    
     Route::get('/Position', [PositionController::class, 'index'])
     ->name('pages.Position');

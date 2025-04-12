@@ -21,6 +21,10 @@ class EmployeeController extends Controller
     {
         return view('pages.Employee.Employee');
     }
+    public function indexall()
+    {
+        return view('pages.Employeeall.Employeeall');
+    }
     public function getEmployees()
     {
         $employees = User::with('Employee')
@@ -44,6 +48,7 @@ class EmployeeController extends Controller
                     ? $employee->Employee->store->name
                     : 'Empty';
             })
+           
             ->addColumn('position_name', function ($employee) {
                 return !empty($employee->Employee) && !empty($employee->Employee->position->name)
                     ? $employee->Employee->position->name
@@ -57,6 +62,191 @@ class EmployeeController extends Controller
             ->addColumn('employee_name', function ($employee) {
                 return !empty($employee->Employee) && !empty($employee->Employee->employee_name)
                     ? $employee->Employee->employee_name
+                    : 'Empty';
+            })
+          
+            ->addColumn('created_at', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->created_at)
+                    ? $employee->Employee->created_at
+                    : 'Empty';
+            })
+            ->addColumn('length_of_service', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->length_of_service)
+                    ? $employee->Employee->length_of_service
+                    : 'Empty';
+            })
+            ->addColumn('status', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->status)
+                    ? $employee->Employee->status
+                    : 'Empty';
+            })
+            ->rawColumns(['employ','position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name_store', 'action'])
+            ->make(true);
+    }
+  
+    public function getEmployeesall()
+    {
+        $employees = User::with('Employee')
+            ->select(['id','username','employee_id'])
+            ->get()
+            ->map(function ($employee) {
+                $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+                return $employee;
+            });
+        return DataTables::of($employees)
+            ->addColumn('name_store', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->store->name)
+                    ? $employee->Employee->store->name
+                    : 'Empty';
+            })
+            ->addColumn('position_name', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->position->name)
+                    ? $employee->Employee->position->name
+                    : 'Empty';
+            })
+            ->addColumn('employee_pengenal', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->employee_pengenal)
+                    ? $employee->Employee->employee_pengenal
+                    : 'Empty';
+            })
+            ->addColumn('department_name', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->department->department_name)
+                    ? $employee->Employee->department->department_name
+                    : 'Empty';
+            })
+            ->addColumn('employee_name', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->employee_name)
+                    ? $employee->Employee->employee_name
+                    : 'Empty';
+            })
+            ->addColumn('status_employee', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->status_employee)
+                    ? $employee->Employee->status_employee
+                    : 'Empty';
+            })
+            ->addColumn('join_date', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->join_date)
+                    ? $employee->Employee->join_date
+                    : 'Empty';
+            })
+            ->addColumn('marriage', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->marriage)
+                    ? $employee->Employee->marriage
+                    : 'Empty';
+            })
+            ->addColumn('child', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->child)
+                    ? $employee->Employee->child
+                    : 'Empty';
+            })
+            ->addColumn('telp_number', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->telp_number)
+                    ? $employee->Employee->telp_number
+                    : 'Empty';
+            })
+            ->addColumn('nik', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->nik)
+                    ? $employee->Employee->nik
+                    : 'Empty';
+            })
+            ->addColumn('gender', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->gender)
+                    ? $employee->Employee->gender
+                    : 'Empty';
+            })
+            ->addColumn('date_of_birth', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->date_of_birth)
+                    ? $employee->Employee->date_of_birth
+                    : 'Empty';
+            })
+            ->addColumn('place_of_birth', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->place_of_birth)
+                    ? $employee->Employee->place_of_birth
+                    : 'Empty';
+            })
+            ->addColumn('biological_mother_name', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->biological_mother_name)
+                    ? $employee->Employee->biological_mother_name
+                    : 'Empty';
+            })
+            ->addColumn('religion', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->religion)
+                    ? $employee->Employee->religion
+                    : 'Empty';
+            })
+            ->addColumn('current_address', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->current_address)
+                    ? $employee->Employee->current_address
+                    : 'Empty';
+            })
+            ->addColumn('id_card_address', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->id_card_address)
+                    ? $employee->Employee->id_card_address
+                    : 'Empty';
+            })
+            ->addColumn('last_education', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->last_education)
+                    ? $employee->Employee->last_education
+                    : 'Empty';
+            })
+            ->addColumn('institution', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->institution)
+                    ? $employee->Employee->institution
+                    : 'Empty';
+            })
+            ->addColumn('npwp', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->npwp)
+                    ? $employee->Employee->npwp
+                    : 'Empty';
+            })
+            ->addColumn('bpjs_kes', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->bpjs_kes)
+                    ? $employee->Employee->bpjs_kes
+                    : 'Empty';
+            })
+            ->addColumn('bpjs_ket', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->bpjs_ket)
+                    ? $employee->Employee->bpjs_ket
+                    : 'Empty';
+            })
+            ->addColumn('email', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->email)
+                    ? $employee->Employee->email
+                    : 'Empty';
+            })
+            ->addColumn('emergency_contact_name', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->emergency_contact_name)
+                    ? $employee->Employee->emergency_contact_name
+                    : 'Empty';
+            })
+            ->addColumn('salary', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->salary)
+                    ? $employee->Employee->salary
+                    : 'Empty';
+            })
+            ->addColumn('house_allowance', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->house_allowance)
+                    ? $employee->Employee->house_allowance
+                    : 'Empty';
+            })
+            ->addColumn('meal_allowance', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->meal_allowance)
+                    ? $employee->Employee->meal_allowance
+                    : 'Empty';
+            })
+            ->addColumn('transport_allowance', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->transport_allowance)
+                    ? $employee->Employee->transport_allowance
+                    : 'Empty';
+            })
+            ->addColumn('total_salary', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->total_salary)
+                    ? $employee->Employee->total_salary
+                    : 'Empty';
+            })
+            ->addColumn('notes', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->notes)
+                    ? $employee->Employee->notes
                     : 'Empty';
             })
             ->addColumn('created_at', function ($employee) {
@@ -74,7 +264,6 @@ class EmployeeController extends Controller
                     ? $employee->Employee->status
                     : 'Empty';
             })
-            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name_store', 'action'])
             ->make(true);
     }
   

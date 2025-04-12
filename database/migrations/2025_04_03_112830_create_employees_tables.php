@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('employees_tables', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('employee_name')->unique()->nullable();
-            $table->string('employee_id')->unique();
             $table->uuid('position_id')->nullable();
             $table->uuid('store_id')->nullable();
             $table->uuid('department_id')->nullable();
