@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Create Departments')
+@section('title', 'Create Stores')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -164,10 +164,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create  Departments</h1>
+                <h1>Create  Stores</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Department') }}"> Departments</a></div>
-                    <div class="breadcrumb-item">Create Departments</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}"> Stores</a></div>
+                    <div class="breadcrumb-item">Create Stores</div>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Departments') }}</h6>
+                                    <h6 class="mb-0">{{ __('Create Stores') }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -201,19 +201,59 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Department.store') }}" method="POST">
+                                    <form action="{{ route('Store.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="department_name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Departments Name') }}
+                                                    <label for="name" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Store Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="department_name" name="department_name" 
-                                                            value="{{ old('department_name') }}" required
-                                                            placeholder="Fill Departments Name">
-                                                        @error('department_name')
+                                                        <input type="text" class="form-control" id="name" name="name" 
+                                                            value="{{ old('name') }}" required
+                                                            placeholder="Fill Store Name">
+                                                        @error('name')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="address" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Store Address') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control"
+                                                            value="{{ old('address', $store->address ?? '') }}"
+                                                            type="text" id="address" name="address"
+                                                            value="{{ old('address') }}" aria-describedby="info-address"
+                                                            maxlength="255" placeholder="Insert Store Address">
+                                                        @error('address')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="phone_num" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Store Phone Number') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control"
+                                                            value="{{ old('phone_num', $store->phone_num ?? '') }}"
+                                                            type="number" id="phone_num" name="phone_num"
+                                                            value="{{ old('phone_num') }}" aria-describedby="info-phone_num"
+                                                            maxlength="255" placeholder="Insert Store Phone Number">
+                                                        @error('phone_num')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -224,7 +264,7 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label for="manager_id" class="form-control-label">
-                                                            <i class="fas fa-shield-alt"></i> {{ __('Manager Department') }}
+                                                            <i class="fas fa-shield-alt"></i> {{ __('Manager Store') }}
                                                         </label>
                                                         <div class="@error('manager_id') border border-danger rounded-3 @enderror">
                                                             <select class="form-control" name="manager_id" id="manager_id" required>
@@ -263,8 +303,8 @@
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Departmnet name is already registered, you cannot register it again.<br>
-                                                - If a Departmnet Manager is already registered, you cannot register it again.<br>
+                                                - If a Store name is already registered, you cannot register it again.<br>
+                                                - If a Store Manager is already registered, you cannot register it again.<br>
                                             </span>
                                         </div>
 

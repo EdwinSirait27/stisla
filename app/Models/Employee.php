@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Ramsey\Uuid\Uuid;
-
+use Carbon\Carbon;
 class Employee extends Model
 {
     
@@ -85,5 +85,10 @@ class Employee extends Model
     {
         return $this->created_at->diffInDays(now()) . ' days';
     }
+    public function getJoinDateAttribute($value)
+    {
+        return Carbon::parse($value)->format('y-m-d');
+    }
+
 }
 

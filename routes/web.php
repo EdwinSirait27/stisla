@@ -11,6 +11,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\ActivityController;
 /*
 |--------------------------------------------------------------------------
@@ -133,6 +134,14 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
     Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
     Route::get('/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
+// store  
+    Route::get('/Store', [StoreController::class, 'index'])
+    ->name('pages.Store');
+    Route::get('Store/create', [StoreController::class, 'create'])->name('Store.create');
+    Route::post('/Store', [StoreController::class, 'store'])->name('Store.store');
+    Route::get('/Store/edit/{hashedId}', [StoreController::class, 'edit'])->name('Store.edit');
+    Route::put('/Store/{hashedId}', [StoreController::class, 'update'])->name('Store.update');
+    Route::get('/stores/stores', [StoreController::class, 'getStores'])->name('stores.stores');
 
 
 

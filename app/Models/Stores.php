@@ -24,7 +24,11 @@ class Stores extends Model
         });
     }
     protected $fillable = [
-        'name','address','phone_num'
+        'name','address','phone_num','manager_id'
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'manager_id', 'id');
+    }
 }
 

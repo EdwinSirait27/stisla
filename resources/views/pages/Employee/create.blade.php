@@ -625,7 +625,7 @@
                                             </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="emergency_contact" class="form-control-label">
+                                                        <label for="emergency_contact_name" class="form-control-label">
                                                             <i class="fas fa-id-card"></i>
                                                             {{ __('Emergency Contact Name & Number') }}
                                                         </label>

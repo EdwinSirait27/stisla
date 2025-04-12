@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Models\Departments;
 use App\Rules\NoXSSInput;
+use Illuminate\Validation\Rule;
+
 use Illuminate\Support\Facades\DB;
 
 class DepartmentController extends Controller
@@ -38,7 +40,7 @@ class DepartmentController extends Controller
     public function edit($hashedId)
     {
         $department = Departments::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
 
@@ -46,16 +48,11 @@ class DepartmentController extends Controller
             abort(404, 'Department not found.');
         }
 
-        $selectedName = old('department_name', $department->department_name ?? '');
-
-        $selectedManager = old('employee_name', optional($department->user->Employee->first())->employee_name ?? '');
-
+        $managers = User::with('Employee')->get();
         return view('pages.Department.edit', [
             'department' => $department,
             'hashedId' => $hashedId,
-            'selectedManager' => $selectedManager,
-            // 'stores' => $stores,
-            'selectedName' => $selectedName
+            'managers' => $managers,
         ]);
     }
  
@@ -70,18 +67,20 @@ class DepartmentController extends Controller
         // dd($request->all());
 
         $validatedData = $request->validate([
-            'department_name' => ['required', 'string','max:255', new NoXSSInput()],
-            'manager_id' => ['nullable','max:255', new NoXSSInput()],
+            'department_name' => ['required', 'string','max:255', 'unique:departments_tables,department_name',
+                new NoXSSInput()],
+            'manager_id' => ['nullable','max:255', 'unique:departments_tables,manager_id',
+                new NoXSSInput()],
             
         ], [
-            'name.required' => 'name wajib diisi.',
-            'name.string' => 'name hanya boleh berupa teks.',
-            'name.max' => 'Username maksimal terdiri dari 255 karakter.',
+            'department_name.required' => 'name wajib diisi.',
+            'department_name.string' => 'name hanya boleh berupa teks.',
+            'department_name.max' => 'Username maksimal terdiri dari 255 karakter.',
         ]);
         try {
             DB::beginTransaction();
             $department = Departments::create([
-                'name' => $validatedData['name'], 
+                'department_name' => $validatedData['department_name'], 
                 'manager_id' => $validatedData['manager_id'], 
             ]);
             DB::commit();
@@ -95,28 +94,33 @@ class DepartmentController extends Controller
     }
     public function update(Request $request, $hashedId)
     {
-        $position = Departments::get()->first(function ($u) use ($hashedId) {
+        $department = Departments::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-        if (!$position) {
-            return redirect()->route('pages.Position')->with('error', 'ID tidak valid.');
+        if (!$department) {
+            return redirect()->route('pages.Department')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-            'name' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'department_name' => ['required', 'string', 'max:255',Rule::unique('departments_tables')->ignore($department->id),
+            new NoXSSInput()],
+            'manager_id' => ['required', 'string', 'max:255', Rule::unique('departments_tables')->ignore($department->id),
+            new NoXSSInput()],
 
         ], [
-            'name.required' => 'name wajib diisi.',
-            'name.string' => 'name hanya boleh berupa teks.',
-            'name.max' => 'Username maksimal terdiri dari 255 karakter.',
+            'department_name.required' => 'name wajib diisi.',
+            'manager_id.required' => 'Manager wajib diisi.',
+            'department_name.string' => 'name hanya boleh berupa teks.',
+            
         ]);
 
-        $positionData = [
-            'name' => $validatedData['name'],
+        $departmentData = [
+            'department_name' => $validatedData['department_name'],
+            'manager_id' => $validatedData['manager_id'],
             
         ];
         DB::beginTransaction();
-        $position->update($positionData);
+        $department->update($departmentData);
         DB::commit();
 
         return redirect()->route('pages.Department')->with('success', 'Department Berhasil Diupdate.');

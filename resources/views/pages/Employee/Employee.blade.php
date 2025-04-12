@@ -189,6 +189,7 @@
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">Account Creation</th>
+                                                <th class="text-center">Status</th>
                                                 {{-- <th class="text-center">Length of service</th> --}}
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -266,6 +267,26 @@
                         name: 'created_at',
                         className: 'text-center'
                     },
+                    {
+    data: 'status',
+    name: 'status',
+    className: 'text-center',
+    render: function (data, type, row) {
+        if (data === 'Active') {
+            return '<span class="badge bg-success">Active</span>';
+        } else if (data === 'Inactive') {
+            return '<span class="badge bg-danger">Inactive</span>';
+        } else if (data === 'On leave') {
+            return '<span class="badge bg-warning">On Leave</span>';
+        } else if (data === 'Mutation') {
+            return '<span class="badge bg-info">Tidak Aktif</span>';
+        } else if (data === 'Pending') {
+            return '<span class="badge bg-secondary">Pending</span>';
+        }
+        return '<span class="badge bg-secondary">Pending</span>';
+    }
+},
+
                     // {
                     //     data: 'length_of_service',
                     //     name: 'length_of_service',

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->uuid('position_id')->nullable();
             $table->uuid('store_id')->nullable();
             $table->uuid('department_id')->nullable();
-            $table->enum('status_employee', ['PKWT','DW'])->nullable();
             $table->date('join_date')->nullable();
             $table->text('lenght_of_service')->nullable();
             $table->enum('marriage', ['Yes','No'])->nullable();
@@ -48,7 +47,6 @@ return new class extends Migration
             $table->decimal('transport_allowance', 12, 2)->nullable();
             $table->decimal('total_salary', 12, 2)->nullable();
             $table->text('notes')->nullable();
-            $table->enum('status', ['Active', 'Inactive', 'On Leave','Mutation'])->default('Active')->nullable();;
             $table->timestamps();
             $table->softDeletes();
         });
