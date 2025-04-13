@@ -35,6 +35,7 @@ class Employee extends Model
         'position_id',
         'store_id',
         'department_id',
+        'fingerprint_id',
         'status_employee',
         'join_date',
         'lenght_of_service',
@@ -76,6 +77,10 @@ class Employee extends Model
     public function position()
     {
         return $this->belongsTo(Position::class, 'position_id');
+    }
+    public function finger()
+    {
+        return $this->belongsTo(Fingerprints::class, 'fingerprint_id');
     }
     public function users()
     {
