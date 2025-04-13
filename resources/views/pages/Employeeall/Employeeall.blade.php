@@ -748,30 +748,45 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'salary',
-                        name: 'salary',
-                        className: 'text-center'
-                    },
+    data: 'salary',
+    name: 'salary',
+    className: 'text-center',
+    render: function(data) {
+        return 'Rp. ' + data;
+    }
+},
                     {
                         data: 'house_allowance',
                         name: 'house_allowance',
-                        className: 'text-center'
-                    },
+                        className: 'text-center',
+    render: function(data) {
+        return 'Rp. ' + data;
+    }
+},
                     {
                         data: 'meal_allowance',
                         name: 'meal_allowance',
-                        className: 'text-center'
-                    },
+                        className: 'text-center',
+    render: function(data) {
+        return 'Rp. ' + data;
+    }
+},
                     {
                         data: 'transport_allowance',
                         name: 'transport_allowance',
-                        className: 'text-center'
-                    },
+                        className: 'text-center',
+    render: function(data) {
+        return 'Rp. ' + data;
+    }
+},
                     {
                         data: 'total_salary',
                         name: 'total_salary',
-                        className: 'text-center'
-                    },
+                        className: 'text-center',
+    render: function(data) {
+        return 'Rp. ' + data;
+    }
+},
                     {
                         data: 'notes',
                         name: 'notes',

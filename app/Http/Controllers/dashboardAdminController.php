@@ -217,7 +217,6 @@ class dashboardAdminController extends Controller
         $validatedData = $request->validate([
             'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-            'status' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
             'username' => [
                 'required',
@@ -228,7 +227,7 @@ class dashboardAdminController extends Controller
                 Rule::unique('users')->ignore($user->id),
                 new NoXSSInput()
             ],
-            'status' => ['nullable', 'string', 'in:Active,Inactive', new NoXSSInput()],
+            'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
             'role' => ['required', 'string', 'exists:roles,name'],
 
 
