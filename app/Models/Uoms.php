@@ -27,6 +27,6 @@ class Uoms extends Model
     protected $fillable = [
         'uom_code',
         'uom',
-        'conversion_factor',
+
     ];
 }

@@ -23,7 +23,10 @@ class Brands extends Model
         });
     }
     protected $table = 'brands_tables'; 
-
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d', // Format default MySQL
+       
+    ];
     protected $fillable = [
         'brand_code',
         'brand_name',

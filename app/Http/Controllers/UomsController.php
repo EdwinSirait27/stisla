@@ -18,26 +18,10 @@ class UomsController extends Controller
     {
         return view('pages.Uoms.Uoms');
     }
-    // public function getUoms()
-    // {
-    //     $uoms = Uoms::select(['id', 'uom_code','uom','conversion_factor'])
-    //         ->get()
-    //         ->map(function ($uom) {
-    //             $uom->id_hashed = substr(hash('sha256', $uom->id . env('APP_KEY')), 0, 8);
-    //             $uom->action = '
-    //                 <a href="' . route('Uoms.edit', $uom->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit Department: ' . e($uom->department_name) . '">
-    //                     <i class="fas fa-user-edit text-secondary"></i>
-    //                 </a>';
-    //             return $uom;
-    //         });
-    //     return DataTables::of($uoms)
-        
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
+ 
     public function getUoms(Request $request)
     {
-        $query = Uoms::select(['id','uom_code', 'uom','conversion_factor']);
+        $query = Uoms::select(['id','uom_code', 'uom']);
 
         if ($request->has('uom') && in_array($request->uom, ['Piece','Dozen','Pack','Box','Kg','Gram','Liter','MLiter','Meter','MMeter'])) {
             $query->where('uom', $request->uom);
@@ -85,16 +69,11 @@ class UomsController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'uom_code' => ['required', 'string','max:255', 'unique:uoms_tables,department_name',
+            'uom_code' => ['nullable', 'string','max:255', 'unique:uoms_tables,department_name',
                 new NoXSSInput()],
             'uom' => ['required', 'string','max:255', 'unique:uoms_tables,department_name',
                 new NoXSSInput()],
-            
-            'conversion_factor' => ['required',
-                new NoXSSInput()],
-            
         ], [
-            'uom_code.required' => 'uom_code wajib diisi.',
             'uom_code.string' => 'uom_code hanya boleh berupa teks.',
             'uom_code.max' => 'uom_code maksimal terdiri dari 255 karakter.',
             'uom_code.unique' => 'uom_code harus unique.',
@@ -102,14 +81,13 @@ class UomsController extends Controller
             'uom.string' => 'uom_code hanya boleh berupa teks.',
             'uom.max' => 'uom_code maksimal terdiri dari 255 karakter.',
             'uom.unique' => 'code harus unique.',
-            'conversion_factor.required' => 'conversion_factor harus terisi.',
-        ]);
+                   ]);
         try {
             DB::beginTransaction();
             $uom = Uoms::create([
                 'uom_code' => $validatedData['uom_code'], 
                 'uom' => $validatedData['uom'], 
-                'conversion_factor' => $validatedData['conversion_factor'], 
+           
             ]);
             DB::commit();
             return redirect()->route('pages.Uoms')->with('success', 'Uoms created Succesfully!');
@@ -120,6 +98,53 @@ class UomsController extends Controller
                 ->withInput();
         }
     }
+//     public function store(Request $request)
+// {
+//     $validatedData = $request->validate([
+//         // Hapus validasi uom_code karena akan digenerate
+//         'uom' => ['required', 'string', 'max:255', 'unique:uoms_tables,department_name', new NoXSSInput()],
+//     ], [
+//         'uom.required' => 'uom_code wajib diisi.',
+//         'uom.string' => 'uom_code hanya boleh berupa teks.',
+//         'uom.max' => 'uom_code maksimal terdiri dari 255 karakter.',
+//         'uom.unique' => 'code harus unique.',
+//     ]);
+
+//     try {
+//         DB::beginTransaction();
+
+//         // Cari kode terakhir
+//         $lastUom = DB::table('uoms_tables') // Pastikan ini nama tabel yang benar
+//             ->select('uom_code')
+//             ->orderBy('uom_code', 'desc')
+//             ->first();
+
+//         if ($lastUom && preg_match('/BR(\d+)/', $lastUom->uom_code, $matches)) {
+//             $lastNumber = (int) $matches[1];
+//             $nextNumber = $lastNumber + 1;
+//         } else {
+//             $nextNumber = 1;
+//         }
+
+//         // Generate uom_code baru
+//         $newCode = 'BR' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+//         // Simpan ke database
+//         $uom = Uoms::create([
+//             'uom_code' => $newCode,
+//             'uom' => $validatedData['uom'],
+//         ]);
+
+//         DB::commit();
+//         return redirect()->route('pages.Uoms')->with('success', 'Uoms created successfully!');
+//     } catch (\Exception $e) {
+//         DB::rollBack();
+//         return redirect()->back()
+//             ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
+//             ->withInput();
+//     }
+// }
+
     public function update(Request $request, $hashedId)
     {
         $uoms = Uoms::get()->first(function ($u) use ($hashedId) {
@@ -134,9 +159,7 @@ class UomsController extends Controller
             new NoXSSInput()],
             'uom' => ['required', 'string', 'max:255', Rule::unique('uoms_tables')->ignore($uoms->id),
             new NoXSSInput()],
-            'conversion_factor' => ['required',
-            new NoXSSInput()],
-
+           
         ], [
             'uom_code.required' => 'uom_code wajib diisi.',
             'uom_code.string' => 'uom_code hanya boleh berupa teks.',
@@ -146,13 +169,12 @@ class UomsController extends Controller
             'uom.string' => 'uom_code hanya boleh berupa teks.',
             'uom.max' => 'uom_code maksimal terdiri dari 255 karakter.',
             'uom.unique' => 'code harus unique.',
-            'conversion_factor.required' => 'conversion_factor harus terisi.',
-        ]);
+                   ]);
 
         $uomsData = [
             'uom_code' => $validatedData['uom_code'],
             'uom' => $validatedData['uom'],
-            'conversion_factor' => $validatedData['conversion_factor'],
+           
             
         ];
         DB::beginTransaction();

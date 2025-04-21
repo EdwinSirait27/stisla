@@ -15,11 +15,10 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('uom_code')->unique()->nullable(); 
             $table->enum('uom', ['Each', 'Kg', 'Box', 'Liter', 'Pack', 'Meter'])->nullable(); // Add all needed units
-            $table->decimal('conversion_factor', 10, 4)->nullable()->comment('Base conversion factor to standard unit');
+            // $table->decimal('conversion_factor', 10, 4)->nullable()->comment('Base conversion factor to standard unit');
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      *

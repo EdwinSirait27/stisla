@@ -246,25 +246,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="conversion_factor" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Conversion Factor') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="text" class="form-control" id="conversion_factor" name="conversion_factor" 
-                                                        value="{{ old('conversion_factor') }}" required
-                                                        placeholder="Fill Conversion">
-                                                        @error('conversion_factor')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            </div>
+                                    
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

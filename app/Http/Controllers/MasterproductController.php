@@ -30,9 +30,14 @@ class MasterproductController extends Controller
                 return $master;
             });
         return DataTables::of($masters)
-        ->addColumn('employee_name', function ($store) {
-            return !empty($store->user->Employee) && !empty($store->user->Employee->employee_name)
-                ? $store->user->Employee->employee_name
+        ->addColumn('brand_code', function ($master) {
+            return !empty($master->brand) && !empty($master->brand->brand_code)
+                ? $master->brand->brand_code
+                : 'Empty';
+        })
+        ->addColumn('brand_name', function ($master) {
+            return !empty($master->brand) && !empty($master->brand->brand_name)
+                ? $master->brand->brand_name
                 : 'Empty';
         })
             ->rawColumns(['action','employee_name'])

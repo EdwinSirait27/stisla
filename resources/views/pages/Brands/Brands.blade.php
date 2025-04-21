@@ -202,6 +202,7 @@
                                                 <th class="text-center">Brands Code</th>
                                                 <th class="text-center">Brands Name</th>
                                                 <th class="text-center">Description</th>
+                                                {{-- <th class="text-center">Created At</th> --}}
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -235,7 +236,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   
-    <script>
+    {{-- <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
                 processing: true,
@@ -316,6 +317,107 @@
                 table.ajax.reload();
             });
 
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    timer: 3000
+                });
+            @endif
+        });
+    </script> --}}
+    <script>
+        $(document).ready(function() {
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('brands.brands') }}',
+                    data: function(d) {
+                        d.brand_name = $('#brands-type-filter').val();
+                        // Ensure server-side knows we want to sort by brand_code by default
+                        d.order = []; // Clear default ordering
+                        d.order.push({
+                            column: 1, // brand_code is the second column (0-indexed)
+                            dir: 'asc' // ascending order
+                        });
+                    },
+                    error: function(xhr, error, thrown) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Failed to load data!'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    },
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                columns: [
+                    {
+                        data: null,
+                        name: 'id',
+                        className: 'text-center align-middle',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'brand_code',
+                        name: 'brand_code',
+                        className: 'text-center align-middle'
+                    },
+                    {
+                        data: 'brand_name',
+                        name: 'brand_name',
+                        className: 'text-center align-middle'   
+                    },
+                    {
+                        data: 'description',
+                        name: 'description',
+                        className: 'text-center align-middle',
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        className: 'text-center align-middle',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                // Set initial sorting by brand_code ascending
+                order: [[1, 'asc']], // Column index 1 is brand_code
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                    // Highlight the sorted column
+                    this.api().columns.adjust().draw();
+                }
+            });
+    
+            $('#brands-type-filter').change(function() {
+                table.ajax.reload();
+            });
+    
             @if(session('success'))
                 Swal.fire({
                     icon: 'success',

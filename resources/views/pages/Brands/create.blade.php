@@ -209,24 +209,6 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="brand_code" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Brand Code') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="text" class="form-control" id="brand_code"
-                                                            name="uom_code" value="{{ old('brand_code') }}" required
-                                                            placeholder="Fill brand code">
-                                                        @error('brand_code')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                        <p class="text-muted text-xs mt-2">Example: BR0001
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
                                                     <label for="brand_name" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Brand Name') }}
                                                     </label>
@@ -242,8 +224,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="description" class="form-control-label">
@@ -262,7 +242,7 @@
                                                 </div>
                                             </div>
                                         </div>
-
+                                       
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class StatusproductController extends Controller
 {
