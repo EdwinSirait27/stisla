@@ -69,9 +69,9 @@ class UomsController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'uom_code' => ['nullable', 'string','max:255', 'unique:uoms_tables,department_name',
+            'uom_code' => ['nullable', 'string','max:255', 'unique:uoms_tables,uom_code',
                 new NoXSSInput()],
-            'uom' => ['required', 'string','max:255', 'unique:uoms_tables,department_name',
+            'uom' => ['required', 'string','max:255', 'unique:uoms_tables,uom',
                 new NoXSSInput()],
         ], [
             'uom_code.string' => 'uom_code hanya boleh berupa teks.',
