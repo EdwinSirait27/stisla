@@ -8,9 +8,14 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DashboardHRController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\UomsController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\BrandsController;
+use App\Http\Controllers\taxstatusController;
+use App\Http\Controllers\StatusproductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\ActivityController;
 /*
@@ -147,6 +152,48 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::get('/Store/edit/{hashedId}', [StoreController::class, 'edit'])->name('Store.edit');
     Route::put('/Store/{hashedId}', [StoreController::class, 'update'])->name('Store.update');
     Route::get('/stores/stores', [StoreController::class, 'getStores'])->name('stores.stores');
+// uoms
+Route::get('/Uoms', [UomsController::class, 'index'])
+->name('pages.Uoms');
+Route::get('Uoms/create', [UomsController::class, 'create'])->name('Uoms.create');
+Route::post('/Uoms', [UomsController::class, 'store'])->name('Uoms.store');
+Route::get('/Uoms/edit/{hashedId}', [UomsController::class, 'edit'])->name('Uoms.edit');
+Route::put('/Uoms/{hashedId}', [UomsController::class, 'update'])->name('Uoms.update');
+Route::get('/uoms/uoms', [UomsController::class, 'getUoms'])->name('uoms.uoms');
+// Brands
+Route::get('/Brands', [BrandsController::class, 'index'])
+->name('pages.Brands');
+Route::get('Brands/create', [BrandsController::class, 'create'])->name('Brands.create');
+Route::post('/Brands', [BrandsController::class, 'store'])->name('Brands.store');
+Route::get('/Brands/edit/{hashedId}', [BrandsController::class, 'edit'])->name('Brands.edit');
+Route::put('/Brands/{hashedId}', [BrandsController::class, 'update'])->name('Brands.update');
+Route::get('/brands/brands', [BrandsController::class, 'getBrands'])->name('brands.brands');
+// Categories
+Route::get('/Categories', [CategoriesController::class, 'index'])
+->name('pages.Categories');
+Route::get('Categories/create', [CategoriesController::class, 'create'])->name('Categories.create');
+Route::post('/Categories', [CategoriesController::class, 'store'])->name('Categories.store');
+Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
+Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
+Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
+// Tax status
+Route::get('/Taxstatus', [TaxstatusController::class, 'index'])
+->name('pages.Taxstatus');
+Route::get('Taxstatus/create', [TaxstatusController::class, 'create'])->name('Taxstatus.create');
+Route::post('/Taxstatus', [TaxstatusController::class, 'store'])->name('Taxstatus.store');
+Route::get('/Taxstatus/edit/{hashedId}', [TaxstatusController::class, 'edit'])->name('Taxstatus.edit');
+Route::put('/Taxstatus/{hashedId}', [TaxstatusController::class, 'update'])->name('Taxstatus.update');
+Route::get('/taxstatus/taxstatus', [TaxstatusController::class, 'getTaxstatuses'])->name('taxstatus.taxstatus');
+
+// Status Product
+
+Route::get('/Statusproduct', [StatusproductController::class, 'index'])
+->name('pages.Statusproduct');
+Route::get('Statusproduct/create', [StatusproductController::class, 'create'])->name('Statusproduct.create');
+Route::post('/Statusproduct', [StatusproductController::class, 'store'])->name('Statusproduct.store');
+Route::get('/Statusproduct/edit/{hashedId}', [StatusproductController::class, 'edit'])->name('Statusproduct.edit');
+Route::put('/Statusproduct/{hashedId}', [StatusproductController::class, 'update'])->name('Statusproduct.update');
+Route::get('/statusproduct/statusproduct', [StatusproductController::class, 'getStatusproducts'])->name('statusproduct.statusproduct');
 
 
 

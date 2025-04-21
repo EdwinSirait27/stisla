@@ -28,11 +28,20 @@ class RedirectIfAuthenticated
         if ($user->can('isHeadHR')) {
             return redirect('/dashboardHR');
         }
+        if ($user->can('isHR')) {
+            return redirect('/dashboardHR');
+        }
         if ($user->can('isManagerStore')) {
             return redirect('/dashboardManager');
         }
         if ($user->can('isSupervisor')) {
             return redirect('/dashboardSupervisor');
+        }
+        if ($user->can('isHeadBuyer')) {
+            return redirect('/dashboardBuyer');
+        }
+        if ($user->can('isBuyer')) {
+            return redirect('/dashboard');
         }
 
         // Jika user_type tidak valid, logout dan kembali ke login

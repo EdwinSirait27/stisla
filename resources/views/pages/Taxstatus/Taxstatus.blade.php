@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Positions')
+@section('title', 'Tax Status')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -41,6 +41,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -167,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Positions</h1>
+                <h1>Tax Status</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Positions</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Tax Status</h6>
                             </div>
 
                             <div class="card-body">
@@ -183,16 +184,16 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Name</th>
+                                                <th class="text-center">Tax Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Position.create') }}'"
+                                    <button type="button" onclick="window.location='{{ route('Taxstatus.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Positions
+                                        <i class="fas fa-plus-circle"></i> Create Taxstatus
                                     </button>
                                 </div>
                             </div>
@@ -214,7 +215,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('positions.positions') }}',
+                    url: '{{ route('taxstatus.taxstatus') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -235,8 +236,8 @@
                         }
                     },
                     {
-                        data: 'name',
-                        name: 'name',
+                        data: 'taxstatus',
+                        name: 'taxstatus',
                         className: 'text-center'
                     },
                     {

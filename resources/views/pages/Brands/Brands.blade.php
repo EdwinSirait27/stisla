@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Activity Logs ' . $activity->user->Employee->employee_name)
+@section('title','Brands')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -14,7 +14,6 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             background-color: #fff;
         }
-    
         .card:hover {
             transform: translateY(-3px);
             box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
@@ -174,23 +173,24 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Users Activity Logs</h1>
+                <h1>Brands</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> Users Activity Logs {{$activity->user->Employee->employee_name}}</h6>
+                                <h6><i class="fas fa-user-shield"></i>Brands</i>
                             </div>
 
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
-                                        <select id="activity-type-filter" class="form-control">
-                                            <option value="">All Activity Types</option>
-                                            <option value="Login">Login</option>
-                                            <option value="Logout">Logout</option>
+                                        <select id="brands-type-filter" class="form-control" name="brand_name">
+                                            <option value="">-- Pilih Brand --</option>
+                                            @foreach ($brands as $brand)
+                                                <option value="{{ $brand }}">{{ $brand }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -199,13 +199,22 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Activity Type</th>
-                                                <th class="text-center">Activity Time</th>
-                                                <th class="text-center">Mac Wifi</th>
-                                                <th class="text-center">Mac Lan</th>
+                                                <th class="text-center">Brands Code</th>
+                                                <th class="text-center">Brands Name</th>
+                                                <th class="text-center">Description</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
+                                </div>
+                                <div class="action-buttons">
+                                    <button type="button" onclick="window.location='{{ route('Brands.create') }}'" 
+                                            class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus-circle"></i> Create Brands
+                                    </button>
+                                    
+                                    <!-- New button added here -->
+                                   
                                 </div>
                             </div>
                         </div>
@@ -229,40 +238,12 @@
     <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
-        // dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"p>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
-        dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-12"B>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
-        buttons: [
-                    {
-                        extend: 'copy',
-                        text: '<i class="fas fa-copy"></i> Copy',
-                        className: 'btn btn-sm btn-secondary',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    },
-                    {
-                        extend: 'csv',
-                        text: '<i class="fas fa-file-csv"></i> CSV',
-                        className: 'btn btn-sm btn-primary',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    },
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    }
-                ],
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('activity1.activity1') }}',
+                    url: '{{ route('brands.brands') }}',
                     data: function(d) {
-                        d.activity_type = $('#activity-type-filter').val();
+                        d.brand_name = $('#brands-type-filter').val();
                     },
                     error: function(xhr, error, thrown) {
                         Swal.fire({
@@ -303,33 +284,26 @@
                         }
                     },
                     {
-                        data: 'activity_type',
-                        name: 'activity_type',
+                        data: 'brand_code',
+                        name: 'brand_code',
                         className: 'text-center align-middle'
                     },
                     {
-                        data: 'activity_time',
-                        name: 'activity_time',
-                        className: 'text-center align-middle',
-                        render: function(data) {
-                            return data ? new Date(data).toLocaleString() : 'N/A';
-                        }
+                        data: 'brand_name',
+                        name: 'brand_name',
+                        className: 'text-center align-middle'   
                     },
                     {
-                        data: 'device_wifi_mac',
-                        name: 'device_wifi_mac',
+                        data: 'description',
+                        name: 'description',
                         className: 'text-center align-middle',
-                        render: function(data) {
-                            return data || 'Empty';
-                        }
                     },
                     {
-                        data: 'device_lan_mac',
-                        name: 'device_lan_mac',
+                        data: 'action',
+                        name: 'action',
                         className: 'text-center align-middle',
-                        render: function(data) {
-                            return data || 'Empty';
-                        }
+                        orderable: false,
+                        searchable: false
                     }
                 ],
                 initComplete: function() {
@@ -338,7 +312,7 @@
                 }
             });
 
-            $('#activity-type-filter').change(function() {
+            $('#brands-type-filter').change(function() {
                 table.ajax.reload();
             });
 

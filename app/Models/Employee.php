@@ -9,16 +9,13 @@ use Ramsey\Uuid\Uuid;
 use Carbon\Carbon;
 class Employee extends Model
 {
-    
     use HasFactory;
     protected $table = 'employees_tables';
     public $incrementing = false;
     protected $keyType = 'string';
-
     protected static function boot()
     {
         parent::boot();
-
         static::creating(function ($model) {
             if (!$model->getKey()) {
                 $model->{$model->getKeyName()} = Uuid::uuid7()->toString();
@@ -94,6 +91,4 @@ class Employee extends Model
     {
         return Carbon::parse($value)->format('y-m-d');
     }
-
 }
-

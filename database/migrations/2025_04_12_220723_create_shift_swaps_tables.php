@@ -24,7 +24,6 @@ return new class extends Migration {
             $table->uuid('approved_by')->nullable(); // HR/Manager yang menyetujui
             $table->datetime('approved_at')->nullable();
             $table->timestamps();
-
             // Foreign keys
             $table->foreign('requester_id')
                 ->references('id')
@@ -52,7 +51,6 @@ return new class extends Migration {
                 ->onDelete('set null');
         });
     }
-
     /**
      * Reverse the migrations.
      *

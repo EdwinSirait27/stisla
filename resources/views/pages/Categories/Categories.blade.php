@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Activity Logs ' . $activity->user->Employee->employee_name)
+@section('title','Categories')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -14,7 +14,6 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             background-color: #fff;
         }
-    
         .card:hover {
             transform: translateY(-3px);
             box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
@@ -174,23 +173,24 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Users Activity Logs</h1>
+                <h1>Categories</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> Users Activity Logs {{$activity->user->Employee->employee_name}}</h6>
+                                <h6><i class="fas fa-user-shield"></i>Categories</i>
                             </div>
 
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
-                                        <select id="activity-type-filter" class="form-control">
-                                            <option value="">All Activity Types</option>
-                                            <option value="Login">Login</option>
-                                            <option value="Logout">Logout</option>
+                                        <select id="categories-type-filter" class="form-control" name="parent_id">
+                                            <option value="">-- Choose Categories --</option>
+                                            @foreach ($categories as $category)
+                                                <option value="{{ $category }}">{{ $category }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -199,13 +199,19 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Activity Type</th>
-                                                <th class="text-center">Activity Time</th>
-                                                <th class="text-center">Mac Wifi</th>
-                                                <th class="text-center">Mac Lan</th>
+                                                <th class="text-center">Parent</th>
+                                                <th class="text-center">Categories Code</th>
+                                                <th class="text-center">Categories Name</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
+                                </div>
+                                <div class="action-buttons">
+                                    <button type="button" onclick="window.location='{{ route('Categories.create') }}'" 
+                                            class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus-circle"></i> Create Categories
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -229,40 +235,12 @@
     <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
-        // dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"p>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
-        dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-12"B>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
-        buttons: [
-                    {
-                        extend: 'copy',
-                        text: '<i class="fas fa-copy"></i> Copy',
-                        className: 'btn btn-sm btn-secondary',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    },
-                    {
-                        extend: 'csv',
-                        text: '<i class="fas fa-file-csv"></i> CSV',
-                        className: 'btn btn-sm btn-primary',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    },
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    }
-                ],
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('activity1.activity1') }}',
+                    url: '{{ route('categories.categories') }}',
                     data: function(d) {
-                        d.activity_type = $('#activity-type-filter').val();
+                        d.brand_name = $('#categories-type-filter').val();
                     },
                     error: function(xhr, error, thrown) {
                         Swal.fire({
@@ -302,34 +280,36 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
+                    // {
+                    //     data: 'parent_id',
+                    //     name: 'parent_id',
+                    //     className: 'text-center align-middle'
+                    // },
                     {
-                        data: 'activity_type',
-                        name: 'activity_type',
-                        className: 'text-center align-middle'
+    data: 'parent_id',
+    name: 'parent_id',
+    className: 'text-center align-middle',
+    render: function (data, type, row) {
+        return data ? row.parent.parent_id : 'Parent';
+    }
+},
+
+                    {
+                        data: 'category_code',
+                        name: 'category_code',
+                        className: 'text-center align-middle'   
                     },
                     {
-                        data: 'activity_time',
-                        name: 'activity_time',
+                        data: 'category_name',
+                        name: 'category_name',
                         className: 'text-center align-middle',
-                        render: function(data) {
-                            return data ? new Date(data).toLocaleString() : 'N/A';
-                        }
                     },
                     {
-                        data: 'device_wifi_mac',
-                        name: 'device_wifi_mac',
+                        data: 'action',
+                        name: 'action',
                         className: 'text-center align-middle',
-                        render: function(data) {
-                            return data || 'Empty';
-                        }
-                    },
-                    {
-                        data: 'device_lan_mac',
-                        name: 'device_lan_mac',
-                        className: 'text-center align-middle',
-                        render: function(data) {
-                            return data || 'Empty';
-                        }
+                        orderable: false,
+                        searchable: false
                     }
                 ],
                 initComplete: function() {
@@ -338,7 +318,7 @@
                 }
             });
 
-            $('#activity-type-filter').change(function() {
+            $('#categories-type-filter').change(function() {
                 table.ajax.reload();
             });
 
@@ -353,79 +333,3 @@
         });
     </script>
 @endpush
-
-
-{{-- @section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Users Activity Logs</h1>
-            </div>
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> Users Activity Logs {{$activity->user->username}}</h6>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        <select id="activity-type-filter" class="form-control">
-                                            <option value="">All Activity Types</option>
-                                            <option value="Login">Login</option>
-                                            <option value="Logout">Logout</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">No.</th>
-                                                <th class="text-center">Activity Type</th>
-                                                <th class="text-center">Activity Time</th>
-                                                <th class="text-center">Mac Wifi</th>
-                                                <th class="text-center">Mac Lan</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-@endsection --}}
-
-{{-- @push('scripts')
-    <!-- Load required libraries -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
-  {{-- <style>
-        /* Custom CSS to ensure lengthMenu visibility */
-        .dataTables_wrapper .dataTables_length {
-            float: left;
-            padding-top: 0.5em;
-        }
-        .dataTables_wrapper .dataTables_filter {
-            float: right;
-            text-align: right;
-        }
-        .dataTables_wrapper .dataTables_filter input {
-            margin-left: 0.5em;
-        }
-        .dataTables_wrapper .dataTables_paginate {
-            float: right;
-        }
-        .dt-buttons {
-            margin-bottom: 10px;
-        }
-    </style> --}}

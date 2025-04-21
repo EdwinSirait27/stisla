@@ -6,10 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class Shifts extends Model
+class Statusproduct extends Model
 {
     use HasFactory;
-    protected $table = 'shifts_tables';
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -23,18 +22,13 @@ class Shifts extends Model
             }
         });
     }
+    protected $table = 'statusproduct_tables'; 
+
     protected $fillable = [
-        'store_id',
-        'shift_name',
-        'start_time',
-        'end_time',
-        'last_sync',
-        'is_holiday'
+        'status',
         
     ];
-    public function store()
-    {
-        return $this->belongsTo(Stores::class, 'store_id', 'id');
-    }
-    
+ 
+
+   
 }
