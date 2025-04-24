@@ -19,28 +19,59 @@ class CategoriesController extends Controller
         $categories = Categories::with('children')
         ->whereNull('parent_id')
         ->get();
+        $parentCategories = Categories::whereNull('parent_id')->get();
 
-        return view('pages.Categories.Categories',compact('categories'));
+        return view('pages.Categories.Categories',compact('categories','parentCategories'));
     }
+    // public function getCategories(Request $request)
+    // {
+    //     $query = Categories::with('children','parent')->select(['id', 'parent_id', 'category_code','category_name']);
+    //     if ($request->filled('category_name')) {
+    //         $query->where('category_name', $request->category_name);
+    //     }
+    //     $category = $query->get()
+    //         ->map(function ($category) {
+    //             $category->id_hashed = substr(hash('sha256', $category->id . env('APP_KEY')), 0, 8);
+    //             $category->action = '
+    //         <a href="' . route('Categories.edit', $category->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit categories">
+    //             <i class="fas fa-user-edit text-secondary"></i>
+    //         </a>';
+    //             return $category;
+    //         });
+    //     return DataTables::of($category)
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
     public function getCategories(Request $request)
-    {
-        $query = Categories::with('children','parent')->select(['id', 'parent_id', 'category_code','category_name']);
-        if ($request->filled('category_name')) {
-            $query->where('category_name', $request->category_name);
-        }
-        $category = $query->get()
-            ->map(function ($category) {
-                $category->id_hashed = substr(hash('sha256', $category->id . env('APP_KEY')), 0, 8);
-                $category->action = '
-            <a href="' . route('Categories.edit', $category->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit categories">
-                <i class="fas fa-user-edit text-secondary"></i>
-            </a>';
-                return $category;
-            });
-        return DataTables::of($category)
-            ->rawColumns(['action'])
-            ->make(true);
-    }
+{
+    $query = Categories::with(['children', 'parent'])
+        ->select(['id', 'parent_id', 'category_code', 'category_name'])
+        ->when($request->filled('category_name'), function ($q) use ($request) {
+            $q->where('category_name', 'like', '%'.$request->category_name.'%');
+        });
+
+    $categories = $query->get()
+        ->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'id_hashed' => substr(hash('sha256', $category->id . config('app.key')), 0, 8),
+                'category_code' => $category->category_code,
+                'category_name' => $category->category_name,
+                'full_category_name' => $category->full_category_name, // Menggunakan accessor
+                'parent_name' => optional($category->parent)->category_name,
+                'children_count' => $category->children->count(),   
+                'action' => '
+                    <a href="'.route('Categories.edit', $category->id).'" class="mx-3" data-bs-toggle="tooltip" title="Edit category">
+                        <i class="fas fa-edit text-secondary"></i>
+                    </a>'
+            ];
+        });
+
+    return DataTables::of($categories)
+        ->addIndexColumn()
+        ->rawColumns(['action'])
+        ->make(true);
+}
     public function edit($hashedId)
     {
         $category = Categories::with('parent','children')->get()->first(function ($u) use ($hashedId) {
@@ -67,10 +98,18 @@ class CategoriesController extends Controller
     }
     public function store(Request $request)
     {
+        \Log::debug('Request Data:', $request->all());
         $validatedData = $request->validate([
+            // 'parent_id' => [
+            //     'nullable',
+            //     'max:255',
+            
+            //     new NoXSSInput()
+            // ],
             'parent_id' => [
                 'nullable',
-                'max:255',
+                'uuid', 
+                'exists:categories_tables,id', // Pastikan ID ada di database
                 new NoXSSInput()
             ],
             'category_code' => [
