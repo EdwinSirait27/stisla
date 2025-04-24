@@ -10,45 +10,159 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 class CategoriesController extends Controller
 {
-    public function index()
-    {
-        // $categories = Categories::with('parent')->whereNotNull('parent_id')->pluck('parent_id', 'id');
-        // $categoriesparents = Categories::with('parent')->whereNull('parent_id')->pluck('parent_id', 'id');
-        // $categories = Categories::with('parent')->whereNotNull('parent_id')->get();
-   
-        $categories = Categories::with('children')
-        ->whereNull('parent_id')
-        ->get();
-        $parentCategories = Categories::whereNull('parent_id')->get();
+// public function index()
+// {
+//     $categories = Categories::with(['children' => function($query) {
+//         $query->select(['id', 'parent_id', 'category_name']);
+//     }])->whereNull('parent_id')->get();
 
-        return view('pages.Categories.Categories',compact('categories','parentCategories'));
-    }
-    // public function getCategories(Request $request)
-    // {
-    //     $query = Categories::with('children','parent')->select(['id', 'parent_id', 'category_code','category_name']);
-    //     if ($request->filled('category_name')) {
-    //         $query->where('category_name', $request->category_name);
-    //     }
-    //     $category = $query->get()
-    //         ->map(function ($category) {
-    //             $category->id_hashed = substr(hash('sha256', $category->id . env('APP_KEY')), 0, 8);
-    //             $category->action = '
-    //         <a href="' . route('Categories.edit', $category->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit categories">
-    //             <i class="fas fa-user-edit text-secondary"></i>
-    //         </a>';
-    //             return $category;
-    //         });
-    //     return DataTables::of($category)
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
-    public function getCategories(Request $request)
+//     return view('pages.Categories.Categories', [
+//         'categories' => $categories 
+//     ]);
+// }
+// private function flattenCategories($categories, $prefix = '')
+// {
+//     $result = [];
+
+//     foreach ($categories as $category) {
+//         $item = [
+//             'id' => $category->id,
+//             'category_name' => $category->category_name,
+//             'indent_text' => $prefix,
+//             'children' => $category->children 
+//         ];
+
+//         $result[] = (object)$item;
+
+//         if ($category->children->count()) {
+//             $result = array_merge(
+//                 $result, 
+//                 $this->flattenCategories($category->children, $prefix . '— ')
+//             );
+//         }
+//     }
+
+//     return $result;
+// }
+
+// public function getCategories(Request $request)
+// {
+//     $query = Categories::with(['parent'])
+//         ->select(['id', 'parent_id', 'category_code', 'category_name']);
+
+//     if ($request->filled('parent_id')) {
+//         $parent = Categories::with('childrenRecursive')->find($request->parent_id);
+        
+//         if (!$parent) {
+//             return DataTables::of(collect())->make(true);
+//         }
+
+//         $ids = $this->getAllCategoryIdsOptimized($parent);
+//         $query->whereIn('id', $ids);
+//     }
+
+//     if ($request->filled('category_name')) {
+//         $query->where('category_name', 'like', '%'.$request->category_name.'%');
+//     }
+
+//     $categories = $query->get()
+//         ->map(function ($category) {
+//             return [
+//                 'id' => $category->id,
+//                 'id_hashed' => substr(hash('sha256', $category->id . config('app.key')), 0, 8),
+//                 'category_code' => $category->category_code,
+//                 'category_name' => $category->category_name,
+//                 'full_category_name' => $category->full_category_name ?? $category->category_name,
+//                 'parent_name' => optional($category->parent)->category_name,
+//                 'children_count' => $category->children()->count(),
+//                 'action' => '
+//                     <a href="'.route('Categories.edit', $category->id).'" class="mx-3" data-bs-toggle="tooltip" title="Edit category">
+//                         <i class="fas fa-edit text-secondary"></i>
+//                     </a>'
+//             ];
+//         });
+
+//     return DataTables::of($categories)
+//         ->addIndexColumn()
+//         ->rawColumns(['action'])
+//         ->make(true);
+// }
+
+// private function getAllCategoryIdsOptimized($category, $depth = 0, $maxDepth = 10)
+// {
+//     if ($depth > $maxDepth) {
+//         return [$category->id];
+//     }
+    
+//     $ids = [$category->id];
+    
+//     if ($category->relationLoaded('childrenRecursive') && $category->childrenRecursive->isNotEmpty()) {
+//         foreach ($category->childrenRecursive as $child) {
+//             $ids = array_merge($ids, $this->getAllCategoryIdsOptimized($child, $depth + 1, $maxDepth));
+//         }
+//     }
+    
+//     return $ids;
+// }
+public function index()
 {
-    $query = Categories::with(['children', 'parent'])
-        ->select(['id', 'parent_id', 'category_code', 'category_name'])
-        ->when($request->filled('category_name'), function ($q) use ($request) {
-            $q->where('category_name', 'like', '%'.$request->category_name.'%');
-        });
+    $categories = Categories::with(['children' => function($query) {
+        $query->select(['id', 'parent_id', 'category_name']);
+    }])
+    ->whereNull('parent_id')
+    ->get();
+
+    return view('pages.Categories.Categories', [
+        'categories' => $categories
+    ]);
+}
+
+private function flattenCategories($categories, $prefix = '')
+{
+    $result = [];
+
+    foreach ($categories as $category) {
+        $item = (object)[
+            'id' => $category->id,
+            'category_name' => $category->category_name,
+            'indent_text' => $prefix,
+            'children' => $category->relationLoaded('children') ? $category->children : collect(),
+        ];
+
+        $result[] = $item;
+
+        if ($item->children->isNotEmpty()) {
+            $result = array_merge(
+                $result,
+                $this->flattenCategories($item->children, $prefix . '— ')
+            );
+        }
+    }
+
+    return $result;
+}
+
+public function getCategories(Request $request)
+{
+    $query = Categories::with(['parent'])
+        ->select(['id', 'parent_id', 'category_code', 'category_name']);
+
+    // Filter by parent ID (dengan anak-anaknya secara rekursif)
+    if ($request->filled('parent_id')) {
+        $parent = Categories::with('childrenRecursive')->find($request->parent_id);
+
+        if (!$parent) {
+            return DataTables::of(collect())->make(true); // return kosong jika parent tidak ditemukan
+        }
+
+        $ids = $this->getAllCategoryIdsOptimized($parent);
+        $query->whereIn('id', $ids);
+    }
+
+    // Filter berdasarkan nama kategori
+    if ($request->filled('category_name')) {
+        $query->where('category_name', 'like', '%'.$request->category_name.'%');
+    }
 
     $categories = $query->get()
         ->map(function ($category) {
@@ -57,9 +171,9 @@ class CategoriesController extends Controller
                 'id_hashed' => substr(hash('sha256', $category->id . config('app.key')), 0, 8),
                 'category_code' => $category->category_code,
                 'category_name' => $category->category_name,
-                'full_category_name' => $category->full_category_name, // Menggunakan accessor
+                'full_category_name' => $category->full_category_name ?? $category->category_name,
                 'parent_name' => optional($category->parent)->category_name,
-                'children_count' => $category->children->count(),   
+                'children_count' => $category->children()->count(),
                 'action' => '
                     <a href="'.route('Categories.edit', $category->id).'" class="mx-3" data-bs-toggle="tooltip" title="Edit category">
                         <i class="fas fa-edit text-secondary"></i>
@@ -72,40 +186,52 @@ class CategoriesController extends Controller
         ->rawColumns(['action'])
         ->make(true);
 }
-    public function edit($hashedId)
-    {
-        $category = Categories::with('parent','children')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$category) {
-            abort(404, 'Categories not found.');
-        }
-        $parents = Categories::whereNull('parent_id')->pluck('category_name', 'id');
 
-        return view('pages.Categories.edit', [
-            'hashedId' => $hashedId,
-            'category' => $category,
-            'parents' => $parents,
-        ]);
+private function getAllCategoryIdsOptimized($category, $depth = 0, $maxDepth = 10)
+{
+    if ($depth > $maxDepth) {
+        return [$category->id]; // Hindari infinite loop
     }
+
+    $ids = [$category->id];
+
+    if ($category->relationLoaded('childrenRecursive') && $category->childrenRecursive->isNotEmpty()) {
+        foreach ($category->childrenRecursive as $child) {
+            $ids = array_merge($ids, $this->getAllCategoryIdsOptimized($child, $depth + 1, $maxDepth));
+        }
+    }
+
+    return $ids;
+}
+
+
+public function edit($hashedId)
+{
+    $category = Categories::with('parent','children')->get()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+    if (!$category) {
+        abort(404, 'Categories not found.');
+    }
+    $parents = Categories::whereNull('parent_id')->pluck('category_name', 'id');
+
+    return view('pages.Categories.edit', [
+        'hashedId' => $hashedId,
+        'category' => $category,
+        'parents' => $parents,
+    ]);
+}
+
     public function create()
     {
-        // $parents = Categories::whereNull('parent_id')->pluck('category_name', 'id');
-        $parents = Categories::pluck('category_name', 'id'); // ['uuid-1' => 'Drink', ...]
-
+        $parents = Categories::pluck('category_name', 'id');
         return view('pages.Categories.create',compact('parents'));
     }
     public function store(Request $request)
     {
         \Log::debug('Request Data:', $request->all());
         $validatedData = $request->validate([
-            // 'parent_id' => [
-            //     'nullable',
-            //     'max:255',
-            
-            //     new NoXSSInput()
-            // ],
             'parent_id' => [
                 'nullable',
                 'uuid', 

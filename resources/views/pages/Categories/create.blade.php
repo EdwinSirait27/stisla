@@ -212,11 +212,9 @@
                                                     </label>
                                                     <div>
                                                         <select name="parent_id" class="form-control">
-                                                            <option value="">-- Choose Parent --</option>
-                                                            @foreach ($parents as $value)
-                                                                <option value="{{ $value }}"
-                                                                    {{ old('parent_id') == $value ? 'selected' : '' }}>
-                                                                    {{ $value }}</option>
+                                                            <option value="">-- Pilih Parent Category --</option>
+                                                            @foreach($parents as $id => $category_name)
+                                                                <option value="{{ $id }}">{{ $category_name }}</option>
                                                             @endforeach
                                                         </select>
                                                         @error('parent_id')

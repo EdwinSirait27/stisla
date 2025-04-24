@@ -5,7 +5,6 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <style>
-        /* Card Styles */
         .card {
             border: none;
             box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -14,12 +13,10 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             background-color: #fff;
         }
-
         .card:hover {
             transform: translateY(-3px);
             box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
         }
-
         .card-header {
             background-color: #f8fafc;
             border-bottom: 1px solid rgba(0, 0, 0, 0.03);
@@ -162,15 +159,175 @@
         }
     </style>
 @endpush
-
-
-
-
-
-
-
-
 @section('main')
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Categories</h1>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-list-alt"></i> Categories</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+
+                                        <select name="parent_id" id="parent-filter" class="form-control select2">
+                                            <option value="">-- All Categories --</option>
+                                            @php
+                                                $renderOptions = function ($categories, $prefix = '') use (
+                                                    &$renderOptions,
+                                                ) {
+                                                    foreach ($categories as $category) {
+                                                        echo '<option value="' .
+                                                            $category->id .
+                                                            '">' .
+                                                            $prefix .
+                                                            htmlspecialchars($category->category_name) .
+                                                            '</option>';
+
+                                                        if (
+                                                            isset($category->children) &&
+                                                            $category->children &&
+                                                            count($category->children)
+                                                        ) {
+                                                            $renderOptions($category->children, $prefix . '— ');
+                                                        }
+                                                    }
+                                                };
+                                                $renderOptions($categories);
+                                            @endphp
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="search-category"
+                                            placeholder="Search category...">
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="categories-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">No.</th>
+                                                <th class="text-center">Parent</th>
+                                                <th class="text-center">Code</th>
+                                                <th class="text-center">Category Name</th>
+                                                <th class="text-center">Action</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                                <div class="action-buttons mt-3">
+                                    <a href="{{ route('Categories.create') }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus-circle"></i> Create Category
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+@endsection
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2
+            $('#parent-filter').select2({
+                placeholder: "Select parent category",
+                allowClear: true
+            });
+
+            const table = $('#categories-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('categories.categories') }}',
+                    data: function(d) {
+                        d.parent_id = $('#parent-filter').val();
+                        d.category_name = $('#search-category').val();
+                    }
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'parent_name',
+                        name: 'parent.name',
+                        defaultContent: '-',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'category_code',
+                        name: 'category_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'category_name',
+                        name: 'category_name',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return row.full_category_name || data;
+                        }
+                    },
+
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
+                },
+                dom: '<"top"lf>rt<"bottom"ip>',
+                initComplete: function() {
+                    $('.dataTables_filter').hide();
+                }
+            });
+
+            $('#search-category').on('keyup', function() {
+                table.draw();
+            });
+
+            $('#parent-filter').on('change', function() {
+                table.draw();
+            });
+        });
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+                timer: 3000
+            });
+        @endif
+    </script>
+@endpush
+{{-- @push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: calc(2.25rem + 2px);
+            padding: .375rem .75rem;
+        }
+    </style>
+@endpush --}}
+{{-- @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -187,28 +344,16 @@
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
-                                        {{-- <select id="categories-type-filter" class="form-control" name="parent_id">
-                                            <option value="">-- Choose Categories --</option>
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category }}">{{ $category }}</option>
-                                            @endforeach
-                                        </select> --}}
+
                                         <select name="parent_id" id="categories-type-filter" class="form-control">
                                             <option value="">-- Tanpa Parent --</option>
-                                            @foreach($parentCategories as $category)
-                                                <option value="{{ $category->id }}" {{ old('parent_id') == $category->id ? 'selected' : '' }}>
+                                            @foreach ($categories as $category)
+                                                <option value="{{ $category->id }}"
+                                                    {{ old('parent_id') == $category->id ? 'selected' : '' }}>
                                                     {{ $category->full_category_name }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                        {{-- <select name="parent_id" id="parent_id" class="form-control">
-                                            <option value="">-- Tanpa Parent --</option>
-                                            @foreach($parentCategories as $category)
-                                                <option value="{{ $category->id }}" {{ old('parent_id') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->full_category_name }}
-                                                </option>
-                                            @endforeach
-                                        </select> --}}
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -221,12 +366,7 @@
                                                 <th class="text-center">Parent</th>
                                                 <th class="text-center">Number of Subcategories</th>
                                                 <th class="text-center">Action</th>
-                                                {{-- <th width="5%">No</th>
-                                                <th>Kode</th>
-                                                <th>Nama Kategori</th>
-                                                <th>Parent</th>
-                                                <th>Jumlah Sub</th>
-                                                <th width="15%">Aksi</th> --}}
+
                                             </tr>
                                         </thead>
                                     </table>
@@ -247,108 +387,12 @@
 @endsection
 
 @push('scripts')
-    <!-- Load required libraries -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-    {{-- <script>
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('categories.categories') }}',
-                    data: function(d) {
-                        d.brand_name = $('#categories-type-filter').val();
-                    },
-                    error: function(xhr, error, thrown) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Failed to load data!'
-                        });
-                        console.error(xhr.responseText);
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                pageLength: 10,
-                language: {
-                    lengthMenu: "Show _MENU_ entries",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    },
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
-                },
-                columns: [
-                    {
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'parent_id',
-                        name: 'parent_id',
-                        className: 'text-center align-middle'
-                    },
-
-
-                    {
-                        data: 'category_code',
-                        name: 'category_code',
-                        className: 'text-center align-middle'   
-                    },
-                    {
-                        data: 'category_name',
-                        name: 'category_name',
-                        className: 'text-center align-middle',
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        className: 'text-center align-middle',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-            $('#categories-type-filter').change(function() {
-                table.ajax.reload();
-            });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000
-                });
-            @endif
-        });
-    </script> --}}
     <script>
         $(document).ready(function() {
             const table = $('#users-table').DataTable({
@@ -407,173 +451,9 @@
                 }
             });
 
-            // Search functionality
             $('#search-category').keyup(function() {
                 table.draw();
             });
         });
-
-        // Delete confirmation
-        // function deleteCategory(url) {
-        //     Swal.fire({
-        //         title: 'Hapus Kategori?',
-        //         text: "Anda tidak akan dapat mengembalikan ini!",
-        //         icon: 'warning',
-        //         showCancelButton: true,
-        //         confirmButtonColor: '#3085d6',
-        //         cancelButtonColor: '#d33',
-        //         confirmButtonText: 'Ya, Hapus!'
-        //     }).then((result) => {
-        //         if (result.isConfirmed) {
-        //             $.ajax({
-        //                 url: url,
-        //                 type: 'DELETE',
-        //                 data: {
-        //                     _token: '{{ csrf_token() }}'
-        //                 },
-        //                 success: function(response) {
-        //                     if (response.success) {
-        //                         $('#categories-table').DataTable().draw();
-        //                         Swal.fire('Terhapus!', response.message, 'success');
-        //                     }
-        //                 },
-        //                 error: function(xhr) {
-        //                     Swal.fire('Error!', xhr.responseJSON.message, 'error');
-        //                 }
-        //             });
-        //         }
-        //     });
-        // }
     </script>
-@endpush
-{{-- @extends('layouts.app')
-@section('title', 'Brands')
-
-@section('main')
-
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Daftar Kategori</h5>
-                    <a href="{{ route('Categories.create') }}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-plus me-2"></i>Tambah Kategori
-                    </a>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table id="categories-table" class="table table-striped table-hover" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th width="5%">No</th>
-                                    <th>Kode</th>
-                                    <th>Nama Kategori</th>
-                                    <th>Parent</th>
-                                    <th>Jumlah Sub</th>
-                                    <th width="15%">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-</div>
-@endsection
-
-@push('scripts')
-<script>
-$(document).ready(function() {
-    const table = $('#categories-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("categories.categories") }}',
-            data: function(d) {
-                d.category_name = $('#search-category').val();
-            }
-        },
-        columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'category_code', name: 'category_code' },
-            { 
-                data: 'full_category_name', 
-                name: 'category_name',
-                render: function(data, type, row) {
-                    return `<strong>${row.category_name}</strong>${row.parent_id ? ` <small class="text-muted">(${row.full_category_name})</small>` : ''}`;
-                }
-            },
-            { 
-                data: 'parent_name', 
-                name: 'parent_name',
-                defaultContent: '-'
-            },
-            { 
-                data: 'children_count', 
-                name: 'children_count',
-                className: 'text-center'
-            },
-            { 
-                data: 'action', 
-                name: 'action', 
-                orderable: false, 
-                searchable: false,
-                className: 'text-center'
-            }
-        ],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-        }
-    });
-
-    // Search functionality
-    $('#search-category').keyup(function() {
-        table.draw();
-    });
-});
-
-// Delete confirmation
-function deleteCategory(url) {
-    Swal.fire({
-        title: 'Hapus Kategori?',
-        text: "Anda tidak akan dapat mengembalikan ini!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, Hapus!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: url,
-                type: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $('#categories-table').DataTable().draw();
-                        Swal.fire('Terhapus!', response.message, 'success');
-                    }
-                },
-                error: function(xhr) {
-                    Swal.fire('Error!', xhr.responseJSON.message, 'error');
-                }
-            });
-        }
-    });
-}
-</script>
-@endpush
-
-@push('styles')
-<style>
-    #categories-table_filter {
-        display: none;
-    }
-</style>
 @endpush --}}

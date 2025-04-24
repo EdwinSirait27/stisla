@@ -29,19 +29,23 @@ class Categories extends Model
         'category_code',
         'category_name',
     ];
-    /**
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
+    }
+/**
+ * Relasi ke child categories
+ */
+public function children(): HasMany
+{
+    return $this->hasMany(Categories::class, 'parent_id');
+}
+/**
      * Relasi ke parent category
      */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Categories::class, 'parent_id');
-    }
-    /**
-     * Relasi ke child categories
-     */
-    public function children(): HasMany
-    {
-        return $this->hasMany(Categories::class, 'parent_id');
     }
 
     /**
@@ -53,5 +57,19 @@ class Categories extends Model
             ? "{$this->parent->category_name} > {$this->category_name}"
             : $this->category_name;
     }
+
+
+    public function getAllChildrenIds()
+{
+    $ids = collect();
+
+    foreach ($this->children as $child) {
+        $ids->push($child->id);
+        $ids = $ids->merge($child->getAllChildrenIds()); // rekursif
+    }
+
+    return $ids;
+}
+
 }
 
