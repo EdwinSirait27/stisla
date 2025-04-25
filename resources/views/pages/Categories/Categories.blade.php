@@ -157,6 +157,11 @@
                 font-size: 0.8rem;
             }
         }
+    .highlight {
+        background-color: #a2f5a2; /* Warna hijau muda */
+        padding: 0.1em 0.2em;
+        border-radius: 3px;
+    }
     </style>
 @endpush
 @section('main')
@@ -247,8 +252,71 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js"></script>
     <script>
-        $(document).ready(function() {
+//         $(document).ready(function() {
+//     var table = $('#categories-table').DataTable({
+//         processing: true,
+//         serverSide: true,
+//         ajax: {
+//             url: '{{ route("categories.categories") }}',
+//             data: function(d) {
+//                 d.category_name = $('#category_name_filter').val();
+//             }
+//         },
+//         responsive: true,
+//                 lengthMenu: [
+//                     [10, 25, 50, 100, -1],
+//                     [10, 25, 50, 100, "All"]
+//                 ],
+//                 pageLength: 10,
+//                 language: {
+//                     lengthMenu: "Show _MENU_ entries",
+//                     search: "_INPUT_",
+//                     searchPlaceholder: "Search...",
+//                     paginate: {
+//                         first: "First",
+//                         last: "Last",
+//                         next: "Next",
+//                         previous: "Previous"
+//                     },
+//                     info: "Showing _START_ to _END_ of _TOTAL_ entries",
+//                     infoEmpty: "Showing 0 to 0 of 0 entries",
+//                     infoFiltered: "(filtered from _MAX_ total entries)"
+//                 },
+//         columns: [
+//             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+//             { data: 'level_1_code', name: 'level_1_code',className: 'text-center' },
+//             { data: 'level_1_name', name: 'level_1_name',className: 'text-center' },
+//             { data: 'level_2_code', name: 'level_2_code',className: 'text-center' },
+//             { data: 'level_2_name', name: 'level_2_name',className: 'text-center' },
+//             { data: 'level_3_code', name: 'level_3_code',className: 'text-center' },
+//             { data: 'level_3_name', name: 'level_3_name',className: 'text-center' },
+//             { data: 'level_4_code', name: 'level_4_code',className: 'text-center' },
+//             { data: 'level_4_name', name: 'level_4_name',className: 'text-center' },
+//             { data: 'level_5_code', name: 'level_5_code',className: 'text-center' },
+//             { data: 'level_5_name', name: 'level_5_name',className: 'text-center' },
+//             { data: 'action', name: 'action', orderable: false, searchable: false ,className: 'text-center' }
+//         ],
+//         order: [[1, 'asc'], [3, 'asc'], [5, 'asc'], [7, 'asc'], [9, 'asc']]
+//     });
+
+//     $('#filter-btn').click(function() {
+//         table.ajax.reload();
+//     });
+
+//     $('#reset-filter-btn').click(function() {
+//         $('#category_name_filter').val('');
+//         table.ajax.reload();
+//     });
+
+//     $('#category_name_filter').keypress(function(e) {
+//         if (e.which == 13) {
+//             table.ajax.reload();
+//         }
+//     });
+// });
+$(document).ready(function() {
     var table = $('#categories-table').DataTable({
         processing: true,
         serverSide: true,
@@ -258,38 +326,119 @@
                 d.category_name = $('#category_name_filter').val();
             }
         },
+        responsive: true,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "All"]
+        ],
+        pageLength: 10,
+        language: {
+            lengthMenu: "Show _MENU_ entries",
+            search: "_INPUT_",
+            searchPlaceholder: "Search...",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            },
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)"
+        },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'level_1_code', name: 'level_1_code' },
-            { data: 'level_1_name', name: 'level_1_name' },
-            { data: 'level_2_code', name: 'level_2_code' },
-            { data: 'level_2_name', name: 'level_2_name' },
-            { data: 'level_3_code', name: 'level_3_code' },
-            { data: 'level_3_name', name: 'level_3_name' },
-            { data: 'level_4_code', name: 'level_4_code' },
-            { data: 'level_4_name', name: 'level_4_name' },
-            { data: 'level_5_code', name: 'level_5_code' },
-            { data: 'level_5_name', name: 'level_5_name' },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'level_1_code', name: 'level_1_code',className: 'text-center' },
+            { data: 'level_1_name', name: 'level_1_name',className: 'text-center' },
+            { data: 'level_2_code', name: 'level_2_code',className: 'text-center' },
+            { data: 'level_2_name', name: 'level_2_name',className: 'text-center' },
+            { data: 'level_3_code', name: 'level_3_code',className: 'text-center' },
+            { data: 'level_3_name', name: 'level_3_name',className: 'text-center' },
+            { data: 'level_4_code', name: 'level_4_code',className: 'text-center' },
+            { data: 'level_4_name', name: 'level_4_name',className: 'text-center' },
+            { data: 'level_5_code', name: 'level_5_code',className: 'text-center' },
+            { data: 'level_5_name', name: 'level_5_name',className: 'text-center' },
+            { data: 'action', name: 'action', orderable: false, searchable: false ,className: 'text-center' }
         ],
-        order: [[1, 'asc'], [3, 'asc'], [5, 'asc'], [7, 'asc'], [9, 'asc']]
+        order: [[1, 'asc'], [3, 'asc'], [5, 'asc'], [7, 'asc'], [9, 'asc']],
+        initComplete: function() {
+            // Inisialisasi mark.js setelah tabel selesai dimuat
+            this.api().on('draw', function() {
+                highlightSearchResults();
+            });
+        }
     });
 
+    function highlightSearchResults() {
+        var searchTerm = table.search();
+        if (searchTerm) {
+            // Hapus highlight sebelumnya
+            $('#categories-table').unmark();
+            
+            // Highlight teks yang sesuai dengan warna hijau
+            $('#categories-table').mark(searchTerm, {
+                className: 'highlight',
+                separateWordSearch: false,
+                done: function() {
+                    console.log('Highlighting completed');
+                }
+            });
+        } else {
+            $('#categories-table').unmark();
+        }
+    }
+
     $('#filter-btn').click(function() {
-        table.ajax.reload();
+        table.ajax.reload(null, false, function() {
+            highlightSearchResults();
+        });
     });
 
     $('#reset-filter-btn').click(function() {
         $('#category_name_filter').val('');
-        table.ajax.reload();
+        table.search('').draw();
+        $('#categories-table').unmark();
     });
 
     $('#category_name_filter').keypress(function(e) {
         if (e.which == 13) {
-            table.ajax.reload();
+            table.ajax.reload(null, false, function() {
+                highlightSearchResults();
+            });
         }
     });
+
+    // Tambahkan event listener untuk pencarian global
+    $('.dataTables_filter input').on('keyup', function() {
+        setTimeout(function() {
+            highlightSearchResults();
+        }, 500);
+    });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //         $(document).ready(function() {
 //             // Initialize Select2
 //             $('#parent-filter').select2({
