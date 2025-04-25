@@ -176,6 +176,7 @@ Route::post('/Categories', [CategoriesController::class, 'store'])->name('Catego
 Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
 Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
 Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
+Route::get('categories/tree', [CategoriesController::class, 'getCategoryTree'])->name('categories.tree');
 // Tax status
 Route::get('/Taxstatus', [TaxstatusController::class, 'index'])
 ->name('pages.Taxstatus');

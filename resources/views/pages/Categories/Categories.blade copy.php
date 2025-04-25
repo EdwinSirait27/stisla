@@ -176,7 +176,7 @@
                                 <div class="row mb-3">
                                     <div class="col-md-3">
 
-                                        {{-- <select name="parent_id" id="parent-filter" class="form-control select2">
+                                        <select name="parent_id" id="parent-filter" class="form-control select2">
                                             <option value="">-- All Categories --</option>
                                             @php
                                                 $renderOptions = function ($categories, $prefix = '') use (
@@ -201,13 +201,11 @@
                                                 };
                                                 $renderOptions($categories);
                                             @endphp
-                                        </select> --}}
-                                        <input type="text" id="category_name_filter" class="form-control" placeholder="Filter by name...">
+                                        </select>
                                     </div>
-                                   
-                                    <div class="col-md-2">
-                                        <button id="filter-btn" class="btn btn-primary">Filter</button>
-                                        <button id="reset-filter-btn" class="btn btn-secondary">Reset</button>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="search-category"
+                                            placeholder="Search category...">
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -215,17 +213,10 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-            <th class="text-center">Department Code</th>
-            <th class="text-center">Department Name</th>
-            <th class="text-center">Categories Code</th>
-            <th class="text-center">Categories Name</th>
-            <th class="text-center">Sub Categories Code</th>
-            <th class="text-center">Sub Categories Name</th>
-            <th class="text-center">Family Code</th>
-            <th class="text-center">Family Name</th>
-            <th class="text-center">Sub Family Code</th>
-            <th class="text-center">Sub Family Name</th>
-            <th class="text-center">Action</th>
+                                                <th class="text-center">Code</th>
+                                                <th class="text-center">Parent</th>
+                                                <th class="text-center">Category Name</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
@@ -249,96 +240,74 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
-    var table = $('#categories-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("categories.categories") }}',
-            data: function(d) {
-                d.category_name = $('#category_name_filter').val();
-            }
-        },
-        columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'level_1_code', name: 'level_1_code' },
-            { data: 'level_1_name', name: 'level_1_name' },
-            { data: 'level_2_code', name: 'level_2_code' },
-            { data: 'level_2_name', name: 'level_2_name' },
-            { data: 'level_3_code', name: 'level_3_code' },
-            { data: 'level_3_name', name: 'level_3_name' },
-            { data: 'level_4_code', name: 'level_4_code' },
-            { data: 'level_4_name', name: 'level_4_name' },
-            { data: 'level_5_code', name: 'level_5_code' },
-            { data: 'level_5_name', name: 'level_5_name' },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
-        ],
-        order: [[1, 'asc'], [3, 'asc'], [5, 'asc'], [7, 'asc'], [9, 'asc']]
-    });
+            // Initialize Select2
+            $('#parent-filter').select2({
+                placeholder: "Select parent category",
+                allowClear: true
+            });
 
-    $('#filter-btn').click(function() {
-        table.ajax.reload();
-    });
+            const table = $('#categories-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('categories.categories') }}',
+                    data: function(d) {
+                        d.parent_id = $('#parent-filter').val();
+                        d.category_name = $('#search-category').val();
+                    }
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'category_code',
+                        name: 'category_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'parent_name',
+                        name: 'parent.name',
+                        defaultContent: '-',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'category_name',
+                        name: 'category_name',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return row.full_category_name || data;
+                        }
+                    },
 
-    $('#reset-filter-btn').click(function() {
-        $('#category_name_filter').val('');
-        table.ajax.reload();
-    });
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
+                },
+                dom: '<"top"lf>rt<"bottom"ip>',
+                initComplete: function() {
+                    $('.dataTables_filter').hide();
+                }
+            });
 
-    $('#category_name_filter').keypress(function(e) {
-        if (e.which == 13) {
-            table.ajax.reload();
-        }
-    });
-});
-//         $(document).ready(function() {
-//             // Initialize Select2
-//             $('#parent-filter').select2({
-//                 placeholder: "Select parent category",
-//                 allowClear: true
-//             });
+            $('#search-category').on('keyup', function() {
+                table.draw();
+            });
 
-//             const table = $('#categories-table').DataTable({
-//                 processing: true,
-//                 serverSide: true,
-//                 ajax: {
-//                     url: '{{ route('categories.categories') }}',
-//                     data: function(d) {
-//                         d.parent_id = $('#parent-filter').val();
-//                         d.category_name = $('#search-category').val();
-//                     }
-//                 },
-//                 columns: [  
-// { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-//             { data: 'level_1_code', name: 'level_1_code' },
-//             { data: 'level_1_name', name: 'level_1_name' },
-//             { data: 'level_2_code', name: 'level_2_code' },
-//             { data: 'level_2_name', name: 'level_2_name' },
-//             { data: 'level_3_code', name: 'level_3_code' },
-//             { data: 'level_3_name', name: 'level_3_name' },
-//             { data: 'level_4_code', name: 'level_4_code' },
-//             { data: 'level_4_name', name: 'level_4_name' },
-//             { data: 'level_5_code', name: 'level_5_code' },
-//             { data: 'level_5_name', name: 'level_5_name' },
-//             { data: 'action', name: 'action', orderable: false, searchable: false }
-        
-//                 ],
-//                 language: {
-//                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-//                 },
-//                 dom: '<"top"lf>rt<"bottom"ip>',
-//                 initComplete: function() {
-//                     $('.dataTables_filter').hide();
-//                 }
-//             });
-
-//             $('#search-category').on('keyup', function() {
-//                 table.draw();
-//             });
-
-//             $('#parent-filter').on('change', function() {
-//                 table.draw();
-//             });
-//         });
+            $('#parent-filter').on('change', function() {
+                table.draw();
+            });
+        });
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
@@ -349,63 +318,6 @@
         @endif
     </script>
 @endpush
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{{-- //                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-//             { data: 'parent_code', name: 'parent_code',
-//             className: 'text-center'
-
-//              },
-//             {
-//     data: 'parent_name',
-//     name: 'parent_name',
-//     className: 'text-center',
-//     render: function(data, type, row) {
-//         return data ? data : 'Parent';
-//     }
-// },
-//             { data: 'child_code', name: 'child_code',
-//             className: 'text-center'
-
-//              },
-//             { data: 'child_name', name: 'child_name',
-//             className: 'text-center'
-
-
-//              },
-//             { data: 'action', name: 'action', orderable: false, searchable: false } --}}
 {{-- @push('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <style>
