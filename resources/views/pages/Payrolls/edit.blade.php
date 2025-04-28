@@ -375,17 +375,17 @@
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="deductions" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Deductions') }}
+                                                    <label for="mesh" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Mesh') }}
                                                     </label>
                                                     <div>
 
-                                                        <input type="number" class="form-control" id="deductions"
-                                                            name="deductions"
-                                                            value="{{ old('deductions', $payroll->deductions) }}"
-                                                            placeholder="input 0 if the employee dont have deductions"
+                                                        <input type="number" class="form-control" id="mesh"
+                                                            name="mesh"
+                                                            value="{{ old('mesh', $payroll->mesh) }}"
+                                                            placeholder="input 0 if the employee dont have mesh"
                                                             required>
-                                                        @error('deductions')
+                                                        @error('mesh')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -396,19 +396,18 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
+                                        
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="information" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Information') }}
+                                                    <label for="punishment" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Punishment') }}
                                                     </label>
                                                     <div>
-
-                                                        <input type="text" class="form-control" id="information"
-                                                            name="information"
-                                                            value="{{ old('information', $payroll->information) }}"
-                                                            placeholder="information payroll">
-                                                        @error('information')
+                                                        <input type="number" class="form-control" id="punishment"
+                                                            name="punishment"
+                                                            value="{{ old('punishment', $payroll->punishment) }}"
+                                                            placeholder="input 0 if the employee doesn't have punishment">
+                                                        @error('punishment')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -417,8 +416,112 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="bpjs_ket" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('BPJS Ketenagakerjaan') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="number" class="form-control" id="bpjs_ket"
+                                                            name="bpjs_ket"
+                                                            value="{{ old('bpjs_ket', $payroll->bpjs_ket) }}"
+                                                            placeholder="input 0 if the employee doesn't have BPJS Ketenagakerjaan">
+                                                        @error('bpjs_ket')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
 
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                        
+                                            <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="bpjs_kes" class="form-control-label">
+                                                            <i class="fas fa-user"></i> {{ __('BPJS Kesehatan') }}
+                                                        </label>
+                                                        <div>
+                                                            <input type="number" class="form-control" id="bpjs_kes"
+                                                                name="bpjs_kes"
+                                                                value="{{ old('bpjs_kes', $payroll->bpjs_kes) }}"
+                                                                placeholder="input 0 if the employee doesn't have bpjs kesehatan">
+                                                            @error('bpjs_kes')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+    
+                                                    </div>
+                                                    </div>
+                                                </div>
+                                            
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="bpjs_ket" class="form-control-label">
+                                                            <i class="fas fa-user"></i> {{ __('BPJS Ketenagakerjaan') }}
+                                                        </label>
+                                                        <div>
+                                                            <input type="number" class="form-control" id="bpjs_ket"
+                                                                name="bpjs_ket"
+                                                                value="{{ old('bpjs_ket', $payroll->bpjs_ket) }}"
+                                                                placeholder="input 0 if the employee doesn't have bpjs ketenagakerjaan">
+                                                            @error('bpjs_ket')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+    
+                                                        </div>
+                                                        </div>
+                                                </div>
+                                                </div>
+                                                <div class="row mt-3">
+                                        
+                                                <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="late_fine" class="form-control-label">
+                                                                <i class="fas fa-user"></i> {{ __('Late Fine') }}
+                                                            </label>
+                                                            <div>
+                                                                <input type="number" class="form-control" id="late_fine"
+                                                                    name="late_fine"
+                                                                    value="{{ old('late_fine', $payroll->late_fine) }}"
+                                                                    placeholder="input 0 if the employee doesn't have late fine">
+                                                                @error('late_fine')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+        
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="information" class="form-control-label">
+                                                                <i class="fas fa-user"></i> {{ __('Information') }}
+                                                            </label>
+                                                            <div>
+                                                                <input type="text" class="form-control" id="information"
+                                                                    name="information"
+                                                                    value="{{ old('information', $payroll->information) }}"
+                                                                    placeholder="penjelasan salary">
+                                                                @error('information')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+        
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    </div>
+                                        
 
 
 
@@ -426,8 +529,7 @@
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - if there is no bonus, you can just input 0, it applies to all forms.<br>
-                                                - please calculate it yourself using a calculator to get the total salary
-                                                value :)<br>
+                                               
 
                                             </span>
                                         </div>

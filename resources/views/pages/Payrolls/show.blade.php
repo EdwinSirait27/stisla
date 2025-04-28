@@ -211,43 +211,51 @@
             </div>
             <div class="total">
                 <span>Total Income:</span>
-                <span>IDR {{ number_format($salaryAfterDeduction, 2, '.', ',') }}
+                <span>IDR {{ number_format($salaryincome, 2, '.', ',') }}
                 </span>
             </div>
         </div>
         
         <div class="section">
             <div class="section-title">DEDUCTIONS</div>
-            <div class="item">
-                <span>Deduction:</span>
-                <span>IDR 0</span>
-            </div>
+           
             <div class="item">
                 <span>Late Fine:</span>
-                <span>IDR 0</span>
+                <span>IDR {{ number_format($payroll->late_fine, 2, '.', ',') }}
+
             </div>
             <div class="item">
                 <span>Punishment:</span>
-                <span>IDR 0</span>
+                <span>IDR {{ number_format($payroll->punishment, 2, '.', ',') }}
+
             </div>
             <div class="item">
                 <span>Mesh:</span>
-                <span>IDR 0</span>
+                <span>IDR {{ number_format($payroll->mesh, 2, '.', ',') }}
+
             </div>
             <div class="item">
-                <span>BPJS:</span>
-                <span>IDR 0</span>
+                <span>BPJS Ketenagakerjaan:</span>
+                <span>IDR {{ number_format($payroll->bpjs_ket, 2, '.', ',') }}
+
+            </div>
+            <div class="item">
+                <span>BPJS Kesehatan:</span>
+                <span>IDR {{ number_format($payroll->bpjs_kes, 2, '.', ',') }}
+
             </div>
             <div class="total">
                 <span>Total Deductions:</span>
-                <span>IDR 0</span>
+                <span>IDR {{ number_format($salaryoutcome, 2, '.', ',') }}
+
             </div>
         </div>
         
         <div class="grand-total">
             <div class="total">
                 <span>GRAND TOTAL SALARY:</span>
-                <span>IDR 553,848</span>
+                <span>IDR {{ number_format($payroll->salary, 2, '.', ',') }}
+
             </div>
         </div>
         

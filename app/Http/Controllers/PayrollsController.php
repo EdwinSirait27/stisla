@@ -41,7 +41,7 @@ class PayrollsController extends Controller
     public function getPayrolls(Request $request)
 {
     $payrollsQuery = Payrolls::with('Employee')
-        ->select(['id', 'employee_id', 'bonus', 'house_allowance', 'meal_allowance', 'transport_allowance', 'deductions', 'salary', 'month_year','overtime','daily_allowance','attendance']);
+        ->select(['id', 'employee_id', 'bonus', 'house_allowance', 'meal_allowance', 'transport_allowance', 'deductions', 'salary', 'month_year','overtime','daily_allowance','attendance','late_fine','bpjs_ket','bpjs_kes','mesh','punishment']);
 
     // Filter berdasarkan month_year (Hanya Y-m, bukan Y-m-d)
     if ($request->has('month_year') && $request->month_year != '') {
@@ -94,11 +94,13 @@ public function show($hashedId)
     if (!$payroll) {
         abort(404, 'payroll not found.');
     }
-    $salaryAfterDeduction = ($payroll->attendance ?? 0) * ($payroll->daily_allowance ?? 0) + ($payroll->overtime ?? 0) + ($payroll->bonus ?? 0) + ($payroll->house_allowance ?? 0) + ($payroll->meal_allowance ?? 0) + ($payroll->transport_allowance ?? 0);
-
+    $salaryincome = ($payroll->attendance ?? 0) * ($payroll->daily_allowance ?? 0) + ($payroll->overtime ?? 0) + ($payroll->bonus ?? 0) + ($payroll->house_allowance ?? 0) + ($payroll->meal_allowance ?? 0) + ($payroll->transport_allowance ?? 0);
+    $salaryoutcome = ($payroll->mesh ?? 0) + ($payroll->punishment ?? 0) + ($payroll->late_fine ?? 0) + ($payroll->bpjs_ket ?? 0) + ($payroll->bpjs_kes ?? 0);
+// disini belum
     return view('pages.Payrolls.show', [
         'payroll' => $payroll,
-        'salaryAfterDeduction' => $salaryAfterDeduction,
+        'salaryincome' => $salaryincome,
+        'salaryoutcome' => $salaryoutcome,
         'hashedId' => $hashedId,
     ]);
 }
@@ -246,10 +248,16 @@ public function show($hashedId)
                 new NoXSSInput()],
             
             'overtime' => ['nullable','numeric',
+                new NoXSSInput()],   
+            'bpjs_ket' => ['nullable','numeric',
                 new NoXSSInput()],
-            
-            
-            'deductions' => ['nullable','numeric',
+            'bpjs_kes' => ['nullable','numeric',
+                new NoXSSInput()],
+            'mesh' => ['nullable','numeric',
+                new NoXSSInput()],
+            'punishment' => ['nullable','numeric',
+                new NoXSSInput()],
+            'late_fine' => ['nullable','numeric',
                 new NoXSSInput()],
             'salary' => ['nullable','numeric',
                 new NoXSSInput()],
@@ -263,9 +271,20 @@ public function show($hashedId)
             'overtime.numeric' => 'Net salary must be a number.',
             'daily_allowance.numeric' => 'Net salary must be a number.',
             'attendance.numeric' => 'Net salary must be a number.',
-            'atte.numeric' => 'Net salary must be a number.',
+            'bpjs_kes.numeric' => 'bpjs kesehatan must be a number.',
+            'bpjs_ket.numeric' => 'bpjs ketenagakerjaan must be a number.',
+            'mesh.numeric' => 'mesh salary must be a number.',
+            'punishment.numeric' => 'punishment salary must be a number.',
+            'late_fine.numeric' => 'late fine salary must be a number.',
             'deductions.numeric' => 'Deductions must be a number.',
           ]);
+          $calculatedDeduction = 
+          ($validatedData['mesh'] ?? 0) +
+          ($validatedData['punishment'] ?? 0) +
+          ($validatedData['bpjs_ket'] ?? 0) +
+          ($validatedData['bpjs_kes'] ?? 0) +
+          ($validatedData['late_fine'] ?? 0);
+          
           $calculatedSalary = 
           ($validatedData['attendance'] ?? 0) *
           ($validatedData['daily_allowance'] ?? 0) +
@@ -274,7 +293,7 @@ public function show($hashedId)
           ($validatedData['house_allowance'] ?? 0) +
           ($validatedData['meal_allowance'] ?? 0) +
           ($validatedData['transport_allowance'] ?? 0) -
-          ($validatedData['deductions'] ?? 0);
+          ($calculatedDeduction ?? 0);
   
         $payrollData = [
             'bonus' => $validatedData['bonus'],
@@ -284,7 +303,12 @@ public function show($hashedId)
             'attendance' => $validatedData['attendance'],
             'daily_allowance' => $validatedData['daily_allowance'],
             'overtime' => $validatedData['overtime'],
-            'deductions' => $validatedData['deductions'],
+            'mesh' => $validatedData['mesh'],
+            'punishment' => $validatedData['punishment'],
+            'late_fine' => $validatedData['late_fine'],
+            'bpjs_ket' => $validatedData['bpjs_ket'],
+            'bpjs_kes' => $validatedData['bpjs_kes'],
+            'deductions' => $calculatedDeduction,
             'salary' => $calculatedSalary, // Gunakan nilai yang dihitung
             'information' => $validatedData['information'] ?? null,
         ];

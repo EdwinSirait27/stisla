@@ -214,7 +214,12 @@
                                             <th class="text-center">House Allowance</th>
                                             <th class="text-center">Meal Allowance</th>
                                             <th class="text-center">Transport Allowance</th>
-                                            <th class="text-center">Deduction</th>
+                                            <th class="text-center">BPJS Ketenagakerjaan</th>
+                                            <th class="text-center">BPJS Kesehatan</th>
+                                            <th class="text-center">Mesh</th>
+                                            <th class="text-center">Punishment</th>
+                                            <th class="text-center">Late Fine</th>
+                                            <th class="text-center">Total Deduction</th>
                                             <th class="text-center">Total Salary</th>
                                             <th class="text-center">Month</th>
                                             <th class="text-center">Action</th>
@@ -417,6 +422,46 @@ $(document).ready(function() {
 { 
     data: 'transport_allowance', 
     name: 'transport_allowance', 
+    className: 'text-center',
+    render: function(data) {
+        return data ? data : '-';
+    }
+},
+{ 
+    data: 'bpjs_ket', 
+    name: 'bpjs_ket', 
+    className: 'text-center',
+    render: function(data) {
+        return data ? data : '-';
+    }
+},
+{ 
+    data: 'bpjs_kes', 
+    name: 'bpjs_kes', 
+    className: 'text-center',
+    render: function(data) {
+        return data ? data : '-';
+    }
+},
+{ 
+    data: 'mesh', 
+    name: 'mesh', 
+    className: 'text-center',
+    render: function(data) {
+        return data ? data : '-';
+    }
+},
+{ 
+    data: 'punishment', 
+    name: 'punishment', 
+    className: 'text-center',
+    render: function(data) {
+        return data ? data : '-';
+    }
+},
+{ 
+    data: 'late_fine', 
+    name: 'late_fine', 
     className: 'text-center',
     render: function(data) {
         return data ? data : '-';
