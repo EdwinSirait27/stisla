@@ -14,6 +14,7 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\BrandsController;
+use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\taxstatusController;
 use App\Http\Controllers\StatusproductController;
 use App\Http\Controllers\StoreController;
@@ -122,7 +123,7 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
     Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
     Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
-    
+    Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
 // employeeall
     Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
     ->name('pages.Employeeall');
@@ -195,7 +196,13 @@ Route::post('/Statusproduct', [StatusproductController::class, 'store'])->name('
 Route::get('/Statusproduct/edit/{hashedId}', [StatusproductController::class, 'edit'])->name('Statusproduct.edit');
 Route::put('/Statusproduct/{hashedId}', [StatusproductController::class, 'update'])->name('Statusproduct.update');
 Route::get('/statusproduct/statusproduct', [StatusproductController::class, 'getStatusproducts'])->name('statusproduct.statusproduct');
-
+//payrolls
+Route::get('/Payrolls', [PayrollsController::class, 'index'])
+->name('pages.Payrolls');
+Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->name('Payrolls.edit');
+Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
+Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
+Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
 
 
    

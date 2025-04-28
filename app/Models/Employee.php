@@ -22,6 +22,7 @@ class Employee extends Model
             }
         });
     }
+    
     protected $casts = [
         'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
         'salary' => 'decimal:2',

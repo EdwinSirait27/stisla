@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Departments;
 use App\Models\Employee;
 use App\Models\Position;
+use App\Models\Payrolls;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Yajra\DataTables\DataTables;
@@ -17,13 +18,13 @@ use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
 {
-    public function index()
-    {
-        return view('pages.Employee.Employee');
-    }
     public function indexall()
     {
         return view('pages.Employeeall.Employeeall');
+    }
+    public function index()
+    {
+        return view('pages.Employee.Employee');
     }
     public function getEmployees()
     {
@@ -640,4 +641,151 @@ class EmployeeController extends Controller
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');
     }
+//     public function transferAllToPayroll(Request $request)
+// {
+//     try {
+//         // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
+//         $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
+        
+//         // Ambil semua employee_id dari model User
+//         $employeeIds = User::whereNotNull('employee_id')
+//             ->pluck('employee_id')
+//             ->toArray();
+        
+//         $transferred = 0;
+//         $skipped = 0;
+        
+//         foreach ($employeeIds as $employeeId) {
+//             // Check jika employee_id sudah ada di Payrolls untuk bulan yang sama
+//             $exists = Payrolls::where('employee_id', $employeeId)
+//                      ->whereDate('month_year', $month_year)
+//                      ->exists();
+            
+//             if (!$exists) {
+//                 // Buat record baru di Payrolls dengan format tanggal yang benar
+//                 Payrolls::create([
+//                     'employee_id' => $employeeId,
+//                     'month_year' => $month_year, // Format Y-m-d
+//                     'created_at' => now(),
+//                     'updated_at' => now(),
+//                 ]);
+//                 $transferred++;
+//             } else {
+//                 $skipped++;
+//             }
+//         }
+        
+//         // Format tampilan bulan tahun yang benar untuk pesan
+//         $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) . 
+//                    ", $skipped employee(s) skipped (already exist for this month)";
+        
+//         return response()->json(['success' => true, 'message' => $message]);
+//     } catch (\Exception $e) {
+//         return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
+//     }
+// }
+// public function transferAllToPayroll(Request $request)
+// {
+//     try {
+//         // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
+//         $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
+        
+//         // Ambil semua employee_id dari model User
+//         $employeeIds = User::whereNotNull('employee_id')
+//             ->pluck('employee_id')
+//             ->toArray();
+        
+//         $transferred = 0;
+//         $skipped = 0;
+        
+//         foreach ($employeeIds as $employeeId) {
+//             // Check jika employee_id sudah ada di Payrolls untuk bulan yang sama
+//             $exists = Payrolls::where('employee_id', $employeeId)
+//                      ->whereDate('month_year', $month_year)
+//                      ->exists();
+            
+//             if (!$exists) {
+//                 // Buat record baru di Payrolls dengan format tanggal yang benar
+//                 Payrolls::create([
+//                     'employee_id' => $employeeId,
+//                     'month_year' => $month_year, // Format Y-m-d
+//                     'created_at' => now(),
+//                     'updated_at' => now(),
+//                 ]);
+//                 $transferred++;
+//             } else {
+//                 $skipped++;
+//             }
+//         }
+        
+//         // Format tampilan bulan tahun yang benar untuk pesan
+//         $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) . 
+//                    ", $skipped employee(s) skipped (already exist for this month)";
+        
+//         return response()->json([
+//             'success' => true, 
+//             'message' => $message,
+//             'transferred' => $transferred,
+//             'skipped' => $skipped,
+//             'period' => date('F Y', strtotime($month_year))
+//         ]);
+//     } catch (\Exception $e) {
+//         return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
+//     }
+// }
+public function transferAllToPayroll(Request $request)
+{
+    try {
+        // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
+        $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
+        
+        // Ekstrak bulan dan tahun dari tanggal yang dipilih
+        $month = date('m', strtotime($month_year));
+        $year = date('Y', strtotime($month_year));
+        
+        // Ambil semua employee_id dari model User
+        $employeeIds = User::whereNotNull('employee_id')
+            ->pluck('employee_id')
+            ->toArray();
+        
+        $transferred = 0;
+        $skipped = 0;
+        
+        foreach ($employeeIds as $employeeId) {
+            // Check jika employee_id sudah ada di Payrolls untuk bulan dan tahun yang sama
+            // menggunakan whereMonth dan whereYear untuk membandingkan HANYA bulan dan tahun
+            $exists = Payrolls::where('employee_id', $employeeId)
+                     ->whereMonth('month_year', $month)
+                     ->whereYear('month_year', $year)
+                     ->exists();
+            
+            if (!$exists) {
+                // Buat record baru di Payrolls hanya jika employee_id belum ada untuk bulan dan tahun ini
+                Payrolls::create([
+                    'employee_id' => $employeeId,
+                    'month_year' => $month_year, // Format Y-m-d
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $transferred++;
+            } else {
+                $skipped++;
+            }
+        }
+        
+        // Format tampilan bulan tahun yang benar untuk pesan
+        $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) . 
+                   ", $skipped employee(s) skipped (already exist for this month)";
+        
+        return response()->json([
+            'success' => true, 
+            'message' => $message,
+            'transferred' => $transferred,
+            'skipped' => $skipped,
+            'period' => date('F Y', strtotime($month_year))
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
+    }
+}
 }

@@ -44,6 +44,9 @@
                         <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Shifts</a>
                         </li>
+                        <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown ">
@@ -86,6 +89,10 @@
                         <a class="nav-link" href="{{ url('Statusproduct') }}">Status Product</a>
                     </li>
                 </ul>
+            </li>
+            <li class="{{ Request::is('Masterproducts') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ url('Masterproducts') }}"><i class="fas fa-house"></i>
+                    <span>Master Products</span></a>
             </li>
             <li class="{{ Request::is('blank-page') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ url('blank-page') }}"><i class="far fa-square"></i> <span>Blank

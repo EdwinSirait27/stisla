@@ -69,13 +69,18 @@ class DepartmentController extends Controller
         $validatedData = $request->validate([
             'department_name' => ['required', 'string','max:255', 'unique:departments_tables,department_name',
                 new NoXSSInput()],
-            'manager_id' => ['nullable','max:255', 'unique:departments_tables,manager_id',
+            'manager_id' => ['required','max:255', 'unique:departments_tables,manager_id',
                 new NoXSSInput()],
             
         ], [
-            'department_name.required' => 'name wajib diisi.',
-            'department_name.string' => 'name hanya boleh berupa teks.',
-            'department_name.max' => 'Username maksimal terdiri dari 255 karakter.',
+           'department_name.required' => 'Department name is required.',
+'department_name.string' => 'Department name must be a string.',
+'department_name.max' => 'Department name may not be greater than 255 characters.',
+'department_name.unique' => 'Department name must be unique or already exists.',
+'manager_id.required' => 'Manager is required.',
+'manager_id.max' => 'Manager may not be greater than 255 characters.',
+'manager_id.string' => 'Manager must be a string.',
+'manager_id.unique' => 'Manager must be unique.',
         ]);
         try {
             DB::beginTransaction();

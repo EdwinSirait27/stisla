@@ -197,16 +197,33 @@
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Employee.create') }}'" 
-                                            class="btn btn-primary btn-sm">
+                                    <button type="button" onclick="window.location='{{ route('Employee.create') }}'"
+                                        class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Create Employee
                                     </button>
-                                    
+
                                     <!-- New button added here -->
-                                    <button type="button" onclick="window.location='{{ route('pages.Employeeall') }}'" 
-                                    class="btn btn-success btn-sm ml-2">
-                                <i class="fas fa-users"></i> All Employees
-                            </button>
+                                    <button type="button" onclick="window.location='{{ route('pages.Employeeall') }}'"
+                                        class="btn btn-success btn-sm ml-2">
+                                        <i class="fas fa-users"></i> All Employees
+                                    </button>
+                                </div>
+                                <div class="d-flex justify-content-end mb-3">
+                                    <div class="input-group me-2" style="max-width: 200px;">
+                                        <span class="input-group-text">Date</span>
+                                        <input type="date" id="payrollDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                                    </div>
+                                    <button id="transferAllBtn" class="btn btn-primary">
+                                        <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
+                                    </button>
+                                </div>
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br>
+                                        <br>
+
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -273,32 +290,32 @@
                         className: 'text-center'
                     },
                     {
-    data: 'status',
-    name: 'status',
-    className: 'text-center',
-    render: function (data, type, row) {
-        if (data === 'Active') {
-            return '<span class="badge bg-success">Active</span>';
-        } else if (data === 'Inactive') {
-            return '<span class="badge bg-danger">Inactive</span>';
-        } else if (data === 'On leave') {
-            return '<span class="badge bg-warning">On Leave</span>';
-        } else if (data === 'Mutation') {
-            return '<span class="badge bg-info">Tidak Aktif</span>';
-        } else if (data === 'Pending') {
-            return '<span class="badge bg-secondary">Pending</span>';
-        }
-        return '<span class="badge bg-secondary">Pending</span>';
-    }
-},
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data === 'Active') {
+                                return '<span class="badge bg-success">Active</span>';
+                            } else if (data === 'Inactive') {
+                                return '<span class="badge bg-danger">Inactive</span>';
+                            } else if (data === 'On leave') {
+                                return '<span class="badge bg-warning">On Leave</span>';
+                            } else if (data === 'Mutation') {
+                                return '<span class="badge bg-info">Tidak Aktif</span>';
+                            } else if (data === 'Pending') {
+                                return '<span class="badge bg-secondary">Pending</span>';
+                            }
+                            return '<span class="badge bg-secondary">Pending</span>';
+                        }
+                    },
 
                     // {
                     //     data: 'length_of_service',
                     //     name: 'length_of_service',
                     //     className: 'text-center'
                     // },
-                   
-                 
+
+
                     {
                         data: 'action',
                         name: 'action',
@@ -314,13 +331,122 @@
             });
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
+
+//         $(document).ready(function() {
+//     $('#transferAllBtn').on('click', function() {
+//         // Ambil nilai tanggal dari input
+//         const selectedDate = $('#payrollDate').val();
+        
+//         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
+//                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
+//             $.ajax({
+//                 url: "{{ route('employees.transferAllToPayroll') }}",
+//                 type: "POST",
+//                 data: {
+//                     "_token": "{{ csrf_token() }}",
+//                     "month_year": selectedDate
+//                 },
+//                 success: function(response) {
+//                     if (response.success) {
+//                         alert(response.message);
+//                     } else {
+//                         alert('Error: ' + response.message);
+//                     }
+//                 },
+//                 error: function(xhr) {
+//                     alert('Error: ' + xhr.responseText);
+//                 }
+//             });
+//         }
+//     });
+// });
+
+$(document).ready(function() {
+    $('#transferAllBtn').on('click', function() {
+        // Ambil nilai tanggal dari input
+        const selectedDate = $('#payrollDate').val();
+        const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric'
+        });
+        
+        // Tampilkan konfirmasi dengan SweetAlert2
+        Swal.fire({
+            title: 'Confirm Transfer',
+            text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, transfer!',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Tampilkan loading
+                Swal.fire({
+                    title: 'Processing...',
+                    html: 'Please wait while we transfer the data.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Lakukan AJAX request
+                $.ajax({
+                    url: "{{ route('employees.transferAllToPayroll') }}",
+                    type: "POST",
+                    data: {
+                        "_token": "{{ csrf_token() }}",
+                        "month_year": selectedDate
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Tampilkan hasil dengan SweetAlert2
+                            Swal.fire({
+                                title: 'Transfer Successful!',
+                                html: `
+                                    <div class="text-left">
+                                        <p><strong>Period:</strong> ${response.period}</p>
+                                        <p><strong>Transferred:</strong> ${response.transferred} employee(s)</p>
+                                        <p><strong>Skipped:</strong> ${response.skipped} employee(s) (already exist)</p>
+                                    </div>`,
+                                icon: 'success',
+                                confirmButtonText: 'Great!'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Tampilkan error dengan SweetAlert2
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to process your request. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                        console.error("Error:", xhr);
+                    }
+                });
+            }
+        });
+    });
+});
     </script>
 @endpush

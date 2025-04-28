@@ -180,7 +180,7 @@
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
-
+{{-- ini dropdown --}}
                                         {{-- <select name="parent_id" id="parent-filter" class="form-control select2">
                                             <option value="">-- All Categories --</option>
                                             @php
@@ -207,12 +207,13 @@
                                                 $renderOptions($categories);
                                             @endphp
                                         </select> --}}
-                                        <input type="text" id="category_name_filter" class="form-control" placeholder="Filter by name...">
+                                        {{-- ini seperti filter biasa kek datatables --}}
+                                        {{-- <input type="text" id="category_name_filter" class="form-control" placeholder="Filter by name..."> --}}
                                     </div>
                                    
                                     <div class="col-md-2">
-                                        <button id="filter-btn" class="btn btn-primary">Filter</button>
-                                        <button id="reset-filter-btn" class="btn btn-secondary">Reset</button>
+                                        {{-- <button id="filter-btn" class="btn btn-primary">Filter</button>
+                                        <button id="reset-filter-btn" class="btn btn-secondary">Reset</button> --}}
                                     </div>
                                 </div>
                                 <div class="table-responsive">
