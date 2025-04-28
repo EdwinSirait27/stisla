@@ -7,6 +7,8 @@ use App\Models\Payrolls;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
+use Barryvdh\DomPDF\Facade\Pdf; 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 use Illuminate\Support\Facades\DB;
@@ -85,25 +87,164 @@ $payroll->action = '
         ->rawColumns(['action', 'employee_name'])
         ->make(true);
 }
+// public function show($hashedId)
+// {
+//     $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {
+//         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+//         return $expectedHash === $hashedId;
+//     });
+//     if (!$payroll) {
+//         abort(404, 'payroll not found.');
+//     }
+//     $salaryincome = ($payroll->attendance ?? 0) * ($payroll->daily_allowance ?? 0) + ($payroll->overtime ?? 0) + ($payroll->bonus ?? 0) + ($payroll->house_allowance ?? 0) + ($payroll->meal_allowance ?? 0) + ($payroll->transport_allowance ?? 0);
+//     $salaryoutcome = ($payroll->mesh ?? 0) + ($payroll->punishment ?? 0) + ($payroll->late_fine ?? 0) + ($payroll->bpjs_ket ?? 0) + ($payroll->bpjs_kes ?? 0);
+// // disini belum
+//     return view('pages.Payrolls.show', [
+//         'payroll' => $payroll,
+//         'salaryincome' => $salaryincome,
+//         'salaryoutcome' => $salaryoutcome,
+//         'hashedId' => $hashedId,
+//     ]);
+// }
+
 public function show($hashedId)
 {
-    $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {
-        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-        return $expectedHash === $hashedId;
-    });
+    $payroll = Payrolls::with(['employee.department', 'employee.position'])
+        ->get()
+        ->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
     if (!$payroll) {
-        abort(404, 'payroll not found.');
+        abort(404, 'Payroll not found.');
     }
-    $salaryincome = ($payroll->attendance ?? 0) * ($payroll->daily_allowance ?? 0) + ($payroll->overtime ?? 0) + ($payroll->bonus ?? 0) + ($payroll->house_allowance ?? 0) + ($payroll->meal_allowance ?? 0) + ($payroll->transport_allowance ?? 0);
-    $salaryoutcome = ($payroll->mesh ?? 0) + ($payroll->punishment ?? 0) + ($payroll->late_fine ?? 0) + ($payroll->bpjs_ket ?? 0) + ($payroll->bpjs_kes ?? 0);
-// disini belum
-    return view('pages.Payrolls.show', [
+
+    // Hitung total income dan outcome
+    $salaryincome = ($payroll->attendance ?? 0) * ($payroll->daily_allowance ?? 0) + 
+                   ($payroll->overtime ?? 0) + ($payroll->bonus ?? 0) + 
+                   ($payroll->house_allowance ?? 0) + ($payroll->meal_allowance ?? 0) + 
+                   ($payroll->transport_allowance ?? 0);
+    
+    $salaryoutcome = ($payroll->mesh ?? 0) + ($payroll->punishment ?? 0) + 
+                    ($payroll->late_fine ?? 0) + ($payroll->bpjs_ket ?? 0) + 
+                    ($payroll->bpjs_kes ?? 0);
+
+    // Data untuk view
+    $data = [
         'payroll' => $payroll,
         'salaryincome' => $salaryincome,
         'salaryoutcome' => $salaryoutcome,
         'hashedId' => $hashedId,
+    ];
+    
+    // Generate PDF dengan konfigurasi khusus
+    $pdf = Pdf::loadView('pages.Payrolls.show', $data);
+    $pdf->setPaper('a4');
+    $pdf->setOptions([
+        'isHtml5ParserEnabled' => true,
+        'isRemoteEnabled' => true,
+        'defaultFont' => 'dejavu sans',
+        'dpi' => 100,
+        'defaultMediaType' => 'screen',
+        'isFontSubsettingEnabled' => true,
+        'isPhpEnabled' => true,
+        'debugCss' => false,
+        'debugLayout' => false,
     ]);
+    
+    // Buat password dari tanggal lahir karyawan dengan format yyyymmdd
+    $password = null;
+    if ($payroll->employee && $payroll->employee->date_of_birth) {
+        // Convert string date to DateTime object then format it
+        $dateOfBirth = $payroll->employee->date_of_birth;
+        
+        // Periksa format tanggal dan konversi menjadi format yyyymmdd
+        if (is_string($dateOfBirth)) {
+            // Coba parse string date menjadi objek Carbon/DateTime
+            try {
+                $dateObj = \Carbon\Carbon::parse($dateOfBirth);
+                $password = $dateObj->format('Ymd');
+            } catch (\Exception $e) {
+                // Jika gagal parsing, gunakan string asli dengan menghapus karakter '-'
+                $password = str_replace(['-', '/', ' '], '', $dateOfBirth);
+            }
+        }
+        
+        // Set password pada PDF jika berhasil mendapatkan password
+        if ($password) {
+            $pdf->setEncryption($password);
+        }
+    }
+    // Simpan file PDF
+    $filename = 'payroll_' . $payroll->employee->employee_name . '_' . $payroll->month_year->format('Y_m') . '.pdf';
+    $path = 'payrolls/' . $filename;
+    Storage::disk('public')->put($path, $pdf->output());
+    
+    // Update database
+    $payroll->attachment_path = $path;
+    $payroll->save();
+
+    // Return view HTML
+    return view('pages.Payrolls.show', $data);
 }
+// public function show($hashedId)
+// {
+//     $payroll = Payrolls::with(['employee.department', 'employee.position'])
+//         ->get()
+//         ->first(function ($u) use ($hashedId) {
+//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+//             return $expectedHash === $hashedId;
+//         });
+//     if (!$payroll) {
+//         abort(404, 'Payroll not found.');
+//     }
+
+//     // Hitung total income dan outcome
+//     $salaryincome = ($payroll->attendance ?? 0) * ($payroll->daily_allowance ?? 0) + 
+//                    ($payroll->overtime ?? 0) + ($payroll->bonus ?? 0) + 
+//                    ($payroll->house_allowance ?? 0) + ($payroll->meal_allowance ?? 0) + 
+//                    ($payroll->transport_allowance ?? 0);
+    
+//     $salaryoutcome = ($payroll->mesh ?? 0) + ($payroll->punishment ?? 0) + 
+//                     ($payroll->late_fine ?? 0) + ($payroll->bpjs_ket ?? 0) + 
+//                     ($payroll->bpjs_kes ?? 0);
+
+//     // Data untuk view
+//     $data = [
+//         'payroll' => $payroll,
+//         'salaryincome' => $salaryincome,
+//         'salaryoutcome' => $salaryoutcome,
+//         'hashedId' => $hashedId,
+//     ];
+//     // Generate PDF dengan konfigurasi khusus
+//     $pdf = Pdf::loadView('pages.Payrolls.show', $data);
+//     $pdf->setPaper('a4');
+//             $pdf->setOptions([
+//                 'isHtml5ParserEnabled' => true,
+//                 'isRemoteEnabled' => true,
+//                 'defaultFont' => 'dejavu sans',
+//                 'dpi' => 100,
+//                 'defaultMediaType' => 'screen',
+//                 'isFontSubsettingEnabled' => true,
+//                 'isPhpEnabled' => true,
+//                 'debugCss' => false,
+//                 'debugLayout' => false,
+//             ]);
+//     // Simpan file PDF
+//     $filename = 'payroll_' . $payroll->employee->employee_name . '_' . $payroll->month_year->format('Y_m') . '.pdf';
+//     $path = 'payrolls/' . $filename;
+//     Storage::disk('public')->put($path, $pdf->output());
+//     // Update database
+//     $payroll->attachment_path = $path;
+//     $payroll->save();
+
+//     // Return view HTML
+//     return view('pages.Payrolls.show', $data);
+// }
+
+
+
+
     public function edit($hashedId)
     {
         $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {

@@ -9,23 +9,23 @@
     <style>
         @page {
             size: A4;
-            margin: 0;
+            margin: 20mm;
         }
+    
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 30px;
-            background-color: #fff;
-            color: #333;
-            line-height: 1.5;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            border: 1px solid #ddd;
-            padding: 30px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+        color: #333;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid #ddd;
+        padding: 30px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -100,20 +100,35 @@
             font-size: 18px;
             color: #2c3e50;
         }
+     
         .signature {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
-        }
-        .signature-box {
-            width: 200px;
-            text-align: center;
-        }
-        .signature-line {
-            border-top: 1px solid #000;
-            padding-top: 10px;
-            margin-top: 60px;
-        }
+    display: flex;
+    justify-content: space-between;
+    margin-top: 50px;
+    page-break-inside: avoid;
+}
+
+.signature-box {
+    width: 45%; 
+    text-align: center;
+    position: relative;
+}
+
+.signature-line {
+    border-top: 1px solid #000;
+    width: 80%; 
+    margin: 50px auto 0 auto; 
+    padding-top: 10px;
+}
+
+.signature-text {
+    position: absolute;
+    bottom: -25px; 
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-weight: bold;
+}
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -139,7 +154,6 @@
 <body>
     <div class="container">
         <div class="header">
-            {{-- <div class="company-name">PT. COMPANY NAME</div> --}}
             <div class="title">SALARY STATEMENT</div>
             <div class="subtitle">Period: {{ $payroll->month_year->format('Y-m') }} </div>
         </div>
@@ -159,10 +173,7 @@
                     <td><strong>Position:</strong></td>
                     <td>{{$payroll->employee->position->name}}</td>
                 </tr>
-                {{-- <tr>
-                    <td><strong>Attendance:</strong></td>
-                    <td> Days</td>
-                </tr> --}}
+                
             </table>
         </div>
         
@@ -171,36 +182,30 @@
             <div class="item">
                 <span>Attendances:</span>
                 <span>{{$payroll->attendance}} Days</span>
-                {{-- <span>IDR {{ number_format($salaryAfterDeduction, 2, '.', ',') }} --}}
-
+                
             </div>
             <div class="item">
                 <span>Daily Allowance:</span>
-                {{-- <span>IDR {{$payroll->daily_allowance}}</span> --}}
                 <span>IDR {{ number_format($payroll->daily_allowance, 2, '.', ',') }}
 
             </div>
             <div class="item">
                 <span>Overtime:</span>
-                {{-- <span>IDR {{$payroll->overtime}}</span> --}}
                 <span>IDR {{ number_format($payroll->overtime, 2, '.', ',') }}
 
             </div>
             <div class="item">
                 <span>Bonuses:</span>
-                {{-- <span>IDR {{$payroll->bonus}}</span> --}}
                 <span>IDR {{ number_format($payroll->bonus, 2, '.', ',') }}
 
             </div>
             <div class="item">
                 <span>House Allowance:</span>
-                {{-- <span>IDR {{$payroll->house_allowance}}</span> --}}
                 <span>IDR {{ number_format($payroll->house_allowance, 2, '.', ',') }}
 
             </div>
             <div class="item">
                 <span>Meal Allowance:</span>
-                {{-- <span>IDR {{$payroll->meal_allowance}}</span> --}}
                 <span>IDR {{ number_format($payroll->meal_allowance, 2, '.', ',') }}
 
             </div>
@@ -260,12 +265,15 @@
         </div>
         
         <div class="signature">
-            <div class="signature-box">
+            {{-- <div class="signature-box">
                 <div class="signature-line"></div>
                 <strong>Approved By:</strong><br>
                 Management<br>
                 
-            </div>
+            </div> --}}
+            <br>
+            <br>
+            <br>
             <div class="signature-box">
                 <div class="signature-line"></div>
                 <strong>Received By:</strong><br>
