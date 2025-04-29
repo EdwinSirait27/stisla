@@ -13,6 +13,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\PayrollEmailController;
 use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\taxstatusController;
@@ -204,6 +205,8 @@ Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name(
 Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
 Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
 
+Route::post('/payrolls/send-emails', [PayrollEmailController::class, 'sendPayslips']);
+Route::get('/payrolls/email-status', [PayrollEmailController::class, 'status']);
 
    
 });

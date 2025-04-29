@@ -22,7 +22,7 @@ class Employee extends Model
             }
         });
     }
-    
+
     protected $casts = [
         'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
         'salary' => 'decimal:2',
@@ -91,5 +91,9 @@ class Employee extends Model
     public function getJoinDateAttribute($value)
     {
         return Carbon::parse($value)->format('y-m-d');
+    }
+    public function payrolls()
+    {
+        return $this->hasMany(Payrolls::class, 'employee_id');
     }
 }
