@@ -3,6 +3,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Crypt;
 class Payrolls extends Model
 {
     use HasFactory;
@@ -19,15 +20,13 @@ class Payrolls extends Model
         });
     }
     protected $casts = [
-        'salary' => 'decimal:2',
         'month_year' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-        
     ];
     protected $fillable = [
         'employee_id',
+        'attendance',
         'bonus',
         'daily_allowance',
-        'attendance',
         'overtime',
         'house_allowance',
         'meal_allowance',
@@ -46,5 +45,7 @@ class Payrolls extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
-    }    
+    }
+    
+        
 }

@@ -379,20 +379,29 @@ $(document).ready(function() {
         return data ? data : '-';
     }
 },
-{ 
-    data: 'daily_allowance', 
-    name: 'daily_allowance', 
+// { 
+//     data: 'daily_allowance', 
+//     name: 'daily_allowance', 
+//     className: 'text-center',
+//     render: function(data) {
+//         return data ? data : '-';
+//     }
+// },
+{
+    data: 'daily_allowance',
+    name: 'daily_allowance',
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
+
 { 
     data: 'overtime', 
     name: 'overtime', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -400,7 +409,7 @@ $(document).ready(function() {
     name: 'bonus', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -408,7 +417,7 @@ $(document).ready(function() {
     name: 'house_allowance', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -416,7 +425,7 @@ $(document).ready(function() {
     name: 'meal_allowance', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -424,7 +433,7 @@ $(document).ready(function() {
     name: 'transport_allowance', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -432,7 +441,7 @@ $(document).ready(function() {
     name: 'bpjs_ket', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -440,7 +449,7 @@ $(document).ready(function() {
     name: 'bpjs_kes', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -448,7 +457,7 @@ $(document).ready(function() {
     name: 'mesh', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -456,7 +465,7 @@ $(document).ready(function() {
     name: 'punishment', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -464,7 +473,7 @@ $(document).ready(function() {
     name: 'late_fine', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -472,7 +481,7 @@ $(document).ready(function() {
     name: 'deductions', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 { 
@@ -480,7 +489,7 @@ $(document).ready(function() {
     name: 'salary', 
     className: 'text-center',
     render: function(data) {
-        return data ? data : '-';
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
 {

@@ -1,15 +1,13 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Permission\Models\Permission as SpatiePermission;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Ramsey\Uuid\Uuid;
-
-use Illuminate\Notifications\Notifiable;
-class Permission extends SpatiePermission
+class Role extends SpatieRole
 {
-    use HasFactory;
     public $incrementing = false;
     protected $keyType = 'string';
 

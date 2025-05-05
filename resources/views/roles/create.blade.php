@@ -211,7 +211,7 @@
                                 <div class="form-group row mb-3">
                                     <label class="col-md-2 col-form-label">Permissions</label>
                                     <div class="col-md-10">
-                                        @if($permissions->isEmpty())
+                                        {{-- @if($permissions->isEmpty())
                                             <div class="alert alert-info">No permissions available</div>
                                         @else
                                             <div class="row">
@@ -231,7 +231,21 @@
                                                     </div>
                                                 @endforeach
                                             </div>
-                                        @endif
+                                        @endif --}}
+                                        @foreach($permissions as $permission)
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       name="permissions[]" 
+                                                       id="permission-{{ $permission->id }}"
+                                                       value="{{ $permission->id }}" {{-- THIS MUST BE UUID --}}>
+                                                <label class="form-check-label" for="permission-{{ $permission->id }}">
+                                                    {{ $permission->name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
                                 

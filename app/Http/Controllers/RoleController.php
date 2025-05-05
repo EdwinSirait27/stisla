@@ -50,72 +50,183 @@ class RoleController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
+    
+
+
+
+    // public function store(Request $request)
+    // {
+    //     $validatedData = $request->validate([
+    //         'name' => [
+    //             'required',
+    //             'regex:/^[a-zA-Z0-9_-]+$/',
+    //             'unique:roles,name',
+    //             'max:255',
+    //             new NoXSSInput()
+    //         ],
+    //         'permissions' => 'nullable|array',
+    //         'permissions.*' => 'exists:permissions,id'
+    //     ]);
+
+    //     try {
+    //         DB::beginTransaction();
+
+    //         // Buat role baru
+    //         $role = Role::create([
+    //             'name' => $validatedData['name'],
+    //             'guard_name' => 'web'
+    //         ]);
+
+    //         // Convert permission IDs to names dan sync
+    //         $permissions = Permission::whereIn('id', $request->permissions ?? [])
+    //             ->pluck('name')
+    //             ->toArray();
+
+    //         $role->syncPermissions($permissions);
+
+    //         DB::commit();
+
+    //         return redirect()->route('roles.index')
+    //             ->with('success', 'Role created successfully');
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         \Log::error('Role creation failed: ' . $e->getMessage());
+
+    //         return redirect()->back()
+    //             ->withInput()
+    //             ->with('error', 'Failed to create role. Please try again.');
+    //     }
+    // }
+    // public function create()
+    // {
+    //     try {
+    //         $permissions = Permission::orderBy('name')->get();
+    //         $role = new Role();
+    //         $rolePermissions = []; // Inisialisasi array kosong
+
+    //         return view('roles.create', compact('permissions', 'role', 'rolePermissions'));
+
+    //     } catch (\Exception $e) {
+    //         \Log::error('Error accessing role creation page: ' . $e->getMessage());
+
+    //         return redirect()->route('roles.index')
+    //             ->with('error', 'Failed to access role creation page. Please try again.');
+    //     }
+    // }
     public function create()
     {
         try {
             $permissions = Permission::orderBy('name')->get();
+            
+            // Debug output untuk melihat jumlah permissions yang diambil
+            \Log::debug('Total permissions fetched:', [
+                'count' => $permissions->count()
+            ]);
+        
+            // Debug untuk melihat beberapa sample permission IDs
+            \Log::debug('Sample permission IDs:', [
+                'sample_ids' => $permissions->take(3)->pluck('id')
+            ]);
+        
             $role = new Role();
-            $rolePermissions = []; // Inisialisasi array kosong
-
+            $rolePermissions = collect();
+        
             return view('roles.create', compact('permissions', 'role', 'rolePermissions'));
-
+        
         } catch (\Exception $e) {
-            \Log::error('Error accessing role creation page: ' . $e->getMessage());
-
+            \Log::error('Error accessing role creation page:', [
+                'error_message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->route('roles.index')
                 ->with('error', 'Failed to access role creation page. Please try again.');
         }
     }
-
-
-
+    
+    
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => [
-                'required',
-                'regex:/^[a-zA-Z0-9_-]+$/',
-                'unique:roles,name',
-                'max:255',
-                new NoXSSInput()
-            ],
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id'
+        \Log::info('Attempting to create new role', ['user_id' => auth()->id()]);
+    
+        // Debug: Log permissions yang ada di database
+        $dbPermissions = Permission::all()->pluck('id');
+        \Log::debug('Database permissions:', $dbPermissions->toArray());
+    
+        // Debug: Log data request yang diterima
+        \Log::debug('Incoming request data:', [
+            'name' => $request->name,
+            'permissions' => $request->permissions,
+            'all_input' => $request->except('_token')
         ]);
-
+        
         try {
-            DB::beginTransaction();
-
-            // Buat role baru
-            $role = Role::create([
-                'name' => $validatedData['name'],
-                'guard_name' => 'web'
+            // Validasi input
+            $validatedData = $request->validate([
+                'name' => [
+                    'required',
+                    'unique:roles,name',
+                    'max:255',
+                    new NoXSSInput()
+                ],
+                'permissions' => 'nullable|array',
+                'permissions.*' => [
+                    'required',
+                    'uuid', // Pastikan UUID valid
+                    'exists:permissions,id',
+                    'distinct'
+                ]
+            ], [
+                'permissions.*.uuid' => 'Invalid permission ID format. It should be a valid UUID.',
+                'permissions.*.exists' => 'The selected permission is invalid.',
+                'permissions.*.distinct' => 'Duplicate permissions are not allowed.'
             ]);
-
-            // Convert permission IDs to names dan sync
-            $permissions = Permission::whereIn('id', $request->permissions ?? [])
-                ->pluck('name')
-                ->toArray();
-
-            $role->syncPermissions($permissions);
-
-            DB::commit();
-
+    
+            // Debug: Log hasil validasi sebelum transaksi
+            \Log::debug('Validated data:', $validatedData);
+    
+            DB::transaction(function () use ($validatedData) {
+                $role = Role::create([
+                    'name' => $validatedData['name'],
+                    'guard_name' => 'web'
+                ]);
+    
+                if (!empty($validatedData['permissions'])) {
+                    // Pastikan semua permission ID adalah UUID yang valid
+                    $permissionIds = $validatedData['permissions'];
+                    \Log::debug('Permissions to sync:', $permissionIds);
+    
+                    $role->syncPermissions($permissionIds);
+                    \Log::info('Permissions synced', [
+                        'role_id' => $role->id,
+                        'permission_count' => count($permissionIds)
+                    ]);
+                }
+            });
+    
             return redirect()->route('roles.index')
                 ->with('success', 'Role created successfully');
-
+    
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('Validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->except('_token')
+            ]);
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Role creation failed: ' . $e->getMessage());
-
+            \Log::error('Role creation failed', [
+                'error_message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create role. Please try again.');
+                ->with('error', 'Role creation failed: ' . $e->getMessage());
         }
     }
-
-
-
+    
+    
     public function edit($hashedId)
     {
         // Cari role berdasarkan hashed ID

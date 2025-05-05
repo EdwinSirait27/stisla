@@ -62,7 +62,10 @@ class Employee extends Model
         'transport_allowance',
         'total_salary',
         'notes',
-        'status'
+        'status',
+        'bank_name',
+        'name_account_number',
+        'bank_account_name'
     ];
     public function department()
     {

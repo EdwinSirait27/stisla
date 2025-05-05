@@ -326,14 +326,26 @@
                                                     <div class="@error('role') border border-danger rounded-3 @enderror">
                                                         <select class="form-control" name="role" id="role"
                                                             required>
-                                                            <option value="">Choose Role</option>
+                                                            {{-- <option value="">Choose Role</option>
                                                             @foreach ($roles as $roleName => $displayName)
                                                                 <option value="{{ $roleName }}"
                                                                     {{ $selectedRole == $roleName ? 'selected' : '' }}>
                                                                     {{ $displayName }}
                                                                 </option>
+                                                            @endforeach --}}
+                                                            <option value="">Select Role</option>
+                                                            @foreach($roles as $name => $displayName)
+                                                                <option value="{{ $name }}" {{ $selectedRole == $name ? 'selected' : '' }}>
+                                                                    {{ $displayName }}
+                                                                </option>
                                                             @endforeach
                                                         </select>
+                                                            {{-- @foreach ($roles as $roleName)
+    <option value="{{ $roleName }}" {{ $selectedRole == $roleName ? 'selected' : '' }}>
+        {{ $roleName }}
+@endforeach
+                                                        </select>
+                                                         --}}
 
                                                         @error('role')
                                                             <span class="invalid-feedback" role="alert">

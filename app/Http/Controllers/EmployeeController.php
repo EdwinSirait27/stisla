@@ -291,6 +291,7 @@ class EmployeeController extends Controller
     $marriage = ['Yes', 'No'];
     $gender = ['Male', 'Female', 'MD'];
     $status = ['Active', 'Pending','Inactive', 'On Leave'];
+    $banks = ['OCBC', 'BCA','Victoria', 'Mandiri','BRI'];
     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma', 'Bachelor Degree'];
     // dd($employee->Employee->join_date, $employee->Employee->getOriginal('join_date'));
@@ -303,6 +304,7 @@ class EmployeeController extends Controller
         'marriage' => $marriage,
         'gender' => $gender,
         'status' => $status,
+        'banks' => $banks,
         'religion' => $religion,
         'last_education' => $last_education,
         'positions' => $positions,
@@ -328,6 +330,8 @@ class EmployeeController extends Controller
     $stores = Stores::with('user.Employee')->get();
     $status_employee = ['PKWT', 'DW','PKWTT'];
     $child = ['0', '1', '2', '3', '4', '5'];
+    $banks = ['OCBC', 'BCA','Victoria', 'Mandiri','BRI'];
+
     $marriage = ['Yes', 'No'];
     $gender = ['Male', 'Female', 'MD'];
     $status = ['Active', 'Pending','Inactive', 'On Leave'];
@@ -339,6 +343,7 @@ class EmployeeController extends Controller
         'employee' => $employee,
         'status_employee' => $status_employee,
         'child' => $child,
+        'banks' => $banks,
         'stores' => $stores,
         'marriage' => $marriage,
         'gender' => $gender,
@@ -363,9 +368,11 @@ class EmployeeController extends Controller
         $status_marriage = ['Yes', 'No'];
         $status_gender = ['Male', 'Female', 'MD'];
         $status = ['Active', 'Inactive', 'On Leave'];
+    $banks = ['OCBC', 'BCA','Victoria', 'Mandiri','BRI'];
+        
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma', 'Bachelor Degree'];
-        return view('pages.Employee.create', compact('stores', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
+        return view('pages.Employee.create', compact('stores','banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
 
     public function store(Request $request)
@@ -429,6 +436,7 @@ class EmployeeController extends Controller
             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'telp_number' => ['required', 'numeric', new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik' => ['required', 'max:20', new NoXSSInput()],
@@ -544,7 +552,7 @@ class EmployeeController extends Controller
             'employee_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'bpjs_kes' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'telp_number' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'telp_number' => ['required', 'numeric', new NoXSSInput()],
             'bpjs_ket' => ['required', 'string', 'max:255', new NoXSSInput()],
             'email' => ['required', 'string', 'max:255', new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],

@@ -45,6 +45,7 @@ class Masterproduct extends Model
         'min_stock',
         'max_stock',
         'weight',
+        'conversionfactor',
         
     ];
    

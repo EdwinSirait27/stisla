@@ -1,289 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Statement</title>
+    <title>Payslip MJM</title>
     <link rel="icon" type="image/png"
-    href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
+        href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
     <style>
-        @page {
-            size: A4;
-            margin: 20mm;
-        }
-    
         body {
-        font-family: 'DejaVu Sans', Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        line-height: 1.5;
-        color: #333;
-    }
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        border: 1px solid #ddd;
-        padding: 30px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #333;
-        }
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #2c3e50;
-        }
-        .title {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .subtitle {
-            font-size: 16px;
-            color: #666;
-        }
-        .employee-info {
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border-left: 4px solid #2c3e50;
-        }
-        .employee-info h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .section {
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #fff;
-            border: 1px solid #eee;
-            border-radius: 5px;
-        }
-        .section-title {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-            color: #2c3e50;
-        }
-        .item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            border-bottom: 1px dotted #eee;
-        }
-        .total {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #333;
-            font-size: 16px;
-            color: #2c3e50;
-        }
-        .grand-total {
-            background-color: #f2f7ff;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 15px;
-            font-size: 18px;
-            color: #2c3e50;
-        }
-     
-        .signature {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 50px;
-    page-break-inside: avoid;
-}
-
-.signature-box {
-    width: 45%; 
-    text-align: center;
-    position: relative;
-}
-
-.signature-line {
-    border-top: 1px solid #000;
-    width: 80%; 
-    margin: 50px auto 0 auto; 
-    padding-top: 10px;
-}
-
-.signature-text {
-    position: absolute;
-    bottom: -25px; 
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-weight: bold;
-}
-        .footer {
-            text-align: center;
-            margin-top: 30px;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #333;
             font-size: 12px;
-            color: #777;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        /* setiap bulan 25 sampe 26 ok */
+        .payslip-container {
+            border: 1px solid #ddd;
+            padding: 15px;
         }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
         }
-        th {
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-right: 10px;
+            background-color: #000;
+            padding: 5px;
+        }
+        .confidential {
+            color: #FF0000;
+            font-weight: bold;
+        }
+        .title-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .title-left {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .title-right {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr 1.5fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-label {
+            font-weight: normal;
+        }
+
+        .info-value {
+            font-weight: bold;
+        }
+
+        .tables-container {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .tables-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             background-color: #f5f5f5;
         }
+
+        .tables-header-cell {
+            padding: 8px 12px;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tables-header-cell:first-child {
+            border-right: 1px solid #ddd;
+        }
+
+        .tables-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .table-section {
+            padding: 0;
+        }
+
+        .table-section:first-child {
+            border-right: 1px solid #ddd;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            padding: 6px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table-cell-amount {
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .totals-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+
+        .total-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            padding: 8px 12px;
+            font-weight: bold;
+        }
+
+        .total-section:first-child {
+            border-right: 1px solid #ddd;
+        }
+
+        .take-home {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background-color: #f5f5f5;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .transfer-section {
+            border-top: 1px solid #ddd;
+            padding-top: 12px;
+        }
+
+        .transfer-title {
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .transfer-details {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .transfer-account {
+            color: #555;
+        }
+        .watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 80px;
+    color: rgba(200, 200, 200, 0.15);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+}
+
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="title">SALARY STATEMENT</div>
-            <div class="subtitle">Period: {{ $payroll->month_year->format('Y-m') }} </div>
-        </div>
-        
-        <div class="employee-info">
-            <h3>Employee Information</h3>
-            <table>
+    periode tanggal harus masuk
+    <div class="watermark">CONFIDENTIAL</div>
+
+    <div class="payslip-container" id="payslip-content" style="font-family: Arial, sans-serif; font-size: 14px;">
+
+        <!-- Header with Logo and Confidential -->
+        <div class="header"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <table style="width: 100%; margin-bottom: 20px;">
                 <tr>
-                    <td width="30%"><strong>Name:</strong></td>
-                    <td>{{$payroll->employee->employee_name}}</td>
+                    <td style="text-align: left;">
+                        @php
+                            $imagePath = public_path('img/abc.png');
+                            $imageData = '';
+                            if (file_exists($imagePath)) {
+                                $imageData = base64_encode(file_get_contents($imagePath));
+                            }
+                        @endphp
+            
+                        @if (!empty($imageData))
+                            <div style="background-color: #000000; display: inline-block; padding: 5px;">
+                                <img src="data:image/png;base64,{{ $imageData }}" alt="MJM Logo" width="70">
+                            </div>
+                        @else
+                            <span>Logo tidak tersedia</span>
+                        @endif
+                    </td>
+                    <td style="text-align: right; color: red; font-weight: bold; font-size: 18px;">
+                        *CONFIDENTIAL
+                    </td>
                 </tr>
-                <tr>
-                    <td><strong>Department:</strong></td>
-                    <td>{{$payroll->employee->department->department_name}}</td>
-                </tr>
-                <tr>
-                    <td><strong>Position:</strong></td>
-                    <td>{{$payroll->employee->position->name}}</td>
-                </tr>
-                
             </table>
         </div>
-        
-        <div class="section">
-            <div class="section-title">INCOME</div>
-            <div class="item">
-                <span>Attendances:</span>
-                <span>{{$payroll->attendance}} Days</span>
-                
-            </div>
-            <div class="item">
-                <span>Daily Allowance:</span>
-                <span>IDR {{ number_format($payroll->daily_allowance, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>Overtime:</span>
-                <span>IDR {{ number_format($payroll->overtime, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>Bonuses:</span>
-                <span>IDR {{ number_format($payroll->bonus, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>House Allowance:</span>
-                <span>IDR {{ number_format($payroll->house_allowance, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>Meal Allowance:</span>
-                <span>IDR {{ number_format($payroll->meal_allowance, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>Transport Allowance:</span>
-                <span>IDR {{ number_format($payroll->transport_allowance, 2, '.', ',') }}
-
-            </div>
-            <div class="total">
-                <span>Total Income:</span>
-                <span>IDR {{ number_format($salaryincome, 2, '.', ',') }}
-                </span>
-            </div>
-        </div>
-        
-        <div class="section">
-            <div class="section-title">DEDUCTIONS</div>
-           
-            <div class="item">
-                <span>Late Fine:</span>
-                <span>IDR {{ number_format($payroll->late_fine, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>Punishment:</span>
-                <span>IDR {{ number_format($payroll->punishment, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>Mesh:</span>
-                <span>IDR {{ number_format($payroll->mesh, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>BPJS Ketenagakerjaan:</span>
-                <span>IDR {{ number_format($payroll->bpjs_ket, 2, '.', ',') }}
-
-            </div>
-            <div class="item">
-                <span>BPJS Kesehatan:</span>
-                <span>IDR {{ number_format($payroll->bpjs_kes, 2, '.', ',') }}
-
-            </div>
-            <div class="total">
-                <span>Total Deductions:</span>
-                <span>IDR {{ number_format($salaryoutcome, 2, '.', ',') }}
-
+        <!-- Employee Information -->
+        <table width="100%" style="margin-bottom: 20px; font-size: 12px; text-align: left;">
+            <tr>
+                <td class="text-align: left;"><strong>Payroll Month :</strong></td>
+                <td>{{ $formattedMonthYear }}</td>
+                <td><strong>Email :</strong></td>
+                <td>{{ $payroll->employee->email }}</td>
+            </tr>
+            <tr>
+                <td><strong>Name :</strong></td>
+                <td>{{ $payroll->employee->employee_name }}</td>
+                <td><strong>Status :</strong></td>
+                <td>{{ $payroll->employee->status_employee }}</td>
+            </tr>
+            <tr>
+                <td><strong>Job position :</strong></td>
+                <td>{{ $payroll->employee->position->name }}</td>
+                <td><strong>NPWP :</strong></td>
+                <td>{{ $payroll->employee->npwp }}</td>
+            </tr>
+            <tr>
+                <td><strong>Department :</strong></td>
+                <td colspan="3">{{ $payroll->employee->department->department_name }}</td>
+            </tr>
+        </table>
+        <!-- Earnings and Deductions Tables -->
+        <div class="tables-container">
+            <table width="100%" border="1" cellspacing="0" cellpadding="5"
+                style="border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th width="50%">Income</th>
+                        <th width="50%">Outcome (Deductions)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-align: left;">
+                            Attendances: {{ $payroll->attendance }} days<br>
+                            Daily Allowance: IDR {{ number_format($daily_allowance, 0, ',', '.') }}<br>
+                            Overtime: IDR {{ number_format($overtime, 0, ',', '.') }}<br>
+                            Bonuses: IDR {{ number_format($bonus, 0, ',', '.') }}<br>
+                            House Allowance: IDR {{ number_format($house_allowance, 0, ',', '.') }}<br>
+                            Meal Allowance: IDR {{ number_format($meal_allowance, 0, ',', '.') }}<br>
+                            Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}
+                        </td>
+                        <td>
+                            Late Fine: IDR {{ number_format($late_fine, 0, ',', '.') }}<br>
+                            Punishment: IDR {{ number_format($punishment, 0, ',', '.') }}<br>
+                            Mesh: IDR {{ number_format($mesh, 0, ',', '.') }}<br>
+                            BPJS Ketenagakerjaan: IDR {{ number_format($bpjs_ket, 0, ',', '.') }}<br>
+                            BPJS Kesehatan: IDR {{ number_format($bpjs_kes, 0, ',', '.') }}
+                            Tax IDR{{ number_format($bpjs_kes, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Totals Row -->
+            <div class="totals-row">
+                <div class="total-section">
+                    <div>Total Incomes</div>
+                    <div class="table-cell-amount">IDR {{ number_format($salaryincome, 2, '.', ',') }}</div>
+                </div>
+                <div class="total-section">
+                    <div>Total Outcomes (Deductions)</div>
+                    <div class="table-cell-amount">IDR {{ number_format($salaryoutcome, 2, '.', ',') }}</div>
+                </div>
             </div>
         </div>
-        
-        <div class="grand-total">
-            <div class="total">
-                <span>GRAND TOTAL SALARY:</span>
-                <span>IDR {{ number_format($payroll->salary, 2, '.', ',') }}
-
-            </div>
+        <!-- Take Home Pay -->
+        <div class="take-home">
+            <div>Take Home Pay</div>
+            <div>IDR {{ number_format($salary, 2, '.', ',') }}</div>
         </div>
-        
-        <div class="signature">
-            {{-- <div class="signature-box">
-                <div class="signature-line"></div>
-                <strong>Approved By:</strong><br>
-                Management<br>
-                
-            </div> --}}
-            <br>
-            <br>
-            <br>
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <strong>Received By:</strong><br>
-                {{$payroll->employee->employee_name}}
+        <!-- Transfer Information -->
+        <div class="transfer-section">
+            <div class="transfer-title">Transfer To</div>
+            <div class="transfer-details">
+                <div class="transfer-account">{{ $monthYearHuman }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->bank_account_name}}</div>
+                <div class="table-cell-amount">IDR {{ number_format($salaryoutcome, 2, '.', ',') }}</div>
             </div>
-        </div>
-        
-        <div class="footer">
-            This document is electronically generated and valid without signature.<br>
-            For any inquiries regarding this salary statement, please contact HR Department.
         </div>
     </div>
 </body>

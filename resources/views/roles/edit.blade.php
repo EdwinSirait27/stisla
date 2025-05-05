@@ -198,13 +198,18 @@
                                         @enderror
                                     </div>
 
-                                    <div class="form-group">
+                                    {{-- <div class="form-group">
                                         <label>Permissions</label>
                                         @error('permissions')
                                             <div class="text-danger mb-2">{{ $message }}</div>
-                                        @enderror
+                                        @enderror --}}
+                                        <div class="form-group">
+                                            <label>Permissions</label>
+                                            @error('permissions')
+                                                <div class="text-danger mb-2">{{ $message }}</div>
+                                            @enderror
                                         
-                                        <div class="row">
+                                        {{-- <div class="row">
                                             @foreach($permissions as $permission)
                                                 <div class="col-md-3 mb-3">
                                                     <div class="permission-group">
@@ -224,7 +229,25 @@
                                             @endforeach
                                         </div>
                                     </div>
+                                </div> --}}
+                                <div class="row">
+                                    @foreach($permissions as $permission)
+                                        <div class="col-md-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       id="permission-{{ $permission->id }}" 
+                                                       name="permissions[]" 
+                                                       value="{{ $permission->id }}" 
+                                                       {{ in_array($permission->id, $rolePermissions) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="permission-{{ $permission->id }}">
+                                                    {{ $permission->name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
+                            </div>
                                 <div class="card-footer text-right">
                                     <a href="{{ route('roles.index') }}" class="btn btn-secondary mr-2">
                                         <i class="fas fa-arrow-left"></i> Cancel

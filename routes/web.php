@@ -13,6 +13,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\MasterproductController;
 use App\Http\Controllers\PayrollEmailController;
 use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\PayrollsController;
@@ -205,9 +206,19 @@ Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name(
 Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
 Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
 
-Route::post('/payrolls/send-emails', [PayrollEmailController::class, 'sendPayslips']);
-Route::get('/payrolls/email-status', [PayrollEmailController::class, 'status']);
+Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
+Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
+Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
 
+// Status Product
+
+Route::get('/Masterproducts', [MasterproductController::class, 'index'])
+->name('pages.Masterproducts');
+Route::get('Masterproducts/create', [MasterproductController::class, 'create'])->name('Masterproducts.create');
+Route::post('/Masterproducts', [MasterproductController::class, 'store'])->name('Masterproducts.store');
+Route::get('/Masterproducts/edit/{hashedId}', [MasterproductController::class, 'edit'])->name('Masterproducts.edit');
+Route::put('/Masterproducts/{hashedId}', [MasterproductController::class, 'update'])->name('Masterproducts.update');
+Route::get('/masterproducts/masterproducts', [MasterproductController::class, 'getMasterproducts'])->name('masterproducts.masterproducts');
    
 });
 

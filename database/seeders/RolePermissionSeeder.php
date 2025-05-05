@@ -2,98 +2,100 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use Ramsey\Uuid\Uuid;
+use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Support\Facades\DB;
+
 class RolePermissionSeeder extends Seeder
+
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
+
     public function run()
-    {
-       // Reset cached roles and permissions
-    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-    // Create permissions (jika belum ada)
-    Permission::firstOrCreate(['name' => 'dashboardAdmin']);
-    Permission::firstOrCreate(['name' => 'ManageUser']);
-    Permission::firstOrCreate(['name' => 'ManageActivity']);
-    Permission::firstOrCreate(['name' => 'ManageRoles']);
-    Permission::firstOrCreate(['name' => 'dashboardHR']);
-    Permission::firstOrCreate(['name' => 'ManageUser']);
-    Permission::firstOrCreate(['name' => 'ManageActivity']);
-
-   
     
-    $roleAdmin = Role::firstOrCreate(['name' => 'Admin']);
-    $roleAdmin->givePermissionTo(Permission::all());
 
-    // // Assign role to existing users
-    // // Cara 1: By ID
-    // $user1 = User::find(); // User dengan ID 1
-    // if ($user1) {
-    //     $user1->assignRole('Admin');
-    // }
+    {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Permission::truncate();
+        Role::truncate();
+        DB::table('role_has_permissions')->truncate();
+        DB::table('model_has_roles')->truncate();
+        DB::table('model_has_permissions')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // Reset cached roles and permissions
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-    // Cara 2: By Email
-    $user = User::where('username', 'edwinsirait')->first();
-    if ($user) {
-        $user->assignRole('Admin');
-    }
-
-    // Cara 3: Assign ke beberapa user sekaligus
-    // $users = User::whereIn('id', [3, 4, 5])->get();
-    // foreach ($users as $user) {
-    //     $user->assignRole('HeadHR');
-    // }
-    }
+        // Buat permissions
+        $permissions = [
+            'dashboardAdmin',
+            'dashboardHR',
+            'ManageActivity',
+            'ManageRoles',
+            'ManageUser',
+        ];
+     
+        $permissionIds = [];
+foreach ($permissions as $permission) {
+    $perm = Permission::updateOrCreate(
+        ['name' => $permission], // cari berdasarkan name
+        [
+            'id' => Uuid::uuid7()->toString(), // dipakai jika membuat baru
+            'guard_name' => 'web'
+        ]
+    );
+    $permissionIds[] = $perm->id;
 }
 
 
+        // Buat roles dengan UUID konsisten
+        $adminRole = Role::updateOrCreate(
+            ['name' => 'Admin'],
+            [
+                'id' => Uuid::uuid7()->toString(),
+                'guard_name' => 'web'
+            ]
+        );
+        $adminRole->syncPermissions($permissionIds);
 
+        $hrRole = Role::updateOrCreate(
+            ['name' => 'HeadHR'],
+            [
+                'id' => Uuid::uuid7()->toString(),
+                'guard_name' => 'web'
+            ]
+        );
+        $hrRole->syncPermissions($permissionIds);
 
+        // Editor role (jika diperlukan)
+        $editorRole = Role::updateOrCreate(
+            ['name' => 'editor'],
+            [
+                'id' => Uuid::uuid7()->toString(),
+                'guard_name' => 'web'
+            ]
+        );
+        $editorRole->syncPermissions(['dashboardAdmin']);
 
+        // User role (jika diperlukan)
+        $userRole = Role::updateOrCreate(
+            ['name' => 'user'],
+            [
+                'id' => Uuid::uuid7()->toString(),
+                'guard_name' => 'web'
+            ]
+        );
+        $userRole->syncPermissions(['dashboardAdmin']);
 
-// public function run()
-// {
-//     // Reset cached roles and permissions
-//     app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        // Assign roles ke user yang sudah ada
+        if ($adminUser = User::where('username', '20250400001')->first()) {
+            $adminUser->syncRoles('Admin');
+        }
 
-//     // Create permissions (jika belum ada)
-//     Permission::firstOrCreate(['name' => 'dashboardAdmin']);
-//     Permission::firstOrCreate(['name' => 'dashboardHR']);
-//     Permission::firstOrCreate(['name' => 'ManageUser']);
-//     Permission::firstOrCreate(['name' => 'ManageActivity']);
-//     Permission::firstOrCreate(['name' => 'ManageRoles']);
-
-//     // Create roles (jika belum ada)
-//     $roleHeadHR = Role::firstOrCreate(['name' => 'HeadHR']);
-//     $roleHeadHR->givePermissionTo(['dashboardHR']);
-    
-//     $roleAdmin = Role::firstOrCreate(['name' => 'Admin']);
-//     $roleAdmin->givePermissionTo(Permission::all());
-
-//     // Assign role to existing users
-//     // Cara 1: By ID
-//     $user1 = User::find(1); // User dengan ID 1
-//     if ($user1) {
-//         $user1->assignRole('Admin');
-//     }
-
-//     // Cara 2: By Email
-//     $user2 = User::where('email', 'hr@example.com')->first();
-//     if ($user2) {
-//         $user2->assignRole('HeadHR');
-//     }
-
-//     // Cara 3: Assign ke beberapa user sekaligus
-//     $users = User::whereIn('id', [3, 4, 5])->get();
-//     foreach ($users as $user) {
-//         $user->assignRole('HeadHR');
-//     }
-// }
+        if ($hrUser = User::where('username', '20250400002')->first()) {
+            $hrUser->syncRoles('HeadHR');
+        }
+    }
+}
