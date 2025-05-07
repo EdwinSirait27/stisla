@@ -9,14 +9,9 @@ use App\Models\User;
 use Ramsey\Uuid\Uuid;
 use Spatie\Permission\PermissionRegistrar;
 use Illuminate\Support\Facades\DB;
-
 class RolePermissionSeeder extends Seeder
-
 {
-
     public function run()
-    
-
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Permission::truncate();
@@ -27,7 +22,6 @@ class RolePermissionSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
         // Buat permissions
         $permissions = [
             'dashboardAdmin',
@@ -36,20 +30,17 @@ class RolePermissionSeeder extends Seeder
             'ManageRoles',
             'ManageUser',
         ];
-     
         $permissionIds = [];
-foreach ($permissions as $permission) {
-    $perm = Permission::updateOrCreate(
-        ['name' => $permission], // cari berdasarkan name
-        [
-            'id' => Uuid::uuid7()->toString(), // dipakai jika membuat baru
-            'guard_name' => 'web'
-        ]
-    );
-    $permissionIds[] = $perm->id;
-}
-
-
+        foreach ($permissions as $permission) {
+            $perm = Permission::updateOrCreate(
+                ['name' => $permission], // cari berdasarkan name
+                [
+                    'id' => Uuid::uuid7()->toString(), // dipakai jika membuat baru
+                    'guard_name' => 'web'
+                ]
+            );
+            $permissionIds[] = $perm->id;
+        }
         // Buat roles dengan UUID konsisten
         $adminRole = Role::updateOrCreate(
             ['name' => 'Admin'],
@@ -92,10 +83,14 @@ foreach ($permissions as $permission) {
         // Assign roles ke user yang sudah ada
         if ($adminUser = User::where('username', '20250400001')->first()) {
             $adminUser->syncRoles('Admin');
+            $adminUser->givePermissionTo($permissionIds); 
         }
 
         if ($hrUser = User::where('username', '20250400002')->first()) {
             $hrUser->syncRoles('HeadHR');
+            $hrUser->givePermissionTo($permissionIds); 
         }
+     
     }
+    
 }
