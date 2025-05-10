@@ -106,7 +106,7 @@ class RoleController extends Controller
                     'max:255',
                     new NoXSSInput()
                 ],
-                'permissions' => 'nullable|array',
+                'permissions' => 'required|array',
                 'permissions.*' => [
                     'required',
                     'uuid', // Pastikan UUID valid
@@ -180,50 +180,7 @@ class RoleController extends Controller
         $rolePermissions = $role->permissions->pluck('id')->toArray();
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions', 'hashedId'));
     }
-    // public function update(Request $request, $hashedId)
-    // {
-    //     $roles = Role::all()->first(function ($r) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $r->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
     
-    //     if (!$roles) {
-    //         return redirect()->route('roles.index')->with('error', 'ID tidak valid.');
-    //     }
-    
-    //     Log::info('Role ditemukan:', ['id' => $roles->id, 'name' => $roles->name]);
-    
-    //     $validatedData = $request->validate([
-    //         'name' => [
-    //             'nullable',
-    //             'regex:/^[a-zA-Z0-9_-]+$/',
-    //             Rule::unique('roles')->ignore($roles->id),
-    //             new NoXSSInput()
-    //         ],
-    //         'permissions' => 'array',
-    //         'regex:/^[a-zA-Z0-9_-]+$/',
-    //         new NoXSSInput()
-    //     ]);
-    
-    //     $roles->update(['name' => $request->name]);
-    
-    //     $permissions = $request->permissions ?? [];
-    //     Log::info('Permission yang diminta:', ['permissions' => $permissions]);
-    
-    //     // Ambil sebelum update
-    //     $before = $roles->permissions->pluck('id')->toArray();
-    //     Log::info('Permission sebelum update:', $before);
-    
-    //     $roles->syncPermissions($permissions);
-    
-    //     // Ambil setelah update
-    //     $after = $roles->permissions()->pluck('id')->toArray();
-    //     Log::info('Permission sesudah update:', $after);
-    
-    //     app()[PermissionRegistrar::class]->forgetCachedPermissions();
-    
-    //     return redirect()->route('roles.index')->with('success', 'Role updated successfully');
-    // }
     public function update(Request $request, $roleId)
     {
         Log::info('Masuk ke method updateRole', ['roleId' => $roleId]);
@@ -239,7 +196,7 @@ class RoleController extends Controller
         // Validasi data dari request
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($roles->id)],
-            'permissions' => ['nullable', 'array'],
+            'permissions' => ['required', 'array'],
         ]);
     
         Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);

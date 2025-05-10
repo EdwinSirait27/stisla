@@ -179,7 +179,7 @@
                             <div class="card-header">
                                 <h4>Editing Role: {{ $role->name }}</h4>
                             </div>
-                            <form action="{{ route('roles.update', $hashedId) }}" method="POST">
+                            <form id="roles-edit" action="{{ route('roles.update', $hashedId) }}" method="POST">
                           
                                 @csrf
                                 @method('PUT')
@@ -246,13 +246,16 @@
                                             </div>
                                         </div>
                                     @endforeach
+                                    @error('permissions')
+                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                @enderror
                                 </div>
                             </div>
                                 <div class="card-footer text-right">
                                     <a href="{{ route('roles.index') }}" class="btn btn-secondary mr-2">
                                         <i class="fas fa-arrow-left"></i> Cancel
                                     </a>
-                                    <button type="submit" class="btn btn-primary">
+                                    <button id="edit-btn" type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i> Update Role
                                     </button>
                                 </div>
@@ -268,9 +271,27 @@
 @push('scripts')
     <!-- JS Libraies -->
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Page Specific JS File -->
     <script>
-        // You can add any specific JavaScript for this page here
+        document.getElementById('edit-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('roles-edit').submit();
+                }
+            });
+        });
     </script>
 @endpush

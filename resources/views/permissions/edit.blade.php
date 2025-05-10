@@ -179,7 +179,7 @@
                             <div class="card-header">
                                 <h4>Editing Permissions: {{ $permission->name }}</h4>
                             </div>
-                            <form action="{{ route('permissions.update', $hashedId) }}" method="POST">
+                            <form id="permissions-edit" action="{{ route('permissions.update', $hashedId) }}" method="POST">
                                 @csrf
                                 @method('PUT')
                                 <div class="card-body">
@@ -201,7 +201,7 @@
                                         <a href="{{ route('permissions.index') }}" class="btn btn-secondary mr-2">
                                             <i class="fas fa-arrow-left"></i> Cancel
                                         </a>
-                                        <button type="submit" class="btn btn-primary">
+                                        <button type="submit" id="edit-btn" class="btn btn-primary">
                                             <i class="fas fa-save"></i> Update Role
                                         </button>
                                     </div>
@@ -214,10 +214,29 @@
     </div>
 @endsection
 @push('scripts')
-    <!-- JS Libraies -->
-    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-    <!-- Page Specific JS File -->
-    <script>
-        // You can add any specific JavaScript for this page here
-    </script>
-@endpush
+     <!-- JS Libraies -->
+     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <!-- Page Specific JS File -->
+     <script>
+         document.getElementById('edit-btn').addEventListener('click', function(e) {
+             e.preventDefault(); // Mencegah pengiriman form langsung
+             Swal.fire({
+                 title: 'Are You Sure?',
+                 text: "Make sure the data you entered is correct!",
+                 icon: 'warning',
+                 showCancelButton: true,
+                 confirmButtonColor: '#3085d6',
+                 cancelButtonColor: '#d33',
+                 confirmButtonText: 'Yes, Assign!',
+                 cancelButtonText: 'Abort'
+             }).then((result) => {
+                 if (result.isConfirmed) {
+                     // Jika pengguna mengkonfirmasi, submit form
+                     document.getElementById('permissions-edit').submit();
+                 }
+             });
+         });
+     </script>
+ @endpush

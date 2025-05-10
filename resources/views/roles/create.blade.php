@@ -1,12 +1,8 @@
 @extends('layouts.app')
-
 @section('title', 'Create Roles')
-
 @push('style')
-    <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.css') }}">
     <style>
-        /* Card styling */
         .card {
             border: none;
             border-radius: 12px;
@@ -32,7 +28,6 @@
             padding: 15px 25px;
         }
         
-        /* Form controls */
         .form-control {
             border-radius: 8px;
             padding: 12px 15px;
@@ -53,7 +48,6 @@
             font-size: 14px;
         }
         
-        /* Button styling */
         .btn {
             border-radius: 8px;
             padding: 10px 20px;
@@ -183,7 +177,7 @@
                         </div>
                         
                         <div class="card-body">
-                            <form method="POST" action="{{ route('roles.store') }}">
+                            <form id="roles-create" method="POST" action="{{ route('roles.store') }}">
                                 @csrf
                                 
                                 <!-- Role Name Input -->
@@ -207,52 +201,37 @@
                                     </div>
                                 </div>
 
-                                <!-- Permissions Checkboxes -->
+                           
                                 <div class="form-group row mb-3">
                                     <label class="col-md-2 col-form-label">Permissions</label>
                                     <div class="col-md-10">
-                                        {{-- @if($permissions->isEmpty())
-                                            <div class="alert alert-info">No permissions available</div>
-                                        @else
-                                            <div class="row">
-                                                @foreach($permissions as $permission)
-                                                    <div class="col-md-3 mb-2">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" 
-                                                                   type="checkbox" 
-                                                                   name="permissions[]" 
-                                                                   id="permission-{{ $permission->id }}" 
-                                                                   value="{{ $permission->id }}"
-                                                                   @checked(in_array($permission->id, old('permissions', $rolePermissions ?? [])))>
-                                                            <label class="form-check-label" for="permission-{{ $permission->id }}">
-                                                                {{ $permission->name }}
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endif --}}
                                         @foreach($permissions as $permission)
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" 
-                                                       type="checkbox" 
-                                                       name="permissions[]" 
-                                                       id="permission-{{ $permission->id }}"
-                                                       value="{{ $permission->id }}" {{-- THIS MUST BE UUID --}}>
-                                                <label class="form-check-label" for="permission-{{ $permission->id }}">
-                                                    {{ $permission->name }}
-                                                </label>
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" 
+                                                           type="checkbox" 
+                                                           required
+                                                           name="permissions[]" 
+                                                           id="permission-{{ $permission->id }}"
+                                                           value="{{ $permission->id }}" {{-- THIS MUST BE UUID --}}
+                                                           {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="permission-{{ $permission->id }}">
+                                                        {{ $permission->name }}
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
                                         @endforeach
-                                    </div>
-                                </div>
                                 
+                                        <!-- Menampilkan pesan error untuk permissions jika ada -->
+                                        @error('permissions')
+                                            <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>                
                                 <!-- Form Buttons -->
                                 <div class="form-group row mb-0">
                                     <div class="col-md-10 offset-md-2">
-                                        <button type="submit" class="btn btn-primary">
+                                        <button type="submit" id="create-btn" class="btn btn-primary">
                                             <i class="fas fa-save"></i> Create Role
                                         </button>
                                         <a href="{{ route('roles.index') }}" class="btn btn-secondary">
@@ -272,9 +251,26 @@
 @push('scripts')
     <!-- JS Libraies -->
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Page Specific JS File -->
     <script>
-        // You can add any specific JavaScript for this page here
+        document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('roles-create').submit();
+                }
+            });
+        });
     </script>
 @endpush

@@ -1,63 +1,3 @@
-{{-- @extends('layouts.app')
-
-@section('title', 'Create New Permissions')
-
-@section('main')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Create New Permission</h5>
-                </div>
-
-                <div class="card-body">
-                    <form method="POST" action="{{ route('permissions.store') }}">
-                        @csrf
-
-                        <div class="form-group row mb-3">
-                            <label for="name" class="col-md-2 col-form-label">Permissions Name</label>
-                            <div class="col-md-10">
-                                <input id="name" type="text" 
-                                       class="form-control @error('name') is-invalid @enderror" 
-                                       name="name" value="{{ old('name') }}" 
-                                       required autofocus
-                                       placeholder="Enter role name (letters, numbers, underscore, hyphen only)">
-                                
-                                @error('name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-
-                        <div class="form-group row mb-0">
-                            <div class="col-md-10 offset-md-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Create Role
-                                </button>
-                                <a href="{{ route('permissions.index') }}" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> Cancel
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@push('styles')
-<style>
-    .form-check-label {
-        word-break: break-word;
-    }
-</style>
-@endpush --}}
 @extends('layouts.app')
 
 @section('title', 'Create Roles')
@@ -243,7 +183,7 @@
                         </div>
                         
                         <div class="card-body">
-                            <form method="POST" action="{{ route('permissions.store') }}">
+                            <form id="permissions-create" method="POST" action="{{ route('permissions.store') }}">
                                 @csrf
                                 
                                 <!-- Role Name Input -->
@@ -266,7 +206,7 @@
                                 <!-- Form Buttons -->
                                 <div class="form-group row mb-0">
                                     <div class="col-md-10 offset-md-2">
-                                        <button type="submit" class="btn btn-primary">
+                                        <button id="create-btn" type="submit" class="btn btn-primary">
                                             <i class="fas fa-save"></i> Create Permission
                                         </button>
                                         <a href="{{ route('permissions.index') }}" class="btn btn-secondary">
@@ -287,8 +227,26 @@
     <!-- JS Libraies -->
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Page Specific JS File -->
     <script>
-        // You can add any specific JavaScript for this page here
+        document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('permissions-create').submit();
+                }
+            });
+        });
     </script>
 @endpush
