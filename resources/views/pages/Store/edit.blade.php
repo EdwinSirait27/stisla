@@ -205,7 +205,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Store.update', $hashedId) }}" method="POST">
+                                    <form id="store-edit" action="{{ route('Store.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
@@ -216,7 +216,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Store Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="name"
+                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
                                                             name="name" value="{{ old('name', $store->name) }}"
                                                             placeholder="DC" required>
                                                         @error('name')
@@ -233,7 +233,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Store Address') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('address') is-invalid @enderror"
                                                             value="{{ old('address', $store->address ?? '') }}"
                                                             type="text" id="address" name="address"
                                                             aria-describedby="info-address"
@@ -254,7 +254,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Store Phone Number') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('phone_num') is-invalid @enderror"
                                                             value="{{ old('phone_num', $store->phone_num ?? '') }}"
                                                             type="number" id="phone_num" name="phone_num"
                                                             aria-describedby="info-phone_num"
@@ -321,7 +321,29 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+          document.getElementById('edit-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
+              Swal.fire({
+                  title: 'Are You Sure?',
+                  text: "Make sure the data you entered is correct!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, Assign!',
+                  cancelButtonText: 'Abort'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('store-edit').submit();
+                  }
+              });
+          });
+    </script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -341,6 +363,7 @@
             });
         @endif
     </script>
+    @endpush
     {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">

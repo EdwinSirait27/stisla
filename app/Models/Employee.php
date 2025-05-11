@@ -31,6 +31,7 @@ class Employee extends Model
         'employee_name',
         'employee_pengenal',
         'position_id',
+        'company_id',
         'store_id',
         'department_id',
         'fingerprint_id',
@@ -55,15 +56,10 @@ class Employee extends Model
         'bpjs_ket',
         'email',
         'emergency_contact_name',
-        'emergency_contact_number',
-        'salary',
-        'house_allowance',
-        'meal_allowance',
-        'transport_allowance',
-        'total_salary',
+        
         'notes',
         'status',
-        'bank_name',
+        'banks_id',
         'name_account_number',
         'bank_account_name'
     ];
@@ -74,6 +70,10 @@ class Employee extends Model
     public function store()
     {
         return $this->belongsTo(Stores::class, 'store_id');
+    }
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
     public function position()
     {

@@ -271,7 +271,7 @@ public function getCategories(Request $request)
     
     return DataTables::of(collect($formattedCategories))
         ->addIndexColumn()
-        ->rawColumns(['action'])
+        
         ->make(true);
 }
 

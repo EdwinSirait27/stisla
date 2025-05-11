@@ -53,6 +53,12 @@
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Create Data</span></a>
                     <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{Banks}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Banks') }}">Banks</a>
+                        </li>
+                        <li class="{{ Request::is('{Company}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Company') }}">Companies</a>
+                        </li>
                         <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Position') }}">Position</a>
                         </li>

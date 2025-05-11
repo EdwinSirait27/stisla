@@ -204,11 +204,10 @@
                                             </button>
                                         </div>
                                     @endif
-
-                                    <form id="user-edit" action="{{ route('dashboardAdmin.update', $hashedId) }}" method="POST">
+                                    <form id="user-edit" action="{{ route('dashboardAdmin.update', $hashedId) }}"
+                                        method="POST">
                                         @csrf
                                         @method('PUT')
-
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -216,7 +215,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Username') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="username"
+                                                        <input type="text" class="form-control @error('username') is-invalid @enderror" id="username"
                                                             name="username" value="{{ old('username', $user->username) }}"
                                                             placeholder="edwinsirait27" required
                                                             oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')">
@@ -228,14 +227,13 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="password" class="form-control-label">
                                                         <i class="fas fa-lock"></i> {{ __('Password') }}
                                                     </label>
                                                     <div class="input-group">
-                                                        <input type="password" class="form-control" id="password"
+                                                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password"
                                                             name="password"
                                                             placeholder="Leave blank to keep current password"
                                                             aria-describedby="password-addon" maxlength="12"
@@ -258,7 +256,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
                                         </div>
                                         <script>
                                             function togglePassword() {
@@ -281,7 +278,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('device_wifi_mac') is-invalid @enderror"
                                                             value="{{ old('device_wifi_mac', $user->Terms->device_wifi_mac ?? '') }}"
                                                             type="text" id="device_wifi_mac" name="device_wifi_mac"
                                                             aria-describedby="info-device_wifi_mac"
@@ -301,7 +298,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('device_lan_mac') is-invalid @enderror"
                                                             value="{{ old('device_lan_mac', $user->Terms->device_lan_mac ?? '') }}"
                                                             type="text" id="device_lan_mac" name="device_lan_mac"
                                                             aria-describedby="info-device_lan_mac"
@@ -324,7 +321,7 @@
                                                         <i class="fas fa-shield-alt"></i> {{ __('Role') }}
                                                     </label>
                                                     <div class="@error('role') border border-danger rounded-3 @enderror">
-                                                        <select class="form-control" name="role" id="role"
+                                                        <select class="form-control @error('role') is-invalid @enderror" name="role" id="role"
                                                             required>
 
                                                             <option value="">Select Role</option>

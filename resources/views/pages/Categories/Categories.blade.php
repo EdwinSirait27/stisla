@@ -13,10 +13,12 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             background-color: #fff;
         }
+
         .card:hover {
             transform: translateY(-3px);
             box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
         }
+
         .card-header {
             background-color: #f8fafc;
             border-bottom: 1px solid rgba(0, 0, 0, 0.03);
@@ -157,11 +159,13 @@
                 font-size: 0.8rem;
             }
         }
-    .highlight {
-        background-color: #a2f5a2; /* Warna hijau muda */
-        padding: 0.1em 0.2em;
-        border-radius: 3px;
-    }
+
+        .highlight {
+            background-color: #a2f5a2;
+            /* Warna hijau muda */
+            padding: 0.1em 0.2em;
+            border-radius: 3px;
+        }
     </style>
 @endpush
 @section('main')
@@ -180,40 +184,11 @@
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
-{{-- ini dropdown --}}
-                                        {{-- <select name="parent_id" id="parent-filter" class="form-control select2">
-                                            <option value="">-- All Categories --</option>
-                                            @php
-                                                $renderOptions = function ($categories, $prefix = '') use (
-                                                    &$renderOptions,
-                                                ) {
-                                                    foreach ($categories as $category) {
-                                                        echo '<option value="' .
-                                                            $category->id .
-                                                            '">' .
-                                                            $prefix .
-                                                            htmlspecialchars($category->category_name) .
-                                                            '</option>';
 
-                                                        if (
-                                                            isset($category->children) &&
-                                                            $category->children &&
-                                                            count($category->children)
-                                                        ) {
-                                                            $renderOptions($category->children, $prefix . '— ');
-                                                        }
-                                                    }
-                                                };
-                                                $renderOptions($categories);
-                                            @endphp
-                                        </select> --}}
-                                        {{-- ini seperti filter biasa kek datatables --}}
-                                        {{-- <input type="text" id="category_name_filter" class="form-control" placeholder="Filter by name..."> --}}
                                     </div>
-                                   
+
                                     <div class="col-md-2">
-                                        {{-- <button id="filter-btn" class="btn btn-primary">Filter</button>
-                                        <button id="reset-filter-btn" class="btn btn-secondary">Reset</button> --}}
+
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -221,17 +196,17 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-            <th class="text-center">Department Code</th>
-            <th class="text-center">Department Name</th>
-            <th class="text-center">Categories Code</th>
-            <th class="text-center">Categories Name</th>
-            <th class="text-center">Sub Categories Code</th>
-            <th class="text-center">Sub Categories Name</th>
-            <th class="text-center">Family Code</th>
-            <th class="text-center">Family Name</th>
-            <th class="text-center">Sub Family Code</th>
-            <th class="text-center">Sub Family Name</th>
-            <th class="text-center">Action</th>
+                                                <th class="text-center">Department Code</th>
+                                                <th class="text-center">Department Name</th>
+                                                <th class="text-center">Categories Code</th>
+                                                <th class="text-center">Categories Name</th>
+                                                <th class="text-center">Sub Categories Code</th>
+                                                <th class="text-center">Sub Categories Name</th>
+                                                <th class="text-center">Family Code</th>
+                                                <th class="text-center">Family Name</th>
+                                                <th class="text-center">Sub Family Code</th>
+                                                <th class="text-center">Sub Family Name</th>
+                                                
                                             </tr>
                                         </thead>
                                     </table>
@@ -255,240 +230,155 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js"></script>
     <script>
-//         $(document).ready(function() {
-//     var table = $('#categories-table').DataTable({
-//         processing: true,
-//         serverSide: true,
-//         ajax: {
-//             url: '{{ route("categories.categories") }}',
-//             data: function(d) {
-//                 d.category_name = $('#category_name_filter').val();
-//             }
-//         },
-//         responsive: true,
-//                 lengthMenu: [
-//                     [10, 25, 50, 100, -1],
-//                     [10, 25, 50, 100, "All"]
-//                 ],
-//                 pageLength: 10,
-//                 language: {
-//                     lengthMenu: "Show _MENU_ entries",
-//                     search: "_INPUT_",
-//                     searchPlaceholder: "Search...",
-//                     paginate: {
-//                         first: "First",
-//                         last: "Last",
-//                         next: "Next",
-//                         previous: "Previous"
-//                     },
-//                     info: "Showing _START_ to _END_ of _TOTAL_ entries",
-//                     infoEmpty: "Showing 0 to 0 of 0 entries",
-//                     infoFiltered: "(filtered from _MAX_ total entries)"
-//                 },
-//         columns: [
-//             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-//             { data: 'level_1_code', name: 'level_1_code',className: 'text-center' },
-//             { data: 'level_1_name', name: 'level_1_name',className: 'text-center' },
-//             { data: 'level_2_code', name: 'level_2_code',className: 'text-center' },
-//             { data: 'level_2_name', name: 'level_2_name',className: 'text-center' },
-//             { data: 'level_3_code', name: 'level_3_code',className: 'text-center' },
-//             { data: 'level_3_name', name: 'level_3_name',className: 'text-center' },
-//             { data: 'level_4_code', name: 'level_4_code',className: 'text-center' },
-//             { data: 'level_4_name', name: 'level_4_name',className: 'text-center' },
-//             { data: 'level_5_code', name: 'level_5_code',className: 'text-center' },
-//             { data: 'level_5_name', name: 'level_5_name',className: 'text-center' },
-//             { data: 'action', name: 'action', orderable: false, searchable: false ,className: 'text-center' }
-//         ],
-//         order: [[1, 'asc'], [3, 'asc'], [5, 'asc'], [7, 'asc'], [9, 'asc']]
-//     });
-
-//     $('#filter-btn').click(function() {
-//         table.ajax.reload();
-//     });
-
-//     $('#reset-filter-btn').click(function() {
-//         $('#category_name_filter').val('');
-//         table.ajax.reload();
-//     });
-
-//     $('#category_name_filter').keypress(function(e) {
-//         if (e.which == 13) {
-//             table.ajax.reload();
-//         }
-//     });
-// });
-$(document).ready(function() {
-    var table = $('#categories-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("categories.categories") }}',
-            data: function(d) {
-                d.category_name = $('#category_name_filter').val();
-            }
-        },
-        responsive: true,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        pageLength: 10,
-        language: {
-            lengthMenu: "Show _MENU_ entries",
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            },
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)"
-        },
-        columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'level_1_code', name: 'level_1_code',className: 'text-center' },
-            { data: 'level_1_name', name: 'level_1_name',className: 'text-center' },
-            { data: 'level_2_code', name: 'level_2_code',className: 'text-center' },
-            { data: 'level_2_name', name: 'level_2_name',className: 'text-center' },
-            { data: 'level_3_code', name: 'level_3_code',className: 'text-center' },
-            { data: 'level_3_name', name: 'level_3_name',className: 'text-center' },
-            { data: 'level_4_code', name: 'level_4_code',className: 'text-center' },
-            { data: 'level_4_name', name: 'level_4_name',className: 'text-center' },
-            { data: 'level_5_code', name: 'level_5_code',className: 'text-center' },
-            { data: 'level_5_name', name: 'level_5_name',className: 'text-center' },
-            { data: 'action', name: 'action', orderable: false, searchable: false ,className: 'text-center' }
-        ],
-        order: [[1, 'asc'], [3, 'asc'], [5, 'asc'], [7, 'asc'], [9, 'asc']],
-        initComplete: function() {
-            // Inisialisasi mark.js setelah tabel selesai dimuat
-            this.api().on('draw', function() {
-                highlightSearchResults();
-            });
-        }
-    });
-
-    function highlightSearchResults() {
-        var searchTerm = table.search();
-        if (searchTerm) {
-            // Hapus highlight sebelumnya
-            $('#categories-table').unmark();
-            
-            // Highlight teks yang sesuai dengan warna hijau
-            $('#categories-table').mark(searchTerm, {
-                className: 'highlight',
-                separateWordSearch: false,
-                done: function() {
-                    console.log('Highlighting completed');
+        $(document).ready(function() {
+            var table = $('#categories-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('categories.categories') }}',
+                    data: function(d) {
+                        d.category_name = $('#category_name_filter').val();
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    },
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'level_1_code',
+                        name: 'level_1_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_1_name',
+                        name: 'level_1_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_2_code',
+                        name: 'level_2_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_2_name',
+                        name: 'level_2_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_3_code',
+                        name: 'level_3_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_3_name',
+                        name: 'level_3_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_4_code',
+                        name: 'level_4_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_4_name',
+                        name: 'level_4_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_5_code',
+                        name: 'level_5_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'level_5_name',
+                        name: 'level_5_name',
+                        className: 'text-center'
+                    }
+                ],
+                order: [
+                    [1, 'asc'],
+                    [3, 'asc'],
+                    [5, 'asc'],
+                    [7, 'asc'],
+                    [9, 'asc']
+                ],
+                initComplete: function() {
+                    // Inisialisasi mark.js setelah tabel selesai dimuat
+                    this.api().on('draw', function() {
+                        highlightSearchResults();
+                    });
                 }
             });
-        } else {
-            $('#categories-table').unmark();
-        }
-    }
 
-    $('#filter-btn').click(function() {
-        table.ajax.reload(null, false, function() {
-            highlightSearchResults();
-        });
-    });
+            function highlightSearchResults() {
+                var searchTerm = table.search();
+                if (searchTerm) {
+                    // Hapus highlight sebelumnya
+                    $('#categories-table').unmark();
 
-    $('#reset-filter-btn').click(function() {
-        $('#category_name_filter').val('');
-        table.search('').draw();
-        $('#categories-table').unmark();
-    });
+                    // Highlight teks yang sesuai dengan warna hijau
+                    $('#categories-table').mark(searchTerm, {
+                        className: 'highlight',
+                        separateWordSearch: false,
+                        done: function() {
+                            console.log('Highlighting completed');
+                        }
+                    });
+                } else {
+                    $('#categories-table').unmark();
+                }
+            }
 
-    $('#category_name_filter').keypress(function(e) {
-        if (e.which == 13) {
-            table.ajax.reload(null, false, function() {
-                highlightSearchResults();
+            $('#filter-btn').click(function() {
+                table.ajax.reload(null, false, function() {
+                    highlightSearchResults();
+                });
             });
-        }
-    });
 
-    // Tambahkan event listener untuk pencarian global
-    $('.dataTables_filter input').on('keyup', function() {
-        setTimeout(function() {
-            highlightSearchResults();
-        }, 500);
-    });
-});
+            $('#reset-filter-btn').click(function() {
+                $('#category_name_filter').val('');
+                table.search('').draw();
+                $('#categories-table').unmark();
+            });
 
+            $('#category_name_filter').keypress(function(e) {
+                if (e.which == 13) {
+                    table.ajax.reload(null, false, function() {
+                        highlightSearchResults();
+                    });
+                }
+            });
 
+            // Tambahkan event listener untuk pencarian global
+            $('.dataTables_filter input').on('keyup', function() {
+                setTimeout(function() {
+                    highlightSearchResults();
+                }, 500);
+            });
+        });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//         $(document).ready(function() {
-//             // Initialize Select2
-//             $('#parent-filter').select2({
-//                 placeholder: "Select parent category",
-//                 allowClear: true
-//             });
-
-//             const table = $('#categories-table').DataTable({
-//                 processing: true,
-//                 serverSide: true,
-//                 ajax: {
-//                     url: '{{ route('categories.categories') }}',
-//                     data: function(d) {
-//                         d.parent_id = $('#parent-filter').val();
-//                         d.category_name = $('#search-category').val();
-//                     }
-//                 },
-//                 columns: [  
-// { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-//             { data: 'level_1_code', name: 'level_1_code' },
-//             { data: 'level_1_name', name: 'level_1_name' },
-//             { data: 'level_2_code', name: 'level_2_code' },
-//             { data: 'level_2_name', name: 'level_2_name' },
-//             { data: 'level_3_code', name: 'level_3_code' },
-//             { data: 'level_3_name', name: 'level_3_name' },
-//             { data: 'level_4_code', name: 'level_4_code' },
-//             { data: 'level_4_name', name: 'level_4_name' },
-//             { data: 'level_5_code', name: 'level_5_code' },
-//             { data: 'level_5_name', name: 'level_5_name' },
-//             { data: 'action', name: 'action', orderable: false, searchable: false }
-        
-//                 ],
-//                 language: {
-//                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-//                 },
-//                 dom: '<"top"lf>rt<"bottom"ip>',
-//                 initComplete: function() {
-//                     $('.dataTables_filter').hide();
-//                 }
-//             });
-
-//             $('#search-category').on('keyup', function() {
-//                 table.draw();
-//             });
-
-//             $('#parent-filter').on('change', function() {
-//                 table.draw();
-//             });
-//         });
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
@@ -499,199 +389,3 @@ $(document).ready(function() {
         @endif
     </script>
 @endpush
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{{-- //                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-//             { data: 'parent_code', name: 'parent_code',
-//             className: 'text-center'
-
-//              },
-//             {
-//     data: 'parent_name',
-//     name: 'parent_name',
-//     className: 'text-center',
-//     render: function(data, type, row) {
-//         return data ? data : 'Parent';
-//     }
-// },
-//             { data: 'child_code', name: 'child_code',
-//             className: 'text-center'
-
-//              },
-//             { data: 'child_name', name: 'child_name',
-//             className: 'text-center'
-
-
-//              },
-//             { data: 'action', name: 'action', orderable: false, searchable: false } --}}
-{{-- @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
-    <style>
-        .select2-container--default .select2-selection--single {
-            height: calc(2.25rem + 2px);
-            padding: .375rem .75rem;
-        }
-    </style>
-@endpush --}}
-{{-- @section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Categories</h1>
-            </div>
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i>Categories</i>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-
-                                        <select name="parent_id" id="categories-type-filter" class="form-control">
-                                            <option value="">-- Tanpa Parent --</option>
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}"
-                                                    {{ old('parent_id') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->full_category_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">No.</th>
-                                                <th class="text-center">Category Code</th>
-                                                <th class="text-center">Category Name</th>
-                                                <th class="text-center">Parent</th>
-                                                <th class="text-center">Number of Subcategories</th>
-                                                <th class="text-center">Action</th>
-
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Categories.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Categories
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-@endsection
-
-@push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(document).ready(function() {
-            const table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('categories.categories') }}',
-                    data: function(d) {
-                        d.category_name = $('#search-category').val();
-                    }
-                },
-                columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        className: 'text-center',
-
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'category_code',
-                        name: 'category_code',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'full_category_name',
-                        name: 'category_name',
-                        className: 'text-center',
-
-                        render: function(data, type, row) {
-                            return `<strong>${row.category_name}</strong>${row.parent_id ? ` <small class="text-muted">(${row.full_category_name})</small>` : ''}`;
-                        }
-                    },
-                    {
-                        data: 'parent_name',
-                        name: 'parent_name',
-                        defaultContent: '-',
-                        className: 'text-center'
-
-                    },
-                    {
-                        data: 'children_count',
-                        name: 'children_count',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-                }
-            });
-
-            $('#search-category').keyup(function() {
-                table.draw();
-            });
-        });
-    </script>
-@endpush --}}

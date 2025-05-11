@@ -205,7 +205,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Statusproduct.update', $hashedId) }}" method="POST">
+                                    <form id="status-edit" action="{{ route('Statusproduct.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
@@ -216,7 +216,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Status') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="status"
+                                                        <input type="text" class="form-control @error('status') is-invalid @enderror" id="status"
                                                             name="status" value="{{ old('status', $status->status) }}"
                                                             placeholder="Freeze" required>
                                                         @error('status')
@@ -240,7 +240,7 @@
                                             <a href="{{ route('pages.Statusproduct') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>
@@ -256,7 +256,28 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+     document.getElementById('edit-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
+              Swal.fire({
+                  title: 'Are You Sure?',
+                  text: "Make sure the data you entered is correct!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, Assign!',
+                  cancelButtonText: 'Abort'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('status-edit').submit();
+                  }
+              });
+          });
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -276,4 +297,4 @@
             });
         @endif
     </script>
-   
+   @endpush

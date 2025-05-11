@@ -9,8 +9,6 @@ use App\Models\User;
 use App\Models\Stores;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-
-
 class StoreController extends Controller
 {
     public function index()

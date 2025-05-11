@@ -185,6 +185,7 @@
                                             <tr>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Company</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Store</th>
@@ -267,6 +268,11 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name_company',
+                        name: 'name_company',
                         className: 'text-center'
                     },
                     {

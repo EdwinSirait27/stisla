@@ -187,6 +187,7 @@
                                                 <th class="text-center">Username</th>
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Employee ID</th>
+                                                <th class="text-center">Company</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Department</th>
                                                 <th class="text-center">Store</th>
@@ -210,11 +211,6 @@
                                                 <th class="text-center">BPJS Ketenagakerjaan</th>
                                                 <th class="text-center">Email</th>
                                                 <th class="text-center">Emergency Contact Name</th>
-                                                <th class="text-center">Salary</th>
-                                                <th class="text-center">House Allowance</th>
-                                                <th class="text-center">Meal Allowance</th>
-                                                <th class="text-center">Transport Allowance</th>
-                                                <th class="text-center">Total Salary</th>
                                                 <th class="text-center">Notes</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
@@ -633,6 +629,11 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'name_company',
+                        name: 'name_company',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'position_name',
                         name: 'position_name',
                         className: 'text-center'
@@ -747,46 +748,7 @@
                         name: 'emergency_contact_name',
                         className: 'text-center'
                     },
-                    {
-    data: 'salary',
-    name: 'salary',
-    className: 'text-center',
-    render: function(data) {
-        return 'Rp. ' + data;
-    }
-},
-                    {
-                        data: 'house_allowance',
-                        name: 'house_allowance',
-                        className: 'text-center',
-    render: function(data) {
-        return 'Rp. ' + data;
-    }
-},
-                    {
-                        data: 'meal_allowance',
-                        name: 'meal_allowance',
-                        className: 'text-center',
-    render: function(data) {
-        return 'Rp. ' + data;
-    }
-},
-                    {
-                        data: 'transport_allowance',
-                        name: 'transport_allowance',
-                        className: 'text-center',
-    render: function(data) {
-        return 'Rp. ' + data;
-    }
-},
-                    {
-                        data: 'total_salary',
-                        name: 'total_salary',
-                        className: 'text-center',
-    render: function(data) {
-        return 'Rp. ' + data;
-    }
-},
+                   
                     {
                         data: 'notes',
                         name: 'notes',

@@ -201,7 +201,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Store.store') }}" method="POST">
+                                    <form id="store-create" action="{{ route('Store.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -210,7 +210,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Store Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="name" name="name" 
+                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
                                                             value="{{ old('name') }}" required
                                                             placeholder="Fill Store Name">
                                                         @error('name')
@@ -227,7 +227,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Store Address') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('address') is-invalid @enderror"
                                                             value="{{ old('address', $store->address ?? '') }}"
                                                             type="text" id="address" name="address"
                                                             value="{{ old('address') }}" aria-describedby="info-address"
@@ -248,7 +248,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Store Phone Number') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('phone_num') is-invalid @enderror"
                                                             value="{{ old('phone_num', $store->phone_num ?? '') }}"
                                                             type="number" id="phone_num" name="phone_num"
                                                             value="{{ old('phone_num') }}" aria-describedby="info-phone_num"
@@ -267,7 +267,7 @@
                                                             <i class="fas fa-shield-alt"></i> {{ __('Manager Store') }}
                                                         </label>
                                                         <div class="@error('manager_id') border border-danger rounded-3 @enderror">
-                                                            <select class="form-control" name="manager_id" id="manager_id" required>
+                                                            <select class="form-control @error('manager_id') is-invalid @enderror" name="manager_id" id="manager_id" required>
                                                                 <option value="" disabled selected>Choose Manager</option>
                                                                 @foreach($managers as $manager)
                                                             <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
@@ -309,10 +309,10 @@
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Department') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Store') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="create-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>
@@ -327,7 +327,30 @@
     </div>
 @endsection
 @push('scripts')
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+         document.getElementById('create-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
+              Swal.fire({
+                  title: 'Are You Sure?',
+                  text: "Make sure the data you entered is correct!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, Assign!',
+                  cancelButtonText: 'Abort'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('store-create').submit();
+                  }
+              });
+          });
+          
+    </script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -347,3 +370,4 @@
             });
         @endif
     </script>
+@endpush

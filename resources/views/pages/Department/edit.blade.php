@@ -205,7 +205,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Department.update', $hashedId) }}" method="POST">
+                                    <form id="departments-edit" action="{{ route('Department.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
@@ -216,7 +216,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Department Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="department_name"
+                                                        <input type="text" class="form-control @error('department_name') is-invalid @enderror" id="department_name"
                                                             name="department_name" value="{{ old('department_name', $department->department_name) }}"
                                                             placeholder="IT" required>
                                                         @error('department_name')
@@ -266,7 +266,7 @@
                                             <a href="{{ route('pages.Department') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>
@@ -283,6 +283,28 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script>
+        document.getElementById('edit-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
+              Swal.fire({
+                  title: 'Are You Sure?',
+                  text: "Make sure the data you entered is correct!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, Assign!',
+                  cancelButtonText: 'Abort'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('departments-edit').submit();
+                  }
+              });
+          });
+          
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -302,6 +324,7 @@
             });
         @endif
     </script>
+    @endpush
     {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">

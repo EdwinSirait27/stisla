@@ -160,15 +160,7 @@
             }
         }
     </style>
-@endpush
-
-
-
-
-
-
-
-  
+@endpush  
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -202,7 +194,6 @@
                                                 <th class="text-center">Brands Code</th>
                                                 <th class="text-center">Brands Name</th>
                                                 <th class="text-center">Description</th>
-                                                {{-- <th class="text-center">Created At</th> --}}
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -235,98 +226,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  
-    {{-- <script>
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('brands.brands') }}',
-                    data: function(d) {
-                        d.brand_name = $('#brands-type-filter').val();
-                    },
-                    error: function(xhr, error, thrown) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Failed to load data!'
-                        });
-                        console.error(xhr.responseText);
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                pageLength: 10,
-                language: {
-                    lengthMenu: "Show _MENU_ entries",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    },
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
-                },
-                columns: [
-                    {
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'brand_code',
-                        name: 'brand_code',
-                        className: 'text-center align-middle'
-                    },
-                    {
-                        data: 'brand_name',
-                        name: 'brand_name',
-                        className: 'text-center align-middle'   
-                    },
-                    {
-                        data: 'description',
-                        name: 'description',
-                        className: 'text-center align-middle',
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        className: 'text-center align-middle',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-            $('#brands-type-filter').change(function() {
-                table.ajax.reload();
-            });
-
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000
-                });
-            @endif
-        });
-    </script> --}}
     <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
@@ -429,79 +328,3 @@
         });
     </script>
 @endpush
-
-
-{{-- @section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Users Activity Logs</h1>
-            </div>
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> Users Activity Logs {{$activity->user->username}}</h6>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
-                                        <select id="activity-type-filter" class="form-control">
-                                            <option value="">All Activity Types</option>
-                                            <option value="Login">Login</option>
-                                            <option value="Logout">Logout</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">No.</th>
-                                                <th class="text-center">Activity Type</th>
-                                                <th class="text-center">Activity Time</th>
-                                                <th class="text-center">Mac Wifi</th>
-                                                <th class="text-center">Mac Lan</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-@endsection --}}
-
-{{-- @push('scripts')
-    <!-- Load required libraries -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
-  {{-- <style>
-        /* Custom CSS to ensure lengthMenu visibility */
-        .dataTables_wrapper .dataTables_length {
-            float: left;
-            padding-top: 0.5em;
-        }
-        .dataTables_wrapper .dataTables_filter {
-            float: right;
-            text-align: right;
-        }
-        .dataTables_wrapper .dataTables_filter input {
-            margin-left: 0.5em;
-        }
-        .dataTables_wrapper .dataTables_paginate {
-            float: right;
-        }
-        .dt-buttons {
-            margin-bottom: 10px;
-        }
-    </style> --}}

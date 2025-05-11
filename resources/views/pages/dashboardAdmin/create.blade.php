@@ -202,7 +202,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('dashboardAdmin.store') }}" method="POST">
+                                    <form id="dashboardAdmin-create" action="{{ route('dashboardAdmin.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -211,7 +211,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Username') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="username" name="username" 
+                                                        <input type="text" class="form-control @error('username') is-invalid @enderror" id="username" name="username" 
                                                             value="{{ old('username') }}" required
                                                             oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')"
                                                             placeholder="Fill Username">
@@ -230,7 +230,7 @@
                                                         <i class="fas fa-lock"></i> {{ __('Password') }}
                                                     </label>
                                                     <div class="input-group">
-                                                        <input type="password" class="form-control" id="password" name="password"
+                                                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password"
                                                             placeholder="Leave blank to keep current password"
                                                             aria-describedby="password-addon" maxlength="12" required
                                                             oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
@@ -274,7 +274,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mac Lan') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('device_lan_mac') is-invalid @enderror"
                                                             value="{{ old('device_lan_mac', $user->Terms->device_lan_mac ?? '') }}"
                                                             type="text" id="device_lan_mac" name="device_lan_mac"
                                                             value="{{ old('device_lan_mac') }}" aria-describedby="info-device_lan_mac"
@@ -293,7 +293,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mac Wifi') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('device_wifi_mac') is-invalid @enderror"
                                                             value="{{ old('device_wifi_mac', $user->Terms->device_wifi_mac ?? '') }}"
                                                             type="text" id="device_wifi_mac" name="device_wifi_mac"
                                                             value="{{ old('device_wifi_mac') }}" aria-describedby="info-device_wifi_mac"
@@ -315,7 +315,7 @@
                                                         <i class="fas fa-shield-alt"></i> {{ __('Role') }}
                                                     </label>
                                                     <div class="@error('role') border border-danger rounded-3 @enderror">
-                                                        <select class="form-control" name="role" id="role" required>
+                                                        <select class="form-control @error('role') is-invalid @enderror" name="role" id="role" required>
                                                             <option value="" disabled selected>Choose Role</option>
                                                             @foreach ($roles as $roleName => $displayName)
                                                                 <option value="{{ $roleName }}" {{ old('role') == $roleName ? 'selected' : '' }}>
@@ -344,7 +344,7 @@
                                             <a href="{{ route('pages.dashboardAdmin') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="create-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>
@@ -561,6 +561,28 @@
 @endsection --}}
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script>
+    document.getElementById('create-btn').addEventListener('click', function(e) {
+          e.preventDefault(); // Mencegah pengiriman form langsung
+          Swal.fire({
+              title: 'Are You Sure?',
+              text: "Make sure the data you entered is correct!",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes, Assign!',
+              cancelButtonText: 'Abort'
+          }).then((result) => {
+              if (result.isConfirmed) {
+                  // Jika pengguna mengkonfirmasi, submit form
+                  document.getElementById('dashboardAdmin-create').submit();
+              }
+          });
+      });
+      
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -580,6 +602,7 @@
             });
         @endif
     </script>
+@endpush
 
     {{-- <div class="col-md-6">
                                             <div class="form-group">

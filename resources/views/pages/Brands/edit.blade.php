@@ -205,35 +205,18 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Brands.update', $hashedId) }}" method="POST">
+                                    <form id="brands-edit" action="{{ route('Brands.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="brand_code" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Brand Code') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="text" class="form-control" id="brand_code"
-                                                            name="brand_code" value="{{ old('brand_code', $brand->brand_code) }}"
-                                                            placeholder="BR0001" required>
-                                                        @error('brand_code')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
                                                     <label for="brand_name" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Brand Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="brand_name"
+                                                        <input type="text" class="form-control @error('brand_name') is-invalid @enderror" id="brand_name"
                                                             name="brand_name" value="{{ old('brand_name', $brand->brand_name) }}"
                                                             placeholder="Adidas" required>
                                                         @error('brand_name')
@@ -244,15 +227,14 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
+                                           
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="description" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Description') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('description') is-invalid @enderror"
                                                         value="{{ old('description', $brand->description ?? '') }}"
                                                         type="text" id="description" name="description"
                                                         value="{{ old('description') }}" aria-describedby="info-description"
@@ -270,7 +252,7 @@
                                             <a href="{{ route('pages.Brands') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>
@@ -287,6 +269,27 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script>
+     document.getElementById('edit-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('brands-edit').submit();
+                }
+            });
+        });
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -306,4 +309,5 @@
             });
         @endif
     </script>
+@endpush
     

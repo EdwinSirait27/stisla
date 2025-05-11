@@ -19,7 +19,9 @@ use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\taxstatusController;
 use App\Http\Controllers\StatusproductController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\BanksController;
 use App\Http\Controllers\ActivityController;
 /*
 |--------------------------------------------------------------------------
@@ -133,7 +135,7 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
 });
 // headHR
 Route::middleware(['auth', 'role:HeadHR'])->group(function () {
-    Route::group(['middleware' => ['permission:dashboardHR']], function () {
+    // Route::group(['middleware' => ['permission:dashboardHR']], function () {
 
         Route::get('/dashboardHR', [DashboardHRController::class, 'index'])
             ->name('pages.dashboardHR');
@@ -198,8 +200,8 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
         ->name('pages.Categories');
     Route::get('Categories/create', [CategoriesController::class, 'create'])->name('Categories.create');
     Route::post('/Categories', [CategoriesController::class, 'store'])->name('Categories.store');
-    Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
-    Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
+    // Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
+    // Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
     Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
     Route::get('categories/tree', [CategoriesController::class, 'getCategoryTree'])->name('categories.tree');
     // Tax status
@@ -241,8 +243,24 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::get('/Masterproducts/edit/{hashedId}', [MasterproductController::class, 'edit'])->name('Masterproducts.edit');
     Route::put('/Masterproducts/{hashedId}', [MasterproductController::class, 'update'])->name('Masterproducts.update');
     Route::get('/masterproducts/masterproducts', [MasterproductController::class, 'getMasterproducts'])->name('masterproducts.masterproducts');
+   
+    Route::get('/Company', [CompanyController::class, 'index'])
+        ->name('pages.Company');
+    Route::get('Company/create', [CompanyController::class, 'create'])->name('Company.create');
+    Route::post('/Company', [CompanyController::class, 'store'])->name('Company.store');
+    Route::get('/Company/edit/{hashedId}', [CompanyController::class, 'edit'])->name('Company.edit');
+    Route::put('/Company/{hashedId}', [CompanyController::class, 'update'])->name('Company.update');
+    Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
+// banks   
+    Route::get('/Banks', [BanksController::class, 'index'])
+        ->name('pages.Banks');
+    Route::get('Banks/create', [BanksController::class, 'create'])->name('Banks.create');
+    Route::post('/Banks', [BanksController::class, 'store'])->name('Banks.store');
+    Route::get('/Banks/edit/{hashedId}', [BanksController::class, 'edit'])->name('Banks.edit');
+    Route::put('/Banks/{hashedId}', [BanksController::class, 'update'])->name('Banks.update');
+    Route::get('/banks/banks', [BanksController::class, 'getBanks'])->name('banks.banks');
 
-});
+// });
 
 
 

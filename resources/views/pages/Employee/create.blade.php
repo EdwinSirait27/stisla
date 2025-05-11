@@ -204,7 +204,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Employee.store') }}" method="POST">
+                                    <form id="employee-create" action="{{ route('Employee.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -213,7 +213,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Full Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="employee_name"
+                                                        <input type="text" class="form-control @error('employee_name') is-invalid @enderror" id="employee_name"
                                                             name="employee_name" value="{{ old('employee_name') }}" required
                                                             placeholder="Fill Full Name">
                                                         @error('employee_name')
@@ -232,7 +232,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('NIK') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('nik') is-invalid @enderror"
                                                             value="{{ old('nik', $employee->Employee->nik ?? '') }}"
                                                             type="number" id="nik" name="nik"
                                                             value="{{ old('nik') }}" aria-describedby="info-nik"
@@ -250,34 +250,11 @@
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="position_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Position') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="position_id" class="form-control" required>
-                                                            <option value="">-- Choose Position --</option>
-                                                            @foreach ($positions as $key => $value)
-                                                                <option value="{{ $key }}"
-                                                                    {{ old('position_id') == $key ? 'selected' : '' }}>
-                                                                    {{ $value }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('position_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Store') }}
                                                     </label>
                                                     <div>
-                                                        <select name="store_id" class="form-control"required>
+                                                        <select name="store_id" class="form-control @error('store_id') is-invalid @enderror"required>
                                                             <option value="">-- Choose Store --</option>
                                                             @foreach ($stores as $key => $value)
                                                                 <option value="{{ $key }}"
@@ -293,6 +270,31 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="position_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Position') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="position_id" class="form-control @error('position_id') is-invalid @enderror" required>
+                                                            <option value="">-- Choose Position --</option>
+                                                            @foreach ($positions as $key => $value)
+                                                                <option value="{{ $key }}"
+                                                                    {{ old('position_id') == $key ? 'selected' : '' }}>
+                                                                    {{ $value }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('position_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+
+                                                 
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="row mt-3">
                                             <div class="col-md-6">
@@ -301,7 +303,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Department') }}
                                                     </label>
                                                     <div>
-                                                        <select name="department_id" class="form-control"required>
+                                                        <select name="department_id" class="form-control @error('department_id') is-invalid @enderror"required>
                                                             <option value="">-- Choose Department --</option>
                                                             @foreach ($departments as $key => $value)
                                                                 <option value="{{ $key }}"
@@ -323,7 +325,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Status Employee') }}
                                                     </label>
                                                     <div>
-                                                        <select name="status_employee" class="form-control"required>
+                                                        <select name="status_employee" class="form-control @error('status_employee') is-invalid @enderror"required>
                                                             <option value="">-- Choose Status Employee --</option>
                                                             @foreach ($status_employee as $value)
                                                                 <option value="{{ $value }}"
@@ -347,7 +349,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Join Date') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('join_date') is-invalid @enderror"
                                                             value="{{ old('join_date', $employee->Employee->join_date ?? '') }}"
                                                             type="date" id="join_date" name="join_date"
                                                             value="{{ old('join_date') }}"
@@ -366,7 +368,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Status Marriage') }}
                                                     </label>
                                                     <div>
-                                                        <select name="marriage" class="form-control"required>
+                                                        <select name="marriage" class="form-control @error('marriage') is-invalid @enderror"required>
                                                             <option value="">-- Choose Status Marriage --</option>
                                                             @foreach ($status_marriage as $value)
                                                                 <option value="{{ $value }}"
@@ -390,7 +392,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Child') }}
                                                     </label>
                                                     <div>
-                                                        <select name="child" class="form-control" required>
+                                                        <select name="child" class="form-control @error('child') is-invalid @enderror" required>
                                                             <option value="">-- Choose Child --</option>
                                                             @foreach ($status_child as $value)
                                                                 <option value="{{ $value }}"
@@ -412,17 +414,17 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Telephone Number') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
-                                                            value="{{ old('telp_number', $employee->Employee->telp_number ?? '') }}"
-                                                            type="number" id="telp_number" name="telp_number"
-                                                            value="{{ old('telp_number') }}"
-                                                            aria-describedby="info-telp_number" maxlength="30"
-                                                            placeholder="Insert Telephone Number" required>
-                                                        @error('telp_number')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
+                                                        <input class="form-control @error('telp_number') is-invalid @enderror"
+                                                        value="{{ old('telp_number', $employee->Employee->telp_number ?? '') }}"
+                                                        type="number" id="telp_number" name="telp_number"
+                                                        aria-describedby="info-telp_number" maxlength="30"
+                                                        placeholder="Insert Telephone Number" required>
+                                                    @error('telp_number')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                    
                                                     </div>
                                                 </div>
                                             </div>
@@ -434,7 +436,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Gender') }}
                                                     </label>
                                                     <div>
-                                                        <select name="gender" class="form-control" required>
+                                                        <select name="gender" class="form-control @error('gender') is-invalid @enderror" required>
                                                             <option value="">-- Choose Gender --</option>
                                                             @foreach ($status_gender as $value)
                                                                 <option value="{{ $value }}"
@@ -456,7 +458,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Date of Birth') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('date_of_birth') is-invalid @enderror"
                                                             value="{{ old('date_of_birth', $employee->Employee->date_of_birth ?? '') }}"
                                                             type="date" id="date_of_birth" name="date_of_birth"
                                                             value="{{ old('date_of_birth') }}"
@@ -477,7 +479,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Place of Birth') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('place_of_birth') is-invalid @enderror"
                                                             value="{{ old('place_of_birth', $employee->Employee->place_of_birth ?? '') }}"
                                                             type="text" id="place_of_birth" name="place_of_birth"
                                                             value="{{ old('place_of_birth') }}"
@@ -497,7 +499,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Mothers Name') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('biological_mother_name') is-invalid @enderror"
                                                             value="{{ old('biological_mother_name', $employee->Employee->biological_mother_name ?? '') }}"
                                                             type="text" id="biological_mother_name"
                                                             name="biological_mother_name"
@@ -521,7 +523,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Religion') }}
                                                     </label>
                                                     <div>
-                                                        <select name="religion" class="form-control" required>
+                                                        <select name="religion" class="form-control @error('religion') is-invalid @enderror" required>
                                                             <option value="">-- Choose Religion --</option>
                                                             @foreach ($status_religion as $value)
                                                                 <option value="{{ $value }}"
@@ -543,7 +545,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Current Address') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('current_address') is-invalid @enderror"
                                                             value="{{ old('current_address', $employee->Employee->current_address ?? '') }}"
                                                             type="text" id="current_address" name="current_address"
                                                             value="{{ old('current_address') }}"
@@ -561,11 +563,11 @@
                                         <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="status_last_education" class="form-control-label">
+                                                    <label for="id_card_address" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Id Card Address') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('id_card_address') is-invalid @enderror"
                                                             value="{{ old('id_card_address', $employee->Employee->id_card_address ?? '') }}"
                                                             type="text" id="id_card_address" name="id_card_address"
                                                             value="{{ old('id_card_address') }}"
@@ -585,7 +587,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Last Education') }}
                                                     </label>
                                                     <div>
-                                                        <select name="last_education" class="form-control" required>
+                                                        <select name="last_education" class="form-control @error('last_education') is-invalid @enderror" required>
                                                             <option value="">-- Choose Education --</option>
                                                             @foreach ($status_last_education as $value)
                                                                 <option value="{{ $value }}"
@@ -609,7 +611,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Institution') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control"
+                                                        <input class="form-control @error('institution') is-invalid @enderror"
                                                             value="{{ old('institution', $employee->Employee->institution ?? '') }}"
                                                             type="text" id="institution" name="institution"
                                                             value="{{ old('institution') }}"
@@ -630,7 +632,7 @@
                                                             {{ __('Emergency Contact Name & Number') }}
                                                         </label>
                                                         <div>
-                                                            <input class="form-control"
+                                                            <input class="form-control @error('emergency_contact_name') is-invalid @enderror"
                                                                 value="{{ old('emergency_contact_name', $employee->Employee->emergency_contact_name ?? '') }}"
                                                                 type="text" id="emergency_contact_name"
                                                                 name="emergency_contact_name"
@@ -654,11 +656,11 @@
                                                             <i class="fas fa-id-card"></i> {{ __('NPWP') }}
                                                         </label>
                                                         <div>
-                                                            <input class="form-control"
+                                                            <input class="form-control @error('npwp') is-invalid @enderror"
                                                                 value="{{ old('npwp', $employee->Employee->npwp ?? '') }}"
-                                                                type="number" id="npwp" name="npwp"
+                                                                type="text" id="npwp" name="npwp"
                                                                 value="{{ old('npwp') }}" aria-describedby="info-npwp"
-                                                                placeholder="0239493249" required>
+                                                                placeholder="83.283.23.43.2.234" required>
                                                             @error('npwp')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
@@ -673,7 +675,7 @@
                                                             <i class="fas fa-id-card"></i> {{ __('BPJS Kes') }}
                                                         </label>
                                                         <div>
-                                                            <input class="form-control"
+                                                            <input class="form-control @error('bpjs_kes') is-invalid @enderror"
                                                                 value="{{ old('bpjs_kes', $employee->Employee->bpjs_kes ?? '') }}"
                                                                 type="number" id="bpjs_kes" name="bpjs_kes"
                                                                 value="{{ old('bpjs_kes') }}"
@@ -696,7 +698,7 @@
                                                             <i class="fas fa-id-card"></i> {{ __('BPJS KET') }}
                                                         </label>
                                                         <div>
-                                                            <input class="form-control"
+                                                            <input class="form-control @error('bpjs_ket') is-invalid @enderror"
                                                                 value="{{ old('bpjs_ket', $employee->Employee->bpjs_ket ?? '') }}"
                                                                 type="number" id="bpjs_ket" name="bpjs_ket"
                                                                 value="{{ old('bpjs_ket') }}"
@@ -717,7 +719,7 @@
                                                             <i class="fas fa-id-card"></i> {{ __('Email') }}
                                                         </label>
                                                         <div>
-                                                            <input class="form-control"
+                                                            <input class="form-control @error('email') is-invalid @enderror"
                                                                 value="{{ old('email', $employee->Employee->email ?? '') }}"
                                                                 type="email" id="email" name="email"
                                                                 value="{{ old('email') }}"
@@ -734,106 +736,37 @@
                                                 </div>
                                                 <div class="row mt-3">
 
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="salary" class="form-control-label">
-                                                            <i class="fas fa-id-card"></i> {{ __('Salary') }}
-                                                        </label>
-                                                        <div>
-                                                            <input class="form-control"
-                                                                value="{{ old('salary', $employee->Employee->salary ?? '') }}"
-                                                                type="number" id="salary" name="salary"
-                                                                value="{{ old('salary') }}"
-                                                                aria-describedby="info-salary" placeholder="0239493xxx"
-                                                                step="0.01" min="0" max="9999999999.99"
-                                                                required>
-                                                            @error('salary')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="company_id" class="form-control-label">
+                                                                <i class="fas fa-id-card"></i> {{ __('Companies Name') }}
+                                                            </label>
+                                                            <div>
+                                                                <select name="company_id" class="form-control @error('company_id') is-invalid @enderror"required>
+                                                                    <option value="">-- Choose Companies --</option>
+                                                                    @foreach ($companys as $key => $value)
+                                                                        <option value="{{ $key }}"
+                                                                            {{ old('company_id') == $key ? 'selected' : '' }}>
+                                                                            {{ $value }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                                @error('company_id')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="house_allowance" class="form-control-label">
-                                                            <i class="fas fa-id-card"></i> {{ __('House Allowance') }}
-                                                        </label>
-                                                        <div>
-                                                            <input class="form-control"
-                                                                value="{{ old('house_allowance', $employee->Employee->house_allowance ?? '') }}"
-                                                                type="number" id="house_allowance"
-                                                                name="house_allowance"
-                                                                value="{{ old('house_allowance') }}"
-                                                                aria-describedby="info-house_allowance"
-                                                                placeholder="700000" step="0.01" min="0"
-                                                                max="9999999999.99" required>
-                                                            @error('house_allowance')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mt-3">
-
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="meal_allowance" class="form-control-label">
-                                                            <i class="fas fa-id-card"></i> {{ __('Meal Allowance') }}
-                                                        </label>
-                                                        <div>
-                                                            <input class="form-control"
-                                                                value="{{ old('meal_allowance', $employee->Employee->meal_allowance ?? '') }}"
-                                                                type="number" id="meal_allowance" name="meal_allowance"
-                                                                value="{{ old('meal_allowance') }}"
-                                                                aria-describedby="info-meal_allowance"
-                                                                placeholder="700000" step="0.01" min="0"
-                                                                max="9999999999.99" required>
-                                                            @error('meal_allowance')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="transport_allowance" class="form-control-label">
-                                                            <i class="fas fa-id-card"></i>
-                                                            {{ __('Transport Allowance') }}
-                                                        </label>
-                                                        <div>
-                                                            <input class="form-control"
-                                                                value="{{ old('transport_allowance', $employee->Employee->transport_allowance ?? '') }}"
-                                                                type="number" id="transport_allowance"
-                                                                name="transport_allowance"
-                                                                value="{{ old('transport_allowance') }}"
-                                                                aria-describedby="info-transport_allowance"
-                                                                placeholder="700000" step="0.01" min="0"
-                                                                max="9999999999.99" required>
-                                                            @error('transport_allowance')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                    </div>
-                                                </div>
-                                                <div class="row mt-3">
-
+                                            
+                                                
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label for="notes" class="form-control-label">
                                                             <i class="fas fa-id-card"></i> {{ __('Notes') }}
                                                         </label>
                                                         <div>
-                                                            <input class="form-control"
+                                                            <input class="form-control @error('notes') is-invalid @enderror"
                                                                 value="{{ old('notes', $employee->Employee->notes ?? '') }}"
                                                                 type="text" id="notes" name="notes"
                                                                 value="{{ old('notes') }}"
@@ -878,7 +811,7 @@
                                             <div class="alert alert-secondary mt-4" role="alert">
                                                 <span class="text-dark">
                                                     <strong>Important Note:</strong> <br>
-                                                    - Fill all the input okay.<br>
+                                                    - Fill all the input okay except notes:).<br>
                                                 </span>
                                             </div>
 
@@ -886,7 +819,7 @@
                                                 <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
                                                     <i class="fas fa-times"></i> {{ __('Cancel') }}
                                                 </a>
-                                                <button type="submit" class="btn bg-primary">
+                                                <button type="submit" id="create-btn" class="btn bg-primary">
                                                     <i class="fas fa-save"></i> {{ __('Create') }}
                                                 </button>
                                             </div>
@@ -902,7 +835,29 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+      document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('employee-create').submit();
+                }
+            });
+        });
+        
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -920,5 +875,6 @@
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
-        @endif
+            @endif
     </script>
+@endpush

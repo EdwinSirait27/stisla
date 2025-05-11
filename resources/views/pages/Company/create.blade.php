@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Create Position')
+@section('title', 'Create Companies')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -164,10 +164,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create Posiitons</h1>
+                <h1>Create  Companies</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Position') }}">Positions</a></div>
-                    <div class="breadcrumb-item">Create Position</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Company') }}"> Stores</a></div>
+                    <div class="breadcrumb-item">Create Companies</div>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Position') }}</h6>
+                                    <h6 class="mb-0">{{ __('Create Companies') }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -201,18 +201,18 @@
                                         </div>
                                     @endif
 
-                                    <form id="position-create" action="{{ route('Position.store') }}" method="POST">
+                                    <form id="company-create" action="{{ route('Company.store') }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Position Name') }}
+                                                        <i class="fas fa-user"></i> {{ __('Companies Name') }}
                                                     </label>
                                                     <div>
                                                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
                                                             value="{{ old('name') }}" required
-                                                            placeholder="Fill Position Name">
+                                                            placeholder="Fill Companies Name">
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -221,16 +221,96 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="foto" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Companies Images') }}
+                                                    </label>
+                                                    <div>
+                                                        {{-- Preview Image --}}
+                                                        <div class="mb-2">
+                                                            @if (!empty($company?->foto))
+                                                                <img id="preview-image" src="{{ asset('storage/company' . $company->foto) }}" alt="Preview" class="img-thumbnail" width="150">
+                                                            @else
+                                                                <img id="preview-image" src="https://via.placeholder.com/150" alt="Preview" class="img-thumbnail" width="150">
+                                                            @endif
+                                                        </div>
+                                            
+                                                        {{-- File Input --}}
+                                                        <input
+                                                            type="file"
+                                                            name="foto"
+                                                            id="foto" required
+                                                            class="form-control @error('foto') is-invalid @enderror"
+                                                            accept="image/*"
+                                                            onchange="previewImage(event)"
+                                                        >
+                                            
+                                                        @error('foto')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
+                                            </div>
+                                        <div class="row mt-3">
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="address" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Store Address') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('address') is-invalid @enderror"
+                                                            value="{{ old('address', $store->address ?? '') }}"
+                                                            type="text" id="address" name="address"
+                                                            value="{{ old('address') }}" aria-describedby="info-address"
+                                                            maxlength="255" placeholder="Insert Companies Address">
+                                                        @error('address')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                        </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="npwp" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Companies NPWP') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('npwp') is-invalid @enderror"
+                                                            value="{{ old('npwp', $company->npwp ?? '') }}"
+                                                            type="text" id="npwp" name="npwp"
+                                                            value="{{ old('npwp') }}" aria-describedby="info-npwp"
+                                                            maxlength="255" placeholder="Insert npwp Companies">
+                                                        @error('npwp')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            </div>
+                                           
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a position name is already registered, you cannot register it again.<br>
+                                                - If a company name is already registered, you cannot register it again.<br>
+                                                - If a npwp is already registered, you cannot register it again.<br>
+                                                
                                             </span>
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Position') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Department') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
                                             <button type="submit" id="create-btn" class="btn bg-primary">
@@ -250,27 +330,26 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-    <script>
-        document.getElementById('create-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
-              Swal.fire({
-                  title: 'Are You Sure?',
-                  text: "Make sure the data you entered is correct!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
-                  cancelButtonText: 'Abort'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('position-create').submit();
-                  }
-              });
-          });
-           
-    </script>
+<script>
+    document.getElementById('create-btn').addEventListener('click', function(e) {
+     e.preventDefault(); // Mencegah pengiriman form langsung
+     Swal.fire({
+         title: 'Are You Sure?',
+         text: "Make sure the data you entered is correct!",
+         icon: 'warning',
+         showCancelButton: true,
+         confirmButtonColor: '#3085d6',
+         cancelButtonColor: '#d33',
+         confirmButtonText: 'Yes, Assign!',
+         cancelButtonText: 'Abort'
+     }).then((result) => {
+         if (result.isConfirmed) {
+             // Jika pengguna mengkonfirmasi, submit form
+             document.getElementById('company-create').submit();
+         }
+     });
+ });
+ </script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -289,5 +368,17 @@
                 confirmButtonText: 'OK'
             });
         @endif
+
+    function previewImage(event) {
+        const input = event.target;
+        const reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById('preview-image').src = reader.result;
+        };
+        if (input.files && input.files[0]) {
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
     </script>
 @endpush
+

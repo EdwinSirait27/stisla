@@ -206,7 +206,7 @@
                                         </div>
                                     @endif
 
-                                    <form id="payroll" action="{{ route('Payrolls.update', $hashedId) }}" method="POST">
+                                    <form id="payroll-edit" action="{{ route('Payrolls.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
@@ -217,7 +217,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Attendance') }}
                                                     </label>
                                                     <div>
-                                                        <input type="number" class="form-control" id="attendance"
+                                                        <input type="number" class="form-control @error('attendance') is-invalid @enderror" id="attendance"
                                                             name="attendance"
                                                             value="{{ old('attendance', $payroll->attendance) }}"
                                                             placeholder="input employee's attendance" required>
@@ -240,7 +240,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Daily Allowance') }}
                                                     </label>
                                                     <div>
-                                                        <input type="number" class="form-control" id="daily_allowance"
+                                                        <input type="number" class="form-control @error('daily_allowance') is-invalid @enderror" id="daily_allowance"
                                                             name="daily_allowance"
                                                             value="{{ old('daily_allowance', $payroll->daily_allowance) }}"
                                                             placeholder="input employee's daily allowance" required>
@@ -266,7 +266,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Overtime') }}
                                                     </label>
                                                     <div>
-                                                        <input type="number" class="form-control" id="overtime"
+                                                        <input type="number" class="form-control @error('overtime') is-invalid @enderror" id="overtime"
                                                             name="overtime"
                                                             value="{{ old('overtime', $payroll->overtime) }}"
                                                             placeholder="input 0 if the employee does't have overtime"
@@ -287,7 +287,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Bonuses') }}
                                                     </label>
                                                     <div>
-                                                        <input type="number" class="form-control" id="bonus"
+                                                        <input type="number" class="form-control @error('bonus') is-invalid @enderror" id="bonus"
                                                             name="bonus" value="{{ old('bonus', $payroll->bonus) }}"
                                                             placeholder="input 0 if the employee dont have bonuses"
                                                             required>
@@ -310,7 +310,7 @@
                                                     </label>
                                                     <div>
 
-                                                        <input type="number" class="form-control" id="house_allowance"
+                                                        <input type="number" class="form-control @error('house_allowance') is-invalid @enderror" id="house_allowance"
                                                             name="house_allowance"
                                                             value="{{ old('house_allowance', $payroll->house_allowance) }}"
                                                             placeholder="input 0 if the employee dont have house allowance"
@@ -333,7 +333,7 @@
                                                     </label>
                                                     <div>
 
-                                                        <input type="number" class="form-control" id="meal_allowance"
+                                                        <input type="number" class="form-control @error('meal_allowance') is-invalid @enderror" id="meal_allowance"
                                                             name="meal_allowance"
                                                             value="{{ old('meal_allowance', $payroll->meal_allowance) }}"
                                                             placeholder="input 0 if the employee dont have meal allowance"
@@ -357,7 +357,7 @@
                                                     </label>
                                                     <div>
 
-                                                        <input type="number" class="form-control"
+                                                        <input type="number" class="form-control @error('transport_allowance') is-invalid @enderror"
                                                             id="transport_allowance" name="transport_allowance"
                                                             value="{{ old('transport_allowance', $payroll->transport_allowance) }}"
                                                             placeholder="input 0 if the employee dont have transport allowance"
@@ -380,7 +380,7 @@
                                                     </label>
                                                     <div>
 
-                                                        <input type="number" class="form-control" id="mesh"
+                                                        <input type="number" class="form-control @error('mesh') is-invalid @enderror" id="mesh"
                                                             name="mesh"
                                                             value="{{ old('mesh', $payroll->mesh) }}"
                                                             placeholder="input 0 if the employee dont have mesh"
@@ -403,7 +403,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Punishment') }}
                                                     </label>
                                                     <div>
-                                                        <input type="number" class="form-control" id="punishment"
+                                                        <input type="number" class="form-control @error('punishment') is-invalid @enderror" id="punishment"
                                                             name="punishment"
                                                             value="{{ old('punishment', $payroll->punishment) }}"
                                                             placeholder="input 0 if the employee doesn't have punishment">
@@ -417,26 +417,7 @@
                                                 </div>
                                             </div>
                                         
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="bpjs_ket" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('BPJS Ketenagakerjaan') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="number" class="form-control" id="bpjs_ket"
-                                                            name="bpjs_ket"
-                                                            value="{{ old('bpjs_ket', $payroll->bpjs_ket) }}"
-                                                            placeholder="input 0 if the employee doesn't have BPJS Ketenagakerjaan">
-                                                        @error('bpjs_ket')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            </div>
+                                            
                                             <div class="row mt-3">
                                         
                                             <div class="col-md-6">
@@ -445,7 +426,7 @@
                                                             <i class="fas fa-user"></i> {{ __('BPJS Kesehatan') }}
                                                         </label>
                                                         <div>
-                                                            <input type="number" class="form-control" id="bpjs_kes"
+                                                            <input type="number" class="form-control @error('bpjs_kes') is-invalid @enderror" id="bpjs_kes"
                                                                 name="bpjs_kes"
                                                                 value="{{ old('bpjs_kes', $payroll->bpjs_kes) }}"
                                                                 placeholder="input 0 if the employee doesn't have bpjs kesehatan">
@@ -465,7 +446,7 @@
                                                             <i class="fas fa-user"></i> {{ __('BPJS Ketenagakerjaan') }}
                                                         </label>
                                                         <div>
-                                                            <input type="number" class="form-control" id="bpjs_ket"
+                                                            <input type="number" class="form-control @error('bpjs_ket') is-invalid @enderror" id="bpjs_ket"
                                                                 name="bpjs_ket"
                                                                 value="{{ old('bpjs_ket', $payroll->bpjs_ket) }}"
                                                                 placeholder="input 0 if the employee doesn't have bpjs ketenagakerjaan">
@@ -487,7 +468,7 @@
                                                                 <i class="fas fa-user"></i> {{ __('Late Fine') }}
                                                             </label>
                                                             <div>
-                                                                <input type="number" class="form-control" id="late_fine"
+                                                                <input type="number" class="form-control @error('late_fine') is-invalid @enderror" id="late_fine"
                                                                     name="late_fine"
                                                                     value="{{ old('late_fine', $payroll->late_fine) }}"
                                                                     placeholder="input 0 if the employee doesn't have late fine">
@@ -507,7 +488,7 @@
                                                                 <i class="fas fa-user"></i> {{ __('Information') }}
                                                             </label>
                                                             <div>
-                                                                <input type="text" class="form-control" id="information"
+                                                                <input type="text" class="form-control @error('information') is-invalid @enderror" id="information"
                                                                     name="information"
                                                                     value="{{ old('information', $payroll->information) }}"
                                                                     placeholder="penjelasan salary">
@@ -554,6 +535,8 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -572,7 +555,7 @@
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        document.getElementById('payroll').submit(); // Submit form
+                        document.getElementById('payroll-edit').submit(); // Submit form
                     } else if (result.isDismissed) {
                         Swal.fire('Cancelled', 'The process has been cancelled.',
                         'error'); // Menampilkan pesan jika dibatalkan
@@ -600,3 +583,4 @@
             });
         @endif
     </script>
+    @endpush

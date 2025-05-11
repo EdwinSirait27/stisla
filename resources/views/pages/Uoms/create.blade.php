@@ -201,16 +201,16 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Uoms.store') }}" method="POST">
+                                    <form id="uom-create" action="{{ route('Uoms.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name" class="form-control-label">
+                                                    <label for="uom_code" class="form-control-label">
                                                         <i class="fas fa-user"></i> {{ __('Uom Code') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="uom_code" name="uom_code" 
+                                                        <input type="text" class="form-control @error('uom_code') is-invalid @enderror" id="uom_code" name="uom_code" 
                                                             value="{{ old('uom_code') }}" required
                                                             placeholder="Fill uom code">
                                                         @error('uom_code')
@@ -229,7 +229,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Unit of Measure') }}
                                                     </label>
                                                     <div>
-                                                        <select name="uom" class="form-control"required>
+                                                        <select name="uom" class="form-control @error('uom') is-invalid @enderror"required>
                                                             <option value="">-- Choose uom --</option>
                                                             @foreach ($uoms as $value)
                                                                 <option value="{{ $value }}"
@@ -237,7 +237,7 @@
                                                                     {{ $value }}</option>
                                                             @endforeach
                                                         </select>
-                                                        @error('uoms')
+                                                        @error('uom')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -259,7 +259,7 @@
                                             <a href="{{ route('pages.Uoms') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="crate-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>
@@ -274,8 +274,30 @@
     </div>
 @endsection
 @push('scripts')
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
+<script>
+        document.getElementById('create-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
+              Swal.fire({
+                  title: 'Are You Sure?',
+                  text: "Make sure the data you entered is correct!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, Assign!',
+                  cancelButtonText: 'Abort'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('uom-create').submit();
+                  }
+              });
+          });
+</script>
+<script>
         @if (session('success'))
             Swal.fire({
                 title: 'Berhasil!',
@@ -294,3 +316,4 @@
             });
         @endif
     </script>
+    @endpush

@@ -204,7 +204,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Brands.store') }}" method="POST">
+                                    <form id="brands-create" action="{{ route('Brands.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -213,7 +213,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Brand Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="brand_name"
+                                                        <input type="text" class="form-control @error('brand_name') is-invalid @enderror" id="brand_name"
                                                             name="brand_name" value="{{ old('brand_name') }}" required
                                                             placeholder="Fill Brand Name">
                                                         @error('brand_name')
@@ -230,7 +230,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Description') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="description"
+                                                        <input type="text" class="form-control @error('description') is-invalid @enderror" id="description"
                                                             name="description" value="{{ old('description') }}"
                                                             required placeholder="Fill description">
                                                         @error('description')
@@ -255,7 +255,7 @@
                                             <a href="{{ route('pages.Brands') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="create-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>
@@ -271,6 +271,27 @@
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script>
+      document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('brands-create').submit();
+                }
+            });
+        });
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -290,3 +311,4 @@
             });
         @endif
     </script>
+@endpush

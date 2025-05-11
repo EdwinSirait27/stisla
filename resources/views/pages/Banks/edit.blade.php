@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Update Tax Status')
+@section('title', 'Update Banks')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -165,11 +165,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Tax Status {{ $tax->taxstatus }}</h1>
+                <h1>Update Banks {{ $bank->name }}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Taxstatus') }}">Tax Status</a></div>
-                    <div class="breadcrumb-item">Update Tax Status {{ $tax->taxstatus }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Banks') }}">Banks</a></div>
+                    <div class="breadcrumb-item">Update Banks {{ $bank->name }}</div>
                 </div>
             </div>
 
@@ -179,7 +179,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Update Tax Status') }} {{ $tax->taxstatus }}</h6>
+                                    <h6 class="mb-0">{{ __('Update Banks') }} {{ $bank->name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -205,21 +205,23 @@
                                         </div>
                                     @endif
 
-                                    <form id="tax-edit" action="{{ route('Taxstatus.update', $hashedId) }}" method="POST">
+                                    <form id="banks-edit" action="{{ route('Banks.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="taxstatus" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Tax Status') }}
+                                                    <label for="name" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Bank Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('taxstatus') is-invalid @enderror" id="taxstatus"
-                                                            name="taxstatus" value="{{ old('taxstatus', $tax->taxstatus) }}"
-                                                            placeholder="Taxable" required>
-                                                        @error('taxstatus')
+                                                        <input type="text"
+                                                            class="form-control @error('name') is-invalid @enderror"
+                                                            id="name" name="name"
+                                                            value="{{ old('name', $bank->name) }}" placeholder="OCBC"
+                                                            required>
+                                                        @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -228,30 +230,31 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        {{-- <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a name is already registered, you cannot register it again.<br>
-                                                
-                                            </span>
-                                        </div> --}}
 
-                                        <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Taxstatus') }}" class="btn btn-secondary">
-                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
-                                            </a>
-                                            <button type="submit" id="edit-btn" class="btn bg-primary">
-                                                <i class="fas fa-save"></i> {{ __('Update') }}
-                                            </button>
-                                        </div>
-                                    </form>
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - If a Bank name is already registered, you cannot register it again.<br>
+                                        
+                                    </span>
                                 </div>
+
+                                <div class="d-flex justify-content-end mt-4">
+                                    <a href="{{ route('pages.Banks') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                    </a>
+                                    <button type="submit" id="edit-btn" class="btn bg-primary">
+                                        <i class="fas fa-save"></i> {{ __('Update') }}
+                                    </button>
+                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+    </div>
+    </section>
     </div>
 @endsection
 
@@ -260,7 +263,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-           document.getElementById('edit-btn').addEventListener('click', function(e) {
+        document.getElementById('edit-btn').addEventListener('click', function(e) {
               e.preventDefault(); // Mencegah pengiriman form langsung
               Swal.fire({
                   title: 'Are You Sure?',
@@ -274,11 +277,12 @@
               }).then((result) => {
                   if (result.isConfirmed) {
                       // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('tax-edit').submit();
+                      document.getElementById('banks-edit').submit();
                   }
               });
           });
-    </script>
+          
+  </script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -298,5 +302,4 @@
             });
         @endif
     </script>
-    @endpush
-   
+@endpush

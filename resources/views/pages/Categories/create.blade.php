@@ -202,7 +202,7 @@
                                             </button>
                                         </div>
                                     @endif
-                                    <form action="{{ route('Categories.store') }}" method="POST">
+                                    <form id="categories-create" action="{{ route('Categories.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -211,7 +211,7 @@
                                                         <i class="fas fa-user"></i> {{ __('Parent') }}
                                                     </label>
                                                     <div>
-                                                        <select name="parent_id" class="form-control">
+                                                        <select name="parent_id" class="form-control @error('parent_id') is-invalid @enderror">
                                                             <option value="">-- Pilih Parent Category --</option>
                                                             @foreach($parents as $id => $category_name)
                                                                 <option value="{{ $id }}">{{ $category_name }}</option>
@@ -232,7 +232,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Categories Code') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="category_code"
+                                                        <input type="text" class="form-control @error('category_code') is-invalid @enderror" id="category_code"
                                                             name="category_code" value="{{ old('category_code') }}" required
                                                             placeholder="Fill Categories Code">
                                                         @error('category_code')
@@ -251,7 +251,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Categories Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control" id="category_name"
+                                                        <input type="text" class="form-control @error('category_name') is-invalid @enderror" id="category_name"
                                                             name="category_name" value="{{ old('category_name') }}"
                                                             required placeholder="Fill categories name">
                                                         @error('category_name')
@@ -277,7 +277,7 @@
                                             <a href="{{ route('pages.Categories') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="create-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Create') }}
                                             </button>
                                         </div>
@@ -293,6 +293,27 @@
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script>
+    document.getElementById('create-btn').addEventListener('click', function(e) {
+     e.preventDefault(); // Mencegah pengiriman form langsung
+     Swal.fire({
+         title: 'Are You Sure?',
+         text: "Make sure the data you entered is correct!",
+         icon: 'warning',
+         showCancelButton: true,
+         confirmButtonColor: '#3085d6',
+         cancelButtonColor: '#d33',
+         confirmButtonText: 'Yes, Assign!',
+         cancelButtonText: 'Abort'
+     }).then((result) => {
+         if (result.isConfirmed) {
+             // Jika pengguna mengkonfirmasi, submit form
+             document.getElementById('categories-create').submit();
+         }
+     });
+ });
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -312,3 +333,4 @@
             });
         @endif
     </script>
+@endpush
