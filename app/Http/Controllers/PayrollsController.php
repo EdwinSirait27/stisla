@@ -37,19 +37,20 @@ public function getPayrolls(Request $request)
     }
     $payrolls = $payrollsQuery->get()->map(function ($payroll) {
         try {
-            $payroll->bonus = Crypt::decrypt($payroll->bonus);
-            $payroll->house_allowance = Crypt::decrypt($payroll->house_allowance);
-            $payroll->meal_allowance = Crypt::decrypt($payroll->meal_allowance);
-            $payroll->transport_allowance = Crypt::decrypt($payroll->transport_allowance);
-            $payroll->deductions = Crypt::decrypt($payroll->deductions);
-            $payroll->salary = Crypt::decrypt($payroll->salary);
-            $payroll->overtime = Crypt::decrypt($payroll->overtime);
-            $payroll->daily_allowance = Crypt::decrypt($payroll->daily_allowance);
-            $payroll->late_fine = Crypt::decrypt($payroll->late_fine);
-            $payroll->bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
-            $payroll->bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
-            $payroll->mesh = Crypt::decrypt($payroll->mesh);
-            $payroll->punishment = Crypt::decrypt($payroll->punishment);
+            $payroll->bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : null;
+            $payroll->house_allowance = $payroll->house_allowance ? Crypt::decrypt($payroll->house_allowance) : null;
+            $payroll->meal_allowance = $payroll->meal_allowance ? Crypt::decrypt($payroll->meal_allowance) : null;
+            $payroll->transport_allowance = $payroll->transport_allowance ? Crypt::decrypt($payroll->transport_allowance) : null;
+            $payroll->deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : null;
+            $payroll->salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : null;
+            $payroll->overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : null;
+            $payroll->daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : null;
+            $payroll->late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : null;
+            $payroll->bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : null;
+            $payroll->bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : null;
+            $payroll->mesh = $payroll->mesh ? Crypt::decrypt($payroll->mesh) : null;
+            $payroll->punishment = $payroll->punishment ? Crypt::decrypt($payroll->punishment) : null;
+            
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             // handle decrypt error (misalnya log atau fallback)
             \Log::error("Decrypt error: " . $e->getMessage());
@@ -170,21 +171,7 @@ public function show($hashedId)
     return view('pages.Payrolls.show', $data);
 }
 
-//  public function edit($hashedId)
-//     {
-//         $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {
-//             $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//             return $expectedHash === $hashedId;
-//         });
 
-//         if (!$payroll) {
-//             abort(404, 'payroll not found.');
-//         }
-//         return view('pages.Payrolls.edit', [
-//             'payroll' => $payroll,
-//             'hashedId' => $hashedId,       
-//         ]);
-//     }
     public function edit($hashedId)
 {
     $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {

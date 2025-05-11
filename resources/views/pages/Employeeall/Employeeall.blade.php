@@ -161,6 +161,13 @@
             font-size: 0.8rem;
         }
     }
+
+    .form-select {
+        border-radius: 8px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+        border: 1px solid #d1d1d1;
+    }
 </style>
 
 
@@ -170,12 +177,23 @@
             <div class="section-header">
                 <h1>Employees Detail Table</h1>
             </div>
+
+
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Employees Details</h6>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="filter-store" class="form-label">Filter</label>
+                                <select id="filter-store" class="form-select">
+                                    <option value="">All</option>
+                                    @foreach($storeList as $name)
+                                        <option value="{{ $name }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="card-body">
@@ -216,18 +234,18 @@
                                                 <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
-                                               
+
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                
+
                                     <!-- New button added here -->
-                                    <button type="button" onclick="window.location='{{ route('pages.Employee') }}'" 
-                                    class="btn btn-danger btn-sm ml-2">
-                                <i class="fas fa-users"></i> Back To Employee
-                            </button>
+                                    <button type="button" onclick="window.location='{{ route('pages.Employee') }}'"
+                                        class="btn btn-danger btn-sm ml-2">
+                                        <i class="fas fa-users"></i> Back To Employee
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -237,33 +255,134 @@
         </section>
     </div>
 @endsection
-{{-- @push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_processing,
+        .dataTables_wrapper .dataTables_paginate {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 0 5px;
+            background-color: white;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+            background-color: white;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 5px 10px;
+            margin: 0 2px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #6777ef;
+            color: white !important;
+            border: 1px solid #6777ef;
+        }
+
+        .dataTables_wrapper .dt-buttons {
+            margin-bottom: 15px;
+        }
+
+        .dataTables_wrapper .dt-buttons button {
+            background: #6777ef;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-size: 13px;
+        }
+
+        .dataTables_wrapper .dt-buttons button:hover {
+            background: #4e5acf;
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
-                    type: 'GET'
-                },
+                    data: function (d) {
+                d.name = $('#filter-store').val();
+            }
+        },
+
                 responsive: true,
+                dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
+                    "<'row'<'col-sm-12 col-md-6'B>>",
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm btn-primary',
+                        text: '<i class="fas fa-copy"></i> Copy'
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel'
+                    }
+
+                ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
                 language: {
+                    lengthMenu: "Show _MENU_ entries",
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
                 },
                 columns: [{
                         data: null,
@@ -289,6 +408,11 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'name_company',
+                        name: 'name_company',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'position_name',
                         name: 'position_name',
                         className: 'text-center'
@@ -299,8 +423,8 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'name_store',
-                        name: 'name_store',
+                        data: 'name',
+                        name: 'name',
                         className: 'text-center'
                     },
                     {
@@ -403,156 +527,74 @@
                         name: 'emergency_contact_name',
                         className: 'text-center'
                     },
-                    {
-                        data: 'salary',
-                        name: 'salary',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'house_allowance',
-                        name: 'house_allowance',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'meal_allowance',
-                        name: 'meal_allowance',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'transport_allowance',
-                        name: 'transport_allowance',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'total_salary',
-                        name: 'total_salary',
-                        className: 'text-center'
-                    },
+
                     {
                         data: 'notes',
                         name: 'notes',
                         className: 'text-center'
                     },
-                  
+                    {
+                        data: 'bank_name',
+                        name: 'bank_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bank_account_number',
+                        name: 'bank_account_number',
+                        className: 'text-center'
+                    },
+
                     {
                         data: 'created_at',
                         name: 'created_at',
                         className: 'text-center'
                     },
                     {
-    data: 'status',
-    name: 'status',
-    className: 'text-center',
-    render: function (data, type, row) {
-        if (data === 'Active') {
-            return '<span class="badge bg-success">Active</span>';
-        } else if (data === 'Inactive') {
-            return '<span class="badge bg-danger">Inactive</span>';
-        } else if (data === 'On leave') {
-            return '<span class="badge bg-warning">On Leave</span>';
-        } else if (data === 'Mutation') {
-            return '<span class="badge bg-info">Tidak Aktif</span>';
-        } else if (data === 'Pending') {
-            return '<span class="badge bg-secondary">Pending</span>';
-        }
-        return '<span class="badge bg-secondary">Pending</span>';
-    }
-}
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data === 'Active') {
+                                return '<span class="badge bg-success">Active</span>';
+                            } else if (data === 'Inactive') {
+                                return '<span class="badge bg-danger">Inactive</span>';
+                            } else if (data === 'On leave') {
+                                return '<span class="badge bg-warning">On Leave</span>';
+                            } else if (data === 'Mutation') {
+                                return '<span class="badge bg-info">Mutation</span>';
+                            } else if (data === 'Pending') {
+                                return '<span class="badge bg-secondary">Pending</span>';
+                            }
+                            return '<span class="badge bg-secondary">Pending</span>';
+                        }
+                    }
+                    // Your existing columns configuration...
+                    // (Keep all your existing columns configuration here)
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
                     $('.dataTables_length select').addClass('form-control');
+
+                    // Add margin to buttons container
+                    $('.dt-buttons').addClass('mb-3');
                 }
             });
-
+          
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+            $('#filter-store').on('change', function() {
+                table.ajax.reload();
             });
-        @endif
-    
+
         });
     </script>
-@endpush --}}
-@push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<style>
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_processing,
-    .dataTables_wrapper .dataTables_paginate {
-        color: #333;
-        margin-bottom: 1rem;
-    }
     
-    .dataTables_wrapper .dataTables_length select {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 4px 8px;
-        margin: 0 5px;
-        background-color: white;
-    }
-    
-    .dataTables_wrapper .dataTables_filter input {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 5px;
-        background-color: white;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 5px 10px;
-        margin: 0 2px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        color: #333;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #6777ef;
-        color: white !important;
-        border: 1px solid #6777ef;
-    }
-    
-    .dataTables_wrapper .dt-buttons {
-        margin-bottom: 15px;
-    }
-    
-    .dataTables_wrapper .dt-buttons button {
-        background: #6777ef;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        margin-right: 5px;
-        font-size: 13px;
-    }
-    
-    .dataTables_wrapper .dt-buttons button:hover {
-        background: #4e5acf;
-    }
-</style>
-@endpush
-
-@push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
+    {{-- <script>
     jQuery(document).ready(function($) {
         var table = $('#users-table').DataTable({
             processing: true,
@@ -806,5 +848,5 @@
         });
         @endif
     });
-</script>
+</script> --}}
 @endpush

@@ -22,7 +22,10 @@ class EmployeeController extends Controller
 {
     public function indexall()
     {
-        return view('pages.Employeeall.Employeeall');
+        // $storeList = Stores::pluck('name')->all();
+        $storeList = Stores::select('name')->distinct()->pluck('name');
+        return view('pages.Employeeall.Employeeall', compact('storeList'));
+
     }
     public function index()
     {
@@ -38,10 +41,6 @@ class EmployeeController extends Controller
                 $employee->action = '
                     <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e($employee->Employee->employee_name) . '">
                         <i class="fas fa-user-edit text-secondary"></i>
-                    </a>
-
-                    <a href="' . route('Employee.show', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="show employee: ' . e($employee->Employee->employee_name) . '">
-                        <i class="fas fa-eye text-secondary"></i>
                     </a>';
                 return $employee;
             });
@@ -93,17 +92,196 @@ class EmployeeController extends Controller
     }
 
 
+    // public function getEmployeesall()
+    // {
+    //     $employees = User::with('Employee')
+    //         ->select(['id', 'username', 'employee_id'])
+    //         ->get()
+    //         ->map(function ($employee) {
+    //             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+    //             return $employee;
+    //         });
+    //     return DataTables::of($employees)
+    //         ->addColumn('name_store', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->store->name)
+    //                 ? $employee->Employee->store->name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('name_company', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->company->name)
+    //                 ? $employee->Employee->company->name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('position_name', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->position->name)
+    //                 ? $employee->Employee->position->name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('employee_pengenal', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->employee_pengenal)
+    //                 ? $employee->Employee->employee_pengenal
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('department_name', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->department->department_name)
+    //                 ? $employee->Employee->department->department_name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('employee_name', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->employee_name)
+    //                 ? $employee->Employee->employee_name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('status_employee', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->status_employee)
+    //                 ? $employee->Employee->status_employee
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('join_date', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->join_date)
+    //                 ? $employee->Employee->join_date
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('marriage', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->marriage)
+    //                 ? $employee->Employee->marriage
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('child', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->child)
+    //                 ? $employee->Employee->child
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('telp_number', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->telp_number)
+    //                 ? $employee->Employee->telp_number
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('nik', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->nik)
+    //                 ? $employee->Employee->nik
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('gender', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->gender)
+    //                 ? $employee->Employee->gender
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('date_of_birth', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->date_of_birth)
+    //                 ? $employee->Employee->date_of_birth
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('place_of_birth', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->place_of_birth)
+    //                 ? $employee->Employee->place_of_birth
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('biological_mother_name', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->biological_mother_name)
+    //                 ? $employee->Employee->biological_mother_name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('religion', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->religion)
+    //                 ? $employee->Employee->religion
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('current_address', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->current_address)
+    //                 ? $employee->Employee->current_address
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('id_card_address', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->id_card_address)
+    //                 ? $employee->Employee->id_card_address
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('last_education', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->last_education)
+    //                 ? $employee->Employee->last_education
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('institution', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->institution)
+    //                 ? $employee->Employee->institution
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('npwp', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->npwp)
+    //                 ? $employee->Employee->npwp
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('bpjs_kes', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->bpjs_kes)
+    //                 ? $employee->Employee->bpjs_kes
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('bpjs_ket', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->bpjs_ket)
+    //                 ? $employee->Employee->bpjs_ket
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('email', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->email)
+    //                 ? $employee->Employee->email
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('emergency_contact_name', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->emergency_contact_name)
+    //                 ? $employee->Employee->emergency_contact_name
+    //                 : 'Empty';
+    //         })
+
+    //         ->addColumn('notes', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->notes)
+    //                 ? $employee->Employee->notes
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('created_at', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->created_at)
+    //                 ? $employee->Employee->created_at
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('bank_name', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->bank->name)
+    //                 ? $employee->Employee->bank->name
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('bank_account_number', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->bank_account_number)
+    //                 ? $employee->Employee->bank_account_number
+    //                 : 'Empty';
+    //         })
+    //         ->addColumn('status', function ($employee) {
+    //             return !empty($employee->Employee) && !empty($employee->Employee->status)
+    //                 ? $employee->Employee->status
+    //                 : 'Empty';
+    //         })
+    //         ->make(true);
+    // }
     public function getEmployeesall()
     {
-        $employees = User::with('Employee')
-            ->select(['id', 'username', 'employee_id'])
-            ->get()
-            ->map(function ($employee) {
-                $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-                return $employee;
+        $storeFilter = request()->get('name'); // Ambil nilai filter status dari request
+    
+        $query = User::with('Employee','Employee.company','Employee.store')
+        ->select(['id', 'username', 'employee_id']);
+    
+        // Terapkan filter status jika ada
+        if (!empty($storeFilter)) {
+            $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
+                $q->where('name', $storeFilter);
             });
+        }
+        
+       
+        $employees = $query->get()->map(function ($employee) {
+            $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+            return $employee;
+        });
+    
         return DataTables::of($employees)
-            ->addColumn('name_store', function ($employee) {
+                  ->addColumn('name', function ($employee) {
                 return !empty($employee->Employee) && !empty($employee->Employee->store->name)
                     ? $employee->Employee->store->name
                     : 'Empty';

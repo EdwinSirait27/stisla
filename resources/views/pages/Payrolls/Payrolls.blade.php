@@ -186,7 +186,9 @@
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <label for="filter_month_year" class="form-label">Filter Bulan - Tahun</label>
-                                    <input type="month" id="filter_month_year" class="form-control">
+                                    {{-- <input type="month" id="filter_month_year" class="form-control"> --}}
+                                    <input type="text" id="filter_month_year" class="form-control" placeholder="Pilih Bulan - Tahun">
+
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
                                     <button id="btn_filter" class="btn btn-primary w-100">
@@ -309,7 +311,20 @@ $(document).ready(function() {
 <script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+<script>
+    flatpickr("#filter_month_year", {
+        dateFormat: "Y-m",     // format output: 2025-05
+        plugins: [
+            new monthSelectPlugin({
+                shorthand: true, // gunakan Jan, Feb, dll
+                dateFormat: "Y-m",
+                altFormat: "F Y"
+            })
+        ]
+    });
+</script>
 <script>
 $(document).ready(function() {
     var table = $('#users-table').DataTable({

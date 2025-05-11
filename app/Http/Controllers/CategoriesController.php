@@ -79,9 +79,7 @@ protected function formatCategoryWithHierarchy($category, $groupedCategories, &$
     $record = [
         'id' => $category->id,
         'id_hashed' => substr(hash('sha256', $category->id . config('app.key')), 0, 8),
-        'action' => '<a href="'.route('Categories.edit', $category->id).'" class="mx-3" data-bs-toggle="tooltip" title="Edit category">
-            <i class="fas fa-edit text-secondary"></i>
-        </a>'
+        
     ];
     
     // Fill in hierarchy levels
