@@ -16,6 +16,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\MasterproductController;
 use App\Http\Controllers\PayrollEmailController;
 use App\Http\Controllers\BrandsController;
+use App\Http\Controllers\EmployeeImportController;
 use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\taxstatusController;
 use App\Http\Controllers\StatusproductController;
@@ -259,7 +260,14 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::get('/Banks/edit/{hashedId}', [BanksController::class, 'edit'])->name('Banks.edit');
     Route::put('/Banks/{hashedId}', [BanksController::class, 'update'])->name('Banks.update');
     Route::get('/banks/banks', [BanksController::class, 'getBanks'])->name('banks.banks');
-
+// import
+Route::get('/Import', [EmployeeImportController::class, 'index'])
+->name('pages.Import');
+Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Import.employee');
+// userimport
+Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
+->name('pages.Importuser');
+Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
 // });
 
 

@@ -25,7 +25,7 @@ class Employee extends Model
 
     protected $casts = [
         'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-        'salary' => 'decimal:2',
+        
     ];
     protected $fillable = [
         'employee_name',
@@ -33,11 +33,12 @@ class Employee extends Model
         'position_id',
         'company_id',
         'store_id',
+        'bank_account_number',
+        'banks_id',
         'department_id',
         'fingerprint_id',
         'status_employee',
         'join_date',
-        'lenght_of_service',
         'marriage',
         'child',
         'telp_number',
@@ -56,16 +57,18 @@ class Employee extends Model
         'bpjs_ket',
         'email',
         'emergency_contact_name',
-        
-        'notes',
         'status',
-        'banks_id',
-        'name_account_number',
-        'bank_account_name'
+        'notes'
+        
+        
     ];
     public function department()
     {
         return $this->belongsTo(Departments::class, 'department_id');
+    }
+    public function bank()
+    {
+        return $this->belongsTo(Banks::class, 'banks_id');
     }
     public function store()
     {

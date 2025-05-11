@@ -307,7 +307,7 @@
                             } else if (data === 'On leave') {
                                 return '<span class="badge bg-warning">On Leave</span>';
                             } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Tidak Aktif</span>';
+                                return '<span class="badge bg-info">Mutation</span>';
                             } else if (data === 'Pending') {
                                 return '<span class="badge bg-secondary">Pending</span>';
                             }

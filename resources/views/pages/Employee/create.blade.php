@@ -758,6 +758,51 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="banks_id" class="form-control-label">
+                                                                <i class="fas fa-id-card"></i> {{ __('Bank Name') }}
+                                                            </label>
+                                                            <div>
+                                                                <select name="banks_id" class="form-control @error('banks_id') is-invalid @enderror"required>
+                                                                    <option value="">-- Choose Banks --</option>
+                                                                    @foreach ($banks as $key => $value)
+                                                                        <option value="{{ $key }}"
+                                                                            {{ old('banks_id') == $key ? 'selected' : '' }}>
+                                                                            {{ $value }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                                @error('banks_id')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    </div>
+                                                <div class="row mt-3">
+
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="bank_account_number" class="form-control-label">
+                                                                <i class="fas fa-id-card"></i> {{ __('Bank Account Number') }}
+                                                            </label>
+                                                            <div>
+                                                                <input class="form-control @error('bank_account_number') is-invalid @enderror"
+                                                                    value="{{ old('bank_account_number', $employee->Employee->bank_account_number ?? '') }}"
+                                                                    type="text" id="bank_account_number" name="bank_account_number"
+                                                                    value="{{ old('bank_account_number') }}"
+                                                                    aria-describedby="info-bank_account_number" placeholder="bank account number">
+                                                                @error('bank_account_number')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+                                                            </div>
+                                                    </div>
+                                                </div>
                                             
                                                 
                                                 <div class="col-md-6">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banks;
 use App\Models\Company;
 use App\Models\Departments;
 use App\Models\Employee;
@@ -243,9 +244,14 @@ class EmployeeController extends Controller
                     ? $employee->Employee->created_at
                     : 'Empty';
             })
-            ->addColumn('length_of_service', function ($employee) {
-                return !empty($employee->Employee) && !empty($employee->Employee->length_of_service)
-                    ? $employee->Employee->length_of_service
+            ->addColumn('bank_name', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->bank->name)
+                    ? $employee->Employee->bank->name
+                    : 'Empty';
+            })
+            ->addColumn('bank_account_number', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->bank_account_number)
+                    ? $employee->Employee->bank_account_number
                     : 'Empty';
             })
             ->addColumn('status', function ($employee) {
@@ -260,7 +266,7 @@ class EmployeeController extends Controller
     public function edit($hashedId)
     {
         // Tambahkan debug sebelum mengirim ke view
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position','Employee.bank')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -274,14 +280,14 @@ class EmployeeController extends Controller
         $companys = Company::get();
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
-        $status_employee = ['PKWT', 'DW', 'PKWTT'];
+        $status_employee = ['PKWT', 'DW', 'PKWTT','On Job Training'];
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Active', 'Pending', 'Inactive', 'On Leave'];
-        $banks = ['OCBC', 'BCA', 'Victoria', 'Mandiri', 'BRI'];
+        $status = ['Active', 'Pending', 'Inactive', 'On Leave','Mutation'];
+        $banks = Banks::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
-        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma', 'Bachelor Degree'];
+        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I','Diploma II','Diploma III','Diploma IV', 'Bachelor Degree','Masters degree','Vocational School','Lord'];
         // dd($employee->Employee->join_date, $employee->Employee->getOriginal('join_date'));
 
         return view('pages.Employee.edit', [
@@ -347,23 +353,22 @@ class EmployeeController extends Controller
         ]);
     }
 
-
-
+   
     public function create()
     {
         $stores = Stores::pluck('name', 'id')->all();
         $positions = Position::pluck('name', 'id')->all();
         $departments = Departments::pluck('department_name', 'id')->all();
         $companys = Company::pluck('name', 'id')->all();
-        $status_employee = ['PKWT', 'DW', 'PKWTT'];
+        $banks = Banks::pluck('name', 'id')->all();
+        $status_employee = ['PKWT', 'DW', 'PKWTT','On Job Training'];
         $status_child = ['0', '1', '2', '3', '4', '5'];
         $status_marriage = ['Yes', 'No'];
         $status_gender = ['Male', 'Female', 'MD'];
-        $status = ['Active', 'Inactive', 'On Leave'];
-        $banks = ['OCBC', 'BCA', 'Victoria', 'Mandiri', 'BRI'];
+        $status =  ['Active', 'Pending', 'Inactive', 'On Leave','Mutation'];
 
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
-        $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma', 'Bachelor Degree'];
+        $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I','Diploma II','Diploma III','Diploma IV', 'Bachelor Degree','Masters degree','Vocational School','Lord'];
         return view('pages.Employee.create', compact('companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
 
@@ -395,6 +400,7 @@ class EmployeeController extends Controller
             'telp_number' => ['required', 'numeric', 'digits_between:10,13', 'unique:employees_tables,telp_number', new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik' => ['required', 'max:20', 'unique:employees_tables,nik', new NoXSSInput()],
+            'bank_account_number' => ['required', 'max:20', 'unique:employees_tables,bank_account_number', new NoXSSInput()],
             'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
@@ -409,6 +415,7 @@ class EmployeeController extends Controller
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
+            'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
 
         ], [
             'password.min' => 'The password must be at least 7 characters.',
@@ -449,6 +456,8 @@ class EmployeeController extends Controller
             'status_employee.required' => 'The employee status is required.',
             'nik.required' => 'The NIK is required.',
             'nik.max' => 'The NIK may not be greater than 20 characters.',
+            'bank_account_number.required' => 'The bank account number is required.',
+            'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
 
             'employee_pengenal.max' => 'The employee ID may not be greater than 30 characters.',
             'employee_pengenal.unique' => 'This employee ID is already taken.',
@@ -474,6 +483,9 @@ class EmployeeController extends Controller
             'store_id.required' => 'The Store is required.',
             'company_id.required' => 'The Company is required.',
             'department_id.required' => 'The Department is required.',
+            'banks_id.exists' => 'The selected banks is invalid.',
+            'banks_id.required' => 'The banks is required.',
+            
 
         ]);
         try {
@@ -509,8 +521,10 @@ class EmployeeController extends Controller
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
+                'bank_account_number' => $validatedData['bank_account_number'] ?? '',
                 'position_id' => $validatedData['position_id'] ?? '',
                 'company_id' => $validatedData['company_id'] ?? '',
+                'banks_id' => $validatedData['banks_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
                 'department_id' => $validatedData['department_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
@@ -579,6 +593,7 @@ class EmployeeController extends Controller
             'telp_number' => ['required', 'numeric', 'digits_between:10,13',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik' => ['required', 'max:20',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
+            'bank_account_number' => ['required', 'max:20',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
 
@@ -592,6 +607,7 @@ class EmployeeController extends Controller
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
+            'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ], [
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
@@ -624,6 +640,8 @@ class EmployeeController extends Controller
             'status_employee.required' => 'The employee status is required.',
             'nik.required' => 'The NIK is required.',
             'nik.max' => 'The NIK may not be greater than 20 characters.',
+            'bank_account_number.required' => 'The bank account number is required.',
+            'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
 
           
             'last_education.required' => 'The last education field is required.',
@@ -647,16 +665,20 @@ class EmployeeController extends Controller
             'store_id.required' => 'The Store is required.',
             'company_id.required' => 'The Company is required.',
             'department_id.required' => 'The Department is required.',
+            'banks_id.exists' => 'The selected banks is invalid.',
+            'banks_id.required' => 'The banks is required.',
         ]);
       
         DB::beginTransaction();
         $user->Employee->update([
             'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
+                'bank_account_number' => $validatedData['bank_account_number'] ?? '',
                 'position_id' => $validatedData['position_id'] ?? '',
                 'company_id' => $validatedData['company_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
                 'department_id' => $validatedData['department_id'] ?? '',
+                'banks_id' => $validatedData['banks_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
                 'join_date' => $validatedData['join_date'] ?? '',
                 'marriage' => $validatedData['marriage'] ?? '',

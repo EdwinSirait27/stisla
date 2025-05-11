@@ -212,6 +212,8 @@
                                                 <th class="text-center">Email</th>
                                                 <th class="text-center">Emergency Contact Name</th>
                                                 <th class="text-center">Notes</th>
+                                                <th class="text-center">Bank Account</th>
+                                                <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
                                                
@@ -579,11 +581,6 @@
                     extend: 'excel',
                     className: 'btn btn-sm btn-info',
                     text: '<i class="fas fa-file-excel"></i> Excel'
-                },
-                {
-                    extend: 'print',
-                    className: 'btn btn-sm btn-warning',
-                    text: '<i class="fas fa-print"></i> Print'
                 }
                 
             ],
@@ -754,6 +751,16 @@
                         name: 'notes',
                         className: 'text-center'
                     },
+                    {
+                        data: 'bank_name',
+                        name: 'bank_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bank_account_number',
+                        name: 'bank_account_number',
+                        className: 'text-center'
+                    },
                   
                     {
                         data: 'created_at',
@@ -772,7 +779,7 @@
         } else if (data === 'On leave') {
             return '<span class="badge bg-warning">On Leave</span>';
         } else if (data === 'Mutation') {
-            return '<span class="badge bg-info">Tidak Aktif</span>';
+            return '<span class="badge bg-info">Mutation</span>';
         } else if (data === 'Pending') {
             return '<span class="badge bg-secondary">Pending</span>';
         }
