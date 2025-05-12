@@ -825,7 +825,52 @@
                                                 </div>
                                                 </div>
                                             </div>
+                                            <div class="row mt-3">
 
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="daily_allowance" class="form-control-label">
+                                                            <i class="fas fa-id-card"></i> {{ __('Daily Allowance') }}
+                                                        </label>
+                                                        <div>
+                                                            <input class="form-control @error('daily_allowance') is-invalid @enderror"
+                                                                value="{{ old('daily_allowance', $employee->Employee->daily_allowance ?? '') }}"
+                                                                type="text" id="daily_allowance" name="daily_allowance"
+                                                                value="{{ old('daily_allowance') }}"
+                                                                aria-describedby="info-daily_allowance" placeholder="money money">
+                                                            @error('daily_allowance')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                </div>
+                                            </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="company_id" class="form-control-label">
+                                                            <i class="fas fa-id-card"></i> {{ __('Company Names') }}
+                                                        </label>
+                                                        <div>
+                                                            <select name="company_id" class="form-control @error('company_id') is-invalid @enderror"required>
+                                                                <option value="">-- Choose company --</option>
+                                                                @foreach ($companys as $key => $value)
+                                                                    <option value="{{ $key }}"
+                                                                        {{ old('company_id') == $key ? 'selected' : '' }}>
+                                                                        {{ $value }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('company_id')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                </div>
+                                        
 
 
                                             {{-- <div class="row mt-3">

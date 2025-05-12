@@ -185,9 +185,9 @@
                             {{-- Filter --}}
                             <div class="row mb-4">
                                 <div class="col-md-4">
-                                    <label for="filter_month_year" class="form-label">Filter Bulan - Tahun</label>
+                                    <label for="filter_month_year" class="form-label">Filter Month - Year</label>
                                     {{-- <input type="month" id="filter_month_year" class="form-control"> --}}
-                                    <input type="text" id="filter_month_year" class="form-control" placeholder="Pilih Bulan - Tahun">
+                                    <input type="text" id="filter_month_year" class="form-control" placeholder="Choose Month - Year">
 
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
@@ -402,15 +402,23 @@ $(document).ready(function() {
 //         return data ? data : '-';
 //     }
 // },
-{
-    data: 'daily_allowance',
-    name: 'daily_allowance',
+// {
+//     data: 'daily_allowance',
+//     name: 'daily_allowance',
+//     className: 'text-center',
+//     render: function(data) {
+//         return data ? parseInt(data).toLocaleString('id-ID') : '-';
+//     }
+// },
+
+{ 
+    data: 'daily_allowance', 
+    name: 'daily_allowance', 
     className: 'text-center',
     render: function(data) {
         return data ? parseInt(data).toLocaleString('id-ID') : '-';
     }
 },
-
 { 
     data: 'overtime', 
     name: 'overtime', 

@@ -10,6 +10,8 @@ use App\Models\Position;
 use App\Models\Payrolls;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Crypt;
+
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
 use Illuminate\Support\Facades\Hash;
@@ -437,13 +439,24 @@ class EmployeeController extends Controller
                     ? $employee->Employee->status
                     : 'Empty';
             })
+            ->addColumn('daily_allowance', function ($employee) {
+                if (!empty($employee->Employee) && !empty($employee->Employee->daily_allowance)) {
+                    try {
+                        return Crypt::decrypt($employee->Employee->daily_allowance); // langsung angka 150000
+                    } catch (\Exception $e) {
+                        return 'Invalid Data';
+                    }
+                } else {
+                    return 'Empty';
+                }
+            })
+            
             ->make(true);
     }
 
 
     public function edit($hashedId)
     {
-        // Tambahkan debug sebelum mengirim ke view
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position','Employee.bank')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
@@ -452,7 +465,14 @@ class EmployeeController extends Controller
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
-
+        if (!empty($employee->Employee) && !empty($employee->Employee->daily_allowance)) {
+            try {
+                $employee->Employee->daily_allowance = Crypt::decryptString($employee->Employee->daily_allowance);
+            } catch (\Exception $e) {
+                $employee->Employee->daily_allowance = null; // Atau 'Invalid Data' jika ingin tampilkan pesan
+            }
+        }
+    
 
         $positions = Position::get();
         $companys = Company::get();
@@ -582,7 +602,8 @@ class EmployeeController extends Controller
             'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
-
+'daily_allowance' => ['nullable','numeric',
+                new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -615,7 +636,7 @@ class EmployeeController extends Controller
 
             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
-
+            'daily_allowance.numeric' => 'Net salary must be a number.',
             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
 
@@ -712,6 +733,8 @@ class EmployeeController extends Controller
                 'telp_number' => $validatedData['telp_number'] ?? '',
                 'gender' => $validatedData['gender'] ?? '',
                 'date_of_birth' => $validatedData['date_of_birth'] ?? '',
+            'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
+
 
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
@@ -759,28 +782,30 @@ class EmployeeController extends Controller
 
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-            'employee_name' => ['required', 'string', 'max:255',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
-            'bpjs_kes' => ['required', 'string', 'max:255',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
-            'bpjs_ket' => ['required', 'string', 'max:255',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
-            'email' => ['required', 'string', 'max:255',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
+            'employee_name' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+            new NoXSSInput()],
+            'bpjs_kes' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'bpjs_kes')->ignore($user->Employee->id), new NoXSSInput()],
+            'bpjs_ket' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'bpjs_ket')->ignore($user->Employee->id), new NoXSSInput()],
+            'email' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'email')->ignore($user->Employee->id), new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'telp_number' => ['required', 'numeric', 'digits_between:10,13',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
+            'telp_number' => ['required', 'numeric', 'digits_between:10,13',Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id), new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'nik' => ['required', 'max:20',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
-            'bank_account_number' => ['required', 'max:20',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
+            'nik' => ['required', 'max:20',Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id), new NoXSSInput()],
+            'bank_account_number' => ['required', 'max:20',Rule::unique('employees_tables', 'bank_account_number')->ignore($user->Employee->id), new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
-
+            'daily_allowance' => ['nullable','string',
+            new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'npwp' => ['required', 'string', 'max:50',Rule::unique('employee_tables')->ignore($user->id), new NoXSSInput()],
+            'npwp' => ['required', 'string', 'max:50',Rule::unique('employees_tables')->ignore($user->id), new NoXSSInput()],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
@@ -789,6 +814,7 @@ class EmployeeController extends Controller
         ], [
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
+            'daily_allowance.numeric' => 'Net salary must be a number.',
 
             'date_of_birth.required' => 'The date of birth is required.',
             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
@@ -858,6 +884,8 @@ class EmployeeController extends Controller
                 'department_id' => $validatedData['department_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
+            'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance'])?? 0,
+
                 'join_date' => $validatedData['join_date'] ?? '',
                 'marriage' => $validatedData['marriage'] ?? '',
                 'child' => $validatedData['child'] ?? '',

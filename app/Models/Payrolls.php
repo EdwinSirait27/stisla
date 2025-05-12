@@ -26,7 +26,6 @@ class Payrolls extends Model
         'employee_id',
         'attendance',
         'bonus',
-        'daily_allowance',
         'overtime',
         'house_allowance',
         'meal_allowance',

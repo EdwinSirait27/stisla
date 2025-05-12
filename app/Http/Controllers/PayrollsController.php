@@ -28,7 +28,7 @@ public function getPayrolls(Request $request)
         ->select([
             'id', 'employee_id', 'bonus', 'house_allowance', 'meal_allowance', 
             'transport_allowance', 'deductions', 'salary', 'month_year',
-            'overtime', 'daily_allowance', 'attendance', 'late_fine',
+            'overtime',  'attendance', 'late_fine',
             'bpjs_ket', 'bpjs_kes', 'mesh', 'punishment'
         ]);
     // Filter berdasarkan month_year (Hanya Y-m, bukan Y-m-d)
@@ -44,7 +44,7 @@ public function getPayrolls(Request $request)
             $payroll->deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : null;
             $payroll->salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : null;
             $payroll->overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : null;
-            $payroll->daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : null;
+            // $payroll->daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : null;
             $payroll->late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : null;
             $payroll->bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : null;
             $payroll->bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : null;
@@ -74,6 +74,17 @@ public function getPayrolls(Request $request)
         ->addColumn('employee_name', function ($payroll) {
             return $payroll->employee->employee_name ?? 'Empty';
         })
+        ->addColumn('daily_allowance', function ($payroll) {
+            if (!empty($payroll->Employee) && !empty($payroll->Employee->daily_allowance)) {
+                try {
+                    return Crypt::decrypt($payroll->Employee->daily_allowance); // langsung angka 150000
+                } catch (\Exception $e) {
+                    return 'Invalid Data';
+                }
+            } else {
+                return 'Empty';
+            }
+        })
         ->rawColumns(['action', 'employee_name'])
         ->make(true);
 }
@@ -98,14 +109,15 @@ public function show($hashedId)
     $deductions = Crypt::decrypt($payroll->deductions);
     $salary = Crypt::decrypt($payroll->salary);
     $overtime = Crypt::decrypt($payroll->overtime);
-    $daily_allowance = Crypt::decrypt($payroll->daily_allowance);
     $late_fine = Crypt::decrypt($payroll->late_fine);
     $bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
     $bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
     $mesh = Crypt::decrypt($payroll->mesh);
     $punishment = Crypt::decrypt($payroll->punishment);
     // Hitung salary
-    $salaryincome = intval($attendance) * intval($daily_allowance) + 
+    $salaryincome = intval($attendance)  
+    // * intval($daily_allowance) 
+    + 
                    intval($overtime) + intval($bonus) + 
                    intval($house_allowance) + intval($meal_allowance) + 
                    intval($transport_allowance);
@@ -120,7 +132,6 @@ public function show($hashedId)
     
     $data = [
         'payroll' => $payroll,
-        'daily_allowance' => $daily_allowance,
         'overtime' => $overtime,
         'bonus' => $bonus,
         'house_allowance' => $house_allowance,
@@ -183,22 +194,22 @@ public function show($hashedId)
     }
     // Dekripsi data
     try {
-        $payroll->bonus = Crypt::decrypt($payroll->bonus);
-        $payroll->house_allowance = Crypt::decrypt($payroll->house_allowance);
-        $payroll->meal_allowance = Crypt::decrypt($payroll->meal_allowance);
-        $payroll->transport_allowance = Crypt::decrypt($payroll->transport_allowance);
-        $payroll->deductions = Crypt::decrypt($payroll->deductions);
-        $payroll->salary = Crypt::decrypt($payroll->salary);
-        $payroll->overtime = Crypt::decrypt($payroll->overtime);
-        $payroll->daily_allowance = Crypt::decrypt($payroll->daily_allowance);
-        $payroll->late_fine = Crypt::decrypt($payroll->late_fine);
-        $payroll->bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
-        $payroll->bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
-        $payroll->mesh = Crypt::decrypt($payroll->mesh);
-        $payroll->punishment = Crypt::decrypt($payroll->punishment);
+        $payroll->bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : null;
+        $payroll->house_allowance = $payroll->house_allowance ? Crypt::decrypt($payroll->house_allowance) : null;
+        $payroll->meal_allowance = $payroll->meal_allowance ? Crypt::decrypt($payroll->meal_allowance) : null;
+        $payroll->transport_allowance = $payroll->transport_allowance ? Crypt::decrypt($payroll->transport_allowance) : null;
+        $payroll->deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : null;
+        $payroll->salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : null;
+        $payroll->overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : null;
+        $payroll->late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : null;
+        $payroll->bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : null;
+        $payroll->bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : null;
+        $payroll->mesh = $payroll->mesh ? Crypt::decrypt($payroll->mesh) : null;
+        $payroll->punishment = $payroll->punishment ? Crypt::decrypt($payroll->punishment) : null;
     } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
         abort(500, 'Failed to decrypt payroll data.');
     }
+    
 
     return view('pages.Payrolls.edit', [
         'payroll' => $payroll,
@@ -237,8 +248,8 @@ public function show($hashedId)
             'attendance' => ['nullable','numeric',
                 new NoXSSInput()],
             
-            'daily_allowance' => ['nullable','numeric',
-                new NoXSSInput()],
+            // 'daily_allowance' => ['nullable','numeric',
+            //     new NoXSSInput()],
             
             'overtime' => ['nullable','numeric',
                 new NoXSSInput()],   
@@ -262,7 +273,6 @@ public function show($hashedId)
             'meal_allowance.numeric' => 'Meal allowance must be a number.',
             'transport_allowance.numeric' => 'Transport allowance must be a number.',
             'overtime.numeric' => 'Net salary must be a number.',
-            'daily_allowance.numeric' => 'Net salary must be a number.',
             'attendance.numeric' => 'Net salary must be a number.',
             'bpjs_kes.numeric' => 'bpjs kesehatan must be a number.',
             'bpjs_ket.numeric' => 'bpjs ketenagakerjaan must be a number.',
@@ -280,7 +290,7 @@ public function show($hashedId)
           
           $calculatedSalary = 
           ($validatedData['attendance'] ?? 0) *
-          ($validatedData['daily_allowance'] ?? 0) +
+        //   ($validatedData['daily_allowance'] ?? 0) +
           ($validatedData['overtime'] ?? 0) +
           ($validatedData['bonus'] ?? 0) +
           ($validatedData['house_allowance'] ?? 0) +
@@ -295,7 +305,6 @@ public function show($hashedId)
             'meal_allowance' => Crypt::encrypt($validatedData['meal_allowance']),
             'transport_allowance' => Crypt::encrypt($validatedData['transport_allowance']),
             'attendance' => ($validatedData['attendance']),
-            'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
             'overtime' => Crypt::encrypt($validatedData['overtime']),
             'mesh' => Crypt::encrypt($validatedData['mesh']),
             'punishment' => Crypt::encrypt($validatedData['punishment']),

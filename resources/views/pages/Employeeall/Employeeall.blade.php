@@ -233,6 +233,7 @@
                                                 <th class="text-center">Bank Account</th>
                                                 <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Account Creation</th>
+                                                <th class="text-center">Daily Allowance</th>
                                                 <th class="text-center">Status</th>
 
                                             </tr>
@@ -543,12 +544,19 @@
                         name: 'bank_account_number',
                         className: 'text-center'
                     },
-
                     {
                         data: 'created_at',
                         name: 'created_at',
                         className: 'text-center'
                     },
+                    {
+    data: 'daily_allowance',
+    name: 'daily_allowance',
+    className: 'text-center',
+    render: function(data) {
+        return data ? parseInt(data).toLocaleString('id-ID') : '-';
+    }
+},
                     {
                         data: 'status',
                         name: 'status',
@@ -568,8 +576,7 @@
                             return '<span class="badge bg-secondary">Pending</span>';
                         }
                     }
-                    // Your existing columns configuration...
-                    // (Keep all your existing columns configuration here)
+                 
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
