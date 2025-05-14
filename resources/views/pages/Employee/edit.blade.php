@@ -799,7 +799,8 @@
                                                                         </div>
                                                                 </div>
                                                                 </div>
-                                                                <div class="col-md-6">
+                                                                </div>
+                                                                {{-- <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label for="daily_allowance" class="form-control-label">
                                                                             <i class="fas fa-id-card"></i> {{ __('Daily Allowance') }}
@@ -818,7 +819,7 @@
                                                                         </div>
                                                                 </div>
                                                                 </div>
-                                                            </div>
+                                                            </div> --}}
                                                             <div class="row mt-3">
                                                                 <div class="col-md-6">
                                                                     <div class="form-group">
@@ -842,17 +843,41 @@
                                                                     </div>
                                                                 </div>
                                                                 </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label for="status" class="form-control-label">
+                                                                            <i class="fas fa-id-card"></i> {{ __('Status') }}
+                                                                        </label>
+                                                                        <div>
+                                                                            <select name="status" class="form-control @error('status') is-invalid @enderror"required>
+                                                                                <option value="">-- Choose Status --</option>
+                                                                                @foreach ($status as $value)
+                                                                                <option value="{{ $value }}"
+                                                                                {{ old('status', $employee->Employee->status ?? '') == $value ? 'selected' : '' }}>
+                                                                                {{ $value }}
+                                                                            </option>
+                                                                            
+                                                                                @endforeach
+                                                                            </select>
+                                                                            @error('status')
+                                                                                <span class="invalid-feedback" role="alert">
+                                                                                    <strong>{{ $message }}</strong>
+                                                                                </span>
+                                                                            @enderror
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
+                                                            </div>
 
 
 
-                                        {{-- <div class="alert alert-secondary mt-4" role="alert">
+                                        <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a name is already registered, you cannot register it again.<br>
+                                                - Don't fill in the status column, just leave it as it is, if the employee is inactive, then change it, okay?.<br>
                                                 
                                             </span>
-                                        </div> --}}
+                                        </div>
 
                                         <div class="d-flex justify-content-end mt-4">
                                             <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">

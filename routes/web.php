@@ -230,11 +230,11 @@ Route::middleware(['auth', 'role:HeadHR'])->group(function () {
     Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
     Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
     Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
-
+    Route::delete('/payrolls/delete', [PayrollsController::class, 'deletepayrolls'])->name('payrolls.delete');
     Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
     Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
     Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
-
+    Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
     // Status Product
 
     Route::get('/Masterproducts', [MasterproductController::class, 'index'])
@@ -268,7 +268,13 @@ Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Impor
 Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
 ->name('pages.Importuser');
 Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
+// payrolls
+Route::get('/Importpayroll', [EmployeeImportController::class, 'indexpayrolls'])
+->name('pages.Importpayroll');
+Route::post('/Importpayroll', [EmployeeImportController::class, 'importpayroll'])->name('Importpayroll.user');
 // });
+Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
+
 
 
 

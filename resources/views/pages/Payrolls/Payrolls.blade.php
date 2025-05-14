@@ -165,98 +165,134 @@
 
 
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Payrolls</h1>
-        </div>
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Payrolls</h1>
+            </div>
 
-        <div class="section-body">
-            <div class="row">
-                <div class="col-12">
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-12">
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
+                            </div>
+
+                            <div class="card-body">
+
+                                {{-- Filter --}}
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <label for="filter_month_year" class="form-label">Filter Month - Year</label>
+                                        {{-- <input type="month" id="filter_month_year" class="form-control"> --}}
+                                        <input type="text" id="filter_month_year" class="form-control"
+                                            placeholder="Choose Month - Year">
+
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button id="btn_filter" class="btn btn-primary w-100">
+                                            <i class="fas fa-filter"></i> Filter
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button id="btn_reset" class="btn btn-secondary w-100">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Table --}}
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered" id="users-table">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th class="text-center">No.</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Attendance</th>
+                                                <th class="text-center">Daily Allowance</th>
+                                                <th class="text-center">Overtime</th>
+                                                <th class="text-center">Bonus</th>
+                                                <th class="text-center">House Allowance</th>
+                                                <th class="text-center">Meal Allowance</th>
+                                                <th class="text-center">Transport Allowance</th>
+                                                <th class="text-center">BPJS Ketenagakerjaan</th>
+                                                <th class="text-center">BPJS Kesehatan</th>
+                                                {{-- <th class="text-center">Mesh</th> --}}
+                                                <th class="text-center">Punishment</th>
+                                                <th class="text-center">Late Fine</th>
+                                                <th class="text-center">Tax</th>
+                                                <th class="text-center">Total Deduction</th>
+                                                <th class="text-center">Total Salary</th>
+                                                <th class="text-center">Month</th>
+                                                <th class="text-center">Period</th>
+                                                <th class="text-center">Action</th>
+                                                <th>
+                                                    <button type="button" id="select-all" class="btn btn-primary btn-sm">
+                                                        Select All
+                                                    </button>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                    <button type="button" id="delete-selected" class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </div>
+
+                            </div> {{-- end card-body --}}
+                            <form action="{{ route('payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-pdf"></i> Generate Semua Slip Gaji
+                                </button>
+                            </form>
+                            
                         </div>
 
-                        <div class="card-body">
-
-                            {{-- Filter --}}
-                            <div class="row mb-4">
-                                <div class="col-md-4">
-                                    <label for="filter_month_year" class="form-label">Filter Month - Year</label>
-                                    {{-- <input type="month" id="filter_month_year" class="form-control"> --}}
-                                    <input type="text" id="filter_month_year" class="form-control" placeholder="Choose Month - Year">
-
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button id="btn_filter" class="btn btn-primary w-100">
-                                        <i class="fas fa-filter"></i> Filter
-                                    </button>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button id="btn_reset" class="btn btn-secondary w-100">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- Table --}}
-                            <div class="table-responsive">
-                                <table class="table table-hover table-bordered" id="users-table">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th class="text-center">No.</th>
-                                            <th class="text-center">Employee Name</th>
-                                            <th class="text-center">Attendance</th>
-                                            <th class="text-center">Daily Allowance</th>
-                                            <th class="text-center">Overtime</th>
-                                            <th class="text-center">Bonus</th>
-                                            <th class="text-center">House Allowance</th>
-                                            <th class="text-center">Meal Allowance</th>
-                                            <th class="text-center">Transport Allowance</th>
-                                            <th class="text-center">BPJS Ketenagakerjaan</th>
-                                            <th class="text-center">BPJS Kesehatan</th>
-                                            <th class="text-center">Mesh</th>
-                                            <th class="text-center">Punishment</th>
-                                            <th class="text-center">Late Fine</th>
-                                            <th class="text-center">Total Deduction</th>
-                                            <th class="text-center">Total Salary</th>
-                                            <th class="text-center">Month</th>
-                                            <th class="text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-
-                        </div> {{-- end card-body --}}
                     </div>
-
                 </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 @endsection
 
-{{-- @push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-$(document).ready(function() {
-    var table = $('#users-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route('payrolls.payrolls') }}',
-            data: function (d) {
-                d.month_year = $('#filter_month_year').val();
-            }
-        },
-        columns: [
-            {
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script>
+        flatpickr("#filter_month_year", {
+            dateFormat: "Y-m", // format output: 2025-05
+            plugins: [
+                new monthSelectPlugin({
+                    shorthand: true, // gunakan Jan, Feb, dll
+                    dateFormat: "Y-m",
+                    altFormat: "F Y"
+                })
+            ]
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('payrolls.payrolls') }}',
+                    data: function(d) {
+                        d.month_year = $('#filter_month_year').val();
+                    }
+                },
+                columns: [{
                         data: null,
                         name: 'id',
                         className: 'text-center align-middle',
@@ -264,312 +300,223 @@ $(document).ready(function() {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-            { data: 'employee_name', name: 'employee_name', className: 'text-center' },
-            { data: 'bonus', name: 'bonus', className: 'text-center' },
-            { data: 'house_allowance', name: 'house_allowance', className: 'text-center' },
-            { data: 'meal_allowance', name: 'meal_allowance', className: 'text-center' },
-            { data: 'transport_allowance', name: 'transport_allowance', className: 'text-center' },
-            { data: 'net_salary', name: 'net_salary', className: 'text-center' },
-            { data: 'deductions', name: 'deductions', className: 'text-center' },
-            { data: 'salary', name: 'salary', className: 'text-center' },
-            {
-    data: 'month_year',
-    name: 'month_year',
-    className: 'text-center',
-    render: function (data, type, row) {
-        if (data) {
-            const date = new Date(data);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            return `${year}-${month}`;
-        }
-        return '';
-    }
-},
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
-        ],
-        order: [[9, 'desc']], // urutkan berdasarkan Month Year terbaru
-    });
-
-    $('#btn_filter').click(function() {
-        table.ajax.reload();
-    });
-
-    $('#btn_reset').click(function() {
-        $('#filter_month_year').val('');
-        table.ajax.reload();
-    });
-});
-</script>
-@endpush --}}
-
-@push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-<script>
-    flatpickr("#filter_month_year", {
-        dateFormat: "Y-m",     // format output: 2025-05
-        plugins: [
-            new monthSelectPlugin({
-                shorthand: true, // gunakan Jan, Feb, dll
-                dateFormat: "Y-m",
-                altFormat: "F Y"
-            })
-        ]
-    });
-</script>
-<script>
-$(document).ready(function() {
-    var table = $('#users-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route('payrolls.payrolls') }}',
-            data: function (d) {
-                d.month_year = $('#filter_month_year').val();
-            }
-        },
-        columns: [
-            // {
-            //     data: null,
-            //     name: 'id',
-            //     className: 'text-center align-middle',
-            //     render: function(data, type, row, meta) {
-            //         return meta.row + meta.settings._iDisplayStart + 1;
-            //     }
-            // },
-            // { data: 'employee_name', name: 'employee_name', className: 'text-center' },
-            // { data: 'attendance', name: 'attendance', className: 'text-center' },
-            // { data: 'daily_allowance', name: 'daily_allowance', className: 'text-center' },
-            // { data: 'overtime', name: 'overtime', className: 'text-center' },
-            // { data: 'bonus', name: 'bonus', className: 'text-center' },
-            // { data: 'house_allowance', name: 'house_allowance', className: 'text-center' },
-            // { data: 'meal_allowance', name: 'meal_allowance', className: 'text-center' },
-            // { data: 'transport_allowance', name: 'transport_allowance', className: 'text-center' },
-            // { data: 'deductions', name: 'deductions', className: 'text-center' },
-            // { data: 'salary', name: 'salary', className: 'text-center' },
-            // {
-            //     data: 'month_year',
-            //     name: 'month_year',
-            //     className: 'text-center',
-            //     render: function (data, type, row) {
-            //         if (data) {
-            //             const date = new Date(data);
-            //             const year = date.getFullYear();
-            //             const month = String(date.getMonth() + 1).padStart(2, '0');
-            //             return `${year}-${month}`;
-            //         }
-            //         return '';
-            //     }
-            // },
-            // { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
-            {
-    data: null,
-    name: 'id',
-    className: 'text-center align-middle',
-    render: function(data, type, row, meta) {
-        return meta.row + meta.settings._iDisplayStart + 1;
-    }
-},
-{ 
-    data: 'employee_name', 
-    name: 'employee_name', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? data : '-';
-    }
-},
-{ 
-    data: 'attendance', 
-    name: 'attendance', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? data : '-';
-    }
-},
-// { 
-//     data: 'daily_allowance', 
-//     name: 'daily_allowance', 
-//     className: 'text-center',
-//     render: function(data) {
-//         return data ? data : '-';
-//     }
-// },
-// {
-//     data: 'daily_allowance',
-//     name: 'daily_allowance',
-//     className: 'text-center',
-//     render: function(data) {
-//         return data ? parseInt(data).toLocaleString('id-ID') : '-';
-//     }
-// },
-
-{ 
-    data: 'daily_allowance', 
-    name: 'daily_allowance', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'overtime', 
-    name: 'overtime', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'bonus', 
-    name: 'bonus', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'house_allowance', 
-    name: 'house_allowance', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'meal_allowance', 
-    name: 'meal_allowance', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'transport_allowance', 
-    name: 'transport_allowance', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'bpjs_ket', 
-    name: 'bpjs_ket', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'bpjs_kes', 
-    name: 'bpjs_kes', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'mesh', 
-    name: 'mesh', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'punishment', 
-    name: 'punishment', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'late_fine', 
-    name: 'late_fine', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'deductions', 
-    name: 'deductions', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{ 
-    data: 'salary', 
-    name: 'salary', 
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
-{
-    data: 'month_year',
-    name: 'month_year',
-    className: 'text-center',
-    render: function (data) {
-        if (data) {
-            const date = new Date(data);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            return `${year}-${month}`;
-        }
-        return '-';
-    }
-},
-{ 
-    data: 'action', 
-    name: 'action', 
-    orderable: false, 
-    searchable: false, 
-    className: 'text-center'
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
+                    },
+                    {
+                        data: 'attendance',
+                        name: 'attendance',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
+                    },
+                    {
+                        data: 'daily_allowance',
+                        name: 'daily_allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'overtime',
+                        name: 'overtime',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'bonus',
+                        name: 'bonus',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'house_allowance',
+                        name: 'house_allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'meal_allowance',
+                        name: 'meal_allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'transport_allowance',
+                        name: 'transport_allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'bpjs_ket',
+                        name: 'bpjs_ket',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'bpjs_kes',
+                        name: 'bpjs_kes',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    // {
+                    //     data: 'mesh',
+                    //     name: 'mesh',
+                    //     className: 'text-center',
+                    //     render: function(data) {
+                    //         return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                    //     }
+                    // },
+                    {
+                        data: 'punishment',
+                        name: 'punishment',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'late_fine',
+                        name: 'late_fine',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'tax',
+                        name: 'tax',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'deductions',
+                        name: 'deductions',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'salary',
+                        name: 'salary',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'month_year',
+                        name: 'month_year',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                const date = new Date(data);
+                                const year = date.getFullYear();
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                return `${year}-${month}`;
+                            }
+                            return '-';
+                        }
+                    },
+                    {
+                        data: 'period',
+                        name: 'period',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                                data: 'id',
+                                name: 'checkbox',
+                                orderable: false,
+                                searchable: false,
+                                className: 'text-center',
+                                render: function(data, type, row) {
+    return `<input type="checkbox" class="user-checkbox" name="payroll_ids[]" value="${row.id}">`;
 }
 
-        ],
-        order: [[9, 'desc']], // urutkan berdasarkan Month Year terbaru
-        dom: 'lBfrtip', // Menambahkan 'l' agar Show Entries muncul
-        buttons: [
-            {
-                extend: 'copy',
-                text: 'Copy to Clipboard',
-                className: 'btn btn-secondary'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Export to Excel',
-                className: 'btn btn-success'
-            }
-        ],
-        lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
-    });
+                            }
+                    
 
-    $('#btn_filter').click(function() {
-        table.ajax.reload();
-    });
+                ],
+                order: [
+                    [9, 'desc']
+                ], // urutkan berdasarkan Month Year terbaru
+                dom: 'lBfrtip', // Menambahkan 'l' agar Show Entries muncul
+                buttons: [{
+                        extend: 'copy',
+                        text: 'Copy to Clipboard',
+                        className: 'btn btn-secondary'
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Export to Excel',
+                        className: 'btn btn-success'
+                    }
+                ],
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "All"]
+                ]
+            });
 
-    $('#btn_reset').click(function() {
-        $('#filter_month_year').val('');
-        table.ajax.reload();
-    });
+            $('#btn_filter').click(function() {
+                table.ajax.reload();
+            });
+
+            $('#btn_reset').click(function() {
+                $('#filter_month_year').val('');
+                table.ajax.reload();
+            });
+        });
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
+    </script>
+    <script>
+        $('#select-all').on('click', function () {
+    let isChecked = $(this).data('checked') || false;
+    $('.user-checkbox').prop('checked', !isChecked);
+    $(this).data('checked', !isChecked);
+    $(this).text(!isChecked ? 'Deselect All' : 'Select All');
 });
-@if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-</script>
+
+       
+    </script>
 @endpush

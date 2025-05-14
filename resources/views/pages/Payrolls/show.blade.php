@@ -177,7 +177,7 @@
 </head>
 
 <body>
-    periode tanggal harus masuk
+    {{-- periode tanggal harus masuk --}}
     <div class="watermark">CONFIDENTIAL</div>
 
     <div class="payslip-container" id="payslip-content" style="font-family: Arial, sans-serif; font-size: 14px;">
@@ -188,7 +188,7 @@
             <table style="width: 100%; margin-bottom: 20px;">
                 <tr>
                     <td style="text-align: left;">
-                        @php
+                        {{-- @php
                             $imagePath = public_path('img/abc.png');
                             $imageData = '';
                             if (file_exists($imagePath)) {
@@ -202,7 +202,29 @@
                             </div>
                         @else
                             <span>Logo tidak tersedia</span>
-                        @endif
+                        @endif --}}
+                        @php
+                        $foto = 'company/' . ($payroll->employee->company->foto ?? '');
+                        $imageData = '';
+                    
+                        $fotoPath = public_path('storage/' . $foto);
+                    
+                        if (!empty($foto) && file_exists($fotoPath) && is_file($fotoPath)) {
+                            $type = pathinfo($fotoPath, PATHINFO_EXTENSION);
+                            $imageData = 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($fotoPath));
+                        }
+                    @endphp
+                    
+                    @if (!empty($imageData))
+                        <div style="background-color: #000000; display: inline-block; padding: 5px;">
+                            <img src="{{ $imageData }}" alt="Foto Perusahaan" width="70">
+                        </div>
+                    @else
+                        <span>Foto tidak tersedia</span>
+                    @endif
+                    
+                    
+
                     </td>
                     <td style="text-align: right; color: red; font-weight: bold; font-size: 18px;">
                         *CONFIDENTIAL
@@ -215,8 +237,10 @@
             <tr>
                 <td class="text-align: left;"><strong>Payroll Month :</strong></td>
                 <td>{{ $formattedMonthYear }}</td>
-                <td><strong>Email :</strong></td>
+                <td><strong>Payroll Periode :</strong></td>
                 <td>{{ $payroll->employee->email }}</td>
+                {{-- <td><strong>Email :</strong></td>
+                <td>{{ $payroll->employee->email }}</td> --}}
             </tr>
             <tr>
                 <td><strong>Name :</strong></td>
@@ -224,16 +248,27 @@
                 <td><strong>Status :</strong></td>
                 <td>{{ $payroll->employee->status_employee }}</td>
             </tr>
+            
             <tr>
                 <td><strong>Job position :</strong></td>
-                <td>{{ $payroll->employee->position->name }}</td>
+                <td>{{ optional(optional($payroll->employee)->position)->name ?? '' }}</td>
+
                 <td><strong>NPWP :</strong></td>
-                <td>{{ $payroll->employee->npwp }}</td>
+                {{-- <td>{{ $payroll->employee->npwp }}</td> --}}
+                <td>{{ optional(optional($payroll)->employee)->npwp ?? '' }}</td>
+
             </tr>
             <tr>
                 <td><strong>Department :</strong></td>
-                <td colspan="3">{{ $payroll->employee->department->department_name }}</td>
+                {{-- <td>{{ $payroll->employee->department->department_name }}</td> --}}
+                <td>{{ optional(optional($payroll->employee)->department)->department_name ?? '' }}</td>
+
+                    <td><strong>Email :</strong></td>
+                               <td>{{ $payroll->employee->email }}</td>
+                
             </tr>
+         
+
         </table>
         <!-- Earnings and Deductions Tables -->
         <div class="tables-container">
@@ -249,7 +284,9 @@
                     <tr>
                         <td class="text-align: left;">
                             Attendances: {{ $payroll->attendance }} days<br>
+                            {{-- Daily Allowance: IDR {{ number_format($payroll->employee->daily_allowance, 0, ',', '.') }}<br> --}}
                             Daily Allowance: IDR {{ number_format($daily_allowance, 0, ',', '.') }}<br>
+
                             Overtime: IDR {{ number_format($overtime, 0, ',', '.') }}<br>
                             Bonuses: IDR {{ number_format($bonus, 0, ',', '.') }}<br>
                             House Allowance: IDR {{ number_format($house_allowance, 0, ',', '.') }}<br>
@@ -259,10 +296,10 @@
                         <td>
                             Late Fine: IDR {{ number_format($late_fine, 0, ',', '.') }}<br>
                             Punishment: IDR {{ number_format($punishment, 0, ',', '.') }}<br>
-                            Mesh: IDR {{ number_format($mesh, 0, ',', '.') }}<br>
+                            {{-- Mesh: IDR {{ number_format($mesh, 0, ',', '.') }}<br> --}}
                             BPJS Ketenagakerjaan: IDR {{ number_format($bpjs_ket, 0, ',', '.') }}<br>
-                            BPJS Kesehatan: IDR {{ number_format($bpjs_kes, 0, ',', '.') }}
-                            Tax IDR{{ number_format($bpjs_kes, 0, ',', '.') }}
+                            BPJS Kesehatan: IDR {{ number_format($bpjs_kes, 0, ',', '.') }}<br>
+                            Tax: IDR {{ number_format($tax, 0, ',', '.') }}
                         </td>
                     </tr>
                 </tbody>
@@ -286,10 +323,11 @@
         </div>
         <!-- Transfer Information -->
         <div class="transfer-section">
-            <div class="transfer-title">Transfer To</div>
+            <div class="transfer-title">Transfer To {{$payroll->employee->bank->name}}</div>
             <div class="transfer-details">
-                <div class="transfer-account">{{ $monthYearHuman }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->bank_account_name}}</div>
-                <div class="table-cell-amount">IDR {{ number_format($salaryoutcome, 2, '.', ',') }}</div>
+                <div class="transfer-account">{{ $month_year }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div>
+                {{-- <div class="transfer-account">{{ $monthYearHuman }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div> --}}
+                <div class="table-cell-amount">IDR {{ number_format($salary, 2, '.', ',') }}</div>
             </div>
         </div>
     </div>

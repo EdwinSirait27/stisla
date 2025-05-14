@@ -28,18 +28,21 @@ class Payrolls extends Model
         'bonus',
         'overtime',
         'house_allowance',
+        'daily_allowance',
         'meal_allowance',
         'transport_allowance',
         'bpjs_ket',
         'bpjs_kes',
-        'mesh',
         'punishment',
         'late_fine',
         'deductions',
         'salary',
+        'tax',
+        'period',
         'month_year',
         'information',
         'attachment_file',   
+        'attachment_path',   
     ];
     public function employee()
     {

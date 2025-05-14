@@ -242,18 +242,13 @@
                                                     <div>
                                                         <input type="number" class="form-control @error('daily_allowance') is-invalid @enderror" id="daily_allowance"
                                                             name="daily_allowance"
-                                                            value="{{ old('daily_allowance', $payroll->daily_allowance) }}"
+                                                            value="{{ old('daily_allowance', $payroll->employee->daily_allowance) }}"
                                                             placeholder="input employee's daily allowance" required>
                                                         @error('daily_allowance')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
                                                         @enderror
-
-
-
-
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -270,7 +265,7 @@
                                                             name="overtime"
                                                             value="{{ old('overtime', $payroll->overtime) }}"
                                                             placeholder="input 0 if the employee does't have overtime"
-                                                            required>
+                                                          >
                                                         @error('overtime')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -290,7 +285,7 @@
                                                         <input type="number" class="form-control @error('bonus') is-invalid @enderror" id="bonus"
                                                             name="bonus" value="{{ old('bonus', $payroll->bonus) }}"
                                                             placeholder="input 0 if the employee dont have bonuses"
-                                                            required>
+                                                            >
                                                         @error('bonus')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -314,7 +309,7 @@
                                                             name="house_allowance"
                                                             value="{{ old('house_allowance', $payroll->house_allowance) }}"
                                                             placeholder="input 0 if the employee dont have house allowance"
-                                                            required>
+                                                            >
                                                         @error('house_allowance')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -337,7 +332,7 @@
                                                             name="meal_allowance"
                                                             value="{{ old('meal_allowance', $payroll->meal_allowance) }}"
                                                             placeholder="input 0 if the employee dont have meal allowance"
-                                                            required>
+                                                            >
                                                         @error('meal_allowance')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -361,7 +356,7 @@
                                                             id="transport_allowance" name="transport_allowance"
                                                             value="{{ old('transport_allowance', $payroll->transport_allowance) }}"
                                                             placeholder="input 0 if the employee dont have transport allowance"
-                                                            required>
+                                                            >
                                                         @error('transport_allowance')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -371,9 +366,10 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </div>
 
 
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="mesh" class="form-control-label">
                                                         <i class="fas fa-user"></i> {{ __('Mesh') }}
@@ -384,7 +380,7 @@
                                                             name="mesh"
                                                             value="{{ old('mesh', $payroll->mesh) }}"
                                                             placeholder="input 0 if the employee dont have mesh"
-                                                            required>
+                                                            >
                                                         @error('mesh')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -394,7 +390,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         <div class="row mt-3">
                                         
                                             <div class="col-md-6">
@@ -416,10 +412,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        
-                                            
-                                            <div class="row mt-3">
-                                        
                                             <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label for="bpjs_kes" class="form-control-label">
@@ -439,6 +431,8 @@
                                                     </div>
                                                     </div>
                                                 </div>
+                                                </div>
+                                        <div class="row mt-3">
                                             
                                                 <div class="col-md-6">
                                                     <div class="form-group">
@@ -457,11 +451,9 @@
                                                             @enderror
     
                                                         </div>
-                                                        </div>
                                                 </div>
                                                 </div>
-                                                <div class="row mt-3">
-                                        
+                                                
                                                 <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label for="late_fine" class="form-control-label">
@@ -480,7 +472,29 @@
         
                                                             </div>
                                                         </div>
+                                                        </div>
                                                     </div>
+                                        <div class="row mt-3">
+
+                                                <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label for="tax" class="form-control-label">
+                                                                <i class="fas fa-user"></i> {{ __('Tax') }}
+                                                            </label>
+                                                            <div>
+                                                                <input type="number" class="form-control @error('tax') is-invalid @enderror" id="tax"
+                                                                    name="tax"
+                                                                    value="{{ old('tax', $payroll->tax) }}"
+                                                                    placeholder="input 0 if the employee doesn't have tax">
+                                                                @error('tax')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+        
+                                                            </div>
+                                                        </div>
+                                                        </div>
                                             
                                                     <div class="col-md-6">
                                                         <div class="form-group">
@@ -498,8 +512,8 @@
                                                                     </span>
                                                                 @enderror
         
-                                                            </div>
                                                         </div>
+                                                    </div>
                                                     </div>
                                                     </div>
                                         

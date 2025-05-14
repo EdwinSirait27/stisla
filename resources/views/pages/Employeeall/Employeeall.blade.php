@@ -195,13 +195,29 @@
                                     @endforeach
                                 </select>
                             </div>
-
+                            <div class="col-md-4">
+                                <label class="form-label">Filter</label>
+                                <div id="filter-status">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="status-all" value="" checked>
+                                        {{-- <label class="form-check-label" for="status-all">All</label> --}}
+                                    </div>
+                                    @foreach($statusList as $status)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="status[]" id="status-{{ $loop->index }}" value="{{ $status }}">
+                                            <label class="form-check-label" for="status-{{ $loop->index }}">{{ $status }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
+                                                <th class="text-center">Employee Key</th>
                                                 <th class="text-center">Username</th>
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Employee ID</th>
@@ -233,12 +249,18 @@
                                                 <th class="text-center">Bank Account</th>
                                                 <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Account Creation</th>
-                                                <th class="text-center">Daily Allowance</th>
                                                 <th class="text-center">Status</th>
 
                                             </tr>
                                         </thead>
                                     </table>
+                                </div>
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - Import the employee's data first then import the users aight.<br>
+                                        
+                                    </span>
                                 </div>
                                 <div class="action-buttons">
 
@@ -246,6 +268,14 @@
                                     <button type="button" onclick="window.location='{{ route('pages.Employee') }}'"
                                         class="btn btn-danger btn-sm ml-2">
                                         <i class="fas fa-users"></i> Back To Employee
+                                    </button>
+                                    <button type="button" onclick="window.location='{{ route('pages.Import') }}'"
+                                        class="btn btn-success btn-sm ml-2">
+                                        <i class="fas fa-users"></i> Import Employee
+                                    </button>
+                                    <button type="button" onclick="window.location='{{ route('pages.Importuser') }}'"
+                                        class="btn btn-dark btn-sm ml-2">
+                                        <i class="fas fa-users"></i> Import User
                                     </button>
                                 </div>
                             </div>
@@ -335,6 +365,7 @@
 
     <script>
         jQuery(document).ready(function($) {
+          
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -342,6 +373,10 @@
                     url: '{{ route('employeesall.employeesall') }}',
                     data: function (d) {
                 d.name = $('#filter-store').val();
+                d.status = [];
+$('#filter-status input[type="checkbox"]:checked').each(function () {
+    d.status.push($(this).val());
+});
             }
         },
 
@@ -392,6 +427,11 @@
                         render: function(data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
+                    },
+                    {
+                        data: 'id',
+                        name: 'id',
+                        className: 'text-center'
                     },
                     {
                         data: 'username',
@@ -549,14 +589,7 @@
                         name: 'created_at',
                         className: 'text-center'
                     },
-                    {
-    data: 'daily_allowance',
-    name: 'daily_allowance',
-    className: 'text-center',
-    render: function(data) {
-        return data ? parseInt(data).toLocaleString('id-ID') : '-';
-    }
-},
+                   
                     {
                         data: 'status',
                         name: 'status',
@@ -594,9 +627,13 @@
                     text: '{{ session('success') }}',
                 });
             @endif
+            $('#filter-status input[type="checkbox"]').on('change', function () {
+    table.ajax.reload();
+});
             $('#filter-store').on('change', function() {
                 table.ajax.reload();
             });
+           
 
         });
     </script>

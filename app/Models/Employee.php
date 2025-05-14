@@ -58,8 +58,7 @@ class Employee extends Model
         'email',
         'emergency_contact_name',
         'status',
-        'notes',
-        'daily_allowance'
+        'notes'
         
         
     ];

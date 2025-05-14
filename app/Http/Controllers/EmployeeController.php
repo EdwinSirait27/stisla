@@ -26,7 +26,8 @@ class EmployeeController extends Controller
     {
         // $storeList = Stores::pluck('name')->all();
         $storeList = Stores::select('name')->distinct()->pluck('name');
-        return view('pages.Employeeall.Employeeall', compact('storeList'));
+        $statusList = Employee::select('status')->distinct()->pluck('status');
+        return view('pages.Employeeall.Employeeall', compact('storeList','statusList'));
 
     }
     public function index()
@@ -93,178 +94,10 @@ class EmployeeController extends Controller
             ->make(true);
     }
 
-
-    // public function getEmployeesall()
-    // {
-    //     $employees = User::with('Employee')
-    //         ->select(['id', 'username', 'employee_id'])
-    //         ->get()
-    //         ->map(function ($employee) {
-    //             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-    //             return $employee;
-    //         });
-    //     return DataTables::of($employees)
-    //         ->addColumn('name_store', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->store->name)
-    //                 ? $employee->Employee->store->name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('name_company', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->company->name)
-    //                 ? $employee->Employee->company->name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('position_name', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->position->name)
-    //                 ? $employee->Employee->position->name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('employee_pengenal', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->employee_pengenal)
-    //                 ? $employee->Employee->employee_pengenal
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('department_name', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->department->department_name)
-    //                 ? $employee->Employee->department->department_name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('employee_name', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->employee_name)
-    //                 ? $employee->Employee->employee_name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('status_employee', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->status_employee)
-    //                 ? $employee->Employee->status_employee
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('join_date', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->join_date)
-    //                 ? $employee->Employee->join_date
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('marriage', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->marriage)
-    //                 ? $employee->Employee->marriage
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('child', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->child)
-    //                 ? $employee->Employee->child
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('telp_number', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->telp_number)
-    //                 ? $employee->Employee->telp_number
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('nik', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->nik)
-    //                 ? $employee->Employee->nik
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('gender', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->gender)
-    //                 ? $employee->Employee->gender
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('date_of_birth', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->date_of_birth)
-    //                 ? $employee->Employee->date_of_birth
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('place_of_birth', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->place_of_birth)
-    //                 ? $employee->Employee->place_of_birth
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('biological_mother_name', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->biological_mother_name)
-    //                 ? $employee->Employee->biological_mother_name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('religion', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->religion)
-    //                 ? $employee->Employee->religion
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('current_address', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->current_address)
-    //                 ? $employee->Employee->current_address
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('id_card_address', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->id_card_address)
-    //                 ? $employee->Employee->id_card_address
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('last_education', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->last_education)
-    //                 ? $employee->Employee->last_education
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('institution', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->institution)
-    //                 ? $employee->Employee->institution
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('npwp', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->npwp)
-    //                 ? $employee->Employee->npwp
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('bpjs_kes', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->bpjs_kes)
-    //                 ? $employee->Employee->bpjs_kes
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('bpjs_ket', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->bpjs_ket)
-    //                 ? $employee->Employee->bpjs_ket
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('email', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->email)
-    //                 ? $employee->Employee->email
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('emergency_contact_name', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->emergency_contact_name)
-    //                 ? $employee->Employee->emergency_contact_name
-    //                 : 'Empty';
-    //         })
-
-    //         ->addColumn('notes', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->notes)
-    //                 ? $employee->Employee->notes
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('created_at', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->created_at)
-    //                 ? $employee->Employee->created_at
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('bank_name', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->bank->name)
-    //                 ? $employee->Employee->bank->name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('bank_account_number', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->bank_account_number)
-    //                 ? $employee->Employee->bank_account_number
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('status', function ($employee) {
-    //             return !empty($employee->Employee) && !empty($employee->Employee->status)
-    //                 ? $employee->Employee->status
-    //                 : 'Empty';
-    //         })
-    //         ->make(true);
-    // }
     public function getEmployeesall()
     {
         $storeFilter = request()->get('name'); // Ambil nilai filter status dari request
+        $statusFilter = request()->get('status'); // Ambil nilai filter status dari request
     
         $query = User::with('Employee','Employee.company','Employee.store')
         ->select(['id', 'username', 'employee_id']);
@@ -275,6 +108,12 @@ class EmployeeController extends Controller
                 $q->where('name', $storeFilter);
             });
         }
+        if (!empty($statusFilter)) {
+            $query->whereHas('Employee', function ($q) use ($statusFilter) {
+                $q->whereIn('status', $statusFilter); // gunakan whereIn untuk array
+            });
+        }
+        
         
        
         $employees = $query->get()->map(function ($employee) {
@@ -311,6 +150,11 @@ class EmployeeController extends Controller
             ->addColumn('employee_name', function ($employee) {
                 return !empty($employee->Employee) && !empty($employee->Employee->employee_name)
                     ? $employee->Employee->employee_name
+                    : 'Empty';
+            })
+            ->addColumn('id', function ($employee) {
+                return !empty($employee->Employee) && !empty($employee->Employee->id)
+                    ? $employee->Employee->id
                     : 'Empty';
             })
             ->addColumn('status_employee', function ($employee) {
@@ -439,17 +283,7 @@ class EmployeeController extends Controller
                     ? $employee->Employee->status
                     : 'Empty';
             })
-            ->addColumn('daily_allowance', function ($employee) {
-                if (!empty($employee->Employee) && !empty($employee->Employee->daily_allowance)) {
-                    try {
-                        return Crypt::decrypt($employee->Employee->daily_allowance); // langsung angka 150000
-                    } catch (\Exception $e) {
-                        return 'Invalid Data';
-                    }
-                } else {
-                    return 'Empty';
-                }
-            })
+          
             
             ->make(true);
     }
@@ -465,14 +299,7 @@ class EmployeeController extends Controller
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
-        if (!empty($employee->Employee) && !empty($employee->Employee->daily_allowance)) {
-            try {
-                $employee->Employee->daily_allowance = Crypt::decryptString($employee->Employee->daily_allowance);
-            } catch (\Exception $e) {
-                $employee->Employee->daily_allowance = null; // Atau 'Invalid Data' jika ingin tampilkan pesan
-            }
-        }
-    
+      
 
         $positions = Position::get();
         $companys = Company::get();
@@ -602,8 +429,8 @@ class EmployeeController extends Controller
             'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
-'daily_allowance' => ['nullable','numeric',
-                new NoXSSInput()],
+// 'daily_allowance' => ['nullable','numeric',
+//                 new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -636,7 +463,7 @@ class EmployeeController extends Controller
 
             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
-            'daily_allowance.numeric' => 'Net salary must be a number.',
+            // 'daily_allowance.numeric' => 'Net salary must be a number.',
             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
 
@@ -733,7 +560,7 @@ class EmployeeController extends Controller
                 'telp_number' => $validatedData['telp_number'] ?? '',
                 'gender' => $validatedData['gender'] ?? '',
                 'date_of_birth' => $validatedData['date_of_birth'] ?? '',
-            'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
+            // 'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
 
 
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
@@ -786,7 +613,8 @@ class EmployeeController extends Controller
             new NoXSSInput()],
             'bpjs_kes' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'bpjs_kes')->ignore($user->Employee->id), new NoXSSInput()],
             'bpjs_ket' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'bpjs_ket')->ignore($user->Employee->id), new NoXSSInput()],
-            'email' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'email')->ignore($user->Employee->id), new NoXSSInput()],
+            'email' => ['required', 'string', 'max:255',],
+            // Rule::unique('employees_tables', 'email')->ignore($user->Employee->id), new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
@@ -798,8 +626,8 @@ class EmployeeController extends Controller
             'bank_account_number' => ['required', 'max:20',Rule::unique('employees_tables', 'bank_account_number')->ignore($user->Employee->id), new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
-            'daily_allowance' => ['nullable','string',
-            new NoXSSInput()],
+            // 'daily_allowance' => ['nullable','string',
+            // new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -814,7 +642,7 @@ class EmployeeController extends Controller
         ], [
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
-            'daily_allowance.numeric' => 'Net salary must be a number.',
+            // 'daily_allowance.numeric' => 'Net salary must be a number.',
 
             'date_of_birth.required' => 'The date of birth is required.',
             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
@@ -884,7 +712,7 @@ class EmployeeController extends Controller
                 'department_id' => $validatedData['department_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
-            'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance'])?? 0,
+            // 'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance'])?? 0,
 
                 'join_date' => $validatedData['join_date'] ?? '',
                 'marriage' => $validatedData['marriage'] ?? '',
@@ -914,59 +742,113 @@ class EmployeeController extends Controller
         return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');
     }
     
+    // public function transferAllToPayroll(Request $request)
+    // {
+    //     try {
+    //         // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
+    //         $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
+
+    //         // Ekstrak bulan dan tahun dari tanggal yang dipilih
+    //         $month = date('m', strtotime($month_year));
+    //         $year = date('Y', strtotime($month_year));
+
+    //         // Ambil semua employee_id dari model User
+    //         $employeeIds = User::whereNotNull('employee_id')
+    //             ->pluck('employee_id')
+    //             ->toArray();
+
+    //         $transferred = 0;
+    //         $skipped = 0;
+
+    //         foreach ($employeeIds as $employeeId) {
+    //             // Check jika employee_id sudah ada di Payrolls untuk bulan dan tahun yang sama
+    //             // menggunakan whereMonth dan whereYear untuk membandingkan HANYA bulan dan tahun
+    //             $exists = Payrolls::where('employee_id', $employeeId)
+    //                 ->whereMonth('month_year', $month)
+    //                 ->whereYear('month_year', $year)
+    //                 ->exists();
+
+    //             if (!$exists) {
+    //                 // Buat record baru di Payrolls hanya jika employee_id belum ada untuk bulan dan tahun ini
+    //                 Payrolls::create([
+    //                     'employee_id' => $employeeId,
+    //                     'month_year' => $month_year, // Format Y-m-d
+    //                     'created_at' => now(),
+    //                     'updated_at' => now(),
+    //                 ]);
+    //                 $transferred++;
+    //             } else {
+    //                 $skipped++;
+    //             }
+    //         }
+
+    //         // Format tampilan bulan tahun yang benar untuk pesan
+    //         $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) .
+    //             ", $skipped employee(s) skipped (already exist for this month)";
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $message,
+    //             'transferred' => $transferred,
+    //             'skipped' => $skipped,
+    //             'period' => date('F Y', strtotime($month_year))
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
+    //     }
+    // }
     public function transferAllToPayroll(Request $request)
-    {
-        try {
-            // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
-            $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
+{
+    try {
+        // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
+        $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
 
-            // Ekstrak bulan dan tahun dari tanggal yang dipilih
-            $month = date('m', strtotime($month_year));
-            $year = date('Y', strtotime($month_year));
+        // Ekstrak bulan dan tahun dari tanggal yang dipilih
+        $month = date('m', strtotime($month_year));
+        $year = date('Y', strtotime($month_year));
 
-            // Ambil semua employee_id dari model User
-            $employeeIds = User::whereNotNull('employee_id')
-                ->pluck('employee_id')
-                ->toArray();
+        // Ambil semua employee_id dengan status tertentu dari model User
+        $employeeIds = User::whereNotNull('employee_id')
+        ->whereHas('employee', function ($query) {
+            $query->whereIn('status', ['Mutation', 'Active', 'On Leave']);
+        })
+        ->pluck('employee_id')
+        ->toArray();
 
-            $transferred = 0;
-            $skipped = 0;
+        $transferred = 0;
+        $skipped = 0;
 
-            foreach ($employeeIds as $employeeId) {
-                // Check jika employee_id sudah ada di Payrolls untuk bulan dan tahun yang sama
-                // menggunakan whereMonth dan whereYear untuk membandingkan HANYA bulan dan tahun
-                $exists = Payrolls::where('employee_id', $employeeId)
-                    ->whereMonth('month_year', $month)
-                    ->whereYear('month_year', $year)
-                    ->exists();
+        foreach ($employeeIds as $employeeId) {
+            $exists = Payrolls::where('employee_id', $employeeId)
+                ->whereMonth('month_year', $month)
+                ->whereYear('month_year', $year)
+                ->exists();
 
-                if (!$exists) {
-                    // Buat record baru di Payrolls hanya jika employee_id belum ada untuk bulan dan tahun ini
-                    Payrolls::create([
-                        'employee_id' => $employeeId,
-                        'month_year' => $month_year, // Format Y-m-d
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                    $transferred++;
-                } else {
-                    $skipped++;
-                }
+            if (!$exists) {
+                Payrolls::create([
+                    'employee_id' => $employeeId,
+                    'month_year' => $month_year,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $transferred++;
+            } else {
+                $skipped++;
             }
-
-            // Format tampilan bulan tahun yang benar untuk pesan
-            $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) .
-                ", $skipped employee(s) skipped (already exist for this month)";
-
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'transferred' => $transferred,
-                'skipped' => $skipped,
-                'period' => date('F Y', strtotime($month_year))
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
         }
+        $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) .
+            ", $skipped employee(s) skipped (already exist for this month)";
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'transferred' => $transferred,
+            'skipped' => $skipped,
+            'period' => date('F Y', strtotime($month_year))
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
     }
+}
+
 }
