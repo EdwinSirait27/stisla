@@ -241,13 +241,23 @@
                                     </button> --}}
                                 </div>
 
-                            </div> {{-- end card-body --}}
-                            <form action="{{ route('payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
-                                @csrf
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+                                <form action="{{ route('payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+                                    </button>
+                                </form>
+                              
+                                <div class="action-buttons">
+                                    <button type="button" onclick="window.location='{{ route('pages.Importpayroll') }}'"
+                                    class="btn btn-dark btn-sm ml-2">
+                                    <i class="fas fa-users"></i> Import Payroll
                                 </button>
-                            </form>
+                                    <!-- New button added here -->
+                                    
+                                    
+                                </div>
+                            </div> {{-- end card-body --}}
                             
                         </div>
 
