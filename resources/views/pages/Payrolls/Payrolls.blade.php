@@ -236,16 +236,16 @@
                                             </tr>
                                         </thead>
                                     </table>
-                                    <button type="button" id="delete-selected" class="btn btn-danger btn-sm">
+                                    {{-- <button type="button" id="delete-selected" class="btn btn-danger btn-sm">
                                         Delete
-                                    </button>
+                                    </button> --}}
                                 </div>
 
                             </div> {{-- end card-body --}}
                             <form action="{{ route('payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
                                 @csrf
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-file-pdf"></i> Generate Semua Slip Gaji
+                                    <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
                                 </button>
                             </form>
                             

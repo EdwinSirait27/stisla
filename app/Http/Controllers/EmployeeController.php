@@ -633,7 +633,7 @@ class EmployeeController extends Controller
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'npwp' => ['required', 'string', 'max:50',Rule::unique('employees_tables')->ignore($user->id), new NoXSSInput()],
+            'npwp' => ['required', 'string', 'max:50',Rule::unique('employees_tables')->ignore($user->Employee->id), new NoXSSInput()],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],

@@ -209,7 +209,7 @@
                                         <i class="fas fa-users"></i> All Employees
                                     </button>
                                 </div>
-                                <div class="d-flex justify-content-end mb-3">
+                                {{-- <div class="d-flex justify-content-end mb-3">
                                     <div class="input-group me-2" style="max-width: 200px;">
                                         <span class="input-group-text">Date</span>
                                         <input type="date" id="payrollDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
@@ -217,7 +217,7 @@
                                     <button id="transferAllBtn" class="btn btn-primary">
                                         <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
                                     </button>
-                                </div>
+                                </div> --}}
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
