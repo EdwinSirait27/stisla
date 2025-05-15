@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Role extends SpatieRole
 {
     use HasUuids;
+    protected $guarded = false;
     protected $keyType = 'string';
     public $incrementing = false;
 
