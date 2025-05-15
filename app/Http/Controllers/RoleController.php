@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -9,8 +8,6 @@ use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\User;
-use Illuminate\Validation\Rule;
 use Spatie\Permission\PermissionRegistrar;
 
 
@@ -20,8 +17,6 @@ class RoleController extends Controller
     {
         return view('roles.index');
     }
-
-
     public function getRoles()
     {
         // dd(Role::with('permissions')->get()->toArray());
