@@ -185,6 +185,7 @@
                                             <tr>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Username</th>
+                                                <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -232,6 +233,11 @@
                     {
                         data: 'username',
                         name: 'username',
+                        className: 'text-center align-middle'
+                    },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
                         className: 'text-center align-middle'
                     },
                     {

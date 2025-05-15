@@ -267,7 +267,7 @@
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a parent NULL, data will be recognized as Parent 
+                                                - If u dont choose parent, data will be recognized as Department  
                                                 - If a categories code and categories name is already registered, you cannot register it
                                                 <br>
                                             </span>

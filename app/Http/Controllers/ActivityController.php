@@ -11,7 +11,7 @@ class ActivityController extends Controller
     }
     public function getActivity()
     {
-        $activity = Activity::with('user')->select(['id', 'user_id'])->get()
+        $activity = Activity::with('user.employee')->select(['id', 'user_id'])->get()
             ->map(function ($activity) {
                 $activity->id_hashed = substr(hash('sha256', $activity->id . env('APP_KEY')), 0, 8);
                 $activity->user_name = $activity->user ? $activity->user->name : 'Unknown';
@@ -23,6 +23,9 @@ class ActivityController extends Controller
             })
             ->unique('user_id'); 
         return DataTables::of($activity)
+            ->addColumn('employee_name', function ($activity) {
+                return $activity->user->employee->employee_name;
+            })
             ->addColumn('username', function ($activity) {
                 return $activity->user->username;
             })
