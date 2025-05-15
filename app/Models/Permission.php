@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 class Permission extends SpatiePermission
 {
     use HasUuids;
-    protected $guarded = false;
+    protected $guarded = [];
     protected $keyType = 'string';
     public $incrementing = false;
 
