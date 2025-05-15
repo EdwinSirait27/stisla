@@ -24,6 +24,7 @@ class RoleController extends Controller
 
     public function getRoles()
     {
+        dd(Role::with('permissions')->get()->toArray());
         $roles = Role::with('permissions')
             ->select(['id', 'name'])
             ->get()
