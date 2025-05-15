@@ -181,6 +181,17 @@
                         <div class="card-header">
                             <h4>Create Permissions</h4>
                         </div>
+                        <div class="card-body pt-4 p-3">
+                            @if(session('error'))
+                            <div class="alert alert-danger">
+                                <strong>{{ __('error') }}</strong><br>
+                                {{ session('error') }}
+                        
+                                @if(session('error_details'))
+                                    <br><small>{{ session('error_details') }}</small>
+                                @endif
+                            </div>
+                        @endif
                         
                         <div class="card-body">
                             <form id="permissions-create" method="POST" action="{{ route('permissions.store') }}">
@@ -248,5 +259,14 @@
                 }
             });
         });
+        @if (session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'error',
+        text: '{{ session('error') }}',
+        timer: 2000,
+        showConfirmButton: false
+    });
+@endif
     </script>
 @endpush

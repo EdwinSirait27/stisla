@@ -219,7 +219,6 @@
                                                 <th class="text-center">Transport Allowance</th>
                                                 <th class="text-center">BPJS Ketenagakerjaan</th>
                                                 <th class="text-center">BPJS Kesehatan</th>
-                                                {{-- <th class="text-center">Mesh</th> --}}
                                                 <th class="text-center">Punishment</th>
                                                 <th class="text-center">Late Fine</th>
                                                 <th class="text-center">Tax</th>

@@ -138,11 +138,9 @@ class dashboardAdminController extends Controller
         }
 
         // Ambil role dan permission
-        $role = Role::where('name', $validatedData['role'])->with('permissions')->firstOrFail();
-
-        // Sync role dan permission
-        $user->syncRoles($role); // hanya perlu ini sekali
-        $user->syncPermissions($role->permissions);
+         // Assign role saja, tanpa manual sync permission
+    $role = Role::findByName($validatedData['role']);
+    $user->syncRoles($role);
 
         DB::commit();
         Log::info('Transaksi berhasil dikommit');

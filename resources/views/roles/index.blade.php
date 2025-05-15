@@ -163,207 +163,28 @@
     }
 </style>
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Roles Management</h1>
-        </div>
-        <div class="section-body">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-user-shield"></i> List Roles</h4>
-                            <div class="card-header-action">
-                                <a href="{{ route('roles.create') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus-circle"></i> Create Role
-                                </a>
-                               
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="roles-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">No.</th>
-                                            <th class="text-center">Name</th>
-                                            <th class="text-center">Permissions</th>
-                                            <th class="text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Data will be loaded via AJAX -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
-@endsection
-
-@push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-$(document).ready(function() {
-    var table = $('#roles-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route('role.role') }}',
-            type: 'GET'
-        },
-        responsive: true,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        language: {
-            processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>',
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-        },
-        columns: [
-            {
-                data: null,
-                name: 'no',
-                orderable: false,
-                className: 'text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1;
-                }
-            },
-            {
-                data: 'name',
-                name: 'name',
-                className: 'text-center align-middle'
-            },
-            {
-                data: 'permissions',
-                name: 'permissions',
-                className: 'text-center align-middle',
-                orderable: false,
-                searchable: false
-            },
-            {
-                data: 'action',
-                name: 'action',
-                className: 'text-center align-middle',
-                orderable: false,
-                searchable: false
-            }
-        ],
-        order: [[1, 'asc']] // Default sort by name
-    });
-
-    // Handle delete button click
-    $(document).on('click', '.delete-btn', function(e) {
-        e.preventDefault();
-        var form = $(this).closest('form');
-        
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    });
-});
-
-@if (session('success'))
-    Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: '{{ session('success') }}',
-        timer: 2000,
-        showConfirmButton: false
-    });
-@endif
-function deleteRole(url) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: url,
-                type: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        Swal.fire(
-                            'Deleted!',
-                            response.message,
-                            'success'
-                        ).then(() => {
-                            $('#roles-table').DataTable().ajax.reload();
-                        });
-                    } else {
-                        Swal.fire(
-                            'Error!',
-                            response.message,
-                            'error'
-                        );
-                    }
-                },
-                error: function(xhr) {
-                    let errorMsg = 'Something went wrong';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
-                    Swal.fire(
-                        'Error!',
-                        errorMsg,
-                        'error'
-                    );
-                }
-            });
-        }
-    });
-}
-</script>
-@endpush
-{{-- 
-
-@section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>List Roles</h1>
+                <h1>Roles Management</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i>List Roles</h6>
+                                <h4><i class="fas fa-user-shield"></i> List Roles</h4>
+                                <div class="card-header-action">
+                                    <a href="{{ route('roles.create') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus-circle"></i> Create Role
+                                    </a>
+
+                                </div>
                             </div>
 
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
+                                    <table class="table table-striped table-hover" id="roles-table">
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
@@ -372,14 +193,10 @@ function deleteRole(url) {
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
+                                        <tbody>
+                                            <!-- Data will be loaded via AJAX -->
+                                        </tbody>
                                     </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('dashboardAdmin.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create User
-                                    </button>
-
                                 </div>
                             </div>
                         </div>
@@ -389,14 +206,15 @@ function deleteRole(url) {
         </section>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        // Wait for jQuery to be fully loaded
-        jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
-            var table = $('#users-table').DataTable({
+        $(document).ready(function() {
+            var table = $('#roles-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
@@ -409,12 +227,14 @@ function deleteRole(url) {
                     [10, 25, 50, 100, "All"]
                 ],
                 language: {
+                    processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>',
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
                 columns: [{
-                        data: id_hashed,
-                        name: 'id_hashed',
+                        data: null,
+                        name: 'no',
+                        orderable: false,
                         className: 'text-center align-middle',
                         render: function(data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
@@ -423,47 +243,41 @@ function deleteRole(url) {
                     {
                         data: 'name',
                         name: 'name',
-                        className: 'text-center'
+                        className: 'text-center align-middle'
                     },
                     {
-                        data: 'created_at',
-                        name: 'created_at',
-                        className: 'text-center'
+                        data: 'permissions',
+                        name: 'permissions',
+                        className: 'text-center align-middle',
+                        orderable: false,
+                        searchable: false
                     },
-                    { 
-                data: 'permissions', 
-                name: 'permissions',
-                orderable: false,
-                searchable: false
-            },
-            { 
-                data: 'action', 
-                name: 'action', 
-                orderable: false, 
-                searchable: false,
-                className: 'text-center'
-            }
-        ],
-        order: [[1, 'asc']], // Default sort by name
-        responsive: true,
-        language: {
-            processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Loading...</span>'
-        }
-    });
-    $(document).on('click', '.delete-btn', function(e) {
-        e.preventDefault();
-        if (confirm('Are you sure you want to delete this role?')) {
-            $(this).closest('form').submit();
-        }
-    });
-});
-            @if (session('success'))
+                    {
+                        data: 'action',
+                        name: 'action',
+                        className: 'text-center align-middle',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                order: [
+                    [1, 'asc']
+                ] // Default sort by name
+            });
+
+            // Handle delete button click
+
+        });
+
+        @if (session('success'))
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
                 text: '{{ session('success') }}',
+                timer: 2000,
+                showConfirmButton: false
             });
         @endif
-    
+        
     </script>
-@endpush --}}
+@endpush

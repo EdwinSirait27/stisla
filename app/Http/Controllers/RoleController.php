@@ -33,9 +33,7 @@ class RoleController extends Controller
                 <a href="' . route('roles.edit', $role->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit role" title="Edit Role: ' . e($role->name) . '">
                     <i class="fas fa-user-edit text-secondary"></i>
                 </a>
-                <a href="#" onclick="deleteRole(\'' . route('roles.destroy', $role->id_hashed) . '\')" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Delete role"title="Delete Role: ' . e($role->name) . '">
-                    <i class="fas fa-trash text-danger"></i>
-                </a>';
+            ';
                 return $role;
             });
         return DataTables::of($roles)
@@ -166,113 +164,108 @@ class RoleController extends Controller
     
     public function edit($hashedId)
     {
-        // Cari role berdasarkan hashed ID
+        Log::info('Masuk ke method editRole', ['hashedId' => $hashedId]);
+    
         $role = Role::with('permissions')->get()->first(function ($role) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
+            Log::info('Cek hash role', ['roleId' => $role->id, 'expectedHash' => $expectedHash, 'hashedId' => $hashedId]);
             return $expectedHash === $hashedId;
         });
+    
         if (!$role) {
+            Log::warning('Role tidak ditemukan di method edit', ['hashedId' => $hashedId]);
             abort(404, 'Role not found.');
         }
-        // Ambil semua permissions
+    
+        Log::info('Role ditemukan di method edit', ['roleId' => $role->id, 'roleName' => $role->name]);
+    
         $permissions = Permission::all();
-        // Ambil permission IDs yang dimiliki role
         $rolePermissions = $role->permissions->pluck('id')->toArray();
+    
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions', 'hashedId'));
     }
     
-    public function update(Request $request, $roleId)
-    {
-        Log::info('Masuk ke method updateRole', ['roleId' => $roleId]);
     
-        // Coba cari role dengan menggunakan where untuk UUID
-        $roles = Role::where('id', $roleId)->first();
+    // public function update(Request $request, $hashedId)
+    // {
+    //     Log::info('Masuk ke method updateRole', ['roleId' => $hashedId]);
     
-        if (!$roles) {
-            Log::warning('Role tidak ditemukan', ['roleId' => $roleId]);
-            return redirect()->route('roles.index')->with('error', 'Role tidak ditemukan.');
-        }
+    //     // Coba cari role dengan menggunakan where untuk UUID
+    //     $roles = Role::where('id', $hashedId)->first();
     
-        // Validasi data dari request
-        $validatedData = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($roles->id)],
-            'permissions' => ['required', 'array'],
-        ]);
+    //     if (!$roles) {
+    //         Log::warning('Role tidak ditemukan', ['roleId' => $hashedId]);
+    //         return redirect()->route('roles.index')->with('error', 'Role tidak ditemukan.');
+    //     }
     
-        Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
+    //     // Validasi data dari request
+    //     $validatedData = $request->validate([
+    //         'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($roles->id)],
+    //         'permissions' => ['required', 'array'],
+    //     ]);
     
-        // Update nama role
-        $roles->update(['name' => $validatedData['name']]);
+    //     Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
     
-        // Ambil daftar permission yang baru
-        $permissions = $validatedData['permissions'] ?? [];
-        Log::info('Permission yang diminta:', ['permissions' => $permissions]);
+    //     // Update nama role
+    //     $roles->update(['name' => $validatedData['name']]);
     
-        // Ambil permission yang terhubung dengan role sebelum update
-        $before = $roles->permissions->pluck('id')->toArray();
-        Log::info('Permission sebelum update:', $before);
+    //     // Ambil daftar permission yang baru
+    //     $permissions = $validatedData['permissions'] ?? [];
+    //     Log::info('Permission yang diminta:', ['permissions' => $permissions]);
     
-        // Sinkronisasi permission dengan role
-        $roles->syncPermissions($permissions);
+    //     // Ambil permission yang terhubung dengan role sebelum update
+    //     $before = $roles->permissions->pluck('id')->toArray();
+    //     Log::info('Permission sebelum update:', $before);
     
-        // Ambil permission yang terhubung dengan role setelah update
-        $after = $roles->permissions()->pluck('id')->toArray();
-        Log::info('Permission sesudah update:', $after);
+    //     // Sinkronisasi permission dengan role
+    //     $roles->syncPermissions($permissions);
     
-        // Clear cache permission
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    //     // Ambil permission yang terhubung dengan role setelah update
+    //     $after = $roles->permissions()->pluck('id')->toArray();
+    //     Log::info('Permission sesudah update:', $after);
     
-        return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
+    //     // Clear cache permission
+    //     app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    
+    //     return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
+    // }
+    public function update(Request $request, $hashedId)
+{
+    Log::info('Masuk ke method updateRole', ['hashedId' => $hashedId]);
+
+    // Cari role dengan matching hash (sama seperti di edit)
+    $role = Role::all()->first(function ($role) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+
+    if (!$role) {
+        Log::warning('Role tidak ditemukan', ['hashedId' => $hashedId]);
+        return redirect()->route('roles.index')->with('error', 'Role tidak ditemukan.');
     }
-    
-    
-    public function destroy($id_hashed)
-    {
-        try {
-            // Decode hashed ID
-            $roleId = null;
-            $roles = Role::all();
-            foreach ($roles as $role) {
-                $hashed = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
-                if ($hashed === $id_hashed) {
-                    $roleId = $role->id;
-                    break;
-                }
-            }
 
-            if (!$roleId) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Role not found'
-                ], 404);
-            }
+    $validatedData = $request->validate([
+        'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($role->id)],
+        'permissions' => ['required', 'array'],
+    ]);
 
-            // Cek apakah role sedang digunakan oleh user (cara Spatie)
-            $usersCount = DB::table('model_has_roles')
-                ->where('role_id', $roleId)
-                ->count();
+    Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
 
-            if ($usersCount > 0) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Cannot delete role because it is assigned to ' . $usersCount . ' user(s)'
-                ], 400);
-            }
+    $role->update(['name' => $validatedData['name']]);
 
-            // Hapus role
-            $role = Role::findOrFail($roleId);
-            $role->delete();
+    $permissions = $validatedData['permissions'];
+    Log::info('Permission yang diminta:', ['permissions' => $permissions]);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Role deleted successfully'
-            ]);
+    $before = $role->permissions->pluck('id')->toArray();
+    Log::info('Permission sebelum update:', $before);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to delete role: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    $role->syncPermissions($permissions);
+
+    $after = $role->permissions()->pluck('id')->toArray();
+    Log::info('Permission sesudah update:', $after);
+
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+    return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
+}
 }

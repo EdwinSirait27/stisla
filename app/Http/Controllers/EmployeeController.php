@@ -639,7 +639,7 @@ class EmployeeController extends Controller
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-        ], [
+        ],  [
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
             // 'daily_allowance.numeric' => 'Net salary must be a number.',

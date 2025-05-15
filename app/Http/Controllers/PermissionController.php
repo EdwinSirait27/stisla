@@ -28,9 +28,7 @@ class PermissionController extends Controller
                 <a href="' . route('permissions.edit', $permission->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit permission" title="Edit Permission: ' . e($permission->name) . '">
                     <i class="fas fa-user-edit text-secondary"></i>
                 </a>
-                <a href="#" onclick="deletePermission(\'' . route('permissions.destroy', $permission->id_hashed) . '\')" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Delete permission"title="Delete Permissions: ' . e($permission->name) . '">
-                    <i class="fas fa-trash text-danger"></i>
-                </a>';
+               ';
                 return $permission;
             });
         return DataTables::of($permissions)
@@ -52,7 +50,11 @@ class PermissionController extends Controller
                 'unique:roles,name',
                 'max:255',
                 new NoXSSInput()
-            ],
+            ], [
+                'name.required' => 'The email is required.',
+                'name.unique' => 'The roles already exist.',
+    
+            ]
 
         ]);
 
@@ -65,23 +67,23 @@ class PermissionController extends Controller
             DB::commit();
 
             return redirect()->route('permissions.index')
-                ->with('success', 'Role created successfully');
+                ->with('success', 'Permission created successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Role creation failed: ' . $e->getMessage());
+            \Log::error('Permission creation failed: ' . $e->getMessage());
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create role. Please try again.');
+                ->with('error', 'Failed to create Permission. : ' . $e->getMessage());
         }
     }
 
     public function edit($hashedId)
     {
         // Cari role berdasarkan hashed ID
-        $permission = Permission::get()->first(function ($role) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
+        $permission = Permission::get()->first(function ($permission) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $permission->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
         if (!$permission) {
@@ -95,20 +97,18 @@ class PermissionController extends Controller
 
 
 
-    public function destroy(Permission $permission)
-    {
-        $permission->delete();
-        return redirect()->route('permissions.index')->with('success', 'Permission deleted successfully');
-    }
+    
     public function update(Request $request, $hashedId)
     {
         // Cari permission dengan hash yang lebih aman
-        $permissions = Permission::all()->first(function ($permission) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $permission->id . config('app.key')), 0, 16); // Panjang hash diperbesar
-            return hash_equals($expectedHash, $hashedId); // Gunakan hash_equals untuk prevent timing attack
+        $permission = Permission::get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
         });
+        
+        
 
-        if (!$permissions) {
+        if (!$permission) {
             return redirect()->route('permissions.index')->with('error', 'ID tidak valid atau data tidak ditemukan.');
         }
 
@@ -116,13 +116,12 @@ class PermissionController extends Controller
             'name' => [
                 'required', // Ubah dari nullable ke required jika field harus diisi
                 'regex:/^[a-zA-Z0-9_-]+$/',
-                Rule::unique('permissions')->ignore($permissions->id),
+                Rule::unique('permissions')->ignore($permission->id),
                 new NoXSSInput()
             ],
         ]);
-
         try {
-            $permissions->update($validatedData);
+            $permission->update($validatedData);
             return redirect()->route('permissions.index')->with('success', 'Permission berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memperbarui permission: ' . $e->getMessage());
