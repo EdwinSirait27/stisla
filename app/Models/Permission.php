@@ -9,16 +9,5 @@ use Ramsey\Uuid\Uuid;
 use Illuminate\Notifications\Notifiable;
 class Permission extends SpatiePermission
 {
-    use HasFactory;
-    public $incrementing = false;
-    protected $keyType = 'string';
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->{$model->getKeyName()} = Uuid::uuid7()->toString();
-        });
-    }
 }
