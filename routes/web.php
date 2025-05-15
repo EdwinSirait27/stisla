@@ -56,7 +56,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR'])->group(function () {
         Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
     });
     
-        Route::group(['middleware' => ['permission:RolesPermissions']], function () {
+        Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {
         Route::get('/roles', [RoleController::class, 'index'])
             ->name('roles.index');
         Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
