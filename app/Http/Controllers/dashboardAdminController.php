@@ -17,10 +17,23 @@ class dashboardAdminController extends Controller
 {
     public function index()
     {
+//         $users = User::with('roles')->get();
+
+// foreach ($users as $user) {
+//     dump([
+//         'id' => $user->id,
+//         'username' => $user->username,
+//         'roles' => $user->roles->pluck('name')->toArray()
+//     ]);
+// }
+// dd('done');
         return view('pages.dashboardAdmin.dashboardAdmin');
     }
     public function getUsers()
     {
+        
+
+        
         $users = User::with('Terms', 'roles', 'Employee')
             ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
             ->get()
@@ -33,10 +46,23 @@ class dashboardAdminController extends Controller
                     </a>';
                 return $user;
             });
+            
+
         return DataTables::of($users)
+            // ->addColumn('roles', function ($user) {
+            //     return !empty($user->roles->pluck('name')->toArray()) ? $user->roles->pluck('name')->implode(', ') : 'Empty';
+            // })
             ->addColumn('roles', function ($user) {
-                return !empty($user->roles->pluck('name')->toArray()) ? $user->roles->pluck('name')->implode(', ') : 'Empty';
+                if (is_array($user->roles)) {
+                    return implode(', ', $user->roles);
+                } elseif ($user->roles instanceof \Illuminate\Support\Collection) {
+                    return $user->roles->pluck('name')->implode(', ');
+                } else {
+                    return 'Empty';
+                }
             })
+            
+            
             ->addColumn('device_lan_mac', function ($user) {
                 return !empty($user->Terms) && !empty($user->Terms->device_lan_mac)
                     ? $user->Terms->device_lan_mac
