@@ -184,50 +184,56 @@ class RoleController extends Controller
     
         return view('roles.edit', compact('role', 'permissions', 'rolePermissions', 'hashedId'));
     }
-   
-//     public function update(Request $request, $hashedId)
-// {
-//     Log::info('Masuk ke method updateRole', ['hashedId' => $hashedId]);
-
-//     // Cari role dengan matching hash (sama seperti di edit)
-//     $role = Role::all()->first(function ($role) use ($hashedId) {
-//         $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
-//         return $expectedHash === $hashedId;
-//     });
-
-//     if (!$role) {
-//         Log::warning('Role tidak ditemukan', ['hashedId' => $hashedId]);
-//         return redirect()->route('roles.index')->with('error', 'Role tidak ditemukan.');
-//     }
-
-//     $validatedData = $request->validate([
-//         'name' => ['required', 'string', 'max:255'],
-//         'permissions' => ['required', 'array'],
-//     ]);
-
-//     Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
-
-//     $role->update(['name' => $validatedData['name']]);
-
-//     $permissions = $validatedData['permissions'];
-//     Log::info('Permission yang diminta:', ['permissions' => $permissions]);
-
-//     $before = $role->permissions->pluck('id')->toArray();
-//     Log::info('Permission sebelum update:', $before);
-
-//     $role->syncPermissions($permissions);
-
-//     $after = $role->permissions()->pluck('id')->toArray();
-//     Log::info('Permission sesudah update:', $after);
-
-//     app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-//     return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
-// }
-public function update(Request $request, $hashedId)
+    
+    
+    // public function update(Request $request, $hashedId)
+    // {
+    //     Log::info('Masuk ke method updateRole', ['roleId' => $hashedId]);
+    
+    //     // Coba cari role dengan menggunakan where untuk UUID
+    //     $roles = Role::where('id', $hashedId)->first();
+    
+    //     if (!$roles) {
+    //         Log::warning('Role tidak ditemukan', ['roleId' => $hashedId]);
+    //         return redirect()->route('roles.index')->with('error', 'Role tidak ditemukan.');
+    //     }
+    
+    //     // Validasi data dari request
+    //     $validatedData = $request->validate([
+    //         'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($roles->id)],
+    //         'permissions' => ['required', 'array'],
+    //     ]);
+    
+    //     Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
+    
+    //     // Update nama role
+    //     $roles->update(['name' => $validatedData['name']]);
+    
+    //     // Ambil daftar permission yang baru
+    //     $permissions = $validatedData['permissions'] ?? [];
+    //     Log::info('Permission yang diminta:', ['permissions' => $permissions]);
+    
+    //     // Ambil permission yang terhubung dengan role sebelum update
+    //     $before = $roles->permissions->pluck('id')->toArray();
+    //     Log::info('Permission sebelum update:', $before);
+    
+    //     // Sinkronisasi permission dengan role
+    //     $roles->syncPermissions($permissions);
+    
+    //     // Ambil permission yang terhubung dengan role setelah update
+    //     $after = $roles->permissions()->pluck('id')->toArray();
+    //     Log::info('Permission sesudah update:', $after);
+    
+    //     // Clear cache permission
+    //     app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    
+    //     return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
+    // }
+    public function update(Request $request, $hashedId)
 {
     Log::info('Masuk ke method updateRole', ['hashedId' => $hashedId]);
 
+    // Cari role dengan matching hash (sama seperti di edit)
     $role = Role::all()->first(function ($role) use ($hashedId) {
         $expectedHash = substr(hash('sha256', $role->id . env('APP_KEY')), 0, 8);
         return $expectedHash === $hashedId;
@@ -253,10 +259,7 @@ public function update(Request $request, $hashedId)
     $before = $role->permissions->pluck('id')->toArray();
     Log::info('Permission sebelum update:', $before);
 
-    // Konversi ID permission ke nama permission sebelum sync
-    $permissionNames = Permission::whereIn('id', $permissions)->pluck('name')->toArray();
-
-    $role->syncPermissions($permissionNames);
+    $role->syncPermissions($permissions);
 
     $after = $role->permissions()->pluck('id')->toArray();
     Log::info('Permission sesudah update:', $after);
@@ -265,5 +268,4 @@ public function update(Request $request, $hashedId)
 
     return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
 }
-
 }
