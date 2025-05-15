@@ -423,7 +423,7 @@ class LoginController extends Controller
             foreach ($dashboardRoutes as $role => $route) {
                 if ($user->hasRole($role)) {
                     Log::info("User {$normalizedUsername} logged in with role: {$role}");
-                    return redirect()->route($route)->with('success', 'Anda berhasil login, semangat bekerja!!!');
+                    return redirect()->route($route)->with('success', 'Success login, Goodluck !!!');
                 }
             }
 
