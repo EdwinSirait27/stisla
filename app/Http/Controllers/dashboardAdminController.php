@@ -61,7 +61,7 @@ class dashboardAdminController extends Controller
                     return 'Empty';
                 }
             })
-            
+                
             
             ->addColumn('device_lan_mac', function ($user) {
                 return !empty($user->Terms) && !empty($user->Terms->device_lan_mac)

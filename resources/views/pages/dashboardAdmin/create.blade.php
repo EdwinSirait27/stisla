@@ -190,7 +190,6 @@
                                             </ul>
                                         </div>
                                     @endif
-
                                     @if (session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
                                             <span class="alert-text">
