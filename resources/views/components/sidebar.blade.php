@@ -72,7 +72,48 @@
                     </ul>
                 </li>
             @endrole
+            @role('HR')
+                <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ url('dashboardHR') }}"><i class="fas fa-house"></i>
+                        <span>Dashboard</span></a>
+                </li>
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Employee</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Employee') }}">List Employees</a>
+                        </li>
+                        <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Employee') }}">Shifts</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Create Data</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{Banks}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Banks') }}">Banks</a>
+                        </li>
+                        <li class="{{ Request::is('{Company}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Company') }}">Companies</a>
+                        </li>
+                        <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Position') }}">Position</a>
+                        </li>
+                        <li class="{{ Request::is('Department') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Department') }}">Departments</a>
+                        </li>
+                        <li class="{{ Request::is('Store') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Store') }}">Stores</a>
+                        </li>
 
+                    </ul>
+                </li>
+            @endrole
+
+            @role('HeadBuyer')
 
             <li class="menu-header">Buyer Contoh</li>
             <li class="nav-item dropdown ">
@@ -100,7 +141,9 @@
                 <a class="nav-link" href="{{ url('Masterproducts') }}"><i class="fas fa-house"></i>
                     <span>Master Products</span></a>
             </li>
-            <li class="{{ Request::is('blank-page') ? 'active' : '' }}">
+            @endrole
+
+            {{-- <li class="{{ Request::is('blank-page') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ url('blank-page') }}"><i class="far fa-square"></i> <span>Blank
                         Page</span></a>
             </li>
@@ -372,7 +415,7 @@
                 <a class="nav-link" href="{{ url('credits') }}"><i class="fas fa-pencil-ruler">
                     </i> <span>Credits</span>
                 </a>
-            </li>
+            </li> --}}
         </ul>
 
         {{-- <div class="hide-sidebar-mini mt-4 mb-4 p-3">

@@ -183,6 +183,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
+                                                <th class="text-center">Positions Key</th>
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -233,6 +234,11 @@
                         render: function(data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
+                    },
+                    {
+                        data: 'id',
+                        name: 'id',
+                        className: 'text-center'
                     },
                     {
                         data: 'name',

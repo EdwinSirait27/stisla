@@ -184,6 +184,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
+                                                <th class="text-center">Company Key</th>
                                                 <th class="text-center">Photo</th>
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Address</th>
@@ -237,6 +238,7 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
+                     { data: 'id', name: 'id', className: 'text-center' },
                 {
                         data: 'foto',
                         name: 'foto',

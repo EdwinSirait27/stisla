@@ -349,8 +349,9 @@ class LoginController extends Controller
             // Daftar role yang boleh bypass MAC check menggunakan Spatie
             $privilegedRoles = [
                 'Admin',
-                'HeadHR',
                 'head-warehouse',
+                'HeadHR',
+                'HR',
                 'head-buyer',
                 'head-finance',
                 'gm',
@@ -413,6 +414,7 @@ class LoginController extends Controller
             $dashboardRoutes = [
                 'Admin' => 'pages.dashboardAdmin',
                 'HeadHR' => 'pages.dashboardHR',
+                'HR' => 'pages.dashboardHR',
                 'head-warehouse' => 'pages.dashboarHeadWarehouse',
                 'head-buyer' => 'pages.dashboardHeadBuyer',
                 'cashier-store' => 'pages.dashboardKasir',

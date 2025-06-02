@@ -25,6 +25,9 @@ class RedirectIfAuthenticated
         if ($user->can('isAdmin')) {
             return redirect('/dashboardAdmin');
         }
+        if ($user->can('isHR')) {
+            return redirect('/dashboardHR');
+        }
         if ($user->can('isHeadHR')) {
             return redirect('/dashboardHR');
         }
