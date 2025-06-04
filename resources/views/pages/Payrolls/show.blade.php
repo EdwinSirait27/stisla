@@ -113,23 +113,45 @@
             font-family: monospace;
         }
 
-        .totals-row {
+        /* .totals-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             border-top: 1px solid #ddd;
             background-color: #f9f9f9;
         }
 
-        .total-section {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            padding: 8px 12px;
-            font-weight: bold;
-        }
+     .total-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    align-items: center; 
+    padding: 8px 12px;
+    font-weight: bold;
+}
 
         .total-section:first-child {
             border-right: 1px solid #ddd;
-        }
+        } */
+.totals-row {
+    display: flex;
+    gap: 24px; /* jarak antar kolom income & outcome */
+    margin-bottom: 1rem;
+}
+
+.total-section {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* penting agar label & amount sejajar vertikal */
+    padding: 8px 12px;
+    font-weight: bold;
+    border: 1px solid #ddd; /* opsional */
+    border-radius: 4px;
+}
+
+.table-cell-amount {
+    font-weight: bold;
+    white-space: nowrap;
+}
 
         .take-home {
             display: flex;
@@ -187,22 +209,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <table style="width: 100%; margin-bottom: 20px;">
                 <tr>
-                    <td style="text-align: left;">
-                        {{-- @php
-                            $imagePath = public_path('img/abc.png');
-                            $imageData = '';
-                            if (file_exists($imagePath)) {
-                                $imageData = base64_encode(file_get_contents($imagePath));
-                            }
-                        @endphp
-            
-                        @if (!empty($imageData))
-                            <div style="background-color: #000000; display: inline-block; padding: 5px;">
-                                <img src="data:image/png;base64,{{ $imageData }}" alt="MJM Logo" width="70">
-                            </div>
-                        @else
-                            <span>Logo tidak tersedia</span>
-                        @endif --}}
+                    <td style="text-align: left;"> 
                         @php
                         $foto = 'company/' . ($payroll->employee->company->foto ?? '');
                         $imageData = '';
@@ -222,9 +229,6 @@
                     @else
                         <span>Foto tidak tersedia</span>
                     @endif
-                    
-                    
-
                     </td>
                     <td style="text-align: right; color: red; font-weight: bold; font-size: 18px;">
                         *CONFIDENTIAL
@@ -238,7 +242,7 @@
                 <td class="text-align: left;"><strong>Payroll Month :</strong></td>
                 <td>{{ $formattedMonthYear }}</td>
                 <td><strong>Payroll Periode :</strong></td>
-                <td>{{ $payroll->employee->email }}</td>
+                <td>{{ $payroll->period }}</td>
                 {{-- <td><strong>Email :</strong></td>
                 <td>{{ $payroll->employee->email }}</td> --}}
             </tr>
@@ -294,9 +298,9 @@
                             Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}
                         </td>
                         <td>
+                            
                             Late Fine: IDR {{ number_format($late_fine, 0, ',', '.') }}<br>
                             Punishment: IDR {{ number_format($punishment, 0, ',', '.') }}<br>
-                            {{-- Mesh: IDR {{ number_format($mesh, 0, ',', '.') }}<br> --}}
                             BPJS Ketenagakerjaan: IDR {{ number_format($bpjs_ket, 0, ',', '.') }}<br>
                             BPJS Kesehatan: IDR {{ number_format($bpjs_kes, 0, ',', '.') }}<br>
                             Tax: IDR {{ number_format($tax, 0, ',', '.') }}
@@ -319,15 +323,16 @@
         <!-- Take Home Pay -->
         <div class="take-home">
             <div>Take Home Pay</div>
-            <div>IDR {{ number_format($salary, 2, '.', ',') }}</div>
+            <div>IDR {{ number_format($takehome, 2, '.', ',') }}</div>
         </div>
         <!-- Transfer Information -->
         <div class="transfer-section">
             <div class="transfer-title">Transfer To {{$payroll->employee->bank->name}}</div>
             <div class="transfer-details">
-                <div class="transfer-account">{{ $month_year }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div>
+                <div class="transfer-account">{{ $payroll->created_at ? $payroll->created_at->format('d-m-Y H:i:s') : '-' }}
+ {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div>
                 {{-- <div class="transfer-account">{{ $monthYearHuman }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div> --}}
-                <div class="table-cell-amount">IDR {{ number_format($salary, 2, '.', ',') }}</div>
+                {{-- <div class="table-cell-amount">IDR {{ number_format($takehome, 2, '.', ',') }}</div> --}}
             </div>
         </div>
     </div>

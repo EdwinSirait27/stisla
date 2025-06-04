@@ -46,14 +46,12 @@
 </head>
 <body>
     <div class="header">
-        <h2>Salary Statement - {{ $payrollPeriod }}</h2>
+        <h2>Salary Statement  - {{ $payrollPeriod }}</h2>
     </div>
     
     <div class="content">
         <p>Kepada Yth,<br>{{ $employeeName }}</p>
-        
-        <p>Berikut adalah rincian gaji Anda untuk periode <strong>{{ $payrollPeriod }}</strong> yang telah dibayarkan pada tanggal <strong>{{ $payrollDate }}</strong>.</p>
-        
+        <p>Berikut adalah slip gaji Anda untuk periode <strong>{{ $payrollPeriod }}</strong> yang telah dibayarkan pada tanggal <strong>{{ $payrollDate }}</strong>.</p>
         <table>
             <tr>
                 <th>Keterangan</th>
@@ -70,20 +68,19 @@
                 <td>Rp {{ number_format(floatval($grossSalary), 0, ',', '.') }}</td>
 
             </tr>
-            
         </table>
+        <p>Untuk detail lengkap, silakan mengunduh lampiran slip gaji dalam format PDF.</p>
         
-        <p>Untuk detail lengkap, silakan lihat lampiran slip gaji dalam format PDF.</p>
-        
-        <p>Jika Anda memiliki pertanyaan terkait gaji, silakan hubungi Departemen HR.</p>
+        <p>Jika Anda memiliki pertanyaan terkait slip gaji, silakan hubungi Departemen HR Mahendradata Jaya Mandiri.</p>
         <p>Untuk membuka file pdf gunakan tanggal lahir anda formatnya yyyymmdd contoh 19450817.</p>
         
         <p>Terima kasih, Tuhan Berkati Selalu<br>
-        Departemen HR</p>
+        Departemen HR Mahendradata Jaya Mandiri</p>
     </div>
     
     <div class="footer">
         <p>Email ini dikirim secara otomatis, mohon untuk tidak membalas email ini.</p>
+        <p>Mark important untuk pengirim email ini untuk mendapatkan notifikasi slip gaji untuk bulan berikutnya .</p>
     </div>
 </body>
 </html>

@@ -219,6 +219,7 @@
                                                 <th class="text-center">Transport Allowance</th>
                                                 <th class="text-center">BPJS Ketenagakerjaan</th>
                                                 <th class="text-center">BPJS Kesehatan</th>
+                                                {{-- <th class="text-center">Mesh</th> --}}
                                                 <th class="text-center">Punishment</th>
                                                 <th class="text-center">Late Fine</th>
                                                 <th class="text-center">Tax</th>
@@ -227,11 +228,11 @@
                                                 <th class="text-center">Month</th>
                                                 <th class="text-center">Period</th>
                                                 <th class="text-center">Action</th>
-                                                <th>
+                                                {{-- <th>
                                                     <button type="button" id="select-all" class="btn btn-primary btn-sm">
                                                         Select All
                                                     </button>
-                                                </th>
+                                                </th> --}}
                                             </tr>
                                         </thead>
                                     </table>
@@ -465,18 +466,19 @@
                         orderable: false,
                         searchable: false,
                         className: 'text-center'
-                    },
-                    {
-                                data: 'id',
-                                name: 'checkbox',
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                render: function(data, type, row) {
-    return `<input type="checkbox" class="user-checkbox" name="payroll_ids[]" value="${row.id}">`;
-}
+                    }
+//                     ,
+//                     {
+//                                 data: 'id',
+//                                 name: 'checkbox',
+//                                 orderable: false,
+//                                 searchable: false,
+//                                 className: 'text-center',
+//                                 render: function(data, type, row) {
+//     return `<input type="checkbox" class="user-checkbox" name="payroll_ids[]" value="${row.id}">`;
+// }
 
-                            }
+//                             }
                     
 
                 ],
