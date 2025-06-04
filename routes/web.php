@@ -19,6 +19,7 @@ use App\Http\Controllers\BrandsController;
 use App\Http\Controllers\EmployeeImportController;
 use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\taxstatusController;
+use App\Http\Controllers\UserprofileController;
 use App\Http\Controllers\StatusproductController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\StoreController;
@@ -36,6 +37,12 @@ use App\Http\Controllers\ActivityController;
 */
 
 Route::middleware(['auth', 'role:Admin|HeadHR|HR'])->group(function () {
+  Route::get('/feature-profile', function () {
+        return view('pages.feature-profile', ['type_menu' => 'features']);
+    });
+    Route::put('/feature-profile/update', [UserprofileController::class, 'updatePassword'])->name('feature-profile.update');
+    Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
+    
 Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
     ->name('logout');
     // Dashboard

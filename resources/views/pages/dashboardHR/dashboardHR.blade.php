@@ -19,7 +19,19 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+
+ @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
     <!-- JS Libraies -->
 
     <!-- Page Specific JS File -->
+    </script>
+
 @endpush

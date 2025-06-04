@@ -103,7 +103,7 @@
                 function resetTimer() {
                     clearTimeout(time);
                     // Set timeout 1 menit (60000 ms)
-                    time = setTimeout(logout, 600000);
+                    time = setTimeout(logout, 1200000);
                 }
             };
     

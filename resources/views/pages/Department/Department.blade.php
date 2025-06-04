@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
-    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -184,6 +183,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
+                                                <th class="text-center">Department Key</th>
                                                 <th class="text-center">Department Name</th>
                                                 <th class="text-center">Manager Name</th>
                                                 <th class="text-center">Action</th>
@@ -237,6 +237,11 @@
                         }
                     },
                     {
+                        data: 'id',
+                        name: 'id',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'department_name',
                         name: 'department_name',
                         className: 'text-center'
@@ -259,15 +264,13 @@
                     $('.dataTables_length select').addClass('form-control');
                 }
             });
-
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
         });
     </script>
 @endpush

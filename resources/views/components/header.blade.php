@@ -255,10 +255,10 @@
             <div class="dropdown-menu dropdown-menu-right">
                
                 
-                <a href="features-profile.html"
-                    class="dropdown-item has-icon">
-                    <i class="far fa-user"></i> Profile
-                </a>
+               <a href="{{ route('feature-profile') }}" class="dropdown-item has-icon">
+    <i class="far fa-user"></i> Profile
+</a>
+
                 <form method="GET" action="{{ route('logout') }}">
                     @csrf
                     <a href="#"   class="dropdown-item has-icon text-danger" onclick="event.preventDefault(); this.closest('form').submit();">
