@@ -9,30 +9,23 @@ use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
-
 class PayrollsController extends Controller
 {
     public function index()
     {
-
-
         return view('pages.Payrolls.Payrolls');
     }
-   
     public function generateAll()
     {
-        $currentCarbon = Carbon::now(); // atau pakai request('bulan') jika ada inputan form
+        $currentCarbon = Carbon::now(); 
 
         $payrolls = Payrolls::with('employee')
             ->whereMonth('created_at', $currentCarbon->month)
             ->whereYear('created_at', $currentCarbon->year)
             ->get();
-
         foreach ($payrolls as $payroll) {
             // Coba parse month_year ke Carbon
             try {
@@ -41,7 +34,6 @@ class PayrollsController extends Controller
                 \Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 $carbonMonthYear = now(); // fallback jika gagal
             }
-
             // Decrypt field, cek null jika perlu
             $bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : 0;
             $tax = $payroll->tax ? Crypt::decrypt($payroll->tax) : 0;
