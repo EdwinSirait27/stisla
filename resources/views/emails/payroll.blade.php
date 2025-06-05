@@ -51,7 +51,7 @@
     
     <div class="content">
         <p>Kepada Yth,<br>{{ $employeeName }}</p>
-        <p>Berikut adalah slip gaji Anda untuk periode <strong>{{ $payrollPeriod }}</strong> yang telah dibayarkan pada tanggal <strong>{{ $payrollDate }}</strong>.</p>
+        <p>Berikut adalah slip gaji Anda untuk periode <strong>{{ $payrollPeriod }}</strong> .</p>
         <table>
             <tr>
                 <th>Keterangan</th>

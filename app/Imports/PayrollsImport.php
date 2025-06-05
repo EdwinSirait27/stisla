@@ -89,9 +89,8 @@ class PayrollsImport implements ToModel
         }
     }
 
-    // Cek unik employee_id
     if ($row[0] !== null && !Payrolls::where('employee_id', $row[0])->exists()) {
-        // Nilai-nilai dasar
+        
         $attendance          = isset($row[1]) ? $row[1] : 0;
         $daily_allowance     = isset($row[2]) ? (float) $row[2] : 0.0;
 $house_allowance     = isset($row[3]) ? (float) $row[3] : 0.0;
@@ -105,8 +104,6 @@ $punishment          = isset($row[9]) ? (float) $row[9] : 0.0;
 $bpjs_kes            = isset($row[10]) ? (float) $row[10] : 0.0;
 $bpjs_ket            = isset($row[11]) ? (float) $row[11] : 0.0;
 $tax                 = isset($row[12]) ? (float) $row[12] : 0.0;
-
-
 $deductions = $late_fine + $punishment + $bpjs_kes + $bpjs_ket + $tax;
 
 $salary = ($attendance * $daily_allowance)

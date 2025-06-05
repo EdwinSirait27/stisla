@@ -329,7 +329,7 @@
         <div class="transfer-section">
             <div class="transfer-title">Transfer To {{$payroll->employee->bank->name}}</div>
             <div class="transfer-details">
-                <div class="transfer-account">{{ $payroll->created_at ? $payroll->created_at->format('d-m-Y H:i:s') : '-' }}
+                <div class="transfer-account">{{ $payroll->created_at ? $payroll->created_at->format('d-m-Y') : '-' }}
  {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div>
                 {{-- <div class="transfer-account">{{ $monthYearHuman }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div> --}}
                 {{-- <div class="table-cell-amount">IDR {{ number_format($takehome, 2, '.', ',') }}</div> --}}
