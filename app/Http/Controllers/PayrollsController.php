@@ -35,19 +35,19 @@ class PayrollsController extends Controller
                 $carbonMonthYear = now(); // fallback jika gagal
             }
             // Decrypt field, cek null jika perlu
-            $bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : 0;
-            $tax = $payroll->tax ? Crypt::decrypt($payroll->tax) : 0;
-            $house_allowance = $payroll->house_allowance ? Crypt::decrypt($payroll->house_allowance) : 0;
-            $meal_allowance = $payroll->meal_allowance ? Crypt::decrypt($payroll->meal_allowance) : 0;
-            $transport_allowance = $payroll->transport_allowance ? Crypt::decrypt($payroll->transport_allowance) : 0;
-            $deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : 0;
-            $salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : 0;
-            $overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : 0;
-            $late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : 0;
-            $bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : 0;
-            $bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : 0;
-            $daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : 0;
-            $punishment = $payroll->punishment ? Crypt::decrypt($payroll->punishment) : 0;
+            $bonus = $payroll->bonus ? ($payroll->bonus) : 0;
+            $tax = $payroll->tax ? ($payroll->tax) : 0;
+            $house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : 0;
+            $meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : 0;
+            $transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : 0;
+            $deductions = $payroll->deductions ? ($payroll->deductions) : 0;
+            $salary = $payroll->salary ? ($payroll->salary) : 0;
+            $overtime = $payroll->overtime ? ($payroll->overtime) : 0;
+            $late_fine = $payroll->late_fine ? ($payroll->late_fine) : 0;
+            $bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : 0;
+            $bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : 0;
+            $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : 0;
+            $punishment = $payroll->punishment ? ($payroll->punishment) : 0;
             $period = $payroll->period ?? '-';
             $created_at = $payroll->created_at ?? '-';
             $attendance = $payroll->attendance ?? 0;
@@ -77,7 +77,6 @@ class PayrollsController extends Controller
                 'transport_allowance' => $transport_allowance,
                 'tax' => $tax,
                 'created_at' => $created_at,
-                
                 'late_fine' => $late_fine,
                 'punishment' => $punishment,
                 'salary' => $salary,
@@ -150,19 +149,19 @@ class PayrollsController extends Controller
         }
         $payrolls = $payrollsQuery->get()->map(function ($payroll) {
             try {
-                $payroll->bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : null;
-                $payroll->house_allowance = $payroll->house_allowance ? Crypt::decrypt($payroll->house_allowance) : null;
-                $payroll->meal_allowance = $payroll->meal_allowance ? Crypt::decrypt($payroll->meal_allowance) : null;
-                $payroll->tax = $payroll->tax ? Crypt::decrypt($payroll->tax) : null;
-                $payroll->transport_allowance = $payroll->transport_allowance ? Crypt::decrypt($payroll->transport_allowance) : null;
-                $payroll->overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : null;
-                $payroll->daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : null;
-                $payroll->late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : null;
-                $payroll->bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : null;
-                $payroll->bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : null;
-                $payroll->punishment = $payroll->punishment ? Crypt::decrypt($payroll->punishment) : null;
-                $payroll->deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : null;
-                $payroll->salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : null;
+                $payroll->bonus = $payroll->bonus ? ($payroll->bonus) : null;
+                $payroll->house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
+                $payroll->meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
+                $payroll->tax = $payroll->tax ? ($payroll->tax) : null;
+                $payroll->transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
+                $payroll->overtime = $payroll->overtime ? ($payroll->overtime) : null;
+                $payroll->daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
+                $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
+                $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
+                $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
+                $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
+                $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
+                $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
               
             } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
                 \Log::error("Decrypt error: " . $e->getMessage());
@@ -221,19 +220,19 @@ class PayrollsController extends Controller
             $attendance = $payroll->attendance;
             $month_year = $payroll->month_year;
             $period = $payroll->period;
-            $bonus = Crypt::decrypt($payroll->bonus);
-            $house_allowance = Crypt::decrypt($payroll->house_allowance);
-            $meal_allowance = Crypt::decrypt($payroll->meal_allowance);
-            $transport_allowance = Crypt::decrypt($payroll->transport_allowance);
-            $tax = Crypt::decrypt($payroll->tax);
-            $deductions = Crypt::decrypt($payroll->deductions);
-            $salary = Crypt::decrypt($payroll->salary);
-            $overtime = Crypt::decrypt($payroll->overtime);
-            $late_fine = Crypt::decrypt($payroll->late_fine);
-            $bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
-            $bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
-            $daily_allowance = Crypt::decrypt($payroll->daily_allowance);
-            $punishment = Crypt::decrypt($payroll->punishment);
+            $bonus = ($payroll->bonus);
+            $house_allowance = ($payroll->house_allowance);
+            $meal_allowance = ($payroll->meal_allowance);
+            $transport_allowance = ($payroll->transport_allowance);
+            $tax = ($payroll->tax);
+            $deductions = ($payroll->deductions);
+            $salary = ($payroll->salary);
+            $overtime = ($payroll->overtime);
+            $late_fine = ($payroll->late_fine);
+            $bpjs_ket = ($payroll->bpjs_ket);
+            $bpjs_kes = ($payroll->bpjs_kes);
+            $daily_allowance = ($payroll->daily_allowance);
+            $punishment = ($payroll->punishment);
         } catch (\Exception $e) {
             \Log::error('Decryption failed: ' . $e->getMessage());
             abort(500, 'Failed to decrypt payroll data.');
@@ -321,19 +320,19 @@ class PayrollsController extends Controller
             abort(404, 'Payroll not found.');
         }
         try {
-            $payroll->bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : null;
-            $payroll->daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : null;
-            $payroll->house_allowance = $payroll->house_allowance ? Crypt::decrypt($payroll->house_allowance) : null;
-            $payroll->meal_allowance = $payroll->meal_allowance ? Crypt::decrypt($payroll->meal_allowance) : null;
-            $payroll->tax = $payroll->tax ? Crypt::decrypt($payroll->tax) : null;
-            $payroll->transport_allowance = $payroll->transport_allowance ? Crypt::decrypt($payroll->transport_allowance) : null;
-            $payroll->deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : null;
-            $payroll->salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : null;
-            $payroll->overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : null;
-            $payroll->late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : null;
-            $payroll->bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : null;
-            $payroll->bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : null;
-            $payroll->punishment = $payroll->punishment ? Crypt::decrypt($payroll->punishment) : null;
+            $payroll->bonus = $payroll->bonus ? ($payroll->bonus) : null;
+            $payroll->daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
+            $payroll->house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
+            $payroll->meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
+            $payroll->tax = $payroll->tax ? ($payroll->tax) : null;
+            $payroll->transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
+            $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
+            $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
+            $payroll->overtime = $payroll->overtime ? ($payroll->overtime) : null;
+            $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
+            $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
+            $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
+            $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             abort(500, 'Failed to decrypt payroll data.');
         }
@@ -472,20 +471,20 @@ class PayrollsController extends Controller
 
 
         $payrollData = [
-            'bonus' => Crypt::encrypt($validatedData['bonus']),
-            'house_allowance' => Crypt::encrypt($validatedData['house_allowance']),
-            'meal_allowance' => Crypt::encrypt($validatedData['meal_allowance']),
-            'tax' => Crypt::encrypt($validatedData['tax']),
-            'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
-            'transport_allowance' => Crypt::encrypt($validatedData['transport_allowance']),
+            'bonus' => ($validatedData['bonus']),
+            'house_allowance' => ($validatedData['house_allowance']),
+            'meal_allowance' => ($validatedData['meal_allowance']),
+            'tax' => ($validatedData['tax']),
+            'daily_allowance' => ($validatedData['daily_allowance']),
+            'transport_allowance' => ($validatedData['transport_allowance']),
             'attendance' => ($validatedData['attendance']),
-            'overtime' => Crypt::encrypt($validatedData['overtime']),
-            'punishment' => Crypt::encrypt($validatedData['punishment']),
-            'late_fine' => Crypt::encrypt($validatedData['late_fine']),
-            'bpjs_ket' => Crypt::encrypt($validatedData['bpjs_ket']),
-            'bpjs_kes' => Crypt::encrypt($validatedData['bpjs_kes']),
-            'deductions' => Crypt::encrypt($calculatedDeduction),
-            'salary' => Crypt::encrypt($calculatedSalary),
+            'overtime' => ($validatedData['overtime']),
+            'punishment' => ($validatedData['punishment']),
+            'late_fine' => ($validatedData['late_fine']),
+            'bpjs_ket' => ($validatedData['bpjs_ket']),
+            'bpjs_kes' => ($validatedData['bpjs_kes']),
+            'deductions' => ($calculatedDeduction),
+            'salary' => ($calculatedSalary),
             'information' => $validatedData['information'] ?? null,
             'period' => $validatedData['period'] ?? null,
         ];
@@ -524,20 +523,20 @@ class PayrollsController extends Controller
 //         $attendance = $payroll->attendance;
 //         $period = $payroll->period;
 //         $month_year = $payroll->month_year;
-//         $bonus = Crypt::decrypt($payroll->bonus);
-//         $tax = Crypt::decrypt($payroll->tax);
-//         $house_allowance = Crypt::decrypt($payroll->house_allowance);
-//         $meal_allowance = Crypt::decrypt($payroll->meal_allowance);
-//         $transport_allowance = Crypt::decrypt($payroll->transport_allowance);
-//         $deductions = Crypt::decrypt($payroll->deductions);
-//         $salary = Crypt::decrypt($payroll->salary);
-//         $overtime = Crypt::decrypt($payroll->overtime);
-//         $late_fine = Crypt::decrypt($payroll->late_fine);
-//         $bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
-//         $bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
-//         // $mesh = Crypt::decrypt($payroll->mesh);
-//         $daily_allowance = Crypt::decrypt($payroll->daily_allowance);
-//         $punishment = Crypt::decrypt($payroll->punishment);
+//         $bonus = ($payroll->bonus);
+//         $tax = ($payroll->tax);
+//         $house_allowance = ($payroll->house_allowance);
+//         $meal_allowance = ($payroll->meal_allowance);
+//         $transport_allowance = ($payroll->transport_allowance);
+//         $deductions = ($payroll->deductions);
+//         $salary = ($payroll->salary);
+//         $overtime = ($payroll->overtime);
+//         $late_fine = ($payroll->late_fine);
+//         $bpjs_ket = ($payroll->bpjs_ket);
+//         $bpjs_kes = ($payroll->bpjs_kes);
+//         // $mesh = ($payroll->mesh);
+//         $daily_allowance = ($payroll->daily_allowance);
+//         $punishment = ($payroll->punishment);
 //          // Hitung salary
 //     $salaryincome = intval($attendance)  
 //     * intval($daily_allowance) + 
@@ -620,20 +619,20 @@ class PayrollsController extends Controller
 //     $attendance = $payroll->attendance;
 //     $month_year = $payroll->month_year;
 //     $period = $payroll->period;
-//     $bonus = Crypt::decrypt($payroll->bonus);
-//     $house_allowance = Crypt::decrypt($payroll->house_allowance);
-//     $tax = Crypt::decrypt($payroll->tax);
-//     $meal_allowance = Crypt::decrypt($payroll->meal_allowance);
-//     $transport_allowance = Crypt::decrypt($payroll->transport_allowance);
-//     $deductions = Crypt::decrypt($payroll->deductions);
-//     $salary = Crypt::decrypt($payroll->salary);
-//     $overtime = Crypt::decrypt($payroll->overtime);
-//     $late_fine = Crypt::decrypt($payroll->late_fine);
-//     $bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
-//     $bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
-//     // $mesh = Crypt::decrypt($payroll->mesh);
-//     $daily_allowance = Crypt::decrypt($payroll->daily_allowance);
-//     $punishment = Crypt::decrypt($payroll->punishment);
+//     $bonus = ($payroll->bonus);
+//     $house_allowance = ($payroll->house_allowance);
+//     $tax = ($payroll->tax);
+//     $meal_allowance = ($payroll->meal_allowance);
+//     $transport_allowance = ($payroll->transport_allowance);
+//     $deductions = ($payroll->deductions);
+//     $salary = ($payroll->salary);
+//     $overtime = ($payroll->overtime);
+//     $late_fine = ($payroll->late_fine);
+//     $bpjs_ket = ($payroll->bpjs_ket);
+//     $bpjs_kes = ($payroll->bpjs_kes);
+//     // $mesh = ($payroll->mesh);
+//     $daily_allowance = ($payroll->daily_allowance);
+//     $punishment = ($payroll->punishment);
 //     // Hitung salary
 //     $salaryincome = intval($attendance)  
 //     * intval($daily_allowance) + 
@@ -718,20 +717,20 @@ class PayrollsController extends Controller
 //     }
 //     $payrolls = $payrollsQuery->get()->map(function ($payroll) {
 //         try {
-//             $payroll->bonus = $payroll->bonus ? Crypt::decrypt($payroll->bonus) : null;
-//             $payroll->house_allowance = $payroll->house_allowance ? Crypt::decrypt($payroll->house_allowance) : null;
-//             $payroll->meal_allowance = $payroll->meal_allowance ? Crypt::decrypt($payroll->meal_allowance) : null;
-//             $payroll->tax = $payroll->tax ? Crypt::decrypt($payroll->tax) : null;
-//             $payroll->transport_allowance = $payroll->transport_allowance ? Crypt::decrypt($payroll->transport_allowance) : null;
-//             $payroll->deductions = $payroll->deductions ? Crypt::decrypt($payroll->deductions) : null;
-//             $payroll->salary = $payroll->salary ? Crypt::decrypt($payroll->salary) : null;
-//             $payroll->overtime = $payroll->overtime ? Crypt::decrypt($payroll->overtime) : null;
-//             $payroll->daily_allowance = $payroll->daily_allowance ? Crypt::decrypt($payroll->daily_allowance) : null;
-//             $payroll->late_fine = $payroll->late_fine ? Crypt::decrypt($payroll->late_fine) : null;
-//             $payroll->bpjs_ket = $payroll->bpjs_ket ? Crypt::decrypt($payroll->bpjs_ket) : null;
-//             $payroll->bpjs_kes = $payroll->bpjs_kes ? Crypt::decrypt($payroll->bpjs_kes) : null;
-//             // $payroll->mesh = $payroll->mesh ? Crypt::decrypt($payroll->mesh) : null;
-//             $payroll->punishment = $payroll->punishment ? Crypt::decrypt($payroll->punishment) : null;
+//             $payroll->bonus = $payroll->bonus ? ($payroll->bonus) : null;
+//             $payroll->house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
+//             $payroll->meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
+//             $payroll->tax = $payroll->tax ? ($payroll->tax) : null;
+//             $payroll->transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
+//             $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
+//             $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
+//             $payroll->overtime = $payroll->overtime ? ($payroll->overtime) : null;
+//             $payroll->daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
+//             $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
+//             $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
+//             $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
+//             // $payroll->mesh = $payroll->mesh ? ($payroll->mesh) : null;
+//             $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
 
     //         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
 //             // handle decrypt error (misalnya log atau fallback)
@@ -772,19 +771,19 @@ class PayrollsController extends Controller
     //     $attendance = $payroll->attendance;
 //     $month_year = $payroll->month_year;
 //     $period = $payroll->period;
-//     $bonus = Crypt::decrypt($payroll->bonus);
-//     $house_allowance = Crypt::decrypt($payroll->house_allowance);
-//     $meal_allowance = Crypt::decrypt($payroll->meal_allowance);
-//     $transport_allowance = Crypt::decrypt($payroll->transport_allowance);
-//     $tax = Crypt::decrypt($payroll->tax);
-//     $deductions = Crypt::decrypt($payroll->deductions);
-//     $salary = Crypt::decrypt($payroll->salary);
-//     $overtime = Crypt::decrypt($payroll->overtime);
-//     $late_fine = Crypt::decrypt($payroll->late_fine);
-//     $bpjs_ket = Crypt::decrypt($payroll->bpjs_ket);
-//     $bpjs_kes = Crypt::decrypt($payroll->bpjs_kes);
-//     $daily_allowance = Crypt::decrypt($payroll->daily_allowance);
-//     $punishment = Crypt::decrypt($payroll->punishment);
+//     $bonus = ($payroll->bonus);
+//     $house_allowance = ($payroll->house_allowance);
+//     $meal_allowance = ($payroll->meal_allowance);
+//     $transport_allowance = ($payroll->transport_allowance);
+//     $tax = ($payroll->tax);
+//     $deductions = ($payroll->deductions);
+//     $salary = ($payroll->salary);
+//     $overtime = ($payroll->overtime);
+//     $late_fine = ($payroll->late_fine);
+//     $bpjs_ket = ($payroll->bpjs_ket);
+//     $bpjs_kes = ($payroll->bpjs_kes);
+//     $daily_allowance = ($payroll->daily_allowance);
+//     $punishment = ($payroll->punishment);
 
     //     $salaryincome = intval($attendance) * intval($daily_allowance)
 //         + intval($overtime) + intval($bonus) + intval($house_allowance)
