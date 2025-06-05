@@ -62,16 +62,21 @@ class PayrollsImport implements ToModel
                 'deductions' => isset($row[13]) && $row[13] !== null
     ? Crypt::encrypt($row[13])
     : Crypt::encrypt(($row[8] ?? 0) + ($row[9] ?? 0) + ($row[10] ?? 0) + ($row[11] ?? 0) + ($row[12] ?? 0)),
-               'salary' => isset($row[14]) && $row[14] !== null
+    
+    'salary' => isset($row[14]) && $row[14] !== null
     ? Crypt::encrypt($row[14])
     : Crypt::encrypt(
-        (($row[1] ?? 0) * ($row[2] ?? 0)) +
-        ($row[3] ?? 0) +
-        ($row[4] ?? 0) +
-        ($row[5] ?? 0) +
-        ($row[6] ?? 0) +
-        ($row[7] ?? 0)
+        (
+            ($row[1] ?? 0) * ($row[2] ?? 0) +
+            ($row[3] ?? 0) +
+            ($row[4] ?? 0) +
+            ($row[5] ?? 0) +
+            ($row[6] ?? 0) +
+            ($row[7] ?? 0) -
+            ($row[13] ?? 0)
+        )
     ),
+
 
                 'month_year' => $monthyear ?? null,
                 'created_at' => $createdat ?? null,
