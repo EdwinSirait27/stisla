@@ -186,7 +186,6 @@
                                 <div class="row mb-4">
                                     <div class="col-md-4">
                                         <label for="filter_month_year" class="form-label">Filter Month - Year</label>
-                                        {{-- <input type="month" id="filter_month_year" class="form-control"> --}}
                                         <input type="text" id="filter_month_year" class="form-control"
                                             placeholder="Choose Month - Year">
 

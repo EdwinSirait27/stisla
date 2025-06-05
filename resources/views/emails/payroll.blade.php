@@ -60,12 +60,14 @@
             <tr>
                 <td>Total Gaji</td>
                
-                <td>Rp {{ number_format(floatval($basicSalary), 0, ',', '.') }}</td>
+                <td>Lihat Detail PDF</td>
+                {{-- <td>Rp {{ number_format(floatval($basicSalary), 0, ',', '.') }}</td> --}}
 
             </tr>
             <tr>
                 <td>Potongan</td>
-                <td>Rp {{ number_format(floatval($grossSalary), 0, ',', '.') }}</td>
+                <td>Lihat Detail PDF</td>
+                {{-- <td>Rp {{ number_format(floatval($grossSalary), 0, ',', '.') }}</td> --}}
 
             </tr>
         </table>

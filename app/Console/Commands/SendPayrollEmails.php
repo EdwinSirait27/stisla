@@ -17,14 +17,12 @@ class SendPayrollEmails extends Command
                             {--test : Hanya menampilkan info tanpa mengirim email}
                             {--limit=50 : Batasi jumlah email yang dikirim}';
     protected $description = 'Mengirim email slip gaji ke semua karyawan';
-
     public function handle()
     {
         $monthYearInput = $this->argument('month_year') ?? Carbon::now()->format('Y-m');
         $employeeId = $this->option('id');
         $isTest = $this->option('test');
         $limit = (int) $this->option('limit');
-
         // Ubah input jadi objek Carbon
         try {
             $dt = Carbon::createFromFormat('Y-m', $monthYearInput);
@@ -32,10 +30,7 @@ class SendPayrollEmails extends Command
             $this->error("Format bulan tidak valid. Gunakan format YYYY-MM (contoh: 2025-04).");
             return 1;
         }
-
         $this->info("Memulai pengiriman email slip gaji untuk periode {$monthYearInput}");
-
-        // Query payrolls berdasarkan tahun dan bulan
         $query = Payrolls::whereYear('month_year', $dt->year)
                          ->whereMonth('month_year', $dt->month)
                          ->whereNotNull('attachment_path')
@@ -44,29 +39,22 @@ class SendPayrollEmails extends Command
         if ($employeeId) {
             $query->where('employee_id', $employeeId);
         }
-
         if ($limit > 0) {
             $query->limit($limit);
         }
-
         $payrolls = $query->get();
         $totalPayrolls = $payrolls->count();
-
         $this->info("Ditemukan {$totalPayrolls} slip gaji yang akan dikirim");
-
         if ($totalPayrolls == 0) {
             $this->error('Tidak ada data gaji yang ditemukan untuk periode ini.');
             return 1;
         }
-
         if (!$isTest && !$this->confirm("Lanjutkan mengirim {$totalPayrolls} email?")) {
             $this->info('Operasi dibatalkan.');
             return 0;
         }
-
         $bar = $this->output->createProgressBar($totalPayrolls);
         $bar->start();
-
         $sentCount = 0;
         $failedCount = 0;
         $failures = [];
