@@ -54,15 +54,14 @@ class PayrollsController extends Controller
             $period = $payroll->period ?? '-';
             $month_year = $payroll->month_year ?? '-';
 
-            // Perhitungan gaji
-            $salaryincome = intval($attendance) * intval($daily_allowance)
-                + intval($overtime) + intval($bonus)
-                + intval($house_allowance) + intval($meal_allowance)
-                + intval($transport_allowance);
-
+           
+                 $salaryincome = intval($attendance) * intval($daily_allowance)
+            + intval($overtime) + intval($bonus) + intval($house_allowance)
+            + intval($meal_allowance) + intval($transport_allowance);
             $salaryoutcome = intval($punishment) + intval($tax)
                 + intval($late_fine) + intval($bpjs_ket)
                 + intval($bpjs_kes);
+                
                 $takehome =   intval($salaryincome) - intval($salaryoutcome);
 
             $data = [
@@ -244,8 +243,9 @@ class PayrollsController extends Controller
             + intval($overtime) + intval($bonus) + intval($house_allowance)
             + intval($meal_allowance) + intval($transport_allowance);
 
-        $salaryoutcome = intval($punishment) + intval($tax) + intval($late_fine)
-            + intval($bpjs_ket) + intval($bpjs_kes);
+        // $salaryoutcome = intval($punishment) + intval($tax) + intval($late_fine)
+        //     + intval($bpjs_ket) + intval($bpjs_kes);
+        $salaryoutcome = $salaryincome - intval($deductions);
 
         $carbonMonthYear = $payroll->month_year instanceof Carbon
             ? $payroll->month_year
@@ -264,6 +264,7 @@ class PayrollsController extends Controller
             'late_fine' => $late_fine,
             'tax' => $tax,
             'punishment' => $punishment,
+            'deductions' => $deductions,
             'salary' => $salary,
             'bpjs_ket' => $bpjs_ket,
             'bpjs_kes' => $bpjs_kes,
