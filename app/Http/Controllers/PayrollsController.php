@@ -53,16 +53,21 @@ class PayrollsController extends Controller
             $attendance = $payroll->attendance ?? 0;
             $period = $payroll->period ?? '-';
             $month_year = $payroll->month_year ?? '-';
-
-           
-                 $salaryincome = intval($attendance) * intval($daily_allowance)
-            + intval($overtime) + intval($bonus) + intval($house_allowance)
-            + intval($meal_allowance) + intval($transport_allowance);
-            $salaryoutcome = intval($punishment) + intval($tax)
-                + intval($late_fine) + intval($bpjs_ket)
-                + intval($bpjs_kes);
+            $deductions = $payroll->deductions ?? '-';
+            $salary = $payroll->salary ?? '-';
+            $take_home = $payroll->take_home ?? '-';
+//                 $salaryincome = (
+//     intval($attendance) * intval($daily_allowance)
+// ) + intval($overtime)
+//   + intval($bonus)
+//   + intval($house_allowance)
+//   + intval($meal_allowance)
+//   + intval($transport_allowance);
+//             $salaryoutcome = intval($punishment) + intval($tax)
+//                 + intval($late_fine) + intval($bpjs_ket)
+//                 + intval($bpjs_kes);
                 
-                $takehome =   intval($salaryincome) - intval($salaryoutcome);
+//                 $takehome =   intval($salaryincome) - intval($salaryoutcome);
 
             $data = [
                 'payroll' => $payroll,
@@ -83,9 +88,7 @@ class PayrollsController extends Controller
                 'deductions' => $deductions,
                 'bpjs_ket' => $bpjs_ket,
                 'bpjs_kes' => $bpjs_kes,
-                'takehome' => $takehome,
-                'salaryincome' => $salaryincome,
-                'salaryoutcome' => $salaryoutcome,
+                'take_home' => $take_home,
                 'monthYearHuman' => $carbonMonthYear->diffForHumans(),
                 'formattedMonthYear' => $carbonMonthYear->format('M Y'),
             ];
@@ -132,9 +135,10 @@ class PayrollsController extends Controller
                 'meal_allowance',
                 'transport_allowance',
                 'period',
-                'deductions',
                 'tax',
+                'deductions',
                 'salary',
+                'take_home',
                 'month_year',
                 'overtime',
                 'attendance',
@@ -162,30 +166,23 @@ class PayrollsController extends Controller
                 $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
                 $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
                 $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
+                $payroll->take_home = $payroll->take_home ? ($payroll->take_home) : null;
               
             } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
                 \Log::error("Decrypt error: " . $e->getMessage());
             }
-
             $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
             $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
-            $payroll->action = '
-            <a href="' . route('Payrolls.edit', $payroll->id_hashed) . '" class="mx-2" data-bs-toggle="tooltip" title="Edit Payrolls: ' . e($payroll->employee->employee_name) . '">
-                <i class="fas fa-user-edit text-secondary"></i>
-            </a>
-            ';
-
             return $payroll;
         });
         return DataTables::of($payrolls)
             ->addColumn('employee_name', function ($payroll) {
                 return $payroll->employee->employee_name ?? 'Empty';
             })
-
-            ->rawColumns(['action', 'checkbox', 'employee_name'])
+            ->rawColumns(['checkbox', 'employee_name'])
+            // ->rawColumns(['action', 'checkbox', 'employee_name'])
             ->make(true);
-    }
-   
+    }   
     public function generate($hashedId)
     {
         \Log::info('Payroll PDF generation started.', ['hashedId' => $hashedId]);

@@ -181,14 +181,12 @@
                             </div>
 
                             <div class="card-body">
-
                                 {{-- Filter --}}
                                 <div class="row mb-4">
                                     <div class="col-md-4">
                                         <label for="filter_month_year" class="form-label">Filter Month - Year</label>
                                         <input type="text" id="filter_month_year" class="form-control"
                                             placeholder="Choose Month - Year">
-
                                     </div>
                                     <div class="col-md-2 d-flex align-items-end">
                                         <button id="btn_filter" class="btn btn-primary w-100">
@@ -211,22 +209,23 @@
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Attendance</th>
                                                 <th class="text-center">Daily Allowance</th>
-                                                <th class="text-center">Overtime</th>
-                                                <th class="text-center">Bonus</th>
                                                 <th class="text-center">House Allowance</th>
                                                 <th class="text-center">Meal Allowance</th>
                                                 <th class="text-center">Transport Allowance</th>
-                                                <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                <th class="text-center">BPJS Kesehatan</th>
-                                                {{-- <th class="text-center">Mesh</th> --}}
-                                                <th class="text-center">Punishment</th>
+                                                <th class="text-center">Bonus</th>
+                                                <th class="text-center">Overtime</th>
                                                 <th class="text-center">Late Fine</th>
+                                                <th class="text-center">Punishment</th>
+                                                <th class="text-center">BPJS Kesehatan</th>
+                                                <th class="text-center">BPJS Ketenagakerjaan</th>
                                                 <th class="text-center">Tax</th>
-                                                <th class="text-center">Total Deduction</th>
-                                                <th class="text-center">Total Salary</th>
+                                                <th class="text-center">Total Outcome</th>
+                                                <th class="text-center">Total Income</th>
+                                                <th class="text-center">Take Home</th>
+                                                {{-- <th class="text-center">Mesh</th> --}}
                                                 <th class="text-center">Month</th>
                                                 <th class="text-center">Period</th>
-                                                <th class="text-center">Action</th>
+                                                {{-- <th class="text-center">Action</th> --}}
                                                 {{-- <th>
                                                     <button type="button" id="select-all" class="btn btn-primary btn-sm">
                                                         Select All
@@ -333,23 +332,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                    {
-                        data: 'overtime',
-                        name: 'overtime',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
-                        }
-                    },
-                    {
-                        data: 'bonus',
-                        name: 'bonus',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
-                        }
-                    },
-                    {
+                      {
                         data: 'house_allowance',
                         name: 'house_allowance',
                         className: 'text-center',
@@ -373,17 +356,51 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                    {
-                        data: 'bpjs_ket',
-                        name: 'bpjs_ket',
+                       {
+                        data: 'bonus',
+                        name: 'bonus',
                         className: 'text-center',
                         render: function(data) {
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
                     {
+                        data: 'overtime',
+                        name: 'overtime',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                     {
+                        data: 'late_fine',
+                        name: 'late_fine',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                      {
+                        data: 'punishment',
+                        name: 'punishment',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                 
+                  
+                    {
                         data: 'bpjs_kes',
                         name: 'bpjs_kes',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'bpjs_ket',
+                        name: 'bpjs_ket',
                         className: 'text-center',
                         render: function(data) {
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
@@ -397,22 +414,8 @@
                     //         return data ? parseInt(data).toLocaleString('id-ID') : '-';
                     //     }
                     // },
-                    {
-                        data: 'punishment',
-                        name: 'punishment',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
-                        }
-                    },
-                    {
-                        data: 'late_fine',
-                        name: 'late_fine',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
-                        }
-                    },
+                  
+                   
                     {
                         data: 'tax',
                         name: 'tax',
@@ -432,6 +435,14 @@
                     {
                         data: 'salary',
                         name: 'salary',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'take_home',
+                        name: 'take_home',
                         className: 'text-center',
                         render: function(data) {
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
@@ -458,14 +469,15 @@
                         render: function(data) {
                             return data ? data : '-';
                         }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
                     }
+                    // ,
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: 'text-center'
+                    // }
 //                     ,
 //                     {
 //                                 data: 'id',

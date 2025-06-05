@@ -37,6 +37,7 @@ class Payrolls extends Model
         'late_fine',
         'deductions',
         'salary',
+        'take_home',
         'tax',
         'period',
         'month_year',

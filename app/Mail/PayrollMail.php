@@ -40,8 +40,8 @@ class PayrollMail extends Mailable
                         'employeeName' => $this->employee->employee_name,
                         'payrollPeriod' => $this->payroll->month_year->format('F Y'),
                         'payrollDate' => $this->payroll->month_year->format('d F Y'),
-                        'basicSalary' => $this->payroll->salary ? decrypt($this->payroll->salary) : 0,
-                        'grossSalary' => $this->payroll->deductions ? decrypt($this->payroll->deductions) : 0,
+                        'basicSalary' => $this->payroll->salary ? ($this->payroll->salary) : 0,
+                        'grossSalary' => $this->payroll->deductions ? ($this->payroll->deductions) : 0,
                     ]);
         // Cek apakah attachment file ada
         if ($this->payroll->attachment_path && Storage::disk('public')->exists($this->payroll->attachment_path)) {

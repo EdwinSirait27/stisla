@@ -312,18 +312,18 @@
             <div class="totals-row">
                 <div class="total-section">
                     <div>Total Incomes</div>
-                    <div class="table-cell-amount">IDR {{ number_format($salaryincome, 2, '.', ',') }}</div>
+                    <div class="table-cell-amount">IDR {{ number_format($salary, 2, '.', ',') }}</div>
                 </div>
                 <div class="total-section">
                     <div>Total Outcomes (Deductions)</div>
-                    <div class="table-cell-amount">IDR {{ number_format($salaryoutcome, 2, '.', ',') }}</div>
+                    <div class="table-cell-amount">IDR {{ number_format($deductions, 2, '.', ',') }}</div>
                 </div>
             </div>
         </div>
         <!-- Take Home Pay -->
         <div class="take-home">
             <div>Take Home Pay</div>
-            <div>IDR {{ number_format($takehome, 2, '.', ',') }}</div>
+            <div>IDR {{ number_format($take_home, 2, '.', ',') }}</div>
         </div>
         <!-- Transfer Information -->
         <div class="transfer-section">
