@@ -17,19 +17,19 @@ class EmployeeImport implements ToModel
     public function model(array $row)
     {
         $joinDate = null;
-        if (!empty($row[9])) {
-            if (is_numeric($row[9])) {
-                $joinDate = Date::excelToDateTimeObject($row[9])->format('Y-m-d');
+        if (!empty($row[10])) {
+            if (is_numeric($row[10])) {
+                $joinDate = Date::excelToDateTimeObject($row[10])->format('Y-m-d');
             } else {
-                $joinDate = Carbon::parse($row[9])->format('Y-m-d');
+                $joinDate = Carbon::parse($row[10])->format('Y-m-d');
             }
         }
         $datebirth = null;
-        if (!empty($row[15])) {
-            if (is_numeric($row[15])) {
-                $datebirth = Date::excelToDateTimeObject($row[15])->format('Y-m-d');
+        if (!empty($row[16])) {
+            if (is_numeric($row[16])) {
+                $datebirth = Date::excelToDateTimeObject($row[16])->format('Y-m-d');
             } else {
-                $datebirth = Carbon::parse($row[15])->format('Y-m-d');
+                $datebirth = Carbon::parse($row[16])->format('Y-m-d');
             }
         }
         if (empty($row[1]) || trim($row[1]) === '') {
@@ -44,30 +44,31 @@ class EmployeeImport implements ToModel
 'company_id' => $row[3] ?? null,
 'store_id' => $row[4] ?? null,
 'banks_id' => $row[5] ?? null,
-'department_id' => $row[6] ?? null,
-'fingerprint_id' => $row[7] ?? null,
-'status_employee' => $row[8] ?? null,
+'bank_account_number' => $row[6] ?? null,
+'department_id' => $row[7] ?? null,
+'fingerprint_id' => $row[8] ?? null,
+'status_employee' => $row[9] ?? null,
 'join_date' => $joinDate ?? null,
-'marriage' => $row[10] ?? null,
-'child' => $row[11] ?? null,
-'telp_number' => $row[12] ?? null,
-'nik' => $row[13] ?? null,
-'gender' => $row[14] ?? null,
+'marriage' => $row[11] ?? null,
+'child' => $row[12] ?? null,
+'telp_number' => $row[13] ?? null,
+'nik' => $row[14] ?? null,
+'gender' => $row[15] ?? null,
 'date_of_birth' => $datebirth ?? null,
-'place_of_birth' => $row[16] ?? null,
-'biological_mother_name' => $row[17] ?? null,
-'religion' => $row[18] ?? null,
-'current_address' => $row[19] ?? null,
-'id_card_address' => $row[20] ?? null,
-'last_education' => $row[21] ?? null,
-'institution' => $row[22] ?? null,
-'npwp' => $row[23] ?? null,
-'bpjs_kes' => $row[24] ?? null,
-'bpjs_ket' => $row[25] ?? null,
-'email' => $row[26] ?? null,
-'emergency_contact_name' => $row[27] ?? null,
-'status' => $row[28] ?? null,
-'notes' => $row[29] ?? null,
+'place_of_birth' => $row[17] ?? null,
+'biological_mother_name' => $row[18] ?? null,
+'religion' => $row[19] ?? null,
+'current_address' => $row[20] ?? null,
+'id_card_address' => $row[21] ?? null,
+'last_education' => $row[22] ?? null,
+'institution' => $row[23] ?? null,
+'npwp' => $row[24] ?? null,
+'bpjs_kes' => $row[25] ?? null,
+'bpjs_ket' => $row[26] ?? null,
+'email' => $row[27] ?? null,
+'emergency_contact_name' => $row[28] ?? null,
+'status' => $row[29] ?? null,
+'notes' => $row[30] ?? null,
 
         ]);
     }
