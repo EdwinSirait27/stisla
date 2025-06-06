@@ -255,7 +255,7 @@
                                                     </label>
                                                     <div>
 
-                                                    <select name="position_id" class="form-control @error('position_id') is-invalid @enderror">
+                                                    {{-- <select name="position_id" class="form-control @error('position_id') is-invalid @enderror">
                                                         @foreach($positions as $position)
                                                             <option value="{{ $position->id }}" {{ $employee->Employee->position_id == $position->id ? 'selected' : '' }}>
                                                                 {{ $position->name }}
@@ -266,7 +266,21 @@
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
-                                                    @enderror
+                                                    @enderror --}}
+                                                       <select name="position_id" class="form-control @error('position_id') is-invalid @enderror">
+    <option value="">-- Pilih Position --</option> <!-- Opsi default -->
+    @foreach($positions as $position)
+        <option value="{{ $position->id }}" {{ old('position_id', $employee->Employee->position_id ?? '') == $position->id ? 'selected' : '' }}>
+            {{ $position->name }}
+        </option>
+    @endforeach
+</select>
+
+@error('store_id')
+    <span class="invalid-feedback" role="alert">
+        <strong>{{ $message }}</strong>
+    </span>
+@enderror
                                                 </div>
                                             </div>
                                             </div>
@@ -277,18 +291,33 @@
                                                     </label>
                                                     <div>
 
-                                                    <select name="store_id" class="form-control @error('store_id') is-invalid @enderror">
-                                                        @foreach($stores as $position)
-                                                            <option value="{{ $position->id }}" {{ $employee->Employee->store_id == $position->id ? 'selected' : '' }}>
-                                                                {{ $position->name }}
+                                                    {{-- <select name="store_id" class="form-control @error('store_id') is-invalid @enderror">
+                                                        @foreach($stores as $store)
+                                                            <option value="{{ $store->id }}" {{ $employee->Employee->store_id == $store->id ? 'selected' : '' }}>
+                                                                {{ $store->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    @error('position_id')
+                                                    @error('store_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
-                                                    @enderror
+                                                    @enderror --}}
+                                                    <select name="store_id" class="form-control @error('store_id') is-invalid @enderror">
+    <option value="">-- Pilih Store --</option> <!-- Opsi default -->
+    @foreach($stores as $store)
+        <option value="{{ $store->id }}" {{ old('store_id', $employee->Employee->store_id ?? '') == $store->id ? 'selected' : '' }}>
+            {{ $store->name }}
+        </option>
+    @endforeach
+</select>
+
+@error('store_id')
+    <span class="invalid-feedback" role="alert">
+        <strong>{{ $message }}</strong>
+    </span>
+@enderror
+
                                                 </div>
                                             </div>
                                             </div>
@@ -300,7 +329,7 @@
                                                             <i class="fas fa-id-card"></i> {{ __('Department Name') }}
                                                         </label>
                                                         <div>
-                                                        <select name="department_id" class="form-control @error('department_id') is-invalid @enderror">
+                                                        {{-- <select name="department_id" class="form-control @error('department_id') is-invalid @enderror">
                                                             @foreach($departments as $depart)
                                                                 <option value="{{ $depart->id }}" {{ $employee->Employee->department_id == $depart->id ? 'selected' : '' }}>
                                                                     {{ $depart->department_name }}
@@ -311,7 +340,21 @@
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
-                                                        @enderror
+                                                        @enderror --}}
+                                                         <select name="department_id" class="form-control @error('department_id') is-invalid @enderror">
+    <option value="">-- Pilih Department --</option> <!-- Opsi default -->
+    @foreach($departments as $depart)
+        <option value="{{ $depart->id }}" {{ old('department_id', $employee->Employee->department_id ?? '') == $depart->id ? 'selected' : '' }}>
+            {{ $depart->department_name }}
+        </option>
+    @endforeach
+</select>
+
+@error('store_id')
+    <span class="invalid-feedback" role="alert">
+        <strong>{{ $message }}</strong>
+    </span>
+@enderror
                                                     </div>
                                                 </div>
                                                 </div>
@@ -880,9 +923,10 @@
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
-                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
-                                            </a>
+                                          <a href="{{ url()->previous() }}" class="btn btn-secondary">
+    <i class="fas fa-times"></i> {{ __('Cancel') }}
+</a>
+
                                             <button type="submit" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>

@@ -250,6 +250,8 @@
                                                 <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
+                                                <th class="text-center">Action</th>
+
 
                                             </tr>
                                         </thead>
@@ -369,6 +371,7 @@
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
+                 scrollX: true,
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
                     data: function (d) {
@@ -608,6 +611,13 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                             }
                             return '<span class="badge bg-secondary">Pending</span>';
                         }
+                    },
+                      {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
                     }
                  
                 ],

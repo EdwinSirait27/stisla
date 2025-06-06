@@ -38,7 +38,7 @@ class PayrollMail extends Mailable
                     ->view('emails.payroll')  // Pastikan nama viewnya benar
                     ->with([
                         'employeeName' => $this->employee->employee_name,
-                        'payrollPeriod' => $this->payroll->period->format('F Y'),
+                        'payrollPeriod' => $this->payroll->month_year->format('F Y'),
                         'payrollDate' => $this->payroll->month_year->format('d F Y'),
                         'basicSalary' => $this->payroll->salary ? ($this->payroll->salary) : 0,
                         'grossSalary' => $this->payroll->deductions ? ($this->payroll->deductions) : 0,

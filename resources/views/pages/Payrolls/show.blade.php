@@ -327,7 +327,11 @@
         </div>
         <!-- Transfer Information -->
         <div class="transfer-section">
-            <div class="transfer-title">Transfer To {{$payroll->employee->bank->name}}</div>
+          <div class="transfer-title">
+    Transfer To {{$payroll->employee?->bank?->name ?? 'Bank'}}
+</div>
+
+
             <div class="transfer-details">
                 <div class="transfer-account">{{ $payroll->created_at ? $payroll->created_at->format('d-m-Y') : '-' }}
  {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div>

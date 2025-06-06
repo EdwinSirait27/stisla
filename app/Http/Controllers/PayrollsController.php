@@ -49,7 +49,9 @@ class PayrollsController extends Controller
             $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : 0;
             $punishment = $payroll->punishment ? ($payroll->punishment) : 0;
             $period = $payroll->period ?? '-';
-            $created_at = $payroll->created_at ?? '-';
+            // $created_at = $payroll->created_at ?? '-';
+            $created_at = $payroll->created_at ? $payroll->created_at->format('Y-m-d') : '-';
+
             $attendance = $payroll->attendance ?? 0;
             $period = $payroll->period ?? '-';
             $month_year = $payroll->month_year ?? '-';

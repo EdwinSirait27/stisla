@@ -62,7 +62,6 @@
                
                 <td>Lihat Detail PDF</td>
                 {{-- <td>Rp {{ number_format(floatval($basicSalary), 0, ',', '.') }}</td> --}}
-
             </tr>
             <tr>
                 <td>Potongan</td>
@@ -72,12 +71,11 @@
             </tr>
         </table>
         <p>Untuk detail lengkap, silakan mengunduh lampiran slip gaji dalam format PDF.</p>
-        
-        <p>Jika Anda memiliki pertanyaan terkait slip gaji, silakan hubungi Departemen HR Mahendradata Jaya Mandiri.</p>
+        <p>Jika Anda memiliki pertanyaan terkait slip gaji, silakan hubungi Departemen HR PT. Mahendradata Jaya Mandiri.</p>
         <p>Untuk membuka file pdf gunakan tanggal lahir anda formatnya yyyymmdd contoh 19450817.</p>
         
         <p>Terima kasih, Tuhan Berkati Selalu<br>
-        Departemen HR Mahendradata Jaya Mandiri</p>
+        Departemen HR PT. Mahendradata Jaya Mandiri</p>
     </div>
     
     <div class="footer">

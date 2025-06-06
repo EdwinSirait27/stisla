@@ -118,9 +118,13 @@ class EmployeeController extends Controller
        
         $employees = $query->get()->map(function ($employee) {
             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+             $employee->action = '
+                    <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e($employee->Employee->employee_name) . '">
+                        <i class="fas fa-user-edit text-secondary"></i>
+                    </a>';
             return $employee;
         });
-    
+       
         return DataTables::of($employees)
                   ->addColumn('name', function ($employee) {
                 return !empty($employee->Employee) && !empty($employee->Employee->store->name)
@@ -284,7 +288,8 @@ class EmployeeController extends Controller
                     : 'Empty';
             })
           
-            
+             ->rawColumns(['action'])
+           
             ->make(true);
     }
 
