@@ -185,7 +185,7 @@
                                             <tr>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Company Key</th>
-                                                <th class="text-center">Photo</th>
+                                                {{-- <th class="text-center">Photo</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">NPWP</th>
@@ -239,20 +239,20 @@
                         }
                     },
                      { data: 'id', name: 'id', className: 'text-center' },
-                {
-                        data: 'foto',
-                        name: 'foto',
-                        className: 'text-center',
-                        render: function(data, type, full, meta) {
-                            let imageUrl = data ? '{{ asset('storage/company') }}/' + data :
-                                '{{ asset('storage/company/we.jpg') }}';
-                            return '<a href="#" class="open-image-modal" data-src="' + imageUrl +
-                                '">' +
-                                '<img src="' + imageUrl +
-                                '" width="100" style="cursor:pointer;" />' +
-                                '</a>';
-                        }
-                    },
+                // {
+                //         data: 'foto',
+                //         name: 'foto',
+                //         className: 'text-center',
+                //         render: function(data, type, full, meta) {
+                //             let imageUrl = data ? '{{ asset('storage/company') }}/' + data :
+                //                 '{{ asset('storage/company/we.jpg') }}';
+                //             return '<a href="#" class="open-image-modal" data-src="' + imageUrl +
+                //                 '">' +
+                //                 '<img src="' + imageUrl +
+                //                 '" width="100" style="cursor:pointer;" />' +
+                //                 '</a>';
+                //         }
+                //     },
                 { data: 'name', name: 'name', className: 'text-center' },
                 { data: 'address', name: 'address', className: 'text-center' },
                 { data: 'npwp', name: 'npwp', className: 'text-center' },
