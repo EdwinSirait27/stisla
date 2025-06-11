@@ -303,7 +303,8 @@
                             Punishment: IDR {{ number_format($punishment, 0, ',', '.') }}<br>
                             BPJS Ketenagakerjaan: IDR {{ number_format($bpjs_ket, 0, ',', '.') }}<br>
                             BPJS Kesehatan: IDR {{ number_format($bpjs_kes, 0, ',', '.') }}<br>
-                            Tax: IDR {{ number_format($tax, 0, ',', '.') }}
+                            Tax: IDR {{ number_format($tax, 0, ',', '.') }}<br>
+                            Debt: IDR {{ number_format($debt, 0, ',', '.') }}<br>
                         </td>
                     </tr>
                 </tbody>

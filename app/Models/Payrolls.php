@@ -33,6 +33,7 @@ class Payrolls extends Model
         'transport_allowance',
         'bpjs_ket',
         'bpjs_kes',
+        'debt',
         'punishment',
         'late_fine',
         'deductions',

@@ -219,6 +219,7 @@
                                                 <th class="text-center">BPJS Kesehatan</th>
                                                 <th class="text-center">BPJS Ketenagakerjaan</th>
                                                 <th class="text-center">Tax</th>
+                                                <th class="text-center">Debt</th>
                                                 <th class="text-center">Total Outcome</th>
                                                 <th class="text-center">Total Income</th>
                                                 <th class="text-center">Take Home</th>
@@ -419,6 +420,14 @@
                     {
                         data: 'tax',
                         name: 'tax',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                        }
+                    },
+                    {
+                        data: 'debt',
+                        name: 'debt',
                         className: 'text-center',
                         render: function(data) {
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';

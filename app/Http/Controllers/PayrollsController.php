@@ -46,6 +46,7 @@ class PayrollsController extends Controller
             $late_fine = $payroll->late_fine ? ($payroll->late_fine) : 0;
             $bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : 0;
             $bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : 0;
+            $debt = $payroll->debt ? ($payroll->debt) : 0;
             $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : 0;
             $punishment = $payroll->punishment ? ($payroll->punishment) : 0;
             $period = $payroll->period ?? '-';
@@ -90,6 +91,7 @@ class PayrollsController extends Controller
                 'deductions' => $deductions,
                 'bpjs_ket' => $bpjs_ket,
                 'bpjs_kes' => $bpjs_kes,
+                'debt' => $debt,
                 'take_home' => $take_home,
                 'monthYearHuman' => $carbonMonthYear->diffForHumans(),
                 'formattedMonthYear' => $carbonMonthYear->format('M Y'),
@@ -147,6 +149,7 @@ class PayrollsController extends Controller
                 'late_fine',
                 'bpjs_ket',
                 'bpjs_kes',
+                'debt',
                 'punishment'
             ]);
         // Filter berdasarkan month_year (Hanya Y-m, bukan Y-m-d)
@@ -165,6 +168,7 @@ class PayrollsController extends Controller
                 $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
                 $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
                 $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
+                $payroll->debt = $payroll->debt ? ($payroll->debt) : null;
                 $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
                 $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
                 $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
@@ -230,6 +234,7 @@ class PayrollsController extends Controller
             $late_fine = ($payroll->late_fine);
             $bpjs_ket = ($payroll->bpjs_ket);
             $bpjs_kes = ($payroll->bpjs_kes);
+            $debt = ($payroll->debt);
             $daily_allowance = ($payroll->daily_allowance);
             $punishment = ($payroll->punishment);
         } catch (\Exception $e) {

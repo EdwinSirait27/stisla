@@ -72,20 +72,20 @@ class PayrollsImport implements ToModel
     // }
     {
     $createdat = null;
-    if (!empty($row[17])) {
-        if (is_numeric($row[17])) {
-            $createdat = Date::excelToDateTimeObject($row[17])->format('Y-m-d H:i:s');
+    if (!empty($row[18])) {
+        if (is_numeric($row[18])) {
+            $createdat = Date::excelToDateTimeObject($row[18])->format('Y-m-d H:i:s');
         } else {
-            $createdat = Carbon::parse($row[17])->format('Y-m-d H:i:s');
+            $createdat = Carbon::parse($row[18])->format('Y-m-d H:i:s');
         }
     }
 
     $monthyear = null;
-    if (!empty($row[16])) {
-        if (is_numeric($row[16])) {
-            $monthyear = Date::excelToDateTimeObject($row[16])->format('Y-m-d');
+    if (!empty($row[17])) {
+        if (is_numeric($row[17])) {
+            $monthyear = Date::excelToDateTimeObject($row[17])->format('Y-m-d');
         } else {
-            $monthyear = Carbon::parse($row[16])->format('Y-m-d');
+            $monthyear = Carbon::parse($row[17])->format('Y-m-d');
         }
     }
 
@@ -104,7 +104,8 @@ $punishment          = isset($row[9]) ? (float) $row[9] : 0.0;
 $bpjs_kes            = isset($row[10]) ? (float) $row[10] : 0.0;
 $bpjs_ket            = isset($row[11]) ? (float) $row[11] : 0.0;
 $tax                 = isset($row[12]) ? (float) $row[12] : 0.0;
-$deductions = $late_fine + $punishment + $bpjs_kes + $bpjs_ket + $tax;
+$debt                 = isset($row[13]) ? (float) $row[13] : 0.0;
+$deductions = $late_fine + $punishment + $bpjs_kes + $bpjs_ket + $tax + $debt;
 
 $salary = ($attendance * $daily_allowance)
         + $house_allowance
@@ -127,12 +128,13 @@ $take_home = $salary - $deductions;
             'bpjs_kes'            => $bpjs_kes,
             'bpjs_ket'            => $bpjs_ket,
             'tax'                 => $tax,
+            'debt'                 => $debt,
             'deductions'          => $deductions,
             'salary'              => $salary,
             'take_home'              => $take_home,
             'month_year'          => $monthyear ?? null,
             'created_at'          => $createdat ?? null,
-            'period'              => $row[18] ?? null,
+            'period'              => $row[19] ?? null,
         ]);
     }
 
