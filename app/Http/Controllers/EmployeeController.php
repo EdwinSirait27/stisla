@@ -630,7 +630,7 @@ class EmployeeController extends Controller
             'telp_number' => ['required', 'numeric', 'digits_between:10,13',Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id), new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik' => ['required', 'max:20',Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id), new NoXSSInput()],
-            'bank_account_number' => ['required', 'max:20',Rule::unique('employees_tables', 'bank_account_number')->ignore($user->Employee->id), new NoXSSInput()],
+            'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
             // 'daily_allowance' => ['nullable','string',
