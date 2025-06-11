@@ -69,7 +69,7 @@ class DepartmentController extends Controller
         $validatedData = $request->validate([
             'department_name' => ['required', 'string','max:255', 'unique:departments_tables,department_name',
                 new NoXSSInput()],
-            'manager_id' => ['required','max:255', 'unique:departments_tables,manager_id',
+            'manager_id' => ['required','max:255', 
                 new NoXSSInput()],
             
         ], [
@@ -80,7 +80,6 @@ class DepartmentController extends Controller
 'manager_id.required' => 'Manager is required.',
 'manager_id.max' => 'Manager may not be greater than 255 characters.',
 'manager_id.string' => 'Manager must be a string.',
-'manager_id.unique' => 'Manager must be unique.',
         ]);
         try {
             DB::beginTransaction();
@@ -109,7 +108,7 @@ class DepartmentController extends Controller
         $validatedData = $request->validate([
             'department_name' => ['required', 'string', 'max:255',Rule::unique('departments_tables')->ignore($department->id),
             new NoXSSInput()],
-            'manager_id' => ['required', 'string', 'max:255', Rule::unique('departments_tables')->ignore($department->id),
+            'manager_id' => ['required', 'string', 'max:255',
             new NoXSSInput()],
 
         ], [

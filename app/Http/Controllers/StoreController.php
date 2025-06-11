@@ -69,8 +69,10 @@ class StoreController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string','max:255', 'unique:stores_tables,name',
                 new NoXSSInput()],
-            'manager_id' => ['required','max:255', 'unique:stores_tables,manager_id',
+            'manager_id' => ['required','max:255',
                 new NoXSSInput()],
+            // 'manager_id' => ['required','max:255', 'unique:stores_tables,manager_id',
+            //     new NoXSSInput()],
             'address' => ['required','max:255', 
                 new NoXSSInput()],
             'phone_num' => ['required','max:255',
@@ -83,7 +85,7 @@ class StoreController extends Controller
             'manager_id.required' => 'manager wajib diisi.',
             'address.required' => 'address wajib diisi.',
             'phone_num.required' => 'telephone number wajib diisi.',
-            'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
+            // 'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
         ]);
         try {
             DB::beginTransaction();
@@ -114,8 +116,10 @@ class StoreController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255',Rule::unique('stores_tables')->ignore($store->id),
             new NoXSSInput()],
-            'manager_id' => ['required', 'string', 'max:255', Rule::unique('stores_tables')->ignore($store->id),
+            'manager_id' => ['required', 'string', 'max:255',
             new NoXSSInput()],
+            // 'manager_id' => ['required', 'string', 'max:255', Rule::unique('stores_tables')->ignore($store->id),
+            // new NoXSSInput()],
 
         'address' => ['required','max:255', 
             new NoXSSInput()],
@@ -129,7 +133,7 @@ class StoreController extends Controller
         'manager_id.required' => 'manager wajib diisi.',
         'address.required' => 'address wajib diisi.',
         'phone_num.required' => 'telephone number wajib diisi.',
-        'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
+        // 'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
     ]);
 
         $storeData = [
