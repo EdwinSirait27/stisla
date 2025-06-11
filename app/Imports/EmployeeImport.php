@@ -6,6 +6,7 @@ use App\Models\Employee;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Illuminate\Support\Facades\Log;
 
 class EmployeeImport implements ToModel
 {
@@ -14,8 +15,67 @@ class EmployeeImport implements ToModel
      *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
+    // public function model(array $row)
+    // {
+    //     $joinDate = null;
+    //     if (!empty($row[10])) {
+    //         if (is_numeric($row[10])) {
+    //             $joinDate = Date::excelToDateTimeObject($row[10])->format('Y-m-d');
+    //         } else {
+    //             $joinDate = Carbon::parse($row[10])->format('Y-m-d');
+    //         }
+    //     }
+    //     $datebirth = null;
+    //     if (!empty($row[16])) {
+    //         if (is_numeric($row[16])) {
+    //             $datebirth = Date::excelToDateTimeObject($row[16])->format('Y-m-d');
+    //         } else {
+    //             $datebirth = Carbon::parse($row[16])->format('Y-m-d');
+    //         }
+    //     }
+    //     if (empty($row[1]) || trim($row[1]) === '') {
+    //         return null; 
+    //     }
+
+
+    //     return new Employee([
+    //         'employee_name' => $row[0] ?? null,
+    //         'employee_pengenal' => trim($row[1]) ?? null,
+    //         'position_id' => $row[2] ?? null,
+    //         'company_id' => $row[3] ?? null,
+    //         'store_id' => $row[4] ?? null,
+    //         'banks_id' => $row[5] ?? null,
+    //         'bank_account_number' => $row[6] ?? null,
+    //         'department_id' => $row[7] ?? null,
+    //         'fingerprint_id' => $row[8] ?? null,
+    //         'status_employee' => $row[9] ?? null,
+    //         'join_date' => $joinDate ?? null,
+    //         'marriage' => $row[11] ?? null,
+    //         'child' => $row[12] ?? null,
+    //         'telp_number' => $row[13] ?? null,
+    //         'nik' => $row[14] ?? null,
+    //         'gender' => $row[15] ?? null,
+    //         'date_of_birth' => $datebirth ?? null,
+    //         'place_of_birth' => $row[17] ?? null,
+    //         'biological_mother_name' => $row[18] ?? null,
+    //         'religion' => $row[19] ?? null,
+    //         'current_address' => $row[20] ?? null,
+    //         'id_card_address' => $row[21] ?? null,
+    //         'last_education' => $row[22] ?? null,
+    //         'institution' => $row[23] ?? null,
+    //         'npwp' => $row[24] ?? null,
+    //         'bpjs_kes' => $row[25] ?? null,
+    //         'bpjs_ket' => $row[26] ?? null,
+    //         'email' => $row[27] ?? null,
+    //         'emergency_contact_name' => $row[28] ?? null,
+    //         'status' => $row[29] ?? null,
+    //         'notes' => $row[30] ?? null,
+
+    //     ]);
+    // }
     public function model(array $row)
-    {
+{
+    try {
         $joinDate = null;
         if (!empty($row[10])) {
             if (is_numeric($row[10])) {
@@ -24,6 +84,7 @@ class EmployeeImport implements ToModel
                 $joinDate = Carbon::parse($row[10])->format('Y-m-d');
             }
         }
+
         $datebirth = null;
         if (!empty($row[16])) {
             if (is_numeric($row[16])) {
@@ -32,44 +93,50 @@ class EmployeeImport implements ToModel
                 $datebirth = Carbon::parse($row[16])->format('Y-m-d');
             }
         }
-        if (empty($row[1]) || trim($row[1]) === '') {
-            return null; // Lewati baris kalau pengenal kosong
-        }
-        
-        
-        return new Employee([
-       'employee_name' => $row[0] ?? null,
-       'employee_pengenal' => trim($row[1]) ?? null,
-'position_id' => $row[2] ?? null,
-'company_id' => $row[3] ?? null,
-'store_id' => $row[4] ?? null,
-'banks_id' => $row[5] ?? null,
-'bank_account_number' => $row[6] ?? null,
-'department_id' => $row[7] ?? null,
-'fingerprint_id' => $row[8] ?? null,
-'status_employee' => $row[9] ?? null,
-'join_date' => $joinDate ?? null,
-'marriage' => $row[11] ?? null,
-'child' => $row[12] ?? null,
-'telp_number' => $row[13] ?? null,
-'nik' => $row[14] ?? null,
-'gender' => $row[15] ?? null,
-'date_of_birth' => $datebirth ?? null,
-'place_of_birth' => $row[17] ?? null,
-'biological_mother_name' => $row[18] ?? null,
-'religion' => $row[19] ?? null,
-'current_address' => $row[20] ?? null,
-'id_card_address' => $row[21] ?? null,
-'last_education' => $row[22] ?? null,
-'institution' => $row[23] ?? null,
-'npwp' => $row[24] ?? null,
-'bpjs_kes' => $row[25] ?? null,
-'bpjs_ket' => $row[26] ?? null,
-'email' => $row[27] ?? null,
-'emergency_contact_name' => $row[28] ?? null,
-'status' => $row[29] ?? null,
-'notes' => $row[30] ?? null,
 
+        if (empty($row[1]) || trim($row[1]) === '') {
+            return null;
+        }
+
+        return new Employee([
+            'employee_name' => $row[0] ?? null,
+            'employee_pengenal' => trim($row[1]) ?? null,
+            'position_id' => $row[2] ?? null,
+            'company_id' => $row[3] ?? null,
+            'store_id' => $row[4] ?? null,
+            'banks_id' => $row[5] ?? null,
+            'bank_account_number' => $row[6] ?? null,
+            'department_id' => $row[7] ?? null,
+            'fingerprint_id' => $row[8] ?? null,
+            'status_employee' => $row[9] ?? null,
+            'join_date' => $joinDate ?? null,
+            'marriage' => $row[11] ?? null,
+            'child' => $row[12] ?? null,
+            'telp_number' => $row[13] ?? null,
+            'nik' => $row[14] ?? null,
+            'gender' => $row[15] ?? null,
+            'date_of_birth' => $datebirth ?? null,
+            'place_of_birth' => $row[17] ?? null,
+            'biological_mother_name' => $row[18] ?? null,
+            'religion' => $row[19] ?? null,
+            'current_address' => $row[20] ?? null,
+            'id_card_address' => $row[21] ?? null,
+            'last_education' => $row[22] ?? null,
+            'institution' => $row[23] ?? null,
+            'npwp' => $row[24] ?? null,
+            'bpjs_kes' => $row[25] ?? null,
+            'bpjs_ket' => $row[26] ?? null,
+            'email' => $row[27] ?? null,
+            'emergency_contact_name' => $row[28] ?? null,
+            'status' => $row[29] ?? null,
+            'notes' => $row[30] ?? null,
         ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error saat import karyawan di baris: ' . json_encode($row));
+        Log::error('Pesan error: ' . $e->getMessage());
+        Log::error('Trace: ' . $e->getTraceAsString());
+        return null;
     }
+}
 }
