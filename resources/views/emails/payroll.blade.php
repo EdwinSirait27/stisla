@@ -48,7 +48,6 @@
     <div class="header">
         <h2>Salary Statement  - {{ $payrollPeriod }}</h2>
     </div>
-    
     <div class="content">
         <p>Kepada Yth,<br>{{ $employeeName }}</p>
         <p>Berikut adalah slip gaji Anda untuk periode <strong>{{ $payrollPeriod }}</strong> .</p>
@@ -59,7 +58,6 @@
             </tr>
             <tr>
                 <td>Total Gaji</td>
-               
                 <td>Lihat Detail PDF</td>
                 {{-- <td>Rp {{ number_format(floatval($basicSalary), 0, ',', '.') }}</td> --}}
             </tr>
@@ -67,13 +65,12 @@
                 <td>Potongan</td>
                 <td>Lihat Detail PDF</td>
                 {{-- <td>Rp {{ number_format(floatval($grossSalary), 0, ',', '.') }}</td> --}}
-
             </tr>
         </table>
         <p>Untuk detail lengkap, silakan mengunduh lampiran slip gaji dalam format PDF.</p>
         <p>Jika Anda memiliki pertanyaan terkait slip gaji, silakan hubungi Departemen HR PT. Mahendradata Jaya Mandiri.</p>
         <p>Untuk membuka file pdf gunakan tanggal lahir anda formatnya yyyymmdd contoh 19450817.</p>
-        
+        2
         <p>Terima kasih, Tuhan Berkati Selalu<br>
         Departemen HR PT. Mahendradata Jaya Mandiri</p>
     </div>

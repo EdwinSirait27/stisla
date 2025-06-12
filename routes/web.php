@@ -179,6 +179,9 @@ Route::get('/banks/banks', [BanksController::class, 'getBanks'])->name('banks.ba
 });
 
 // uoms
+
+Route::group(['middleware' => ['permission:ManageUoms']], function () {
+
 Route::get('/Uoms', [UomsController::class, 'index'])
     ->name('pages.Uoms');
 Route::get('Uoms/create', [UomsController::class, 'create'])->name('Uoms.create');
@@ -186,7 +189,10 @@ Route::post('/Uoms', [UomsController::class, 'store'])->name('Uoms.store');
 Route::get('/Uoms/edit/{hashedId}', [UomsController::class, 'edit'])->name('Uoms.edit');
 Route::put('/Uoms/{hashedId}', [UomsController::class, 'update'])->name('Uoms.update');
 Route::get('/uoms/uoms', [UomsController::class, 'getUoms'])->name('uoms.uoms');
+});
 // Brands
+Route::group(['middleware' => ['permission:ManageBrands']], function () {
+
 Route::get('/Brands', [BrandsController::class, 'index'])
     ->name('pages.Brands');
 Route::get('Brands/create', [BrandsController::class, 'create'])->name('Brands.create');
@@ -194,7 +200,10 @@ Route::post('/Brands', [BrandsController::class, 'store'])->name('Brands.store')
 Route::get('/Brands/edit/{hashedId}', [BrandsController::class, 'edit'])->name('Brands.edit');
 Route::put('/Brands/{hashedId}', [BrandsController::class, 'update'])->name('Brands.update');
 Route::get('/brands/brands', [BrandsController::class, 'getBrands'])->name('brands.brands');
+});
 // Categories
+Route::group(['middleware' => ['permission:ManageCategories']], function () {
+
 Route::get('/Categories', [CategoriesController::class, 'index'])
     ->name('pages.Categories');
 Route::get('Categories/create', [CategoriesController::class, 'create'])->name('Categories.create');
@@ -203,7 +212,11 @@ Route::post('/Categories', [CategoriesController::class, 'store'])->name('Catego
 // Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
 Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
 Route::get('categories/tree', [CategoriesController::class, 'getCategoryTree'])->name('categories.tree');
+});
+
 // Tax status
+Route::group(['middleware' => ['permission:ManageTaxstatus']], function () {
+
 Route::get('/Taxstatus', [TaxstatusController::class, 'index'])
     ->name('pages.Taxstatus');
 Route::get('Taxstatus/create', [TaxstatusController::class, 'create'])->name('Taxstatus.create');
@@ -211,8 +224,10 @@ Route::post('/Taxstatus', [TaxstatusController::class, 'store'])->name('Taxstatu
 Route::get('/Taxstatus/edit/{hashedId}', [TaxstatusController::class, 'edit'])->name('Taxstatus.edit');
 Route::put('/Taxstatus/{hashedId}', [TaxstatusController::class, 'update'])->name('Taxstatus.update');
 Route::get('/taxstatus/taxstatus', [TaxstatusController::class, 'getTaxstatuses'])->name('taxstatus.taxstatus');
+});
 
 // Status Product
+Route::group(['middleware' => ['permission:ManageStatusproduct']], function () {
 
 Route::get('/Statusproduct', [StatusproductController::class, 'index'])
     ->name('pages.Statusproduct');
@@ -221,8 +236,10 @@ Route::post('/Statusproduct', [StatusproductController::class, 'store'])->name('
 Route::get('/Statusproduct/edit/{hashedId}', [StatusproductController::class, 'edit'])->name('Statusproduct.edit');
 Route::put('/Statusproduct/{hashedId}', [StatusproductController::class, 'update'])->name('Statusproduct.update');
 Route::get('/statusproduct/statusproduct', [StatusproductController::class, 'getStatusproducts'])->name('statusproduct.statusproduct');
+});
 
 // Status Product
+Route::group(['middleware' => ['permission:ManageMasterproducts']], function () {
 
 Route::get('/Masterproducts', [MasterproductController::class, 'index'])
     ->name('pages.Masterproducts');
@@ -231,6 +248,7 @@ Route::post('/Masterproducts', [MasterproductController::class, 'store'])->name(
 Route::get('/Masterproducts/edit/{hashedId}', [MasterproductController::class, 'edit'])->name('Masterproducts.edit');
 Route::put('/Masterproducts/{hashedId}', [MasterproductController::class, 'update'])->name('Masterproducts.update');
 Route::get('/masterproducts/masterproducts', [MasterproductController::class, 'getMasterproducts'])->name('masterproducts.masterproducts');
+});
 
 Route::group(['middleware' => ['permission:ManageCompanies']], function () {
 Route::get('/Company', [CompanyController::class, 'index'])

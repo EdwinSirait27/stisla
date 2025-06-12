@@ -71,6 +71,28 @@
 
                     </ul>
                 </li>
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Submissions</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{Submussions}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Submissions') }}">All Submissions</a>
+                        </li>
+                        <li class="{{ Request::is('{Company}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Company') }}">Companies</a>
+                        </li>
+                        <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Position') }}">Position</a>
+                        </li>
+                        <li class="{{ Request::is('Department') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Department') }}">Departments</a>
+                        </li>
+                        <li class="{{ Request::is('Store') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Store') }}">Stores</a>
+                        </li>
+
+                    </ul>
+                </li>
             @endrole
             @role('HR')
                 <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">

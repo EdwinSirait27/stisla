@@ -19,7 +19,10 @@ class DashboardHRController extends Controller
 {
     public function index()
     {
-        return view('pages.dashboardHR.dashboardHR');
+        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
+        
+        return view('pages.dashboardHR.dashboardHR', compact('totalEmployees'));
     }
    
 
