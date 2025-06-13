@@ -49,35 +49,36 @@
         <h2>Salary Statement  - {{ $payrollPeriod }}</h2>
     </div>
     <div class="content">
-        <p>Kepada Yth,<br>{{ $employeeName }}</p>
-        <p>Berikut adalah slip gaji Anda untuk periode <strong>{{ $payrollPeriod }}</strong> .</p>
+        <p>Dear,<br>{{ $employeeName }}</p>
+        <p>Here is your pay slip for period <strong>{{ $payrollPeriod }}</strong> .</p>
         <table>
             <tr>
-                <th>Keterangan</th>
-                <th>Jumlah</th>
+                <th>Information</th>
+                <th>Amount</th>
             </tr>
             <tr>
-                <td>Total Gaji</td>
-                <td>Lihat Detail PDF</td>
+                <td>Total Salary</td>
+                <td>View PDF Details</td>
                 {{-- <td>Rp {{ number_format(floatval($basicSalary), 0, ',', '.') }}</td> --}}
             </tr>
             <tr>
-                <td>Potongan</td>
-                <td>Lihat Detail PDF</td>
+                <td>Total Deductions</td>
+                <td>View PDF Details</td>
                 {{-- <td>Rp {{ number_format(floatval($grossSalary), 0, ',', '.') }}</td> --}}
             </tr>
         </table>
-        <p>Untuk detail lengkap, silakan mengunduh lampiran slip gaji dalam format PDF.</p>
-        <p>Jika Anda memiliki pertanyaan terkait slip gaji, silakan hubungi Departemen HR PT. Mahendradata Jaya Mandiri.</p>
-        <p>Untuk membuka file pdf gunakan tanggal lahir anda formatnya yyyymmdd contoh 19450817.</p>
-        2
-        <p>Terima kasih, Tuhan Berkati Selalu<br>
-        Departemen HR PT. Mahendradata Jaya Mandiri</p>
+        <p>For full details, please download the pay slip attachment in PDF format..</p>
+        <p>If you have any questions regarding pay slips, please contact the HR Department of PT. Mahendradata Jaya Mandiri.</p>
+        <p>To open a PDF file, use your date of birth in the format yyyymmdd. For example, you were born on August 6, 2000, so the format is 20000606.</p>
+        
+        <p>Thank you, God Bless<br>
+        HR Department PT. Mahendradata Jaya Mandiri</p>
     </div>
     
     <div class="footer">
-        <p>Email ini dikirim secara otomatis, mohon untuk tidak membalas email ini.</p>
-        <p>Mark important untuk pengirim email ini untuk mendapatkan notifikasi slip gaji untuk bulan berikutnya .</p>
+        <p>This email was sent automatically, please do not reply to this email.</p>
+        <p>Mark important for the sender of this email to get the pay slip notification for the next month.</p>
+        <p>&copy;edwinsirait</p>
     </div>
 </body>
 </html>

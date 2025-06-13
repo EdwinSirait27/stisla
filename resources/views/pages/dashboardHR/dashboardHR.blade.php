@@ -72,21 +72,7 @@
             <!-- Overview Cards -->
             <div class="row">
                 
-                {{-- <div onclick="window.location='{{ route('pages.Employeeall') }}';" style="cursor: pointer;" class="col-lg-3 col-md-6 col-sm-6 col-12">
-    <div class="card card-statistic-1 metric-card">
-        <div class="card-icon bg-primary">
-            <i class="far fa-user"></i>
-        </div>
-        <div class="card-wrap">
-            <div class="card-header">
-                <h4>Total Karyawan</h4>
-            </div>
-            <div class="card-body">
-                {{ $totalEmployees ?? 248 }}
-            </div>
-        </div>
-    </div>
-</div> --}}
+    
 <div 
      
     class="col-lg-3 col-md-6 col-sm-6 col-12"
@@ -158,7 +144,7 @@
 
             <div class="row">
                 <!-- Tingkat Kehadiran -->
-                <div class="col-lg-8 col-md-12 col-12 col-sm-12">
+                <div class="col-lg-8 col-md-12 col-12 col-sm-4">
                     <div class="card">
                         <div class="card-header">
                             <h4>Tingkat Kehadiran Bulanan</h4>

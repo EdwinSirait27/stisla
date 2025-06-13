@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use App\Models\Banks;
 use App\Models\Company;
@@ -19,13 +17,11 @@ use App\Rules\NoXSSInput;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-
 class SubmissionsController extends Controller
 {
   public function getSubmissionsall()
     {
         $typeFilter = request()->get('type');
-
         $query = Submissions::with([
             'user',
             'approval'
@@ -59,11 +55,9 @@ class SubmissionsController extends Controller
             'user_id' => 'user.employee.employee_name',
             'approval_id' => 'user.employee.employee_name',
             'type',
-            'duration',
-            
+            'duration',  
             'status'
         ];
-
         $dataTable = DataTables::of($submissions);
 
         foreach ($columns as $key => $relationPath) {
@@ -71,7 +65,7 @@ class SubmissionsController extends Controller
 
             $dataTable->addColumn($column, function ($submission) use ($relationPath) {
                 // Mendapatkan nilai dari relasi dengan dot notation
-                $value = data_get($employee->Employee, $relationPath);
+                $value = data_get($submission->employee, $relationPath);
                 return $value ?: 'Empty';
             });
         }
