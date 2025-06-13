@@ -67,11 +67,11 @@
                 {{-- <td>Rp {{ number_format(floatval($grossSalary), 0, ',', '.') }}</td> --}}
             </tr>
         </table>
-        <p>For full details, please download the pay slip attachment in PDF format..</p>
+        <p>For full details, please download the pay slip attachment in PDF format.</p>
         <p>If you have any questions regarding pay slips, please contact the HR Department of PT. Mahendradata Jaya Mandiri.</p>
         <p>To open a PDF file, use your date of birth in the format yyyymmdd. For example, you were born on August 6, 2000, so the format is 20000606.</p>
         
-        <p>Thank you, God Bless<br>
+        <p>Thank you, God bless<br>
         HR Department PT. Mahendradata Jaya Mandiri</p>
     </div>
     
