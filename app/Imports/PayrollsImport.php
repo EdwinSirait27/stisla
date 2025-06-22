@@ -5,15 +5,14 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Illuminate\Support\Facades\Crypt;
-
 class PayrollsImport implements ToModel
-{
+{   
     /**
      * @param array $row
      *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
-    protected $errors;
+     protected $errors;
     public function __construct(&$errors)
     {
         $this->errors = &$errors;

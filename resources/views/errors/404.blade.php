@@ -1,6 +1,6 @@
 @extends('layouts.error')
 
-@section('title', '404 Forbidden')
+@section('title', '404 Not Found')
 
 <style>
     body {

@@ -67,7 +67,7 @@
 @section('main')
 <div class="container">
     <h1>403</h1>
-    <p class="page-description">You do not have access to this page.</p>
+    <p class="page-description">why do you visit this site.</p>
     
     <div class="mt-3">
         @auth
