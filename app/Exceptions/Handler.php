@@ -41,10 +41,19 @@ class Handler extends ExceptionHandler
      *
      * @return void
      */
+    // public function register()
+    // {
+    //     $this->reportable(function (Throwable $e) {
+    //         //
+    //     });
+    // }
     public function register()
-    {
-        $this->reportable(function (Throwable $e) {
-            //
-        });
-    }
+{
+    $this->renderable(function (\Illuminate\Http\Request $request, Throwable $e) {
+        // Jika nginx redirect ke /forbidden, tampilkan view 403
+        if ($request->is('forbidden')) {
+            abort(403, 'Akses ditolak oleh server');
+        }
+    });
+}
 }
