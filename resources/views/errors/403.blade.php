@@ -77,7 +77,8 @@
         </form>
         <button onclick="window.history.back()" class="btn-custom">go back</button>
         @else
-            <a href="/" class="btn-custom">Back to Login</a>
+          <a href="{{ url()->previous() }}" class="btn-custom">Back</a>
+
         @endauth
     </div>
 </div>
