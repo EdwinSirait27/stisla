@@ -20,6 +20,7 @@ class PayrollsController extends Controller
     }
     public function generateAll()
     {
+        ini_set('max_execution_time', 180);
         $currentCarbon = Carbon::now(); 
 
         $payrolls = Payrolls::with('employee')
@@ -27,7 +28,7 @@ class PayrollsController extends Controller
             ->whereYear('created_at', $currentCarbon->year)
             ->get();
         foreach ($payrolls as $payroll) {
-            // Coba parse month_year ke Carbon
+          
             try {
                 $carbonMonthYear = Carbon::parse($payroll->month_year);
             } catch (\Exception $e) {
@@ -129,6 +130,7 @@ class PayrollsController extends Controller
 
     public function getPayrolls(Request $request)
     {
+        ini_set('max_execution_time', 120);
         $payrollsQuery = Payrolls::with('Employee')
             ->select([
                 'id',

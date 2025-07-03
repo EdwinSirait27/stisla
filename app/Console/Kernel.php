@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('sessions:cleanup')->monthly();
+        $schedule->command('payrolls:delete-old')->daily();
     }
 
     /**
