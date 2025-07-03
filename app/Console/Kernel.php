@@ -33,6 +33,7 @@ class Kernel extends ConsoleKernel
     }
     protected $commands = [
         \App\Console\Commands\SendPayrollEmails::class,
+        \App\Console\Commands\DeleteOldPayrolls::class,
     ];
     
 }
