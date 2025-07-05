@@ -7,9 +7,7 @@ use Yajra\DataTables\DataTables;
 use App\Models\Departments;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
-
 use Illuminate\Support\Facades\DB;
-
 class DepartmentController extends Controller
 {
     public function index()
@@ -55,17 +53,14 @@ class DepartmentController extends Controller
             'managers' => $managers,
         ]);
     }
- 
     public function create()
     {
         $managers = User::with('Employee')->get();
         return view('pages.Department.create',compact('managers'));
     }
-
     public function store(Request $request)
     {
         // dd($request->all());
-
         $validatedData = $request->validate([
             'department_name' => ['required', 'string','max:255', 'unique:departments_tables,department_name',
                 new NoXSSInput()],
@@ -110,23 +105,18 @@ class DepartmentController extends Controller
             new NoXSSInput()],
             'manager_id' => ['required', 'string', 'max:255',
             new NoXSSInput()],
-
         ], [
             'department_name.required' => 'name wajib diisi.',
             'manager_id.required' => 'Manager wajib diisi.',
-            'department_name.string' => 'name hanya boleh berupa teks.',
-            
+            'department_name.string' => 'name hanya boleh berupa teks.', 
         ]);
-
         $departmentData = [
             'department_name' => $validatedData['department_name'],
             'manager_id' => $validatedData['manager_id'],
-            
         ];
         DB::beginTransaction();
         $department->update($departmentData);
         DB::commit();
-
         return redirect()->route('pages.Department')->with('success', 'Department Berhasil Diupdate.');
     }
 }

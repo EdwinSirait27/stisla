@@ -3,7 +3,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
-use Illuminate\Support\Facades\Crypt;
 class Payrolls extends Model
 {
     use HasFactory;
@@ -20,7 +19,22 @@ class Payrolls extends Model
         });
     }
     protected $casts = [
-        'month_year' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+            'month_year' => 'date:Y-m-d',
+        'bonus' => 'float',
+        'overtime' => 'float',
+        'house_allowance' => 'float',
+        'daily_allowance' => 'float',
+        'meal_allowance' => 'float',
+        'transport_allowance' => 'float',
+        'bpjs_ket' => 'float',
+        'bpjs_kes' => 'float',
+        'debt' => 'float',
+        'punishment' => 'float',
+        'late_fine' => 'float',
+        'deductions' => 'float',
+        'salary' => 'float',
+        'take_home' => 'float',
+        'tax' => 'float',
     ];
     protected $fillable = [
         'employee_id',
@@ -43,13 +57,11 @@ class Payrolls extends Model
         'period',
         'month_year',
         'information',
-        'attachment_file',   
-        'attachment_path',   
+        'attachment_file',
+        'attachment_path',
     ];
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
     }
-    
-        
 }

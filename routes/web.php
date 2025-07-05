@@ -110,12 +110,6 @@ Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Impor
 Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
 ->name('pages.Importuser');
 Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
-// payrolls
-Route::get('/Importpayroll', [EmployeeImportController::class, 'indexpayrolls'])
-->name('pages.Importpayroll');
-Route::post('/Importpayroll', [EmployeeImportController::class, 'importpayroll'])->name('Importpayroll.user');
-// });
-Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
 
 });
 Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
@@ -127,11 +121,20 @@ Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->na
 Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
 Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
 Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
-Route::delete('/payrolls/delete', [PayrollsController::class, 'deletepayrolls'])->name('payrolls.delete');
+// Route::delete('/payrolls/delete', [PayrollsController::class, 'deletepayrolls'])->name('payrolls.delete');
+Route::delete('/payrolls/delete-bulk', [PayrollsController::class, 'bulkDelete'])->name('payrolls.bulkDelete');
 Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
 Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
 Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
 Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
+// payrolls
+Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
+->name('pages.Importpayroll');
+Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
+// });
+Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
+    Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
+
 });
 // Position    
 Route::group(['middleware' => ['permission:ManagePositions']], function () {

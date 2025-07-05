@@ -201,69 +201,80 @@
                                 </div>
 
                                 {{-- Table --}}
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-bordered" id="users-table">
-                                        <thead class="thead-light">
-                                            <tr>
-                                                <th class="text-center">No.</th>
-                                                <th class="text-center">Employee Name</th>
-                                                <th class="text-center">Attendance</th>
-                                                <th class="text-center">Daily Allowance</th>
-                                                <th class="text-center">House Allowance</th>
-                                                <th class="text-center">Meal Allowance</th>
-                                                <th class="text-center">Transport Allowance</th>
-                                                <th class="text-center">Bonus</th>
-                                                <th class="text-center">Overtime</th>
-                                                <th class="text-center">Late Fine</th>
-                                                <th class="text-center">Punishment</th>
-                                                <th class="text-center">BPJS Kesehatan</th>
-                                                <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                <th class="text-center">Tax</th>
-                                                <th class="text-center">Debt</th>
-                                                <th class="text-center">Total Outcome</th>
-                                                <th class="text-center">Total Income</th>
-                                                <th class="text-center">Take Home</th>
-                                                {{-- <th class="text-center">Mesh</th> --}}
-                                                <th class="text-center">Month</th>
-                                                <th class="text-center">Period</th>
-                                                {{-- <th class="text-center">Action</th> --}}
-                                                {{-- <th>
-                                                    <button type="button" id="select-all" class="btn btn-primary btn-sm">
-                                                        Select All
-                                                    </button>
-                                                </th> --}}
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                    {{-- <button type="button" id="delete-selected" class="btn btn-danger btn-sm">
+                                <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit" class="btn btn-danger mb-2"
+                                        onclick="return confirm('Yakin ingin menghapus data yang dipilih?')">
+                                        Hapus Terpilih
+                                    </button>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-bordered" id="users-table">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th class="text-center">No.</th>
+                                                    <th class="text-center">Employee Name</th>
+                                                    <th class="text-center">Attendance</th>
+                                                    <th class="text-center">Daily Allowance</th>
+                                                    <th class="text-center">House Allowance</th>
+                                                    <th class="text-center">Meal Allowance</th>
+                                                    <th class="text-center">Transport Allowance</th>
+                                                    <th class="text-center">Bonus</th>
+                                                    <th class="text-center">Overtime</th>
+                                                    <th class="text-center">Late Fine</th>
+                                                    <th class="text-center">Punishment</th>
+                                                    <th class="text-center">BPJS Kesehatan</th>
+                                                    <th class="text-center">BPJS Ketenagakerjaan</th>
+                                                    <th class="text-center">Tax</th>
+                                                    <th class="text-center">Debt</th>
+                                                    <th class="text-center">Total Outcome</th>
+                                                    <th class="text-center">Total Income</th>
+                                                    <th class="text-center">Take Home</th>
+                                                    {{-- <th class="text-center">Mesh</th> --}}
+                                                    <th class="text-center">Month</th>
+                                                    <th class="text-center">Period</th>
+                                                    {{-- <th class="text-center">Action</th> --}}
+                                                    <th>
+                                                        <button type="button" id="select-all"
+                                                            class="btn btn-primary btn-sm">
+                                                            Select All
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                </form>
+                                {{-- <button type="button" id="delete-selected" class="btn btn-danger btn-sm">
                                         Delete
                                     </button> --}}
-                                </div>
+                            </div>
 
-                                <form action="{{ route('payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
-                                    </button>
-                                </form>
-                              
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('pages.Importpayroll') }}'"
+                            <form action="{{ route('payrolls.generateAll') }}" method="POST"
+                                onsubmit="return confirm('Generate semua PDF?')">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+                                </button>
+                            </form>
+
+                            <div class="action-buttons">
+                                <button type="button" onclick="window.location='{{ route('pages.Importpayroll') }}'"
                                     class="btn btn-dark btn-sm ml-2">
                                     <i class="fas fa-users"></i> Import Payroll
                                 </button>
-                                    <!-- New button added here -->
-                                    
-                                    
-                                </div>
-                            </div> {{-- end card-body --}}
-                            
-                        </div>
+                                <!-- New button added here -->
+
+
+                            </div>
+                        </div> {{-- end card-body --}}
 
                     </div>
+
                 </div>
             </div>
-        </section>
+    </div>
+    </section>
     </div>
 @endsection
 
@@ -333,7 +344,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                      {
+                    {
                         data: 'house_allowance',
                         name: 'house_allowance',
                         className: 'text-center',
@@ -357,7 +368,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                       {
+                    {
                         data: 'bonus',
                         name: 'bonus',
                         className: 'text-center',
@@ -373,7 +384,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                     {
+                    {
                         data: 'late_fine',
                         name: 'late_fine',
                         className: 'text-center',
@@ -381,7 +392,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                      {
+                    {
                         data: 'punishment',
                         name: 'punishment',
                         className: 'text-center',
@@ -389,8 +400,8 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                 
-                  
+
+
                     {
                         data: 'bpjs_kes',
                         name: 'bpjs_kes',
@@ -415,8 +426,8 @@
                     //         return data ? parseInt(data).toLocaleString('id-ID') : '-';
                     //     }
                     // },
-                  
-                   
+
+
                     {
                         data: 'tax',
                         name: 'tax',
@@ -478,7 +489,7 @@
                         render: function(data) {
                             return data ? data : '-';
                         }
-                    }
+                    },
                     // ,
                     // {
                     //     data: 'action',
@@ -487,19 +498,24 @@
                     //     searchable: false,
                     //     className: 'text-center'
                     // }
-//                     ,
-//                     {
-//                                 data: 'id',
-//                                 name: 'checkbox',
-//                                 orderable: false,
-//                                 searchable: false,
-//                                 className: 'text-center',
-//                                 render: function(data, type, row) {
-//     return `<input type="checkbox" class="user-checkbox" name="payroll_ids[]" value="${row.id}">`;
-// }
+                    //                     ,
+                    //                     {
+                    //                                 data: 'id',
+                    //                                 name: 'checkbox',
+                    //                                 orderable: false,
+                    //                                 searchable: false,
+                    //                                 className: 'text-center',
+                    //                                 render: function(data, type, row) {
+                    //     return `<input type="checkbox" class="user-checkbox" name="payroll_ids[]" value="${row.id}">`;
+                    // }
 
-//                             }
-                    
+                    //                             }
+                    {
+                        data: 'checkbox',
+                        orderable: false,
+                        searchable: false
+                    }
+
 
                 ],
                 order: [
@@ -541,13 +557,14 @@
         @endif
     </script>
     <script>
-        $('#select-all').on('click', function () {
-    let isChecked = $(this).data('checked') || false;
-    $('.user-checkbox').prop('checked', !isChecked);
-    $(this).data('checked', !isChecked);
-    $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-});
-
-       
+        $('#select-all').on('click', function() {
+            let isChecked = $(this).data('checked') || false;
+            $('.user-checkbox').prop('checked', !isChecked);
+            $(this).data('checked', !isChecked);
+            $(this).text(!isChecked ? 'Deselect All' : 'Select All');
+        });
+          $('#select-all').on('click', function(){
+        $('input.payroll-checkbox').prop('checked', this.checked);
+    });
     </script>
 @endpush
