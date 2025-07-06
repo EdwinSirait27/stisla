@@ -205,10 +205,7 @@
                                     @csrf
                                     @method('DELETE')
 
-                                    <button type="submit" class="btn btn-danger mb-2"
-                                        onclick="return confirm('Yakin ingin menghapus data yang dipilih?')">
-                                        Hapus Terpilih
-                                    </button>
+                                
                                     <div class="table-responsive">
                                         <table class="table table-hover table-bordered" id="users-table">
                                             <thead class="thead-light">
@@ -244,11 +241,12 @@
                                                 </tr>
                                             </thead>
                                         </table>
+                                    </div>
                                 </form>
-                                {{-- <button type="button" id="delete-selected" class="btn btn-danger btn-sm">
-                                        Delete
-                                    </button> --}}
-                            </div>
+                                    <button type="submit" class="btn btn-danger mb-2"
+                                        onclick="return confirm('Yakin ingin menghapus data yang dipilih?')">
+                                        Hapus Terpilih
+                                    </button>
 
                             <form action="{{ route('payrolls.generateAll') }}" method="POST"
                                 onsubmit="return confirm('Generate semua PDF?')">

@@ -825,6 +825,28 @@
                                                 </div>
                                                 </div>
                                             </div>
+                                                <div class="row mt-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="pin" class="form-control-label">
+                                                            <i class="fas fa-id-card"></i> {{ __('Pin Finger') }}
+                                                        </label>
+                                                        <div>
+                                                            <input class="form-control @error('pin') is-invalid @enderror"
+                                                                value="{{ old('pin', $employee->Employee->pin ?? '') }}"
+                                                                type="number" id="pin" name="pin"
+                                                                value="{{ old('pin') }}"
+                                                                aria-describedby="info-notes" placeholder="Pin finger setelah didaftarkan baru edit">
+                                                            @error('pin')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                </div>
+                                                </div>
+                                                </div>
+
                                             {{-- <div class="row mt-3">
 
                                                 <div class="col-md-6">

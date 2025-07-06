@@ -25,6 +25,9 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\BanksController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\FingerspotController;
+use App\Http\Controllers\AttendanceimportController;
+use App\Http\Controllers\AttendanceController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -136,6 +139,37 @@ Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll']
     Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
 
 });
+
+Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
+
+//payrolls
+Route::get('/Fingerspot', [FingerspotController::class, 'index'])
+    ->name('pages.Fingerspot');
+Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
+Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
+->name('pages.Importfingerspot');
+Route::post('/Importfingerspot', [FingerspotController::class, 'sinkronkanPIN'])->name('Importfingerspot.fingerspot');
+Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getPins'])->name('fingerspot.fingerspot');
+
+// });
+    Route::get('/Fingerspot/downloadfingerspot/{filename}', [FingerspotController::class, 'downloadfingerspot'])->name('Fingerspot.downloadfingerspot');
+
+    Route::get('/Importattendance', [AttendanceimportController::class, 'indexattendances'])
+    ->name('pages.Importattendance');
+Route::post('/Importattendance', [AttendanceimportController::class, 'importattendance'])->name('Importattendance.attendance');
+    Route::get('/Importattendance/downloadattendance/{filename}', [AttendanceimportController::class, 'downloadattendance'])->name('Importattendance.downloadattendance');
+Route::get('/attendance/attendance', [AttendanceController::class, 'getAttendances'])->name('attendance.attendance');
+Route::get('/Attendance', [AttendanceController::class, 'index'])
+    ->name('pages.Attendance');
+// Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
+// Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
+// ->name('pages.Importfingerspot');
+// Route::post('/Importfingerspot', [FingerspotController::class, 'sinkronkanPIN'])->name('Importfingerspot.fingerspot');
+// // });
+//     Route::get('/Fingerspot/downloadfingerspot/{filename}', [FingerspotController::class, 'downloadfingerspot'])->name('Fingerspot.downloadfingerspot');
+
+});
+
 // Position    
 Route::group(['middleware' => ['permission:ManagePositions']], function () {
 

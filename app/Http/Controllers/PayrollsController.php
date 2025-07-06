@@ -550,20 +550,7 @@ class PayrollsController extends Controller
         }
         abort(404);
     }
-    //     public function Importpayrolls(Request $request)
-    // {
-    //     $request->validate([
-    //         'file' => 'required|mimes:xlsx,csv,xls'
-    //     ]);
-
-    //     $import = new Payrolls();
-    //     $import->import($request->file('file'));
-    //     if ($import->failures()->isNotEmpty()) {
-    //         return back()->with('failures', $import->failures());
-    //     }
-
-    //     return back()->with('success', 'Payrolls import successfully!');
-    // }
+   
     public function Importpayrolls(Request $request)
 {
     $request->validate([
@@ -587,3 +574,4 @@ class PayrollsController extends Controller
     return back()->with('success', 'Payrolls import successfully!');
 }
 }
+

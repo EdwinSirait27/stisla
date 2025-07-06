@@ -248,6 +248,7 @@
                                                 <th class="text-center">Notes</th>
                                                 <th class="text-center">Bank Account</th>
                                                 <th class="text-center">Bank Account Number</th>
+                                                <th class="text-center">Pin Finger</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
@@ -585,6 +586,11 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                     {
                         data: 'bank_account_number',
                         name: 'bank_account_number',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pin',
+                        name: 'pin',
                         className: 'text-center'
                     },
                     {

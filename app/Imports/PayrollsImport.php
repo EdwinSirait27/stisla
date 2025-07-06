@@ -169,4 +169,8 @@ if (!empty($row['month_year'])) {
             return null;
         }
     }
+      public function chunkSize(): int
+    {
+        return 500;
+    }
 }
