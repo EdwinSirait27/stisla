@@ -945,9 +945,9 @@
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                          <a href="{{ url()->previous() }}" class="btn btn-secondary">
-    <i class="fas fa-times"></i> {{ __('Cancel') }}
-</a>
+                                      <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
+                                                <i class="fas fa-times"></i> {{ __('Back') }}
+                                            </a>
 
                                             <button type="submit" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
