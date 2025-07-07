@@ -61,7 +61,6 @@ public function getAttendances(Request $request)
         $request->end_date . ' 23:59:59'
     ]);
 })
-
     ->get();
 
     return DataTables::of($attendances)
