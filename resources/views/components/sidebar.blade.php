@@ -146,6 +146,19 @@
 
                     </ul>
                 </li>
+                 <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Attendance</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{Fingerspot}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Fingerspot') }}">Fingerspot Data</a>
+                        </li>
+                        <li class="{{ Request::is('{Attendance}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Attendance') }}">Attendance Data</a>
+                        </li>
+                      
+                    </ul>
+                </li>
             @endrole
 
             @role('HeadBuyer')
