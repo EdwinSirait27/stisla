@@ -1,39 +1,10 @@
-{{-- @extends('layouts.app')
-@section('title', 'Blank Page')
-@push('style')
-    <!-- CSS Libraries -->
-@endpush
-@section('main')<div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Blank Page</h1>
-            </div>
-            <div class="section-body">
-                  <div class="action-buttons">
-                                <button type="button" onclick="window.location='{{ route('pages.Importfingerspot') }}'"
-                                    class="btn btn-dark btn-sm ml-2">
-                                    <i class="fas fa-users"></i> Import Fingerspot
-                                </button>
-                                <button type="button" onclick="window.location='{{ route('pages.Importattendance') }}'"
-                                    class="btn btn-dark btn-sm ml-2">
-                                    <i class="fas fa-users"></i> Import Attendance
-                                </button>
-                                <!-- New button added here -->
-                            </div>
-            </div>
-        </section>
-    </div>
-@endsection
-@push('scripts')
-    <!-- JS Libraies -->
-
-    <!-- Page Specific JS File -->
-@endpush --}}
 @extends('layouts.app')
 @section('title', 'Employees Attendance')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
@@ -209,7 +180,32 @@
                                 <h6><i class="fas fa-user-shield"></i> List Employees Attendance</h6>
                             </div>
 
+
                             <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label for="filterKantor">Filter Store</label>
+                                        <select id="filterKantor" class="form-control select2">
+                                            <option value="">All Stores</option>
+                                            @foreach ($kantors as $kantor)
+                                                <option value="{{ $kantor }}">{{ $kantor }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="startDate">Dari Tanggal</label>
+                                        <input type="date" id="startDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="endDate">Sampai Tanggal</label>
+                                        <input type="date" id="endDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3 align-self-end">
+                                        <button id="filterBtn" class="btn btn-primary">Filter</button>
+                                        <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                                    </div>
+
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
@@ -240,30 +236,23 @@
                                                 <th class="text-center">Clock Out9</th>
                                                 <th class="text-center">Clock In10</th>
                                                 <th class="text-center">Clock Out10</th>
-                                                
+
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('pages.Importattendance') }}'"
-                                    class="btn btn-primary btn-sm ml-2">
-                                    <i class="fas fa-users"></i> Import Attendance
-                                </button>
-                                </div>
-                                {{-- <div class="d-flex justify-content-end mb-3">
-                                    <div class="input-group me-2" style="max-width: 200px;">
-                                        <span class="input-group-text">Date</span>
-                                        <input type="date" id="payrollDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
-                                    </div>
-                                    <button id="transferAllBtn" class="btn btn-primary">
-                                        <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
+                                        class="btn btn-primary btn-sm ml-2">
+                                        <i class="fas fa-users"></i> Import Attendance
                                     </button>
-                                </div> --}}
+                                </div>
+
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
-                                        - If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br>
+                                        - If you want to print payroll, ignore the day, just look at the year and month, you
+                                        can only print payrolls once a month, okay.<br>
                                         <br>
 
                                     </span>
@@ -279,16 +268,29 @@
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // Wait for jQuery to be fully loaded
+        $(document).ready(function() {
+            $('#kantor').select2({
+                placeholder: 'Choose Stores',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
+    <script>
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
+
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('attendance.attendance') }}',
-                    type: 'GET'
+                    data: function(d) {
+                        d.kantor = $('#filterKantor').val();
+                        d.start_date = $('#startDate').val();
+                        d.end_date = $('#endDate').val();
+                    }
                 },
                 responsive: true,
                 lengthMenu: [
@@ -312,7 +314,6 @@
                         name: 'employee_name',
                         className: 'text-center'
                     },
-                    
                     {
                         data: 'position_name',
                         name: 'position_name',
@@ -432,13 +433,23 @@
                         data: 'jam_keluar10',
                         name: 'jam_keluar10',
                         className: 'text-center'
-                    }
-                     
+                    },
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
                     $('.dataTables_length select').addClass('form-control');
                 }
+            });
+
+            $('#filterBtn').on('click', function() {
+                table.draw();
+            });
+
+            $('#resetBtn').on('click', function() {
+                $('#filterKantor').val('').trigger('change');
+                $('#startDate').val('');
+                $('#endDate').val('');
+                table.draw();
             });
 
             @if (session('success'))
@@ -450,115 +461,204 @@
             @endif
 
         });
-
-//         $(document).ready(function() {
-//     $('#transferAllBtn').on('click', function() {
-//         // Ambil nilai tanggal dari input
-//         const selectedDate = $('#payrollDate').val();
-        
-//         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
-//                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
-//             $.ajax({
-//                 url: "{{ route('employees.transferAllToPayroll') }}",
-//                 type: "POST",
-//                 data: {
-//                     "_token": "{{ csrf_token() }}",
-//                     "month_year": selectedDate
-//                 },
-//                 success: function(response) {
-//                     if (response.success) {
-//                         alert(response.message);
-//                     } else {
-//                         alert('Error: ' + response.message);
-//                     }
-//                 },
-//                 error: function(xhr) {
-//                     alert('Error: ' + xhr.responseText);
-//                 }
-//             });
-//         }
-//     });
-// });
-
-$(document).ready(function() {
-    $('#transferAllBtn').on('click', function() {
-        // Ambil nilai tanggal dari input
-        const selectedDate = $('#payrollDate').val();
-        const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric'
-        });
-        
-        // Tampilkan konfirmasi dengan SweetAlert2
-        Swal.fire({
-            title: 'Confirm Transfer',
-            text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, transfer!',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Processing...',
-                    html: 'Please wait while we transfer the data.',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Lakukan AJAX request
-                $.ajax({
-                    url: "{{ route('employees.transferAllToPayroll') }}",
-                    type: "POST",
-                    data: {
-                        "_token": "{{ csrf_token() }}",
-                        "month_year": selectedDate
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Tampilkan hasil dengan SweetAlert2
-                            Swal.fire({
-                                title: 'Transfer Successful!',
-                                html: `
-                                    <div class="text-left">
-                                        <p><strong>Period:</strong> ${response.period}</p>
-                                        <p><strong>Transferred:</strong> ${response.transferred} employee(s)</p>
-                                        <p><strong>Skipped:</strong> ${response.skipped} employee(s) (already exist)</p>
-                                    </div>`,
-                                icon: 'success',
-                                confirmButtonText: 'Great!'
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: response.message,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        // Tampilkan error dengan SweetAlert2
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Failed to process your request. Please try again.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                        console.error("Error:", xhr);
-                    }
-                });
-            }
-        });
-    });
-});
     </script>
 @endpush
+{{-- @push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#kantor').select2({
+                placeholder: 'Choose Stores',
+                allowClear: true,
+                width: '100%'
+            });
+        });
 
+    </script>
+    <script>
+        jQuery(document).ready(function($) {
+
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('attendance.attendance') }}',
+                    data: function(d) {
+                        d.kantor = $('#filterKantor').val();
+                     d.start_date = $('#startDate').val(); 
+    d.end_date = $('#endDate').val(); 
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                },
+                columns: [{
+                        data: null,
+                        name: 'id',
+                        className: 'text-center align-middle',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_name',
+                        name: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kantor',
+                        name: 'kantor',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'tanggal',
+                        name: 'tanggal',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk',
+                        name: 'jam_masuk',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar',
+                        name: 'jam_keluar',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk2',
+                        name: 'jam_masuk2',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar2',
+                        name: 'jam_keluar2',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk3',
+                        name: 'jam_masuk3',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar3',
+                        name: 'jam_keluar3',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk4',
+                        name: 'jam_masuk4',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar4',
+                        name: 'jam_keluar4',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk5',
+                        name: 'jam_masuk5',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar5',
+                        name: 'jam_keluar5',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk6',
+                        name: 'jam_masuk6',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar6',
+                        name: 'jam_keluar6',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk7',
+                        name: 'jam_masuk7',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar7',
+                        name: 'jam_keluar7',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk8',
+                        name: 'jam_masuk8',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar8',
+                        name: 'jam_keluar8',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk9',
+                        name: 'jam_masuk9',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar9',
+                        name: 'jam_keluar9',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_masuk10',
+                        name: 'jam_masuk10',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'jam_keluar10',
+                        name: 'jam_keluar10',
+                        className: 'text-center'
+                    },
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                }
+            });
+
+               $('#filterBtn').on('click', function () {
+        table.draw();
+    });
+
+    $('#resetBtn').on('click', function () {
+        $('#filterKantor').val('').trigger('change');
+        $('#startDate').val('');
+        $('#endDate').val('');
+        table.draw();
+    });
+
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
+        });
+    </script>
+@endpush --}}
