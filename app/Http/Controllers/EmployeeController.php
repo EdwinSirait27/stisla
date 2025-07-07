@@ -446,7 +446,7 @@ class EmployeeController extends Controller
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Active', 'Pending', 'Inactive', 'On Leave', 'Mutation'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation'];
         $banks = Banks::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
@@ -772,6 +772,7 @@ class EmployeeController extends Controller
             'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
+            'status' => ['required', 'string', new NoXSSInput()],
             // 'daily_allowance' => ['nullable','string',
             // new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -875,7 +876,7 @@ class EmployeeController extends Controller
             'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
 
             'notes' => $validatedData['notes'] ?? '',
-            'status' => $validatedData['status'] ?? 'Pending',
+            'status' => $validatedData['status'],
             'religion' => $validatedData['religion'] ?? '',
             'last_education' => $validatedData['last_education'] ?? '',
             // disini masi error
