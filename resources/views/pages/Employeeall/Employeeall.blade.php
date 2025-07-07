@@ -378,7 +378,9 @@
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
-                 scrollX: true,
+                 scrollY: "500px", // agar tidak terlalu tinggi dan scroll mudah terlihat
+scrollX: true,
+scrollCollapse: true,
                    fixedColumns: {
         leftColumns: 3
     },
