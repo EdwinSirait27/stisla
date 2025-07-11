@@ -251,7 +251,7 @@
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
-                                        - If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br>
+                                        - This feature is to synchronize data from the fingerspot which will be entered into the system based on the pin.<br>
                                         <br>
 
                                     </span>

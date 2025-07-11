@@ -216,7 +216,7 @@
                                     @endforeach
                                 </div>
                             </div>
-                            
+
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
@@ -267,7 +267,7 @@
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
                                         - Import the employee's data first then import the users aight.<br>
-                                        
+
                                     </span>
                                 </div>
                                 <div class="action-buttons">
@@ -374,7 +374,7 @@
 
     <script>
         jQuery(document).ready(function($) {
-          
+
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -453,7 +453,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         name: 'employee_name',
                         className: 'text-center'
                     },
-                  
+
                     {
                         data: 'employee_pengenal',
                         name: 'employee_pengenal',
@@ -605,7 +605,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         name: 'created_at',
                         className: 'text-center'
                     },
-                   
+
                     {
                         data: 'status',
                         name: 'status',
@@ -632,7 +632,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         searchable: false,
                         className: 'text-center'
                     }
-                 
+
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
@@ -642,7 +642,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                     $('.dt-buttons').addClass('mb-3');
                 }
             });
-          
+
             @if (session('success'))
                 Swal.fire({
                     icon: 'success',
@@ -656,7 +656,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
             $('#filter-store').on('change', function() {
                 table.ajax.reload();
             });
-           
+
 
         });
     </script>
@@ -739,7 +739,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
 
     <script>
         jQuery(document).ready(function($) {
-          
+
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -969,7 +969,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         name: 'created_at',
                         className: 'text-center'
                     },
-                   
+
                     {
                         data: 'status',
                         name: 'status',
@@ -996,7 +996,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         searchable: false,
                         className: 'text-center'
                     }
-                 
+
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
@@ -1006,7 +1006,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                     $('.dt-buttons').addClass('mb-3');
                 }
             });
-          
+
             @if (session('success'))
                 Swal.fire({
                     icon: 'success',
@@ -1020,7 +1020,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
             $('#filter-store').on('change', function() {
                 table.ajax.reload();
             });
-           
+
 
         });
     </script>
