@@ -129,106 +129,195 @@ class EmployeeController extends Controller
         ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name_store', 'action'])
         ->make(true);
 }
-    public function getEmployeesall(Request $request)
-    {
-        $storeFilter = $request->input('name');
-        $statusFilter = $request->input('status');
-    // public function getEmployeesall()
+ // public function getEmployeesall()
     // {
     //     $storeFilter = request()->get('name');
     //     $statusFilter = request()->get('status');
 
-        $query = User::with([
-            'Employee',
-            'Employee.company',
-            'Employee.store',
-            'Employee.position',
-            'Employee.department',
-            'Employee.bank'
-        ])->select(['id', 'username', 'employee_id']);
+    // public function getEmployeesall(Request $request)
+    // {
+    //     $storeFilter = $request->input('name');
+    //     $statusFilter = $request->input('status');
+   
+    //     $query = User::with([
+    //         'Employee',
+    //         'Employee.company',
+    //         'Employee.store',
+    //         'Employee.position',
+    //         'Employee.department',
+    //         'Employee.bank'
+    //     ])->select(['id', 'username', 'employee_id']);
 
-        if (!empty($storeFilter)) {
-            $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
-                $q->where('name', $storeFilter);
-            });
-        }
+    //     if (!empty($storeFilter)) {
+    //         $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
+    //             $q->where('name', $storeFilter);
+    //         });
+    //     }
 
-        if (!empty($statusFilter)) {
-            $query->whereHas('Employee', function ($q) use ($statusFilter) {
-                $q->whereIn('status', $statusFilter);
-            });
-        }
+    //     if (!empty($statusFilter)) {
+    //         $query->whereHas('Employee', function ($q) use ($statusFilter) {
+    //             $q->whereIn('status', $statusFilter);
+    //         });
+    //     }
 
-        $employees = $query->get()->map(function ($employee) {
-            $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-            if (auth()->user()->hasRole('HeadHR')) {
+    //     $employees = $query->get()->map(function ($employee) {
+    //         $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+    //         if (auth()->user()->hasRole('HeadHR')) {
 
-                $employee->action = '
-            <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
-                <i class="fas fa-user-edit text-secondary"></i>
-            </a>';
-            } else {
-                $employee->action = ''; // Optional: kosongkan jika tidak punya akses
-            }
+    //             $employee->action = '
+    //         <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
+    //             <i class="fas fa-user-edit text-secondary"></i>
+    //         </a>';
+    //         } else {
+    //             $employee->action = ''; // Optional: kosongkan jika tidak punya akses
+    //         }
 
-            return $employee;
+    //         return $employee;
+    //     });
+    //     // Daftar kolom dari relasi Employee yang ingin ditampilkan
+    //     $columns = [
+    //         'name' => 'store.name',
+    //         'name_company' => 'company.name',
+    //         'position_name' => 'position.name',
+    //         'employee_pengenal',
+    //         'department_name' => 'department.department_name',
+    //         'employee_name',
+    //         'id' => 'id',
+    //         'status_employee',
+    //         'join_date',
+    //         'marriage',
+    //         'child',
+    //         'telp_number',
+    //         'nik',
+    //         'gender',
+    //         'date_of_birth',
+    //         'place_of_birth',
+    //         'biological_mother_name',
+    //         'religion',
+    //         'current_address',
+    //         'id_card_address',
+    //         'last_education',
+    //         'institution',
+    //         'npwp',
+    //         'bpjs_kes',
+    //         'bpjs_ket',
+    //         'email',
+    //         'emergency_contact_name',
+    //         'notes',
+    //         'created_at',
+    //         'bank_name' => 'bank.name',
+    //         'bank_account_number',
+    //         'status',
+    //         'pin'
+    //     ];
+
+    //     $dataTable = DataTables::of($employees);
+
+    //     foreach ($columns as $key => $relationPath) {
+    //         $column = is_string($key) ? $key : $relationPath;
+
+    //         $dataTable->addColumn($column, function ($employee) use ($relationPath) {
+    //             // Mendapatkan nilai dari relasi dengan dot notation
+    //             $value = data_get($employee->Employee, $relationPath);
+    //             return $value ?: 'Empty';
+    //         });
+    //     }
+
+    //     return $dataTable
+    //         ->addColumn('action', function ($employee) {
+    //             return $employee->action;
+    //         })
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
+public function getEmployeesall(Request $request)
+{
+    $storeFilter = $request->input('name');
+    $statusFilter = $request->input('status');
+
+    $query = User::with([
+        'Employee',
+        'Employee.company',
+        'Employee.store',
+        'Employee.position',
+        'Employee.department',
+        'Employee.bank'
+    ])->select(['id', 'username', 'employee_id']);
+
+    if (!empty($storeFilter)) {
+        $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
+            $q->where('name', $storeFilter);
         });
-        // Daftar kolom dari relasi Employee yang ingin ditampilkan
-        $columns = [
-            'name' => 'store.name',
-            'name_company' => 'company.name',
-            'position_name' => 'position.name',
-            'employee_pengenal',
-            'department_name' => 'department.department_name',
-            'employee_name',
-            'id' => 'id',
-            'status_employee',
-            'join_date',
-            'marriage',
-            'child',
-            'telp_number',
-            'nik',
-            'gender',
-            'date_of_birth',
-            'place_of_birth',
-            'biological_mother_name',
-            'religion',
-            'current_address',
-            'id_card_address',
-            'last_education',
-            'institution',
-            'npwp',
-            'bpjs_kes',
-            'bpjs_ket',
-            'email',
-            'emergency_contact_name',
-            'notes',
-            'created_at',
-            'bank_name' => 'bank.name',
-            'bank_account_number',
-            'status',
-            'pin'
-        ];
-
-        $dataTable = DataTables::of($employees);
-
-        foreach ($columns as $key => $relationPath) {
-            $column = is_string($key) ? $key : $relationPath;
-
-            $dataTable->addColumn($column, function ($employee) use ($relationPath) {
-                // Mendapatkan nilai dari relasi dengan dot notation
-                $value = data_get($employee->Employee, $relationPath);
-                return $value ?: 'Empty';
-            });
-        }
-
-        return $dataTable
-            ->addColumn('action', function ($employee) {
-                return $employee->action;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
     }
+
+    if (!empty($statusFilter)) {
+        $query->whereHas('Employee', function ($q) use ($statusFilter) {
+            $q->whereIn('status', $statusFilter);
+        });
+    }
+
+    $columns = [
+        'name' => 'store.name',
+        'name_company' => 'company.name',
+        'position_name' => 'position.name',
+        'employee_pengenal',
+        'department_name' => 'department.department_name',
+        'employee_name',
+        'id' => 'id',
+        'status_employee',
+        'join_date',
+        'marriage',
+        'child',
+        'telp_number',
+        'nik',
+        'gender',
+        'date_of_birth',
+        'place_of_birth',
+        'biological_mother_name',
+        'religion',
+        'current_address',
+        'id_card_address',
+        'last_education',
+        'institution',
+        'npwp',
+        'bpjs_kes',
+        'bpjs_ket',
+        'email',
+        'emergency_contact_name',
+        'notes',
+        'created_at',
+        'bank_name' => 'bank.name',
+        'bank_account_number',
+        'status',
+        'pin'
+    ];
+
+    $dataTable = DataTables::eloquent($query);
+
+    foreach ($columns as $key => $relationPath) {
+        $column = is_string($key) ? $key : $relationPath;
+
+        $dataTable->addColumn($column, function ($user) use ($relationPath) {
+            return data_get($user->Employee, $relationPath) ?: 'Empty';
+        });
+    }
+
+    $dataTable->addColumn('action', function ($user) {
+        $employee = $user->Employee;
+        $idHashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
+        if (auth()->user()->hasRole('HeadHR')) {
+            return '
+                <a href="' . route('Employee.edit', $idHashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee)->employee_name) . '">
+                    <i class="fas fa-user-edit text-secondary"></i>
+                </a>';
+        }
+        return '';
+    });
+
+    return $dataTable
+        ->rawColumns(['action'])
+        ->make(true);
+}
 
 
 
