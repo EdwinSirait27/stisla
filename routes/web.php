@@ -105,7 +105,7 @@ Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 't
 // employeeall
 Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
     ->name('pages.Employeeall');
-Route::get('/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
+Route::post('/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
 Route::get('/Import', [EmployeeImportController::class, 'index'])
 ->name('pages.Import');
 Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Import.employee');

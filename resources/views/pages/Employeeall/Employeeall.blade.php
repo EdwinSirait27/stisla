@@ -386,8 +386,10 @@ scrollCollapse: true,
     },
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
+                    type: 'POST',
                     data: function (d) {
-                d.name = $('#filter-store').val();
+                d._token = '{{ csrf_token() }}';
+                        d.name = $('#filter-store').val();
                 d.status = [];
 $('#filter-status input[type="checkbox"]:checked').each(function () {
     d.status.push($(this).val());
