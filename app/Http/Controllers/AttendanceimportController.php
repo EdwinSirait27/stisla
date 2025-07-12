@@ -36,7 +36,7 @@ Excel::import($import, $request->file('file'));
 
 if (!empty($import->failures())) {
     return back()->with([
-        'success' => 'Data berhasil diimpor sebagian.',
+        'success' => 'Import Success.',
         'failures' => $import->failures()
     ]);
 } else {

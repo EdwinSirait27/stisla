@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Create Employee')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+   
+   <style>
         .avatar {
             position: relative;
         }
@@ -254,7 +256,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Store') }}
                                                     </label>
                                                     <div>
-                                                        <select name="store_id" class="form-control @error('store_id') is-invalid @enderror"required>
+                                                        <select name="store_id" class="form-control select2 @error('store_id') is-invalid @enderror"required>
                                                             <option value="">-- Choose Store --</option>
                                                             @foreach ($stores as $key => $value)
                                                                 <option value="{{ $key }}"
@@ -277,7 +279,8 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Position') }}
                                                     </label>
                                                     <div>
-                                                        <select name="position_id" class="form-control @error('position_id') is-invalid @enderror" required>
+                                                      
+   <select name="position_id" class="form-control select2 @error('position_id') is-invalid @enderror" required>
                                                             <option value="">-- Choose Position --</option>
                                                             @foreach ($positions as $key => $value)
                                                                 <option value="{{ $key }}"
@@ -290,12 +293,24 @@
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
                                                         @enderror
-
                                                  
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                          {{-- <select name="position_id" class="form-control select2 @error('position_id') is-invalid @enderror" required>
+                                                            <option value="">-- Choose Position --</option>
+                                                            @foreach ($positions as $key => $value)
+                                                                <option value="{{ $key }}"
+                                                                    {{ old('position_id') == $key ? 'selected' : '' }}>
+                                                                    {{ $value }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('position_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror --}}
                                         <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -303,7 +318,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Department') }}
                                                     </label>
                                                     <div>
-                                                        <select name="department_id" class="form-control @error('department_id') is-invalid @enderror"required>
+                                                        <select name="department_id" class="form-control select2 @error('department_id') is-invalid @enderror"required>
                                                             <option value="">-- Choose Department --</option>
                                                             @foreach ($departments as $key => $value)
                                                                 <option value="{{ $key }}"
@@ -948,9 +963,21 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+{{-- <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+   
 <script>
+    $(document).ready(function() {
+        $('.select2').select2();
+    });
+</script>
+<script>
+    
       document.getElementById('create-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung
             Swal.fire({

@@ -119,7 +119,7 @@
                         </div>
                         <div class="form-actions"
                             style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                            <a href="{{ route('pages.Fingerspot') }}" class="btn btn-secondary">
+                            <a href="{{ route('pages.Attendance') }}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                             </a>
                             <button id="create-btn" type="submit" class="btn btn-primary">
