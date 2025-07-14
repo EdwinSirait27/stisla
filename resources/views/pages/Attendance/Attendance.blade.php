@@ -303,10 +303,10 @@
                     }
                 },
                 responsive: true,
-                  dom: 'Bfrtip',
-                buttons: [
-                    'copy', 'excel', 'print'
-                ],
+                   dom: '<"row mb-3"<"col-md-6"l><"col-md-6 text-end"B>>rt<"row mt-3"<"col-md-6"i><"col-md-6"p>>',
+    buttons: [
+        'copy', 'excel', 'print'
+    ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
