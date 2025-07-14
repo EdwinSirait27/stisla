@@ -37,7 +37,7 @@ public function getAttendances(Request $request)
         'Employee.department',
     ])
     ->select([
-        'id', 'employee_id','tanggal', 'kantor','pin',
+        'id', 'employee_id','tanggal', 'kantor',
         'jam_masuk','jam_keluar',
         'jam_masuk2','jam_keluar2',
         'jam_masuk3','jam_keluar3',
@@ -67,7 +67,8 @@ public function getAttendances(Request $request)
         ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
         ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
         ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
-        ->rawColumns(['position_name','department_name', 'employee_name'])
+        ->addColumn('pin', fn($e) => optional($e->Employee)->pin ?? 'Empty')
+        ->rawColumns(['position_name','department_name', 'employee_name','pin'])
         ->make(true);
 }
 public function index(){
