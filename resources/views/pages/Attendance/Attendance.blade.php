@@ -303,14 +303,32 @@
                     }
                 },
                 responsive: true,
-                   dom: '<"row mb-3"<"col-md-6"l><"col-md-6 text-end"B>>rt<"row mt-3"<"col-md-6"i><"col-md-6"p>>',
-    buttons: [
-        'copy', 'excel', 'print'
-    ],
+                  dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
+                    "<'row'<'col-sm-12 col-md-6'B>>",
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm btn-primary',
+                        text: '<i class="fas fa-copy"></i> Copy'
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel'
+                    }
+
+                ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
+              
                 language: {
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
