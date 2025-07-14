@@ -69,12 +69,27 @@ $employee = Employee::where('pin', $pin)->first();
             $attendances->jam_masuk10     = $jamMasuk10;
             $attendances->jam_keluar10    = $jamKeluar10;
 
-            for ($i = 2; $i <= 10; $i++) {
-                $jm = "jam_masuk{$i}";
-                $jk = "jam_keluar{$i}";
-                $attendances->$jm = $row[$jm] ?? null;
-                $attendances->$jk = $row[$jk] ?? null;
-            }
+            // for ($i = 2; $i <= 10; $i++) {
+            //     $jm = "jam_masuk{$i}";
+            //     $jk = "jam_keluar{$i}";
+            //     $attendances->$jm = $row[$jm] ?? null;
+            //     $attendances->$jk = $row[$jk] ?? null;
+            // }
+for ($i = 2; $i <= 10; $i++) {
+    $jmKey = "jam_masuk{$i}";
+    $jkKey = "jam_keluar{$i}";
+
+    $jmValue = isset($row[$jmKey]) && is_numeric($row[$jmKey])
+        ? Date::excelToDateTimeObject($row[$jmKey])->format('H:i:s')
+        : null;
+
+    $jkValue = isset($row[$jkKey]) && is_numeric($row[$jkKey])
+        ? Date::excelToDateTimeObject($row[$jkKey])->format('H:i:s')
+        : null;
+
+    $attendances->$jmKey = $jmValue;
+    $attendances->$jkKey = $jkValue;
+}
 
             $attendances->save();
         }

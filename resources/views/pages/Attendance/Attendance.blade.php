@@ -216,27 +216,26 @@
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">Date</th>
-                                                <th class="text-center">Clock In</th>
-                                                <th class="text-center">Clock Out</th>
-                                                <th class="text-center">Clock In2</th>
-                                                <th class="text-center">Clock Out2</th>
-                                                <th class="text-center">Clock In3</th>
-                                                <th class="text-center">Clock Out3</th>
-                                                <th class="text-center">Clock In4</th>
-                                                <th class="text-center">Clock Out4</th>
-                                                <th class="text-center">Clock In5</th>
-                                                <th class="text-center">Clock Out5</th>
-                                                <th class="text-center">Clock In6</th>
-                                                <th class="text-center">Clock Out6</th>
-                                                <th class="text-center">Clock In7</th>
-                                                <th class="text-center">Clock Out7</th>
-                                                <th class="text-center">Clock In8</th>
-                                                <th class="text-center">Clock Out8</th>
-                                                <th class="text-center">Clock In9</th>
-                                                <th class="text-center">Clock Out9</th>
-                                                <th class="text-center">Clock In10</th>
-                                                <th class="text-center">Clock Out10</th>
-
+                                                <th class="text-center">Scan 1</th>
+                                                <th class="text-center">Scan 2</th>
+                                                <th class="text-center">Scan 3</th>
+                                                <th class="text-center">Scan 4</th>
+                                                <th class="text-center">Scan 5</th>
+                                                <th class="text-center">Scan 6</th>
+                                                <th class="text-center">Scan 7</th>
+                                                <th class="text-center">Scan 8</th>
+                                                <th class="text-center">Scan 9</th>
+                                                <th class="text-center">Scan 10</th>
+                                                <th class="text-center">Scan 11</th>
+                                                <th class="text-center">Scan 12</th>
+                                                <th class="text-center">Scan 13</th>
+                                                <th class="text-center">Scan 14</th>
+                                                <th class="text-center">Scan 15</th>
+                                                <th class="text-center">Scan 16</th>
+                                                <th class="text-center">Scan 17</th>
+                                                <th class="text-center">Scan 18</th>
+                                                <th class="text-center">Scan 19</th>
+                                                <th class="text-center">Scan 20</th>
                                             </tr>
                                         </thead>
                                     </table>
