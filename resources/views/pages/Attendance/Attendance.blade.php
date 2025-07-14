@@ -212,6 +212,7 @@
                                             <tr>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Pin Fingerspot</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Store</th>
@@ -311,6 +312,11 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pin',
+                        name: 'pin',
                         className: 'text-center'
                     },
                     {

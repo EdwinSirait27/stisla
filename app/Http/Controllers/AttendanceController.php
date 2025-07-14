@@ -37,7 +37,7 @@ public function getAttendances(Request $request)
         'Employee.department',
     ])
     ->select([
-        'id', 'employee_id','tanggal', 'kantor',
+        'id', 'employee_id','tanggal', 'kantor','pin',
         'jam_masuk','jam_keluar',
         'jam_masuk2','jam_keluar2',
         'jam_masuk3','jam_keluar3',
