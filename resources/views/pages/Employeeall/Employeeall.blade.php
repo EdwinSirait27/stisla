@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
-
+@endpush
 <style>
     /* Card Styles */
     .card {
@@ -169,66 +169,67 @@
         transition: all 0.3s ease;
         border: 1px solid #d1d1d1;
     }
+
     .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody {
-    overflow: auto;
-}
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter,
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_processing,
-        .dataTables_wrapper .dataTables_paginate {
-            color: #333;
-            margin-bottom: 1rem;
-        }
+        overflow: auto;
+    }
 
-        .dataTables_wrapper .dataTables_length select {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin: 0 5px;
-            background-color: white;
-        }
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_processing,
+    .dataTables_wrapper .dataTables_paginate {
+        color: #333;
+        margin-bottom: 1rem;
+    }
 
-        .dataTables_wrapper .dataTables_filter input {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 5px;
-            background-color: white;
-        }
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px 8px;
+        margin: 0 5px;
+        background-color: white;
+    }
 
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 5px 10px;
-            margin: 0 2px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-        }
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+        background-color: white;
+    }
 
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #6777ef;
-            color: white !important;
-            border: 1px solid #6777ef;
-        }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 5px 10px;
+        margin: 0 2px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: #333;
+    }
 
-        .dataTables_wrapper .dt-buttons {
-            margin-bottom: 15px;
-        }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #6777ef;
+        color: white !important;
+        border: 1px solid #6777ef;
+    }
 
-        .dataTables_wrapper .dt-buttons button {
-            background: #6777ef;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            margin-right: 5px;
-            font-size: 13px;
-        }
+    .dataTables_wrapper .dt-buttons {
+        margin-bottom: 15px;
+    }
 
-        .dataTables_wrapper .dt-buttons button:hover {
-            background: #4e5acf;
-        }
+    .dataTables_wrapper .dt-buttons button {
+        background: #6777ef;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        margin-right: 5px;
+        font-size: 13px;
+    }
+
+    .dataTables_wrapper .dt-buttons button:hover {
+        background: #4e5acf;
+    }
 </style>
-    @endpush
 
 
 
@@ -251,7 +252,7 @@
                                 <label for="filter-store" class="form-label">Filter</label>
                                 <select id="filter-store" class="form-select">
                                     <option value="">All</option>
-                                    @foreach($storeList as $name)
+                                    @foreach ($storeList as $name)
                                         <option value="{{ $name }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
@@ -260,13 +261,16 @@
                                 <label class="form-label">Filter</label>
                                 <div id="filter-status">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="status-all" value="" checked>
+                                        <input class="form-check-input" type="checkbox" id="status-all" value=""
+                                            checked>
                                         {{-- <label class="form-check-label" for="status-all">All</label> --}}
                                     </div>
-                                    @foreach($statusList as $status)
+                                    @foreach ($statusList as $status)
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="status[]" id="status-{{ $loop->index }}" value="{{ $status }}">
-                                            <label class="form-check-label" for="status-{{ $loop->index }}">{{ $status }}</label>
+                                            <input class="form-check-input" type="checkbox" name="status[]"
+                                                id="status-{{ $loop->index }}" value="{{ $status }}">
+                                            <label class="form-check-label"
+                                                for="status-{{ $loop->index }}">{{ $status }}</label>
                                         </div>
                                     @endforeach
                                 </div>
@@ -358,10 +362,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-   
-{{-- @endpush --}}
 
-{{-- @push('scripts')
+    {{-- @endpush --}}
+
+    {{-- @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
@@ -662,7 +666,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
         });
     </script>
 @endpush --}}
-  
+
     <style>
         .dataTables_wrapper .dataTables_length,
         .dataTables_wrapper .dataTables_filter,
@@ -729,17 +733,17 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
-                 scrollX: true,
+                scrollX: true,
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
-                    data: function (d) {
-                d.name = $('#filter-store').val();
-                d.status = [];
-$('#filter-status input[type="checkbox"]:checked').each(function () {
-    d.status.push($(this).val());
-});
-            }
-        },
+                    data: function(d) {
+                        d.name = $('#filter-store').val();
+                        d.status = [];
+                        $('#filter-status input[type="checkbox"]:checked').each(function() {
+                            d.status.push($(this).val());
+                        });
+                    }
+                },
 
                 responsive: true,
                 dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
@@ -975,7 +979,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                             return '<span class="badge bg-secondary">Pending</span>';
                         }
                     },
-                      {
+                    {
                         data: 'action',
                         name: 'action',
                         orderable: false,
@@ -1000,9 +1004,9 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                     text: '{{ session('success') }}',
                 });
             @endif
-            $('#filter-status input[type="checkbox"]').on('change', function () {
-    table.ajax.reload();
-});
+            $('#filter-status input[type="checkbox"]').on('change', function() {
+                table.ajax.reload();
+            });
             $('#filter-store').on('change', function() {
                 table.ajax.reload();
             });
