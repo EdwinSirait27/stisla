@@ -230,7 +230,7 @@ class EmployeeController extends Controller
     //         ->rawColumns(['action'])
     //         ->make(true);
     // }
-public function getEmployeesall(Request $request)
+public function getEmployeesall(Request $request, DataTables $dataTables)
 {
     $storeFilter = $request->input('name');
     $statusFilter = $request->input('status');
@@ -292,7 +292,7 @@ public function getEmployeesall(Request $request)
         'pin'
     ];
 
-    $dataTable = DataTables::eloquent($query);
+    $dataTable = $dataTables->eloquent($query);
 
     foreach ($columns as $key => $relationPath) {
         $column = is_string($key) ? $key : $relationPath;
