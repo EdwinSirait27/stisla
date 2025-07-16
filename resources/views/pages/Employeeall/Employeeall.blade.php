@@ -172,7 +172,61 @@
     .dataTables_wrapper .dataTables_scroll div.dataTables_scrollBody {
     overflow: auto;
 }
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_processing,
+        .dataTables_wrapper .dataTables_paginate {
+            color: #333;
+            margin-bottom: 1rem;
+        }
 
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 0 5px;
+            background-color: white;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+            background-color: white;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 5px 10px;
+            margin: 0 2px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #6777ef;
+            color: white !important;
+            border: 1px solid #6777ef;
+        }
+
+        .dataTables_wrapper .dt-buttons {
+            margin-bottom: 15px;
+        }
+
+        .dataTables_wrapper .dt-buttons button {
+            background: #6777ef;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-size: 13px;
+        }
+
+        .dataTables_wrapper .dt-buttons button:hover {
+            background: #4e5acf;
+        }
 </style>
     @endpush
 
@@ -304,63 +358,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.colVis.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter,
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_processing,
-        .dataTables_wrapper .dataTables_paginate {
-            color: #333;
-            margin-bottom: 1rem;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin: 0 5px;
-            background-color: white;
-        }
-
-        .dataTables_wrapper .dataTables_filter input {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 5px;
-            background-color: white;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 5px 10px;
-            margin: 0 2px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #6777ef;
-            color: white !important;
-            border: 1px solid #6777ef;
-        }
-
-        .dataTables_wrapper .dt-buttons {
-            margin-bottom: 15px;
-        }
-
-        .dataTables_wrapper .dt-buttons button {
-            background: #6777ef;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            margin-right: 5px;
-            font-size: 13px;
-        }
-
-        .dataTables_wrapper .dt-buttons button:hover {
-            background: #4e5acf;
-        }
-    </style>
+   
 {{-- @endpush --}}
 
 {{-- @push('scripts')
