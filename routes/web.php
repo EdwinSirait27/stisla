@@ -161,6 +161,8 @@ Route::post('/Importattendance', [AttendanceimportController::class, 'importatte
 Route::get('/attendance/attendance', [AttendanceController::class, 'getAttendances'])->name('attendance.attendance');
 Route::get('/Attendance', [AttendanceController::class, 'index'])
     ->name('pages.Attendance');
+    Route::post('/attendance/summary', [AttendanceController::class, 'storeAttendanceSummary'])->name('attendance.summary');
+
 // Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
 // Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
 // ->name('pages.Importfingerspot');

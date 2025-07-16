@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
-    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -179,8 +178,6 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Employees Attendance</h6>
                             </div>
-
-
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
@@ -204,6 +201,7 @@
                                         <button id="filterBtn" class="btn btn-primary">Filter</button>
                                         <button id="resetBtn" class="btn btn-secondary">Reset</button>
                                     </div>
+
 
                                 </div>
                                 <div class="table-responsive">
@@ -241,18 +239,22 @@
                                         </thead>
                                     </table>
                                 </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('pages.Importattendance') }}'"
-                                        class="btn btn-primary btn-sm ml-2">
-                                        <i class="fas fa-users"></i> Import Attendance
-                                    </button>
-                                </div>
+<div class="action-buttons d-flex gap-2 mt-3">
+    <button type="button"
+        onclick="window.location='{{ route('pages.Importattendance') }}'"
+        class="btn btn-primary btn-sm">
+        <i class="fas fa-users"></i> Import Attendance
+    </button>
+    <button id="rekapBtn" class="btn btn-success btn-sm">
+        <i class="fas fa-chart-bar"></i> Recap Attendance
+    </button>
+</div>
+
 
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
-                                        - If you want to print payroll, ignore the day, just look at the year and month, you
-                                        can only print payrolls once a month, okay.<br>
+                                        - beware, .<br>
                                         <br>
 
                                     </span>
@@ -279,6 +281,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+   <script>
+    $('#rekapBtn').on('click', function () {
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+        const kantor = $('#filterKantor').val();
+
+        if (!startDate || !endDate) {
+            return alert('Silakan pilih tanggal awal dan akhir terlebih dahulu.');
+        }
+
+        $.ajax({
+            url: "{{ route('attendance.summary') }}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                start_date: startDate,
+                end_date: endDate,
+                kantor: kantor
+            },
+            success: function (res) {
+                alert('Total: ' + res.total_employee + ' disimpan untuk bulan ' + res.month);
+            },
+            error: function () {
+                alert('Gagal menyimpan rekap.');
+            }
+        });
+    });
+</script>
+
     <script>
         $(document).ready(function() {
             $('#kantor').select2({
@@ -303,7 +334,7 @@
                     }
                 },
                 responsive: true,
-                  dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
                     "<'row'<'col-sm-12 col-md-6'B>>",
@@ -328,7 +359,7 @@
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
-              
+
                 language: {
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
@@ -500,202 +531,3 @@
         });
     </script>
 @endpush
-{{-- @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#kantor').select2({
-                placeholder: 'Choose Stores',
-                allowClear: true,
-                width: '100%'
-            });
-        });
-
-    </script>
-    <script>
-        jQuery(document).ready(function($) {
-
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('attendance.attendance') }}',
-                    data: function(d) {
-                        d.kantor = $('#filterKantor').val();
-                     d.start_date = $('#startDate').val(); 
-    d.end_date = $('#endDate').val(); 
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'kantor',
-                        name: 'kantor',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'tanggal',
-                        name: 'tanggal',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk',
-                        name: 'jam_masuk',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar',
-                        name: 'jam_keluar',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk2',
-                        name: 'jam_masuk2',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar2',
-                        name: 'jam_keluar2',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk3',
-                        name: 'jam_masuk3',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar3',
-                        name: 'jam_keluar3',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk4',
-                        name: 'jam_masuk4',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar4',
-                        name: 'jam_keluar4',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk5',
-                        name: 'jam_masuk5',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar5',
-                        name: 'jam_keluar5',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk6',
-                        name: 'jam_masuk6',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar6',
-                        name: 'jam_keluar6',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk7',
-                        name: 'jam_masuk7',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar7',
-                        name: 'jam_keluar7',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk8',
-                        name: 'jam_masuk8',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar8',
-                        name: 'jam_keluar8',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk9',
-                        name: 'jam_masuk9',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar9',
-                        name: 'jam_keluar9',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_masuk10',
-                        name: 'jam_masuk10',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'jam_keluar10',
-                        name: 'jam_keluar10',
-                        className: 'text-center'
-                    },
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-               $('#filterBtn').on('click', function () {
-        table.draw();
-    });
-
-    $('#resetBtn').on('click', function () {
-        $('#filterKantor').val('').trigger('change');
-        $('#startDate').val('');
-        $('#endDate').val('');
-        table.draw();
-    });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-
-        });
-    </script>
-@endpush --}}
