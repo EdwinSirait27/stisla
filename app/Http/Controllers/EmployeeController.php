@@ -232,6 +232,8 @@ class EmployeeController extends Controller
     // }
 public function getEmployeesall(Request $request, DataTables $dataTables)
 {
+        ini_set('memory_limit', '768M');
+
     $storeFilter = $request->input('name');
     $statusFilter = $request->input('status');
 

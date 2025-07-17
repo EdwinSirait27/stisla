@@ -181,7 +181,7 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">SN</th>
+                                                {{-- <th class="text-center">SN</th> --}}
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">PIN</th>
                                                 <th class="text-center">NAME</th>
@@ -237,11 +237,11 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    {
-                        data: 'sn',
-                        name: 'sn',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'sn',
+                    //     name: 'sn',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'device_name',
                         name: 'device_name',
