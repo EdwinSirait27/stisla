@@ -86,55 +86,115 @@ public function storeAttendanceSummary(Request $request)
         'kantor' => $request->kantor,
     ]);
 
+    $month = Carbon::parse($request->start_date)->startOfMonth()->format('Y-m-d');
+
+    // Ambil semua data attendance sesuai filter
     $attendances = Attendances::select('id', 'employee_id', 'tanggal', 'kantor')
         ->when($request->kantor, function ($query) use ($request) {
             $query->where('kantor', $request->kantor);
         })
         ->when($request->start_date && $request->end_date, function ($query) use ($request) {
             $query->whereBetween('tanggal', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59',
+                $request->start_date,
+                $request->end_date,
             ]);
         })
         ->get();
 
-    \Log::info('TOTAL ATTENDANCES DITEMUKAN', [
-        'count' => $attendances->count(),
-        'employee_ids' => $attendances->pluck('employee_id')->values()->all(),
-    ]);
+    // Hitung jumlah kehadiran per employee_id
+    $grouped = $attendances->groupBy('employee_id');
+    $rekapList = [];
 
-    // $totalEmployee = $attendances->pluck('employee_id')->unique()->count();
-    $totalEmployee = $attendances->count(); // hasil = 2
+    foreach ($grouped as $employeeId => $items) {
+        $attendanceId = $items->first()->id;
+        $total = $items->count();
 
-    $attendanceId = $attendances->first()?->id;
+        $rekap = Attendancetotal::updateOrCreate(
+            [
+                'month' => $month,
+                'attendance_id' => $attendanceId,
+            ],
+            [
+                'id' => Str::uuid(),
+                'total' => $total,
+            ]
+        );
 
-    // ✅ Perbaikan: Simpan awal bulan sebagai DATE (format 'Y-m-d')
-    $month = Carbon::parse($request->start_date)->startOfMonth()->format('Y-m-d');
-
-    $rekap = Attendancetotal::updateOrCreate(
-        [
-            'month' => $month,
+        $rekapList[] = [
+            'employee_id' => $employeeId,
+            'total' => $total,
             'attendance_id' => $attendanceId,
-        ],
-        [
-            'id' => Str::uuid(),
-            'total' => $totalEmployee,
-        ]
-    );
+            'rekap_id' => $rekap->id,
+        ];
+    }
 
-    \Log::info('ATTENDANCETOTAL DISIMPAN', [
-        'attendance_id' => $attendanceId,
-         'month' => Carbon::parse($month)->format('Y-m'),
-        'total' => $totalEmployee,
-        'rekap_id' => $rekap->id,
-    ]);
+    \Log::info('ATTENDANCE TOTAL PER EMPLOYEE DISIMPAN', $rekapList);
 
     return response()->json([
-        'message' => 'Attendance total saved successfully.',
+        'message' => 'Attendance total per employee saved successfully.',
         'month' => Carbon::parse($month)->format('Y-m'),
-        'total_employee' => $totalEmployee
+        'rekap' => $rekapList
     ]);
 }
+
+
+// public function storeAttendanceSummary(Request $request)
+// {
+//     \Log::info('STORE ATTENDANCE SUMMARY REQUEST', [
+//         'start_date' => $request->start_date,
+//         'end_date' => $request->end_date,
+//         'kantor' => $request->kantor,
+//     ]);
+
+//     $attendances = Attendances::select('id', 'employee_id', 'tanggal', 'kantor')
+//         ->when($request->kantor, function ($query) use ($request) {
+//             $query->where('kantor', $request->kantor);
+//         })
+//         ->when($request->start_date && $request->end_date, function ($query) use ($request) {
+//             $query->whereBetween('tanggal', [
+//                 $request->start_date . ' 00:00:00',
+//                 $request->end_date . ' 23:59:59',
+//             ]);
+//         })
+//         ->get();
+
+//     \Log::info('TOTAL ATTENDANCES DITEMUKAN', [
+//         'count' => $attendances->count(),
+//         'employee_ids' => $attendances->pluck('employee_id')->values()->all(),
+//     ]);
+
+//     // $totalEmployee = $attendances->pluck('employee_id')->unique()->count();
+//     $totalEmployee = $attendances->count(); // hasil = 2
+
+//     $attendanceId = $attendances->first()?->id;
+
+//     // ✅ Perbaikan: Simpan awal bulan sebagai DATE (format 'Y-m-d')
+//     $month = Carbon::parse($request->start_date)->startOfMonth()->format('Y-m-d');
+
+//     $rekap = Attendancetotal::updateOrCreate(
+//         [
+//             'month' => $month,
+//             'attendance_id' => $attendanceId,
+//         ],
+//         [
+//             'id' => Str::uuid(),
+//             'total' => $totalEmployee,
+//         ]
+//     );
+
+//     \Log::info('ATTENDANCETOTAL DISIMPAN', [
+//         'attendance_id' => $attendanceId,
+//          'month' => Carbon::parse($month)->format('Y-m'),
+//         'total' => $totalEmployee,
+//         'rekap_id' => $rekap->id,
+//     ]);
+
+//     return response()->json([
+//         'message' => 'Attendance total saved successfully.',
+//         'month' => Carbon::parse($month)->format('Y-m'),
+//         'total_employee' => $totalEmployee
+//     ]);
+// }
 
 
 

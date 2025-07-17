@@ -63,6 +63,19 @@ return [
             ]) : [],
             // 'timezone' => 'Asia/Makassar',
         ],
+        'mysql_second' => [
+        'driver' => 'mysql',
+        'host' => env('DB_SECOND_HOST', '127.0.0.1'),
+        'port' => env('DB_SECOND_PORT', '3306'),
+        'database' => env('DB_SECOND_DATABASE', 'forge'),
+        'username' => env('DB_SECOND_USERNAME', 'forge'),
+        'password' => env('DB_SECOND_PASSWORD', ''),
+        'charset' => 'utf8', // Untuk MySQL 5
+        'collation' => 'utf8_general_ci', // Disarankan untuk MySQL 5.x
+        'prefix' => '',
+        'strict' => false, // Sesuaikan untuk MySQL 5
+        'engine' => null,
+    ],
 
         'pgsql' => [
             'driver' => 'pgsql',

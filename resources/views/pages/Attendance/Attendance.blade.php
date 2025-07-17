@@ -239,16 +239,15 @@
                                         </thead>
                                     </table>
                                 </div>
-<div class="action-buttons d-flex gap-2 mt-3">
-    <button type="button"
-        onclick="window.location='{{ route('pages.Importattendance') }}'"
-        class="btn btn-primary btn-sm">
-        <i class="fas fa-users"></i> Import Attendance
-    </button>
-    <button id="rekapBtn" class="btn btn-success btn-sm">
-        <i class="fas fa-chart-bar"></i> Recap Attendance
-    </button>
-</div>
+                                <div class="action-buttons d-flex gap-2 mt-3">
+                                    <button type="button" onclick="window.location='{{ route('pages.Importattendance') }}'"
+                                        class="btn btn-primary btn-sm">
+                                        <i class="fas fa-users"></i> Import Attendance
+                                    </button>
+                                    <button id="rekapBtn" class="btn btn-success btn-sm">
+                                        <i class="fas fa-chart-bar"></i> Recap Attendance
+                                    </button>
+                                </div>
 
 
                                 <div class="alert alert-secondary mt-4" role="alert">
@@ -281,34 +280,55 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-   <script>
-    $('#rekapBtn').on('click', function () {
-        const startDate = $('#startDate').val();
-        const endDate = $('#endDate').val();
-        const kantor = $('#filterKantor').val();
+    <script>
+        $('#rekapBtn').on('click', function() {
+            const startDate = $('#startDate').val();
+            const endDate = $('#endDate').val();
+            const kantor = $('#filterKantor').val();
 
-        if (!startDate || !endDate) {
-            return alert('Silakan pilih tanggal awal dan akhir terlebih dahulu.');
-        }
-
-        $.ajax({
-            url: "{{ route('attendance.summary') }}",
-            type: "POST",
-            data: {
-                _token: '{{ csrf_token() }}',
-                start_date: startDate,
-                end_date: endDate,
-                kantor: kantor
-            },
-            success: function (res) {
-                alert('Total: ' + res.total_employee + ' disimpan untuk bulan ' + res.month);
-            },
-            error: function () {
-                alert('Gagal menyimpan rekap.');
-            }
-        });
+           if (!startDate || !endDate) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'A date has not been selected',
+        text: 'Please select the start and end date first.'
     });
-</script>
+    return;
+}
+
+
+            $.ajax({
+                url: "{{ route('attendance.summary') }}",
+                type: "POST",
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    start_date: startDate,
+                    end_date: endDate,
+                    kantor: kantor
+                },
+                // success: function(res) {
+                //     alert('Total: ' + res.total_employee + ' disimpan untuk bulan ' + res.month);
+                // },
+                // error: function() {
+                //     alert('Gagal menyimpan rekap.');
+                // }
+                success: function(res) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Total: ' + res.total + 'employee' + ' saved for months ' + res.month
+    });
+},
+error: function() {
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal menyimpan rekap.'
+    });
+}
+
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {

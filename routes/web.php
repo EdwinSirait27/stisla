@@ -28,6 +28,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FingerspotController;
 use App\Http\Controllers\AttendanceimportController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\FingerprintsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -169,7 +170,9 @@ Route::get('/Attendance', [AttendanceController::class, 'index'])
 // Route::post('/Importfingerspot', [FingerspotController::class, 'sinkronkanPIN'])->name('Importfingerspot.fingerspot');
 // // });
 //     Route::get('/Fingerspot/downloadfingerspot/{filename}', [FingerspotController::class, 'downloadfingerspot'])->name('Fingerspot.downloadfingerspot');
-
+Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
+    ->name('pages.Fingerprints');
+Route::match(['GET', 'POST'],'/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
 });
 
 // Position    
