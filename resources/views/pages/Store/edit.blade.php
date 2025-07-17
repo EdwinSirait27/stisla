@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Update Store')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+   
+   <style>
         .avatar {
             position: relative;
         }
@@ -272,7 +274,7 @@
                                                     <label for="manager_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Managers Name') }}
                                                     </label>
-                                                    <select name="manager_id" id="manager_id"
+                                                    {{-- <select name="manager_id" id="manager_id"
                                                         class="form-control @error('manager_id') is-invalid @enderror">
                                                         <option value="">-- Pilih Manager --</option>
                                                         @foreach($managers as $manager)
@@ -280,7 +282,18 @@
                                                                 {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
                                                             </option>
                                                         @endforeach
-                                                    </select>
+                                                    </select> --}}
+                                                     <select name="manager_id" id="manager_id"
+                                                            class="form-control select2 @error('manager_id') is-invalid @enderror">
+                                                            <option value="">Choose Managers</option>
+                                                            @foreach ($managers as $manager)
+                                                                                                                              <option value="{{ $manager->id }}" {{ (isset($store) && $store->manager_id == $manager->id) ? 'selected' : '' }}>
+                                                       
+                                                                    {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
+
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
                                                     @error('manager_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -321,10 +334,14 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+   
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+         $(document).ready(function() {
+        $('.select2').select2();
+    });
           document.getElementById('edit-btn').addEventListener('click', function(e) {
               e.preventDefault(); // Mencegah pengiriman form langsung
               Swal.fire({

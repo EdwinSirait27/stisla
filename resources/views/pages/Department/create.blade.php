@@ -1,8 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Create Departments')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
     <style>
         .avatar {
             position: relative;
@@ -227,14 +229,22 @@
                                                             <i class="fas fa-shield-alt"></i> {{ __('Manager Department') }}
                                                         </label>
                                                         <div class="@error('manager_id') border border-danger rounded-3 @enderror">
-                                                            <select class="form-control @error('manager_id') is-invalid @enderror" name="manager_id" id="manager_id" required>
+                                                            {{-- <select class="form-control @error('manager_id') is-invalid @enderror" name="manager_id" id="manager_id" required>
                                                                 <option value="" disabled selected>Choose Manager</option>
                                                                 @foreach($managers as $manager)
                                                             <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
                                                                 {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
                                                             </option>
                                                         @endforeach
-                                                            </select>
+                                                            </select> --}}
+                                                            <select name="manager_id" class="form-control select2 @error('manager_id') is-invalid @enderror" required>
+                                                            <option value="">Choose managers</option>
+                                                              @foreach($managers as $manager)
+                                                            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
+                                                                {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
+                                                            </option>
+                                                        @endforeach
+                                                            </select> 
                                                             @error('manager_id')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
@@ -291,6 +301,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+         $(document).ready(function() {
+        $('.select2').select2();
+    });
         document.getElementById('create-btn').addEventListener('click', function(e) {
               e.preventDefault(); // Mencegah pengiriman form langsung
               Swal.fire({

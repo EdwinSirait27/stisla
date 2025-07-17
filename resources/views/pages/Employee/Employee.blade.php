@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
 @endpush
 <style>
     /* Card Styles */
@@ -286,8 +287,8 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'name_store',
-                        name: 'name_store',
+                        data: 'name',
+                        name: 'name',
                         className: 'text-center'
                     },
                     {

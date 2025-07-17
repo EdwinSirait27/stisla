@@ -281,7 +281,7 @@
                                                     <div>
                                                       
    <select name="position_id" class="form-control select2 @error('position_id') is-invalid @enderror" required>
-                                                            <option value="">-- Choose Position --</option>
+                                                            <option value="">Choose Position</option>
                                                             @foreach ($positions as $key => $value)
                                                                 <option value="{{ $key }}"
                                                                     {{ old('position_id') == $key ? 'selected' : '' }}>
@@ -298,19 +298,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                          {{-- <select name="position_id" class="form-control select2 @error('position_id') is-invalid @enderror" required>
-                                                            <option value="">-- Choose Position --</option>
-                                                            @foreach ($positions as $key => $value)
-                                                                <option value="{{ $key }}"
-                                                                    {{ old('position_id') == $key ? 'selected' : '' }}>
-                                                                    {{ $value }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('position_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror --}}
+                                        
                                         <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -318,8 +306,16 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Department') }}
                                                     </label>
                                                     <div>
-                                                        <select name="department_id" class="form-control select2 @error('department_id') is-invalid @enderror"required>
+                                                        {{-- <select name="department_id" class="form-control select2 @error('department_id') is-invalid @enderror"required>
                                                             <option value="">-- Choose Department --</option>
+                                                            @foreach ($departments as $key => $value)
+                                                                <option value="{{ $key }}"
+                                                                    {{ old('department_id') == $key ? 'selected' : '' }}>
+                                                                    {{ $value }}</option>
+                                                            @endforeach
+                                                        </select> --}}
+                                                        <select name="department_id" class="form-control select2 @error('department_id') is-invalid @enderror" required>
+                                                            <option value="">Choose Departments</option>
                                                             @foreach ($departments as $key => $value)
                                                                 <option value="{{ $key }}"
                                                                     {{ old('department_id') == $key ? 'selected' : '' }}>
