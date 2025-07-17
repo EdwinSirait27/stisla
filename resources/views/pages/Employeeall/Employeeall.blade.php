@@ -483,8 +483,8 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         className: 'text-center'
                     },
                     {
-                        data: 'status_employee',
-                        name: 'name_store',
+                        data: 'position_name',
+                        name: 'position_name',
                         className: 'text-center'
                     },
                     {
