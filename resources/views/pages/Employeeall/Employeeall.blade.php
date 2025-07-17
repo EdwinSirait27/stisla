@@ -231,7 +231,7 @@
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Department</th>
                                                 <th class="text-center">Store</th>
-                                                <th class="text-center">Status Employee</th>
+                                                {{-- <th class="text-center">Status Employee</th> --}}
                                                 <th class="text-center">Join Date</th>
                                                 <th class="text-center">Marriage</th>
                                                 <th class="text-center">Child</th>
@@ -482,11 +482,11 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         name: 'name',
                         className: 'text-center'
                     },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'position_name',
+                    //     name: 'position_name',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'join_date',
                         name: 'join_date',
