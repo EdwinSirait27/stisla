@@ -286,14 +286,14 @@
             const endDate = $('#endDate').val();
             const kantor = $('#filterKantor').val();
 
-           if (!startDate || !endDate) {
-    Swal.fire({
-        icon: 'warning',
-        title: 'A date has not been selected',
-        text: 'Please select the start and end date first.'
-    });
-    return;
-}
+            if (!startDate || !endDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'A date has not been selected',
+                    text: 'Please select the start and end date first.'
+                });
+                return;
+            }
 
 
             $.ajax({
@@ -312,19 +312,20 @@
                 //     alert('Gagal menyimpan rekap.');
                 // }
                 success: function(res) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: 'Total: ' + res.total + 'employee' + ' saved for months ' + res.month
-    });
-},
-error: function() {
-    Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: 'Gagal menyimpan rekap.'
-    });
-}
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Total: ' + res.total + 'employee' + ' saved for months ' + res
+                            .month
+                    });
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal menyimpan rekap.'
+                    });
+                }
 
             });
         });

@@ -4,11 +4,12 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
+
     <style>
         .avatar {
             position: relative;
         }
+
         .iframe-container {
             position: relative;
             overflow: hidden;
@@ -166,7 +167,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create  Departments</h1>
+                <h1>Create Departments</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item"><a href="{{ route('pages.Department') }}"> Departments</a></div>
                     <div class="breadcrumb-item">Create Departments</div>
@@ -193,16 +194,17 @@
                                     @endif
 
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     @endif
-
                                     <form id="departments-create" action="{{ route('Department.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
@@ -212,7 +214,9 @@
                                                         <i class="fas fa-user"></i> {{ __('Departments Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('department_name') is-invalid @enderror" id="department_name" name="department_name" 
+                                                        <input type="text"
+                                                            class="form-control @error('department_name') is-invalid @enderror"
+                                                            id="department_name" name="department_name"
                                                             value="{{ old('department_name') }}" required
                                                             placeholder="Fill Departments Name">
                                                         @error('department_name')
@@ -223,44 +227,48 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="manager_id" class="form-control-label">
-                                                            <i class="fas fa-shield-alt"></i> {{ __('Manager Department') }}
-                                                        </label>
-                                                        <div class="@error('manager_id') border border-danger rounded-3 @enderror">
-                                                            {{-- <select class="form-control @error('manager_id') is-invalid @enderror" name="manager_id" id="manager_id" required>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="manager_id" class="form-control-label">
+                                                        <i class="fas fa-shield-alt"></i> {{ __('Manager Department') }}
+                                                    </label>
+                                                    <div
+                                                        class="@error('manager_id') border border-danger rounded-3 @enderror">
+                                                        {{-- <select class="form-control @error('manager_id') is-invalid @enderror" name="manager_id" id="manager_id" required>
                                                                 <option value="" disabled selected>Choose Manager</option>
-                                                                @foreach($managers as $manager)
+                                                                @foreach ($managers as $manager)
                                                             <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
                                                                 {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
                                                             </option>
                                                         @endforeach
                                                             </select> --}}
-                                                            <select name="manager_id" class="form-control select2 @error('manager_id') is-invalid @enderror" required>
+                                                        <select name="manager_id"
+                                                            class="form-control select2 @error('manager_id') is-invalid @enderror"
+                                                            required>
                                                             <option value="">Choose managers</option>
-                                                              @foreach($managers as $manager)
-                                                            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                                                                {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
-                                                            </option>
-                                                        @endforeach
-                                                            </select> 
-                                                            @error('manager_id')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
-                                                        </div>
+                                                            @foreach ($managers as $manager)
+                                                                <option value="{{ $manager->id }}"
+                                                                    {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
+                                                                    {{ $manager->Employee->employee_name ?? ($manager->name ?? 'Tanpa Nama') }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('manager_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
                                                     </div>
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
+                                        </div>
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="manager_id" class="form-label">Manager</label>
                                                     <select name="manager_id" id="manager_id"
                                                         class="form-select @error('manager_id') is-invalid @enderror">
                                                         <option value="">-- Select Manager --</option>
-                                                        @foreach($managers as $manager)
+                                                        @foreach ($managers as $manager)
                                                             <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
                                                                 {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
                                                             </option>
@@ -273,8 +281,10 @@
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Departmnet name is already registered, you cannot register it again.<br>
-                                                - If a Departmnet Manager is already registered, you cannot register it again.<br>
+                                                - If a Departmnet name is already registered, you cannot register it
+                                                again.<br>
+                                                - If a Departmnet Manager is already registered, you cannot register it
+                                                again.<br>
                                             </span>
                                         </div>
 
@@ -297,33 +307,32 @@
     </div>
 @endsection
 @push('scripts')
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-         $(document).ready(function() {
-        $('.select2').select2();
-    });
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
         document.getElementById('create-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
-              Swal.fire({
-                  title: 'Are You Sure?',
-                  text: "Make sure the data you entered is correct!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
-                  cancelButtonText: 'Abort'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('departments-create').submit();
-                  }
-              });
-          });
-          
-  </script>
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('departments-create').submit();
+                }
+            });
+        });
+    </script>
     <script>
         @if (session('success'))
             Swal.fire({

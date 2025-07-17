@@ -176,7 +176,26 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Fingerprints</h6>
                             </div>
+                         
+
                             <div class="card-body">
+                                <div class="row mb-3">
+                                   
+                                    <div class="col-md-3">
+                                        <label for="startDate">Dari Tanggal</label>
+                                        <input type="date" id="startDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="endDate">Sampai Tanggal</label>
+                                        <input type="date" id="endDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3 align-self-end">
+                                        <button id="filterBtn" class="btn btn-primary">Filter</button>
+                                        <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                                    </div>
+
+
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
@@ -187,7 +206,17 @@
                                                 <th class="text-center">NAME</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
-                                                <th class="text-center">In Out Mode</th>
+                                                <th class="text-center">Scan 1</th>
+                                                <th class="text-center">Scan 2</th>
+                                                <th class="text-center">Scan 3</th>
+                                                <th class="text-center">Scan 4</th>
+                                                <th class="text-center">Scan 5</th>
+                                                <th class="text-center">Scan 6</th>
+                                                <th class="text-center">Scan 7</th>
+                                                <th class="text-center">Scan 8</th>
+                                                <th class="text-center">Scan 9</th>
+                                                <th class="text-center">Scan 10</th>
+                                                <th class="text-center">Duration</th>
                                                 {{-- <th class="text-center">Verify Mode</th>
                                                 <th class="text-center">Reserved</th>
                                                 <th class="text-center">Work Code</th>
@@ -224,8 +253,12 @@
                     url: '{{ route('fingerprints.fingerprints') }}',
                     type: 'POST',
                     headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // 🔒 penting!
-                }
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: function(d) {
+                        d.start_date = $('#startDate').val();
+                        d.end_date = $('#endDate').val();
+                    }
                 },
                 responsive: true,
                 lengthMenu: [
@@ -237,11 +270,7 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    // {
-                    //     data: 'sn',
-                    //     name: 'sn',
-                    //     className: 'text-center'
-                    // },
+                 
                     {
                         data: 'device_name',
                         name: 'device_name',
@@ -267,32 +296,52 @@
                         name: 'scan_date',
                         className: 'text-center'
                     },
+
                     {
-                        data: 'inoutmode',
-                        name: 'inoutmode',
-                        className: 'text-center'
+                        data: 'in_1',
+                        name: 'in_1'
+                    },
+                    {
+                        data: 'in_2',
+                        name: 'in_2'
+                    },
+                    {
+                        data: 'in_3',
+                        name: 'in_3'
+                    },
+                    {
+                        data: 'in_4',
+                        name: 'in_4'
+                    },
+                    {
+                        data: 'in_5',
+                        name: 'in_5'
+                    },
+                    {
+                        data: 'in_6',
+                        name: 'in_6'
+                    },
+                    {
+                        data: 'in_7',
+                        name: 'in_7'
+                    },
+                    {
+                        data: 'in_8',
+                        name: 'in_8'
+                    },
+                    {
+                        data: 'in_9',
+                        name: 'in_9'
+                    },
+                    {
+                        data: 'in_10',
+                        name: 'in_10'
+                    },
+                    {
+                        data: 'duration',
+                        name: 'duration'
                     }
-                    // ,
-                    // {
-                    //     data: 'verifymode',
-                    //     name: 'verifymode',
-                    //     className: 'text-center'
-                    // },
-                    // {
-                    //     data: 'reserved',
-                    //     name: 'reserved',
-                    //     className: 'text-center'
-                    // },
-                    // {
-                    //     data: 'work_code',
-                    //     name: 'work_code',
-                    //     className: 'text-center'
-                    // },
-                    // {
-                    //     data: 'att_id',
-                    //     name: 'att_id',
-                    //     className: 'text-center'
-                    // }
+
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
@@ -306,6 +355,16 @@
                     text: '{{ session('success') }}',
                 });
             @endif
+            $('#filterBtn').on('click', function() {
+        table.ajax.reload();
+    });
+
+    // Reset button
+    $('#resetBtn').on('click', function() {
+        $('#startDate').val('');
+        $('#endDate').val('');
+        table.ajax.reload();
+    });
         });
     </script>
 @endpush
