@@ -223,23 +223,23 @@
             <th class="text-center">Scan 1</th>
                                                 <th class="text-center">in 1</th>
                                                 <th class="text-center">Scan 2</th>
-                                                <th class="text-center">in 2</th>
+                                                <th class="text-center">Out 2</th>
                                                 <th class="text-center">Scan 3</th>
                                                 <th class="text-center">in 3</th>
                                                 <th class="text-center">Scan 4</th>
-                                                <th class="text-center">in 4</th>
+                                                <th class="text-center">out 4</th>
                                                 <th class="text-center">Scan 5</th>
                                                 <th class="text-center">in 5</th>
                                                 <th class="text-center">Scan 6</th>
-                                                <th class="text-center">in 6</th>
+                                                <th class="text-center">out 6</th>
                                                 <th class="text-center">Scan 7</th>
                                                 <th class="text-center">in 7</th>
                                                 <th class="text-center">Scan 8</th>
-                                                <th class="text-center">in 8</th>
+                                                <th class="text-center">Out 8</th>
                                                 <th class="text-center">Scan 9</th>
                                                 <th class="text-center">in 9</th>
                                                 <th class="text-center">Scan 10</th>
-                                                <th class="text-center">in 10</th>
+                                                <th class="text-center">out 10</th>
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Action</th>
                                                 {{-- <th class="text-center">Verify Mode</th>
@@ -392,8 +392,8 @@
             // { data: 'device_10', name: 'device_10' },
             // { data: 'in_10', name: 'in_10' },
               @for($i = 1; $i <= 10; $i++)
-    { data: 'in_{{ $i }}', name: 'in_{{ $i }}', defaultContent: '-' },
-    { data: 'device_{{ $i }}', name: 'device_{{ $i }}', defaultContent: '-' },
+    { data: 'in_{{ $i }}', name: 'in_{{ $i }}', className: 'text-center', defaultContent: '-' },
+    { data: 'device_{{ $i }}', name: 'device_{{ $i }}', className: 'text-center', defaultContent: '-' },
 @endfor
 
                     {
