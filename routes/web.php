@@ -173,6 +173,8 @@ Route::get('/Attendance', [AttendanceController::class, 'index'])
 Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
     ->name('pages.Fingerprints');
 Route::match(['GET', 'POST'],'/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
+Route::get('/Fingerprints/edit/{pin}/{scan_date}', [FingerprintsController::class, 'editFingerprint'])->name('Fingerprints.edit');
+
 });
 
 // Position    

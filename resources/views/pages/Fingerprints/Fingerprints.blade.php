@@ -206,7 +206,7 @@
                                                 <th class="text-center">NAME</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
-                                                <th class="text-center">Scan 1</th>
+                                                {{-- <th class="text-center">Scan 1</th>
                                                 <th class="text-center">Scan 2</th>
                                                 <th class="text-center">Scan 3</th>
                                                 <th class="text-center">Scan 4</th>
@@ -215,8 +215,33 @@
                                                 <th class="text-center">Scan 7</th>
                                                 <th class="text-center">Scan 8</th>
                                                 <th class="text-center">Scan 9</th>
+                                                <th class="text-center">Scan 10</th> --}}
+                                                 {{-- @for ($i = 1; $i <= 10; $i++)
+                <th class="text-center">In {{ $i }}</th>
+                <th class="text-center">Device {{ $i }}</th>
+            @endfor --}}
+            <th class="text-center">Scan 1</th>
+                                                <th class="text-center">in 1</th>
+                                                <th class="text-center">Scan 2</th>
+                                                <th class="text-center">in 2</th>
+                                                <th class="text-center">Scan 3</th>
+                                                <th class="text-center">in 3</th>
+                                                <th class="text-center">Scan 4</th>
+                                                <th class="text-center">in 4</th>
+                                                <th class="text-center">Scan 5</th>
+                                                <th class="text-center">in 5</th>
+                                                <th class="text-center">Scan 6</th>
+                                                <th class="text-center">in 6</th>
+                                                <th class="text-center">Scan 7</th>
+                                                <th class="text-center">in 7</th>
+                                                <th class="text-center">Scan 8</th>
+                                                <th class="text-center">in 8</th>
+                                                <th class="text-center">Scan 9</th>
+                                                <th class="text-center">in 9</th>
                                                 <th class="text-center">Scan 10</th>
+                                                <th class="text-center">in 10</th>
                                                 <th class="text-center">Duration</th>
+                                                <th class="text-center">Action</th>
                                                 {{-- <th class="text-center">Verify Mode</th>
                                                 <th class="text-center">Reserved</th>
                                                 <th class="text-center">Work Code</th>
@@ -272,10 +297,15 @@
                 columns: [
                  
                     {
-                        data: 'device_name',
-                        name: 'device_name',
+                        data: 'name',
+                        name: 'name',
                         className: 'text-center'
                     },
+                    // {
+                    //     data: 'device_name',
+                    //     name: 'device_name',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'pin',
                         name: 'pin',
@@ -297,52 +327,87 @@
                         className: 'text-center'
                     },
 
-                    {
-                        data: 'in_1',
-                        name: 'in_1'
-                    },
-                    {
-                        data: 'in_2',
-                        name: 'in_2'
-                    },
-                    {
-                        data: 'in_3',
-                        name: 'in_3'
-                    },
-                    {
-                        data: 'in_4',
-                        name: 'in_4'
-                    },
-                    {
-                        data: 'in_5',
-                        name: 'in_5'
-                    },
-                    {
-                        data: 'in_6',
-                        name: 'in_6'
-                    },
-                    {
-                        data: 'in_7',
-                        name: 'in_7'
-                    },
-                    {
-                        data: 'in_8',
-                        name: 'in_8'
-                    },
-                    {
-                        data: 'in_9',
-                        name: 'in_9'
-                    },
-                    {
-                        data: 'in_10',
-                        name: 'in_10'
-                    },
+                    // {
+                    //     data: 'in_1',
+                    //     name: 'in_1'
+                    // },
+                    // {
+                    //     data: 'in_2',
+                    //     name: 'in_2'
+                    // },
+                    // {
+                    //     data: 'in_3',
+                    //     name: 'in_3'
+                    // },
+                    // {
+                    //     data: 'in_4',
+                    //     name: 'in_4'
+                    // },
+                    // {
+                    //     data: 'in_5',
+                    //     name: 'in_5'
+                    // },
+                    // {
+                    //     data: 'in_6',
+                    //     name: 'in_6'
+                    // },
+                    // {
+                    //     data: 'in_7',
+                    //     name: 'in_7'
+                    // },
+                    // {
+                    //     data: 'in_8',
+                    //     name: 'in_8'
+                    // },
+                    // {
+                    //     data: 'in_9',
+                    //     name: 'in_9'
+                    // },
+                    // {
+                    //     data: 'in_10',
+                    //     name: 'in_10'
+                    // },
+            //          @for ($i = 1; $i <= 10; $i++)
+            //     { data: 'in_{{ $i }}', name: 'in_{{ $i }}' },
+            //     { data: 'device_{{ $i }}', name: 'device_{{ $i }}' },
+            // @endfor
+            // { data: 'device_1', name: 'device_1' }, 
+            // { data: 'in_1', name: 'in_1' },
+            // { data: 'device_2', name: 'device_2' },
+            // { data: 'in_2', name: 'in_2' },
+            // { data: 'device_3', name: 'device_3' },
+            // { data: 'in_3', name: 'in_3' },
+            // { data: 'device_4', name: 'device_4' },
+            // { data: 'in_4', name: 'in_4' },
+            // { data: 'device_5', name: 'device_5' },
+            // { data: 'in_5', name: 'in_5' },
+            // { data: 'device_6', name: 'device_6' },
+            // { data: 'in_6', name: 'in_6' },
+            // { data: 'device_7', name: 'device_7' },
+            // { data: 'in_7', name: 'in_7' },
+            // { data: 'device_8', name: 'device_8' },
+            // { data: 'in_8', name: 'in_8' },
+            // { data: 'device_9', name: 'device_9' },
+            // { data: 'in_9', name: 'in_9' },
+            // { data: 'device_10', name: 'device_10' },
+            // { data: 'in_10', name: 'in_10' },
+              @for($i = 1; $i <= 10; $i++)
+    { data: 'in_{{ $i }}', name: 'in_{{ $i }}', defaultContent: '-' },
+    { data: 'device_{{ $i }}', name: 'device_{{ $i }}', defaultContent: '-' },
+@endfor
+
                     {
                         data: 'duration',
                         name: 'duration'
-                    }
+                    },
+                     { data: 'action', name: 'action', orderable: false, searchable: false }
 
                 ],
+                 rowCallback: function(row, data, index){
+        if (data.is_edited == 1) {
+            $(row).css('background-color', '#cce5ff'); // ← biru jika sudah diedit
+        }
+    },
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
                     $('.dataTables_length select').addClass('form-control');
