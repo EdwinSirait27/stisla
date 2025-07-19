@@ -186,8 +186,8 @@
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
-                                        <label for="storeFilter">Filter Store</label>
-                                        <select id="storeFilter" class="form-control select2">
+                                        <label for="store_name">Filter Store</label>
+                                        <select id="store_name" name="store_name"class="form-control select2">
                                             <option value="">All Stores</option>
                                             @foreach ($stores as $store)
                                                 <option value="{{ $store }}">{{ $store }}</option>
@@ -218,8 +218,11 @@
                                                 <th class="text-center">NAME</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
+  @for ($i = 1; $i <= 10; $i++)
+                <th class="text-center">Scan {{ $i }}</th>
+            @endfor
 
-                                                <th class="text-center">Scan 1</th>
+                                                {{-- <th class="text-center">Scan 1</th>
                                                 <th class="text-center">in 1</th>
                                                 <th class="text-center">Scan 2</th>
                                                 <th class="text-center">Out 2</th>
@@ -238,7 +241,10 @@
                                                 <th class="text-center">Scan 9</th>
                                                 <th class="text-center">in 9</th>
                                                 <th class="text-center">Scan 10</th>
-                                                <th class="text-center">out 10</th>
+                                                <th class="text-center">out 10</th> --}}
+                                                 {{-- @for ($i = 1; $i <= 10; $i++)
+            <th class="text-center">Scan {{ $i }}</th>
+        @endfor --}}
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Action</th>
                                                 {{-- <th class="text-center">Verify Mode</th>
@@ -298,7 +304,7 @@
                     data: function(d) {
                         d.start_date = $('#startDate').val();
                         d.end_date = $('#endDate').val();
-                        d.store = $('#storeFilter').val();
+                        d.store_name = $('#store_name').val();
                     }
                 },
                 responsive: true,
@@ -340,19 +346,16 @@
                     },
 
 
-                    @for ($i = 1; $i <= 10; $i++)
-                        {
-                            data: 'in_{{ $i }}',
-                            name: 'in_{{ $i }}',
-                            className: 'text-center',
-                            defaultContent: '-'
-                        }, {
-                            data: 'device_{{ $i }}',
-                            name: 'device_{{ $i }}',
-                            className: 'text-center',
-                            defaultContent: '-'
-                        },
-                    @endfor
+                   
+                 @for($i = 1; $i <= 10; $i++)
+    {
+        data: 'combine_{{ $i }}',
+        name: 'combine_{{ $i }}',
+        className: 'text-center'
+    }@if($i < 10),@endif
+    @endfor,
+
+
 
                     {
                         data: 'duration',
@@ -391,7 +394,7 @@
             $('#resetBtn').on('click', function() {
                 $('#startDate').val('');
                 $('#endDate').val('');
-                $('#filterStore').val('');
+                $('#store_name').val('');
                 table.ajax.reload();
             });
         setInterval(function () {
@@ -404,4 +407,17 @@
 
         });
     </script>
+     {{-- // @for ($i = 1; $i <= 10; $i++)
+                    //     {
+                    //         data: 'in_{{ $i }}',
+                    //         name: 'in_{{ $i }}',
+                    //         className: 'text-center',
+                    //         defaultContent: '-'
+                    //     }, {
+                    //         data: 'device_{{ $i }}',
+                    //         name: 'device_{{ $i }}',
+                    //         className: 'text-center',
+                    //         defaultContent: '-'
+                    //     },
+                    // @endfor --}}
 @endpush

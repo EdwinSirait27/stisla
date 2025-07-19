@@ -13,7 +13,7 @@ class FingerprintsController extends Controller
 {
     public function index()
     {
-        $stores = Stores::select('name')
+        $stores = Stores::select('id','name')
             ->whereNotNull('name')
             ->distinct()
             ->pluck('name');
@@ -128,14 +128,36 @@ class FingerprintsController extends Controller
     {
         ini_set('memory_limit', '1024M');
 
-        // Ambil semua employee + relasi position
-        
-        $employees = Employee::with('position', 'store')
-            ->select('pin', 'employee_name', 'position_id', 'store_id')
-            ->get()
-            ->keyBy('pin');
-        $startDate = $request->input('start_date', '2025-07-01');
-        $endDate = $request->input('end_date', now()->toDateString());
+//         // Ambil semua employee + relasi position
+//         $storeName = $request->input('store_name'); 
+//         $employees = Employee::with('position', 'store')
+//             ->select('pin', 'employee_name', 'position_id', 'store_id')
+//             ->get()
+//             ->keyBy('pin');
+//         $startDate = $request->input('start_date', '2025-07-01');
+//         $endDate = $request->input('end_date', now()->toDateString());
+// if ($storeName) {
+//     $employees->whereHas('store', function ($q) use ($storeName) {
+//         $q->where('name', $storeName); // ← Cocok karena nama kolomnya 'name'
+//     });
+// Ambil filter dari request
+$storeName = $request->input('store_name');
+$startDate = $request->input('start_date', '2025-07-01');
+$endDate = $request->input('end_date', now()->toDateString());
+
+// Bangun query employee + relasi position dan store
+$employeesQuery = Employee::with('position', 'store')
+    ->select('pin', 'employee_name', 'position_id', 'store_id');
+
+// Jika ada filter store_name, tambahkan kondisi whereHas
+if ($storeName) {
+    $employeesQuery->whereHas('store', function ($q) use ($storeName) {
+        $q->where('name', $storeName); // Cocok karena kolomnya 'name'
+    });
+}
+
+// Eksekusi query dan keyBy pin
+$employees = $employeesQuery->get()->keyBy('pin');
 
         // Ambil fingerprint + relasi devicefingerprints
         $fingerprints = Fingerprints::with('devicefingerprints')
@@ -175,37 +197,63 @@ class FingerprintsController extends Controller
             // Kelompokkan berdasarkan inoutmode dan ambil waktu scan paling awal
             $byMode = $group->groupBy('inoutmode');
 
+           
             foreach ($byMode as $mode => $items) {
-                if ($mode >= 1 && $mode <= 10) {
-                    $earliest = $items->sortBy('scan_date')->first();
-                  
-                    $row['in_' . $mode] = $earliest && $earliest->scan_date
-                        ? Carbon::parse($earliest->scan_date)->format('H:i:s')
-                        : '';
+    if ($mode >= 1 && $mode <= 10) {
+        $earliest = $items->sortBy('scan_date')->first();
 
-                    $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
-                        ? $earliest->devicefingerprints->device_name
-                        : '';
+        $row['in_' . $mode] = $earliest && $earliest->scan_date
+            ? Carbon::parse($earliest->scan_date)->format('H:i:s')
+            : '';
 
-                }
-            }
+        $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
+            ? $earliest->devicefingerprints->device_name
+            : '';
+    }
+}
 
+// gabungkan jam + device jadi 1 kolom untuk datatable
+for ($i = 1; $i <= 10; $i++) {
+    $jam = $row['in_' . $i] ?? '';
+    $device = $row['device_' . $i] ?? '';
+    $row['combine_' . $i] = $jam . ' (' . $device . ')';
+}
 
+            // // Hitung durasi dari scan pertama ke scan terakhir
+            // $scanTimes = collect(range(1, 10))
+            //     ->map(fn($i) => $row['in_' . $i])
+            //     ->filter()
+            //     ->sort()
+            //     ->values();
 
-            // Hitung durasi dari scan pertama ke scan terakhir
+            // $row['duration'] = $scanTimes->count() >= 2
+            //     ? Carbon::parse($scanTimes->first())->diffForHumans(Carbon::parse($scanTimes->last()), true)
+            //     : 'invalid';
+
+            // $result[] = $row;
             $scanTimes = collect(range(1, 10))
-                ->map(fn($i) => $row['in_' . $i])
-                ->filter()
-                ->sort()
-                ->values();
+    ->map(fn($i) => $row['in_' . $i])
+    ->filter()
+    ->sort()
+    ->values();
 
-            $row['duration'] = $scanTimes->count() >= 2
-                ? Carbon::parse($scanTimes->first())->diffForHumans(Carbon::parse($scanTimes->last()), true)
-                : 'invalid';
+if ($scanTimes->count() >= 2) {
+    $start = Carbon::parse($scanTimes->first());
+    $end = Carbon::parse($scanTimes->last());
+    $diffInMinutes = $start->diffInMinutes($end);
+    $hours = floor($diffInMinutes / 60);
+    $minutes = $diffInMinutes % 60;
 
-            $result[] = $row;
+    $row['duration'] = ($hours > 0 ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
+                       ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
+    $row['duration'] = trim($row['duration']) ?: '0 minutes';
+} else {
+    $row['duration'] = 'invalid';
+}
+
+$result[] = $row;
+
         }
-
         // Urutkan berdasarkan scan_date
         $result = collect($result)->sortBy('scan_date')->values();
 
@@ -221,7 +269,20 @@ class FingerprintsController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
+ // foreach ($byMode as $mode => $items) {
+            //     if ($mode >= 1 && $mode <= 10) {
+            //         $earliest = $items->sortBy('scan_date')->first();
+                  
+            //         $row['in_' . $mode] = $earliest && $earliest->scan_date
+            //             ? Carbon::parse($earliest->scan_date)->format('H:i:s')
+            //             : '';
 
+            //         $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
+            //             ? $earliest->devicefingerprints->device_name
+            //             : '';
+
+            //     }
+            // }
     public function editFingerprint($pin, $scanDate)
     {
         $data = EditedFingerprint::where('pin', $pin)
