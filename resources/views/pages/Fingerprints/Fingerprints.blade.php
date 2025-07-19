@@ -1,8 +1,13 @@
 @extends('layouts.app')
 @section('title', 'Fingerprints')
 @push('styles')
+    {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> --}}
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
@@ -176,11 +181,19 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Fingerprints</h6>
                             </div>
-                         
+
 
                             <div class="card-body">
                                 <div class="row mb-3">
-                                   
+                                    <div class="col-md-3">
+                                        <label for="storeFilter">Filter Store</label>
+                                        <select id="storeFilter" class="form-control select2">
+                                            <option value="">All Stores</option>
+                                            @foreach ($stores as $store)
+                                                <option value="{{ $store }}">{{ $store }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                     <div class="col-md-3">
                                         <label for="startDate">Dari Tanggal</label>
                                         <input type="date" id="startDate" class="form-control">
@@ -200,27 +213,13 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                {{-- <th class="text-center">SN</th> --}}
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">PIN</th>
                                                 <th class="text-center">NAME</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
-                                                {{-- <th class="text-center">Scan 1</th>
-                                                <th class="text-center">Scan 2</th>
-                                                <th class="text-center">Scan 3</th>
-                                                <th class="text-center">Scan 4</th>
-                                                <th class="text-center">Scan 5</th>
-                                                <th class="text-center">Scan 6</th>
-                                                <th class="text-center">Scan 7</th>
-                                                <th class="text-center">Scan 8</th>
-                                                <th class="text-center">Scan 9</th>
-                                                <th class="text-center">Scan 10</th> --}}
-                                                 {{-- @for ($i = 1; $i <= 10; $i++)
-                <th class="text-center">In {{ $i }}</th>
-                <th class="text-center">Device {{ $i }}</th>
-            @endfor --}}
-            <th class="text-center">Scan 1</th>
+
+                                                <th class="text-center">Scan 1</th>
                                                 <th class="text-center">in 1</th>
                                                 <th class="text-center">Scan 2</th>
                                                 <th class="text-center">Out 2</th>
@@ -265,9 +264,25 @@
     </div>
 @endsection
 @push('scripts')
+    {{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
         // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
             // Initialize DataTable with proper configuration
@@ -283,6 +298,7 @@
                     data: function(d) {
                         d.start_date = $('#startDate').val();
                         d.end_date = $('#endDate').val();
+                        d.store = $('#storeFilter').val();
                     }
                 },
                 responsive: true,
@@ -295,17 +311,13 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                 
+
                     {
                         data: 'name',
                         name: 'name',
                         className: 'text-center'
                     },
-                    // {
-                    //     data: 'device_name',
-                    //     name: 'device_name',
-                    //     className: 'text-center'
-                    // },
+
                     {
                         data: 'pin',
                         name: 'pin',
@@ -327,87 +339,38 @@
                         className: 'text-center'
                     },
 
-                    // {
-                    //     data: 'in_1',
-                    //     name: 'in_1'
-                    // },
-                    // {
-                    //     data: 'in_2',
-                    //     name: 'in_2'
-                    // },
-                    // {
-                    //     data: 'in_3',
-                    //     name: 'in_3'
-                    // },
-                    // {
-                    //     data: 'in_4',
-                    //     name: 'in_4'
-                    // },
-                    // {
-                    //     data: 'in_5',
-                    //     name: 'in_5'
-                    // },
-                    // {
-                    //     data: 'in_6',
-                    //     name: 'in_6'
-                    // },
-                    // {
-                    //     data: 'in_7',
-                    //     name: 'in_7'
-                    // },
-                    // {
-                    //     data: 'in_8',
-                    //     name: 'in_8'
-                    // },
-                    // {
-                    //     data: 'in_9',
-                    //     name: 'in_9'
-                    // },
-                    // {
-                    //     data: 'in_10',
-                    //     name: 'in_10'
-                    // },
-            //          @for ($i = 1; $i <= 10; $i++)
-            //     { data: 'in_{{ $i }}', name: 'in_{{ $i }}' },
-            //     { data: 'device_{{ $i }}', name: 'device_{{ $i }}' },
-            // @endfor
-            // { data: 'device_1', name: 'device_1' }, 
-            // { data: 'in_1', name: 'in_1' },
-            // { data: 'device_2', name: 'device_2' },
-            // { data: 'in_2', name: 'in_2' },
-            // { data: 'device_3', name: 'device_3' },
-            // { data: 'in_3', name: 'in_3' },
-            // { data: 'device_4', name: 'device_4' },
-            // { data: 'in_4', name: 'in_4' },
-            // { data: 'device_5', name: 'device_5' },
-            // { data: 'in_5', name: 'in_5' },
-            // { data: 'device_6', name: 'device_6' },
-            // { data: 'in_6', name: 'in_6' },
-            // { data: 'device_7', name: 'device_7' },
-            // { data: 'in_7', name: 'in_7' },
-            // { data: 'device_8', name: 'device_8' },
-            // { data: 'in_8', name: 'in_8' },
-            // { data: 'device_9', name: 'device_9' },
-            // { data: 'in_9', name: 'in_9' },
-            // { data: 'device_10', name: 'device_10' },
-            // { data: 'in_10', name: 'in_10' },
-              @for($i = 1; $i <= 10; $i++)
-    { data: 'in_{{ $i }}', name: 'in_{{ $i }}', className: 'text-center', defaultContent: '-' },
-    { data: 'device_{{ $i }}', name: 'device_{{ $i }}', className: 'text-center', defaultContent: '-' },
-@endfor
+
+                    @for ($i = 1; $i <= 10; $i++)
+                        {
+                            data: 'in_{{ $i }}',
+                            name: 'in_{{ $i }}',
+                            className: 'text-center',
+                            defaultContent: '-'
+                        }, {
+                            data: 'device_{{ $i }}',
+                            name: 'device_{{ $i }}',
+                            className: 'text-center',
+                            defaultContent: '-'
+                        },
+                    @endfor
 
                     {
                         data: 'duration',
                         name: 'duration'
                     },
-                     { data: 'action', name: 'action', orderable: false, searchable: false }
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
 
                 ],
-                 rowCallback: function(row, data, index){
-        if (data.is_edited == 1) {
-            $(row).css('background-color', '#cce5ff'); // ← biru jika sudah diedit
-        }
-    },
+                rowCallback: function(row, data, index) {
+                    if (data.is_edited == 1) {
+                        $(row).css('background-color', '#cce5ff');
+                    }
+                },
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');
                     $('.dataTables_length select').addClass('form-control');
@@ -421,15 +384,24 @@
                 });
             @endif
             $('#filterBtn').on('click', function() {
-        table.ajax.reload();
-    });
+                table.ajax.reload();
+            });
 
-    // Reset button
-    $('#resetBtn').on('click', function() {
-        $('#startDate').val('');
-        $('#endDate').val('');
-        table.ajax.reload();
-    });
+            // Reset button
+            $('#resetBtn').on('click', function() {
+                $('#startDate').val('');
+                $('#endDate').val('');
+                $('#filterStore').val('');
+                table.ajax.reload();
+            });
+        setInterval(function () {
+    // Cek apakah input search kosong
+    var isSearching = $('.dataTables_filter input').val().trim().length > 0;
+    if (!isSearching) {
+        table.ajax.reload(null, false);
+    }
+}, 10000);
+
         });
     </script>
 @endpush
