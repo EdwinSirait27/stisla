@@ -71,8 +71,12 @@
         top: 0;
         z-index: 10;
         transition: all 0.3s ease;
+        /* width: 200px; */
     }
 
+.th-name {
+     width: 300px !important; /* lebar khusus untuk kolom NAME */
+}
     .table tbody tr {
         transition: all 0.25s ease;
         position: relative;
@@ -215,13 +219,12 @@
                                             <tr>
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">PIN</th>
-                                                <th class="text-center">NAME</th>
+                                                <th class="text-center th-name">NAME</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
   @for ($i = 1; $i <= 10; $i++)
                 <th class="text-center">Scan {{ $i }}</th>
             @endfor
-
                                                 {{-- <th class="text-center">Scan 1</th>
                                                 <th class="text-center">in 1</th>
                                                 <th class="text-center">Scan 2</th>
@@ -295,6 +298,7 @@
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
+                // autoWidth: false,
                 ajax: {
                     url: '{{ route('fingerprints.fingerprints') }}',
                     type: 'POST',
@@ -308,6 +312,33 @@
                     }
                 },
                 responsive: true,
+                //    dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                //     "<'row'<'col-sm-12'tr>>" +
+                //     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
+                //     "<'row'<'col-sm-12 col-md-6'B>>",
+              dom: "<'row'<'col-sm-12 col-md-6'l>>" + 
+     "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+     "<'row'<'col-sm-12'tr>>" + 
+     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm btn-primary',
+                        text: '<i class="fas fa-copy"></i> Copy'
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel'
+                    }
+
+                ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -332,7 +363,8 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        width: '300px'
                     },
                     {
                         data: 'position_name',

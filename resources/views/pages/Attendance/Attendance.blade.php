@@ -294,8 +294,6 @@
                 });
                 return;
             }
-
-
             $.ajax({
                 url: "{{ route('attendance.summary') }}",
                 type: "POST",

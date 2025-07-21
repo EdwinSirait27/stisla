@@ -216,7 +216,7 @@ $employees = $employeesQuery->get()->keyBy('pin');
 for ($i = 1; $i <= 10; $i++) {
     $jam = $row['in_' . $i] ?? '';
     $device = $row['device_' . $i] ?? '';
-    $row['combine_' . $i] = $jam . ' (' . $device . ')';
+    $row['combine_' . $i] = $jam . ' ' . $device . '';
 }
 
             // // Hitung durasi dari scan pertama ke scan terakhir
