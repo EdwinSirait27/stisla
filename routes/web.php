@@ -174,7 +174,8 @@ Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
     ->name('pages.Fingerprints');
 Route::match(['GET', 'POST'],'/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
 Route::get('/Fingerprints/edit/{pin}/{scan_date}', [FingerprintsController::class, 'editFingerprint'])->name('Fingerprints.edit');
-Route::post('/Fingerprints', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
+// Route::post('/Fingerprints', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
+Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
 
 });
 
