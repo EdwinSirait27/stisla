@@ -226,10 +226,8 @@ public function editFingerprint($pin, $scanDate)
     } else {
         Log::info('Data ditemukan di EditedFingerprint.', $data->toArray());
     }
-
     return view('Pages.Fingerprints.edit', ['data' => $data]);
 }
-
 // public function updateFingerprint(Request $request)
 // {
 //     $validated = $request->validate([

@@ -74,9 +74,11 @@
         /* width: 200px; */
     }
 
-.th-name {
-     width: 300px !important; /* lebar khusus untuk kolom NAME */
-}
+    .th-name {
+        width: 300px !important;
+        /* lebar khusus untuk kolom NAME */
+    }
+
     .table tbody tr {
         transition: all 0.25s ease;
         position: relative;
@@ -169,6 +171,9 @@
             font-size: 0.8rem;
         }
     }
+       div.dataTables_scrollBody {
+            max-height: 500px !important;
+        }
 </style>
 
 
@@ -214,7 +219,7 @@
 
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
+                                    <table class="table table-hover table-striped" id="users-table"style="width:100%">
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Store</th>
@@ -222,38 +227,13 @@
                                                 <th class="text-center th-name">NAME</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
-  @for ($i = 1; $i <= 10; $i++)
-                <th class="text-center">Scan {{ $i }}</th>
-            @endfor
-                                                {{-- <th class="text-center">Scan 1</th>
-                                                <th class="text-center">in 1</th>
-                                                <th class="text-center">Scan 2</th>
-                                                <th class="text-center">Out 2</th>
-                                                <th class="text-center">Scan 3</th>
-                                                <th class="text-center">in 3</th>
-                                                <th class="text-center">Scan 4</th>
-                                                <th class="text-center">out 4</th>
-                                                <th class="text-center">Scan 5</th>
-                                                <th class="text-center">in 5</th>
-                                                <th class="text-center">Scan 6</th>
-                                                <th class="text-center">out 6</th>
-                                                <th class="text-center">Scan 7</th>
-                                                <th class="text-center">in 7</th>
-                                                <th class="text-center">Scan 8</th>
-                                                <th class="text-center">Out 8</th>
-                                                <th class="text-center">Scan 9</th>
-                                                <th class="text-center">in 9</th>
-                                                <th class="text-center">Scan 10</th>
-                                                <th class="text-center">out 10</th> --}}
-                                                 {{-- @for ($i = 1; $i <= 10; $i++)
-            <th class="text-center">Scan {{ $i }}</th>
-        @endfor --}}
+                                                @for ($i = 1; $i <= 10; $i++)
+                                                    <th class="text-center">Scan {{ $i }}</th>
+                                                @endfor
+                                              
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Action</th>
-                                                {{-- <th class="text-center">Verify Mode</th>
-                                                <th class="text-center">Reserved</th>
-                                                <th class="text-center">Work Code</th>
-                                                <th class="text-center">Att Id</th> --}}
+                                              
                                             </tr>
                                         </thead>
                                     </table>
@@ -272,15 +252,10 @@
         </section>
     </div>
 @endsection
-@push('scripts')
-    {{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
+{{-- @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-
-
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
@@ -292,13 +267,10 @@
         $(document).ready(function() {
             $('.select2').select2();
         });
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
-                // autoWidth: false,
                 ajax: {
                     url: '{{ route('fingerprints.fingerprints') }}',
                     type: 'POST',
@@ -312,16 +284,10 @@
                     }
                 },
                 responsive: true,
-                //    dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                //     "<'row'<'col-sm-12'tr>>" +
-                //     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
-                //     "<'row'<'col-sm-12 col-md-6'B>>",
-              dom: "<'row'<'col-sm-12 col-md-6'l>>" + 
-     "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
-     "<'row'<'col-sm-12'tr>>" + 
-     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-
-
+                dom: "<'row'<'col-sm-12 col-md-6'l>>" +
+                    "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 buttons: [{
                         extend: 'copy',
                         className: 'btn btn-sm btn-primary',
@@ -366,39 +332,39 @@
                         className: 'text-center',
                         width: '300px'
                     },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'scan_date',
-                        name: 'scan_date',
-                        className: 'text-center'
-                    },
-
-
-                   
-                 @for($i = 1; $i <= 10; $i++)
-    {
-        data: 'combine_{{ $i }}',
-        name: 'combine_{{ $i }}',
-        className: 'text-center'
-    }@if($i < 10),@endif
-    @endfor,
+                    // {
+                    //     data: 'position_name',
+                    //     name: 'position_name',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'scan_date',
+                    //     name: 'scan_date',
+                    //     className: 'text-center'
+                    // },
 
 
 
-                    {
-                        data: 'duration',
-                        name: 'duration'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
+                    // @for ($i = 1; $i <= 10; $i++)
+                    //     {
+                    //         data: 'combine_{{ $i }}',
+                    //         name: 'combine_{{ $i }}',
+                    //         className: 'text-center'
+                    //     }
+                    //     @if ($i < 10)
+                    //         ,
+                    //     @endif
+                    // @endfor ,
+                    // {
+                    //     data: 'duration',
+                    //     name: 'duration'
+                    // },
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false
+                    // }
 
                 ],
                 rowCallback: function(row, data, index) {
@@ -429,27 +395,155 @@
                 $('#store_name').val('');
                 table.ajax.reload();
             });
-        setInterval(function () {
-    // Cek apakah input search kosong
-    var isSearching = $('.dataTables_filter input').val().trim().length > 0;
-    if (!isSearching) {
-        table.ajax.reload(null, false);
-    }
-}, 10000);
+            setInterval(function() {
+                // Cek apakah input search kosong
+                var isSearching = $('.dataTables_filter input').val().trim().length > 0;
+                if (!isSearching) {
+                    table.ajax.reload(null, false);
+                }
+            }, 10000);
 
         });
     </script>
-     {{-- // @for ($i = 1; $i <= 10; $i++)
-                    //     {
-                    //         data: 'in_{{ $i }}',
-                    //         name: 'in_{{ $i }}',
-                    //         className: 'text-center',
-                    //         defaultContent: '-'
-                    //     }, {
-                    //         data: 'device_{{ $i }}',
-                    //         name: 'device_{{ $i }}',
-                    //         className: 'text-center',
-                    //         defaultContent: '-'
-                    //     },
-                    // @endfor --}}
+@endpush --}}
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('fingerprints.fingerprints') }}',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: function(d) {
+                        d.start_date = $('#startDate').val();
+                        d.end_date = $('#endDate').val();
+                        d.store_name = $('#store_name').val();
+                    }
+                },
+                scrollY: '500px', // batas tinggi scroll
+                scrollCollapse: true,
+                paging: true,
+                 dom: "<'row'<'col-sm-12 col-md-6'l>>" +
+                    "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm btn-primary',
+                        text: '<i class="fas fa-copy"></i> Copy'
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel'
+                    }
+
+                ],
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search..."
+                },
+                columns: [
+                    { data: 'name', name: 'name', className: 'text-center' },
+                    { data: 'pin', name: 'pin', className: 'text-center' },
+                    { data: 'employee_name', name: 'employee_name', className: 'text-center', width: '300px' },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'scan_date',
+                        name: 'scan_date',
+                        className: 'text-center'
+                    },
+
+
+
+                    @for ($i = 1; $i <= 10; $i++)
+                        {
+                            data: 'combine_{{ $i }}',
+                            name: 'combine_{{ $i }}',
+                            className: 'text-center'
+                        }
+                        @if ($i < 10)
+                            ,
+                        @endif
+                    @endfor ,
+                    {
+                        data: 'duration',
+                        name: 'duration'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                rowCallback: function(row, data, index) {
+                    if (data.is_edited == 1) {
+                        $(row).css('background-color', '#cce5ff');
+                    }
+                },
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                }
+            });
+
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
+            $('#filterBtn').on('click', function() {
+                table.ajax.reload();
+            });
+
+            $('#resetBtn').on('click', function() {
+                $('#startDate').val('');
+                $('#endDate').val('');
+                $('#store_name').val('');
+                table.ajax.reload();
+            });
+
+            setInterval(function() {
+                var isSearching = $('.dataTables_filter input').val().trim().length > 0;
+                if (!isSearching) {
+                    table.ajax.reload(null, false);
+                }
+            }, 100000);
+        });
+    </script>
 @endpush
