@@ -185,7 +185,7 @@ class FingerprintsController extends Controller
 
         return DataTables::of($result)
             ->addColumn('action', function ($row) {
-                $editUrl = route('Fingerprints.edit', [
+                $editUrl = view('Pages.Fingerprints.edit', [
                     'pin' => $row['pin'],
                     'scan_date' => $row['scan_date'],
                 ]);
