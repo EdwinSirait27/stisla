@@ -185,7 +185,7 @@ class FingerprintsController extends Controller
 
         return DataTables::of($result)
             ->addColumn('action', function ($row) {
-                $editUrl = route('Fingerprints.edit', [
+                $editUrl = route('pages.Fingerprints.edit', [
                     'pin' => $row['pin'],
                     'scan_date' => $row['scan_date'],
                 ]);
@@ -226,7 +226,7 @@ public function editFingerprint($pin, $scanDate)
     } else {
         Log::info('Data ditemukan di EditedFingerprint.', $data->toArray());
     }
-    return view('Pages.Fingerprints.edit', ['data' => $data]);
+    return view('pages.Fingerprints.edit', ['data' => $data]);
 }
 // public function updateFingerprint(Request $request)
 // {
