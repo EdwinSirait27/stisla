@@ -13,7 +13,7 @@ class EditedFingerprint extends Model
         'pin',
         'employee_name',
         'position_name',
-        'device_name',
+        'store_name',
         'scan_date',
         'duration',
         'in_1', 'device_1',
@@ -26,5 +26,6 @@ class EditedFingerprint extends Model
         'in_8', 'device_8',
         'in_9', 'device_9',
         'in_10', 'device_10',
+        'attachment',
     ];
 }

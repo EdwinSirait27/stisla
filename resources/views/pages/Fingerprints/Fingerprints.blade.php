@@ -232,6 +232,7 @@
                                                 @endfor
                                               
                                                 <th class="text-center">Duration</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                               
                                             </tr>
@@ -501,6 +502,17 @@
                         data: 'duration',
                         name: 'duration'
                     },
+                     {
+            data: 'updated',
+            name: 'updated',
+            render: function (data, type, row) {
+                if (row.is_updated) {
+                    return '<span class="badge badge-success">✔ Updated</span>';
+                } else {
+                    return '<span class="badge badge-secondary">Original</span>';
+                }
+            }
+        },
                     {
                         data: 'action',
                         name: 'action',
@@ -545,5 +557,25 @@
                 }
             }, 100000);
         });
+    </script>
+   
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
     </script>
 @endpush
