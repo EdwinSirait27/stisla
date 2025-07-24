@@ -247,6 +247,7 @@
                                                 @endfor
 
                                                 <th class="text-center">Duration</th>
+                                                {{-- <th class="text-center">Total</th> --}}
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
 
@@ -267,6 +268,25 @@
             </div>
         </section>
     </div>
+
+
+
+    <!-- Modal Total Hari Bekerja -->
+<div class="modal fade" id="modalTotalHari" tabindex="-1" aria-labelledby="modalTotalHariLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTotalHariLabel">Total Hari Bekerja</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>PIN:</strong> <span id="modal-pin"></span></p>
+        <p><strong>Total Hari Bekerja:</strong> <span id="modal-total-hari"></span> hari</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -417,6 +437,10 @@
                         data: 'duration',
                         name: 'duration'
                     },
+                    // {
+                    //     data: 'total_days',
+                    //     name: 'total_days'
+                    // },
                     {
                         data: 'updated',
                         name: 'updated',
@@ -475,6 +499,74 @@
                 }
             }, 100000);
         });
+//         $(document).on('click', '.lihat-total', function () {
+//     var pin = $(this).data('pin');
+
+//     $.ajax({
+//         url: '{{ route('Fingerprints.totalHari') }}',
+//         method: 'GET',
+//         data: {
+//             pin: pin,
+//             start_date: '{{ request('start_date', '2025-07-01') }}',
+//             end_date: '{{ request('end_date', \Carbon\Carbon::now()->toDateString()) }}'
+//         },
+//         success: function (res) {
+//             Swal.fire({
+//                 title: 'Total Hari Bekerja',
+//                 html: `
+//                     <p><strong>Pin:</strong> ${pin}</p>
+//                     <p><strong>Attendance:</strong> ${res.total} hari</p>
+//                 `,
+//                 icon: 'info',
+//                 confirmButtonText: 'Tutup'
+//             });
+//         },
+//         error: function () {
+//             Swal.fire({
+//                 title: 'Error',
+//                 text: 'Gagal mengambil data total hari.',
+//                 icon: 'error',
+//                 confirmButtonText: 'Tutup'
+//             });
+//         }
+//     });
+// });
+$(document).on('click', '.lihat-total', function () {
+    var pin = $(this).data('pin');
+    var employee = $(this).data('employee');
+
+    $.ajax({
+        url: '{{ route('Fingerprints.totalHari') }}',
+        method: 'GET',
+        data: {
+            pin: pin,
+            start_date: '{{ request('start_date', '2025-07-01') }}',
+            end_date: '{{ request('end_date', \Carbon\Carbon::now()->toDateString()) }}'
+        },
+        success: function (res) {
+            Swal.fire({
+                title: 'Total Hari Bekerja',
+                html: `
+                    <p><strong>Nama:</strong> ${employee}</p>
+                    <p><strong>PIN:</strong> ${pin}</p>
+                    <p><strong>Total Hari:</strong> ${res.total} hari</p>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Tutup'
+            });
+        },
+        error: function () {
+            Swal.fire({
+                title: 'Error',
+                text: 'Gagal mengambil data total hari.',
+                icon: 'error',
+                confirmButtonText: 'Tutup'
+            });
+        }
+    });
+});
+
+
     </script>
 
     <script>
@@ -496,6 +588,8 @@
             });
         @endif
     </script>
+  
+
 @endpush
 {{-- <div class="row mb-3">
                                         <div class="col-md-2">
