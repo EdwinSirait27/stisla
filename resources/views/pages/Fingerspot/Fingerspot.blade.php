@@ -274,6 +274,7 @@
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
+                ordering: false,
                 ajax: {
                     url: '{{ route('fingerspot.fingerspot') }}',
                     type: 'GET'

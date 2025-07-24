@@ -171,9 +171,10 @@
             font-size: 0.8rem;
         }
     }
-       div.dataTables_scrollBody {
-            max-height: 500px !important;
-        }
+
+    div.dataTables_scrollBody {
+        max-height: 500px !important;
+    }
 </style>
 
 
@@ -193,31 +194,44 @@
 
 
                             <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-3">
+
+                                <div class="row mb-2 align-items-end">
+                                    <div class="col-md-2">
                                         <label for="store_name">Filter Store</label>
-                                        <select id="store_name" name="store_name"class="form-control select2">
+                                        <select id="store_name" name="store_name" class="form-control select2">
                                             <option value="">All Stores</option>
                                             @foreach ($stores as $store)
                                                 <option value="{{ $store }}">{{ $store }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+
+                                    <div class="col-md-2">
                                         <label for="startDate">Dari Tanggal</label>
                                         <input type="date" id="startDate" class="form-control">
                                     </div>
-                                    <div class="col-md-3">
+
+                                    <div class="col-md-2">
                                         <label for="endDate">Sampai Tanggal</label>
                                         <input type="date" id="endDate" class="form-control">
                                     </div>
-                                    <div class="col-md-3 align-self-end">
+
+                                    <div class="col-md-2">
+                                        <label>Show Entries</label>
+                                        <div id="custom-length"></div> {{-- Di sini nanti elemen .dataTables_length akan dipindahkan --}}
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label>Search</label>
+                                        <div id="custom-search"></div> {{-- Di sini nanti elemen .dataTables_filter akan dipindahkan --}}
+                                    </div>
+
+                                    <div class="col-md-2">
                                         <button id="filterBtn" class="btn btn-primary">Filter</button>
                                         <button id="resetBtn" class="btn btn-secondary">Reset</button>
                                     </div>
-
-
                                 </div>
+
                                 <div class="table-responsive">
                                     <table class="table table-hover table-striped" id="users-table"style="width:100%">
                                         <thead>
@@ -225,16 +239,17 @@
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">PIN</th>
                                                 <th class="text-center th-name">NAME</th>
+                                                <th class="text-center">NIP</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Scan Date</th>
                                                 @for ($i = 1; $i <= 10; $i++)
                                                     <th class="text-center">Scan {{ $i }}</th>
                                                 @endfor
-                                              
+
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
-                                              
+
                                             </tr>
                                         </thead>
                                     </table>
@@ -253,6 +268,314 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth(); // 0-based (Juli = 6)
+
+            // Awal bulan
+            const startDate = new Date(year, month, 1);
+
+            // Akhir bulan
+            const endDate = new Date(year, month + 1, 0);
+
+            const formatDate = (date) => {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0'); // Bulan 1-12
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            };
+
+            document.getElementById('startDate').value = formatDate(startDate);
+            document.getElementById('endDate').value = formatDate(endDate);
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('fingerprints.fingerprints') }}',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: function(d) {
+                        d.start_date = $('#startDate').val();
+                        d.end_date = $('#endDate').val();
+                        d.store_name = $('#store_name').val();
+                    }
+                },
+                scrollY: '500px', // batas tinggi scroll
+                scrollCollapse: true,
+                paging: true,
+
+                dom: "<'d-none'lf>" + // ini akan menyembunyikan tapi tetap membuat elemen length & filter
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-2'<'col-sm-12'B>>" +
+                    "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm btn-primary',
+                        text: '<i class="fas fa-copy"></i> Copy',
+                         exportOptions: {
+            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+        }
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV',
+                         exportOptions: {
+            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+        }
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                         exportOptions: {
+            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+        }
+                    }
+                ],
+
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search..."
+                },
+                columns: [{
+                        data: 'name',
+                        name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pin',
+                        name: 'pin',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center',
+                        width: '300px'
+                    },
+                    {
+                        data: 'employee_pengenal',
+                        name: 'employee_pengenal',
+                        className: 'text-center',
+                        width: '300px'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'scan_date',
+                        name: 'scan_date',
+                        className: 'text-center'
+                    },
+
+
+
+                    @for ($i = 1; $i <= 10; $i++)
+                        {
+                            data: 'combine_{{ $i }}',
+                            name: 'combine_{{ $i }}',
+                            className: 'text-center'
+                        }
+                        @if ($i < 10)
+                            ,
+                        @endif
+                    @endfor ,
+                    {
+                        data: 'duration',
+                        name: 'duration'
+                    },
+                    {
+                        data: 'updated',
+                        name: 'updated',
+                        render: function(data, type, row) {
+                            if (row.is_updated) {
+                                return '<span class="badge badge-success">✔ Updated</span>';
+                            } else {
+                                return '<span class="badge badge-secondary">Original</span>';
+                            }
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'no-export'
+                    }
+                ],
+                rowCallback: function(row, data, index) {
+                    if (data.is_edited == 1) {
+                        $(row).css('background-color', '#cce5ff');
+                    }
+                },
+               
+                initComplete: function() {
+                    // Pindahkan length (show entries) dan search ke lokasi custom
+                    $('#custom-length').html($('.dataTables_length'));
+                    $('#custom-search').html($('.dataTables_filter'));
+                }
+            });
+
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
+            $('#filterBtn').on('click', function() {
+                table.ajax.reload();
+            });
+
+            $('#resetBtn').on('click', function() {
+                $('#startDate').val('');
+                $('#endDate').val('');
+                $('#store_name').val('');
+                table.ajax.reload();
+            });
+
+            setInterval(function() {
+                var isSearching = $('.dataTables_filter input').val().trim().length > 0;
+                if (!isSearching) {
+                    table.ajax.reload(null, false);
+                }
+            }, 100000);
+        });
+    </script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>
+@endpush
+{{-- <div class="row mb-3">
+                                        <div class="col-md-2">
+                                            <label for="store_name">Filter Store</label>
+                                            <select id="store_name" name="store_name"class="form-control select2">
+                                                <option value="">All Stores</option>
+                                                @foreach ($stores as $store)
+                                                    <option value="{{ $store }}">{{ $store }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label for="startDate">Dari Tanggal</label>
+                                            <input type="date" id="startDate" class="form-control">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="endDate">Sampai Tanggal</label>
+                                            <input type="date" id="endDate" class="form-control">
+                                        </div>
+                                        <div class="col-md-2 align-self-end">
+                                            <button id="filterBtn" class="btn btn-primary">Filter</button>
+                                            <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                                        </div>
+                                    </div> --}}
+
+
+{{-- <div class="col-md-3">
+                                        <label for="startDate">Dari Tanggal</label>
+                                        <input type="date" id="startDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="endDate">Sampai Tanggal</label>
+                                        <input type="date" id="endDate" class="form-control">
+                                    </div> --}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{{-- <div class="row mb-2">
+                                    <div class="col-md-2">
+                                        <label for="store_name">Filter Store</label>
+                                        <select id="store_name" name="store_name" class="form-control select2">
+                                            <option value="">All Stores</option>
+                                            @foreach ($stores as $store)
+                                                <option value="{{ $store }}">{{ $store }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-1.5">
+                                        <label for="startDate">Dari Tanggal</label>
+                                        <input type="date" id="startDate" class="form-control">
+                                    </div>
+
+                                    <div class="col-md-1.5">
+                                        <label for="endDate">Sampai Tanggal</label>
+                                        <input type="date" id="endDate" class="form-control">
+                                    </div>
+
+                                    <div class="col-md-2 align-self-end">
+                                        <button id="filterBtn" class="btn btn-primary">Filter</button>
+                                        <button id="resetBtn" class="btn btn-secondary">Reset</button>
+
+                                    </div>
+                                </div> --}}
+
 {{-- @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -407,175 +730,50 @@
         });
     </script>
 @endpush --}}
-@push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+{{-- // dom: "<'row'<'col-sm-12 col-md-6'l>>" +
+                //     "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
+                //     "<'row'<'col-sm-12'tr>>" +
+                //     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                // buttons: [{
+                //         extend: 'copy',
+                //         className: 'btn btn-sm btn-primary',
+                //         text: '<i class="fas fa-copy"></i> Copy'
+                //     },
+                //     {
+                //         extend: 'csv',
+                //         className: 'btn btn-sm btn-success',
+                //         text: '<i class="fas fa-file-csv"></i> CSV'
+                //     },
+                //     {
+                //         extend: 'excel',
+                //         className: 'btn btn-sm btn-info',
+                //         text: '<i class="fas fa-file-excel"></i> Excel'
+                //     }
 
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
+                // ],
 
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('fingerprints.fingerprints') }}',
-                    type: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    data: function(d) {
-                        d.start_date = $('#startDate').val();
-                        d.end_date = $('#endDate').val();
-                        d.store_name = $('#store_name').val();
-                    }
-                },
-                scrollY: '500px', // batas tinggi scroll
-                scrollCollapse: true,
-                paging: true,
-                 dom: "<'row'<'col-sm-12 col-md-6'l>>" +
-                    "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm btn-primary',
-                        text: '<i class="fas fa-copy"></i> Copy'
-                    },
-                    {
-                        extend: 'csv',
-                        className: 'btn btn-sm btn-success',
-                        text: '<i class="fas fa-file-csv"></i> CSV'
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm btn-info',
-                        text: '<i class="fas fa-file-excel"></i> Excel'
-                    }
-
-                ],
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search..."
-                },
-                columns: [
-                    { data: 'name', name: 'name', className: 'text-center' },
-                    { data: 'pin', name: 'pin', className: 'text-center' },
-                    { data: 'employee_name', name: 'employee_name', className: 'text-center', width: '300px' },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'scan_date',
-                        name: 'scan_date',
-                        className: 'text-center'
-                    },
-
-
-
-                    @for ($i = 1; $i <= 10; $i++)
-                        {
-                            data: 'combine_{{ $i }}',
-                            name: 'combine_{{ $i }}',
-                            className: 'text-center'
-                        }
-                        @if ($i < 10)
-                            ,
-                        @endif
-                    @endfor ,
-                    {
-                        data: 'duration',
-                        name: 'duration'
-                    },
-                     {
-            data: 'updated',
-            name: 'updated',
-            render: function (data, type, row) {
-                if (row.is_updated) {
-                    return '<span class="badge badge-success">✔ Updated</span>';
-                } else {
-                    return '<span class="badge badge-secondary">Original</span>';
-                }
-            }
-        },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                rowCallback: function(row, data, index) {
-                    if (data.is_edited == 1) {
-                        $(row).css('background-color', '#cce5ff');
-                    }
-                },
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-
-            $('#filterBtn').on('click', function() {
-                table.ajax.reload();
-            });
-
-            $('#resetBtn').on('click', function() {
-                $('#startDate').val('');
-                $('#endDate').val('');
-                $('#store_name').val('');
-                table.ajax.reload();
-            });
-
-            setInterval(function() {
-                var isSearching = $('.dataTables_filter input').val().trim().length > 0;
-                if (!isSearching) {
-                    table.ajax.reload(null, false);
-                }
-            }, 100000);
-        });
-    </script>
-   
-    <script>
-        @if (session('success'))
-            Swal.fire({
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonText: 'OK'
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script>
-@endpush
+                // dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                //     "<'row'<'col-sm-12'tr>>" +
+                //     "<'row mt-2'<'col-sm-12'B>>" +
+                //     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                // buttons: [{
+                //         extend: 'copy',
+                //         className: 'btn btn-sm btn-primary',
+                //         text: '<i class="fas fa-copy"></i> Copy'
+                //     },
+                //     {
+                //         extend: 'csv',
+                //         className: 'btn btn-sm btn-success',
+                //         text: '<i class="fas fa-file-csv"></i> CSV'
+                //     },
+                //     {
+                //         extend: 'excel',
+                //         className: 'btn btn-sm btn-info',
+                //         text: '<i class="fas fa-file-excel"></i> Excel'
+                //     }
+                // ], --}}
+ {{-- // initComplete: function() {
+                //     $('.dataTables_filter input').addClass('form-control');
+                //     $('.dataTables_length select').addClass('form-control');
+                // }, --}}

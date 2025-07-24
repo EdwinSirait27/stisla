@@ -12,55 +12,48 @@ use Yajra\DataTables\DataTables;
 
 class FingerspotController extends Controller
 {
-//     public function getPins()
-// {
-//     $isHeadHR = auth()->user()->hasRole('HeadHR');
 
-//     $employees = User::with([
-//         'Employee.store',
-//         'Employee.position',
-//         'Employee.department',
-//     ])
-//     ->select(['id', 'employee_id'])
-//     ->get()
-//     ->map(function ($employee) use ($isHeadHR) {
-//         $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-//         $employeeName = optional($employee->Employee)->employee_name;
-
-//         $employee->action = $isHeadHR
-//             ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
-//                     <i class="fas fa-user-edit text-secondary"></i>
-//                </a>'
-//             : '';
-
-//         return $employee;
-//     });
-//     return DataTables::of($employees)
-//         ->addColumn('name_store', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
-//         ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
-//         ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
-//         ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
-//         ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
-//         ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
-//         ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-//         ->addColumn('pin', fn($e) => optional($e->Employee)->pin ?? 'Empty')
-//         ->rawColumns(['position_name','pin', 'status', 'department_name', 'created_at', 'employee_name', 'name_store', 'action'])
-//         ->make(true);
-// }
 public function getPins()
 {
     $isHeadHR = auth()->user()->hasRole('HeadHR');
 
-    $employees = User::with([
+    // $employees = User::with([
+    //     'Employee.store',
+    //     'Employee.position',
+    //     'Employee.department',
+    // ])
+    // ->whereHas('Employee', function ($query) {
+    //     $query->whereIn('status', ['Active', 'Pending','Mutation']);
+    // })
+    // ->select(['id', 'employee_id'])
+    // ->get()
+    // ->map(function ($employee) use ($isHeadHR) {
+    //     $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+    //     $employeeName = optional($employee->Employee)->employee_name;
+
+    //     $employee->action = $isHeadHR
+    //         ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+    //                 <i class="fas fa-user-edit text-secondary"></i>
+    //            </a>'
+    //         : '';
+
+    //     return $employee;
+    // });
+  $employees = User::with([
         'Employee.store',
         'Employee.position',
         'Employee.department',
     ])
     ->whereHas('Employee', function ($query) {
-        $query->whereIn('status', ['Active', 'Pending','Mutation']);
+        $query->whereIn('status', ['Active', 'Pending', 'Mutation']);
     })
     ->select(['id', 'employee_id'])
     ->get()
+    ->sortBy(function ($employee) {
+        $pin = optional($employee->Employee)->pin;
+        return is_null($pin) ? -INF : (int) $pin;
+    })
+    ->values()
     ->map(function ($employee) use ($isHeadHR) {
         $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
         $employeeName = optional($employee->Employee)->employee_name;
@@ -73,6 +66,10 @@ public function getPins()
 
         return $employee;
     });
+
+
+
+
 
     return DataTables::of($employees)
         ->addColumn('name_store', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
@@ -87,47 +84,6 @@ public function getPins()
         ->make(true);
 }
 
-//     public function getEmployeesall()
-//     {
-//         $kantorFilter = request()->get('kantor');
-//         // $statusFilter = request()->get('status');
-
-//         $query = Attendances::with([
-//             'employee'
-//         ])->select(['id', 'employee_id','tanggal', 'jam_masuk','jam_keluar', 'jam_masuk2','jam_keluar2', 'jam_masuk3','jam_keluar3', 'jam_masuk4','jam_keluar4', 'jam_masuk5','jam_keluar5', 'jam_masuk6','jam_keluar6', 'jam_masuk7','jam_keluar7', 'jam_masuk8','jam_keluar8', 'jam_masuk9','jam_keluar9', 'jam_masuk10','jam_keluar10']);
-
-//         if (!empty($kantorFilter)) {
-//     $query->where('kantor', $kantorFilter);
-// }
-//         $attendances = $query->get()->map(function ($attendance) {           
-//             return $attendance;
-//         });
-//         // Daftar kolom dari relasi Employee yang ingin ditampilkan
-//         $columns = [
-//             'id' => 'id',
-//             'employee_name' => 'employee.employee_name',
-//             'pin' => 'employee.pin',
-//             'tanggal',
-//             'kantor',
-//             'jam_masuk',
-//             'jam_keluar'
-//         ];
-
-//         $dataTable = DataTables::of($attendances);
-
-//         foreach ($columns as $key => $relationPath) {
-//             $column = is_string($key) ? $key : $relationPath;
-
-//             $dataTable->addColumn($column, function ($attendance) use ($relationPath) {
-//                 // Mendapatkan nilai dari relasi dengan dot notation
-//                 $value = data_get($attendance->employee, $relationPath);
-//                 return $value ?: 'Empty';
-//             });
-//         }
-
-//         return $dataTable
-//             ->make(true);
-//     }
 public function indexfingerspot()
     {
         $files = Storage::disk('public')->files('templatefingerspot');

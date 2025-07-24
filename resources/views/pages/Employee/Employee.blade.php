@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 @endpush
 <style>
@@ -219,14 +220,13 @@
                                         <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
                                     </button>
                                 </div> --}}
-                                <div class="alert alert-secondary mt-4" role="alert">
-                                    <span class="text-dark">
-                                        <strong>Important Note:</strong> <br>
-                                        - If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br>
-                                        <br>
-
-                                    </span>
-                                </div>
+                                 <div class="alert alert-secondary mt-4" role="alert">
+        <span class="text-dark">
+            <strong>Important Note:</strong> <br>
+            - <i class="fas fa-user"></i> Press button to edit
+ {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
+        </span>
+    </div>
                             </div>
                         </div>
                     </div>
