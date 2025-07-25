@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Fingerprints')
+@section('title', 'Attendance')
 @push('styles')
     {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -182,7 +182,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Fingerprints</h1>
+                <h1>Attendance {{ auth()->user()->employee->employee_name ?? '-' }}</h1>
             </div>
             <div class="section-body">
                 <div class="row">
@@ -208,12 +208,12 @@
 
                                     <div class="col-md-2">
                                         <label for="startDate">Dari Tanggal</label>
-                                        <input type="date" id="startDate"   value="{{ request('start_date') ?? now()->startOfMonth()->toDateString() }}" class="form-control">
+                                        <input type="date" id="startDate" class="form-control">
                                     </div>
 
                                     <div class="col-md-2">
                                         <label for="endDate">Sampai Tanggal</label>
-                                        <input type="date" id="endDate" value="{{ request('end_date') ?? now()->toDateString() }}" class="form-control">
+                                        <input type="date" id="endDate" class="form-control">
                                     </div>
 
                                     <div class="col-md-2">
@@ -248,8 +248,8 @@
 
                                                 <th class="text-center">Duration</th>
                                                 {{-- <th class="text-center">Total</th> --}}
-                                                <th class="text-center">Status</th>
-                                                <th class="text-center">Action</th>
+                                                {{-- <th class="text-center">Status</th> --}}
+                                                {{-- <th class="text-center">Action</th> --}}
 
                                             </tr>
                                         </thead>
@@ -335,7 +335,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('fingerprints.fingerprints') }}',
+                    url: '{{ route('attendanceall.attendanceall') }}',
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -407,7 +407,8 @@
                     {
                         data: 'employee_pengenal',
                         name: 'employee_pengenal',
-                        className: 'text-center'
+                        className: 'text-center',
+                        width: '300px'
                     },
                     {
                         data: 'position_name',
@@ -435,29 +436,30 @@
                     {
                         data: 'duration',
                         name: 'duration'
-                    },
-                    // {
-                    //     data: 'total_days',
-                    //     name: 'total_days'
-                    // },
-                    {
-                        data: 'updated',
-                        name: 'updated',
-                        render: function(data, type, row) {
-                            if (row.is_updated) {
-                                return '<span class="badge badge-success">✔ Updated</span>';
-                            } else {
-                                return '<span class="badge badge-secondary">Original</span>';
-                            }
-                        }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'no-export'
                     }
+                    // ,
+                    // // {
+                    // //     data: 'total_days',
+                    // //     name: 'total_days'
+                    // // },
+                    // {
+                    //     data: 'updated',
+                    //     name: 'updated',
+                    //     render: function(data, type, row) {
+                    //         if (row.is_updated) {
+                    //             return '<span class="badge badge-success">✔ Updated</span>';
+                    //         } else {
+                    //             return '<span class="badge badge-secondary">Original</span>';
+                    //         }
+                    //     }
+                    // },
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: 'no-export'
+                    // }
                 ],
                 rowCallback: function(row, data, index) {
                     if (data.is_edited == 1) {
@@ -498,107 +500,7 @@
                 }
             }, 100000);
         });
-        $(document).on('click', '.lihat-total', function () {
-    const pin = $(this).data('pin');
-    const employee = $(this).data('employee');
-    const startDate = $('#startDate').val();
-    const endDate = $('#endDate').val();
-
-    if (!startDate || !endDate) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Tanggal kosong!',
-            text: 'Mohon isi tanggal awal dan akhir terlebih dahulu.',
-        });
-        return;
-    }
-
-    $.ajax({
-        url: "{{ route('Fingerprints.totalHari') }}",
-        method: 'GET',
-        data: {
-            pin: pin,
-            start_date: startDate,
-            end_date: endDate
-        },
-        success: function (response) {
-            Swal.fire({
-                icon: 'success',
-                title: `Total kehadiran ${employee}`,
-                text: `${response.total} hari`,
-            });
-        },
-        error: function () {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: 'Gagal mengambil data kehadiran.',
-            });
-        }
-    });
-});
-
-//         $(document).on('click', '.lihat-total', function () {
-//     const pin = $(this).data('pin');
-//     const employee = $(this).data('employee');
-//     const startDate = $('#startDate').val();
-//     const endDate = $('#endDate').val();
-
-//     if (!startDate || !endDate) {
-//         alert('Mohon isi tanggal awal dan akhir terlebih dahulu.');
-//         return;
-//     }
-
-//     $.ajax({
-//         url: "{{ route('Fingerprints.totalHari') }}", // sesuaikan dengan rute aslimu
-//         method: 'GET',
-//         data: {
-//             pin: pin,
-//             start_date: startDate,
-//             end_date: endDate
-//         },
-//       success: function (response) {
-//     alert(`Total hari kehadiran ${employee}: ${response.total} hari`);
-// },
-
-//         error: function () {
-//             alert('Gagal mengambil data kehadiran.');
-//         }
-//     });
-// });
-
-//         $(document).on('click', '.lihat-total', function () {
-//     var pin = $(this).data('pin');
-
-//     $.ajax({
-//         url: '{{ route('Fingerprints.totalHari') }}',
-//         method: 'GET',
-//         data: {
-//             pin: pin,
-//             start_date: '{{ request('start_date', '2025-07-01') }}',
-//             end_date: '{{ request('end_date', \Carbon\Carbon::now()->toDateString()) }}'
-//         },
-//         success: function (res) {
-//             Swal.fire({
-//                 title: 'Total Hari Bekerja',
-//                 html: `
-//                     <p><strong>Pin:</strong> ${pin}</p>
-//                     <p><strong>Attendance:</strong> ${res.total} hari</p>
-//                 `,
-//                 icon: 'info',
-//                 confirmButtonText: 'Tutup'
-//             });
-//         },
-//         error: function () {
-//             Swal.fire({
-//                 title: 'Error',
-//                 text: 'Gagal mengambil data total hari.',
-//                 icon: 'error',
-//                 confirmButtonText: 'Tutup'
-//             });
-//         }
-//     });
-// });
+       
 
 // $(document).on('click', '.lihat-total', function () {
 //     var pin = $(this).data('pin');

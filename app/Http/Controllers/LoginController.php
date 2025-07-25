@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use App\Models\Terms;
 use App\Models\UserSession;
 use Illuminate\Support\Str;
-
 class LoginController extends Controller
 {
     public function index()
@@ -345,7 +344,6 @@ class LoginController extends Controller
                     'device_type' => $request->header('User-Agent')
                 ]
             );
-
             // Daftar role yang boleh bypass MAC check menggunakan Spatie
             $privilegedRoles = [
                 'Admin',
@@ -441,8 +439,6 @@ class LoginController extends Controller
             return back()->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
         }
     }
-
-
     /**
      * Logout dari perangkat lain
      */

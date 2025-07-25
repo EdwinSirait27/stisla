@@ -157,12 +157,17 @@ Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getPins'])->
 
     Route::get('/Importattendance', [AttendanceimportController::class, 'indexattendances'])
     ->name('pages.Importattendance');
+    
 Route::post('/Importattendance', [AttendanceimportController::class, 'importattendance'])->name('Importattendance.attendance');
     Route::get('/Importattendance/downloadattendance/{filename}', [AttendanceimportController::class, 'downloadattendance'])->name('Importattendance.downloadattendance');
 Route::get('/attendance/attendance', [AttendanceController::class, 'getAttendances'])->name('attendance.attendance');
 Route::get('/Attendance', [AttendanceController::class, 'index'])
     ->name('pages.Attendance');
     Route::post('/attendance/summary', [AttendanceController::class, 'storeAttendanceSummary'])->name('attendance.summary');
+Route::get('/Attendanceall', [AttendanceController::class, 'indexattendance'])
+    ->name('pages.Attendanceall');
+// Route::post('/attendanceall/attendanceall', [AttendanceController::class, 'getAttendancealls'])->name('attendanceall.attendanceall');
+Route::match(['GET', 'POST'],'/attendanceall/attendanceall', [AttendanceController::class, 'getAttendancealls'])->name('attendanceall.attendanceall');
 
 // Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
 // Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
@@ -307,15 +312,8 @@ Route::put('/Company/{hashedId}', [CompanyController::class, 'update'])->name('C
 Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
 });
 // banks   
-
 // import
-
 });
-
-
-
-
-
 Route::middleware(['auth', 'role:ManagerStore'])->group(function () {
 
     Route::group(['middleware' => ['permission:dashboardManager']], function () {
