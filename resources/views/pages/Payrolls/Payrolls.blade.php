@@ -164,7 +164,7 @@
 </style>
 
 
-@section('main')
+{{-- @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -181,26 +181,24 @@
                             </div>
 
                             <div class="card-body">
-                                {{-- Filter --}}
                                 <div class="row mb-4">
-                                    <div class="col-md-4">
+                                    <div class="col-md-2">
                                         <label for="filter_month_year" class="form-label">Filter Month - Year</label>
                                         <input type="text" id="filter_month_year" class="form-control"
                                             placeholder="Choose Month - Year">
                                     </div>
-                                    <div class="col-md-2 d-flex align-items-end">
+                                    <div class="col-md-1 d-flex align-items-end">
                                         <button id="btn_filter" class="btn btn-primary w-100">
                                             <i class="fas fa-filter"></i> Filter
                                         </button>
                                     </div>
-                                    <div class="col-md-2 d-flex align-items-end">
+                                    <div class="col-md-1 d-flex align-items-end">
                                         <button id="btn_reset" class="btn btn-secondary w-100">
                                             <i class="fas fa-undo"></i> Reset
                                         </button>
                                     </div>
                                 </div>
 
-                                {{-- Table --}}
                                 <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
                                     @csrf
                                     @method('DELETE')
@@ -228,10 +226,8 @@
                                                     <th class="text-center">Total Outcome</th>
                                                     <th class="text-center">Total Income</th>
                                                     <th class="text-center">Take Home</th>
-                                                    {{-- <th class="text-center">Mesh</th> --}}
                                                     <th class="text-center">Month</th>
                                                     <th class="text-center">Period</th>
-                                                    {{-- <th class="text-center">Action</th> --}}
                                                     <th>
                                                         <button type="button" id="select-all"
                                                             class="btn btn-primary btn-sm">
@@ -261,11 +257,10 @@
                                     class="btn btn-dark btn-sm ml-2">
                                     <i class="fas fa-users"></i> Import Payroll
                                 </button>
-                                <!-- New button added here -->
-
+                             
 
                             </div>
-                        </div> {{-- end card-body --}}
+                        </div> 
 
                     </div>
 
@@ -274,7 +269,116 @@
     </div>
     </section>
     </div>
+@endsection --}}
+@section('main')
+<div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Payrolls</h1>
+        </div>
+
+        <div class="section-body">
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
+                        </div>
+
+                        <div class="card-body">
+                            {{-- Filter --}}
+                            <div class="row mb-4 align-items-end">
+                                <div class="col-md-3">
+                                    <label for="filter_month_year" class="form-label">Filter Month - Year</label>
+                                    <input type="text" id="filter_month_year" class="form-control"
+                                        placeholder="Choose Month - Year">
+                                </div>
+                                <div class="col-md-auto">
+                                    <button id="btn_filter" class="btn btn-primary">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                </div>
+                                <div class="col-md-auto">
+                                    <button id="btn_reset" class="btn btn-secondary">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Table --}}
+                            <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
+                                @csrf
+                                @method('DELETE')
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered" id="users-table">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th class="text-center">
+                                                    <button type="button" id="select-all"
+                                                        class="btn btn-primary btn-sm">
+                                                        Select All
+                                                    </button>
+                                                </th>
+                                                <th class="text-center">No.</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Attendance</th>
+                                                <th class="text-center">Daily Allowance</th>
+                                                <th class="text-center">House Allowance</th>
+                                                <th class="text-center">Meal Allowance</th>
+                                                <th class="text-center">Transport Allowance</th>
+                                                <th class="text-center">Bonus</th>
+                                                <th class="text-center">Overtime</th>
+                                                <th class="text-center">Late Fine</th>
+                                                <th class="text-center">Punishment</th>
+                                                <th class="text-center">BPJS Kesehatan</th>
+                                                <th class="text-center">BPJS Ketenagakerjaan</th>
+                                                <th class="text-center">Tax</th>
+                                                <th class="text-center">Debt</th>
+                                                <th class="text-center">Total Outcome</th>
+                                                <th class="text-center">Total Income</th>
+                                                <th class="text-center">Take Home</th>
+                                                <th class="text-center">Month</th>
+                                                <th class="text-center">Period</th>
+                                                
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+
+<div class="mt-4 d-flex flex-wrap gap-2 justify-content-start">
+    <button type="submit" class="btn btn-danger"
+        onclick="return confirm('Yakin ingin menghapus data yang dipilih?')">
+        <i class="fas fa-trash"></i> Hapus Terpilih
+    </button>
+
+    <form action="{{ route('payrolls.generateAll') }}" method="POST"
+        onsubmit="return confirm('Generate semua PDF?')">
+        @csrf
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+        </button>
+    </form>
+
+    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
+        <i class="fas fa-users"></i> Import Payroll
+    </a>
+</div>
+
+
+                            </form>
+                        </div> <!-- /.card-body -->
+                    </div> <!-- /.card -->
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
 @endsection
+
+
 
 
 @push('scripts')
@@ -310,7 +414,15 @@
                         d.month_year = $('#filter_month_year').val();
                     }
                 },
-                columns: [{
+                columns: [
+                {
+        data: 'checkbox',
+        name: 'checkbox',
+        orderable: false,
+        searchable: false,
+        className: 'text-center align-middle'
+    },    
+                {
                         data: null,
                         name: 'id',
                         className: 'text-center align-middle',
@@ -416,14 +528,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                    // {
-                    //     data: 'mesh',
-                    //     name: 'mesh',
-                    //     className: 'text-center',
-                    //     render: function(data) {
-                    //         return data ? parseInt(data).toLocaleString('id-ID') : '-';
-                    //     }
-                    // },
+                
 
 
                     {
@@ -487,32 +592,9 @@
                         render: function(data) {
                             return data ? data : '-';
                         }
-                    },
-                    // ,
-                    // {
-                    //     data: 'action',
-                    //     name: 'action',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     className: 'text-center'
-                    // }
-                    //                     ,
-                    //                     {
-                    //                                 data: 'id',
-                    //                                 name: 'checkbox',
-                    //                                 orderable: false,
-                    //                                 searchable: false,
-                    //                                 className: 'text-center',
-                    //                                 render: function(data, type, row) {
-                    //     return `<input type="checkbox" class="user-checkbox" name="payroll_ids[]" value="${row.id}">`;
-                    // }
-
-                    //                             }
-                    {
-                        data: 'checkbox',
-                        orderable: false,
-                        searchable: false
                     }
+        
+                   
 
 
                 ],
@@ -522,12 +604,12 @@
                 dom: 'lBfrtip', // Menambahkan 'l' agar Show Entries muncul
                 buttons: [{
                         extend: 'copy',
-                        text: 'Copy to Clipboard',
+                        text: 'Copy',
                         className: 'btn btn-secondary'
                     },
                     {
                         extend: 'excelHtml5',
-                        text: 'Export to Excel',
+                        text: 'Excel',
                         className: 'btn btn-success'
                     }
                 ],
@@ -555,14 +637,19 @@
         @endif
     </script>
     <script>
-        $('#select-all').on('click', function() {
-            let isChecked = $(this).data('checked') || false;
-            $('.user-checkbox').prop('checked', !isChecked);
-            $(this).data('checked', !isChecked);
-            $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-        });
-          $('#select-all').on('click', function(){
-        $('input.payroll-checkbox').prop('checked', this.checked);
-    });
+   $('#select-all').on('click', function () {
+    // Ambil state sekarang (default false)
+    let isChecked = $(this).data('checked') || false;
+
+    // Toggle semua checkbox berdasarkan state
+    $('input.payroll-checkbox').prop('checked', !isChecked);
+
+    // Simpan state baru
+    $(this).data('checked', !isChecked);
+
+    // Ubah tulisan tombol
+    $(this).text(!isChecked ? 'Deselect All' : 'Select All');
+});
+
     </script>
 @endpush
