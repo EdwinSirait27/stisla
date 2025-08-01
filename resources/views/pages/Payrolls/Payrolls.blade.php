@@ -346,48 +346,51 @@
                                             </thead>
                                         </table>
                                     </div>
-                                    {{-- <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-trash"></i> Hapus Terpilih
-                                        </button>
-                                    </form>
 
+                                    {{-- <div class="d-flex flex-wrap gap-2">
+                                        <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}"
+                                            method="POST">
+                                            @csrf
+                                            <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash"></i> Hapus Terpilih
+                                            </button>
+                                        </form>
 
+                                        <form action="{{ route('Payrolls.generateAll') }}" method="POST"
+                                            onsubmit="return confirm('Generate semua PDF?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+                                            </button>
+                                        </form>
 
-                                    <form action="{{ route('Payrolls.generateAll') }}" method="POST"
-                                        onsubmit="return confirm('Generate semua PDF?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
-                                        </button>
-                                    </form>
-
-
-                                    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
-                                        <i class="fas fa-users"></i> Import Payroll
-                                    </a> --}}
-                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
+                                            <i class="fas fa-users"></i> Import Payroll
+                                        </a>
+                                    </div> --}}
+                                 <div class="d-flex flex-wrap gap-2 align-items-stretch">
     <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
         @csrf
         <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
-        <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash"></i> Hapus Terpilih
+        <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
+            <i class="fas fa-trash me-1"></i> Hapus Terpilih
         </button>
     </form>
 
     <form action="{{ route('Payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
         @csrf
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+        <button type="submit" class="btn btn-primary h-100 d-flex align-items-center">
+            <i class="fas fa-file-pdf me-1"></i> Generate All Payroll PDF
         </button>
     </form>
 
-    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
-        <i class="fas fa-users"></i> Import Payroll
+    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark h-100 d-flex align-items-center">
+        <i class="fas fa-users me-1"></i> Import Payroll
     </a>
 </div>
+
+
 
                             </div>
 
