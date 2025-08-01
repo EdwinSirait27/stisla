@@ -136,7 +136,10 @@ Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
 ->name('pages.Importpayroll');
 Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
 // });
-Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
+// Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
+
+Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
+
     Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
 
 });

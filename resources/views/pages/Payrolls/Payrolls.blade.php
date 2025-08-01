@@ -271,90 +271,113 @@
     </div>
 @endsection --}}
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Payrolls</h1>
-        </div>
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Payrolls</h1>
+            </div>
 
-        <div class="section-body">
-            <div class="row">
-                <div class="col-12">
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-12">
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
-                        </div>
-
-                        <div class="card-body">
-                            {{-- Filter --}}
-                            <div class="row mb-4 align-items-end">
-                                <div class="col-md-3">
-                                    <label for="filter_month_year" class="form-label">Filter Month - Year</label>
-                                    <input type="text" id="filter_month_year" class="form-control"
-                                        placeholder="Choose Month - Year">
-                                </div>
-                                <div class="col-md-auto">
-                                    <button id="btn_filter" class="btn btn-primary">
-                                        <i class="fas fa-filter"></i> Filter
-                                    </button>
-                                </div>
-                                <div class="col-md-auto">
-                                    <button id="btn_reset" class="btn btn-secondary">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </button>
-                                </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
                             </div>
 
-                            {{-- Table --}}
-                            <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
-                                @csrf
-                                @method('DELETE')
-
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-bordered" id="users-table">
-                                        <thead class="thead-light">
-                                            <tr>
-                                                <th class="text-center">
-                                                    <button type="button" id="select-all"
-                                                        class="btn btn-primary btn-sm">
-                                                        Select All
-                                                    </button>
-                                                </th>
-                                                <th class="text-center">No.</th>
-                                                <th class="text-center">Employee Name</th>
-                                                <th class="text-center">Attendance</th>
-                                                <th class="text-center">Daily Allowance</th>
-                                                <th class="text-center">House Allowance</th>
-                                                <th class="text-center">Meal Allowance</th>
-                                                <th class="text-center">Transport Allowance</th>
-                                                <th class="text-center">Bonus</th>
-                                                <th class="text-center">Overtime</th>
-                                                <th class="text-center">Late Fine</th>
-                                                <th class="text-center">Punishment</th>
-                                                <th class="text-center">BPJS Kesehatan</th>
-                                                <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                <th class="text-center">Tax</th>
-                                                <th class="text-center">Debt</th>
-                                                <th class="text-center">Total Outcome</th>
-                                                <th class="text-center">Total Income</th>
-                                                <th class="text-center">Take Home</th>
-                                                <th class="text-center">Month</th>
-                                                <th class="text-center">Period</th>
-                                                
-                                            </tr>
-                                        </thead>
-                                    </table>
+                            <div class="card-body">
+                                {{-- Filter --}}
+                                <div class="row mb-4 align-items-end">
+                                    <div class="col-md-3">
+                                        <label for="filter_month_year" class="form-label">Filter Month - Year</label>
+                                        <input type="text" id="filter_month_year" class="form-control"
+                                            placeholder="Choose Month - Year">
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <button id="btn_filter" class="btn btn-primary">
+                                            <i class="fas fa-filter"></i> Filter
+                                        </button>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <button id="btn_reset" class="btn btn-secondary">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
+                                    </div>
                                 </div>
 
-<div class="mt-4 d-flex flex-wrap gap-2 justify-content-start">
-    <button type="submit" class="btn btn-danger"
-        onclick="return confirm('Yakin ingin menghapus data yang dipilih?')">
-        <i class="fas fa-trash"></i> Hapus Terpilih
-    </button>
+                                {{-- Table --}}
+                                <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
+                                    @csrf
+                                    @method('DELETE')
 
-    <form action="{{ route('payrolls.generateAll') }}" method="POST"
-        onsubmit="return confirm('Generate semua PDF?')">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-bordered" id="users-table">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th class="text-center">
+                                                        <button type="button" id="select-all"
+                                                            class="btn btn-primary btn-sm">
+                                                            Select All
+                                                        </button>
+                                                    </th>
+                                                    <th class="text-center">No.</th>
+                                                    <th class="text-center">Employee Name</th>
+                                                    <th class="text-center">Attendance</th>
+                                                    <th class="text-center">Daily Allowance</th>
+                                                    <th class="text-center">House Allowance</th>
+                                                    <th class="text-center">Meal Allowance</th>
+                                                    <th class="text-center">Transport Allowance</th>
+                                                    <th class="text-center">Bonus</th>
+                                                    <th class="text-center">Overtime</th>
+                                                    <th class="text-center">Late Fine</th>
+                                                    <th class="text-center">Punishment</th>
+                                                    <th class="text-center">BPJS Kesehatan</th>
+                                                    <th class="text-center">BPJS Ketenagakerjaan</th>
+                                                    <th class="text-center">Tax</th>
+                                                    <th class="text-center">Debt</th>
+                                                    <th class="text-center">Total Outcome</th>
+                                                    <th class="text-center">Total Income</th>
+                                                    <th class="text-center">Take Home</th>
+                                                    <th class="text-center">Month</th>
+                                                    <th class="text-center">Period</th>
+
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    {{-- <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash"></i> Hapus Terpilih
+                                        </button>
+                                    </form>
+
+
+
+                                    <form action="{{ route('Payrolls.generateAll') }}" method="POST"
+                                        onsubmit="return confirm('Generate semua PDF?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
+                                        </button>
+                                    </form>
+
+
+                                    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
+                                        <i class="fas fa-users"></i> Import Payroll
+                                    </a> --}}
+                                    <div class="d-flex flex-wrap gap-2">
+    <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
+        @csrf
+        <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
+        <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Hapus Terpilih
+        </button>
+    </form>
+
+    <form action="{{ route('Payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
         @csrf
         <button type="submit" class="btn btn-primary">
             <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
@@ -366,6 +389,8 @@
     </a>
 </div>
 
+                            </div>
+
 
                             </form>
                         </div> <!-- /.card-body -->
@@ -373,9 +398,9 @@
 
                 </div>
             </div>
-        </div>
+    </div>
     </section>
-</div>
+    </div>
 @endsection
 
 
@@ -391,6 +416,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script>
+        document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
+            const checked = document.querySelectorAll('input.payroll-checkbox:checked');
+            if (checked.length === 0) {
+                e.preventDefault();
+                Swal.fire("Gagal", "Tidak ada data yang dipilih.", "error");
+                return;
+            }
+
+            e.preventDefault(); // jangan langsung submit
+
+            Swal.fire({
+                title: 'Yakin ingin menghapus data terpilih?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // ambil semua id payroll yang diceklis
+                    const ids = Array.from(checked).map(cb => cb.value);
+                    document.getElementById('bulk-delete-hidden').value = JSON.stringify(ids);
+                    e.target.submit();
+                }
+            });
+        });
+    </script>
+
     <script>
         flatpickr("#filter_month_year", {
             dateFormat: "Y-m", // format output: 2025-05
@@ -414,15 +467,14 @@
                         d.month_year = $('#filter_month_year').val();
                     }
                 },
-                columns: [
-                {
-        data: 'checkbox',
-        name: 'checkbox',
-        orderable: false,
-        searchable: false,
-        className: 'text-center align-middle'
-    },    
-                {
+                columns: [{
+                        data: 'checkbox',
+                        name: 'checkbox',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center align-middle'
+                    },
+                    {
                         data: null,
                         name: 'id',
                         className: 'text-center align-middle',
@@ -528,7 +580,7 @@
                             return data ? parseInt(data).toLocaleString('id-ID') : '-';
                         }
                     },
-                
+
 
 
                     {
@@ -593,8 +645,8 @@
                             return data ? data : '-';
                         }
                     }
-        
-                   
+
+
 
 
                 ],
@@ -635,21 +687,28 @@
                 text: '{{ session('success') }}',
             });
         @endif
+        @if (session('error'))
+            Swal.fire({
+                title: 'Error!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
     </script>
     <script>
-   $('#select-all').on('click', function () {
-    // Ambil state sekarang (default false)
-    let isChecked = $(this).data('checked') || false;
+        $('#select-all').on('click', function() {
+            // Ambil state sekarang (default false)
+            let isChecked = $(this).data('checked') || false;
 
-    // Toggle semua checkbox berdasarkan state
-    $('input.payroll-checkbox').prop('checked', !isChecked);
+            // Toggle semua checkbox berdasarkan state
+            $('input.payroll-checkbox').prop('checked', !isChecked);
 
-    // Simpan state baru
-    $(this).data('checked', !isChecked);
+            // Simpan state baru
+            $(this).data('checked', !isChecked);
 
-    // Ubah tulisan tombol
-    $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-});
-
+            // Ubah tulisan tombol
+            $(this).text(!isChecked ? 'Deselect All' : 'Select All');
+        });
     </script>
 @endpush
