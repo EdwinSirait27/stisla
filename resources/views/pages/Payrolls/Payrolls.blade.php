@@ -440,7 +440,9 @@
                 if (result.isConfirmed) {
                     // ambil semua id payroll yang diceklis
                     const ids = Array.from(checked).map(cb => cb.value);
-                    document.getElementById('bulk-delete-hidden').value = JSON.stringify(ids);
+                    // document.getElementById('bulk-delete-hidden').value = JSON.stringify(ids);
+                    document.getElementById('bulk-delete-hidden').value = ids.join(',');
+
                     e.target.submit();
                 }
             });

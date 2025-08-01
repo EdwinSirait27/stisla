@@ -619,7 +619,10 @@ class PayrollsController extends Controller
 // }
 public function bulkDelete(Request $request)
 {
-    $hashedIds = $request->input('payroll_ids', []);
+    // $hashedIds = $request->input('payroll_ids', []);
+    // $hashedIds = (array) $request->input('payroll_ids', []);
+$hashedIds = explode(',', $request->input('payroll_ids', ''));
+
 
     if (empty($hashedIds)) {
         return back()->with('error', 'Tidak ada data yang dipilih.');
