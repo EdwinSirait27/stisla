@@ -21,116 +21,6 @@ class PayrollsController extends Controller
     {
         return view('pages.Payrolls.Payrolls');
     }
-//     public function generateAll()
-// {
-//     ini_set('max_execution_time', 180);
-//     $currentCarbon = Carbon::now(); 
-//     \Log::info("Proses generateAll() dimulai: " . $currentCarbon->toDateTimeString());
-
-//     $payrolls = Payrolls::with('employee')
-//         ->whereMonth('created_at', $currentCarbon->month)
-//         ->whereYear('created_at', $currentCarbon->year)
-//         ->get();
-
-//     \Log::info("Total payrolls ditemukan: " . $payrolls->count());
-
-//     foreach ($payrolls as $payroll) {
-//         \Log::info("Proses payroll ID: {$payroll->id}");
-
-//         try {
-//             $carbonMonthYear = Carbon::parse($payroll->month_year);
-//         } catch (\Exception $e) {
-//             \Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
-//             $carbonMonthYear = now();
-//         }
-
-//         $bonus = $payroll->bonus ?: 0;
-//         $tax = $payroll->tax ?: 0;
-//         $house_allowance = $payroll->house_allowance ?: 0;
-//         $meal_allowance = $payroll->meal_allowance ?: 0;
-//         $transport_allowance = $payroll->transport_allowance ?: 0;
-//         $deductions = $payroll->deductions ?: 0;
-//         $salary = $payroll->salary ?: 0;
-//         $overtime = $payroll->overtime ?: 0;
-//         $late_fine = $payroll->late_fine ?: 0;
-//         $bpjs_ket = $payroll->bpjs_ket ?: 0;
-//         $bpjs_kes = $payroll->bpjs_kes ?: 0;
-//         $debt = $payroll->debt ?: 0;
-//         $daily_allowance = $payroll->daily_allowance ?: 0;
-//         $punishment = $payroll->punishment ?: 0;
-//         $period = $payroll->period ?? '-';
-//         $created_at = $payroll->created_at ? $payroll->created_at->format('Y-m-d') : '-';
-//         $attendance = $payroll->attendance ?? 0;
-//         $month_year = $payroll->month_year ?? '-';
-//         $take_home = $payroll->take_home ?? '-';
-
-//         $data = [
-//             'payroll' => $payroll,
-//             'attendance' => $attendance,
-//             'overtime' => $overtime,
-//             'period' => $period,
-//             'month_year' => $month_year,
-//             'bonus' => $bonus,
-//             'house_allowance' => $house_allowance,
-//             'daily_allowance' => $daily_allowance,
-//             'meal_allowance' => $meal_allowance,
-//             'transport_allowance' => $transport_allowance,
-//             'tax' => $tax,
-//             'created_at' => $created_at,
-//             'late_fine' => $late_fine,
-//             'punishment' => $punishment,
-//             'salary' => $salary,
-//             'deductions' => $deductions,
-//             'bpjs_ket' => $bpjs_ket,
-//             'bpjs_kes' => $bpjs_kes,
-//             'debt' => $debt,
-//             'take_home' => $take_home,
-//             'monthYearHuman' => $carbonMonthYear->diffForHumans(),
-//             'formattedMonthYear' => $carbonMonthYear->format('M Y'),
-//         ];
-
-//         // Render PDF
-//         try {
-//             $htmlView = view('pages.Payrolls.show', $data)->render();
-//             $pdf = Pdf::loadHtml($htmlView)->setPaper('A4', 'portrait');
-//             \Log::info("PDF berhasil dirender untuk payroll ID {$payroll->id}");
-//         } catch (\Exception $e) {
-//             \Log::error("Gagal render PDF untuk payroll ID {$payroll->id}: " . $e->getMessage());
-//             continue;
-//         }
-
-//         // Enkripsi PDF jika ada tanggal lahir
-//         if ($payroll->employee && $payroll->employee->date_of_birth) {
-//             try {
-//                 $dobCarbon = Carbon::parse($payroll->employee->date_of_birth);
-//                 $password = $dobCarbon->format('Ymd');
-//                 $pdf->setEncryption($password);
-//                 \Log::info("PDF dienkripsi dengan DOB untuk payroll ID {$payroll->id}");
-//             } catch (\Exception $e) {
-//                 \Log::warning("Gagal set password PDF untuk payroll ID {$payroll->id}: " . $e->getMessage());
-//             }
-//         }
-
-//         // Simpan file PDF ke storage
-//         $fileDate = $carbonMonthYear->format('Y_m');
-//         $filename = 'payroll_' . str_replace(' ', '_', strtolower($payroll->employee->employee_name)) . '_' . $fileDate . '.pdf';
-//         $path = 'payrolls/' . $filename;
-
-//         try {
-//             Storage::disk('public')->put($path, $pdf->output());
-//             \Log::info("PDF berhasil disimpan untuk payroll ID {$payroll->id} di path: $path");
-
-//             $payroll->attachment_path = $path;
-//             $payroll->save();
-//         } catch (\Exception $e) {
-//             \Log::error("Gagal menyimpan PDF untuk payroll ID {$payroll->id}: " . $e->getMessage());
-//         }
-//     }
-
-//     \Log::info("Proses generateAll() selesai");
-//     return redirect()->back()->with('success', 'Semua slip gaji berhasil digenerate!');
-// }
-
     public function generateAll()
     {
         ini_set('max_execution_time', 180);
@@ -173,6 +63,18 @@ class PayrollsController extends Controller
             $deductions = $payroll->deductions ?? '-';
             $salary = $payroll->salary ?? '-';
             $take_home = $payroll->take_home ?? '-';
+//                 $salaryincome = (
+//     intval($attendance) * intval($daily_allowance)
+// ) + intval($overtime)
+//   + intval($bonus)
+//   + intval($house_allowance)
+//   + intval($meal_allowance)
+//   + intval($transport_allowance);
+//             $salaryoutcome = intval($punishment) + intval($tax)
+//                 + intval($late_fine) + intval($bpjs_ket)
+//                 + intval($bpjs_kes);
+                
+//                 $takehome =   intval($salaryincome) - intval($salaryoutcome);
 
             $data = [
                 'payroll' => $payroll,
@@ -227,110 +129,6 @@ class PayrollsController extends Controller
 
         return redirect()->back()->with('success', 'Semua slip gaji berhasil digenerate!');
     }
-//     public function generateAll()
-// {
-//     ini_set('max_execution_time', 180);
-//     $currentCarbon = Carbon::now(); 
-
-//     \Log::info("Mulai generateAll slip gaji pada: " . $currentCarbon->toDateTimeString());
-
-//     $payrolls = Payrolls::with('employee')
-//         ->whereMonth('created_at', $currentCarbon->month)
-//         ->whereYear('created_at', $currentCarbon->year)
-//         ->get();
-
-//     \Log::info("Jumlah payroll yang ditemukan: " . $payrolls->count());
-
-//     foreach ($payrolls as $payroll) {
-
-//         \Log::info("Memproses payroll ID: {$payroll->id}, Nama: {$payroll->employee->employee_name}");
-
-//         try {
-//             $carbonMonthYear = Carbon::parse($payroll->month_year);
-//         } catch (\Exception $e) {
-//             \Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
-//             $carbonMonthYear = now(); // fallback jika gagal
-//         }
-
-//         // --- Proses data
-//         $bonus = $payroll->bonus ?: 0;
-//         $tax = $payroll->tax ?: 0;
-//         $house_allowance = $payroll->house_allowance ?: 0;
-//         $meal_allowance = $payroll->meal_allowance ?: 0;
-//         $transport_allowance = $payroll->transport_allowance ?: 0;
-//         $deductions = $payroll->deductions ?: 0;
-//         $salary = $payroll->salary ?: 0;
-//         $overtime = $payroll->overtime ?: 0;
-//         $late_fine = $payroll->late_fine ?: 0;
-//         $bpjs_ket = $payroll->bpjs_ket ?: 0;
-//         $bpjs_kes = $payroll->bpjs_kes ?: 0;
-//         $debt = $payroll->debt ?: 0;
-//         $daily_allowance = $payroll->daily_allowance ?: 0;
-//         $punishment = $payroll->punishment ?: 0;
-//         $created_at = $payroll->created_at ? $payroll->created_at->format('Y-m-d') : '-';
-
-//         $attendance = $payroll->attendance ?? 0;
-//         $period = $payroll->period ?? '-';
-//         $month_year = $payroll->month_year ?? '-';
-//         $take_home = $payroll->take_home ?? '-';
-
-//         $data = [
-//             'payroll' => $payroll,
-//             'attendance' => $attendance,
-//             'overtime' => $overtime,
-//             'period' => $period,
-//             'month_year' => $month_year,
-//             'bonus' => $bonus,
-//             'house_allowance' => $house_allowance,
-//             'daily_allowance' => $daily_allowance,
-//             'meal_allowance' => $meal_allowance,
-//             'transport_allowance' => $transport_allowance,
-//             'tax' => $tax,
-//             'created_at' => $created_at,
-//             'late_fine' => $late_fine,
-//             'punishment' => $punishment,
-//             'salary' => $salary,
-//             'deductions' => $deductions,
-//             'bpjs_ket' => $bpjs_ket,
-//             'bpjs_kes' => $bpjs_kes,
-//             'debt' => $debt,
-//             'take_home' => $take_home,
-//             'monthYearHuman' => $carbonMonthYear->diffForHumans(),
-//             'formattedMonthYear' => $carbonMonthYear->format('M Y'),
-//         ];
-
-//         \Log::info("Render PDF untuk payroll ID: {$payroll->id}");
-//         $htmlView = view('pages.Payrolls.show', $data)->render();
-//         $pdf = Pdf::loadHtml($htmlView)->setPaper('A4', 'portrait');
-
-//         if ($payroll->employee && $payroll->employee->date_of_birth) {
-//             try {
-//                 $dobCarbon = Carbon::parse($payroll->employee->date_of_birth);
-//                 $password = $dobCarbon->format('Ymd');
-//                 $pdf->setEncryption($password);
-//                 \Log::info("PDF dienkripsi dengan password DOB untuk payroll ID: {$payroll->id}");
-//             } catch (\Exception $e) {
-//                 \Log::warning("Gagal set password PDF untuk payroll ID {$payroll->id}: " . $e->getMessage());
-//             }
-//         }
-
-//         $fileDate = $carbonMonthYear->format('Y_m');
-//         $filename = 'payroll_' . str_replace(' ', '_', strtolower($payroll->employee->employee_name)) . '_' . $fileDate . '.pdf';
-//         $path = 'payrolls/' . $filename;
-
-//         Storage::disk('public')->put($path, $pdf->output());
-//         \Log::info("PDF berhasil disimpan di path: {$path}");
-
-//         $payroll->attachment_path = $path;
-//         $payroll->save();
-//         \Log::info("Path PDF disimpan ke database untuk payroll ID: {$payroll->id}");
-//     }
-
-//     \Log::info("Selesai generateAll slip gaji.");
-
-//     return redirect()->back()->with('success', 'Semua slip gaji berhasil digenerate!');
-// }
-
 
 
     public function getPayrolls(Request $request)
@@ -385,9 +183,7 @@ class PayrollsController extends Controller
                 \Log::error("Decrypt error: " . $e->getMessage());
             }
             $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-            // $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
-           $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
-
+            $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
             return $payroll;
         });
         return DataTables::of($payrolls)
@@ -706,47 +502,33 @@ class PayrollsController extends Controller
         DB::commit();
         return redirect()->route('pages.Payrolls')->with('success', 'Payrolls updated successfully.');
     }
-   
-//     public function bulkDelete(Request $request)
-// {
-//     $ids = $request->input('payroll_ids', []);
+    // public function deletepayroll(Request $request)
+    // {
+    //     $request->validate([
 
-//     if (empty($ids)) {
-//         return back()->with('error', 'Tidak ada data yang dipilih.');
-//     }
+    //         'ids' => ['required', 'array', 'min:1', new NoXSSInput()],
+    //         'ids.*' => ['uuid', new NoXSSInput()],
 
-//     // Dekripsi manual hashed ID (pastikan hash-nya unik)
-//     $deleted = 0;
-//     foreach (Payrolls::all() as $payroll) {
-//         $expectedHash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-//         if (in_array($expectedHash, $ids)) {
-//             $payroll->delete();
-//             $deleted++;
-//         }
-//     }
-
-//     return back()->with('success', "$deleted data berhasil dihapus.");
-// }
-public function bulkDelete(Request $request)
+    //     ]);
+    //     Payrolls::whereIn('id', $request->ids)->delete();
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Selected users and their related data deleted successfully.'
+    //     ]);
+    // }
+    public function bulkDelete(Request $request)
 {
-    // $hashedIds = $request->input('payroll_ids', []);
-    // $hashedIds = (array) $request->input('payroll_ids', []);
-$hashedIds = explode(',', $request->input('payroll_ids', ''));
+    $ids = $request->input('payroll_ids', []);
 
-
-    if (empty($hashedIds)) {
+    if (empty($ids)) {
         return back()->with('error', 'Tidak ada data yang dipilih.');
     }
 
+    // Dekripsi manual hashed ID (pastikan hash-nya unik)
     $deleted = 0;
-
-    // Ambil hanya payrolls yang mungkin cocok, tidak semua
-    $payrolls = Payrolls::all();
-
-    foreach ($payrolls as $payroll) {
+    foreach (Payrolls::all() as $payroll) {
         $expectedHash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-
-        if (in_array($expectedHash, $hashedIds)) {
+        if (in_array($expectedHash, $ids)) {
             $payroll->delete();
             $deleted++;
         }
@@ -754,7 +536,6 @@ $hashedIds = explode(',', $request->input('payroll_ids', ''));
 
     return back()->with('success', "$deleted data berhasil dihapus.");
 }
-
   public function indexpayrolls()
     {
         $files = Storage::disk('public')->files('templatepayrolls');
@@ -793,16 +574,3 @@ $hashedIds = explode(',', $request->input('payroll_ids', ''));
     return back()->with('success', 'Payrolls import successfully!');
 }
 }
-
-//                 $salaryincome = (
-//     intval($attendance) * intval($daily_allowance)
-// ) + intval($overtime)
-//   + intval($bonus)
-//   + intval($house_allowance)
-//   + intval($meal_allowance)
-//   + intval($transport_allowance);
-//             $salaryoutcome = intval($punishment) + intval($tax)
-//                 + intval($late_fine) + intval($bpjs_ket)
-//                 + intval($bpjs_kes);
-                
-//                 $takehome =   intval($salaryincome) - intval($salaryoutcome);
