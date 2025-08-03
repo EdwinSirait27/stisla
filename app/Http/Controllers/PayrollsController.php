@@ -184,7 +184,9 @@ class PayrollsController extends Controller
             }
             $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
             // $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
+            // $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
             $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
+
 
             return $payroll;
         });
