@@ -184,8 +184,8 @@ class PayrollsController extends Controller
             }
             $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
             // $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
-            // $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
             $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
+            // $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
 
 
             return $payroll;
@@ -520,26 +520,55 @@ class PayrollsController extends Controller
     //         'message' => 'Selected users and their related data deleted successfully.'
     //     ]);
     // }
-    public function bulkDelete(Request $request)
+//     public function bulkDelete(Request $request)
+// {
+//     $ids = $request->input('payroll_ids', []);
+
+//     if (empty($ids)) {
+//         return back()->with('error', 'Tidak ada data yang dipilih.');
+//     }
+
+//     // Dekripsi manual hashed ID (pastikan hash-nya unik)
+//     $deleted = 0;
+//     foreach (Payrolls::all() as $payroll) {
+//         $expectedHash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+//         if (in_array($expectedHash, $ids)) {
+//             $payroll->delete();
+//             $deleted++;
+//         }
+//     }
+
+//     return back()->with('success', "$deleted data berhasil dihapus.");
+// }
+public function bulkDelete(Request $request)
 {
-    $ids = $request->input('payroll_ids', []);
+    $idsRaw = $request->input('payroll_ids', '');
+
+$ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+
 
     if (empty($ids)) {
         return back()->with('error', 'Tidak ada data yang dipilih.');
     }
 
-    // Dekripsi manual hashed ID (pastikan hash-nya unik)
-    $deleted = 0;
-    foreach (Payrolls::all() as $payroll) {
-        $expectedHash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-        if (in_array($expectedHash, $ids)) {
-            $payroll->delete();
-            $deleted++;
+    // Ambil hanya ID payroll yang cocok dengan hash yang dikirim
+   $matchedIds = [];
+
+Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
+    foreach ($payrolls as $payroll) {
+        $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+        if (in_array($hash, $ids)) {
+            $matchedIds[] = $payroll->id;
         }
     }
+});
 
-    return back()->with('success', "$deleted data berhasil dihapus.");
+$deleted = Payrolls::whereIn('id', $matchedIds)->delete();
+
+return back()->with('success', "$deleted data berhasil dihapus.");
+
 }
+
   public function indexpayrolls()
     {
         $files = Storage::disk('public')->files('templatepayrolls');

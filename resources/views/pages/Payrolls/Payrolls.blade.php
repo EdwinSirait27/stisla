@@ -681,26 +681,26 @@
         @endif
     </script>
     <script>
-        // $('#select-all').on('click', function() {
-        //     // Ambil state sekarang (default false)
-        //     let isChecked = $(this).data('checked') || false;
+        $('#select-all').on('click', function() {
+            // Ambil state sekarang (default false)
+            let isChecked = $(this).data('checked') || false;
 
-        //     // Toggle semua checkbox berdasarkan state
-        //     $('input.payroll-checkbox').prop('checked', !isChecked);
+            // Toggle semua checkbox berdasarkan state
+            $('input.payroll-checkbox').prop('checked', !isChecked);
 
-        //     // Simpan state baru
-        //     $(this).data('checked', !isChecked);
+            // Simpan state baru
+            $(this).data('checked', !isChecked);
 
-        //     // Ubah tulisan tombol
-        //     $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-        // });
-        $('#users-table').on('draw.dt', function () {
-    $('#select-all').off('click').on('click', function () {
-        let isChecked = $(this).data('checked') || false;
-        $('input.payroll-checkbox').prop('checked', !isChecked);
-        $(this).data('checked', !isChecked);
-        $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-    });
-});
+            // Ubah tulisan tombol
+            $(this).text(!isChecked ? 'Deselect All' : 'Select All');
+        });
+//         $('#users-table').on('draw.dt', function () {
+//     $('#select-all').off('click').on('click', function () {
+//         let isChecked = $(this).data('checked') || false;
+//         $('input.payroll-checkbox').prop('checked', !isChecked);
+//         $(this).data('checked', !isChecked);
+//         $(this).text(!isChecked ? 'Deselect All' : 'Select All');
+//     });
+// });
     </script>
 @endpush
