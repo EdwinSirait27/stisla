@@ -347,28 +347,7 @@
                                         </table>
                                     </div>
 
-                                    {{-- <div class="d-flex flex-wrap gap-2">
-                                        <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}"
-                                            method="POST">
-                                            @csrf
-                                            <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
-                                            <button type="submit" class="btn btn-danger">
-                                                <i class="fas fa-trash"></i> Hapus Terpilih
-                                            </button>
-                                        </form>
-
-                                        <form action="{{ route('Payrolls.generateAll') }}" method="POST"
-                                            onsubmit="return confirm('Generate semua PDF?')">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
-                                            </button>
-                                        </form>
-
-                                        <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
-                                            <i class="fas fa-users"></i> Import Payroll
-                                        </a>
-                                    </div> --}}
+                                  
                                  <div class="d-flex flex-wrap gap-2 align-items-stretch">
     <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
         @csrf
