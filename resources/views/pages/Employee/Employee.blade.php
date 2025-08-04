@@ -245,178 +245,105 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-jQuery(document).ready(function($) {
-    var table = $('#users-table').DataTable({
-        processing: true,
-        serverSide: true,
-        scrollX: true, // ✅ aktifkan scroll horizontal
-        dom: 'Bfrtip', // ✅ aktifkan tombol
-        buttons: [     // ✅ tombol export
-            'copy', 'excel', 'pdf', 'print'
-        ],
-        ajax: {
-            url: '{{ route('employees.employees') }}',
-            type: 'GET'
-        },
-        responsive: true,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-        },
-        columns: [
-            {
-                data: null,
-                name: 'id',
-                className: 'text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1;
+        // Wait for jQuery to be fully loaded
+        jQuery(document).ready(function($) {
+            // Initialize DataTable with proper configuration
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('employees.employees') }}',
+                    type: 'GET'
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                },
+                columns: [{
+                        data: null,
+                        name: 'id',
+                        className: 'text-center align-middle',
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name_company',
+                        name: 'name_company',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_name',
+                        name: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name',
+                        name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data === 'Active') {
+                                return '<span class="badge bg-success">Active</span>';
+                            } else if (data === 'Inactive') {
+                                return '<span class="badge bg-danger">Inactive</span>';
+                            } else if (data === 'On leave') {
+                                return '<span class="badge bg-warning">On Leave</span>';
+                            } else if (data === 'Mutation') {
+                                return '<span class="badge bg-info">Mutation</span>';
+                            } else if (data === 'Pending') {
+                                return '<span class="badge bg-secondary">Pending</span>';
+                            }
+                            return '<span class="badge bg-secondary">Pending</span>';
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
                 }
-            },
-            { data: 'employee_name', name: 'employee_name', className: 'text-center' },
-            { data: 'name_company', name: 'name_company', className: 'text-center' },
-            { data: 'position_name', name: 'position_name', className: 'text-center' },
-            { data: 'department_name', name: 'department_name', className: 'text-center' },
-            { data: 'name', name: 'name', className: 'text-center' },
-            { data: 'created_at', name: 'created_at', className: 'text-center' },
-            {
-                data: 'status',
-                name: 'status',
-                className: 'text-center',
-                render: function(data) {
-                    let badgeClass = 'bg-secondary';
-                    if (data === 'Active') badgeClass = 'bg-success';
-                    else if (data === 'Inactive') badgeClass = 'bg-danger';
-                    else if (data === 'On leave') badgeClass = 'bg-warning';
-                    else if (data === 'Mutation') badgeClass = 'bg-info';
-                    return `<span class="badge ${badgeClass}">${data}</span>`;
-                }
-            },
-            {
-                data: 'action',
-                name: 'action',
-                orderable: false,
-                searchable: false,
-                className: 'text-center'
-            }
-        ],
-        initComplete: function() {
-            $('.dataTables_filter input').addClass('form-control');
-            $('.dataTables_length select').addClass('form-control');
-        }
-    });
+            });
 
-    @if (session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: '{{ session('success') }}',
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
-    @endif
-});
-
-        // // Wait for jQuery to be fully loaded
-        // jQuery(document).ready(function($) {
-        //     // Initialize DataTable with proper configuration
-        //     var table = $('#users-table').DataTable({
-        //         processing: true,
-        //         serverSide: true,
-        //         ajax: {
-        //             url: '{{ route('employees.employees') }}',
-        //             type: 'GET'
-        //         },
-        //         responsive: true,
-        //         lengthMenu: [
-        //             [10, 25, 50, 100, -1],
-        //             [10, 25, 50, 100, "All"]
-        //         ],
-        //         language: {
-        //             search: "_INPUT_",
-        //             searchPlaceholder: "Search...",
-        //         },
-        //         columns: [{
-        //                 data: null,
-        //                 name: 'id',
-        //                 className: 'text-center align-middle',
-        //                 render: function(data, type, row, meta) {
-        //                     return meta.row + meta.settings._iDisplayStart + 1;
-        //                 }
-        //             },
-        //             {
-        //                 data: 'employee_name',
-        //                 name: 'employee_name',
-        //                 className: 'text-center'
-        //             },
-        //             {
-        //                 data: 'name_company',
-        //                 name: 'name_company',
-        //                 className: 'text-center'
-        //             },
-        //             {
-        //                 data: 'position_name',
-        //                 name: 'position_name',
-        //                 className: 'text-center'
-        //             },
-        //             {
-        //                 data: 'department_name',
-        //                 name: 'department_name',
-        //                 className: 'text-center'
-        //             },
-        //             {
-        //                 data: 'name',
-        //                 name: 'name',
-        //                 className: 'text-center'
-        //             },
-        //             {
-        //                 data: 'created_at',
-        //                 name: 'created_at',
-        //                 className: 'text-center'
-        //             },
-        //             {
-        //                 data: 'status',
-        //                 name: 'status',
-        //                 className: 'text-center',
-        //                 render: function(data, type, row) {
-        //                     if (data === 'Active') {
-        //                         return '<span class="badge bg-success">Active</span>';
-        //                     } else if (data === 'Inactive') {
-        //                         return '<span class="badge bg-danger">Inactive</span>';
-        //                     } else if (data === 'On leave') {
-        //                         return '<span class="badge bg-warning">On Leave</span>';
-        //                     } else if (data === 'Mutation') {
-        //                         return '<span class="badge bg-info">Mutation</span>';
-        //                     } else if (data === 'Pending') {
-        //                         return '<span class="badge bg-secondary">Pending</span>';
-        //                     }
-        //                     return '<span class="badge bg-secondary">Pending</span>';
-        //                 }
-        //             },
-        //             {
-        //                 data: 'action',
-        //                 name: 'action',
-        //                 orderable: false,
-        //                 searchable: false,
-        //                 className: 'text-center'
-        //             }
-        //         ],
-        //         initComplete: function() {
-        //             $('.dataTables_filter input').addClass('form-control');
-        //             $('.dataTables_length select').addClass('form-control');
-        //         }
-        //     });
-
-        //     @if (session('success'))
-        //         Swal.fire({
-        //             icon: 'success',
-        //             title: 'Success',
-        //             text: '{{ session('success') }}',
-        //         });
-        //     @endif
-
-        // });
 
         //         $(document).ready(function() {
         //     $('#transferAllBtn').on('click', function() {
