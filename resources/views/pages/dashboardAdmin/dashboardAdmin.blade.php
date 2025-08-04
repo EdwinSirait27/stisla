@@ -185,6 +185,8 @@
                                             <tr>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Store</th>
+                                                <th class="text-center">Position</th>
                                                 <th class="text-center">Pin</th>
                                                 <th class="text-center">Username</th>
                                                 <th class="text-center">Account Creation</th>
@@ -192,6 +194,7 @@
                                                 <th class="text-center">Mac Lan</th>
                                                 {{-- <th class="text-center">Status</th> --}}
                                                 <th class="text-center">Roles</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -246,6 +249,16 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'store_name',
+                        name: 'store_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'pin',
                         name: 'pin',
                         className: 'text-center'
@@ -275,6 +288,25 @@
                         data: 'roles',
                         name: 'roles',
                         className: 'text-center'
+                    },
+                     {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data === 'Active') {
+                                return '<span class="badge bg-success">Active</span>';
+                            } else if (data === 'Inactive') {
+                                return '<span class="badge bg-danger">Inactive</span>';
+                            } else if (data === 'On leave') {
+                                return '<span class="badge bg-warning">On Leave</span>';
+                            } else if (data === 'Mutation') {
+                                return '<span class="badge bg-info">Mutation</span>';
+                            } else if (data === 'Pending') {
+                                return '<span class="badge bg-secondary">Pending</span>';
+                            }
+                            return '<span class="badge bg-secondary">Pending</span>';
+                        }
                     },
                     {
                         data: 'action',

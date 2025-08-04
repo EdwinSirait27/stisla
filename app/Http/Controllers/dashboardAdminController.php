@@ -73,6 +73,16 @@ class dashboardAdminController extends Controller
                     ? $user->Employee->employee_name
                     : 'Empty';
             })
+            ->addColumn('store_name', function ($user) {
+                return !empty($user->Employee->store) && !empty($user->Employee->store->name)
+                    ? $user->Employee->store->name
+                    : 'Empty';
+            })
+            ->addColumn('position_name', function ($user) {
+                return !empty($user->Employee->position) && !empty($user->Employee->position->name)
+                    ? $user->Employee->position->name
+                    : 'Empty';
+            })
             ->addColumn('pin', function ($user) {
                 return !empty($user->Employee) && !empty($user->Employee->pin)
                     ? $user->Employee->pin
@@ -81,6 +91,11 @@ class dashboardAdminController extends Controller
             ->addColumn('device_wifi_mac', function ($user) {
                 return !empty($user->Terms) && !empty($user->Terms->device_wifi_mac)
                     ? $user->Terms->device_wifi_mac
+                    : 'Empty';
+            })
+            ->addColumn('status', function ($user) {
+                return !empty($user->Employee) && !empty($user->Employee->status)
+                    ? $user->Employee->status
                     : 'Empty';
             })
             ->rawColumns(['device_lan_mac', 'device_wifi_mac', 'action'])
