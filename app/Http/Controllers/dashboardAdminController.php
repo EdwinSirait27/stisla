@@ -73,6 +73,11 @@ class dashboardAdminController extends Controller
                     ? $user->Employee->employee_name
                     : 'Empty';
             })
+            ->addColumn('pin', function ($user) {
+                return !empty($user->Employee) && !empty($user->Employee->pin)
+                    ? $user->Employee->pin
+                    : 'Empty';
+            })
             ->addColumn('device_wifi_mac', function ($user) {
                 return !empty($user->Terms) && !empty($user->Terms->device_wifi_mac)
                     ? $user->Terms->device_wifi_mac
@@ -131,6 +136,7 @@ class dashboardAdminController extends Controller
             new NoXSSInput()
         ],
         'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
+        'pin' => ['required', 'max:4', new NoXSSInput()],
         'role' => ['required', 'string', 'exists:roles,name'],
         'permissions' => ['nullable'],
     ]);
@@ -159,6 +165,7 @@ class dashboardAdminController extends Controller
         if ($user->Employee) {
             $user->Employee->update([
                 'status' => $validatedData['status'] ?? 'Active',
+                'pin' => $validatedData['pin'] ?? 'Active',
             ]);
             Log::info('Employee status berhasil diupdate');
         }

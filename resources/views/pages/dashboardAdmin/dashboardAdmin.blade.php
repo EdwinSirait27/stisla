@@ -185,6 +185,7 @@
                                             <tr>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Pin</th>
                                                 <th class="text-center">Username</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Mac Wifi</th>
@@ -242,6 +243,11 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'pin',
+                        name: 'pin',
                         className: 'text-center'
                     },
                     {
