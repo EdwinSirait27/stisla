@@ -289,6 +289,19 @@
                         name: 'roles',
                         className: 'text-center'
                     },
+                     {
+                data: 'status',
+                name: 'status',
+                className: 'text-center',
+                render: function(data) {
+                    let badgeClass = 'bg-secondary';
+                    if (data === 'Active') badgeClass = 'bg-success';
+                    else if (data === 'Inactive') badgeClass = 'bg-danger';
+                    else if (data === 'On leave') badgeClass = 'bg-warning';
+                    else if (data === 'Mutation') badgeClass = 'bg-info';
+                    return `<span class="badge ${badgeClass}">${data}</span>`;
+                }
+            },
                     {
                         data: 'action',
                         name: 'action',
