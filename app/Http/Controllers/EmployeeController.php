@@ -105,18 +105,29 @@ class EmployeeController extends Controller
     ])
     ->select(['id', 'employee_id'])
     ->get()
-    ->map(function ($employee) use ($isHeadHR) {
-        $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-        $employeeName = optional($employee->Employee)->employee_name;
+    // ->map(function ($employee) use ($isHeadHR) {
+    //     $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+    //     $employeeName = optional($employee->Employee)->employee_name;
 
-        $employee->action = $isHeadHR
-            ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
-                    <i class="fas fa-user-edit text-secondary"></i>
-               </a>'
-            : '';
+    //     $employee->action = $isHeadHR
+    //         ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+    //                 <i class="fas fa-user-edit text-secondary"></i>
+    //            </a>'
+    //         : '';
 
-        return $employee;
-    });
+    //     return $employee;
+    // });
+    ->map(function ($employee)  {
+    $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+    $employeeName = optional($employee->Employee)->employee_name;
+
+    $employee->action = '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+            <i class="fas fa-user-edit text-secondary"></i>
+       </a>';
+
+    return $employee;
+});
+
     return DataTables::of($employees)
         ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
         ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
