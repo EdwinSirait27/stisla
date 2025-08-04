@@ -4,8 +4,7 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 @endpush
 <style>
     /* Card Styles */
@@ -220,13 +219,13 @@
                                         <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
                                     </button>
                                 </div> --}}
-                                 <div class="alert alert-secondary mt-4" role="alert">
-        <span class="text-dark">
-            <strong>Important Note:</strong> <br>
-            - <i class="fas fa-user"></i> Press button to edit
- {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
-        </span>
-    </div>
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - <i class="fas fa-user"></i> Press button to edit
+                                        {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -236,224 +235,296 @@
     </div>
 @endsection
 @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Wait for jQuery to be fully loaded
-        jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('employees.employees') }}',
-                    type: 'GET'
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name_company',
-                        name: 'name_company',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data === 'Active') {
-                                return '<span class="badge bg-success">Active</span>';
-                            } else if (data === 'Inactive') {
-                                return '<span class="badge bg-danger">Inactive</span>';
-                            } else if (data === 'On leave') {
-                                return '<span class="badge bg-warning">On Leave</span>';
-                            } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Mutation</span>';
-                            } else if (data === 'Pending') {
-                                return '<span class="badge bg-secondary">Pending</span>';
-                            }
-                            return '<span class="badge bg-secondary">Pending</span>';
-                        }
-                    },
-
-                    // {
-                    //     data: 'length_of_service',
-                    //     name: 'length_of_service',
-                    //     className: 'text-center'
-                    // },
-
-
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+jQuery(document).ready(function($) {
+    var table = $('#users-table').DataTable({
+        processing: true,
+        serverSide: true,
+        scrollX: true, // ✅ aktifkan scroll horizontal
+        dom: 'Bfrtip', // ✅ aktifkan tombol
+        buttons: [     // ✅ tombol export
+            'copy', 'excel', 'pdf', 'print'
+        ],
+        ajax: {
+            url: '{{ route('employees.employees') }}',
+            type: 'GET'
+        },
+        responsive: true,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "All"]
+        ],
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search...",
+        },
+        columns: [
+            {
+                data: null,
+                name: 'id',
+                className: 'text-center align-middle',
+                render: function(data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
                 }
-            });
+            },
+            { data: 'employee_name', name: 'employee_name', className: 'text-center' },
+            { data: 'name_company', name: 'name_company', className: 'text-center' },
+            { data: 'position_name', name: 'position_name', className: 'text-center' },
+            { data: 'department_name', name: 'department_name', className: 'text-center' },
+            { data: 'name', name: 'name', className: 'text-center' },
+            { data: 'created_at', name: 'created_at', className: 'text-center' },
+            {
+                data: 'status',
+                name: 'status',
+                className: 'text-center',
+                render: function(data) {
+                    let badgeClass = 'bg-secondary';
+                    if (data === 'Active') badgeClass = 'bg-success';
+                    else if (data === 'Inactive') badgeClass = 'bg-danger';
+                    else if (data === 'On leave') badgeClass = 'bg-warning';
+                    else if (data === 'Mutation') badgeClass = 'bg-info';
+                    return `<span class="badge ${badgeClass}">${data}</span>`;
+                }
+            },
+            {
+                data: 'action',
+                name: 'action',
+                orderable: false,
+                searchable: false,
+                className: 'text-center'
+            }
+        ],
+        initComplete: function() {
+            $('.dataTables_filter input').addClass('form-control');
+            $('.dataTables_length select').addClass('form-control');
+        }
+    });
 
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-
-        });
-
-//         $(document).ready(function() {
-//     $('#transferAllBtn').on('click', function() {
-//         // Ambil nilai tanggal dari input
-//         const selectedDate = $('#payrollDate').val();
-        
-//         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
-//                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
-//             $.ajax({
-//                 url: "{{ route('employees.transferAllToPayroll') }}",
-//                 type: "POST",
-//                 data: {
-//                     "_token": "{{ csrf_token() }}",
-//                     "month_year": selectedDate
-//                 },
-//                 success: function(response) {
-//                     if (response.success) {
-//                         alert(response.message);
-//                     } else {
-//                         alert('Error: ' + response.message);
-//                     }
-//                 },
-//                 error: function(xhr) {
-//                     alert('Error: ' + xhr.responseText);
-//                 }
-//             });
-//         }
-//     });
-// });
-
-$(document).ready(function() {
-    $('#transferAllBtn').on('click', function() {
-        // Ambil nilai tanggal dari input
-        const selectedDate = $('#payrollDate').val();
-        const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric'
-        });
-        
-        // Tampilkan konfirmasi dengan SweetAlert2
+    @if (session('success'))
         Swal.fire({
-            title: 'Confirm Transfer',
-            text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, transfer!',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Processing...',
-                    html: 'Please wait while we transfer the data.',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+            icon: 'success',
+            title: 'Success',
+            text: '{{ session('success') }}',
+        });
+    @endif
+});
+
+        // // Wait for jQuery to be fully loaded
+        // jQuery(document).ready(function($) {
+        //     // Initialize DataTable with proper configuration
+        //     var table = $('#users-table').DataTable({
+        //         processing: true,
+        //         serverSide: true,
+        //         ajax: {
+        //             url: '{{ route('employees.employees') }}',
+        //             type: 'GET'
+        //         },
+        //         responsive: true,
+        //         lengthMenu: [
+        //             [10, 25, 50, 100, -1],
+        //             [10, 25, 50, 100, "All"]
+        //         ],
+        //         language: {
+        //             search: "_INPUT_",
+        //             searchPlaceholder: "Search...",
+        //         },
+        //         columns: [{
+        //                 data: null,
+        //                 name: 'id',
+        //                 className: 'text-center align-middle',
+        //                 render: function(data, type, row, meta) {
+        //                     return meta.row + meta.settings._iDisplayStart + 1;
+        //                 }
+        //             },
+        //             {
+        //                 data: 'employee_name',
+        //                 name: 'employee_name',
+        //                 className: 'text-center'
+        //             },
+        //             {
+        //                 data: 'name_company',
+        //                 name: 'name_company',
+        //                 className: 'text-center'
+        //             },
+        //             {
+        //                 data: 'position_name',
+        //                 name: 'position_name',
+        //                 className: 'text-center'
+        //             },
+        //             {
+        //                 data: 'department_name',
+        //                 name: 'department_name',
+        //                 className: 'text-center'
+        //             },
+        //             {
+        //                 data: 'name',
+        //                 name: 'name',
+        //                 className: 'text-center'
+        //             },
+        //             {
+        //                 data: 'created_at',
+        //                 name: 'created_at',
+        //                 className: 'text-center'
+        //             },
+        //             {
+        //                 data: 'status',
+        //                 name: 'status',
+        //                 className: 'text-center',
+        //                 render: function(data, type, row) {
+        //                     if (data === 'Active') {
+        //                         return '<span class="badge bg-success">Active</span>';
+        //                     } else if (data === 'Inactive') {
+        //                         return '<span class="badge bg-danger">Inactive</span>';
+        //                     } else if (data === 'On leave') {
+        //                         return '<span class="badge bg-warning">On Leave</span>';
+        //                     } else if (data === 'Mutation') {
+        //                         return '<span class="badge bg-info">Mutation</span>';
+        //                     } else if (data === 'Pending') {
+        //                         return '<span class="badge bg-secondary">Pending</span>';
+        //                     }
+        //                     return '<span class="badge bg-secondary">Pending</span>';
+        //                 }
+        //             },
+        //             {
+        //                 data: 'action',
+        //                 name: 'action',
+        //                 orderable: false,
+        //                 searchable: false,
+        //                 className: 'text-center'
+        //             }
+        //         ],
+        //         initComplete: function() {
+        //             $('.dataTables_filter input').addClass('form-control');
+        //             $('.dataTables_length select').addClass('form-control');
+        //         }
+        //     });
+
+        //     @if (session('success'))
+        //         Swal.fire({
+        //             icon: 'success',
+        //             title: 'Success',
+        //             text: '{{ session('success') }}',
+        //         });
+        //     @endif
+
+        // });
+
+        //         $(document).ready(function() {
+        //     $('#transferAllBtn').on('click', function() {
+        //         // Ambil nilai tanggal dari input
+        //         const selectedDate = $('#payrollDate').val();
+
+        //         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
+        //                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
+        //             $.ajax({
+        //                 url: "{{ route('employees.transferAllToPayroll') }}",
+        //                 type: "POST",
+        //                 data: {
+        //                     "_token": "{{ csrf_token() }}",
+        //                     "month_year": selectedDate
+        //                 },
+        //                 success: function(response) {
+        //                     if (response.success) {
+        //                         alert(response.message);
+        //                     } else {
+        //                         alert('Error: ' + response.message);
+        //                     }
+        //                 },
+        //                 error: function(xhr) {
+        //                     alert('Error: ' + xhr.responseText);
+        //                 }
+        //             });
+        //         }
+        //     });
+        // });
+
+        $(document).ready(function() {
+            $('#transferAllBtn').on('click', function() {
+                // Ambil nilai tanggal dari input
+                const selectedDate = $('#payrollDate').val();
+                const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
                 });
-                
-                // Lakukan AJAX request
-                $.ajax({
-                    url: "{{ route('employees.transferAllToPayroll') }}",
-                    type: "POST",
-                    data: {
-                        "_token": "{{ csrf_token() }}",
-                        "month_year": selectedDate
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Tampilkan hasil dengan SweetAlert2
-                            Swal.fire({
-                                title: 'Transfer Successful!',
-                                html: `
+
+                // Tampilkan konfirmasi dengan SweetAlert2
+                Swal.fire({
+                    title: 'Confirm Transfer',
+                    text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, transfer!',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Tampilkan loading
+                        Swal.fire({
+                            title: 'Processing...',
+                            html: 'Please wait while we transfer the data.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Lakukan AJAX request
+                        $.ajax({
+                            url: "{{ route('employees.transferAllToPayroll') }}",
+                            type: "POST",
+                            data: {
+                                "_token": "{{ csrf_token() }}",
+                                "month_year": selectedDate
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // Tampilkan hasil dengan SweetAlert2
+                                    Swal.fire({
+                                        title: 'Transfer Successful!',
+                                        html: `
                                     <div class="text-left">
                                         <p><strong>Period:</strong> ${response.period}</p>
                                         <p><strong>Transferred:</strong> ${response.transferred} employee(s)</p>
                                         <p><strong>Skipped:</strong> ${response.skipped} employee(s) (already exist)</p>
                                     </div>`,
-                                icon: 'success',
-                                confirmButtonText: 'Great!'
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: response.message,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        // Tampilkan error dengan SweetAlert2
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Failed to process your request. Please try again.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
+                                        icon: 'success',
+                                        confirmButtonText: 'Great!'
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: response.message,
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
+                                // Tampilkan error dengan SweetAlert2
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Failed to process your request. Please try again.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                                console.error("Error:", xhr);
+                            }
                         });
-                        console.error("Error:", xhr);
                     }
                 });
-            }
+            });
         });
-    });
-});
     </script>
 @endpush
