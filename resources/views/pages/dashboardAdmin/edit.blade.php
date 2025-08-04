@@ -342,6 +342,25 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="pin" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Employees Pin Fingerprints') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('pin') is-invalid @enderror"
+                                                            value="{{ old('pin', $user->Employee->pin ?? '') }}"
+                                                            type="number" id="pin" name="pin"
+                                                            aria-describedby="info-pin"
+                                                            placeholder="Employee Fingerspot pin" maxlength="4">
+                                                        @error('pin')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="alert alert-secondary mt-4" role="alert">
