@@ -212,7 +212,7 @@
         </section>
     </div>
 @endsection
-{{-- @push('scripts')
+@push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -289,103 +289,6 @@
                         name: 'roles',
                         className: 'text-center'
                     },
-                     {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data === 'Active') {
-                                return '<span class="badge bg-success">Active</span>';
-                            } else if (data === 'Inactive') {
-                                return '<span class="badge bg-danger">Inactive</span>';
-                            } else if (data === 'On leave') {
-                                return '<span class="badge bg-warning">On Leave</span>';
-                            } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Mutation</span>';
-                            } else if (data === 'Pending') {
-                                return '<span class="badge bg-secondary">Pending</span>';
-                            }
-                            return '<span class="badge bg-secondary">Pending</span>';
-                        }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            }); --}}
-            @push('scripts')
-    <!-- DataTables & Buttons -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        jQuery(document).ready(function($) {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                scrollX: true, // ✅ scroll horizontal
-                dom: 'Bfrtip', // ✅ aktifkan tombol
-                buttons: ['copy', 'excel', 'pdf', 'print'],
-                ajax: {
-                    url: '{{ route('users.users') }}',
-                    type: 'GET'
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [
-                    {
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    { data: 'employee_name', name: 'employee_name', className: 'text-center' },
-                    { data: 'store_name', name: 'store_name', className: 'text-center' },
-                    { data: 'position_name', name: 'position_name', className: 'text-center' },
-                    { data: 'pin', name: 'pin', className: 'text-center' },
-                    { data: 'username', name: 'username', className: 'text-center' },
-                    { data: 'created_at', name: 'created_at', className: 'text-center' },
-                    { data: 'device_wifi_mac', name: 'device_wifi_mac', className: 'text-center' },
-                    { data: 'device_lan_mac', name: 'device_lan_mac', className: 'text-center' },
-                    { data: 'roles', name: 'roles', className: 'text-center' },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data) {
-                            let badgeClass = 'bg-secondary';
-                            if (data === 'Active') badgeClass = 'bg-success';
-                            else if (data === 'Inactive') badgeClass = 'bg-danger';
-                            else if (data === 'On leave') badgeClass = 'bg-warning';
-                            else if (data === 'Mutation') badgeClass = 'bg-info';
-                            return `<span class="badge ${badgeClass}">${data}</span>`;
-                        }
-                    },
                     {
                         data: 'action',
                         name: 'action',
@@ -399,7 +302,6 @@
                     $('.dataTables_length select').addClass('form-control');
                 }
             });
-
 
             @if (session('success'))
             Swal.fire({
