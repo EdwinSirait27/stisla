@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 @endpush
 <style>
     /* Card Styles */
@@ -180,6 +182,15 @@
                             </div>
 
                             <div class="card-body">
+                                   <div class="col-md-4">
+                                <label for="filter-store" class="form-label">Filter</label>
+                                <select id="filter-store" class="form-select select2">
+                                    <option value="">All</option>
+                                    @foreach($storeList as $name)
+                                        <option value="{{ $name }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
@@ -235,15 +246,10 @@
     </div>
 @endsection
 @push('scripts')
-   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
@@ -253,7 +259,11 @@
                 serverSide: true,
                 ajax: {
                     url: '{{ route('employees.employees') }}',
-                    type: 'GET'
+                    type: 'GET',
+                      data: function (d) {
+                        d.name = $('#filter-store').val();
+            
+            }
                 },
                 responsive: true,
                 lengthMenu: [
@@ -333,6 +343,9 @@
                     $('.dataTables_filter input').addClass('form-control');
                     $('.dataTables_length select').addClass('form-control');
                 }
+            });
+            $('#filter-store').on('change', function() {
+                table.ajax.reload();
             });
 
             @if (session('success'))
@@ -453,5 +466,11 @@
                 });
             });
         });
+            $(document).ready(function() {
+        $('#filter-store').select2({
+            placeholder: 'filter-store',
+            allowClear: false
+        });
+    });
     </script>
 @endpush

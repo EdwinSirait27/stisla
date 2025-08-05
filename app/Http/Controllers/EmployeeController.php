@@ -27,7 +27,9 @@ class EmployeeController extends Controller
     }
     public function index()
     {
-        return view('pages.Employee.Employee');
+        $storeList = Stores::select('name')->distinct()->pluck('name');
+
+        return view('pages.Employee.Employee',compact('storeList'));
     }
     // public function getEmployees()
     // {
@@ -93,42 +95,71 @@ class EmployeeController extends Controller
     //         ->rawColumns(['employ', 'position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name_store', 'action'])
     //         ->make(true);
     // }
-    public function getEmployees(Request $request, DataTables $dataTables)
+//     public function getEmployees(Request $request, DataTables $dataTables)
+// {
+//         $storeFilter = request()->get('name');
+
+//     $isHeadHR = auth()->user()->hasRole('HeadHR');
+
+//     $employees = User::with([
+//         'Employee.company',
+//         'Employee.store',
+//         'Employee.position',
+//         'Employee.department',
+//     ])
+//     ->select(['id', 'employee_id'])
+//     ->get()
+  
+//     ->map(function ($employee)  {
+//     $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+//     $employeeName = optional($employee->Employee)->employee_name;
+
+//     $employee->action = '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+//             <i class="fas fa-user-edit text-secondary"></i>
+//        </a>';
+
+//     return $employee;
+// });
+//   if (!empty($storeFilter)) {
+//             $employees->whereHas('Employee.store', function ($q) use ($storeFilter) {
+//                 $q->where('name', $storeFilter);
+//             });
+//         }
+
+
+
+//     return DataTables::of($employees)
+//         ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
+//         ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
+//         ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
+//         ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
+//         ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
+//         ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
+//         ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
+//         ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
+//         ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'action'])
+//         ->make(true);
+// }
+public function getEmployees(Request $request, DataTables $dataTables)
 {
+    $storeFilter = $request->get('name');
     $isHeadHR = auth()->user()->hasRole('HeadHR');
 
-    $employees = User::with([
+    $query = User::with([
         'Employee.company',
         'Employee.store',
         'Employee.position',
         'Employee.department',
-    ])
-    ->select(['id', 'employee_id'])
-    ->get()
-    // ->map(function ($employee) use ($isHeadHR) {
-    //     $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-    //     $employeeName = optional($employee->Employee)->employee_name;
+    ])->select(['id', 'employee_id']);
 
-    //     $employee->action = $isHeadHR
-    //         ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
-    //                 <i class="fas fa-user-edit text-secondary"></i>
-    //            </a>'
-    //         : '';
+    // Filter berdasarkan nama store
+    if (!empty($storeFilter)) {
+        $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
+            $q->where('name', $storeFilter);
+        });
+    }
 
-    //     return $employee;
-    // });
-    ->map(function ($employee)  {
-    $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-    $employeeName = optional($employee->Employee)->employee_name;
-
-    $employee->action = '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
-            <i class="fas fa-user-edit text-secondary"></i>
-       </a>';
-
-    return $employee;
-});
-
-    return DataTables::of($employees)
+    return DataTables::of($query)
         ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
         ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
         ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
@@ -137,14 +168,21 @@ class EmployeeController extends Controller
         ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
         ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
         ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
+        ->addColumn('action', function ($e) {
+            $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+            $employeeName = optional($e->Employee)->employee_name;
+            return '<a href="' . route('Employee.edit', $id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+                <i class="fas fa-user-edit text-secondary"></i>
+            </a>';
+        })
         ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'action'])
         ->make(true);
 }
+
  public function getEmployeesall()
     {
         $storeFilter = request()->get('name');
         $statusFilter = request()->get('status');
-
         $query = User::with([
             'Employee',
             'Employee.company',
