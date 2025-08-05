@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Yajra\DataTables\DataTables;
 use App\Models\Terms;
+use App\Models\Stores;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
@@ -15,20 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 class dashboardAdminController extends Controller
 {
-    public function index()
-    {
-//         $users = User::with('roles')->get();
-
-// foreach ($users as $user) {
-//     dump([
-//         'id' => $user->id,
-//         'username' => $user->username,
-//         'roles' => $user->roles->pluck('name')->toArray()
-//     ]);
-// }
-// dd('done');
-        return view('pages.dashboardAdmin.dashboardAdmin');
-    }
+  
     // public function getUsers()
     // {
     //     $users = User::with('Terms', 'roles', 'Employee')
@@ -95,15 +83,20 @@ class dashboardAdminController extends Controller
     //         ->rawColumns(['device_lan_mac', 'device_wifi_mac', 'action'])
     //         ->make(true);
     // }
+      public function index()
+    {
+$storeList = Stores::select('name')->distinct()->get();
+        return view('pages.dashboardAdmin.dashboardAdmin',compact('storeList'));
+    }
     public function getUsers(Request $request)
 {
     $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position'])
         ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
-        ->when($request->has('store_name') && $request->store_name !== '', function ($query) use ($request) {
-            $query->whereHas('Employee.store', function ($q) use ($request) {
-                $q->where('name', $request->store_name);
-            });
-        })
+        // ->when($request->has('store_name') && $request->store_name !== '', function ($query) use ($request) {
+        //     $query->whereHas('Employee.store', function ($q) use ($request) {
+        //         $q->where('name', $request->store_name);
+        //     });
+        // })
         ->get()
         ->map(function ($user) {
             $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);

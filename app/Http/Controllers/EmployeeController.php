@@ -416,7 +416,7 @@ public function getEmployees(Request $request, DataTables $dataTables)
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation','Active'];
         $banks = Banks::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];

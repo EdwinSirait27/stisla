@@ -177,6 +177,14 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Users</h6>
                             </div>
+<form id="filter-form">
+    <select name="store_name" id="store_name" class="form-control">
+        <option value="">-- Semua Store --</option>
+        @foreach ($storeList as $store)
+            <option value="{{ $store->name }}">{{ $store->name }}</option>
+        @endforeach
+    </select>
+</form>
 
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -224,7 +232,10 @@
                 serverSide: true,
                 ajax: {
                     url: '{{ route('users.users') }}',
-                    type: 'GET'
+                    type: 'GET',
+                      data: function(d) {
+            d.store_name = $('#store_name').val();
+        }
                 },
                 responsive: true,
                 lengthMenu: [
@@ -250,7 +261,7 @@
                     },
                     {
                         data: 'store_name',
-                        name: 'store_name',
+                        name: 'Employee.store.name',
                         className: 'text-center'
                     },
                     {
@@ -315,6 +326,10 @@
                     $('.dataTables_length select').addClass('form-control');
                 }
             });
+            $('#store_name').on('change', function () {
+    $('#datatable').DataTable().ajax.reload();
+});
+
 
             @if (session('success'))
             Swal.fire({

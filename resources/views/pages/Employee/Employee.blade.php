@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
 @endpush
 <style>
     /* Card Styles */
@@ -165,8 +164,6 @@
         }
     }
 </style>
-
-
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -182,15 +179,15 @@
                             </div>
 
                             <div class="card-body">
-                                   <div class="col-md-4">
-                                <label for="filter-store" class="form-label">Filter</label>
-                                <select id="filter-store" class="form-select select2">
-                                    <option value="">All</option>
-                                    @foreach($storeList as $name)
-                                        <option value="{{ $name }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                <div class="col-md-4">
+                                    <label for="filter-store" class="form-label">Filter</label>
+                                    <select id="filter-store" class="form-select select2">
+                                        <option value="">All</option>
+                                        @foreach ($storeList as $name)
+                                            <option value="{{ $name }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
@@ -248,7 +245,7 @@
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         // Wait for jQuery to be fully loaded
@@ -260,10 +257,10 @@
                 ajax: {
                     url: '{{ route('employees.employees') }}',
                     type: 'GET',
-                      data: function (d) {
+                    data: function(d) {
                         d.name = $('#filter-store').val();
-            
-            }
+
+                    }
                 },
                 responsive: true,
                 lengthMenu: [
@@ -466,11 +463,11 @@
                 });
             });
         });
-            $(document).ready(function() {
-        $('#filter-store').select2({
-            placeholder: 'filter-store',
-            allowClear: false
+        $(document).ready(function() {
+            $('#filter-store').select2({
+                placeholder: 'filter-store',
+                allowClear: false
+            });
         });
-    });
     </script>
 @endpush
