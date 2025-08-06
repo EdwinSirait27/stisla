@@ -163,6 +163,10 @@
             font-size: 0.8rem;
         }
     }
+    .select2-container {
+    z-index: 999999 !important;
+}
+
 </style>
 @section('main')
     <div class="main-content">
@@ -181,12 +185,19 @@
                             <div class="card-body">
                                 <div class="col-md-4">
                                     <label for="filter-store" class="form-label">Filter</label>
-                                    <select id="filter-store" class="form-select select2">
+                                    {{-- <select id="filter-store" class="form-control select2">
                                         <option value="">All</option>
                                         @foreach ($storeList as $name)
                                             <option value="{{ $name }}">{{ $name }}</option>
                                         @endforeach
-                                    </select>
+                                    </select> --}}
+                                    <select id="filter-store" class="form-control select2">
+    <option value="_all">All</option> <!-- GANTI value-nya jadi unik, misalnya '_all' -->
+    @foreach ($storeList as $name)
+        <option value="{{ $name }}">{{ $name }}</option>
+    @endforeach
+</select>
+
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
@@ -218,15 +229,7 @@
                                         <i class="fas fa-users"></i> All Employees
                                     </button>
                                 </div>
-                                {{-- <div class="d-flex justify-content-end mb-3">
-                                    <div class="input-group me-2" style="max-width: 200px;">
-                                        <span class="input-group-text">Date</span>
-                                        <input type="date" id="payrollDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
-                                    </div>
-                                    <button id="transferAllBtn" class="btn btn-primary">
-                                        <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
-                                    </button>
-                                </div> --}}
+                              
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
@@ -258,7 +261,10 @@
                     url: '{{ route('employees.employees') }}',
                     type: 'GET',
                     data: function(d) {
-                        d.name = $('#filter-store').val();
+                        // d.name = $('#filter-store').val();
+                         const val = $('#filter-store').val();
+    d.name = val === '_all' ? '' : val; // kirim kosong kalau pilih 'All'
+
 
                     }
                 },
@@ -355,34 +361,7 @@
 
         });
 
-        //         $(document).ready(function() {
-        //     $('#transferAllBtn').on('click', function() {
-        //         // Ambil nilai tanggal dari input
-        //         const selectedDate = $('#payrollDate').val();
-
-        //         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
-        //                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
-        //             $.ajax({
-        //                 url: "{{ route('employees.transferAllToPayroll') }}",
-        //                 type: "POST",
-        //                 data: {
-        //                     "_token": "{{ csrf_token() }}",
-        //                     "month_year": selectedDate
-        //                 },
-        //                 success: function(response) {
-        //                     if (response.success) {
-        //                         alert(response.message);
-        //                     } else {
-        //                         alert('Error: ' + response.message);
-        //                     }
-        //                 },
-        //                 error: function(xhr) {
-        //                     alert('Error: ' + xhr.responseText);
-        //                 }
-        //             });
-        //         }
-        //     });
-        // });
+      
 
         $(document).ready(function() {
             $('#transferAllBtn').on('click', function() {
@@ -464,10 +443,51 @@
             });
         });
         $(document).ready(function() {
-            $('#filter-store').select2({
-                placeholder: 'filter-store',
-                allowClear: false
-            });
+    $('#filter-store').select2({
+    dropdownParent: $('#filter-store').parent(), // atau .card-body
+    placeholder: 'Select Store',
+    allowClear: false,
+    width: '100%'
+
+
+});
+
         });
+        // $(document).ready(function() {
+        //     $('#filter-store').select2({
+        //         placeholder: 'filter-store',
+        //         allowClear: false
+        //     });
+        // });
     </script>
+    
 @endpush
+
+  {{-- //         $(document).ready(function() {
+        //     $('#transferAllBtn').on('click', function() {
+        //         // Ambil nilai tanggal dari input
+        //         const selectedDate = $('#payrollDate').val();
+
+        //         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
+        //                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
+        //             $.ajax({
+        //                 url: "{{ route('employees.transferAllToPayroll') }}",
+        //                 type: "POST",
+        //                 data: {
+        //                     "_token": "{{ csrf_token() }}",
+        //                     "month_year": selectedDate
+        //                 },
+        //                 success: function(response) {
+        //                     if (response.success) {
+        //                         alert(response.message);
+        //                     } else {
+        //                         alert('Error: ' + response.message);
+        //                     }
+        //                 },
+        //                 error: function(xhr) {
+        //                     alert('Error: ' + xhr.responseText);
+        //                 }
+        //             });
+        //         }
+        //     });
+        // }); --}}
