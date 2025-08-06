@@ -181,7 +181,7 @@ Route::match(['GET', 'POST'],'/attendanceall/attendanceall', [AttendanceControll
 Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
     ->name('pages.Fingerprints');
 Route::match(['GET', 'POST'],'/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
-Route::get('/Fingerprints/edit/{pin}/{scan_date}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
+Route::get('/Fingerprints/edit/{pin}}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
 // Route::post('/Fingerprints', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
 Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
 Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');

@@ -8,6 +8,7 @@ use App\Models\Stores;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -316,59 +317,83 @@ class FingerprintsController extends Controller
             ->rawColumns(['action', 'updated_status'])
             ->make(true);
     }
-    // ->addColumn('action', function ($row) {
-    //     if ($row['is_updated']) {
-    //         // Sudah diupdate → tombol disable
-    //         return '<button class="btn btn-sm btn-secondary" disabled>Edited</button>';
-    //     } else {
-    //         // Belum diupdate → tampilkan tombol Edit
-    //         $editUrl = route('pages.Fingerprints.edit', [
-    //             'pin' => $row['pin'],
-    //             'scan_date' => $row['scan_date'],
-    //         ]);
-    //         return '<a href="' . $editUrl . '" class="btn btn-sm btn-primary">Edit</a>';
-    //     }
-    // })
+    public function editFingerprint($pin)
+{
+    Log::info('Akses editFingerprint', compact('pin'));
 
-    // ->addColumn('action', function ($row) {
-    //     $editUrl = route('pages.Fingerprints.edit', [
-    //         'pin' => $row['pin'],
-    //         'scan_date' => $row['scan_date'],
-    //     ]);
-    //     return '<a href="' . $editUrl . '" class="btn btn-sm btn-primary">Edit</a>';
-    // })
-    public function editFingerprint($pin, $scanDate)
-    {
-        Log::info('Akses editFingerprint', compact('pin', 'scanDate'));
+    // Ambil data terakhir dari EditedFingerprint berdasarkan pin
+    $data = EditedFingerprint::where('pin', $pin)
+        ->orderByDesc('scan_date')
+        ->first();
 
-        $data = EditedFingerprint::where('pin', $pin)
-            ->whereDate('scan_date', $scanDate)
+    if (!$data) {
+        Log::info('Tidak ditemukan di EditedFingerprint, ambil dari source fingerprint', compact('pin'));
+
+        // Ambil dari getFingerprints
+        $response = $this->getFingerprints(request());
+        $result = $response->getData()->data;
+
+        Log::info('Data dari getFingerprints total:', ['count' => count($result)]);
+
+        // Ambil data paling terakhir dari sumber berdasarkan pin
+        $data = collect($result)
+            ->where('pin', $pin)
+            ->sortByDesc('scan_date')
             ->first();
 
         if (!$data) {
-            Log::info('Tidak ditemukan di EditedFingerprint, ambil dari source fingerprint', compact('pin', 'scanDate'));
-
-            // Ambil dari getFingerprints
-            $response = $this->getFingerprints(request());
-            $result = $response->getData()->data;
-
-            Log::info('Data dari getFingerprints total:', ['count' => count($result)]);
-
-            $data = collect($result)->first(function ($item) use ($pin, $scanDate) {
-                return $item->pin == $pin && $item->scan_date == $scanDate;
-            });
-
-            if (!$data) {
-                Log::warning('Data fingerprint tidak ditemukan sama sekali!', compact('pin', 'scanDate'));
-                return response()->json(['message' => 'Data not found'], 404);
-            }
-
-            Log::info('Data ditemukan di sumber fingerprint.', (array) $data);
-        } else {
-            Log::info('Data ditemukan di EditedFingerprint.', $data->toArray());
+            Log::warning('Data fingerprint tidak ditemukan sama sekali!', compact('pin'));
+            return response()->json(['message' => 'Data not found'], 404);
         }
-        return view('pages.Fingerprints.edit', ['data' => $data]);
+
+        Log::info('Data ditemukan di sumber fingerprint.', (array) $data);
+    } else {
+        Log::info('Data ditemukan di EditedFingerprint.', $data->toArray());
     }
+
+    return view('pages.Fingerprints.edit', ['data' => $data]);
+}
+
+    //   public function editFingerprint($pin, $scanDate)
+    // {
+    //     Log::info('Akses editFingerprint', compact('pin', 'scanDate'));
+
+    //     $data = EditedFingerprint::where('pin', $pin)
+    //         // ->whereDate('scan_date', $scanDate)
+    //         ->whereDate('scan_date', Carbon::parse($scanDate)->toDateString())
+
+    //         ->first();
+
+    //     if (!$data) {
+    //         Log::info('Tidak ditemukan di EditedFingerprint, ambil dari source fingerprint', compact('pin', 'scanDate'));
+
+    //         // Ambil dari getFingerprints
+    //         $response = $this->getFingerprints(request());
+    //         $result = $response->getData()->data;
+
+    //         Log::info('Data dari getFingerprints total:', ['count' => count($result)]);
+
+    //         $data = collect($result)->first(function ($item) use ($pin, $scanDate) {
+    //             return $item->pin == $pin && $item->scan_date == $scanDate;
+    //         });
+
+    //         if (!$data) {
+    //             Log::warning('Data fingerprint tidak ditemukan sama sekali!', compact('pin', 'scanDate'));
+    //             return response()->json(['message' => 'Data not found'], 404);
+    //         }
+
+    //         Log::info('Data ditemukan di sumber fingerprint.', (array) $data);
+    //     } else {
+    //         Log::info('Data ditemukan di EditedFingerprint.', $data->toArray());
+    //     }
+    //     return view('pages.Fingerprints.edit', ['data' => $data]);
+    // }
+
+ 
+
+
+
+
 
 
     public function updateFingerprint(Request $request)
