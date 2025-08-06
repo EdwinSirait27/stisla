@@ -28,7 +28,7 @@
                             <input type="hidden" name="pin" value="{{ $data->pin }}">
                             <input type="hidden" name="scan_date" value="{{ $data->scan_date }}">
                             <input type="hidden" name="position_name" value="{{ $data->position_name }}">
-                            <input type="hidden" name="name" value="{{ $data->name }}">
+                            <input type="hidden" name="store_name" value="{{ $data->name }}">
                             <div class="row">
                                 <div class="form-group col-md-6">
                                     <label for="employee_name">Employee Name</label>

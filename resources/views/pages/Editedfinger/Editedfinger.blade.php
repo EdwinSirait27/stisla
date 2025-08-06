@@ -200,7 +200,7 @@
                                                 <th class="text-center">Device 4</th>
                                                 <th class="text-center">Scan 5</th>
                                                 <th class="text-center">Device 5</th>
-                                                <th class="text-center">Scan 6</th>
+                                                {{-- <th class="text-center">Scan 6</th>
                                                 <th class="text-center">Device 6</th>
                                                 <th class="text-center">Scan 7</th>
                                                 <th class="text-center">Device 7</th>
@@ -209,7 +209,7 @@
                                                 <th class="text-center">Scan 9</th>
                                                 <th class="text-center">Device 9</th>
                                                 <th class="text-center">Scan 10</th>
-                                                <th class="text-center">Device 10</th>
+                                                <th class="text-center">Device 10</th> --}}
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Attachment</th>
                                             </tr>
@@ -235,6 +235,19 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
+<script>
+$(document).on('click', '.view-image', function () {
+    const imageUrl = $(this).data('image-url');
+    Swal.fire({
+        title: 'Attachment',
+        imageUrl: imageUrl,
+        imageAlt: 'Attachment Image',
+        confirmButtonText: 'Tutup'
+    });
+});
+</script>
+
     <script>
         // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
@@ -338,66 +351,70 @@
                         name: 'device_5',
                         className: 'text-center'
                     },
-                    {
-                        data: 'in_6',
-                        name: 'in_6',
-                        className: 'text-center'
-                    },
-                      {
-                        data: 'device_6',
-                        name: 'device_6',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'in_7',
-                        name: 'in_7',
-                        className: 'text-center'
-                    },
-                      {
-                        data: 'device_7',
-                        name: 'device_7',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'in_8',
-                        name: 'in_8',
-                        className: 'text-center'
-                    },
-                      {
-                        data: 'device_8',
-                        name: 'device_8',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'in_9',
-                        name: 'in_9',
-                        className: 'text-center'
-                    },
-                      {
-                        data: 'device_9',
-                        name: 'device_9',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'in_10',
-                        name: 'in_10',
-                        className: 'text-center'
-                    },
-                      {
-                        data: 'device_10',
-                        name: 'device_10',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'in_6',
+                    //     name: 'in_6',
+                    //     className: 'text-center'
+                    // },
+                    //   {
+                    //     data: 'device_6',
+                    //     name: 'device_6',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'in_7',
+                    //     name: 'in_7',
+                    //     className: 'text-center'
+                    // },
+                    //   {
+                    //     data: 'device_7',
+                    //     name: 'device_7',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'in_8',
+                    //     name: 'in_8',
+                    //     className: 'text-center'
+                    // },
+                    //   {
+                    //     data: 'device_8',
+                    //     name: 'device_8',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'in_9',
+                    //     name: 'in_9',
+                    //     className: 'text-center'
+                    // },
+                    //   {
+                    //     data: 'device_9',
+                    //     name: 'device_9',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'in_10',
+                    //     name: 'in_10',
+                    //     className: 'text-center'
+                    // },
+                    //   {
+                    //     data: 'device_10',
+                    //     name: 'device_10',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'duration',
                         name: 'duration',
                         className: 'text-center'
                     },
                     {
-                        data: 'attachment',
-                        name: 'attachment',
-                        className: 'text-center'
-                    }
+            data: 'attachment',
+            name: 'attachment',
+            orderable: false,
+            searchable: false,
+            render: function (data, type, row, meta) {
+                return data; // <- ini penting, biar HTML tombol tidak escape jadi teks
+            }
+        }
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');

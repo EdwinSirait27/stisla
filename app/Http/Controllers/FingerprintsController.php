@@ -407,7 +407,7 @@ class FingerprintsController extends Controller
                 'scan_date' => 'required|date',
                 'employee_name' => 'nullable|string',
                 'position_name' => 'nullable|string',
-                'name' => 'nullable|string',
+                'store_name' => 'nullable|string',
                 'duration' => 'nullable|string',
                 'attachment' => 'required|file|mimes:jpg,jpeg,png,pdf|max:512',
                 ...collect(range(1, 10))->flatMap(function ($i) {
