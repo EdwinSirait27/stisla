@@ -29,6 +29,7 @@ use App\Http\Controllers\FingerspotController;
 use App\Http\Controllers\AttendanceimportController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\FingerprintsController;
+use App\Http\Controllers\Editedfingerprints;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
