@@ -177,14 +177,14 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Users</h6>
                             </div>
-<form id="filter-form">
+{{-- <form id="filter-form">
     <select name="store_name" id="store_name" class="form-control">
         <option value="">-- Semua Store --</option>
         @foreach ($storeList as $store)
             <option value="{{ $store->name }}">{{ $store->name }}</option>
         @endforeach
     </select>
-</form>
+</form> --}}
 
                             <div class="card-body">
                                 <div class="table-responsive">

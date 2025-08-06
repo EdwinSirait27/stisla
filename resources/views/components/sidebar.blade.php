@@ -78,8 +78,8 @@
                         <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerspot Data</a>
                         </li>
-                        <li class="{{ Request::is('{Attendance}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Attendance') }}">Attendance Data</a>
+                        <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited fingerprints</a>
                         </li>
                       
                     </ul>
@@ -153,8 +153,8 @@
                         <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerspot Data</a>
                         </li>
-                        <li class="{{ Request::is('{Attendance}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Attendance') }}">Attendance Data</a>
+                        <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited fingerprints</a>
                         </li>
                       
                     </ul>

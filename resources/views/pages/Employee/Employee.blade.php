@@ -163,10 +163,10 @@
             font-size: 0.8rem;
         }
     }
-    .select2-container {
-    z-index: 999999 !important;
-}
 
+    .select2-container {
+        z-index: 999999 !important;
+    }
 </style>
 @section('main')
     <div class="main-content">
@@ -192,11 +192,12 @@
                                         @endforeach
                                     </select> --}}
                                     <select id="filter-store" class="form-control select2">
-    <option value="_all">All</option> <!-- GANTI value-nya jadi unik, misalnya '_all' -->
-    @foreach ($storeList as $name)
-        <option value="{{ $name }}">{{ $name }}</option>
-    @endforeach
-</select>
+                                        <option value="_all">All</option>
+                                        <!-- GANTI value-nya jadi unik, misalnya '_all' -->
+                                        @foreach ($storeList as $name)
+                                            <option value="{{ $name }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
 
                                 </div>
                                 <div class="table-responsive">
@@ -229,7 +230,7 @@
                                         <i class="fas fa-users"></i> All Employees
                                     </button>
                                 </div>
-                              
+
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
@@ -251,7 +252,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
             // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
@@ -261,10 +261,8 @@
                     url: '{{ route('employees.employees') }}',
                     type: 'GET',
                     data: function(d) {
-                        // d.name = $('#filter-store').val();
-                         const val = $('#filter-store').val();
-    d.name = val === '_all' ? '' : val; // kirim kosong kalau pilih 'All'
-
+                        const val = $('#filter-store').val();
+                        d.name = val === '_all' ? '' : val;
 
                     }
                 },
@@ -360,110 +358,21 @@
             @endif
 
         });
-
-      
-
         $(document).ready(function() {
-            $('#transferAllBtn').on('click', function() {
-                // Ambil nilai tanggal dari input
-                const selectedDate = $('#payrollDate').val();
-                const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                });
+            $('#filter-store').select2({
+                dropdownParent: $('#filter-store').parent(), // atau .card-body
+                placeholder: 'Select Store',
+                allowClear: false,
+                width: '100%'
 
-                // Tampilkan konfirmasi dengan SweetAlert2
-                Swal.fire({
-                    title: 'Confirm Transfer',
-                    text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, transfer!',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Tampilkan loading
-                        Swal.fire({
-                            title: 'Processing...',
-                            html: 'Please wait while we transfer the data.',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
 
-                        // Lakukan AJAX request
-                        $.ajax({
-                            url: "{{ route('employees.transferAllToPayroll') }}",
-                            type: "POST",
-                            data: {
-                                "_token": "{{ csrf_token() }}",
-                                "month_year": selectedDate
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    // Tampilkan hasil dengan SweetAlert2
-                                    Swal.fire({
-                                        title: 'Transfer Successful!',
-                                        html: `
-                                    <div class="text-left">
-                                        <p><strong>Period:</strong> ${response.period}</p>
-                                        <p><strong>Transferred:</strong> ${response.transferred} employee(s)</p>
-                                        <p><strong>Skipped:</strong> ${response.skipped} employee(s) (already exist)</p>
-                                    </div>`,
-                                        icon: 'success',
-                                        confirmButtonText: 'Great!'
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        title: 'Error!',
-                                        text: response.message,
-                                        icon: 'error',
-                                        confirmButtonText: 'OK'
-                                    });
-                                }
-                            },
-                            error: function(xhr) {
-                                // Tampilkan error dengan SweetAlert2
-                                Swal.fire({
-                                    title: 'Error!',
-                                    text: 'Failed to process your request. Please try again.',
-                                    icon: 'error',
-                                    confirmButtonText: 'OK'
-                                });
-                                console.error("Error:", xhr);
-                            }
-                        });
-                    }
-                });
             });
-        });
-        $(document).ready(function() {
-    $('#filter-store').select2({
-    dropdownParent: $('#filter-store').parent(), // atau .card-body
-    placeholder: 'Select Store',
-    allowClear: false,
-    width: '100%'
-
-
-});
 
         });
-        // $(document).ready(function() {
-        //     $('#filter-store').select2({
-        //         placeholder: 'filter-store',
-        //         allowClear: false
-        //     });
-        // });
     </script>
-    
 @endpush
 
-  {{-- //         $(document).ready(function() {
+{{-- //         $(document).ready(function() {
         //     $('#transferAllBtn').on('click', function() {
         //         // Ambil nilai tanggal dari input
         //         const selectedDate = $('#payrollDate').val();

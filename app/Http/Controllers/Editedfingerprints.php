@@ -12,31 +12,17 @@ class Editedfingerprints extends Controller
 {
     public function index()
     {
-        $stores = Stores::select('id', 'name')
-            ->whereNotNull('name')
-            ->distinct()
-            ->pluck('name');
-        return view('pages.Editedingerprints.Editedingerprints', compact('stores'));
+        return view('pages.Editedinger.Editedinger');
     }
-    public function getDepartments()
+    public function getEditedfingerprints()
     {
-        $departments = Departments::with('user.Employee')->select(['id', 'department_name','manager_id'])
+        $editedfingerprints = EditedFingerprint::select(['id', 'pin','employee_name','position_name','store_name','scan_date','in_1','device_1','in_2','device_2','in_3','device_3','in_4','device_4','in_5','device_5','in_6','device_6','in_7','device_7','in_8','device_8','in_9','device_9','in_10','device_10'])
             ->get()
-            ->map(function ($department) {
-                $department->id_hashed = substr(hash('sha256', $department->id . env('APP_KEY')), 0, 8);
-                $department->action = '
-                    <a href="' . route('Department.edit', $department->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit Department: ' . e($department->department_name) . '">
-                        <i class="fas fa-user-edit text-secondary"></i>
-                    </a>';
-                return $department;
+            ->map(function ($editedfingerprint) {
+              
+                return $editedfingerprint;
             });
-        return DataTables::of($departments)
-        ->addColumn('employee_name', function ($department) {
-            return !empty($department->user->Employee) && !empty($department->user->Employee->employee_name)
-                ? $department->user->Employee->employee_name
-                : 'Empty';
-        })
-            ->rawColumns(['action','employee_name'])
+        return DataTables::of($editedfingerprints)
             ->make(true);
     }
 }
