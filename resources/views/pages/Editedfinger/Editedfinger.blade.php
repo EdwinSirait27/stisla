@@ -3,9 +3,7 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> --}}
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<style>
+    <style>
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -177,6 +175,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i>Edited Fingerprints</h6>
+                                <div id="custom-search-container" class="d-inline"></div>
                             </div>
 
                             <div class="card-body">
@@ -200,16 +199,7 @@
                                                 <th class="text-center">Device 4</th>
                                                 <th class="text-center">Scan 5</th>
                                                 <th class="text-center">Device 5</th>
-                                                {{-- <th class="text-center">Scan 6</th>
-                                                <th class="text-center">Device 6</th>
-                                                <th class="text-center">Scan 7</th>
-                                                <th class="text-center">Device 7</th>
-                                                <th class="text-center">Scan 8</th>
-                                                <th class="text-center">Device 8</th>
-                                                <th class="text-center">Scan 9</th>
-                                                <th class="text-center">Device 9</th>
-                                                <th class="text-center">Scan 10</th>
-                                                <th class="text-center">Device 10</th> --}}
+                                              
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Attachment</th>
                                             </tr>
@@ -351,7 +341,48 @@ $(document).on('click', '.view-image', function () {
                         name: 'device_5',
                         className: 'text-center'
                     },
-                    // {
+                  
+                    {
+                        data: 'duration',
+                        name: 'duration',
+                        className: 'text-center'
+                    },
+                    {
+            data: 'attachment',
+            name: 'attachment',
+            orderable: false,
+            searchable: false,
+            render: function (data, type, row, meta) {
+                return data; // <- ini penting, biar HTML tombol tidak escape jadi teks
+            }
+        }
+                ],
+                // initComplete: function() {
+                //     $('.dataTables_filter input').addClass('form-control');
+                //     $('.dataTables_length select').addClass('form-control');
+                // }
+            });
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+        });
+    </script>
+@endpush
+  {{-- <th class="text-center">Scan 6</th>
+                                                <th class="text-center">Device 6</th>
+                                                <th class="text-center">Scan 7</th>
+                                                <th class="text-center">Device 7</th>
+                                                <th class="text-center">Scan 8</th>
+                                                <th class="text-center">Device 8</th>
+                                                <th class="text-center">Scan 9</th>
+                                                <th class="text-center">Device 9</th>
+                                                <th class="text-center">Scan 10</th>
+                                                <th class="text-center">Device 10</th> --}}
+                                                  {{-- // {
                     //     data: 'in_6',
                     //     name: 'in_6',
                     //     className: 'text-center'
@@ -400,34 +431,4 @@ $(document).on('click', '.view-image', function () {
                     //     data: 'device_10',
                     //     name: 'device_10',
                     //     className: 'text-center'
-                    // },
-                    {
-                        data: 'duration',
-                        name: 'duration',
-                        className: 'text-center'
-                    },
-                    {
-            data: 'attachment',
-            name: 'attachment',
-            orderable: false,
-            searchable: false,
-            render: function (data, type, row, meta) {
-                return data; // <- ini penting, biar HTML tombol tidak escape jadi teks
-            }
-        }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-        });
-    </script>
-@endpush
+                    // }, --}}

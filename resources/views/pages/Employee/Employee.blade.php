@@ -4,8 +4,8 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
 @endpush
 <style>
     /* Card Styles */
@@ -163,11 +163,9 @@
             font-size: 0.8rem;
         }
     }
-
-    .select2-container {
-        z-index: 999999 !important;
-    }
 </style>
+
+
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -183,23 +181,6 @@
                             </div>
 
                             <div class="card-body">
-                                <div class="col-md-4">
-                                    <label for="filter-store" class="form-label">Filter</label>
-                                    {{-- <select id="filter-store" class="form-control select2">
-                                        <option value="">All</option>
-                                        @foreach ($storeList as $name)
-                                            <option value="{{ $name }}">{{ $name }}</option>
-                                        @endforeach
-                                    </select> --}}
-                                    <select id="filter-store" class="form-control select2">
-                                        <option value="_all">All</option>
-                                        <!-- GANTI value-nya jadi unik, misalnya '_all' -->
-                                        @foreach ($storeList as $name)
-                                            <option value="{{ $name }}">{{ $name }}</option>
-                                        @endforeach
-                                    </select>
-
-                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
@@ -230,14 +211,22 @@
                                         <i class="fas fa-users"></i> All Employees
                                     </button>
                                 </div>
-
-                                <div class="alert alert-secondary mt-4" role="alert">
-                                    <span class="text-dark">
-                                        <strong>Important Note:</strong> <br>
-                                        - <i class="fas fa-user"></i> Press button to edit
-                                        {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
-                                    </span>
-                                </div>
+                                {{-- <div class="d-flex justify-content-end mb-3">
+                                    <div class="input-group me-2" style="max-width: 200px;">
+                                        <span class="input-group-text">Date</span>
+                                        <input type="date" id="payrollDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                                    </div>
+                                    <button id="transferAllBtn" class="btn btn-primary">
+                                        <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
+                                    </button>
+                                </div> --}}
+                                 <div class="alert alert-secondary mt-4" role="alert">
+        <span class="text-dark">
+            <strong>Important Note:</strong> <br>
+            - <i class="fas fa-user"></i> Press button to edit
+ {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
+        </span>
+    </div>
                             </div>
                         </div>
                     </div>
@@ -249,9 +238,8 @@
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script>
+        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
             // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
@@ -259,12 +247,7 @@
                 serverSide: true,
                 ajax: {
                     url: '{{ route('employees.employees') }}',
-                    type: 'GET',
-                    data: function(d) {
-                        const val = $('#filter-store').val();
-                        d.name = val === '_all' ? '' : val;
-
-                    }
+                    type: 'GET'
                 },
                 responsive: true,
                 lengthMenu: [
@@ -332,6 +315,14 @@
                             return '<span class="badge bg-secondary">Pending</span>';
                         }
                     },
+
+                    // {
+                    //     data: 'length_of_service',
+                    //     name: 'length_of_service',
+                    //     className: 'text-center'
+                    // },
+
+
                     {
                         data: 'action',
                         name: 'action',
@@ -345,9 +336,6 @@
                     $('.dataTables_length select').addClass('form-control');
                 }
             });
-            $('#filter-store').on('change', function() {
-                table.ajax.reload();
-            });
 
             @if (session('success'))
                 Swal.fire({
@@ -358,45 +346,114 @@
             @endif
 
         });
-        $(document).ready(function() {
-            $('#filter-store').select2({
-                dropdownParent: $('#filter-store').parent(), // atau .card-body
-                placeholder: 'Select Store',
-                allowClear: false,
-                width: '100%'
 
+//         $(document).ready(function() {
+//     $('#transferAllBtn').on('click', function() {
+//         // Ambil nilai tanggal dari input
+//         const selectedDate = $('#payrollDate').val();
 
-            });
+//         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' +
+//                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
+//             $.ajax({
+//                 url: "{{ route('employees.transferAllToPayroll') }}",
+//                 type: "POST",
+//                 data: {
+//                     "_token": "{{ csrf_token() }}",
+//                     "month_year": selectedDate
+//                 },
+//                 success: function(response) {
+//                     if (response.success) {
+//                         alert(response.message);
+//                     } else {
+//                         alert('Error: ' + response.message);
+//                     }
+//                 },
+//                 error: function(xhr) {
+//                     alert('Error: ' + xhr.responseText);
+//                 }
+//             });
+//         }
+//     });
+// });
 
+$(document).ready(function() {
+    $('#transferAllBtn').on('click', function() {
+        // Ambil nilai tanggal dari input
+        const selectedDate = $('#payrollDate').val();
+        const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
         });
+
+        // Tampilkan konfirmasi dengan SweetAlert2
+        Swal.fire({
+            title: 'Confirm Transfer',
+            text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, transfer!',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Tampilkan loading
+                Swal.fire({
+                    title: 'Processing...',
+                    html: 'Please wait while we transfer the data.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Lakukan AJAX request
+                $.ajax({
+                    url: "{{ route('employees.transferAllToPayroll') }}",
+                    type: "POST",
+                    data: {
+                        "_token": "{{ csrf_token() }}",
+                        "month_year": selectedDate
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Tampilkan hasil dengan SweetAlert2
+                            Swal.fire({
+                                title: 'Transfer Successful!',
+                                html: `
+                                    <div class="text-left">
+                                        <p><strong>Period:</strong> ${response.period}</p>
+                                        <p><strong>Transferred:</strong> ${response.transferred} employee(s)</p>
+                                        <p><strong>Skipped:</strong> ${response.skipped} employee(s) (already exist)</p>
+                                    </div>`,
+                                icon: 'success',
+                                confirmButtonText: 'Great!'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        // Tampilkan error dengan SweetAlert2
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to process your request. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                        console.error("Error:", xhr);
+                    }
+                });
+            }
+        });
+    });
+});
     </script>
 @endpush
-
-{{-- //         $(document).ready(function() {
-        //     $('#transferAllBtn').on('click', function() {
-        //         // Ambil nilai tanggal dari input
-        //         const selectedDate = $('#payrollDate').val();
-
-        //         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' + 
-        //                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
-        //             $.ajax({
-        //                 url: "{{ route('employees.transferAllToPayroll') }}",
-        //                 type: "POST",
-        //                 data: {
-        //                     "_token": "{{ csrf_token() }}",
-        //                     "month_year": selectedDate
-        //                 },
-        //                 success: function(response) {
-        //                     if (response.success) {
-        //                         alert(response.message);
-        //                     } else {
-        //                         alert('Error: ' + response.message);
-        //                     }
-        //                 },
-        //                 error: function(xhr) {
-        //                     alert('Error: ' + xhr.responseText);
-        //                 }
-        //             });
-        //         }
-        //     });
-        // }); --}}

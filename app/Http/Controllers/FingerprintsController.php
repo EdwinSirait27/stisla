@@ -110,7 +110,6 @@ class FingerprintsController extends Controller
 //                 ->filter()
 //                 ->sort()
 //                 ->values();
-
     //             if ($scanTimes->count() >= 2) {
 //                 $start = Carbon::parse($scanTimes->first());
 //                 $end = Carbon::parse($scanTimes->last());
@@ -161,16 +160,14 @@ class FingerprintsController extends Controller
     {
         ini_set('memory_limit', '1024M');
         $storeName = $request->input('store_name');
-        // $startDate = $request->input('start_date', '2025-07-01');
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
 
         $endDate = $request->input('end_date', now()->toDateString());
-        // Ambil data edited untuk penanda
+       
         $edited = EditedFingerprint::select('pin', 'scan_date')->get()
             ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
             ->toArray();
 
-        // Query employee
         $employeesQuery = Employee::with('position', 'store')
             ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id');
 
@@ -182,7 +179,6 @@ class FingerprintsController extends Controller
 
         $employees = $employeesQuery->get()->keyBy('pin');
 
-        // Ambil fingerprint
         $fingerprints = Fingerprints::with('devicefingerprints')
             ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
             ->whereBetween('scan_date', [$startDate, $endDate])
@@ -216,10 +212,8 @@ class FingerprintsController extends Controller
             if (!$employee) {
                 continue;
             }
-            // $totalHari = $totalHariPerPin[$pin] ?? 0;
             $totalHari = $totalHariPerPin[$pin] ?? 0;
-
-            $row = [
+     $row = [
                 'pin' => $pin,
                 'employee_name' => $employee->employee_name ?? 'No Data',
                 'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
@@ -228,40 +222,32 @@ class FingerprintsController extends Controller
                 'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
                 'scan_date' => $scanDate,
             ];
-
-            // Inisialisasi in_1 sampai in_10
             for ($i = 1; $i <= 10; $i++) {
                 $row['in_' . $i] = null;
             }
-
             $byMode = $group->groupBy('inoutmode');
-
             foreach ($byMode as $mode => $items) {
                 if ($mode >= 1 && $mode <= 10) {
                     $earliest = $items->sortBy('scan_date')->first();
-
                     $row['in_' . $mode] = $earliest && $earliest->scan_date
                         ? Carbon::parse($earliest->scan_date)->format('H:i:s')
                         : '';
-
                     $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
                         ? $earliest->devicefingerprints->device_name
                         : '';
                 }
             }
-
+            
             for ($i = 1; $i <= 10; $i++) {
                 $jam = $row['in_' . $i] ?? '';
                 $device = $row['device_' . $i] ?? '';
                 $row['combine_' . $i] = $jam . ' ' . $device;
             }
-
             $scanTimes = collect(range(1, 10))
                 ->map(fn($i) => $row['in_' . $i])
                 ->filter()
                 ->sort()
                 ->values();
-
             if ($scanTimes->count() >= 2) {
                 $start = Carbon::parse($scanTimes->first());
                 $end = Carbon::parse($scanTimes->last());
