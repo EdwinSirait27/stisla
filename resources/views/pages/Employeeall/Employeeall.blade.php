@@ -223,6 +223,7 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
+                                                <th class="text-center">Action</th>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Employee Key</th>
                                                 <th class="text-center">Employee Name</th>
@@ -257,7 +258,6 @@
                                                 <th class="text-center">Pin Finger</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
-                                                <th class="text-center">Action</th>
 
 
                                             </tr>
@@ -438,7 +438,15 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         previous: "Previous"
                     }
                 },
-                columns: [{
+                columns: [
+                 {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                {
                         data: null,
                         name: 'id',
                         className: 'text-center align-middle',
@@ -627,14 +635,8 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                             }
                             return '<span class="badge bg-secondary">Pending</span>';
                         }
-                    },
-                      {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
                     }
+                     
 
                 ],
                 initComplete: function() {
