@@ -160,9 +160,15 @@ class FingerprintsController extends Controller
     {
         ini_set('memory_limit', '1024M');
         $storeName = $request->input('store_name');
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
+        // $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
 
-        $endDate = $request->input('end_date', now()->toDateString());
+        // $endDate = $request->input('end_date', now()->toDateString());
+        $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()))
+    ->startOfDay();
+
+$endDate = Carbon::parse($request->input('end_date', now()->toDateString()))
+    ->endOfDay();
+
        
         $edited = EditedFingerprint::select('pin', 'scan_date')->get()
             ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
