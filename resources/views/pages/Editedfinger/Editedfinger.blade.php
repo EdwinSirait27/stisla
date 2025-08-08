@@ -160,9 +160,6 @@
     }
 </style>
 @endpush
-
-
-
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -206,12 +203,12 @@
                                         </thead>
                                     </table>
                                 </div>
-                                <div class="action-buttons">
+                                {{-- <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Department.create') }}'"
                                         class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Create Departments
                                     </button>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                     </div>

@@ -208,12 +208,15 @@
 
                                     <div class="col-md-2">
                                         <label for="startDate">Dari Tanggal</label>
-                                        <input type="date" id="startDate"   value="{{ request('start_date') ?? now()->startOfMonth()->toDateString() }}" class="form-control">
+                                        <input type="date" id="startDate"
+                                            value="{{ request('start_date') ?? now()->startOfMonth()->toDateString() }}"
+                                            class="form-control">
                                     </div>
 
                                     <div class="col-md-2">
                                         <label for="endDate">Sampai Tanggal</label>
-                                        <input type="date" id="endDate" value="{{ request('end_date') ?? now()->toDateString() }}" class="form-control">
+                                        <input type="date" id="endDate"
+                                            value="{{ request('end_date') ?? now()->toDateString() }}" class="form-control">
                                     </div>
 
                                     <div class="col-md-2">
@@ -247,7 +250,6 @@
                                                 @endfor
 
                                                 <th class="text-center">Duration</th>
-                                                {{-- <th class="text-center">Total</th> --}}
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
 
@@ -256,10 +258,7 @@
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    {{-- <button type="button" onclick="window.location='{{ route('Department.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Departments
-                                    </button> --}}
+
                                 </div>
                             </div>
                         </div>
@@ -272,20 +271,20 @@
 
 
     <!-- Modal Total Hari Bekerja -->
-<div class="modal fade" id="modalTotalHari" tabindex="-1" aria-labelledby="modalTotalHariLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalTotalHariLabel">Total Hari Bekerja</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-      </div>
-      <div class="modal-body">
-        <p><strong>PIN:</strong> <span id="modal-pin"></span></p>
-        <p><strong>Total Hari Bekerja:</strong> <span id="modal-total-hari"></span> hari</p>
-      </div>
+    <div class="modal fade" id="modalTotalHari" tabindex="-1" aria-labelledby="modalTotalHariLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTotalHariLabel">Total Hari Bekerja</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>PIN:</strong> <span id="modal-pin"></span></p>
+                    <p><strong>Total Hari Bekerja:</strong> <span id="modal-total-hari"></span> hari</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 @endsection
 
@@ -354,29 +353,23 @@
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-12'B>>" +
                     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm btn-primary',
-                        text: '<i class="fas fa-copy"></i> Copy',
-                         exportOptions: {
-            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-        }
-                    },
+                buttons: [
+                    
                     {
                         extend: 'csv',
                         className: 'btn btn-sm btn-success',
                         text: '<i class="fas fa-file-csv"></i> CSV',
-                         exportOptions: {
-            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-        }
+                        exportOptions: {
+                            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+                        }
                     },
                     {
                         extend: 'excel',
                         className: 'btn btn-sm btn-info',
                         text: '<i class="fas fa-file-excel"></i> Excel',
-                         exportOptions: {
-            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-        }
+                        exportOptions: {
+                            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+                        }
                     }
                 ],
 
@@ -436,10 +429,6 @@
                         data: 'duration',
                         name: 'duration'
                     },
-                    // {
-                    //     data: 'total_days',
-                    //     name: 'total_days'
-                    // },
                     {
                         data: 'updated',
                         name: 'updated',
@@ -464,7 +453,7 @@
                         $(row).css('background-color', '#cce5ff');
                     }
                 },
-               
+
                 initComplete: function() {
                     // Pindahkan length (show entries) dan search ke lokasi custom
                     $('#custom-length').html($('.dataTables_length'));
@@ -498,144 +487,45 @@
                 }
             }, 100000);
         });
-        $(document).on('click', '.lihat-total', function () {
-    const pin = $(this).data('pin');
-    const employee = $(this).data('employee');
-    const startDate = $('#startDate').val();
-    const endDate = $('#endDate').val();
+        $(document).on('click', '.lihat-total', function() {
+            const pin = $(this).data('pin');
+            const employee = $(this).data('employee');
+            const startDate = $('#startDate').val();
+            const endDate = $('#endDate').val();
 
-    if (!startDate || !endDate) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Tanggal kosong!',
-            text: 'Mohon isi tanggal awal dan akhir terlebih dahulu.',
+            if (!startDate || !endDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanggal kosong!',
+                    text: 'Mohon isi tanggal awal dan akhir terlebih dahulu.',
+                });
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('Fingerprints.totalHari') }}",
+                method: 'GET',
+                data: {
+                    pin: pin,
+                    start_date: startDate,
+                    end_date: endDate
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: `Total kehadiran ${employee}`,
+                        text: `${response.total} hari`,
+                    });
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Gagal mengambil data kehadiran.',
+                    });
+                }
+            });
         });
-        return;
-    }
-
-    $.ajax({
-        url: "{{ route('Fingerprints.totalHari') }}",
-        method: 'GET',
-        data: {
-            pin: pin,
-            start_date: startDate,
-            end_date: endDate
-        },
-        success: function (response) {
-            Swal.fire({
-                icon: 'success',
-                title: `Total kehadiran ${employee}`,
-                text: `${response.total} hari`,
-            });
-        },
-        error: function () {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: 'Gagal mengambil data kehadiran.',
-            });
-        }
-    });
-});
-
-//         $(document).on('click', '.lihat-total', function () {
-//     const pin = $(this).data('pin');
-//     const employee = $(this).data('employee');
-//     const startDate = $('#startDate').val();
-//     const endDate = $('#endDate').val();
-
-//     if (!startDate || !endDate) {
-//         alert('Mohon isi tanggal awal dan akhir terlebih dahulu.');
-//         return;
-//     }
-
-//     $.ajax({
-//         url: "{{ route('Fingerprints.totalHari') }}", // sesuaikan dengan rute aslimu
-//         method: 'GET',
-//         data: {
-//             pin: pin,
-//             start_date: startDate,
-//             end_date: endDate
-//         },
-//       success: function (response) {
-//     alert(`Total hari kehadiran ${employee}: ${response.total} hari`);
-// },
-
-//         error: function () {
-//             alert('Gagal mengambil data kehadiran.');
-//         }
-//     });
-// });
-
-//         $(document).on('click', '.lihat-total', function () {
-//     var pin = $(this).data('pin');
-
-//     $.ajax({
-//         url: '{{ route('Fingerprints.totalHari') }}',
-//         method: 'GET',
-//         data: {
-//             pin: pin,
-//             start_date: '{{ request('start_date', '2025-07-01') }}',
-//             end_date: '{{ request('end_date', \Carbon\Carbon::now()->toDateString()) }}'
-//         },
-//         success: function (res) {
-//             Swal.fire({
-//                 title: 'Total Hari Bekerja',
-//                 html: `
-//                     <p><strong>Pin:</strong> ${pin}</p>
-//                     <p><strong>Attendance:</strong> ${res.total} hari</p>
-//                 `,
-//                 icon: 'info',
-//                 confirmButtonText: 'Tutup'
-//             });
-//         },
-//         error: function () {
-//             Swal.fire({
-//                 title: 'Error',
-//                 text: 'Gagal mengambil data total hari.',
-//                 icon: 'error',
-//                 confirmButtonText: 'Tutup'
-//             });
-//         }
-//     });
-// });
-
-// $(document).on('click', '.lihat-total', function () {
-//     var pin = $(this).data('pin');
-//     var employee = $(this).data('employee');
-
-//     $.ajax({
-//         url: '{{ route('Fingerprints.totalHari') }}',
-//         method: 'GET',
-//         data: {
-//             pin: pin,
-//             start_date: '{{ request('start_date', '2025-07-01') }}',
-//             end_date: '{{ request('end_date', \Carbon\Carbon::now()->toDateString()) }}'
-//         },
-//         success: function (res) {
-//             Swal.fire({
-//                 title: 'Total Hari Bekerja',
-//                 html: `
-//                     <p><strong>Nama:</strong> ${employee}</p>
-//                     <p><strong>PIN:</strong> ${pin}</p>
-//                     <p><strong>Total Hari:</strong> ${res.total} hari</p>
-//                 `,
-//                 icon: 'info',
-//                 confirmButtonText: 'Tutup'
-//             });
-//         },
-//         error: function () {
-//             Swal.fire({
-//                 title: 'Error',
-//                 text: 'Gagal mengambil data total hari.',
-//                 icon: 'error',
-//                 confirmButtonText: 'Tutup'
-//             });
-//         }
-//     });
-// });
-
-
     </script>
 
     <script>
@@ -657,286 +547,4 @@
             });
         @endif
     </script>
-  
-
 @endpush
-{{-- <div class="row mb-3">
-                                        <div class="col-md-2">
-                                            <label for="store_name">Filter Store</label>
-                                            <select id="store_name" name="store_name"class="form-control select2">
-                                                <option value="">All Stores</option>
-                                                @foreach ($stores as $store)
-                                                    <option value="{{ $store }}">{{ $store }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-2">
-                                            <label for="startDate">Dari Tanggal</label>
-                                            <input type="date" id="startDate" class="form-control">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label for="endDate">Sampai Tanggal</label>
-                                            <input type="date" id="endDate" class="form-control">
-                                        </div>
-                                        <div class="col-md-2 align-self-end">
-                                            <button id="filterBtn" class="btn btn-primary">Filter</button>
-                                            <button id="resetBtn" class="btn btn-secondary">Reset</button>
-                                        </div>
-                                    </div> --}}
-
-
-{{-- <div class="col-md-3">
-                                        <label for="startDate">Dari Tanggal</label>
-                                        <input type="date" id="startDate" class="form-control">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="endDate">Sampai Tanggal</label>
-                                        <input type="date" id="endDate" class="form-control">
-                                    </div> --}}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{{-- <div class="row mb-2">
-                                    <div class="col-md-2">
-                                        <label for="store_name">Filter Store</label>
-                                        <select id="store_name" name="store_name" class="form-control select2">
-                                            <option value="">All Stores</option>
-                                            @foreach ($stores as $store)
-                                                <option value="{{ $store }}">{{ $store }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-1.5">
-                                        <label for="startDate">Dari Tanggal</label>
-                                        <input type="date" id="startDate" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-1.5">
-                                        <label for="endDate">Sampai Tanggal</label>
-                                        <input type="date" id="endDate" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-2 align-self-end">
-                                        <button id="filterBtn" class="btn btn-primary">Filter</button>
-                                        <button id="resetBtn" class="btn btn-secondary">Reset</button>
-
-                                    </div>
-                                </div> --}}
-
-{{-- @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.flash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
-        });
-        jQuery(document).ready(function($) {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('fingerprints.fingerprints') }}',
-                    type: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    data: function(d) {
-                        d.start_date = $('#startDate').val();
-                        d.end_date = $('#endDate').val();
-                        d.store_name = $('#store_name').val();
-                    }
-                },
-                responsive: true,
-                dom: "<'row'<'col-sm-12 col-md-6'l>>" +
-                    "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm btn-primary',
-                        text: '<i class="fas fa-copy"></i> Copy'
-                    },
-                    {
-                        extend: 'csv',
-                        className: 'btn btn-sm btn-success',
-                        text: '<i class="fas fa-file-csv"></i> CSV'
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm btn-info',
-                        text: '<i class="fas fa-file-excel"></i> Excel'
-                    }
-
-                ],
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [
-
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-
-                    {
-                        data: 'pin',
-                        name: 'pin',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center',
-                        width: '300px'
-                    },
-                    // {
-                    //     data: 'position_name',
-                    //     name: 'position_name',
-                    //     className: 'text-center'
-                    // },
-                    // {
-                    //     data: 'scan_date',
-                    //     name: 'scan_date',
-                    //     className: 'text-center'
-                    // },
-
-
-
-                    // @for ($i = 1; $i <= 10; $i++)
-                    //     {
-                    //         data: 'combine_{{ $i }}',
-                    //         name: 'combine_{{ $i }}',
-                    //         className: 'text-center'
-                    //     }
-                    //     @if ($i < 10)
-                    //         ,
-                    //     @endif
-                    // @endfor ,
-                    // {
-                    //     data: 'duration',
-                    //     name: 'duration'
-                    // },
-                    // {
-                    //     data: 'action',
-                    //     name: 'action',
-                    //     orderable: false,
-                    //     searchable: false
-                    // }
-
-                ],
-                rowCallback: function(row, data, index) {
-                    if (data.is_edited == 1) {
-                        $(row).css('background-color', '#cce5ff');
-                    }
-                },
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-            $('#filterBtn').on('click', function() {
-                table.ajax.reload();
-            });
-
-            // Reset button
-            $('#resetBtn').on('click', function() {
-                $('#startDate').val('');
-                $('#endDate').val('');
-                $('#store_name').val('');
-                table.ajax.reload();
-            });
-            setInterval(function() {
-                // Cek apakah input search kosong
-                var isSearching = $('.dataTables_filter input').val().trim().length > 0;
-                if (!isSearching) {
-                    table.ajax.reload(null, false);
-                }
-            }, 10000);
-
-        });
-    </script>
-@endpush --}}
-
-{{-- // dom: "<'row'<'col-sm-12 col-md-6'l>>" +
-                //     "<'row'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
-                //     "<'row'<'col-sm-12'tr>>" +
-                //     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                // buttons: [{
-                //         extend: 'copy',
-                //         className: 'btn btn-sm btn-primary',
-                //         text: '<i class="fas fa-copy"></i> Copy'
-                //     },
-                //     {
-                //         extend: 'csv',
-                //         className: 'btn btn-sm btn-success',
-                //         text: '<i class="fas fa-file-csv"></i> CSV'
-                //     },
-                //     {
-                //         extend: 'excel',
-                //         className: 'btn btn-sm btn-info',
-                //         text: '<i class="fas fa-file-excel"></i> Excel'
-                //     }
-
-                // ],
-
-                // dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                //     "<'row'<'col-sm-12'tr>>" +
-                //     "<'row mt-2'<'col-sm-12'B>>" +
-                //     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                // buttons: [{
-                //         extend: 'copy',
-                //         className: 'btn btn-sm btn-primary',
-                //         text: '<i class="fas fa-copy"></i> Copy'
-                //     },
-                //     {
-                //         extend: 'csv',
-                //         className: 'btn btn-sm btn-success',
-                //         text: '<i class="fas fa-file-csv"></i> CSV'
-                //     },
-                //     {
-                //         extend: 'excel',
-                //         className: 'btn btn-sm btn-info',
-                //         text: '<i class="fas fa-file-excel"></i> Excel'
-                //     }
-                // ], --}}
- {{-- // initComplete: function() {
-                //     $('.dataTables_filter input').addClass('form-control');
-                //     $('.dataTables_length select').addClass('form-control');
-                // }, --}}
