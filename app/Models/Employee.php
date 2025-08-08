@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Ramsey\Uuid\Uuid;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 class Employee extends Model
 {
     use HasFactory;
@@ -63,6 +64,34 @@ class Employee extends Model
         
         
     ];
+    protected static function booted()
+{
+    static::creating(function ($employee) {
+        $employee->pin = self::generateSafePin();
+    });
+}
+
+public static function generateSafePin()
+{
+    return DB::transaction(function () {
+        // Lock baris untuk mencegah race condition
+        $lastPin = DB::table('employees_tables')
+            ->whereRaw('CHAR_LENGTH(pin) = 4 AND pin REGEXP "^[0-9]{4}$"')
+            ->lockForUpdate()
+            ->orderByDesc('pin')
+            ->value('pin');
+
+        // Hitung pin berikutnya
+        $nextPin = str_pad(((int) $lastPin + 1), 4, '0', STR_PAD_LEFT);
+
+        // Cek overflow
+        if ((int)$nextPin > 9999) {
+            throw new \Exception("PIN sudah habis (lebih dari 9999)");
+        }
+
+        return $nextPin;
+    });
+}
     public function department()
     {
         return $this->belongsTo(Departments::class, 'department_id');

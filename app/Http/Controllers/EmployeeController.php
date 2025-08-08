@@ -434,7 +434,7 @@ class EmployeeController extends Controller
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
             'npwp' => ['required', 'string', 'max:50', new NoXSSInput()],
-            'pin' => ['nullable', 'string', 'max:4', new NoXSSInput()],
+            // 'pin' => ['nullable', 'string', 'max:4', new NoXSSInput()],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
@@ -577,7 +577,7 @@ class EmployeeController extends Controller
                 'id_card_address' => $validatedData['id_card_address'] ?? '',
                 'institution' => $validatedData['institution'] ?? '',
                 'npwp' => $validatedData['npwp'] ?? '',
-                'pin' => $validatedData['pin'] ?? '',
+                // 'pin' => $validatedData['pin'] ?? '',
             ]);
             // dd($employees->toArray());
             $user = User::create([
@@ -641,7 +641,7 @@ class EmployeeController extends Controller
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
             'npwp' => ['required', 'string', 'max:50'],
-            'pin' => ['required', 'string', 'max:50'],
+            // 'pin' => ['required', 'string', 'max:50'],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
@@ -745,7 +745,7 @@ class EmployeeController extends Controller
             'id_card_address' => $validatedData['id_card_address'] ?? '',
             'institution' => $validatedData['institution'] ?? '',
             'npwp' => $validatedData['npwp'] ?? '',
-            'pin' => $validatedData['pin'] ?? '',
+            // 'pin' => $validatedData['pin'] ?? '',
         ]);
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');
