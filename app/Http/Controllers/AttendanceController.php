@@ -9,9 +9,6 @@ use App\Models\EditedFingerprint;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-
-
-
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 class AttendanceController extends Controller
