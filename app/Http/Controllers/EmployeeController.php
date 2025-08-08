@@ -61,11 +61,13 @@ class EmployeeController extends Controller
         ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
         ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
         ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
+        ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
+
         ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
         ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
         ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
         ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-        ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'action'])
+        ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee','action'])
         ->make(true);
 }
 
