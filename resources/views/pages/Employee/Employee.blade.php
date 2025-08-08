@@ -191,6 +191,7 @@
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Store</th>
+                                                <th class="text-center">Status Employee</th>
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
                                                 {{-- <th class="text-center">Length of service</th> --}}
@@ -289,6 +290,11 @@
                     {
                         data: 'name',
                         name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status_employee',
+                        name: 'status_employee',
                         className: 'text-center'
                     },
                     {
