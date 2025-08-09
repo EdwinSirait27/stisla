@@ -34,7 +34,8 @@ class EmployeeController extends Controller
    
  public function getEmployees(Request $request, DataTables $dataTables)
 {
-    $isHeadHR = auth()->user()->hasRole('HeadHR');
+    // $isHeadHR = auth()->user()->hasRole('HeadHR');
+$isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
 
     $employees = User::with([
         'Employee.company',
@@ -98,15 +99,16 @@ class EmployeeController extends Controller
 
         $employees = $query->get()->map(function ($employee) {
             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-            if (auth()->user()->hasRole('HeadHR')) {
+            // if (auth()->user()->hasRole('HeadHR')) 
+          if (auth()->user()->hasAnyRole(['HeadHR', 'HR'])) {
+    $employee->action = '
+        <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
+            <i class="fas fa-user-edit text-secondary"></i>
+        </a>';
+} else {
+    $employee->action = ''; // Optional: kosongkan jika tidak punya akses
+}
 
-                $employee->action = '
-            <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
-                <i class="fas fa-user-edit text-secondary"></i>
-            </a>';
-            } else {
-                $employee->action = ''; // Optional: kosongkan jika tidak punya akses
-            }
 
             return $employee;
         });
@@ -166,128 +168,7 @@ class EmployeeController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-// public function getEmployeesall(Request $request, DataTables $dataTables)
-// {
-//         ini_set('memory_limit', '768M');
-
-//         $statusFilter = $request->input('status');
-       
- 
-
-
-//     $query = User::with([
-//         'Employee',
-//         'Employee.company',
-//         'Employee.store',
-//         'Employee.position',
-//         'Employee.department',
-//         'Employee.bank'
-//     ])->select(['id', 'username', 'employee_id']);
-
-//     if (!empty($storeFilter)) {
-//         $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
-//             $q->where('name', $storeFilter);
-//         });
-//     }
-//            $storeFilter = $request->input('name');
-// if (!empty($storeFilter)) {
-//     $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
-//         $q->whereRaw('LOWER(name) like ?', ['%' . strtolower($storeFilter) . '%']);
-//     });
-// }
-//         //    $storeFilter = $request->input('name');
-// if (!empty($companyFilter)) {
-//     $query->whereHas('Employee.company', function ($q) use ($storeFilter) {
-//         $q->whereRaw('LOWER(company_name) like ?', ['%' . strtolower($storeFilter) . '%']);
-//     });
-// }
-
-//     if (!empty($statusFilter)) {
-//         $query->whereHas('Employee', function ($q) use ($statusFilter) {
-//             $q->whereIn('status', $statusFilter);
-//         });
-//     }
-// //     if ($storeFilter = $request->input('name')) {
-// //     $query->whereHas('employee.store', function ($q) use ($storeFilter) {
-// //         $q->whereRaw('LOWER(name) like ?', ['%' . strtolower($storeFilter) . '%']);
-// //     });
-// // }
-
-
-//     $columns = [
-//         'name' => 'store.name',
-//         'name_company' => 'company.name',
-//         'position_name' => 'position.name',
-//         'employee_pengenal',
-//         'department_name' => 'department.department_name',
-//         'employee_name',
-//         'id' => 'id',
-//         'status_employee',
-//         'join_date',
-//         'marriage',
-//         'child',
-//         'telp_number',
-//         'nik',
-//         'gender',
-//         'date_of_birth',
-//         'place_of_birth',
-//         'biological_mother_name',
-//         'religion',
-//         'current_address',
-//         'id_card_address',
-//         'last_education',
-//         'institution',
-//         'npwp',
-//         'bpjs_kes',
-//         'bpjs_ket',
-//         'email',
-//         'emergency_contact_name',
-//         'notes',
-//         'created_at',
-//         'bank_name' => 'bank.name',
-//         'bank_account_number',
-//         'status',
-//         'pin'
-//     ];
-
-//     $dataTable = $dataTables->eloquent($query);
-
-//     foreach ($columns as $key => $relationPath) {
-//         $column = is_string($key) ? $key : $relationPath;
-
-//         $dataTable->addColumn($column, function ($user) use ($relationPath) {
-//             return data_get($user->Employee, $relationPath) ?: 'Empty';
-//         });
-//     }
-
-//     $dataTable->addColumn('action', function ($user) {
-//         $employee = $user->Employee;
-//         $idHashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
-//         if (auth()->user()->hasRole('HeadHR')) {
-//             return '
-//                 <a href="' . route('Employee.edit', $idHashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee)->employee_name) . '">
-//                     <i class="fas fa-user-edit text-secondary"></i>
-//                 </a>';
-//         }
-//         return ''; 
-//     });
-//     $dataTable->addColumn('name', function ($user) {
-//     return optional($user->Employee->store)->name ?? 'Empty';
-// });
-//    $dataTable->filterColumn('name', function ($query, $keyword) {
-//     $query->whereHas('Employee.store', function ($q) use ($keyword) {
-//         $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']);
-//     });
-// });
-
-
-//     return $dataTable
-//         ->rawColumns(['action'])
-//         ->make(true);
-// }
-
-
-
+    
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank')->get()->first(function ($u) use ($hashedId) {
