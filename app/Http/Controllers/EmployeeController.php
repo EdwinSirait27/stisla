@@ -34,7 +34,7 @@ class EmployeeController extends Controller
    
  public function getEmployees(Request $request, DataTables $dataTables)
 {
-    $isHeadHR = auth()->user()->hasRole('HeadHR');
+    $isHeadHR = auth()->user()->hasRole('HR');
 
     $employees = User::with([
         'Employee.company',
@@ -98,7 +98,7 @@ class EmployeeController extends Controller
 
         $employees = $query->get()->map(function ($employee) {
             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-            if (auth()->user()->hasRole('HeadHR')) {
+            if (auth()->user()->hasRole('HR')) {
 
                 $employee->action = '
             <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
