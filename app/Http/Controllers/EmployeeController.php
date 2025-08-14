@@ -524,7 +524,7 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
             'npwp' => ['required', 'string', 'max:50'],
-            // 'pin' => ['required', 'string', 'max:50'],
+            'pin' => ['required', 'string', 'max:50', Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id), new NoXSSInput()],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
@@ -628,7 +628,7 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'id_card_address' => $validatedData['id_card_address'] ?? '',
             'institution' => $validatedData['institution'] ?? '',
             'npwp' => $validatedData['npwp'] ?? '',
-            // 'pin' => $validatedData['pin'] ?? '',
+            'pin' => $validatedData['pin'] ?? '',
         ]);
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');
