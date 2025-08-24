@@ -37,20 +37,14 @@ class EventServiceProvider extends ServiceProvider
      *
      * @return void
      */
-   public function boot()
+     public function boot()
     {
-        parent::boot();
-
-        Event::listen(BackupHasSucceeded::class, function ($event) {
-            TelegramNotifier::send(
-                "✅ Backup berhasil dijalankan:\nDisk: {$event->backupDestination->disk}\nPath: {$event->backupDestination->path}"
-            );
+        Event::listen(BackupHasSucceeded::class, function (BackupHasSucceeded $event) {
+            TelegramNotifier::send("✅ Backup berhasil dijalankan:\nDisk: {$event->backupDestination->disk}\nPath: {$event->backupDestination->path}");
         });
 
-        Event::listen(BackupHasFailed::class, function ($event) {
-            TelegramNotifier::send(
-                "❌ Backup gagal:\n{$event->exception->getMessage()}"
-            );
+        Event::listen(BackupHasFailed::class, function (BackupHasFailed $event) {
+            TelegramNotifier::send("❌ Backup gagal:\n{$event->exception->getMessage()}");
         });
     }
 
