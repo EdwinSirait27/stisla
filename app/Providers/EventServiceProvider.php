@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Event;
 use App\Models\Activity;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Spatie\Backup\Events\BackupHasSucceeded;
+use Spatie\Backup\Events\BackupHasFailed;
+use App\Services\TelegramNotifier;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -34,9 +37,21 @@ class EventServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+   public function boot()
     {
-        //
+        parent::boot();
+
+        Event::listen(BackupHasSucceeded::class, function ($event) {
+            TelegramNotifier::send(
+                "✅ Backup berhasil dijalankan:\nDisk: {$event->backupDestination->disk}\nPath: {$event->backupDestination->path}"
+            );
+        });
+
+        Event::listen(BackupHasFailed::class, function ($event) {
+            TelegramNotifier::send(
+                "❌ Backup gagal:\n{$event->exception->getMessage()}"
+            );
+        });
     }
 
     /**
