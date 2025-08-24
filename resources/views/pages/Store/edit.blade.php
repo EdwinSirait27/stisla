@@ -4,8 +4,8 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-   
-   <style>
+
+    <style>
         .avatar {
             position: relative;
         }
@@ -218,9 +218,11 @@
                                                         <i class="fas fa-user"></i> {{ __('Store Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
-                                                            name="name" value="{{ old('name', $store->name) }}"
-                                                            placeholder="DC" required>
+                                                        <input type="text"
+                                                            class="form-control @error('name') is-invalid @enderror"
+                                                            id="name" name="name"
+                                                            value="{{ old('name', $store->name) }}" placeholder="DC"
+                                                            required>
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -277,23 +279,24 @@
                                                     {{-- <select name="manager_id" id="manager_id"
                                                         class="form-control @error('manager_id') is-invalid @enderror">
                                                         <option value="">-- Pilih Manager --</option>
-                                                        @foreach($managers as $manager)
+                                                        @foreach ($managers as $manager)
                                                             <option value="{{ $manager->id }}" {{ (isset($store) && $store->manager_id == $manager->id) ? 'selected' : '' }}>
                                                                 {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
                                                             </option>
                                                         @endforeach
                                                     </select> --}}
-                                                     <select name="manager_id" id="manager_id"
-                                                            class="form-control select2 @error('manager_id') is-invalid @enderror">
-                                                            <option value="">Choose Managers</option>
-                                                            @foreach ($managers as $manager)
-                                                                                                                              <option value="{{ $manager->id }}" {{ (isset($store) && $store->manager_id == $manager->id) ? 'selected' : '' }}>
-                                                       
-                                                                    {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
+                                                    <select name="manager_id" id="manager_id"
+                                                        class="form-control select2 @error('manager_id') is-invalid @enderror">
+                                                        <option value="">Choose Managers</option>
+                                                        @foreach ($managers as $manager)
+                                                            <option value="{{ $manager->id }}"
+                                                                {{ isset($store) && $store->manager_id == $manager->id ? 'selected' : '' }}>
 
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
+                                                                {{ $manager->Employee->employee_name ?? ($manager->name ?? 'Tanpa Nama') }}
+
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
                                                     @error('manager_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -301,16 +304,17 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            </div>
-                                            
+                                        </div>
+
 
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a Store name is already registered, you cannot register it again.<br>
-                                                - If a Store Manager is already registered, you cannot register it again.<br>
-                                                
+                                                - If a Store Manager is already registered, you cannot register it
+                                                again.<br>
+
                                             </span>
                                         </div>
 
@@ -318,7 +322,7 @@
                                             <a href="{{ route('pages.Store') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" class="btn bg-primary">
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
                                                 <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>
@@ -334,32 +338,32 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-   
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-         $(document).ready(function() {
-        $('.select2').select2();
-    });
-          document.getElementById('edit-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
-              Swal.fire({
-                  title: 'Are You Sure?',
-                  text: "Make sure the data you entered is correct!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
-                  cancelButtonText: 'Abort'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('store-edit').submit();
-                  }
-              });
-          });
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+        document.getElementById('edit-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('store-edit').submit();
+                }
+            });
+        });
     </script>
     <script>
         @if (session('success'))
@@ -380,5 +384,4 @@
             });
         @endif
     </script>
-    @endpush
-    
+@endpush

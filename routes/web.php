@@ -42,14 +42,14 @@ use App\Http\Controllers\Editedfingerprints;
 */
 
 Route::middleware(['auth', 'role:Admin|HeadHR|HR'])->group(function () {
-  Route::get('/feature-profile', function () {
+    Route::get('/feature-profile', function () {
         return view('pages.feature-profile', ['type_menu' => 'features']);
     });
     Route::put('/feature-profile/update', [UserprofileController::class, 'updatePassword'])->name('feature-profile.update');
     Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
-    
-Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
-    ->name('logout');
+
+    Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+        ->name('logout');
     // Dashboard
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
         Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
@@ -61,14 +61,14 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
     });
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
-    
+
         Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
         Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
         Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
         Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
     });
-    
-        Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {
+
+    Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {
         Route::get('/roles', [RoleController::class, 'index'])
             ->name('roles.index');
         Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
@@ -76,8 +76,8 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         Route::get('/roles/edit/{hashedId}', [RoleController::class, 'edit'])->name('roles.edit');
         Route::put('/roles/{hashedId}', [RoleController::class, 'update'])->name('roles.update');
         Route::get('/role/role', [RoleController::class, 'getRoles'])->name('role.role');
-        
-        
+
+
         Route::get('/permissions', [PermissionController::class, 'index'])
             ->name('permissions.index');
         Route::get('permissions/create', [PermissionController::class, 'create'])->name('permissions.create');
@@ -85,240 +85,230 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         Route::get('/permissions/edit/{hashedId}', [PermissionController::class, 'edit'])->name('permissions.edit');
         Route::put('/permissions/{hashedId}', [PermissionController::class, 'update'])->name('permissions.update');
         Route::get('/permissions/permissions', [PermissionController::class, 'getPermissions'])->name('permissions.permissions');
-        
+
     });
     // Head HR
     Route::group(['middleware' => ['permission:dashboardHR']], function () {
         Route::get('/dashboardHR', [DashboardHRController::class, 'index'])
-        ->name('pages.dashboardHR');
+            ->name('pages.dashboardHR');
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
-    
-    
-    Route::get('/Employee', [EmployeeController::class, 'index'])
-    ->name('pages.Employee');
-Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
-Route::post('/Employee', [EmployeeController::class, 'store'])->name('Employee.store');
-Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
-Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
-Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
-Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
-Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
-// employeeall
-Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
-    ->name('pages.Employeeall');
-Route::match(['GET', 'POST'],'/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
-Route::get('/Import', [EmployeeImportController::class, 'index'])
-->name('pages.Import');
-Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Import.employee');
-// userimport
-Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
-->name('pages.Importuser');
-Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
 
-});
-Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
 
-//payrolls
-Route::get('/Payrolls', [PayrollsController::class, 'index'])
-    ->name('pages.Payrolls');
-Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->name('Payrolls.edit');
-Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
-Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
-Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
-// Route::delete('/payrolls/delete', [PayrollsController::class, 'deletepayrolls'])->name('payrolls.delete');
-Route::delete('/payrolls/delete-bulk', [PayrollsController::class, 'bulkDelete'])->name('payrolls.bulkDelete');
-Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
-Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
-Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
-Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
-// payrolls
-Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
-->name('pages.Importpayroll');
-Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
-// });
+        Route::get('/Employee', [EmployeeController::class, 'index'])
+            ->name('pages.Employee');
+        Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
+        Route::post('/Employee', [EmployeeController::class, 'store'])->name('Employee.store');
+        Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
+        Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
+        Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
+        Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
+        Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
+        // employeeall
+        Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
+            ->name('pages.Employeeall');
+        Route::match(['GET', 'POST'], '/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
+        Route::get('/Import', [EmployeeImportController::class, 'index'])
+            ->name('pages.Import');
+        Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Import.employee');
+        // userimport
+        Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
+            ->name('pages.Importuser');
+        Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
+
+    });
+    Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
+
+        //payrolls
+        Route::get('/Payrolls', [PayrollsController::class, 'index'])
+            ->name('pages.Payrolls');
+        Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->name('Payrolls.edit');
+        Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
+        Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
+        Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
+        // Route::delete('/payrolls/delete', [PayrollsController::class, 'deletepayrolls'])->name('payrolls.delete');
+        Route::delete('/payrolls/delete-bulk', [PayrollsController::class, 'bulkDelete'])->name('payrolls.bulkDelete');
+        Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
+        Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
+        Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
+        Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
+        // payrolls
+        Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
+            ->name('pages.Importpayroll');
+        Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
+        // });
 // Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
 
-Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
+        Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
 
-    Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
+        Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
 
-});
+    });
 
-Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
+    Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
 
-//payrolls
-Route::get('/Fingerspot', [FingerspotController::class, 'index'])
-    ->name('pages.Fingerspot');
-Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
-Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
-->name('pages.Importfingerspot');
-Route::post('/Importfingerspot', [FingerspotController::class, 'sinkronkanPIN'])->name('Importfingerspot.fingerspot');
-Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getPins'])->name('fingerspot.fingerspot');
+        //payrolls
+        Route::get('/Fingerspot', [FingerspotController::class, 'index'])
+            ->name('pages.Fingerspot');
+        Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
+        Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
+            ->name('pages.Importfingerspot');
+        Route::post('/Importfingerspot', [FingerspotController::class, 'sinkronkanPIN'])->name('Importfingerspot.fingerspot');
+        Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getPins'])->name('fingerspot.fingerspot');
 
-// });
-    Route::get('/Fingerspot/downloadfingerspot/{filename}', [FingerspotController::class, 'downloadfingerspot'])->name('Fingerspot.downloadfingerspot');
+        // });
+        Route::get('/Fingerspot/downloadfingerspot/{filename}', [FingerspotController::class, 'downloadfingerspot'])->name('Fingerspot.downloadfingerspot');
 
-    Route::get('/Importattendance', [AttendanceimportController::class, 'indexattendances'])
-    ->name('pages.Importattendance');
-    
-Route::post('/Importattendance', [AttendanceimportController::class, 'importattendance'])->name('Importattendance.attendance');
-    Route::get('/Importattendance/downloadattendance/{filename}', [AttendanceimportController::class, 'downloadattendance'])->name('Importattendance.downloadattendance');
-Route::get('/attendance/attendance', [AttendanceController::class, 'getAttendances'])->name('attendance.attendance');
-Route::get('/Attendance', [AttendanceController::class, 'index'])
-    ->name('pages.Attendance');
-    Route::post('/attendance/summary', [AttendanceController::class, 'storeAttendanceSummary'])->name('attendance.summary');
-Route::get('/Attendanceall', [AttendanceController::class, 'indexattendance'])
-    ->name('pages.Attendanceall');
-// Route::post('/attendanceall/attendanceall', [AttendanceController::class, 'getAttendancealls'])->name('attendanceall.attendanceall');
-Route::match(['GET', 'POST'],'/attendanceall/attendanceall', [AttendanceController::class, 'getAttendancealls'])->name('attendanceall.attendanceall');
+        Route::get('/Importattendance', [AttendanceimportController::class, 'indexattendances'])
+            ->name('pages.Importattendance');
+        Route::post('/Importattendance', [AttendanceimportController::class, 'importattendance'])->name('Importattendance.attendance');
+        Route::get('/Importattendance/downloadattendance/{filename}', [AttendanceimportController::class, 'downloadattendance'])->name('Importattendance.downloadattendance');
+        Route::get('/attendance/attendance', [AttendanceController::class, 'getAttendances'])->name('attendance.attendance');
+        Route::get('/Attendance', [AttendanceController::class, 'index'])
+            ->name('pages.Attendance');
+        Route::post('/attendance/summary', [AttendanceController::class, 'storeAttendanceSummary'])->name('attendance.summary');
+        Route::get('/Attendanceall', [AttendanceController::class, 'indexattendance'])
+            ->name('pages.Attendanceall');
+        Route::match(['GET', 'POST'], '/attendanceall/attendanceall', [AttendanceController::class, 'getAttendancealls'])->name('attendanceall.attendanceall');
+        Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
+            ->name('pages.Fingerprints');
+        Route::match(['GET', 'POST'], '/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
+        Route::get('/Fingerprints/edit/{pin}}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
+        Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
+        Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
+        Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
+            ->name('pages.Editedfinger');
+        Route::match(['GET', 'POST'], '/editedfinger/editedfinger', [Editedfingerprints::class, 'getEditedfingerprints'])->name('editedfinger.editedfinger');
 
-// Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
-// Route::get('/Importfingerspot', [FingerspotController::class, 'indexfingerspot'])
-// ->name('pages.Importfingerspot');
-// Route::post('/Importfingerspot', [FingerspotController::class, 'sinkronkanPIN'])->name('Importfingerspot.fingerspot');
-// // });
-//     Route::get('/Fingerspot/downloadfingerspot/{filename}', [FingerspotController::class, 'downloadfingerspot'])->name('Fingerspot.downloadfingerspot');
-Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
-    ->name('pages.Fingerprints');
-Route::match(['GET', 'POST'],'/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
-Route::get('/Fingerprints/edit/{pin}}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
-// Route::post('/Fingerprints', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
-Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
-Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
-Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
-    ->name('pages.Editedfinger');
-Route::match(['GET', 'POST'],'/editedfinger/editedfinger', [Editedfingerprints::class, 'getEditedfingerprints'])->name('editedfinger.editedfinger');
+    });
 
-});
+    // Position    
+    Route::group(['middleware' => ['permission:ManagePositions']], function () {
 
-// Position    
-Route::group(['middleware' => ['permission:ManagePositions']], function () {
+        Route::get('/Position', [PositionController::class, 'index'])
+            ->name('pages.Position');
+        Route::get('Position/create', [PositionController::class, 'create'])->name('Position.create');
+        Route::post('/Position', [PositionController::class, 'store'])->name('Position.store');
+        Route::get('/Position/edit/{hashedId}', [PositionController::class, 'edit'])->name('Position.edit');
+        Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
+        Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
+    });
 
-Route::get('/Position', [PositionController::class, 'index'])
-    ->name('pages.Position');
-Route::get('Position/create', [PositionController::class, 'create'])->name('Position.create');
-Route::post('/Position', [PositionController::class, 'store'])->name('Position.store');
-Route::get('/Position/edit/{hashedId}', [PositionController::class, 'edit'])->name('Position.edit');
-Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
-Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
-});
+    // Department    
+    Route::group(['middleware' => ['permission:ManageDepartments']], function () {
 
-// Department    
-Route::group(['middleware' => ['permission:ManageDepartments']], function () {
+        Route::get('/Department', [DepartmentController::class, 'index'])
+            ->name('pages.Department');
+        Route::get('Department/create', [DepartmentController::class, 'create'])->name('Department.create');
+        Route::post('/Department', [DepartmentController::class, 'store'])->name('Department.store');
+        Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
+        Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
+        Route::get('/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
+    });
+    // store  
+    Route::group(['middleware' => ['permission:ManageStores']], function () {
 
-Route::get('/Department', [DepartmentController::class, 'index'])
-    ->name('pages.Department');
-Route::get('Department/create', [DepartmentController::class, 'create'])->name('Department.create');
-Route::post('/Department', [DepartmentController::class, 'store'])->name('Department.store');
-Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
-Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
-Route::get('/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
-});
-// store  
-Route::group(['middleware' => ['permission:ManageStores']], function () {
+        Route::get('/Store', [StoreController::class, 'index'])
+            ->name('pages.Store');
+        Route::get('Store/create', [StoreController::class, 'create'])->name('Store.create');
+        Route::post('/Store', [StoreController::class, 'store'])->name('Store.store');
+        Route::get('/Store/edit/{hashedId}', [StoreController::class, 'edit'])->name('Store.edit');
+        Route::put('/Store/{hashedId}', [StoreController::class, 'update'])->name('Store.update');
+        Route::get('/stores/stores', [StoreController::class, 'getStores'])->name('stores.stores');
+    });
+    Route::group(['middleware' => ['permission:ManageBanks']], function () {
 
-Route::get('/Store', [StoreController::class, 'index'])
-    ->name('pages.Store');
-Route::get('Store/create', [StoreController::class, 'create'])->name('Store.create');
-Route::post('/Store', [StoreController::class, 'store'])->name('Store.store');
-Route::get('/Store/edit/{hashedId}', [StoreController::class, 'edit'])->name('Store.edit');
-Route::put('/Store/{hashedId}', [StoreController::class, 'update'])->name('Store.update');
-Route::get('/stores/stores', [StoreController::class, 'getStores'])->name('stores.stores');
-});
-Route::group(['middleware' => ['permission:ManageBanks']], function () {
+        Route::get('/Banks', [BanksController::class, 'index'])
+            ->name('pages.Banks');
+        Route::get('Banks/create', [BanksController::class, 'create'])->name('Banks.create');
+        Route::post('/Banks', [BanksController::class, 'store'])->name('Banks.store');
+        Route::get('/Banks/edit/{hashedId}', [BanksController::class, 'edit'])->name('Banks.edit');
+        Route::put('/Banks/{hashedId}', [BanksController::class, 'update'])->name('Banks.update');
+        Route::get('/banks/banks', [BanksController::class, 'getBanks'])->name('banks.banks');
+    });
 
-Route::get('/Banks', [BanksController::class, 'index'])
-    ->name('pages.Banks');
-Route::get('Banks/create', [BanksController::class, 'create'])->name('Banks.create');
-Route::post('/Banks', [BanksController::class, 'store'])->name('Banks.store');
-Route::get('/Banks/edit/{hashedId}', [BanksController::class, 'edit'])->name('Banks.edit');
-Route::put('/Banks/{hashedId}', [BanksController::class, 'update'])->name('Banks.update');
-Route::get('/banks/banks', [BanksController::class, 'getBanks'])->name('banks.banks');
-});
+    // uoms
 
-// uoms
+    Route::group(['middleware' => ['permission:ManageUoms']], function () {
 
-Route::group(['middleware' => ['permission:ManageUoms']], function () {
+        Route::get('/Uoms', [UomsController::class, 'index'])
+            ->name('pages.Uoms');
+        Route::get('Uoms/create', [UomsController::class, 'create'])->name('Uoms.create');
+        Route::post('/Uoms', [UomsController::class, 'store'])->name('Uoms.store');
+        Route::get('/Uoms/edit/{hashedId}', [UomsController::class, 'edit'])->name('Uoms.edit');
+        Route::put('/Uoms/{hashedId}', [UomsController::class, 'update'])->name('Uoms.update');
+        Route::get('/uoms/uoms', [UomsController::class, 'getUoms'])->name('uoms.uoms');
+    });
+    // Brands
+    Route::group(['middleware' => ['permission:ManageBrands']], function () {
 
-Route::get('/Uoms', [UomsController::class, 'index'])
-    ->name('pages.Uoms');
-Route::get('Uoms/create', [UomsController::class, 'create'])->name('Uoms.create');
-Route::post('/Uoms', [UomsController::class, 'store'])->name('Uoms.store');
-Route::get('/Uoms/edit/{hashedId}', [UomsController::class, 'edit'])->name('Uoms.edit');
-Route::put('/Uoms/{hashedId}', [UomsController::class, 'update'])->name('Uoms.update');
-Route::get('/uoms/uoms', [UomsController::class, 'getUoms'])->name('uoms.uoms');
-});
-// Brands
-Route::group(['middleware' => ['permission:ManageBrands']], function () {
+        Route::get('/Brands', [BrandsController::class, 'index'])
+            ->name('pages.Brands');
+        Route::get('Brands/create', [BrandsController::class, 'create'])->name('Brands.create');
+        Route::post('/Brands', [BrandsController::class, 'store'])->name('Brands.store');
+        Route::get('/Brands/edit/{hashedId}', [BrandsController::class, 'edit'])->name('Brands.edit');
+        Route::put('/Brands/{hashedId}', [BrandsController::class, 'update'])->name('Brands.update');
+        Route::get('/brands/brands', [BrandsController::class, 'getBrands'])->name('brands.brands');
+    });
+    // Categories
+    Route::group(['middleware' => ['permission:ManageCategories']], function () {
 
-Route::get('/Brands', [BrandsController::class, 'index'])
-    ->name('pages.Brands');
-Route::get('Brands/create', [BrandsController::class, 'create'])->name('Brands.create');
-Route::post('/Brands', [BrandsController::class, 'store'])->name('Brands.store');
-Route::get('/Brands/edit/{hashedId}', [BrandsController::class, 'edit'])->name('Brands.edit');
-Route::put('/Brands/{hashedId}', [BrandsController::class, 'update'])->name('Brands.update');
-Route::get('/brands/brands', [BrandsController::class, 'getBrands'])->name('brands.brands');
-});
-// Categories
-Route::group(['middleware' => ['permission:ManageCategories']], function () {
-
-Route::get('/Categories', [CategoriesController::class, 'index'])
-    ->name('pages.Categories');
-Route::get('Categories/create', [CategoriesController::class, 'create'])->name('Categories.create');
-Route::post('/Categories', [CategoriesController::class, 'store'])->name('Categories.store');
-// Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
+        Route::get('/Categories', [CategoriesController::class, 'index'])
+            ->name('pages.Categories');
+        Route::get('Categories/create', [CategoriesController::class, 'create'])->name('Categories.create');
+        Route::post('/Categories', [CategoriesController::class, 'store'])->name('Categories.store');
+        // Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
 // Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
-Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
-Route::get('categories/tree', [CategoriesController::class, 'getCategoryTree'])->name('categories.tree');
-});
+        Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
+        Route::get('categories/tree', [CategoriesController::class, 'getCategoryTree'])->name('categories.tree');
+    });
 
-// Tax status
-Route::group(['middleware' => ['permission:ManageTaxstatus']], function () {
+    // Tax status
+    Route::group(['middleware' => ['permission:ManageTaxstatus']], function () {
 
-Route::get('/Taxstatus', [TaxstatusController::class, 'index'])
-    ->name('pages.Taxstatus');
-Route::get('Taxstatus/create', [TaxstatusController::class, 'create'])->name('Taxstatus.create');
-Route::post('/Taxstatus', [TaxstatusController::class, 'store'])->name('Taxstatus.store');
-Route::get('/Taxstatus/edit/{hashedId}', [TaxstatusController::class, 'edit'])->name('Taxstatus.edit');
-Route::put('/Taxstatus/{hashedId}', [TaxstatusController::class, 'update'])->name('Taxstatus.update');
-Route::get('/taxstatus/taxstatus', [TaxstatusController::class, 'getTaxstatuses'])->name('taxstatus.taxstatus');
-});
+        Route::get('/Taxstatus', [TaxstatusController::class, 'index'])
+            ->name('pages.Taxstatus');
+        Route::get('Taxstatus/create', [TaxstatusController::class, 'create'])->name('Taxstatus.create');
+        Route::post('/Taxstatus', [TaxstatusController::class, 'store'])->name('Taxstatus.store');
+        Route::get('/Taxstatus/edit/{hashedId}', [TaxstatusController::class, 'edit'])->name('Taxstatus.edit');
+        Route::put('/Taxstatus/{hashedId}', [TaxstatusController::class, 'update'])->name('Taxstatus.update');
+        Route::get('/taxstatus/taxstatus', [TaxstatusController::class, 'getTaxstatuses'])->name('taxstatus.taxstatus');
+    });
 
-// Status Product
-Route::group(['middleware' => ['permission:ManageStatusproduct']], function () {
+    // Status Product
+    Route::group(['middleware' => ['permission:ManageStatusproduct']], function () {
 
-Route::get('/Statusproduct', [StatusproductController::class, 'index'])
-    ->name('pages.Statusproduct');
-Route::get('Statusproduct/create', [StatusproductController::class, 'create'])->name('Statusproduct.create');
-Route::post('/Statusproduct', [StatusproductController::class, 'store'])->name('Statusproduct.store');
-Route::get('/Statusproduct/edit/{hashedId}', [StatusproductController::class, 'edit'])->name('Statusproduct.edit');
-Route::put('/Statusproduct/{hashedId}', [StatusproductController::class, 'update'])->name('Statusproduct.update');
-Route::get('/statusproduct/statusproduct', [StatusproductController::class, 'getStatusproducts'])->name('statusproduct.statusproduct');
-});
+        Route::get('/Statusproduct', [StatusproductController::class, 'index'])
+            ->name('pages.Statusproduct');
+        Route::get('Statusproduct/create', [StatusproductController::class, 'create'])->name('Statusproduct.create');
+        Route::post('/Statusproduct', [StatusproductController::class, 'store'])->name('Statusproduct.store');
+        Route::get('/Statusproduct/edit/{hashedId}', [StatusproductController::class, 'edit'])->name('Statusproduct.edit');
+        Route::put('/Statusproduct/{hashedId}', [StatusproductController::class, 'update'])->name('Statusproduct.update');
+        Route::get('/statusproduct/statusproduct', [StatusproductController::class, 'getStatusproducts'])->name('statusproduct.statusproduct');
+    });
 
-// Status Product
-Route::group(['middleware' => ['permission:ManageMasterproducts']], function () {
+    // Status Product
+    Route::group(['middleware' => ['permission:ManageMasterproducts']], function () {
 
-Route::get('/Masterproducts', [MasterproductController::class, 'index'])
-    ->name('pages.Masterproducts');
-Route::get('Masterproducts/create', [MasterproductController::class, 'create'])->name('Masterproducts.create');
-Route::post('/Masterproducts', [MasterproductController::class, 'store'])->name('Masterproducts.store');
-Route::get('/Masterproducts/edit/{hashedId}', [MasterproductController::class, 'edit'])->name('Masterproducts.edit');
-Route::put('/Masterproducts/{hashedId}', [MasterproductController::class, 'update'])->name('Masterproducts.update');
-Route::get('/masterproducts/masterproducts', [MasterproductController::class, 'getMasterproducts'])->name('masterproducts.masterproducts');
-});
+        Route::get('/Masterproducts', [MasterproductController::class, 'index'])
+            ->name('pages.Masterproducts');
+        Route::get('Masterproducts/create', [MasterproductController::class, 'create'])->name('Masterproducts.create');
+        Route::post('/Masterproducts', [MasterproductController::class, 'store'])->name('Masterproducts.store');
+        Route::get('/Masterproducts/edit/{hashedId}', [MasterproductController::class, 'edit'])->name('Masterproducts.edit');
+        Route::put('/Masterproducts/{hashedId}', [MasterproductController::class, 'update'])->name('Masterproducts.update');
+        Route::get('/masterproducts/masterproducts', [MasterproductController::class, 'getMasterproducts'])->name('masterproducts.masterproducts');
+    });
 
-Route::group(['middleware' => ['permission:ManageCompanies']], function () {
-Route::get('/Company', [CompanyController::class, 'index'])
-    ->name('pages.Company');
-Route::get('Company/create', [CompanyController::class, 'create'])->name('Company.create');
-Route::post('/Company', [CompanyController::class, 'store'])->name('Company.store');
-Route::get('/Company/edit/{hashedId}', [CompanyController::class, 'edit'])->name('Company.edit');
-Route::put('/Company/{hashedId}', [CompanyController::class, 'update'])->name('Company.update');
-Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
-});
-// banks   
+    Route::group(['middleware' => ['permission:ManageCompanies']], function () {
+        Route::get('/Company', [CompanyController::class, 'index'])
+            ->name('pages.Company');
+        Route::get('Company/create', [CompanyController::class, 'create'])->name('Company.create');
+        Route::post('/Company', [CompanyController::class, 'store'])->name('Company.store');
+        Route::get('/Company/edit/{hashedId}', [CompanyController::class, 'edit'])->name('Company.edit');
+        Route::put('/Company/{hashedId}', [CompanyController::class, 'update'])->name('Company.update');
+        Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
+    });
+    // banks   
 // import
 });
 Route::middleware(['auth', 'role:ManagerStore'])->group(function () {

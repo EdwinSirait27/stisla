@@ -4,8 +4,7 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 @endpush
 <style>
     /* Card Styles */
@@ -221,13 +220,13 @@
                                         <i class="fas fa-money-bill-transfer"></i> Transfer All to Payroll
                                     </button>
                                 </div> --}}
-                                 <div class="alert alert-secondary mt-4" role="alert">
-        <span class="text-dark">
-            <strong>Important Note:</strong> <br>
-            - <i class="fas fa-user"></i> Press button to edit
- {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
-        </span>
-    </div>
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - <i class="fas fa-user"></i> Press button to edit
+                                        {{-- If you want to print payroll, ignore the day, just look at the year and month, you can only print payrolls once a month, okay.<br><br> --}}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -353,115 +352,113 @@
 
         });
 
-//         $(document).ready(function() {
-//     $('#transferAllBtn').on('click', function() {
-//         // Ambil nilai tanggal dari input
-//         const selectedDate = $('#payrollDate').val();
+        //         $(document).ready(function() {
+        //     $('#transferAllBtn').on('click', function() {
+        //         // Ambil nilai tanggal dari input
+        //         const selectedDate = $('#payrollDate').val();
 
-//         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' +
-//                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
-//             $.ajax({
-//                 url: "{{ route('employees.transferAllToPayroll') }}",
-//                 type: "POST",
-//                 data: {
-//                     "_token": "{{ csrf_token() }}",
-//                     "month_year": selectedDate
-//                 },
-//                 success: function(response) {
-//                     if (response.success) {
-//                         alert(response.message);
-//                     } else {
-//                         alert('Error: ' + response.message);
-//                     }
-//                 },
-//                 error: function(xhr) {
-//                     alert('Error: ' + xhr.responseText);
-//                 }
-//             });
-//         }
-//     });
-// });
+        //         if (confirm('Are you sure you want to transfer all employee IDs to Payroll for ' +
+        //                     new Date(selectedDate).toLocaleDateString('en-US', {day: 'numeric', month: 'long', year: 'numeric'}) + '?')) {
+        //             $.ajax({
+        //                 url: "{{ route('employees.transferAllToPayroll') }}",
+        //                 type: "POST",
+        //                 data: {
+        //                     "_token": "{{ csrf_token() }}",
+        //                     "month_year": selectedDate
+        //                 },
+        //                 success: function(response) {
+        //                     if (response.success) {
+        //                         alert(response.message);
+        //                     } else {
+        //                         alert('Error: ' + response.message);
+        //                     }
+        //                 },
+        //                 error: function(xhr) {
+        //                     alert('Error: ' + xhr.responseText);
+        //                 }
+        //             });
+        //         }
+        //     });
+        // });
 
-$(document).ready(function() {
-    $('#transferAllBtn').on('click', function() {
-        // Ambil nilai tanggal dari input
-        const selectedDate = $('#payrollDate').val();
-        const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
-
-        // Tampilkan konfirmasi dengan SweetAlert2
-        Swal.fire({
-            title: 'Confirm Transfer',
-            text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, transfer!',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Processing...',
-                    html: 'Please wait while we transfer the data.',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+        $(document).ready(function() {
+            $('#transferAllBtn').on('click', function() {
+                // Ambil nilai tanggal dari input
+                const selectedDate = $('#payrollDate').val();
+                const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
                 });
 
-                // Lakukan AJAX request
-                $.ajax({
-                    url: "{{ route('employees.transferAllToPayroll') }}",
-                    type: "POST",
-                    data: {
-                        "_token": "{{ csrf_token() }}",
-                        "month_year": selectedDate
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Tampilkan hasil dengan SweetAlert2
-                            Swal.fire({
-                                title: 'Transfer Successful!',
-                                html: `
+                // Tampilkan konfirmasi dengan SweetAlert2
+                Swal.fire({
+                    title: 'Confirm Transfer',
+                    text: `Are you sure you want to transfer all employee IDs to Payroll for ${formattedDate}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, transfer!',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Tampilkan loading
+                        Swal.fire({
+                            title: 'Processing...',
+                            html: 'Please wait while we transfer the data.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Lakukan AJAX request
+                        $.ajax({
+                            url: "{{ route('employees.transferAllToPayroll') }}",
+                            type: "POST",
+                            data: {
+                                "_token": "{{ csrf_token() }}",
+                                "month_year": selectedDate
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // Tampilkan hasil dengan SweetAlert2
+                                    Swal.fire({
+                                        title: 'Transfer Successful!',
+                                        html: `
                                     <div class="text-left">
                                         <p><strong>Period:</strong> ${response.period}</p>
                                         <p><strong>Transferred:</strong> ${response.transferred} employee(s)</p>
                                         <p><strong>Skipped:</strong> ${response.skipped} employee(s) (already exist)</p>
                                     </div>`,
-                                icon: 'success',
-                                confirmButtonText: 'Great!'
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: response.message,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        // Tampilkan error dengan SweetAlert2
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Failed to process your request. Please try again.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
+                                        icon: 'success',
+                                        confirmButtonText: 'Great!'
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: response.message,
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
+                                // Tampilkan error dengan SweetAlert2
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Failed to process your request. Please try again.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                                console.error("Error:", xhr);
+                            }
                         });
-                        console.error("Error:", xhr);
                     }
                 });
-            }
+            });
         });
-    });
-});
     </script>
 @endpush
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILkW4xpJyhyv1EjOxprspQp99GOpCB0gblHxwjqpgSRB kesumamataram
-

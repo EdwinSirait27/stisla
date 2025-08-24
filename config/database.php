@@ -61,21 +61,28 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-            // 'timezone' => 'Asia/Makassar',
+        'dump' => [
+    'dump_binary_path' => env('DB_DUMP_PATH', '/usr/bin/'),
+    'use_single_transaction',
+    'timeout' => 60 * 5,
+],
+
+
+
         ],
         'mysql_second' => [
-        'driver' => 'mysql',
-        'host' => env('DB_SECOND_HOST', '127.0.0.1'),
-        'port' => env('DB_SECOND_PORT', '3306'),
-        'database' => env('DB_SECOND_DATABASE', 'forge'),
-        'username' => env('DB_SECOND_USERNAME', 'forge'),
-        'password' => env('DB_SECOND_PASSWORD', ''),
-        'charset' => 'utf8', // Untuk MySQL 5
-        'collation' => 'utf8_general_ci', // Disarankan untuk MySQL 5.x
-        'prefix' => '',
-        'strict' => false, // Sesuaikan untuk MySQL 5
-        'engine' => null,
-    ],
+            'driver' => 'mysql',
+            'host' => env('DB_SECOND_HOST', '127.0.0.1'),
+            'port' => env('DB_SECOND_PORT', '3306'),
+            'database' => env('DB_SECOND_DATABASE', 'forge'),
+            'username' => env('DB_SECOND_USERNAME', 'forge'),
+            'password' => env('DB_SECOND_PASSWORD', ''),
+            'charset' => 'utf8', // Untuk MySQL 5
+            'collation' => 'utf8_general_ci', // Disarankan untuk MySQL 5.x
+            'prefix' => '',
+            'strict' => false, // Sesuaikan untuk MySQL 5
+            'engine' => null,
+        ],
 
         'pgsql' => [
             'driver' => 'pgsql',
@@ -139,7 +146,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [

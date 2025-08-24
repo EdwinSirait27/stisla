@@ -16,6 +16,8 @@ use App\Rules\NoXSSInput;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Mail\WelcomeEmployeeMail;
+use Illuminate\Support\Facades\Mail;
 class EmployeeController extends Controller
 {
     public function indexall()
@@ -365,15 +367,11 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'nik.max' => 'The NIK may not be greater than 20 characters.',
             'bank_account_number.required' => 'The bank account number is required.',
             'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
-
             'employee_pengenal.max' => 'The employee ID may not be greater than 30 characters.',
             'employee_pengenal.unique' => 'This employee ID is already taken.',
-
             'last_education.required' => 'The last education field is required.',
             'last_education.max' => 'The last education may not be greater than 255 characters.',
-
             'religion.required' => 'The religion field is required.',
-
             'place_of_birth.required' => 'The place of birth is required.',
             'biological_mother_name.required' => 'The biological mother\'s name is required.',
             'current_address.required' => 'The current address is required.',
@@ -381,7 +379,6 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'institution.required' => 'The institution is required.',
             'npwp.required' => 'The NPWP is required.',
             'npwp.max' => 'The NPWP may not be greater than 50 characters.',
-
             'position_id.exists' => 'The selected position is invalid.',
             'store_id.exists' => 'The selected store is invalid.',
             'company_id.exists' => 'The selected company is invalid.',
@@ -392,21 +389,15 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'department_id.required' => 'The Department is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
-
-
         ]);
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
-
             $currentYearMonth = date('Ym'); // Format: TahunBulan (contoh: 202504)
-
             if ($lastEmployee) {
                 $lastId = $lastEmployee->employee_pengenal;
-
                 // Ambil 5 digit terakhir
                 $lastSequence = (int) substr($lastId, -5);
-
                 // Ambil bagian tahun-bulan dari ID terakhir
                 $lastYearMonth = substr($lastId, 0, 6);
 
@@ -460,14 +451,19 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
                 'id_card_address' => $validatedData['id_card_address'] ?? '',
                 'institution' => $validatedData['institution'] ?? '',
                 'npwp' => $validatedData['npwp'] ?? '',
-                // 'pin' => $validatedData['pin'] ?? '',
             ]);
+             if ($employees) {
+        Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
+    }
             // dd($employees->toArray());
             $user = User::create([
                 'username' => $employeeId,
                 'password' => Hash::make($employeeId),
                 'employee_id' => $employees->id,
             ]);
+            
+            
+
             // dd($user->toArray());
             DB::commit();
             return redirect()->route('pages.Employee')->with('success', 'Done!');

@@ -60,7 +60,8 @@ class Employee extends Model
         'emergency_contact_name',
         'status',
         'notes',
-        'pin'
+        'pin',
+        'daily_duit'
         
         
     ];
