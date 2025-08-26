@@ -51,7 +51,7 @@
                 </li>
                 <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Create Data</span></a>
+                        <span>Master Data</span></a>
                     <ul class="dropdown-menu">
                         <li class="{{ Request::is('{Banks}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Banks') }}">Banks</a>
@@ -126,7 +126,7 @@
                 </li>
                 <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Create Data</span></a>
+                        <span>Master Data</span></a>
                     <ul class="dropdown-menu">
                         <li class="{{ Request::is('{Banks}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Banks') }}">Banks</a>

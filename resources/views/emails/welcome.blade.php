@@ -63,7 +63,7 @@
         <p>We are pleased to welcome you to <span class="highlight">PT. Mahendradata Jaya Mandiri</span>.</p>
         <p>Your Employee Identification Number is: <span class="highlight">{{ $employee->employee_pengenal }}</span>.</p>
         <p>We are confident that your skills and experience will contribute greatly to our company’s success.</p>
-        <p>Please find your employment details below:</p>
+        <p>Here is your employment details below:</p>
         <div class="info-box">
             <p><strong>Company:</strong> {{ $employee->company->name ?? '-' }}</p>
             <p><strong>Location:</strong> {{ $employee->store->name ?? '-' }}</p>
@@ -76,18 +76,18 @@
         </p>
         <div class="note">
             This email was sent automatically. Please do not reply.<br><br>
-            For further assistance, please contact our HR Department via WhatsApp:
+            For further information, please contact our HR Department via WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
                 HR Department Mahendradata Jaya Mandiri
             </a>
         </div>
         <hr style="margin:30px 0; border:0; border-top:1px solid #ddd;">
         <h2>Kepada Yth. {{ $employee->employee_name }},</h2>
-        <p>Dengan senang hati kami menyambut Anda di <span class="highlight">PT. Mahendradata Jaya Mandiri</span>.</p>
+        <p>Dengan senang hati kami menyambut anda di <span class="highlight">PT. Mahendradata Jaya Mandiri</span>.</p>
         <p>Nomor Induk Pegawai (NIP) anda adalah: <span class="highlight">{{ $employee->employee_pengenal }}</span>.</p>
         <p>Kami yakin keterampilan dan pengalaman anda akan memberikan kontribusi besar bagi kesuksesan perusahaan kami.
         </p>
-        <p>Berikut detail informasi pekerjaan Anda:</p>
+        <p>Berikut detail informasi pekerjaan anda:</p>
         <div class="info-box">
             <p><strong>Perusahaan:</strong> {{ $employee->company->name ?? '-' }}</p>
             <p><strong>Lokasi:</strong> {{ $employee->store->name ?? '-' }}</p>
@@ -100,13 +100,13 @@
         </p>
         <div class="note">
             Email ini dikirim secara otomatis. Mohon untuk tidak membalas.<br><br>
-            Untuk bantuan lebih lanjut, silakan hubungi HR melalui WhatsApp:
+            Untuk bantuan lebih lanjut, silakan menghubungi HR Departemen melalui WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
                 Departemen HR Mahendradata Jaya Mandiri
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} Edwin Sirait. All rights reserved.
+            © {{ date('Y') }} Edwin Sirait.
         </div>
     </div>
 </body>

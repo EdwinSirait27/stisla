@@ -346,7 +346,6 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
 
             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
-            // 'daily_allowance.numeric' => 'Net salary must be a number.',
             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
 
