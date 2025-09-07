@@ -106,7 +106,7 @@
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} Edwin Sirait.
+            © {{ date('Y') }} PT Mahendradata Jaya Mandiri Created by Edwin Sirait.
         </div>
     </div>
 </body>
