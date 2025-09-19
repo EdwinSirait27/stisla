@@ -3,9 +3,10 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> --}}
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+@endpush
 <style>
+    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -40,7 +41,6 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
-
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -161,8 +161,6 @@
         }
     }
 </style>
-@endpush
-
 
 
 @section('main')
@@ -185,8 +183,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Department Key</th>
-                                                <th class="text-center">Department Name</th>
+                                                <th class="text-center">Name</th>
                                                 <th class="text-center">Manager Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -196,7 +193,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Department.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Departments
+                                        <i class="fas fa-plus-circle"></i> Create Department
                                     </button>
                                 </div>
                             </div>
@@ -208,9 +205,7 @@
     </div>
 @endsection
 @push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-   
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Wait for jQuery to be fully loaded
@@ -240,11 +235,7 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    {
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-center'
-                    },
+                  
                     {
                         data: 'department_name',
                         name: 'department_name',
@@ -268,13 +259,15 @@
                     $('.dataTables_length select').addClass('form-control');
                 }
             });
+
             @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
+    
         });
     </script>
 @endpush

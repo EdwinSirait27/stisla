@@ -1,9 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Fingerprints')
 @push('styles')
-    {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> --}}
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -173,7 +170,7 @@
     }
 
     div.dataTables_scrollBody {
-        max-height: 500px !important;
+        max-height: 750px !important;
     }
 </style>
 
@@ -197,7 +194,7 @@
 
                                 <div class="row mb-2 align-items-end">
                                     <div class="col-md-2">
-                                        <label for="store_name">Filter Store</label>
+                                        <label for="store_name">Filter By Location</label>
                                         <select id="store_name" name="store_name" class="form-control select2">
                                             <option value="">All Stores</option>
                                             @foreach ($stores as $store)
@@ -207,14 +204,14 @@
                                     </div>
 
                                     <div class="col-md-2">
-                                        <label for="startDate">Dari Tanggal</label>
+                                        <label for="startDate">Start Date</label>
                                         <input type="date" id="startDate"
                                             value="{{ request('start_date') ?? now()->startOfMonth()->toDateString() }}"
                                             class="form-control">
                                     </div>
 
                                     <div class="col-md-2">
-                                        <label for="endDate">Sampai Tanggal</label>
+                                        <label for="endDate">End Date</label>
                                         <input type="date" id="endDate"
                                             value="{{ request('end_date') ?? now()->toDateString() }}" class="form-control">
                                     </div>
@@ -345,16 +342,16 @@
                         d.store_name = $('#store_name').val();
                     }
                 },
-                scrollY: '500px', // batas tinggi scroll
-                scrollCollapse: true,
-                paging: true,
+                scrollX: '500px',
+                scrollCollapse: false,
+                // paging: false,
 
                 dom: "<'d-none'lf>" + // ini akan menyembunyikan tapi tetap membuat elemen length & filter
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-12'B>>" +
                     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 buttons: [
-                    
+
                     {
                         extend: 'csv',
                         className: 'btn btn-sm btn-success',

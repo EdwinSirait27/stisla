@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Stores')
+@section('title', 'Locations')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -168,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Stores</h1>
+                <h1>Locations</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Stores</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Locations</h6>
                             </div>
 
                             <div class="card-body">
@@ -184,8 +184,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Stores Key</th>
-                                                <th class="text-center">Store Name</th>
+                                               <th class="text-center">Location Name</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">Phone Number</th>
                                                 <th class="text-center">Manager Name</th>
@@ -197,7 +196,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Store.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Stores
+                                        <i class="fas fa-plus-circle"></i> Create Locations
                                     </button>
                                 </div>
                             </div>
@@ -239,11 +238,7 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    {
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-center'
-                    },
+                   
                     {
                         data: 'name',
                         name: 'name',

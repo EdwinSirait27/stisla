@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Banks;
 use App\Models\Company;
 use App\Models\Departments;
@@ -18,11 +20,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeEmployeeMail;
 use Illuminate\Support\Facades\Mail;
+
 class EmployeeController extends Controller
 {
     public function indexall()
     {
-        // $storeList = Stores::pluck('name')->all();
         $storeList = Stores::select('name')->distinct()->pluck('name');
         $statusList = Employee::select('status')->distinct()->pluck('status');
         return view('pages.Employeeall.Employeeall', compact('storeList', 'statusList'));
@@ -31,50 +33,53 @@ class EmployeeController extends Controller
     {
         $storeList = Stores::select('name')->distinct()->pluck('name');
 
-        return view('pages.Employee.Employee',compact('storeList'));
+        return view('pages.Employee.Employee', compact('storeList'));
     }
-   
- public function getEmployees(Request $request, DataTables $dataTables)
-{
-    // $isHeadHR = auth()->user()->hasRole('HeadHR');
-$isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
 
-    $employees = User::with([
-        'Employee.company',
-        'Employee.store',
-        'Employee.position',
-        'Employee.department',
-    ])
-    ->select(['id', 'employee_id'])
-    ->get()
-    ->map(function ($employee) use ($isHeadHR) {
-        $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-        $employeeName = optional($employee->Employee)->employee_name;
+    public function getEmployees(Request $request, DataTables $dataTables)
+    {
+        // $isHeadHR = auth()->user()->hasRole('HeadHR');
+        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
 
-        $employee->action = $isHeadHR
-            ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+        $employees = User::with([
+            'Employee.company',
+            'Employee.store',
+            'Employee.position',
+            'Employee.department',
+        ])
+            ->select(['id', 'employee_id'])
+            ->get()
+            ->map(function ($employee) use ($isHeadHR) {
+                $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+                $employeeName = optional($employee->Employee)->employee_name;
+
+                $employee->action = $isHeadHR
+                    ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
                     <i class="fas fa-user-edit text-secondary"></i>
+               </a>
+               <a href="' . route('Employee.show', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="show Employee: ' . e($employeeName) . '">
+                    <i class="fas fa-eye text-secondary"></i>
                </a>'
-            : '';
+                    : '';
 
-        return $employee;
-    });
-    return DataTables::of($employees)
-        ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
-        ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
-        ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
-        ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
-        ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
+                return $employee;
+            });
+        return DataTables::of($employees)
+            ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
+            ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
+            ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
+            ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
+            ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
 
-        ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
-        ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
-        ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
-        ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-        ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee','action'])
-        ->make(true);
-}
+            ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
+            ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
+            ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
+            ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
+            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee', 'action'])
+            ->make(true);
+    }
 
- public function getEmployeesall()
+    public function getEmployeesall()
     {
         $storeFilter = request()->get('name');
         $statusFilter = request()->get('status');
@@ -102,14 +107,14 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
         $employees = $query->get()->map(function ($employee) {
             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
             // if (auth()->user()->hasRole('HeadHR')) 
-          if (auth()->user()->hasAnyRole(['HeadHR', 'HR'])) {
-    $employee->action = '
+            if (auth()->user()->hasAnyRole(['HeadHR', 'HR'])) {
+                $employee->action = '
         <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
             <i class="fas fa-user-edit text-secondary"></i>
         </a>';
-} else {
-    $employee->action = ''; // Optional: kosongkan jika tidak punya akses
-}
+            } else {
+                $employee->action = ''; // Optional: kosongkan jika tidak punya akses
+            }
 
 
             return $employee;
@@ -170,7 +175,7 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             ->rawColumns(['action'])
             ->make(true);
     }
-    
+
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank')->get()->first(function ($u) use ($hashedId) {
@@ -191,12 +196,10 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation','Active'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active'];
         $banks = Banks::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        // dd($employee->Employee->join_date, $employee->Employee->getOriginal('join_date'));
-
         return view('pages.Employee.edit', [
             'employee' => $employee,
             'status_employee' => $status_employee,
@@ -216,8 +219,7 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
     }
     public function show($hashedId)
     {
-        // Tambahkan debug sebelum mengirim ke view
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -231,27 +233,24 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
         $companys = Company::get();
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
-        $status_employee = ['PKWT', 'DW', 'PKWTT'];
+        $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
         $child = ['0', '1', '2', '3', '4', '5'];
-        $banks = ['OCBC', 'BCA', 'Victoria', 'Mandiri', 'BRI'];
-
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Active', 'Pending', 'Inactive', 'On Leave'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active'];
+        $banks = Banks::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
-        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma', 'Bachelor Degree'];
-        // dd($employee->Employee->join_date, $employee->Employee->getOriginal('join_date'));
-
+        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.show', [
             'employee' => $employee,
             'status_employee' => $status_employee,
             'child' => $child,
-            'banks' => $banks,
             'companys' => $companys,
             'stores' => $stores,
             'marriage' => $marriage,
             'gender' => $gender,
             'status' => $status,
+            'banks' => $banks,
             'religion' => $religion,
             'last_education' => $last_education,
             'positions' => $positions,
@@ -259,7 +258,6 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'hashedId' => $hashedId,
         ]);
     }
-
 
     public function create()
     {
@@ -312,7 +310,7 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
             // 'daily_allowance' => ['nullable','numeric',
-//                 new NoXSSInput()],
+            //                 new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -451,17 +449,17 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
                 'institution' => $validatedData['institution'] ?? '',
                 'npwp' => $validatedData['npwp'] ?? '',
             ]);
-             if ($employees) {
-        Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
-    }
+            if ($employees) {
+                Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
+            }
             // dd($employees->toArray());
             $user = User::create([
                 'username' => $employeeId,
                 'password' => Hash::make($employeeId),
                 'employee_id' => $employees->id,
             ]);
-            
-            
+
+
 
             // dd($user->toArray());
             DB::commit();
@@ -494,11 +492,8 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
                 new NoXSSInput()
             ],
             'bpjs_kes' => ['required', 'string', 'max:255'],
-            // 'bpjs_kes' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'bpjs_kes')->ignore($user->Employee->id), new NoXSSInput()],
             'bpjs_ket' => ['required', 'string', 'max:255'],
-            // 'bpjs_ket' => ['required', 'string', 'max:255',Rule::unique('employees_tables', 'bpjs_ket')->ignore($user->Employee->id), new NoXSSInput()],
             'email' => ['required', 'string', 'max:255',],
-            // Rule::unique('employees_tables', 'email')->ignore($user->Employee->id), new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
@@ -511,8 +506,6 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
             'status' => ['required', 'string', new NoXSSInput()],
-            // 'daily_allowance' => ['nullable','string',
-            // new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -528,8 +521,7 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
         ], [
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
-            // 'daily_allowance.numeric' => 'Net salary must be a number.',
-
+           
             'date_of_birth.required' => 'The date of birth is required.',
             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
 
@@ -598,25 +590,20 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             'department_id' => $validatedData['department_id'] ?? '',
             'banks_id' => $validatedData['banks_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
-            // 'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance'])?? 0,
-
             'join_date' => $validatedData['join_date'] ?? '',
             'marriage' => $validatedData['marriage'] ?? '',
             'child' => $validatedData['child'] ?? '',
             'telp_number' => $validatedData['telp_number'] ?? '',
             'gender' => $validatedData['gender'] ?? '',
             'date_of_birth' => $validatedData['date_of_birth'] ?? '',
-
             'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
             'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
             'email' => $validatedData['email'] ?? '',
             'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
-
             'notes' => $validatedData['notes'] ?? '',
             'status' => $validatedData['status'],
             'religion' => $validatedData['religion'] ?? '',
             'last_education' => $validatedData['last_education'] ?? '',
-            // disini masi error
             'place_of_birth' => $validatedData['place_of_birth'] ?? '',
             'biological_mother_name' => $validatedData['biological_mother_name'] ?? '',
             'current_address' => $validatedData['current_address'] ?? '',
@@ -629,72 +616,14 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
         return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');
     }
 
-    // public function transferAllToPayroll(Request $request)
-    // {
-    //     try {
-    //         // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
-    //         $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
-
-    //         // Ekstrak bulan dan tahun dari tanggal yang dipilih
-    //         $month = date('m', strtotime($month_year));
-    //         $year = date('Y', strtotime($month_year));
-
-    //         // Ambil semua employee_id dari model User
-    //         $employeeIds = User::whereNotNull('employee_id')
-    //             ->pluck('employee_id')
-    //             ->toArray();
-
-    //         $transferred = 0;
-    //         $skipped = 0;
-
-    //         foreach ($employeeIds as $employeeId) {
-    //             // Check jika employee_id sudah ada di Payrolls untuk bulan dan tahun yang sama
-    //             // menggunakan whereMonth dan whereYear untuk membandingkan HANYA bulan dan tahun
-    //             $exists = Payrolls::where('employee_id', $employeeId)
-    //                 ->whereMonth('month_year', $month)
-    //                 ->whereYear('month_year', $year)
-    //                 ->exists();
-
-    //             if (!$exists) {
-    //                 // Buat record baru di Payrolls hanya jika employee_id belum ada untuk bulan dan tahun ini
-    //                 Payrolls::create([
-    //                     'employee_id' => $employeeId,
-    //                     'month_year' => $month_year, // Format Y-m-d
-    //                     'created_at' => now(),
-    //                     'updated_at' => now(),
-    //                 ]);
-    //                 $transferred++;
-    //             } else {
-    //                 $skipped++;
-    //             }
-    //         }
-
-    //         // Format tampilan bulan tahun yang benar untuk pesan
-    //         $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) .
-    //             ", $skipped employee(s) skipped (already exist for this month)";
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => $message,
-    //             'transferred' => $transferred,
-    //             'skipped' => $skipped,
-    //             'period' => date('F Y', strtotime($month_year))
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
-    //     }
-    // }
     public function transferAllToPayroll(Request $request)
     {
         try {
-            // Gunakan format Y-m-d yang sesuai dengan definisi casts di model
             $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
 
-            // Ekstrak bulan dan tahun dari tanggal yang dipilih
             $month = date('m', strtotime($month_year));
             $year = date('Y', strtotime($month_year));
 
-            // Ambil semua employee_id dengan status tertentu dari model User
             $employeeIds = User::whereNotNull('employee_id')
                 ->whereHas('employee', function ($query) {
                     $query->whereIn('status', ['Mutation', 'Active', 'On Leave']);
@@ -737,5 +666,4 @@ $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
             return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
         }
     }
-
 }

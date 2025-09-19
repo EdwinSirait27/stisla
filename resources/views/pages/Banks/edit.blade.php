@@ -235,6 +235,8 @@
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
                                         - If a Bank name is already registered, you cannot register it again.<br>
+                                        - please use English to get used to it.<br>
+                                        - Before updating data, please check first whether there is already similar or identical data to avoid double input.<br>
                                         
                                     </span>
                                 </div>

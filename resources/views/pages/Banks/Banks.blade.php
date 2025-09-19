@@ -184,7 +184,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Bank Key</th>
+                                                {{-- <th class="text-center">Bank Key</th> --}}
                                                 <th class="text-center">Bank Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -194,7 +194,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Banks.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Stores
+                                        <i class="fas fa-plus-circle"></i> Create Banks
                                     </button>
                                 </div>
                             </div>
@@ -236,11 +236,11 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    {
-                        data: 'id',
-                        name: 'id ',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'id',
+                    //     name: 'id ',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'name',
                         name: 'name',

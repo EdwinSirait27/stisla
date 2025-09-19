@@ -47,7 +47,9 @@ class StoreController extends Controller
             abort(404, 'Store not found.');
         }
 
-        $managers = User::with('Employee')->get();
+        $managers = User::with('Employee')
+    ->get()
+    ->pluck('Employee.employee_name','id');
         return view('pages.Store.edit', [
             'store' => $store,
             'hashedId' => $hashedId,
@@ -57,7 +59,9 @@ class StoreController extends Controller
  
     public function create()
     {
-        $managers = User::with('Employee')->get();
+       $managers = User::with('Employee')
+    ->get()
+    ->pluck('Employee.employee_name','id');
         
         return view('pages.Store.create',compact('managers'));
     }

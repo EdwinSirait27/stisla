@@ -184,7 +184,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Company Key</th>
+                                                {{-- <th class="text-center">Company Key</th> --}}
                                                 {{-- <th class="text-center">Photo</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Address</th>
@@ -197,7 +197,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Company.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Stores
+                                        <i class="fas fa-plus-circle"></i> Create Company
                                     </button>
                                 </div>
                             </div>
@@ -238,7 +238,7 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                     { data: 'id', name: 'id', className: 'text-center' },
+                    //  { data: 'id', name: 'id', className: 'text-center' },
                 // {
                 //         data: 'foto',
                 //         name: 'foto',

@@ -66,7 +66,7 @@
                             <a class="nav-link" href="{{ url('Department') }}">Departments</a>
                         </li>
                         <li class="{{ Request::is('Store') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Store') }}">Stores</a>
+                            <a class="nav-link" href="{{ url('Store') }}">Locations</a>
                         </li>
 
                     </ul>
@@ -101,7 +101,7 @@
                             <a class="nav-link" href="{{ url('Department') }}">Departments</a>
                         </li>
                         <li class="{{ Request::is('Store') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Store') }}">Stores</a>
+                            <a class="nav-link" href="{{ url('Store') }}">Locations</a>
                         </li>
 
                     </ul>
@@ -141,7 +141,7 @@
                             <a class="nav-link" href="{{ url('Department') }}">Departments</a>
                         </li>
                         <li class="{{ Request::is('Store') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Store') }}">Stores</a>
+                            <a class="nav-link" href="{{ url('Store') }}">Locations</a>
                         </li>
 
                     </ul>

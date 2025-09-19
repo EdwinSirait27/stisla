@@ -1,14 +1,15 @@
 @extends('layouts.app')
-@section('title', 'Create Stores')
+@section('title', 'Create Location')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
+
     <style>
         .avatar {
             position: relative;
         }
+
         .iframe-container {
             position: relative;
             overflow: hidden;
@@ -166,10 +167,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create  Stores</h1>
+                <h1>Create Location</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}"> Stores</a></div>
-                    <div class="breadcrumb-item">Create Stores</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}"> Location</a></div>
+                    <div class="breadcrumb-item">Create Location</div>
                 </div>
             </div>
 
@@ -179,7 +180,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Stores') }}</h6>
+                                    <h6 class="mb-0">{{ __('Create Location') }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -193,11 +194,13 @@
                                     @endif
 
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
@@ -209,12 +212,13 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Store Name') }}
+                                                        <i class="fas fa-user"></i> {{ __('Location Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
-                                                            value="{{ old('name') }}" required
-                                                            placeholder="Fill Store Name">
+                                                        <input type="text"
+                                                            class="form-control @error('name') is-invalid @enderror"
+                                                            id="name" name="name" value="{{ old('name') }}"
+                                                            required placeholder="Fill Location Name">
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -226,14 +230,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="address" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store Address') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location Address') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('address') is-invalid @enderror"
                                                             value="{{ old('address', $store->address ?? '') }}"
                                                             type="text" id="address" name="address"
                                                             value="{{ old('address') }}" aria-describedby="info-address"
-                                                            maxlength="255" placeholder="Insert Store Address">
+                                                            maxlength="255" placeholder="Insert Location Address">
                                                         @error('address')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -247,14 +251,15 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="phone_num" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store Phone Number') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location Phone Number') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('phone_num') is-invalid @enderror"
                                                             value="{{ old('phone_num', $store->phone_num ?? '') }}"
                                                             type="number" id="phone_num" name="phone_num"
-                                                            value="{{ old('phone_num') }}" aria-describedby="info-phone_num"
-                                                            maxlength="255" placeholder="Insert Store Phone Number">
+                                                            value="{{ old('phone_num') }}"
+                                                            aria-describedby="info-phone_num" maxlength="255"
+                                                            placeholder="Insert Location Phone Number">
                                                         @error('phone_num')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -263,58 +268,43 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="manager_id" class="form-control-label">
-                                                            <i class="fas fa-shield-alt"></i> {{ __('Manager Store') }}
-                                                        </label>
-                                                        <div class="@error('manager_id') border border-danger rounded-3 @enderror">
-                                                            {{-- <select class="form-control @error('manager_id') is-invalid @enderror" name="manager_id" id="manager_id" required>
-                                                                <option value="" disabled selected>Choose Manager</option>
-                                                                @foreach($managers as $manager)
-                                                            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                                                                {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
-                                                            </option>
-                                                        @endforeach
-                                                            </select> --}}
-                                                             <select name="manager_id" class="form-control select2 @error('manager_id') is-invalid @enderror" required>
-                                                            <option value="">Choose managers</option>
-                                                              @foreach($managers as $manager)
-                                                            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                                                                {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
-                                                            </option>
-                                                        @endforeach
-                                                            </select> 
-                                                            @error('manager_id')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {{-- <div class="col-md-6">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="manager_id" class="form-label">Manager</label>
-                                                    <select name="manager_id" id="manager_id"
-                                                        class="form-select @error('manager_id') is-invalid @enderror">
-                                                        <option value="">-- Select Manager --</option>
-                                                        @foreach($managers as $manager)
-                                                            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                                                                {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                                    <label for="manager_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
+                                                    </label>
+                                                    <div>
+
+                                                         <select name="manager_id"
+                                                            class="form-control select2 @error('manager_id') is-invalid @enderror"
+                                                            required>
+                                                            <option value="">Choose Manager</option>
+                                                            @foreach ($managers as $id => $employeeName)
+        <option value="{{ $id }}" {{ old('manager_id') == $id ? 'selected' : '' }}>
+            {{ $employeeName }}
+        </option>
+    @endforeach
+                                                        </select>
+                                                        @error('manager_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div> --}}
+                                        </div>
+                                       
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Store name is already registered, you cannot register it again.<br>
-                                                - If a Store Manager is already registered, you cannot register it again.<br>
+                                                - If a Location name is already registered, you cannot register it
+                                                again.<br>
+                                                - please use English to get used to it.<br>
+                                                - Before updating data, please check first whether there is already similar
+                                                or identical data to avoid double input.<br>
+
                                             </span>
                                         </div>
 
@@ -337,29 +327,34 @@
     </div>
 @endsection
 @push('scripts')
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+ <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+    </script>
     <script>
-         document.getElementById('create-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
-              Swal.fire({
-                  title: 'Are You Sure?',
-                  text: "Make sure the data you entered is correct!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
-                  cancelButtonText: 'Abort'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('store-create').submit();
-                  }
-              });
-          });
-          
+        document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('store-create').submit();
+                }
+            });
+        });
     </script>
     <script>
         @if (session('success'))

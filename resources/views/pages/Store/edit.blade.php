@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Update Store')
+@section('title', 'Update Location')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -167,11 +167,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Stores {{ $store->name }}</h1>
+                <h1>Update Location {{ $store->name }}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}">Store</a></div>
-                    <div class="breadcrumb-item">Update Stores {{ $store->name }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}">Location</a></div>
+                    <div class="breadcrumb-item">Update Location {{ $store->name }}</div>
                 </div>
             </div>
 
@@ -181,7 +181,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Update Store') }} {{ $store->name }}</h6>
+                                    <h6 class="mb-0">{{ __('Update Location') }} {{ $store->name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -215,7 +215,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Store Name') }}
+                                                        <i class="fas fa-user"></i> {{ __('Location Name') }}
                                                     </label>
                                                     <div>
                                                         <input type="text"
@@ -234,14 +234,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="address" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store Address') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location Address') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('address') is-invalid @enderror"
                                                             value="{{ old('address', $store->address ?? '') }}"
                                                             type="text" id="address" name="address"
                                                             aria-describedby="info-address"
-                                                            placeholder="Insert Store Address" maxlength="255">
+                                                            placeholder="Insert Location Address" maxlength="255">
                                                         @error('address')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -255,14 +255,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="phone_num" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store Phone Number') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location Phone Number') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('phone_num') is-invalid @enderror"
                                                             value="{{ old('phone_num', $store->phone_num ?? '') }}"
                                                             type="number" id="phone_num" name="phone_num"
                                                             aria-describedby="info-phone_num"
-                                                            placeholder="Insert Store Phone Number" maxlength="255">
+                                                            placeholder="Insert Location Phone Number" maxlength="255">
                                                         @error('phone_num')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -271,29 +271,20 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                          <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="manager_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Managers Name') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
                                                     </label>
-                                                    {{-- <select name="manager_id" id="manager_id"
-                                                        class="form-control @error('manager_id') is-invalid @enderror">
-                                                        <option value="">-- Pilih Manager --</option>
-                                                        @foreach ($managers as $manager)
-                                                            <option value="{{ $manager->id }}" {{ (isset($store) && $store->manager_id == $manager->id) ? 'selected' : '' }}>
-                                                                {{ $manager->Employee->employee_name ?? $manager->name ?? 'Tanpa Nama' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select> --}}
-                                                    <select name="manager_id" id="manager_id"
-                                                        class="form-control select2 @error('manager_id') is-invalid @enderror">
-                                                        <option value="">Choose Managers</option>
-                                                        @foreach ($managers as $manager)
-                                                            <option value="{{ $manager->id }}"
-                                                                {{ isset($store) && $store->manager_id == $manager->id ? 'selected' : '' }}>
-
-                                                                {{ $manager->Employee->employee_name ?? ($manager->name ?? 'Tanpa Nama') }}
-
+     <div>
+                                                    <select name="manager_id"
+                                                        class="form-control select2 @error('manager_id') is-invalid @enderror"
+                                                        required>
+                                                        <option value="">Choose Manager</option>
+                                                        @foreach ($managers as $id => $employeeName)
+                                                            <option value="{{ $id }}"
+                                                                {{ old('manager_id', $store->manager_id) == $id ? 'selected' : '' }}>
+                                                                {{ $employeeName }}
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -305,16 +296,16 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        </div>
 
 
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Store name is already registered, you cannot register it again.<br>
-                                                - If a Store Manager is already registered, you cannot register it
-                                                again.<br>
-
+                                                - If a Location name is already registered, you cannot register it again.<br>
+                                                - please use English to get used to it.<br> 
+                                                - Before updating data, please check first whether there is already similar or identical data to avoid double input.
                                             </span>
                                         </div>
 

@@ -64,7 +64,7 @@
     <meta charset="UTF-8">
     <title>Payroll Slip - {{ $payrollPeriod }}</title>
 </head>
-<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f6f8;">
+<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #000000; margin: 0; padding: 0; background-color: #f4f6f8;">
     <div style="max-width: 700px; margin: 20px auto; background: #fff; border: 1px solid #e1e1e1; border-radius: 8px; overflow: hidden;">
 
         <!-- Header -->
@@ -110,6 +110,7 @@
         </div>
           <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #e1e1e1;">
             <p style="margin: 5px 0;">This is an automated email. Please do not reply.</p>
+            <p style="margin: 5px 0;">Mark important for the sender of this email to get the pay slip notification for the next month.</p>
             <p style="margin: 5px 0;">&copy; {{ date('Y') }} PT. Mahendradata Jaya Mandiri — Created by Edwin Sirait</p>
         </div>
 
@@ -152,6 +153,7 @@
         <!-- Footer -->
         <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #e1e1e1;">
             <p style="margin: 5px 0;">Email ini dikirim otomatis. Mohon untuk tidak membalas.</p>
+            <p style="margin: 5px 0;">Tandai penting bagi pengirim email ini untuk mendapatkan pemberitahuan slip gaji untuk bulan berikutnya.</p>
             <p style="margin: 5px 0;">&copy; {{ date('Y') }} PT. Mahendradata Jaya Mandiri — Created by Edwin Sirait</p>
         </div>
 

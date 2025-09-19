@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Create Companies')
+@section('title', 'Create Company')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -164,10 +164,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create  Companies</h1>
+                <h1>Create  Company</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item"><a href="{{ route('pages.Company') }}"> Stores</a></div>
-                    <div class="breadcrumb-item">Create Companies</div>
+                    <div class="breadcrumb-item">Create Company</div>
                 </div>
             </div>
 
@@ -177,7 +177,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Companies') }}</h6>
+                                    <h6 class="mb-0">{{ __('Create Company') }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -207,12 +207,12 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Companies Name') }}
+                                                        <i class="fas fa-user"></i> {{ __('Company Name') }}
                                                     </label>
                                                     <div>
                                                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
                                                             value="{{ old('name') }}" required
-                                                            placeholder="Fill Companies Name">
+                                                            placeholder="Fill Company Name">
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -227,7 +227,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="foto" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Companies Images') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Images') }}
                                                     </label>
                                                     <div>
                                                         {{-- Preview Image --}}
@@ -263,14 +263,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="address" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store Address') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Address') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('address') is-invalid @enderror"
                                                             value="{{ old('address', $store->address ?? '') }}"
                                                             type="text" id="address" name="address"
                                                             value="{{ old('address') }}" aria-describedby="info-address"
-                                                            maxlength="255" placeholder="Insert Companies Address">
+                                                            maxlength="255" placeholder="Insert Company Address">
                                                         @error('address')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -282,14 +282,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="npwp" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Companies NPWP') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Company NPWP') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('npwp') is-invalid @enderror"
                                                             value="{{ old('npwp', $company->npwp ?? '') }}"
                                                             type="text" id="npwp" name="npwp"
                                                             value="{{ old('npwp') }}" aria-describedby="info-npwp"
-                                                            maxlength="255" placeholder="Insert npwp Companies">
+                                                            maxlength="255" placeholder="Insert npwp Company">
                                                         @error('npwp')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -305,12 +305,14 @@
                                                 <strong>Important Note:</strong> <br>
                                                 - If a company name is already registered, you cannot register it again.<br>
                                                 - If a npwp is already registered, you cannot register it again.<br>
+                                                - please use English to get used to it.<br>
+                                                - Before creating data, please check first whether there is already similar or identical data to avoid double input.<br>
                                                 
                                             </span>
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Department') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Company') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
                                             <button type="submit" id="create-btn" class="btn bg-primary">

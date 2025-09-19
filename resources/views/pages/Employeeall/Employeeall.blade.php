@@ -223,8 +223,9 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Action</th>
-                                                <th class="text-center">No.</th>
-                                                <th class="text-center">Employee Key</th>
+                                                {{-- <th class="text-center">No.</th> --}}
+                                                {{-- <th class="text-center">Employee Key</th> --}}
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Employee ID</th>
                                                 <th class="text-center">Company</th>
@@ -256,7 +257,6 @@
                                                 <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Pin Finger</th>
                                                 <th class="text-center">Account Creation</th>
-                                                <th class="text-center">Status</th>
 
 
                                             </tr>
@@ -277,14 +277,7 @@
                                         class="btn btn-danger btn-sm ml-2">
                                         <i class="fas fa-users"></i> Back To Employee
                                     </button>
-                                    <button type="button" onclick="window.location='{{ route('pages.Import') }}'"
-                                        class="btn btn-success btn-sm ml-2">
-                                        <i class="fas fa-users"></i> Import Employee
-                                    </button>
-                                    <button type="button" onclick="window.location='{{ route('pages.Importuser') }}'"
-                                        class="btn btn-dark btn-sm ml-2">
-                                        <i class="fas fa-users"></i> Import User
-                                    </button>
+                                   
                                 </div>
                             </div>
                         </div>
@@ -402,11 +395,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
                     "<'row'<'col-sm-12 col-md-6'B>>",
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm btn-primary',
-                        text: '<i class="fas fa-copy"></i> Copy'
-                    },
+                buttons: [
                     {
                         extend: 'csv',
                         className: 'btn btn-sm btn-success',
@@ -445,18 +434,32 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         searchable: false,
                         className: 'text-center'
                     },
-                {
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
+                // {
+                //         data: null,
+                //         name: 'id',
+                //         className: 'text-center align-middle',
+                //         render: function(data, type, row, meta) {
+                //             return meta.row + meta.settings._iDisplayStart + 1;
+                //         }
+                //     },
                     {
-                        data: 'id',
-                        name: 'id',
-                        className: 'text-center'
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data === 'Active') {
+                                return '<span class="badge bg-success">Active</span>';
+                            } else if (data === 'Inactive') {
+                                return '<span class="badge bg-danger">Inactive</span>';
+                            } else if (data === 'On leave') {
+                                return '<span class="badge bg-warning">On Leave</span>';
+                            } else if (data === 'Mutation') {
+                                return '<span class="badge bg-info">Mutation</span>';
+                            } else if (data === 'Pending') {
+                                return '<span class="badge bg-secondary">Pending</span>';
+                            }
+                            return '<span class="badge bg-secondary">Pending</span>';
+                        }
                     },
                     {
                         data: 'employee_name',
@@ -614,27 +617,9 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                         data: 'created_at',
                         name: 'created_at',
                         className: 'text-center'
-                    },
-
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data === 'Active') {
-                                return '<span class="badge bg-success">Active</span>';
-                            } else if (data === 'Inactive') {
-                                return '<span class="badge bg-danger">Inactive</span>';
-                            } else if (data === 'On leave') {
-                                return '<span class="badge bg-warning">On Leave</span>';
-                            } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Mutation</span>';
-                            } else if (data === 'Pending') {
-                                return '<span class="badge bg-secondary">Pending</span>';
-                            }
-                            return '<span class="badge bg-secondary">Pending</span>';
-                        }
                     }
+
+                    
                      
 
                 ],

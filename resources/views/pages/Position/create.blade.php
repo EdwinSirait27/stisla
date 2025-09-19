@@ -164,13 +164,12 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create Posiitons</h1>
+                <h1>Create Positon</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Position') }}">Positions</a></div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Position') }}">Position</a></div>
                     <div class="breadcrumb-item">Create Position</div>
                 </div>
             </div>
-
             <div class="section-body">
                 <div class="container-fluid">
                     <div class="row">
@@ -189,7 +188,6 @@
                                             </ul>
                                         </div>
                                     @endif
-
                                     @if (session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
                                             <span class="alert-text">
@@ -200,7 +198,6 @@
                                             </button>
                                         </div>
                                     @endif
-
                                     <form id="position-create" action="{{ route('Position.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
@@ -225,10 +222,11 @@
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a position name is already registered, you cannot register it again.<br>
+                                                - If a position name is already registered, you cannot register it again.
+                                                <br> - please use English to get used to it.
+                                                <br> - Before creating data, please check first whether there is already similar or identical data to avoid double input. 
                                             </span>
                                         </div>
-
                                         <div class="d-flex justify-content-end mt-4">
                                             <a href="{{ route('pages.Position') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}

@@ -164,112 +164,6 @@
 </style>
 
 
-{{-- @section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Payrolls</h1>
-            </div>
-
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="row mb-4">
-                                    <div class="col-md-2">
-                                        <label for="filter_month_year" class="form-label">Filter Month - Year</label>
-                                        <input type="text" id="filter_month_year" class="form-control"
-                                            placeholder="Choose Month - Year">
-                                    </div>
-                                    <div class="col-md-1 d-flex align-items-end">
-                                        <button id="btn_filter" class="btn btn-primary w-100">
-                                            <i class="fas fa-filter"></i> Filter
-                                        </button>
-                                    </div>
-                                    <div class="col-md-1 d-flex align-items-end">
-                                        <button id="btn_reset" class="btn btn-secondary w-100">
-                                            <i class="fas fa-undo"></i> Reset
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
-                                    @csrf
-                                    @method('DELETE')
-
-                                
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-bordered" id="users-table">
-                                            <thead class="thead-light">
-                                                <tr>
-                                                    <th class="text-center">No.</th>
-                                                    <th class="text-center">Employee Name</th>
-                                                    <th class="text-center">Attendance</th>
-                                                    <th class="text-center">Daily Allowance</th>
-                                                    <th class="text-center">House Allowance</th>
-                                                    <th class="text-center">Meal Allowance</th>
-                                                    <th class="text-center">Transport Allowance</th>
-                                                    <th class="text-center">Bonus</th>
-                                                    <th class="text-center">Overtime</th>
-                                                    <th class="text-center">Late Fine</th>
-                                                    <th class="text-center">Punishment</th>
-                                                    <th class="text-center">BPJS Kesehatan</th>
-                                                    <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                    <th class="text-center">Tax</th>
-                                                    <th class="text-center">Debt</th>
-                                                    <th class="text-center">Total Outcome</th>
-                                                    <th class="text-center">Total Income</th>
-                                                    <th class="text-center">Take Home</th>
-                                                    <th class="text-center">Month</th>
-                                                    <th class="text-center">Period</th>
-                                                    <th>
-                                                        <button type="button" id="select-all"
-                                                            class="btn btn-primary btn-sm">
-                                                            Select All
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                        </table>
-                                    </div>
-                                </form>
-                                    <button type="submit" class="btn btn-danger mb-2"
-                                        onclick="return confirm('Yakin ingin menghapus data yang dipilih?')">
-                                        Hapus Terpilih
-                                    </button>
-
-                            <form action="{{ route('payrolls.generateAll') }}" method="POST"
-                                onsubmit="return confirm('Generate semua PDF?')">
-                                @csrf
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-file-pdf"></i> Generate All Payroll PDF
-                                </button>
-                            </form>
-
-                            <div class="action-buttons">
-                                <button type="button" onclick="window.location='{{ route('pages.Importpayroll') }}'"
-                                    class="btn btn-dark btn-sm ml-2">
-                                    <i class="fas fa-users"></i> Import Payroll
-                                </button>
-                             
-
-                            </div>
-                        </div> 
-
-                    </div>
-
-                </div>
-            </div>
-    </div>
-    </section>
-    </div>
-@endsection --}}
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -347,27 +241,30 @@
                                         </table>
                                     </div>
 
-                                  
-                                 <div class="d-flex flex-wrap gap-2 align-items-stretch">
-    <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
-        @csrf
-        <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
-        <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
-            <i class="fas fa-trash me-1"></i> Hapus Terpilih
-        </button>
-    </form>
 
-    <form action="{{ route('Payrolls.generateAll') }}" method="POST" onsubmit="return confirm('Generate semua PDF?')">
-        @csrf
-        <button type="submit" class="btn btn-primary h-100 d-flex align-items-center">
-            <i class="fas fa-file-pdf me-1"></i> Generate All Payroll PDF
-        </button>
-    </form>
+                                    <div class="d-flex flex-wrap gap-2 align-items-stretch">
+                                        <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}"
+                                            method="POST">
+                                            @csrf
+                                            <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
+                                            <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
+                                                <i class="fas fa-trash me-1"></i> Delete Selected Payroll
+                                            </button>
+                                        </form>
 
-    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark h-100 d-flex align-items-center">
-        <i class="fas fa-users me-1"></i> Import Payroll
-    </a>
-</div>
+                                        <form action="{{ route('Payrolls.generateAll') }}" method="POST"
+                                            onsubmit="return confirm('Generate semua PDF?')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary h-100 d-flex align-items-center">
+                                                <i class="fas fa-file-pdf me-1"></i> Generate All Payroll Into PDF
+                                            </button>
+                                        </form>
+
+                                        <a href="{{ route('pages.Importpayroll') }}"
+                                            class="btn btn-dark h-100 d-flex align-items-center">
+                                            <i class="fas fa-users me-1"></i> Import Payrolls
+                                        </a>
+                                    </div>
 
 
 
@@ -479,23 +376,42 @@
                         name: 'attendance',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? data : '-';
+                            if (data) {
+                                return data + ' days'; // tambahkan days
+                            }
+                            return '-';
                         }
                     },
+
+                    // {
+                    //     data: 'daily_allowance',
+                    //     name: 'daily_allowance',
+                    //     className: 'text-center',
+                    //     render: function(data) {
+                    //         return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                    //     }
+                    // },
                     {
                         data: 'daily_allowance',
                         name: 'daily_allowance',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
+
                     {
                         data: 'house_allowance',
                         name: 'house_allowance',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -503,7 +419,10 @@
                         name: 'meal_allowance',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -511,7 +430,10 @@
                         name: 'transport_allowance',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -519,7 +441,10 @@
                         name: 'bonus',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -527,7 +452,10 @@
                         name: 'overtime',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -535,7 +463,10 @@
                         name: 'late_fine',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -543,7 +474,10 @@
                         name: 'punishment',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
 
@@ -553,7 +487,10 @@
                         name: 'bpjs_kes',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -561,7 +498,10 @@
                         name: 'bpjs_ket',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
 
@@ -572,7 +512,10 @@
                         name: 'tax',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -580,7 +523,10 @@
                         name: 'debt',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -588,7 +534,10 @@
                         name: 'deductions',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -596,7 +545,10 @@
                         name: 'salary',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -604,7 +556,10 @@
                         name: 'take_home',
                         className: 'text-center',
                         render: function(data) {
-                            return data ? parseInt(data).toLocaleString('id-ID') : '-';
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
                         }
                     },
                     {
@@ -639,16 +594,15 @@
                 ], // urutkan berdasarkan Month Year terbaru
                 dom: 'lBfrtip', // Menambahkan 'l' agar Show Entries muncul
                 buttons: [{
-                        extend: 'copy',
-                        text: 'Copy',
-                        className: 'btn btn-secondary'
-                    },
-                    {
-                        extend: 'excelHtml5',
-                        text: 'Excel',
-                        className: 'btn btn-success'
+                    extend: 'excelHtml5',
+                    text: 'Excel',
+                    className: 'btn btn-success',
+                    exportOptions: {
+                        columns: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                            20
+                        ]
                     }
-                ],
+                }],
                 lengthMenu: [
                     [10, 25, 50, -1],
                     [10, 25, 50, "All"]
@@ -694,13 +648,5 @@
             // Ubah tulisan tombol
             $(this).text(!isChecked ? 'Deselect All' : 'Select All');
         });
-//         $('#users-table').on('draw.dt', function () {
-//     $('#select-all').off('click').on('click', function () {
-//         let isChecked = $(this).data('checked') || false;
-//         $('input.payroll-checkbox').prop('checked', !isChecked);
-//         $(this).data('checked', !isChecked);
-//         $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-//     });
-// });
     </script>
 @endpush

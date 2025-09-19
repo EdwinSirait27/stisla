@@ -28,10 +28,7 @@ class Departments extends Model
     {
         return $this->belongsTo(User::class, 'manager_id', 'id');
     }
-//     public function employee()
-// {
-//     return $this->hasOne(Employee::class, 'department_id');
-// }
+
 
 }
 
