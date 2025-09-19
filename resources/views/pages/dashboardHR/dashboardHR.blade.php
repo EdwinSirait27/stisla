@@ -1,9 +1,13 @@
 @extends('layouts.app')
 @section('title', 'HR Manager Dashboard')
-@push('style')
+@push('styles')
     <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> --}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
     <style>
         .metric-card {
             transition: transform 0.2s;
@@ -85,10 +89,10 @@
         </div>
         <div class="card-wrap">
             <div class="card-header">
-                <h4>Total Karyawan</h4>
+                <h4>Total Active</h4>
             </div>
             <div class="card-body">
-                {{ $totalEmployees ?? null }}
+                {{ $totalEmployees ?? null }} Employees
             </div>
         </div>
     </div>
@@ -147,10 +151,10 @@
                 <div class="col-lg-8 col-md-12 col-12 col-sm-4">
                     <div class="card">
                         <div class="card-header">
-                            <h4>Tingkat Kehadiran Bulanan</h4>
-                            <div class="card-header-action">
+                            <h4>Monthly Attendance Rate</h4>
+                            {{-- <div class="card-header-action">
                                 <div class="dropdown">
-                                    <a href="#" data-toggle="dropdown" class="btn btn-warning dropdown-toggle">Bulan</a>
+                                    <a href="#" data-toggle="dropdown" class="btn btn-warning dropdown-toggle">Month</a>
                                     <div class="dropdown-menu">
                                         <a href="#" class="dropdown-item">Januari</a>
                                         <a href="#" class="dropdown-item">Februari</a>
@@ -160,7 +164,13 @@
                                         <a href="#" class="dropdown-item">Juni</a>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
+                         <div class="card-header-action">
+  <input type="text" id="monthPicker" class="form-control" placeholder="Pilih Bulan">
+</div>
+
+
+
                         </div>
                         <div class="card-body">
                             <canvas id="attendanceChart" height="180"></canvas>
@@ -398,6 +408,9 @@
     <script src="{{ asset('library/jqvmap/dist/maps/jquery.vmap.world.js') }}"></script>
     <script src="{{ asset('library/summernote/dist/summernote-bs4.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
 
     <!-- Page Specific JS File -->
     <script>
@@ -406,9 +419,9 @@
         var attendanceChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
+                labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
                 datasets: [{
-                    label: 'Kehadiran',
+                    label: 'Presence',
                     data: [95, 92, 88, 94, 96, 85],
                     borderWidth: 2,
                     backgroundColor: '#6777ef',
@@ -459,6 +472,19 @@
                 text: '{{ session('success') }}',
             });
         @endif
- 
+flatpickr("#monthPicker", {
+    locale: "id",              // Bahasa Indonesia
+    plugins: [
+        new monthSelectPlugin({
+            shorthand: true,   // Jan, Feb, ...
+            dateFormat: "Y-m", // format kirim ke backend
+            altFormat: "F Y",  // format tampilan
+            theme: "light"     // bisa diganti "dark", "material_blue", dll
+        })
+    ]
+});
+
+
+
     </script>
 @endpush
