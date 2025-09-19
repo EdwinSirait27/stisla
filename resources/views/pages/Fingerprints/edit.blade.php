@@ -190,7 +190,15 @@
                                 <input type="file" name="attachment" class="form-control"
                                     value="{{ $data->attachment ?? '' }}">
                             </div>
-
+  <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Important Note:</strong> <br>
+                                                - FOR URGENT PURPOSE ONLY.<br>
+                                                - Attachment is filled with photo evidence that has been signed by the manager. <br>
+                                                - Attachments only support image files such as jpg, jpeg and png. <br>
+                                                - more than 512 kb will be rejected.
+                                            </span>
+                                        </div>
 
                             <button type="submit" class="btn btn-primary">Save</button>
                             <a href="{{ route('pages.Fingerprints') }}" class="btn btn-secondary">Back</a>
@@ -226,5 +234,3 @@
         @endif
     </script>
 @endpush
-git config --global user.name "EdwinSirait27"
-git config --global user.email "drummerboy794@email.com"
