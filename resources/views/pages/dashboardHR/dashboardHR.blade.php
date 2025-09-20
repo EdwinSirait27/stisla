@@ -81,7 +81,7 @@
                 <div class="row">
 
 
-                    <div class="col-lg-3 col-md-6 col-sm-6 col-12" title="Lihat daftar semua karyawan">
+                    <div class="col-lg-3 col-md-6 col-sm-6 col-12" title="View list of all employees">
                         <div onclick="window.location='{{ route('pages.Employee') }}';" style="cursor: pointer;"
                             title="Lihat daftar semua karyawan" class="card card-statistic-1 metric-card">
                             <div class="card-icon bg-primary">

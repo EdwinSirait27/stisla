@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class Departments extends Model
+class Announcment extends Model
 {
     use HasFactory;
     public $incrementing = false;
@@ -20,13 +20,18 @@ class Departments extends Model
             }
         });
     }
-    protected $table = 'departments_tables';
+    protected $table = 'announcements'; 
     protected $fillable = [
-        'manager_id',
-        'department_name',
+        'user_id',
+        'title',
+        'content',
+        'publish_date',
+        
     ];
+   
     public function user()
     {
-        return $this->belongsTo(User::class, 'manager_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
 }
