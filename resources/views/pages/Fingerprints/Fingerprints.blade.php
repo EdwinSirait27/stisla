@@ -236,7 +236,7 @@
                                     <table class="table table-hover table-striped" id="users-table"style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">Store</th>
+                                                <th class="text-center">Location</th>
                                                 <th class="text-center">PIN</th>
                                                 <th class="text-center th-name">NAME</th>
                                                 <th class="text-center">NIP</th>
