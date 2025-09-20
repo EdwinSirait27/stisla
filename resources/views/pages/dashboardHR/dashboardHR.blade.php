@@ -152,9 +152,10 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4>Monthly Attendance Rate</h4>
-                               <div class="card-header-action">
-        <input type="month" id="monthPicker" class="form-control" value="{{ now()->format('Y-m') }}">
-    </div>
+                                <div class="card-header-action">
+                                    <input type="month" id="monthPicker" class="form-control"
+                                        value="{{ now()->format('Y-m') }}">
+                                </div>
 
 
 
@@ -183,8 +184,8 @@
                                 </div>
                             </div> --}}
                             <div class="card-body">
-    <canvas id="attendanceChart" height="180"></canvas>
-</div>
+                                <canvas id="attendanceChart" height="180"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -290,32 +291,32 @@
                             </div>
                         </div> --}}
                         <div class="card">
-    <div class="card-header">
+                            <div class="card-header">
                                 <h4>Make an Annauncement</h4>
-        
-    </div>
-    <div class="card-body">
-        <form action="{{ route('dashboardHR.store') }}" method="POST">
-            @csrf
-            <div class="form-group mb-3">
-                <label for="title">Title</label>
-                <input type="text" name="title" class="form-control" required>
-            </div>
 
-            <div class="form-group mb-3">
-                <label for="content">Announcement Contents</label>
-                <textarea name="content" id="editor" class="form-control"></textarea>
-            </div>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('dashboardHR.store') }}" method="POST">
+                                    @csrf
+                                    <div class="form-group mb-3">
+                                        <label for="title">Title</label>
+                                        <input type="text" name="title" class="form-control" required>
+                                    </div>
 
-            <div class="form-group mb-3">
-                <label for="publish_date">Publish Date</label>
-                <input type="date" name="publish_date" class="form-control">
-            </div>
+                                    <div class="form-group mb-3">
+                                        <label for="content">Announcement Contents</label>
+                                        <textarea name="content" id="editor" class="form-control"></textarea>
+                                    </div>
 
-            <button type="submit" class="btn btn-primary">Save</button>
-        </form>
-    </div>
-</div>
+                                    <div class="form-group mb-3">
+                                        <label for="publish_date">Publish Date</label>
+                                        <input type="date" name="publish_date" class="form-control">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Aktivitas Terbaru -->
@@ -424,51 +425,42 @@
                     </div>
                 </div> --}}
                 <div class="max-w-3xl mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-6">Daftar Pengumuman</h1>
+                    <h1 class="text-2xl font-bold mb-6">Daftar Pengumuman</h1>
 
-    @foreach($announcements as $announcement)
-        <div class="bg-white rounded-xl shadow p-4 mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">
-                {{ $announcement->title }}
-            </h2>
-            <p class="text-sm text-gray-500">
-                {{ $announcement->created_at->format('d M Y H:i') }}
-            </p>
-            <button 
-                @click="open = true; selected = {{ $announcement->id }}" 
-                class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-                Lihat Detail
-            </button>
-        </div>
-    @endforeach
-</div>
+                    @foreach ($announcements as $announcement)
+                        <div class="bg-white rounded-xl shadow p-4 mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">
+                                {{ $announcement->title }}
+                            </h2>
+                            <p class="text-sm text-gray-500">
+                                {{ $announcement->created_at->format('d M Y H:i') }}
+                            </p>
+                            <button @click="open = true; selected = {{ $announcement->id }}"
+                                class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Lihat Detail
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
 
-<!-- Modal -->
-<div 
-    x-data="{ open: false, selected: null }" 
-    x-cloak
->
-    <template x-for="announcement in {{ $announcements->toJson() }}">
-        <div 
-            x-show="open && selected === announcement.id"
-            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-        >
-            <div class="bg-white w-11/12 md:w-2/3 rounded-2xl shadow-lg p-6 relative">
-                <button 
-                    @click="open = false" 
-                    class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                >
-                    ✖
-                </button>
-                <h2 class="text-xl font-bold text-gray-800 mb-2" x-text="announcement.title"></h2>
-                <p class="text-sm text-gray-500 mb-4" 
-                   x-text="'Dipublikasikan: ' + new Date(announcement.created_at).toLocaleString()"></p>
-                <div class="prose max-w-none" x-html="announcement.content"></div>
-            </div>
-        </div>
-    </template>
-</div>
+                <!-- Modal -->
+                <div x-data="{ open: false, selected: null }" x-cloak>
+                    <template x-for="announcement in {{ $announcements->toJson() }}">
+                        <div x-show="open && selected === announcement.id"
+                            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                            <div class="bg-white w-11/12 md:w-2/3 rounded-2xl shadow-lg p-6 relative">
+                                <button @click="open = false"
+                                    class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+                                    ✖
+                                </button>
+                                <h2 class="text-xl font-bold text-gray-800 mb-2" x-text="announcement.title"></h2>
+                                <p class="text-sm text-gray-500 mb-4"
+                                    x-text="'Dipublikasikan: ' + new Date(announcement.created_at).toLocaleString()"></p>
+                                <div class="prose max-w-none" x-html="announcement.content"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </div>
         </section>
     </div>
@@ -484,17 +476,17 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
-<script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
-<script>
-  tinymce.init({
-    selector: '#editor',
-    plugins: 'lists link image table code',
-    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
-    menubar: false,
-    height: 300,
-    license_key: 'gpl' // <-- ini wajib ditambahkan untuk free GPL license
-  });
-</script>
+    <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
+    <script>
+        tinymce.init({
+            selector: '#editor',
+            plugins: 'lists link image table code',
+            toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
+            menubar: false,
+            height: 300,
+            license_key: 'gpl' // <-- ini wajib ditambahkan untuk free GPL license
+        });
+    </script>
 
 
 
@@ -555,59 +547,59 @@
         // });
         let ctx = document.getElementById('attendanceChart').getContext('2d');
 
-let attendanceChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: [], // Senin–Sabtu nanti dari AJAX
-        datasets: [{
-            label: 'number of attendees',
-            data: [],
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                // tidak perlu max: 100 karena bukan persen lagi
-                ticks: {
-                    precision: 0 // biar tidak ada koma
-                },
-                title: {
-                    display: true,
-                    text: 'Jumlah Karyawan Hadir'
-                }
+        let attendanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [], // Senin–Sabtu nanti dari AJAX
+                datasets: [{
+                    label: 'number of attendees',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
             },
-            x: {
-                title: {
-                    display: true,
-                    text: 'Hari (Senin–Sabtu)'
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        // tidak perlu max: 100 karena bukan persen lagi
+                        ticks: {
+                            precision: 0 // biar tidak ada koma
+                        },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Karyawan Hadir'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Hari (Senin–Sabtu)'
+                        }
+                    }
                 }
             }
-        }
-    }
-});
-
-function loadChartData(month) {
-    fetch(`{{ route('dashboardHR.data') }}?month=${month}`)
-        .then(res => res.json())
-        .then(data => {
-            attendanceChart.data.labels = data.days;
-            attendanceChart.data.datasets[0].data = data.counts; // pakai counts dari controller
-            attendanceChart.update();
         });
-}
 
-document.addEventListener("DOMContentLoaded", function() {
-    loadChartData(document.getElementById('monthPicker').value);
-});
+        function loadChartData(month) {
+            fetch(`{{ route('dashboardHR.data') }}?month=${month}`)
+                .then(res => res.json())
+                .then(data => {
+                    attendanceChart.data.labels = data.days;
+                    attendanceChart.data.datasets[0].data = data.counts; // pakai counts dari controller
+                    attendanceChart.update();
+                });
+        }
 
-document.getElementById('monthPicker').addEventListener('change', function() {
-    loadChartData(this.value);
-});
+        document.addEventListener("DOMContentLoaded", function() {
+            loadChartData(document.getElementById('monthPicker').value);
+        });
+
+        document.getElementById('monthPicker').addEventListener('change', function() {
+            loadChartData(this.value);
+        });
 
         @if (session('success'))
             Swal.fire({
@@ -624,7 +616,7 @@ document.getElementById('monthPicker').addEventListener('change', function() {
                     dateFormat: "Y-m", // format kirim ke backend
                     altFormat: "F Y", // format tampilan
                     theme: "light",
-                     // bisa diganti "dark", "material_blue", dll
+                    // bisa diganti "dark", "material_blue", dll
                 })
             ]
         });
