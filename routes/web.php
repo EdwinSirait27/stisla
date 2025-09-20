@@ -92,6 +92,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR'])->group(function () {
         Route::get('/dashboardHR', [DashboardHRController::class, 'index'])
             ->name('pages.dashboardHR');
         Route::get('/dashboardHR/data', [DashboardHRController::class, 'getMonthlyData'])->name('dashboardHR.data');
+        Route::post('/dashboardHR', [DashboardHRController::class, 'store'])->name('dashboardHR.store');
+
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
 

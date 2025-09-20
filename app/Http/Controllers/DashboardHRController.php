@@ -53,12 +53,14 @@ class DashboardHRController extends Controller
         $days = $data->pluck('day');
         $totals = $data->pluck('total');
         $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+        $announcements = Announcment::orderBy('created_at', 'desc')->get();
 
         return view('pages.dashboardHR.dashboardHR', [
             'month' => $month,
             'days' => $days,
             'totals' => $totals,
-            'totalEmployees' => $totalEmployees,
+            'totalEmployees' => $totalEmployees, 
+            'announcements' => $announcements, 
         ]);
     }
     public function getMonthlyData(Request $request)
@@ -107,6 +109,6 @@ class DashboardHRController extends Controller
     Announcment::create($request->all());
 
     return redirect()->route('pages.dashboardHR')
-        ->with('success', 'Pengumuman berhasil dibuat.');
+        ->with('success', 'Announcement successfully made.');
 }
 }
