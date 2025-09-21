@@ -185,6 +185,14 @@
                             </div> --}}
                             <div class="card-body">
                                 <canvas id="attendanceChart" height="180"></canvas>
+                                 <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Important Note:</strong> <br>
+                                                - X-axis means date.<br>
+                                                - Y-axis total employee attendance based on the x-axis.
+                                               
+                                            </span>
+                                        </div>
                             </div>
                         </div>
                     </div>

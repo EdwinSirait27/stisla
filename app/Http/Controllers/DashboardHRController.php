@@ -11,93 +11,154 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardHRController extends Controller
 {
+   
     // public function index(Request $request)
-
     // {
-    //       $query = Fingerprints::with('devicefingerprints');
-    //     // kalau ada filter month dari input
-    //     if ($request->filled('month')) {
-    //         // format input monthPicker = YYYY-MM
-    //         try {
-    //             $month = Carbon::createFromFormat('Y-m', $request->month);
-    //             $query->whereMonth('scan_date', $month->month)
-    //                   ->whereYear('scan_date', $month->year);
-    //         } catch (\Exception $e) {
-    //             // kalau format salah, bisa diabaikan atau kasih error
-    //         }
-    //     }
+    //     $month = $request->get('month', Carbon::now()->format('Y-m'));
+    //     $monthDate = Carbon::createFromFormat('Y-m', $month);
 
-    //     $fingerprints = $query->orderBy('scan_date', 'desc')->get();
+    //     // ambil jumlah scan per hari
+    //     $data = Fingerprints::select(
+    //         DB::raw('DAY(scan_date) as day'),
+    //         DB::raw('COUNT(*) as total')
+    //     )
+    //         ->whereMonth('scan_date', $monthDate->month)
+    //         ->whereYear('scan_date', $monthDate->year)
+    //         ->groupBy('day')
+    //         ->orderBy('day')
+    //         ->get();
 
+    //     $days = $data->pluck('day');
+    //     $totals = $data->pluck('total');
     //     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+    //     $announcements = Announcment::orderBy('created_at', 'desc')->get();
 
-
-    //     return view('pages.dashboardHR.dashboardHR', compact('totalEmployees','fingerprints'));
+    //     return view('pages.dashboardHR.dashboardHR', [
+    //         'month' => $month,
+    //         'days' => $days,
+    //         'totals' => $totals,
+    //         'totalEmployees' => $totalEmployees, 
+    //         'announcements' => $announcements, 
+    //     ]);
     // }
     public function index(Request $request)
-    {
-        $month = $request->get('month', Carbon::now()->format('Y-m'));
-        $monthDate = Carbon::createFromFormat('Y-m', $month);
+{
+    $month = $request->get('month', Carbon::now()->format('Y-m'));
+    $monthDate = Carbon::createFromFormat('Y-m', $month);
 
-        // ambil jumlah scan per hari
-        $data = Fingerprints::select(
+    // ambil jumlah scan per hari (distinct pin per tanggal)
+    $data = Fingerprints::select(
             DB::raw('DAY(scan_date) as day'),
-            DB::raw('COUNT(*) as total')
+            DB::raw('COUNT(DISTINCT pin) as total')
         )
-            ->whereMonth('scan_date', $monthDate->month)
-            ->whereYear('scan_date', $monthDate->year)
-            ->groupBy('day')
-            ->orderBy('day')
-            ->get();
+        ->whereMonth('scan_date', $monthDate->month)
+        ->whereYear('scan_date', $monthDate->year)
+        ->groupBy('day')
+        ->orderBy('day')
+        ->get();
 
-        $days = $data->pluck('day');
-        $totals = $data->pluck('total');
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
-        $announcements = Announcment::orderBy('created_at', 'desc')->get();
+    $days = $data->pluck('day');
+    $totals = $data->pluck('total');
+    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+    $announcements = Announcment::orderBy('created_at', 'desc')->get();
 
-        return view('pages.dashboardHR.dashboardHR', [
-            'month' => $month,
-            'days' => $days,
-            'totals' => $totals,
-            'totalEmployees' => $totalEmployees, 
-            'announcements' => $announcements, 
-        ]);
-    }
+    return view('pages.dashboardHR.dashboardHR', [
+        'month'          => $month,
+        'days'           => $days,
+        'totals'         => $totals,
+        'totalEmployees' => $totalEmployees,
+        'announcements'  => $announcements,
+    ]);
+}
+
+    // public function getMonthlyData(Request $request)
+    // {
+    //     $month = $request->get('month', now()->format('Y-m'));
+    //     $monthDate = Carbon::createFromFormat('Y-m', $month);
+
+    //     // total karyawan aktif / pending
+    //     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
+    //     // hitung scan per hari (group by DAYNAME)
+    //     $data = Fingerprints::selectRaw('DAYNAME(scan_date) as day_name, COUNT(DISTINCT pin) as total')
+    //         ->whereMonth('scan_date', $monthDate->month)
+    //         ->whereYear('scan_date', $monthDate->year)
+    //         ->groupBy('day_name')
+    //         ->get();
+
+    //     // urutkan manual sesuai Senin-Sabtu
+    //     $weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    //     $days = [];
+    //     $counts = []; // langsung jumlah hadir
+
+    //     foreach ($weekDays as $day) {
+    //         $found = $data->firstWhere('day_name', $day);
+    //         $present = $found ? $found->total : 0;
+
+    //         $days[]   = $day;
+    //         $counts[] = $present; // bukan persen lagi
+    //     }
+
+    //     return response()->json([
+    //         'days'   => $days,    // Monday ... Saturday
+    //         'counts' => $counts,  // jumlah hadir
+    //         'totalEmployees' => $totalEmployees, // opsional kalau mau ditampilkan
+    //     ]);
+    // }
     public function getMonthlyData(Request $request)
-    {
-        $month = $request->get('month', now()->format('Y-m'));
-        $monthDate = Carbon::createFromFormat('Y-m', $month);
+{
+    $month = $request->get('month', now()->format('Y-m'));
+    $monthDate = Carbon::createFromFormat('Y-m', $month);
 
-        // total karyawan aktif / pending
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+    // total karyawan aktif / pending
+    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
 
-        // hitung scan per hari (group by DAYNAME)
-        $data = Fingerprints::selectRaw('DAYNAME(scan_date) as day_name, COUNT(DISTINCT pin) as total')
-            ->whereMonth('scan_date', $monthDate->month)
-            ->whereYear('scan_date', $monthDate->year)
-            ->groupBy('day_name')
-            ->get();
+    // hitung scan per hari (distinct pin per tanggal)
+    $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
+        ->whereMonth('scan_date', $monthDate->month)
+        ->whereYear('scan_date', $monthDate->year)
+        ->groupBy('day')
+        ->orderBy('day')
+        ->get();
 
-        // urutkan manual sesuai Senin-Sabtu
-        $weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    // ambil array hari (1–31) dan total hadir
+    $days = $data->pluck('day');
+    $counts = $data->pluck('total');
 
-        $days = [];
-        $counts = []; // langsung jumlah hadir
+    return response()->json([
+        'days'           => $days,        // 1,2,3,... (tanggal dalam bulan)
+        'counts'         => $counts,      // jumlah hadir per hari
+        'totalEmployees' => $totalEmployees,
+    ]);
+}
+//     public function getMonthlyData(Request $request)
+// {
+//     $month = $request->get('month', now()->format('Y-m'));
+//     $monthDate = Carbon::createFromFormat('Y-m', $month);
 
-        foreach ($weekDays as $day) {
-            $found = $data->firstWhere('day_name', $day);
-            $present = $found ? $found->total : 0;
+//     // total karyawan aktif / pending
+//     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
 
-            $days[]   = $day;
-            $counts[] = $present; // bukan persen lagi
-        }
+//     // hitung scan per hari (distinct pin per tanggal)
+//     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
+//         ->whereMonth('scan_date', $monthDate->month)
+//         ->whereYear('scan_date', $monthDate->year)
+//         ->groupBy('day')
+//         ->orderBy('day')
+//         ->get();
 
-        return response()->json([
-            'days'   => $days,    // Monday ... Saturday
-            'counts' => $counts,  // jumlah hadir
-            'totalEmployees' => $totalEmployees, // opsional kalau mau ditampilkan
-        ]);
-    }
+//     // ambil array hari (1–31) dan total hadir
+//     $days = $data->pluck('day');
+//     $counts = $data->pluck('total');
+
+//     return response()->json([
+//         'days'           => $days,        // 1,2,3,... (tanggal dalam bulan)
+//         'counts'         => $counts,      // jumlah hadir per hari
+//         'totalEmployees' => $totalEmployees,
+//     ]);
+// }
+
     public function store(Request $request)
 {
     $request->validate([
