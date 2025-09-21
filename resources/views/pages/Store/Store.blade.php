@@ -196,7 +196,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Store.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Locations
+                                        <i class="fas fa-plus-circle"></i> Create Location
                                     </button>
                                 </div>
                             </div>

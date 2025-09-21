@@ -283,13 +283,13 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store Name') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location Name') }}
                                                     </label>
                                                     <div>
 
                                                         <select name="store_id" id="store_id"
                                                             class="form-control select2 @error('store_id') is-invalid @enderror">
-                                                            <option value="">Choose Position</option>
+                                                            <option value="">Choose Location</option>
                                                             @foreach ($stores as $store)
                                                                 <option value="{{ $store->id }}"
                                                                     {{ old('store_id', $employee->Employee->store_id ?? '') == $store->id ? 'selected' : '' }}>

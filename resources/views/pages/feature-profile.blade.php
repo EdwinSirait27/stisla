@@ -6,26 +6,26 @@
     <link rel="stylesheet" href="{{ asset('library/bootstrap-social/assets/css/bootstrap.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-  .password-wrapper {
-    position: relative;
-}
+        .password-wrapper {
+            position: relative;
+        }
 
-.password-wrapper input {
-    padding-right: 2.5rem;
-}
+        .password-wrapper input {
+            padding-right: 2.5rem;
+        }
 
-.toggle-password {
-    position: absolute;
-    top: 50%; /* sejajarkan tengah */
-    right: 0.75rem;
-    transform: translateY(-50%); /* pastikan tengah vertikal */
-    cursor: pointer;
-    color: #6c757d;
-    font-size: 1.2rem;
-    z-index: 10;
-}
-
-
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            /* sejajarkan tengah */
+            right: 0.75rem;
+            transform: translateY(-50%);
+            /* pastikan tengah vertikal */
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 1.2rem;
+            z-index: 10;
+        }
     </style>
 @endpush
 @section('main')
@@ -66,38 +66,40 @@
                                         </div>
                                     @endif
                                     <div class="row">
-                                      
-                                     <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="password" class="form-control-label">
-                                                        <i class="fas fa-lock"></i> {{ __('Password') }}
-                                                    </label>
-                                                    <div class="input-group">
-                                                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password"
-                                                            name="password"
-                                                            placeholder="Leave blank to keep current password"
-                                                            aria-describedby="password-addon" maxlength="12"
-                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
-                                                        <div class="input-group-append">
-                                                            <span class="input-group-text" onclick="togglePassword()"
-                                                                style="cursor: pointer;">
-                                                                <i id="eyeIcon" class="fa fa-eye"></i>
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <small class="text-muted">
-                                                        Only letters, numbers, underscore, and dash allowed. Max 12
-                                                        characters.
-                                                    </small>
-                                                    @error('password')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
 
-   <script>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="password" class="form-control-label">
+                                                    <i class="fas fa-lock"></i> {{ __('Password') }}
+                                                </label>
+                                                <div class="input-group">
+                                                    <input type="password"
+                                                        class="form-control @error('password') is-invalid @enderror"
+                                                        id="password" name="password"
+                                                        placeholder="Leave blank to keep current password"
+                                                        aria-describedby="password-addon" minlength="10" maxlength="12"
+                                                       oninput="this.value = this.value.replace(/\s/g, '');" />
+
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text" onclick="togglePassword()"
+                                                            style="cursor: pointer;">
+                                                            <i id="eyeIcon" class="fa fa-eye"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    Only letters, numbers, underscore, and dash allowed. Max 12
+                                                    characters.
+                                                </small>
+                                                @error('password')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <script>
                                             function togglePassword() {
                                                 let passwordInput = document.getElementById('password');
                                                 let eyeIcon = document.getElementById('eyeIcon');

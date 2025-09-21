@@ -8,7 +8,7 @@
             <a href="">MJM</a>
         </div>
         <ul class="sidebar-menu">
-            <li class="menu-header">Menu</li>
+            {{-- <li class="menu-header">Menu</li> --}}
             @role('Admin')
                 <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>

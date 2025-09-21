@@ -255,12 +255,12 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location') }}
                                                     </label>
                                                     <div>
                                                         <select name="store_id"
                                                             class="form-control select2 @error('store_id') is-invalid @enderror"required>
-                                                            <option value="">-- Choose Store --</option>
+                                                            <option value="">-- Choose Location --</option>
                                                             @foreach ($stores as $key => $value)
                                                                 <option value="{{ $key }}"
                                                                     {{ old('store_id') == $key ? 'selected' : '' }}>

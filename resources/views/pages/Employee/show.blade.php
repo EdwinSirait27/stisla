@@ -278,7 +278,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="store_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Store Name') }}
+                                                    <i class="fas fa-id-card"></i> {{ __('Location Name') }}
                                                 </label>
                                                 <div>
 

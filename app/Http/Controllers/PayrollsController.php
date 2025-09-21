@@ -35,7 +35,7 @@ class PayrollsController extends Controller
             try {
                 $carbonMonthYear = Carbon::parse($payroll->month_year);
             } catch (\Exception $e) {
-                \Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
+                Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 $carbonMonthYear = now(); // fallback jika gagal
             }
             // Decrypt field, cek null jika perlu
@@ -112,7 +112,7 @@ class PayrollsController extends Controller
                     $password = $dobCarbon->format('Ymd');
                     $pdf->setEncryption($password);
                 } catch (\Exception $e) {
-                    \Log::warning("Gagal set password PDF untuk payroll ID {$payroll->id}: " . $e->getMessage());
+                    Log::warning("Gagal set password PDF untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 }
             }
 
@@ -180,7 +180,7 @@ class PayrollsController extends Controller
                 $payroll->take_home = $payroll->take_home ? ($payroll->take_home) : null;
               
             } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                \Log::error("Decrypt error: " . $e->getMessage());
+                Log::error("Decrypt error: " . $e->getMessage());
             }
             $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
             // $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
@@ -200,10 +200,10 @@ class PayrollsController extends Controller
     }   
     public function generate($hashedId)
     {
-        \Log::info('Payroll PDF generation started.', ['hashedId' => $hashedId]);
+        Log::info('Payroll PDF generation started.', ['hashedId' => $hashedId]);
 
         $payrolls = Payrolls::with(['employee.department', 'employee.bank', 'employee.position', 'employee.company'])->get();
-        \Log::debug('Total payrolls fetched: ' . $payrolls->count());
+        Log::debug('Total payrolls fetched: ' . $payrolls->count());
 
         $payroll = $payrolls->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
@@ -211,19 +211,19 @@ class PayrollsController extends Controller
         });
 
         if (!$payroll) {
-            \Log::warning('Payroll not found.', ['hashedId' => $hashedId]);
+            Log::warning('Payroll not found.', ['hashedId' => $hashedId]);
             abort(404, 'Payroll not found.');
         }
 
-        \Log::info('Payroll matched.', ['payroll_id' => $payroll->id]);
+        Log::info('Payroll matched.', ['payroll_id' => $payroll->id]);
 
         // Log employee data
         if (!$payroll->employee) {
-            \Log::error('Employee is null for payroll ID: ' . $payroll->id);
+            Log::error('Employee is null for payroll ID: ' . $payroll->id);
             abort(500, 'Employee data is missing.');
         }
 
-        \Log::debug('Employee details', [
+        Log::debug('Employee details', [
             'name' => $payroll->employee->name ?? 'N/A',
             'dob' => $payroll->employee->date_of_birth ?? 'N/A'
         ]);
@@ -247,7 +247,7 @@ class PayrollsController extends Controller
             $daily_allowance = ($payroll->daily_allowance);
             $punishment = ($payroll->punishment);
         } catch (\Exception $e) {
-            \Log::error('Decryption failed: ' . $e->getMessage());
+            Log::error('Decryption failed: ' . $e->getMessage());
             abort(500, 'Failed to decrypt payroll data.');
         }
 
@@ -288,18 +288,18 @@ class PayrollsController extends Controller
         ];
         try {
             $htmlView = view('pages.Payrolls.show', $data)->render();
-            \Log::debug('HTML view rendered successfully.');
+            Log::debug('HTML view rendered successfully.');
             // Optionally save HTML for offline debug
             file_put_contents(storage_path('app/pdf_debug.html'), $htmlView);
         } catch (\Throwable $e) {
-            \Log::error('Error rendering view: ' . $e->getMessage());
+            Log::error('Error rendering view: ' . $e->getMessage());
             abort(500, 'Error rendering PDF view.');
         }
 
         try {
             $pdf = Pdf::loadHtml($htmlView)->setPaper('A4', 'portrait');
         } catch (\Throwable $e) {
-            \Log::error('PDF loadHtml failed: ' . $e->getMessage());
+            Log::error('PDF loadHtml failed: ' . $e->getMessage());
             abort(500, 'PDF generation failed.');
         }
 
@@ -310,12 +310,12 @@ class PayrollsController extends Controller
                     : Carbon::parse($payroll->employee->date_of_birth);
                 $pdf->setEncryption($dob->format('Ymd'));
             } catch (\Exception $e) {
-                \Log::warning('PDF encryption failed: ' . $e->getMessage());
+                Log::warning('PDF encryption failed: ' . $e->getMessage());
             }
         }
 
         $filename = 'Payroll_' . ($payroll->employee->name ?? 'Unknown') . '_' . $carbonMonthYear->format('Y_m') . '.pdf';
-        \Log::info('PDF generated successfully.', ['filename' => $filename]);
+        Log::info('PDF generated successfully.', ['filename' => $filename]);
 
         return $pdf->download($filename);
     }

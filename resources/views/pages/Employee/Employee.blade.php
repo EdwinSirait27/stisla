@@ -202,7 +202,7 @@
                                         <strong>Important Note:</strong> <br>
                                         - <i class="fas fa-user"></i> Press button to edit <br>
                                         - <i class="fas fa-plus-circle"></i> Press button to create employee <br>
-                                        - <i class="fas fa-users"></i> Press button to see all employees <br>
+                                        - <i class="fas fa-users"></i> Press button to see all employee details <br>
                                     </span>
                                 </div>
                             </div>
