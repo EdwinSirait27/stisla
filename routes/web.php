@@ -29,6 +29,8 @@ use App\Http\Controllers\FingerspotController;
 use App\Http\Controllers\AttendanceimportController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\FingerprintsController;
+use App\Http\Controllers\GradingController;
+use App\Http\Controllers\StructureController;
 use App\Http\Controllers\Editedfingerprints;
 /*
 |--------------------------------------------------------------------------
@@ -208,6 +210,26 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR'])->group(function () {
         Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
         Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
         Route::get('/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
+    });
+    Route::group(['middleware' => ['permission:ManageStructures']], function () {
+
+        Route::get('/Structures', [StructureController::class, 'index'])
+            ->name('pages.Structures');
+        Route::get('Structures/create', [StructureController::class, 'create'])->name('Structures.create');
+        Route::post('/Structures', [StructureController::class, 'store'])->name('Structures.store');
+        Route::get('/Structures/edit/{hashedId}', [StructureController::class, 'edit'])->name('Structures.edit');
+        Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
+        Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
+    });
+     Route::group(['middleware' => ['permission:ManageGrading']], function () {
+
+        Route::get('/Grading', [GradingController::class, 'index'])
+            ->name('pages.Grading');
+        Route::get('Grading/create', [GradingController::class, 'create'])->name('Grading.create');
+        Route::post('/Grading', [GradingController::class, 'store'])->name('Grading.store');
+        Route::get('/Grading/edit/{hashedId}', [GradingController::class, 'edit'])->name('Grading.edit');
+        Route::put('/Grading/{hashedId}', [GradingController::class, 'update'])->name('Grading.update');
+        Route::get('/gradings/gradings', [GradingController::class, 'getGradings'])->name('gradings.gradings');
     });
     // store  
     Route::group(['middleware' => ['permission:ManageStores']], function () {

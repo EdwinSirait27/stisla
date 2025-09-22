@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Create Location')
+@section('title', 'Create Department')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+       <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
         .avatar {
@@ -16,6 +16,7 @@
             padding-top: 56.25%;
             /* Aspect ratio 16:9 */
         }
+
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -24,6 +25,7 @@
             height: 100%;
             border: 0;
         }
+
         /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
@@ -165,10 +167,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create Location</h1>
+                <h1>Create Grading</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}"> Location</a></div>
-                    <div class="breadcrumb-item">Create Location</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Grading') }}"> Grading</a></div>
+                    <div class="breadcrumb-item">Create Grading</div>
                 </div>
             </div>
 
@@ -178,7 +180,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Location') }}</h6>
+                                    <h6 class="mb-0">{{ __('Create Grading') }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -203,21 +205,21 @@
                                             </button>
                                         </div>
                                     @endif
-
-                                    <form id="store-create" action="{{ route('Store.store') }}" method="POST">
+                                    <form id="departments-create" action="{{ route('Grading.store') }}" method="POST">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Location Name') }}
+                                                    <label for="grading_code" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Grading Code') }}
                                                     </label>
                                                     <div>
                                                         <input type="text"
-                                                            class="form-control @error('name') is-invalid @enderror"
-                                                            id="name" name="name" value="{{ old('name') }}"
-                                                            required placeholder="Fill Location Name">
-                                                        @error('name')
+                                                            class="form-control @error('grading_code') is-invalid @enderror"
+                                                            id="grading_code" name="grading_code"
+                                                            value="{{ old('grading_code') }}" required
+                                                            placeholder="Fill grading code ">
+                                                        @error('grading_code')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -225,65 +227,19 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                         
+                                       <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="address" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Location Address') }}
+                                                    <label for="grading_name" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Grading Name') }}
                                                     </label>
                                                     <div>
-                                                        <input class="form-control @error('address') is-invalid @enderror"
-                                                            value="{{ old('address', $store->address ?? '') }}"
-                                                            type="text" id="address" name="address"
-                                                            value="{{ old('address') }}" aria-describedby="info-address"
-                                                            maxlength="255" placeholder="Insert Location Address">
-                                                        @error('address')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="phone_num" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Location Phone Number') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control @error('phone_num') is-invalid @enderror"
-                                                            value="{{ old('phone_num', $store->phone_num ?? '') }}"
-                                                            type="number" id="phone_num" name="phone_num"
-                                                            value="{{ old('phone_num') }}"
-                                                            aria-describedby="info-phone_num" maxlength="255"
-                                                            placeholder="Insert Location Phone Number">
-                                                        @error('phone_num')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="manager_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
-                                                    </label>
-                                                    <div>
-
-                                                         <select name="manager_id"
-                                                            class="form-control select2 @error('manager_id') is-invalid @enderror"
-                                                            required>
-                                                            <option value="">Choose Manager</option>
-                                                            @foreach ($managers as $id => $employeeName)
-        <option value="{{ $id }}" {{ old('manager_id') == $id ? 'selected' : '' }}>
-            {{ $employeeName }}
-        </option>
-    @endforeach
-                                                        </select>
-                                                        @error('manager_id')
+                                                        <input type="text"
+                                                            class="form-control @error('grading_name') is-invalid @enderror"
+                                                            id="grading_name" name="grading_name"
+                                                            value="{{ old('grading_name') }}" required
+                                                            placeholder="Fill grading name ">
+                                                        @error('grading_name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -293,21 +249,18 @@
                                                 </div>
                                             </div>
                                         </div>
-                                       
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Location name is already registered, you cannot register it
+                                                - If a Grading name and code is already registered, you cannot register it
                                                 again.<br>
-                                                - please use English to get used to it.<br>
-                                                - Before updating data, please check first whether there is already similar
-                                                or identical data to avoid double input.<br>
-
+                                                - please use English to get used to it.<br> 
+                                                - Before creating data, please check first whether there is already similar or identical data to avoid double input.
                                             </span>
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Store') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Grading') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
                                             <button type="submit" id="create-btn" class="btn bg-primary">
@@ -329,12 +282,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
- <script>
+    <script>
         $(document).ready(function() {
             $('.select2').select2();
         });
     </script>
-    <script>
+   <script>
+        // $(document).ready(function() {
+        //     $('.select2').select2();
+        // });
         document.getElementById('create-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung
             Swal.fire({
@@ -349,7 +305,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Jika pengguna mengkonfirmasi, submit form
-                    document.getElementById('store-create').submit();
+                    document.getElementById('departments-create').submit();
                 }
             });
         });

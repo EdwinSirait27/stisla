@@ -178,7 +178,8 @@
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">Status Employee</th>
-                                                <th class="text-center">Account Creation</th>
+                                                <th class="text-center">Grd Code</th>
+                                                <th class="text-center">Grd Name</th>
                                                 <th class="text-center">Status</th>
                                                    <th class="text-center">Action</th>
                                             </tr>
@@ -318,10 +319,20 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'created_at',
-                        name: 'created_at',
+                        data: 'grading_code',
+                        name: 'grading_code',
                         className: 'text-center'
                     },
+                    {
+                        data: 'grading_name',
+                        name: 'grading_name',
+                        className: 'text-center'
+                    },
+                    // {
+                    //     data: 'created_at',
+                    //     name: 'created_at',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'status',
                         name: 'status',

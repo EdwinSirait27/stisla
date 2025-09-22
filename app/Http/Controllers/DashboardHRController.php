@@ -143,12 +143,14 @@ class DashboardHRController extends Controller
         'content' => 'required|string',
       
         'publish_date' => 'required|date',
+        'end_date' => 'nullable|date',
     ]);
 
      Announcment::create([
         'title'        => $request->title,
         'content'      => $request->content,
         'publish_date' => $request->publish_date,
+        'end_date' => $request->end_date,
         'user_id'      => auth()->id(), 
     ]);
 
@@ -158,7 +160,7 @@ class DashboardHRController extends Controller
 public function getAnnouncements()
 {
     $announcements = Announcment::with('user.Employee.department')
-        ->select(['id', 'user_id', 'title', 'content', 'publish_date'])
+        ->select(['id', 'user_id', 'title', 'content', 'publish_date','end_date'])
         ->get()
         ->map(function ($announcement) {
             $announcement->id_hashed = substr(hash('sha256', $announcement->id . env('APP_KEY')), 0, 8);
@@ -184,11 +186,18 @@ public function getAnnouncements()
         ->addColumn('action', function ($announcement) {
     $employee = $announcement->user->Employee->department->department_name ?? 'Empty';
 $date = Carbon::parse($announcement->publish_date)->locale('en')->isoFormat('D MMMM YYYY');
+// $enddate = Carbon::parse($announcement->end_date)->locale('en')->isoFormat('D MMMM YYYY');
+// $enddate = Carbon::parse($announcement->end_date)?->locale('en')->isoFormat('D MMMM YYYY') ?? 'Continuesly';
+$enddate = $announcement->end_date
+    ? Carbon::parse($announcement->end_date)->locale('en')->isoFormat('D MMMM YYYY')
+    : 'Continuesly';
+
     return '<button class="btn btn-sm btn-primary preview-btn"
                 data-id="'.$announcement->id.'"
                 data-title="'.e($announcement->title).'"
                 data-content="'.e($announcement->content).'"
                 data-date="' . $date . '"
+                data-enddate="' . $enddate . '"
                 data-employee="'.$employee.'">
                 Preview
             </button>';

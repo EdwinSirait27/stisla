@@ -6,9 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class Announcment extends Model
+class Structure extends Model
 {
-    use HasFactory;
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -20,19 +19,22 @@ class Announcment extends Model
             }
         });
     }
-    protected $table = 'announcements'; 
+    protected $table = 'structure';
     protected $fillable = [
-        'user_id',
-        'title',
-        'content',
-        'publish_date',
-        'end_date',
-        
+        'employee_id',
+        'level_id',
+        'is_manager',
     ];
-   
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
-    }
+    protected $casts = [
+    'is_manager' => 'boolean',
+];
 
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id', 'id');
+    }
+    public function level()
+    {
+        return $this->belongsTo(Employee::class, 'level_id', 'id');
+    }
 }

@@ -248,15 +248,15 @@
                                             @csrf
                                             <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
                                             <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
-                                                <i class="fas fa-trash me-1"></i> Delete Selected Payroll
+                                                <i class="fas fa-trash me-1"></i> Delete Payroll
                                             </button>
                                         </form>
 
                                         <form action="{{ route('Payrolls.generateAll') }}" method="POST"
-                                            onsubmit="return confirm('Generate semua PDF?')">
+                                            onsubmit="return confirm('Generate Payrolls?')">
                                             @csrf
                                             <button type="submit" class="btn btn-primary h-100 d-flex align-items-center">
-                                                <i class="fas fa-file-pdf me-1"></i> Generate All Payroll Into PDF
+                                                <i class="fas fa-file-pdf me-1"></i> Generate All
                                             </button>
                                         </form>
 

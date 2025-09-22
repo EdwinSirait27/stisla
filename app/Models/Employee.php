@@ -38,6 +38,7 @@ class Employee extends Model
         'banks_id',
         'department_id',
         'fingerprint_id',
+        'grading_id',
         'status_employee',
         'join_date',
         'marriage',
@@ -96,6 +97,10 @@ public static function generateSafePin()
     public function department()
     {
         return $this->belongsTo(Departments::class, 'department_id');
+    }
+    public function grading()
+    {
+        return $this->belongsTo(Grading::class, 'grading_id');
     }
     public function bank()
     {

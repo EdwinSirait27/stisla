@@ -68,6 +68,12 @@
                         <li class="{{ Request::is('Store') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Store') }}">Locations</a>
                         </li>
+                        <li class="{{ Request::is('Grading') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
+                        </li>
+                        <li class="{{ Request::is('Structures') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Structures') }}">Structures</a>
+                        </li>
 
                     </ul>
                 </li>

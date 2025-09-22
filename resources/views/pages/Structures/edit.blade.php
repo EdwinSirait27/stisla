@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Create Location')
+@section('title', 'Update Structure')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -16,6 +16,7 @@
             padding-top: 56.25%;
             /* Aspect ratio 16:9 */
         }
+
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -24,6 +25,7 @@
             height: 100%;
             border: 0;
         }
+
         /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
@@ -165,10 +167,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create Location</h1>
+                <h1>Update Structure {{ $structure->Employee->employee_name }}</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Store') }}"> Location</a></div>
-                    <div class="breadcrumb-item">Create Location</div>
+                    {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Structures') }}">Structure</a></div>
+                    <div class="breadcrumb-item">Update Structure {{ $structure->employee->employee_name }}</div>
                 </div>
             </div>
 
@@ -178,12 +181,13 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Location') }}</h6>
+                                    <h6 class="mb-0">{{ __('Update Structure') }}
+                                        {{ $structure->employee->employee_name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
                                         <div class="alert alert-danger">
-                                            <ul>
+                                            <ul class="mb-0">
                                                 @foreach ($errors->all() as $error)
                                                     <li>{{ $error }}</li>
                                                 @endforeach
@@ -204,114 +208,106 @@
                                         </div>
                                     @endif
 
-                                    <form id="store-create" action="{{ route('Store.store') }}" method="POST">
+                                    <form id="departments-edit" action="{{ route('Structures.update', $hashedId) }}"
+                                        method="POST">
                                         @csrf
+                                        @method('PUT')
+
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Location Name') }}
+                                                    <label for="employee_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Employee Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text"
-                                                            class="form-control @error('name') is-invalid @enderror"
-                                                            id="name" name="name" value="{{ old('name') }}"
-                                                            required placeholder="Fill Location Name">
-                                                        @error('name')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="address" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Location Address') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control @error('address') is-invalid @enderror"
-                                                            value="{{ old('address', $store->address ?? '') }}"
-                                                            type="text" id="address" name="address"
-                                                            value="{{ old('address') }}" aria-describedby="info-address"
-                                                            maxlength="255" placeholder="Insert Location Address">
-                                                        @error('address')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="phone_num" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Location Phone Number') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control @error('phone_num') is-invalid @enderror"
-                                                            value="{{ old('phone_num', $store->phone_num ?? '') }}"
-                                                            type="number" id="phone_num" name="phone_num"
-                                                            value="{{ old('phone_num') }}"
-                                                            aria-describedby="info-phone_num" maxlength="255"
-                                                            placeholder="Insert Location Phone Number">
-                                                        @error('phone_num')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="manager_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
-                                                    </label>
-                                                    <div>
-
-                                                         <select name="manager_id"
-                                                            class="form-control select2 @error('manager_id') is-invalid @enderror"
+                                                        <select name="employee_id"
+                                                            class="form-control select2 @error('employee_id') is-invalid @enderror"
                                                             required>
                                                             <option value="">Choose Manager</option>
-                                                            @foreach ($managers as $id => $employeeName)
-        <option value="{{ $id }}" {{ old('manager_id') == $id ? 'selected' : '' }}>
-            {{ $employeeName }}
-        </option>
-    @endforeach
+                                                            @foreach ($employees as $id => $employeeName)
+                                                                <option value="{{ $id }}"
+                                                                    {{ old('employee_id', $structure->employee_id) == $id ? 'selected' : '' }}>
+                                                                    {{ $employeeName }}
+                                                                </option>
+                                                            @endforeach
                                                         </select>
-                                                        @error('manager_id')
+                                                        @error('employee_id')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
                                                         @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="level_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="level_id"
+                                                            class="form-control select2 @error('level_id') is-invalid @enderror">
+                                                            <option value="">Choose Superior</option>
+                                                            @foreach ($employees as $id => $employeeName)
+                                                                <option value="{{ $id }}"
+                                                                    {{ old('level_id', $structure->level_id) == $id ? 'selected' : '' }}>
+                                                                    {{ $employeeName }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('level_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                       
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" name="is_manager" id="is_manager" value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+
+                                                    <label for="is_manager" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                    </label>
+
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Location name is already registered, you cannot register it
+                                                - If a Employee name is already registered, you cannot register it
                                                 again.<br>
+                                                - Superior can be empty.<br>
                                                 - please use English to get used to it.<br>
                                                 - Before updating data, please check first whether there is already similar
-                                                or identical data to avoid double input.<br>
+                                                or identical data to avoid double input.
+
 
                                             </span>
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Store') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Structures') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" id="create-btn" class="btn bg-primary">
-                                                <i class="fas fa-save"></i> {{ __('Create') }}
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
+                                                <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>
                                     </form>
@@ -324,18 +320,19 @@
         </section>
     </div>
 @endsection
-@push('scripts')
-    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 
+@push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
- <script>
+
+    <script>
         $(document).ready(function() {
             $('.select2').select2();
         });
     </script>
     <script>
-        document.getElementById('create-btn').addEventListener('click', function(e) {
+        document.getElementById('edit-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung
             Swal.fire({
                 title: 'Are You Sure?',
@@ -349,7 +346,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Jika pengguna mengkonfirmasi, submit form
-                    document.getElementById('store-create').submit();
+                    document.getElementById('departments-edit').submit();
                 }
             });
         });

@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class Announcment extends Model
+class Grading extends Model
 {
-    use HasFactory;
+     use HasFactory;
     public $incrementing = false;
     protected $keyType = 'string';
+   public $timestamps = false;
     protected static function boot()
     {
         parent::boot();
@@ -20,19 +21,10 @@ class Announcment extends Model
             }
         });
     }
-    protected $table = 'announcements'; 
+    protected $table = 'grading';
     protected $fillable = [
-        'user_id',
-        'title',
-        'content',
-        'publish_date',
-        'end_date',
-        
+        'grading_code',
+        'grading_name',
     ];
-   
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
+    
 }

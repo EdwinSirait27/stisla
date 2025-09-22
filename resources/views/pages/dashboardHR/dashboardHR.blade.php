@@ -245,7 +245,7 @@
                         <div class="card">
                             <div class="card-header">
                                 {{-- <h4></h4> --}}
-                                        <h4>
+                                <h4>
                                     <i class="fas fa-bell me-2"></i>
                                     Make an Annauncement
                                 </h4>
@@ -269,6 +269,10 @@
                                         <label for="publish_date">Publish Date</label>
                                         <input type="date" name="publish_date" class="form-control"required>
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label for="end_date">End Date</label>
+                                        <input type="date" name="end_date" class="form-control">
+                                    </div>
 
                                     <button type="submit" class="btn btn-primary">Save</button>
                                 </form>
@@ -281,7 +285,7 @@
 
                         <div class="card">
                             <div class="card-header">
-                               <h4>
+                                <h4>
                                     <i class="fas fa-book me-2"></i>
                                     List of Announcements
                                 </h4>
@@ -293,9 +297,10 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">User</th>
+                                                <th class="text-center">Title</th>
                                                 {{-- <th class="text-center">Title</th> --}}
-                                                <th class="text-center">Date</th>
+                                                <th class="text-center">Publish Date</th>
+                                                <th class="text-center">End Date</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -325,24 +330,44 @@
 
                 <!-- Body -->
                 <div class="modal-body p-4">
-                    <div class="mb-4">
+                    {{-- <div class="mb-4">
                         <table class="table table-sm align-middle mb-0">
                             <tbody>
                                 <tr>
-                                    <th scope="row" class="text-muted" style="width: 120px;">Date</th>
+                                    <th scope="row" class="text-dark" style="width: 120px;">Publish Date</th>
                                     <td><span id="previewDate" class="fw-semibold"></span></td>
+
+                                    <th scope="row" class="text-dark" style="width: 100px;">End Date</th>
+                                    <td><span id="previewEndDate" class="fw-semibold"></span></td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="text-muted">Created By</th>
+                                    <th scope="row" class="text-dark">Created By</th>
                                     <td><span id="previewEmployee" class="fw-semibold"></span></td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </div> --}}
+                    <div class="mb-4">
+    <table class="table table-sm align-middle mb-0">
+        <tbody>
+            <tr>
+                <th scope="row" class="text-dark" style="width: 130px;">Publish Date</th>
+                <td style="width: 180px;"><span id="previewDate" class="fw-semibold"></span></td>
+
+                <th scope="row" class="text-dark" style="width: 500px; text-align: right;">End Date</th>
+                <td style="width: 210px; text-align: right; "><span id="previewEndDate" class="fw-semibold"></span></td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-dark" style="width: 130px;">Created By</th>
+                <td colspan="3"><span id="previewEmployee" class="fw-semibold"></span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 
                     <div>
-                        {{-- <h6 class="fw-bold text-dark mb-3">Content</h6> --}}
-                        <div id="previewContent" class="fs-6 text-secondary"
+                        <div id="previewContent" class="fs-6 text-dark"
                             style="max-height: 450px; overflow-y: auto; line-height: 1.6;"></div>
                     </div>
                 </div>
@@ -494,8 +519,8 @@
                 columns: [
 
                     {
-                        data: 'employee_name',
-                        name: 'employee_name',
+                        data: 'title',
+                        name: 'title',
                         className: 'text-center'
                     },
 
@@ -505,6 +530,23 @@
                         className: 'text-center',
                         render: function(data) {
                             if (!data) return '-';
+                            let date = new Date(data);
+                            let day = String(date.getDate()).padStart(2, '0');
+                            let monthNames = [
+                                "January", "February", "March", "April", "May", "June",
+                                "July", "August", "September", "October", "November", "December"
+                            ];
+                            let month = monthNames[date.getMonth()];
+                            let year = date.getFullYear();
+                            return `${day} ${month} ${year}`;
+                        }
+                    },
+                    {
+                        data: 'end_date',
+                        name: 'end_date',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (!data) return 'Continuesly';
                             let date = new Date(data);
                             let day = String(date.getDate()).padStart(2, '0');
                             let monthNames = [
@@ -537,11 +579,13 @@
             let title = $(this).data('title');
             let content = $(this).data('content');
             let date = $(this).data('date');
+            let enddate = $(this).data('enddate');
             let employee = $(this).data('employee');
 
             $('#previewTitle').text(title);
             $('#previewEmployee').text(employee);
             $('#previewDate').text(date);
+            $('#previewEndDate').text(enddate);
             $('#previewContent').html(content);
 
             $('#previewModal').modal('show');
