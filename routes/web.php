@@ -31,6 +31,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\FingerprintsController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\StructureController;
+use App\Http\Controllers\PHController;
 use App\Http\Controllers\Editedfingerprints;
 /*
 |--------------------------------------------------------------------------
@@ -210,6 +211,16 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR'])->group(function () {
         Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
         Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
         Route::get('/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
+    });
+    Route::group(['middleware' => ['permission:ManagePH']], function () {
+
+        Route::get('/Pubholi', [PHController::class, 'index'])
+            ->name('pages.Pubholi');
+        Route::get('Pubholi/create', [PHController::class, 'create'])->name('Pubholi.create');
+        Route::post('/Pubholi', [PHController::class, 'store'])->name('Pubholi.store');
+        Route::get('/Pubholi/edit/{hashedId}', [PHController::class, 'edit'])->name('Pubholi.edit');
+        Route::put('/Pubholi/{hashedId}', [PHController::class, 'update'])->name('Pubholi.update');
+        Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
     });
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
 

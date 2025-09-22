@@ -55,16 +55,18 @@ class PHController extends Controller
         if (!$pubholi) {
             abort(404, 'pubholi not found.');
         }
-
+  $status_type = ['Hindu', 'Non Hindu', 'All'];
          return view('pages.Pubholi.edit', [
             'pubholi' => $pubholi,
             'hashedId' => $hashedId,
+            'status_type' => $status_type,
         ]);
     }
     public function create()
     {
+        $status_type = ['Hindu', 'Non Hindu', 'All'];
         
-        return view('pages.Pubholi.create');
+        return view('pages.Pubholi.create', compact('status_type'));
     }
     public function store(Request $request)
     {

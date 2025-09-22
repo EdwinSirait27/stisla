@@ -60,7 +60,7 @@
                             <a class="nav-link" href="{{ url('Company') }}">Companies</a>
                         </li>
                         <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Position') }}">Position</a>
+                            <a class="nav-link" href="{{ url('Position') }}">Positions</a>
                         </li>
                         <li class="{{ Request::is('Department') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Department') }}">Departments</a>
@@ -73,6 +73,9 @@
                         </li>
                         <li class="{{ Request::is('Structures') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Structures') }}">Structures</a>
+                        </li>
+                        <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
 
                     </ul>
