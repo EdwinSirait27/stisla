@@ -844,7 +844,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Notes') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('notes') is-invalid @enderror"

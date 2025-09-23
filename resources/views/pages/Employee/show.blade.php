@@ -816,7 +816,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="notes" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Notes') }}
+                                                    <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
                                                 </label>
                                                 <div>
                                                     <input class="form-control @error('notes') is-invalid @enderror"
@@ -898,6 +898,41 @@
                                                         value="{{ old('pin') }}" aria-describedby="info-pin"
                                                         placeholder="pin finger">
                                                     @error('pin')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="grading_id" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Grading') }}
+                                                </label>
+                                                <div>
+                                                    <select name="grading_id" id="grading_id"
+                                                        class="form-control @error('grading_id') is-invalid @enderror"disabled>
+
+                                                        {{-- Default option --}}
+                                                        <option value="" disabled
+                                                            {{ old('grading_id', optional($employee->Employee)->grading_id) ? '' : 'selected' }}>
+                                                            {{ __('Choose Grading') }}
+                                                        </option>
+
+                                                        {{-- Loop options --}}
+                                                        @foreach ($gradings as $grading)
+                                                            <option value="{{ $grading->id }}"
+                                                                {{ old('grading_id', optional($employee->Employee)->grading_id) == $grading->id ? 'selected' : '' }}>
+                                                                {{ $grading->grading_code }} -
+                                                                {{ $grading->grading_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('grading_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>

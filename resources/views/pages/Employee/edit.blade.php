@@ -827,7 +827,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Notes') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('notes') is-invalid @enderror"
@@ -923,7 +923,7 @@
             </label>
             <div>
                 <select name="grading_id" id="grading_id"
-                        class="form-control @error('grading_id') is-invalid @enderror">
+                        class="form-control @error('grading_id') is-invalid @enderror" required>
                     
                     {{-- Default option --}}
                     <option value="" disabled {{ old('grading_id', optional($employee->Employee)->grading_id) ? '' : 'selected' }}>

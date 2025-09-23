@@ -255,6 +255,8 @@
                                                 <th class="text-center">Bank Account Number</th>
                                                 <th class="text-center">Pin Finger</th>
                                                 <th class="text-center">Account Creation</th>
+                                                <th class="text-center">Grd Code</th>
+                                                <th class="text-center">Grd Name</th>
 
 
                                             </tr>
@@ -614,6 +616,16 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                     {
                         data: 'created_at',
                         name: 'created_at',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_code',
+                        name: 'grading_code',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_name',
+                        name: 'grading_name',
                         className: 'text-center'
                     }
 

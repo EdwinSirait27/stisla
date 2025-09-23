@@ -47,7 +47,7 @@ class EmployeeController extends Controller
             'Employee.store',
             'Employee.position',
             'Employee.department',
-            'Employee.grading',
+            'Employee.grading'
         ])
             ->select(['id', 'employee_id'])
             ->get()
@@ -203,7 +203,7 @@ class EmployeeController extends Controller
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active','Resign'];
         $banks = Banks::get();
         $gradings = Grading::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
@@ -246,7 +246,7 @@ class EmployeeController extends Controller
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active','Resign'];
         $banks = Banks::get();
         $gradings = Grading::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
@@ -282,7 +282,7 @@ class EmployeeController extends Controller
         $status_child = ['0', '1', '2', '3', '4', '5'];
         $status_marriage = ['Yes', 'No'];
         $status_gender = ['Male', 'Female', 'MD'];
-        $status = ['Active', 'Pending', 'Inactive', 'On Leave', 'Mutation'];
+        $status = ['Active', 'Pending', 'Inactive', 'On Leave', 'Mutation','Resign'];
 
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
