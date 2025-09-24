@@ -4,10 +4,8 @@
     <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-
     <style>
         .metric-card {
             transition: transform 0.2s;
@@ -326,52 +324,32 @@
                         Announcement Preview
                     </h5>
                 </div>
-
-
                 <!-- Body -->
                 <div class="modal-body p-4">
-                    {{-- <div class="mb-4">
+                    <div class="mb-4">
                         <table class="table table-sm align-middle mb-0">
                             <tbody>
                                 <tr>
-                                    <th scope="row" class="text-dark" style="width: 120px;">Publish Date</th>
-                                    <td><span id="previewDate" class="fw-semibold"></span></td>
+                                    <th scope="row" class="text-dark" style="width: 130px;">Publish Date</th>
+                                    <td style="width: 180px;"><span id="previewDate" class="fw-semibold"></span></td>
 
-                                    <th scope="row" class="text-dark" style="width: 100px;">End Date</th>
-                                    <td><span id="previewEndDate" class="fw-semibold"></span></td>
+                                    <th scope="row" class="text-dark" style="width: 500px; text-align: right;">End
+                                        Date</th>
+                                    <td style="width: 210px; text-align: right; "><span id="previewEndDate"
+                                            class="fw-semibold"></span></td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="text-dark">Created By</th>
-                                    <td><span id="previewEmployee" class="fw-semibold"></span></td>
+                                    <th scope="row" class="text-dark" style="width: 130px;">Created By</th>
+                                    <td colspan="3"><span id="previewEmployee" class="fw-semibold"></span></td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div> --}}
-                    <div class="mb-4">
-    <table class="table table-sm align-middle mb-0">
-        <tbody>
-            <tr>
-                <th scope="row" class="text-dark" style="width: 130px;">Publish Date</th>
-                <td style="width: 180px;"><span id="previewDate" class="fw-semibold"></span></td>
-
-                <th scope="row" class="text-dark" style="width: 500px; text-align: right;">End Date</th>
-                <td style="width: 210px; text-align: right; "><span id="previewEndDate" class="fw-semibold"></span></td>
-            </tr>
-            <tr>
-                <th scope="row" class="text-dark" style="width: 130px;">Created By</th>
-                <td colspan="3"><span id="previewEmployee" class="fw-semibold"></span></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-
+                    </div>
                     <div>
                         <div id="previewContent" class="fs-6 text-dark"
                             style="max-height: 450px; overflow-y: auto; line-height: 1.6;"></div>
                     </div>
                 </div>
-
                 <!-- Footer -->
                 <div class="modal-footer bg-light border-top justify-content-center text-center">
                     &copy; This is a valid announcement from HR Department.
@@ -382,17 +360,10 @@
                         HR Department
                     </a>
                 </div>
-
-
             </div>
         </div>
     </div>
-
-
-
-
 @endsection
-
 @push('scripts')
     <!-- JS Libraries -->
     <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
@@ -416,8 +387,6 @@
             license_key: 'gpl' // <-- ini wajib ditambahkan untuk free GPL license
         });
     </script>
-
-
     <script>
         let ctx = document.getElementById('attendanceChart').getContext('2d');
 
@@ -558,7 +527,6 @@
                             return `${day} ${month} ${year}`;
                         }
                     },
-
                     {
                         data: 'action',
                         name: 'action',
@@ -569,11 +537,7 @@
                 ],
 
             });
-
-
-
         });
-
         // preview modal 
         $(document).on('click', '.preview-btn', function() {
             let title = $(this).data('title');
@@ -581,7 +545,6 @@
             let date = $(this).data('date');
             let enddate = $(this).data('enddate');
             let employee = $(this).data('employee');
-
             $('#previewTitle').text(title);
             $('#previewEmployee').text(employee);
             $('#previewDate').text(date);
