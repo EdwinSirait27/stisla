@@ -44,10 +44,11 @@ use App\Http\Controllers\Editedfingerprints;
 |
 */
 
-Route::middleware(['auth', 'role:Admin|HeadHR|HR'])->group(function () {
+Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
     Route::get('/feature-profile', function () {
         return view('pages.feature-profile', ['type_menu' => 'features']);
-    });
+    })->name('feature-profile');
+
     Route::put('/feature-profile/update', [UserprofileController::class, 'updatePassword'])->name('feature-profile.update');
     Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
 

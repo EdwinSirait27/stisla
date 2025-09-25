@@ -863,7 +863,35 @@
                                       
                                 </div>
                                         <div class="row mt-3">
+                                                <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="grading_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Employee Grading') }}
+                                                    </label>
+                                                    <div>
 
+                                                        <select name="grading_id"
+                                                            class="form-control select2 @error('grading_id') is-invalid @enderror"
+                                                            required>
+                                                            <option value="">Choose Grading</option>
+                                                            @foreach ($gradings as $key => $value)
+                                                                <option value="{{ $key }}"
+                                                                    {{ old('grading_id') == $key ? 'selected' : '' }}>
+                                                                    {{ $value }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('grading_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                
+                                      
                                   <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="level_id" class="form-control-label">
@@ -890,6 +918,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </div>
+                                        <div class="row mt-3">
+
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager" value="1"

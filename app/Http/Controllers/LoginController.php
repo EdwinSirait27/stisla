@@ -126,6 +126,7 @@ class LoginController extends Controller
 
         $dashboardRoutes = [
             'Admin' => 'pages.dashboardAdmin',
+            'Human' => 'pages.feature-profile',
             'HeadHR' => 'pages.dashboardHR',
             'HR' => 'pages.dashboardHR',
             'head-warehouse' => 'pages.dashboardHeadWarehouse',

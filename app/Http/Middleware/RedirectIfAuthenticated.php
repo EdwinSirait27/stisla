@@ -46,6 +46,11 @@ class RedirectIfAuthenticated
         if ($user->can('isBuyer')) {
             return redirect('/dashboard');
         }
+        if ($user->can('isHuman')) {
+    return redirect()->route('feature-profile')
+        ->with('success', 'Selamat datang di Feature Profile!');
+}
+
 
         // Jika user_type tidak valid, logout dan kembali ke login
         Auth::logout();
