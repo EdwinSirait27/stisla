@@ -940,6 +940,25 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="end_date" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('End Date') }}
+                                                </label>
+                                                <div>
+                                                    <input type="date" name="end_date"
+                                                        value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
+                                                        class="form-control @error('end_date') is-invalid @enderror"disabled>
+
+
+                                                    @error('end_date')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="d-flex justify-content-end mt-4">
                                         <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">

@@ -34,7 +34,12 @@ class DepartmentController extends Controller
                     ? $department->user->Employee->employee_name
                     : 'Empty';
             })
-            ->rawColumns(['action', 'employee_name'])
+            ->addColumn('company_name', function ($department) {
+                return !empty($department->user->Employee->company) && !empty($department->user->Employee->company->name)
+                    ? $department->user->Employee->company->name
+                    : 'Empty';
+            })
+            ->rawColumns(['action', 'employee_name','company_name'])
             ->make(true);
     }
     public function edit($hashedId)
@@ -48,9 +53,18 @@ class DepartmentController extends Controller
             abort(404, 'Department not found.');
         }
 
-         $managers = User::with('Employee')
+    //      $managers = User::with('Employee')
+    // ->get()
+    // ->pluck('Employee.employee_name','id');
+    $managers = User::whereHas('Employee', function ($q) {
+        $q->where('status', 'Active'); // filter status di tabel employees
+    })
+    ->with('Employee')
     ->get()
-    ->pluck('Employee.employee_name','id');
+    ->pluck('Employee.employee_name', 'id');
+
+    // $managers = User::with('Employee')Employee::where('status', 'Active')
+    // ->pluck('employee_name', 'id');
         return view('pages.Department.edit', [
             'department' => $department,
             'hashedId' => $hashedId,
@@ -60,9 +74,16 @@ class DepartmentController extends Controller
     public function create()
     {
         // $managers = User::with('Employee')->pluck('employee_name');
-        $managers = User::with('Employee')
+    //     $managers = User::with('Employee')
+    // ->get()
+    // ->pluck('Employee.employee_name','id');
+    $managers = User::whereHas('Employee', function ($q) {
+        $q->where('status', 'Active'); // filter status di tabel employees
+    })
+    ->with('Employee')
     ->get()
-    ->pluck('Employee.employee_name','id');
+    ->pluck('Employee.employee_name', 'id');
+
 
         return view('pages.Department.create', compact('managers'));
     }

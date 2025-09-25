@@ -185,16 +185,16 @@
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Grading Code</th>
                                                 <th class="text-center">Grading Name</th>
-                                                <th class="text-center">Action</th>
+                                                {{-- <th class="text-center">Action</th> --}}
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Grading.create') }}'"
+                                    {{-- <button type="button" onclick="window.location='{{ route('Grading.create') }}'"
                                         class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Create Grading
-                                    </button>
+                                    </button> --}}
                                 </div>
                             </div>
                         </div>
@@ -245,14 +245,15 @@
                         data: 'grading_name',
                         name: 'grading_name',
                         className: 'text-center'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
                     }
+                    // ,
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: 'text-center'
+                    // }
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control');

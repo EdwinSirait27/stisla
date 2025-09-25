@@ -183,6 +183,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
+                                                <th class="text-center">Company</th>
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Manager Name</th>
                                                 <th class="text-center">Action</th>
@@ -236,6 +237,11 @@
                         }
                     },
                   
+                    {
+                        data: 'company_name',
+                        name: 'company_name',
+                        className: 'text-center'
+                    },
                     {
                         data: 'department_name',
                         name: 'department_name',

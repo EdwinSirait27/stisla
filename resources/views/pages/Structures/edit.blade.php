@@ -216,32 +216,6 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="employee_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Employee Name') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="employee_id"
-                                                            class="form-control select2 @error('employee_id') is-invalid @enderror"
-                                                            required>
-                                                            <option value="">Choose Manager</option>
-                                                            @foreach ($employees as $id => $employeeName)
-                                                                <option value="{{ $id }}"
-                                                                    {{ old('employee_id', $structure->employee_id) == $id ? 'selected' : '' }}>
-                                                                    {{ $employeeName }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('employee_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <div class="form-group">
                                                     <label for="level_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
                                                     </label>
@@ -251,7 +225,7 @@
                                                             <option value="">Choose Superior</option>
                                                             @foreach ($employees as $id => $employeeName)
                                                                 <option value="{{ $id }}"
-                                                                    {{ old('level_id', $structure->level_id) == $id ? 'selected' : '' }}>
+                                                                    {{ old('level_id', $structure->Employee->level_id) == $id ? 'selected' : '' }}>
                                                                     {{ $employeeName }}
                                                                 </option>
                                                             @endforeach
@@ -264,9 +238,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
+
+
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager" value="1"
                                                         class="form-check-input @error('is_manager') is-invalid @enderror"
@@ -283,7 +257,49 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                        </div> --}}
+                                            {{-- <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="is_manager" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                    </label>
+                                                    <div>
+
+                                                        <input type="checkbox" name="is_manager" id="is_manager" value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                        @error('is_manager')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" name="is_manager" id="is_manager"
+                                                            value="1"
+                                                            class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                            {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+
+                                                        <label class="form-check-label" for="is_manager">
+                                                            <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                        </label>
+
+                                                    </div>
+                                                        @error('is_manager')
+                                                            <span class="invalid-feedback d-block" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
 
 
 

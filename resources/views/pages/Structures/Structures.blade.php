@@ -184,7 +184,6 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Department</th>
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Superior</th>
                                                 <th class="text-center">Is Manager?</th>
@@ -193,12 +192,12 @@
                                         </thead>
                                     </table>
                                 </div>
-                                <div class="action-buttons">
+                                {{-- <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Structures.create') }}'"
                                         class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Create Structure
                                     </button>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                     </div>
@@ -237,12 +236,6 @@
                         render: function(data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
-                    },
-
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
                     },
                     {
                         data: 'employee_name',

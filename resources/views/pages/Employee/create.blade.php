@@ -862,6 +862,52 @@
                                             </div>
                                       
                                 </div>
+                                        <div class="row mt-3">
+
+                                  <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="level_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
+                                                    </label>
+                                                    <div>
+
+                                                        <select name="level_id"
+                                                            class="form-control select2 @error('level_id') is-invalid @enderror">
+                                                            <option value="">Choose Superior</option>
+                                                            @foreach ($employees as $id => $employeeName)
+                                                                <option value="{{ $id }}"
+                                                                    {{ old('level_id') == $id ? 'selected' : '' }}>
+                                                                    {{ $employeeName }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('level_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" name="is_manager" id="is_manager" value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager') ? 'checked' : '' }}>
+                                                    <label for="is_manager" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                    </label>
+
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
 
 
 

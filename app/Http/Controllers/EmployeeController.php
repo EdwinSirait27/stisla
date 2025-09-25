@@ -47,7 +47,8 @@ class EmployeeController extends Controller
             'Employee.store',
             'Employee.position',
             'Employee.department',
-            'Employee.grading'
+            'Employee.grading',
+            'Employee.employees'
         ])
             ->select(['id', 'employee_id'])
             ->get()
@@ -185,7 +186,7 @@ class EmployeeController extends Controller
 
     public function edit($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank','Employee.grading')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank','Employee.grading','Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -193,10 +194,10 @@ class EmployeeController extends Controller
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
-
-
         $positions = Position::get();
         $companys = Company::get();
+       $employees = Employee::where('status', 'Active')
+    ->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
@@ -212,6 +213,7 @@ class EmployeeController extends Controller
             'employee' => $employee,
             'status_employee' => $status_employee,
             'child' => $child,
+            'employees' => $employees,
             'companys' => $companys,
             'stores' => $stores,
             'marriage' => $marriage,
@@ -228,7 +230,7 @@ class EmployeeController extends Controller
     }
     public function show($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store','Employee.grading', 'Employee.department', 'Employee.position', 'Employee.bank')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store','Employee.grading', 'Employee.department', 'Employee.position', 'Employee.bank','Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -240,6 +242,7 @@ class EmployeeController extends Controller
 
         $positions = Position::get();
         $companys = Company::get();
+         $employees = Employee::pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
@@ -255,6 +258,7 @@ class EmployeeController extends Controller
             'employee' => $employee,
             'status_employee' => $status_employee,
             'child' => $child,
+            'employees' => $employees,
             'companys' => $companys,
             'stores' => $stores,
             'marriage' => $marriage,
@@ -272,6 +276,10 @@ class EmployeeController extends Controller
 
     public function create()
     {
+        //  $employees = Employee::pluck('employee_name', 'id');
+        $employees = Employee::where('status', 'Active')
+    ->pluck('employee_name', 'id');
+
         $stores = Stores::pluck('name', 'id')->all();
         $positions = Position::pluck('name', 'id')->all();
         $departments = Departments::pluck('department_name', 'id')->all();
@@ -286,7 +294,7 @@ class EmployeeController extends Controller
 
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        return view('pages.Employee.create', compact('companys', 'stores', 'banks','gradings' ,'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
+        return view('pages.Employee.create', compact('employees','companys', 'stores', 'banks','gradings' ,'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
 
     public function store(Request $request)
@@ -301,6 +309,16 @@ class EmployeeController extends Controller
                 'min:12',
                 'regex:/^[a-zA-Z0-9_-]+$/',
                 'unique:users,username',
+                new NoXSSInput()
+            ],
+            'level_id' => [
+                'nullable',
+                'max:255',
+                new NoXSSInput()
+            ],
+              'is_manager' => [
+                'nullable',
+                'boolean',
                 new NoXSSInput()
             ],
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
@@ -447,7 +465,8 @@ class EmployeeController extends Controller
                 'date_of_birth' => $validatedData['date_of_birth'] ?? '',
                 // 'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
 
-
+ 'level_id' => $validatedData['level_id'],
+                'is_manager' => $validatedData['is_manager'] ?? 0,
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
                 'email' => $validatedData['email'] ?? '',
@@ -499,12 +518,23 @@ class EmployeeController extends Controller
         $validatedData = $request->validate([
 
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+            'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'employee_name' => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+                new NoXSSInput()
+            ],
+              'level_id' => [
+                'nullable',
+                'exists:employees_tables,id',
+                new NoXSSInput()
+            ],
+            'is_manager' => [
+                'nullable',
+                'boolean',
                 new NoXSSInput()
             ],
             'bpjs_kes' => ['required', 'string', 'max:255'],
@@ -610,6 +640,7 @@ class EmployeeController extends Controller
             'grading_id' => $validatedData['grading_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
             'join_date' => $validatedData['join_date'] ?? '',
+            'end_date' => $validatedData['end_date'] ?? '',
             'marriage' => $validatedData['marriage'] ?? '',
             'child' => $validatedData['child'] ?? '',
             'telp_number' => $validatedData['telp_number'] ?? '',
@@ -630,6 +661,8 @@ class EmployeeController extends Controller
             'institution' => $validatedData['institution'] ?? '',
             'npwp' => $validatedData['npwp'] ?? '',
             'pin' => $validatedData['pin'] ?? '',
+               'level_id' => $validatedData['level_id'],
+            'is_manager'  => $validatedData['is_manager'] ?? 0,
         ]);
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');

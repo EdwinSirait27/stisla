@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -23,10 +21,8 @@ class Employee extends Model
             }
         });
     }
-
     protected $casts = [
-        'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-        
+        'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil   
     ];
     protected $fillable = [
         'employee_name',
@@ -62,9 +58,10 @@ class Employee extends Model
         'status',
         'notes',
         'pin',
+        'end_date',
+        'level_id',
+        'is_manager',
         'daily_duit'
-        
-        
     ];
     protected static function booted()
 {
@@ -72,7 +69,6 @@ class Employee extends Model
         $employee->pin = self::generateSafePin();
     });
 }
-
 public static function generateSafePin()
 {
     return DB::transaction(function () {
@@ -82,15 +78,10 @@ public static function generateSafePin()
             ->lockForUpdate()
             ->orderByDesc('pin')
             ->value('pin');
-
-        // Hitung pin berikutnya
         $nextPin = str_pad(((int) $lastPin + 1), 4, '0', STR_PAD_LEFT);
-
-        // Cek overflow
         if ((int)$nextPin > 9999) {
             throw new \Exception("PIN sudah habis (lebih dari 9999)");
         }
-
         return $nextPin;
     });
 }
@@ -117,6 +108,10 @@ public static function generateSafePin()
     public function position()
     {
         return $this->belongsTo(Position::class, 'position_id');
+    }
+    public function employees()
+    {
+        return $this->belongsTo(Employee::class, 'level_id');
     }
     public function finger()
     {
