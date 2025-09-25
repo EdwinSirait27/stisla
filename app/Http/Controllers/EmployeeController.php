@@ -640,7 +640,9 @@ class EmployeeController extends Controller
             'grading_id' => $validatedData['grading_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
             'join_date' => $validatedData['join_date'] ?? '',
-            'end_date' => $validatedData['end_date'] ?? '',
+            // 'end_date' => $validatedData['end_date'] ?? '',
+            'end_date' => $validatedData['end_date'] ?? null,
+
             'marriage' => $validatedData['marriage'] ?? '',
             'child' => $validatedData['child'] ?? '',
             'telp_number' => $validatedData['telp_number'] ?? '',
