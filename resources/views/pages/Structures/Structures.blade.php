@@ -249,14 +249,27 @@
                         defaultContent: 'Empty'
                     },
 
+                    // {
+                    //     data: 'is_manager',
+                    //     name: 'is_manager',
+                    //     className: 'text-center',
+                    //     render: function(data, type, row) {
+                    //         return data == 1 ? 'Yes' : 'No';
+                    //     }
+                    // },
                     {
-                        data: 'is_manager',
-                        name: 'is_manager',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return data == 1 ? 'Yes' : 'No';
-                        }
-                    },
+    data: 'is_manager',
+    name: 'is_manager',
+    className: 'text-center',
+    render: function (data, type, row) {
+        if (data == 1) {
+            return '<span class="badge bg-success">Yes</span>';
+        } else {
+            return '<span class="badge bg-danger">No</span>';
+        }
+    }
+},
+
 
                     {
                         data: 'action',

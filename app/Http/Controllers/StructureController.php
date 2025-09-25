@@ -50,7 +50,12 @@ class StructureController extends Controller
                     ? $structure->Employee->employees->employee_name
                     : 'Empty';
             })
-            ->rawColumns(['action', 'employee_name', 'level'])
+            ->addColumn('is_manager', function ($structure) {
+                return !empty($structure->Employee) && !empty($structure->Employee->is_manager)
+                    ? $structure->Employee->is_manager
+                    : 'Empty';
+            })
+            ->rawColumns(['action', 'employee_name', 'level','is_manager'])
             ->make(true);
     }
     public function edit($hashedId)
