@@ -354,7 +354,7 @@ tes
                             } else if (data === 'Pending') {
                                 return '<span class="badge bg-secondary">Pending</span>';
                             }
-                            return '<span class="badge bg-secondary">Pending</span>';
+                            return '<span class="badge bg-warning text-dark">Resign</span>';
                         }
                     },
                     {
