@@ -39,7 +39,7 @@ class LoginController extends Controller
             'required',
             'string',
             'min:8',
-            'max:15',
+            'max:20',
         ],
     ], [
         'username.required' => 'Username is required.',
@@ -47,7 +47,7 @@ class LoginController extends Controller
         'username.max' => 'Username cannot be more than 12 characters.',
         'password.required' => 'Password is required.',
         'password.min' => 'Password must be at least 8 characters.',
-        'password.max' => 'Password cannot be more than 15 characters.',
+        'password.max' => 'Password cannot be more than 20 characters.',
     ]);
 
     $normalizedUsername = strtolower($request->username);

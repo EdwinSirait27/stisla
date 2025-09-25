@@ -14,118 +14,50 @@ use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+
 class dashboardAdminController extends Controller
 {
-  
-    // public function getUsers()
-    // {
-    //     $users = User::with('Terms', 'roles', 'Employee')
-    //         ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
-    //         ->get()
-    //         ->map(function ($user) {
-    //             $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
-    //             $user->action = '
-               
-    //                 <a href="' . route('dashboardAdmin.edit', $user->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit User: ' . e($user->username) . '">
-    //                     <i class="fas fa-user-edit text-secondary"></i>
-    //                 </a>';
-    //             return $user;
-    //         });
-            
 
-    //     return DataTables::of($users)
-    //         ->addColumn('roles', function ($user) {
-    //             if (is_array($user->roles)) {
-    //                 return implode(', ', $user->roles);
-    //             } elseif ($user->roles instanceof \Illuminate\Support\Collection) {
-    //                 return $user->roles->pluck('name')->implode(', ');
-    //             } else {
-    //                 return 'Empty';
-    //             }
-    //         })
-                
-            
-    //         ->addColumn('device_lan_mac', function ($user) {
-    //             return !empty($user->Terms) && !empty($user->Terms->device_lan_mac)
-    //                 ? $user->Terms->device_lan_mac
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('employee_name', function ($user) {
-    //             return !empty($user->Employee) && !empty($user->Employee->employee_name)
-    //                 ? $user->Employee->employee_name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('store_name', function ($user) {
-    //             return !empty($user->Employee->store) && !empty($user->Employee->store->name)
-    //                 ? $user->Employee->store->name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('position_name', function ($user) {
-    //             return !empty($user->Employee->position) && !empty($user->Employee->position->name)
-    //                 ? $user->Employee->position->name
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('pin', function ($user) {
-    //             return !empty($user->Employee) && !empty($user->Employee->pin)
-    //                 ? $user->Employee->pin
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('device_wifi_mac', function ($user) {
-    //             return !empty($user->Terms) && !empty($user->Terms->device_wifi_mac)
-    //                 ? $user->Terms->device_wifi_mac
-    //                 : 'Empty';
-    //         })
-    //         ->addColumn('status', function ($user) {
-    //             return !empty($user->Employee) && !empty($user->Employee->status)
-    //                 ? $user->Employee->status
-    //                 : 'Empty';
-    //         })
-    //         ->rawColumns(['device_lan_mac', 'device_wifi_mac', 'action'])
-    //         ->make(true);
-    // }
-      public function index()
+    
+    public function index()
     {
-$storeList = Stores::select('name')->distinct()->get();
-        return view('pages.dashboardAdmin.dashboardAdmin',compact('storeList'));
+        $storeList = Stores::select('name')->distinct()->get();
+        return view('pages.dashboardAdmin.dashboardAdmin', compact('storeList'));
     }
     public function getUsers(Request $request)
-{
-    $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position'])
-        ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
-        // ->when($request->has('store_name') && $request->store_name !== '', function ($query) use ($request) {
-        //     $query->whereHas('Employee.store', function ($q) use ($request) {
-        //         $q->where('name', $request->store_name);
-        //     });
-        // })
-        ->get()
-        ->map(function ($user) {
-            $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
-            $user->action = '
+    {
+        $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position'])
+            ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
+          
+            ->get()
+            ->map(function ($user) {
+                $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
+                $user->action = '
                 <a href="' . route('dashboardAdmin.edit', $user->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit User: ' . e($user->username) . '">
                     <i class="fas fa-user-edit text-secondary"></i>
                 </a>';
-            return $user;
-        });
+                return $user;
+            });
 
-    return DataTables::of($users)
-        ->addColumn('roles', function ($user) {
-            if (is_array($user->roles)) {
-                return implode(', ', $user->roles);
-            } elseif ($user->roles instanceof \Illuminate\Support\Collection) {
-                return $user->roles->pluck('name')->implode(', ');
-            }
-            return 'Empty';
-        })
-        ->addColumn('device_lan_mac', fn($user) => optional($user->Terms)->device_lan_mac ?? 'Empty')
-        ->addColumn('employee_name', fn($user) => optional($user->Employee)->employee_name ?? 'Empty')
-        ->addColumn('store_name', fn($user) => optional(optional($user->Employee)->store)->name ?? 'Empty')
-        ->addColumn('position_name', fn($user) => optional(optional($user->Employee)->position)->name ?? 'Empty')
-        ->addColumn('pin', fn($user) => optional($user->Employee)->pin ?? 'Empty')
-        ->addColumn('device_wifi_mac', fn($user) => optional($user->Terms)->device_wifi_mac ?? 'Empty')
-        ->addColumn('status', fn($user) => optional($user->Employee)->status ?? 'Empty')
-        ->rawColumns(['device_lan_mac', 'device_wifi_mac', 'action'])
-        ->make(true);
-}
+        return DataTables::of($users)
+            ->addColumn('roles', function ($user) {
+                if (is_array($user->roles)) {
+                    return implode(', ', $user->roles);
+                } elseif ($user->roles instanceof \Illuminate\Support\Collection) {
+                    return $user->roles->pluck('name')->implode(', ');
+                }
+                return 'Empty';
+            })
+            ->addColumn('device_lan_mac', fn($user) => optional($user->Terms)->device_lan_mac ?? 'Empty')
+            ->addColumn('employee_name', fn($user) => optional($user->Employee)->employee_name ?? 'Empty')
+            ->addColumn('store_name', fn($user) => optional(optional($user->Employee)->store)->name ?? 'Empty')
+            ->addColumn('position_name', fn($user) => optional(optional($user->Employee)->position)->name ?? 'Empty')
+            ->addColumn('pin', fn($user) => optional($user->Employee)->pin ?? 'Empty')
+            ->addColumn('device_wifi_mac', fn($user) => optional($user->Terms)->device_wifi_mac ?? 'Empty')
+            ->addColumn('status', fn($user) => optional($user->Employee)->status ?? 'Empty')
+            ->rawColumns(['device_lan_mac', 'device_wifi_mac', 'action'])
+            ->make(true);
+    }
 
     public function edit($hashedId)
     {
@@ -151,84 +83,99 @@ $storeList = Stores::select('name')->distinct()->get();
         ]);
     }
     public function update(Request $request, $hashedId)
-{
-    Log::info('Masuk ke method update', ['hashedId' => $hashedId]);
+    {
+        Log::info('Masuk ke method update', ['hashedId' => $hashedId]);
 
-    $user = User::with('Terms', 'roles.permissions', 'Employee')->get()->first(function ($u) use ($hashedId) {
-        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-        return $expectedHash === $hashedId;
-    });
+        $user = User::with('Terms', 'roles.permissions', 'Employee')->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
 
-    if (!$user) {
-        Log::warning('User tidak ditemukan dengan hashedId', ['hashedId' => $hashedId]);
-        return redirect()->route('pages.dashboardAdmin')->with('error', 'ID tidak valid.');
-    }
+        if (!$user) {
+            Log::warning('User tidak ditemukan dengan hashedId', ['hashedId' => $hashedId]);
+            return redirect()->route('pages.dashboardAdmin')->with('error', 'ID tidak valid.');
+        }
 
-    Log::info('User ditemukan', ['user_id' => $user->id]);
+        Log::info('User ditemukan', ['user_id' => $user->id]);
 
-    $validatedData = $request->validate([
-        'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-        'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-        'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
-        'username' => [
-            'required', 'string', 'max:12', 'min:7',
-            'regex:/^[a-zA-Z0-9_-]+$/',
-            Rule::unique('users')->ignore($user->id),
-            new NoXSSInput()
-        ],
-        'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
-        'pin' => ['required', 'max:4', new NoXSSInput()],
-        'role' => ['required', 'string', 'exists:roles,name'],
-        'permissions' => ['nullable'],
+        $validatedData = $request->validate([
+            'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'max:20',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/', // tidak boleh ada spasi
+                new NoXSSInput(),
+            ],
+            'username' => [
+                'required',
+                'string',
+                'max:20',
+                'min:8',
+                'regex:/^[a-zA-Z0-9_-]+$/',
+                Rule::unique('users')->ignore($user->id),
+                new NoXSSInput()
+            ],
+            'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
+            'pin' => ['required', 'max:4', new NoXSSInput()],
+            'role' => ['required', 'string', 'exists:roles,name'],
+            'permissions' => ['nullable'],
+        ], [
+        'password.regex' => 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol, and must not contain spaces.',
+        'password.min' => 'Password must be at least 8 characters.',
+        'password.max' => 'Password maximum 20 characters.',
+        
     ]);
 
-    Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
+        Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
 
-    $userData = ['username' => $validatedData['username']];
-    if (!empty($validatedData['password'])) {
-        $userData['password'] = bcrypt($validatedData['password']);
-    }
-
-    DB::beginTransaction();
-
-    try {
-        $user->update($userData);
-        Log::info('User berhasil diupdate', ['user_id' => $user->id]);
-
-        if ($user->Terms) {
-            $user->Terms->update([
-                'device_wifi_mac' => $validatedData['device_wifi_mac'] ?? null,
-                'device_lan_mac' => $validatedData['device_lan_mac'] ?? null,
-            ]);
-            Log::info('Terms berhasil diupdate');
+        $userData = ['username' => $validatedData['username']];
+        if (!empty($validatedData['password'])) {
+            $userData['password'] = bcrypt($validatedData['password']);
         }
 
-        if ($user->Employee) {
-            $user->Employee->update([
-                'status' => $validatedData['status'] ?? 'Active',
-                'pin' => $validatedData['pin'] ?? 'Active',
+        DB::beginTransaction();
+
+        try {
+            $user->update($userData);
+            Log::info('User berhasil diupdate', ['user_id' => $user->id]);
+
+            if ($user->Terms) {
+                $user->Terms->update([
+                    'device_wifi_mac' => $validatedData['device_wifi_mac'] ?? null,
+                    'device_lan_mac' => $validatedData['device_lan_mac'] ?? null,
+                ]);
+                Log::info('Terms berhasil diupdate');
+            }
+
+            if ($user->Employee) {
+                $user->Employee->update([
+                    'status' => $validatedData['status'] ?? 'Active',
+                    'pin' => $validatedData['pin'] ?? 'Active',
+                ]);
+                Log::info('Employee status berhasil diupdate');
+            }
+
+            // Ambil role dan permission
+            // Assign role saja, tanpa manual sync permission
+            $role = Role::findByName($validatedData['role']);
+            $user->syncRoles($role);
+
+            DB::commit();
+            Log::info('Transaksi berhasil dikommit');
+
+            return redirect()->route('pages.dashboardAdmin')->with('success', 'User Berhasil Diupdate.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal update user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-            Log::info('Employee status berhasil diupdate');
+            return redirect()->route('pages.dashboardAdmin')->with('error', 'Terjadi kesalahan saat mengupdate user.');
         }
-
-        // Ambil role dan permission
-         // Assign role saja, tanpa manual sync permission
-    $role = Role::findByName($validatedData['role']);
-    $user->syncRoles($role);
-
-        DB::commit();
-        Log::info('Transaksi berhasil dikommit');
-
-        return redirect()->route('pages.dashboardAdmin')->with('success', 'User Berhasil Diupdate.');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Gagal update user', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return redirect()->route('pages.dashboardAdmin')->with('error', 'Terjadi kesalahan saat mengupdate user.');
     }
-}
 
     public function show($hashedId)
     {
@@ -321,7 +268,6 @@ $storeList = Stores::select('name')->distinct()->get();
         ]);
         try {
             DB::beginTransaction();
-            // Simpan Terms dulu, baru User
             $terms = Terms::create([
                 'device_wifi_mac' => $validatedData['device_wifi_mac'] ?? null,
                 'device_lan_mac' => $validatedData['device_lan_mac'] ?? null,
@@ -332,15 +278,12 @@ $storeList = Stores::select('name')->distinct()->get();
                 'status' => $validatedData['status'] ?? 'Active',
                 'terms_id' => $terms->id,
             ]);
-            // $user->syncRoles($validatedData['role']);
-            // DB::commit();
-             // Step 1: Assign role
-     $user->syncRoles($validatedData['role']);
+            $user->syncRoles($validatedData['role']);
 
-    $role = Role::findByName($validatedData['role']);
-    $user->syncRoles($role);
-$user->syncPermissions($role->permissions); 
-    DB::commit();
+            $role = Role::findByName($validatedData['role']);
+            $user->syncRoles($role);
+            $user->syncPermissions($role->permissions);
+            DB::commit();
             return redirect()->route('pages.dashboardAdmin')->with('success', 'User berhasil dibuat!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -349,93 +292,4 @@ $user->syncPermissions($role->permissions);
                 ->withInput();
         }
     }
-    //     public function update(Request $request, $hashedId)
-//     {
-//         $user = User::with('Terms', 'roles','Employee')->get()->first(function ($u) use ($hashedId) {
-//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//             return $expectedHash === $hashedId;
-//         });
-//         if (!$user) {
-//             return redirect()->route('pages.dashboardAdmin')->with('error', 'ID tidak valid.');
-//         }
-//         $validatedData = $request->validate([
-//             'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-//             'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-//             'password' => ['nullable', 'string', 'min:7', 'max:12', new NoXSSInput()],
-//             'username' => [
-//                 'required',
-//                 'string',
-//                 'max:12',
-//                 'min:7',
-//                 'regex:/^[a-zA-Z0-9_-]+$/',
-//                 Rule::unique('users')->ignore($user->id),
-//                 new NoXSSInput()
-//             ],
-//             'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
-//             // 'role' => ['required', 'string', 'exists:roles,name'],
-//           'role' => ['required', 'uuid', 'exists:roles,id'],
-
-
-
-    //         ], [
-//             'username.required' => 'Username is required.',
-//             'username.string' => 'Username must be a text.',
-//             'username.max' => 'Username can have a maximum of 12 characters.',
-//             'username.min' => 'Username must have at least 7 characters.',
-//             'username.regex' => 'Username can only contain letters, numbers, hyphens, or underscores.',
-//             'username.unique' => 'Username is already registered. Please choose another one.',
-
-
-    //             'password.string' => 'Password must be a text.',
-//             'password.min' => 'Password must have at least 7 characters.',
-//             'password.max' => 'Password can have a maximum of 12 characters.',
-//             'phone.max' => 'Phone number can have a maximum of 13 characters.',
-//             'device_lan_mac.regex' => 'Format LAN MAC tidak valid. Gunakan format: XX:XX:XX:XX:XX:XX atau XX-XX-XX-XX-XX-XX',
-//             'device_wifi_mac.regex' => 'Format WiFi MAC tidak valid. Gunakan format: XX:XX:XX:XX:XX:XX atau XX-XX-XX-XX-XX-XX',
-//             'roles.required' => 'Paling sedikit satu role harus dipilih.',
-//             'roles.string' => 'Format roles tidak valid.',
-
-    //         ]);
-
-    //         // Tidak perlu implode untuk user_type karena sudah string
-
-    //         $userData = [
-//             'username' => $validatedData['username'],
-//         ];
-
-    //         if (!empty($validatedData['password'])) {
-//             $userData['password'] = bcrypt($validatedData['password']);
-//         }
-
-    //         DB::beginTransaction();
-//         $user->update($userData);
-
-    //         if ($user->Terms) {
-//             $user->Terms->update([
-//                 'device_wifi_mac' => !empty($validatedData['device_wifi_mac']) ? $validatedData['device_wifi_mac'] : null,
-//                 'device_lan_mac' => !empty($validatedData['device_lan_mac']) ? $validatedData['device_lan_mac'] : null,
-//             ]);
-//         }
-//         if ($user->Employee) {
-//             $user->Employee->update([
-//                 'status' => $validatedData['status'] ?? 'Active',
-//             ]);
-//         }
-
-//      
-   // $user->syncRoles([$validatedData['role']]);
-//         $role = Role::where('name', $validatedData['role'])->first();
-// if ($role) {
-//     $user->syncRoles([$role->id]);
-// } else {
-//     DB::rollBack();
-//     return redirect()->route('pages.dashboardAdmin')->with('error', 'Role tidak ditemukan di database.');
-// }
-
-    //         DB::commit();
-
-    //         return redirect()->route('pages.dashboardAdmin')->with('success', 'User Berhasil Diupdate.');
-//     }
-
-
 }

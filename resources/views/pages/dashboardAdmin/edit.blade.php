@@ -233,11 +233,15 @@
                                                         <i class="fas fa-lock"></i> {{ __('Password') }}
                                                     </label>
                                                     <div class="input-group">
-                                                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password"
-                                                            name="password"
-                                                            placeholder="Leave blank to keep current password"
-                                                            aria-describedby="password-addon" maxlength="12"
-                                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9_-]/g, '');" />
+                                                       <input type="password" 
+       class="form-control @error('password') is-invalid @enderror" 
+       id="password"
+       name="password"
+       placeholder="Leave blank to keep current password"
+       aria-describedby="password-addon" 
+       maxlength="20" minlength="8"
+       oninput="this.value = this.value.replace(/\s/g, '');" />
+
                                                         <div class="input-group-append">
                                                             <span class="input-group-text" onclick="togglePassword()"
                                                                 style="cursor: pointer;">

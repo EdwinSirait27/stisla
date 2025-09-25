@@ -190,7 +190,7 @@
                                 </div>
                                 <div class="input-group">
                                     <input id="password" type="password" class="form-control" name="password"
-                                        tabindex="2" required placeholder="Password">
+                                        tabindex="2" required max="20" placeholder="Password">
                                     <div class="input-group-append">
                                         <span class="input-group-text" onclick="togglePassword()"
                                             style="cursor: pointer;">

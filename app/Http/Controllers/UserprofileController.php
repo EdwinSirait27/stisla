@@ -17,7 +17,12 @@ class UserprofileController extends Controller
     public function updatePassword(Request $request)
 {
     $request->validate([
-        'password' => ['nullable', 'string', 'min:8'],
+        'password' => ['nullable', 'string', 'min:8','max:20','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'],
+    ],
+[
+        'password.regex' => 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol, and must not contain spaces.',
+        'password.min' => 'Password must be at least 8 characters.',
+        'password.max' => 'Password maximum 20 characters.',
     ]);
 
     $user = Auth::user();

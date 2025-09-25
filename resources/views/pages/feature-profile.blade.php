@@ -77,7 +77,7 @@
                                                         class="form-control @error('password') is-invalid @enderror"
                                                         id="password" name="password"
                                                         placeholder="Leave blank to keep current password"
-                                                        aria-describedby="password-addon" minlength="10" maxlength="12"
+                                                        aria-describedby="password-addon" minlength="8" maxlength="20"
                                                        oninput="this.value = this.value.replace(/\s/g, '');" />
 
                                                     <div class="input-group-append">
