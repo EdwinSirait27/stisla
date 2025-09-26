@@ -88,7 +88,7 @@
                                                     </div>
                                                 </div>
                                                 <small class="text-muted">
-                                                    Only letters, numbers, underscore, and dash allowed. Max 12
+                                                    Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol, and must not contain spaces. minimum length 8 characters anda Max 12
                                                     characters.
                                                 </small>
                                                 @error('password')
