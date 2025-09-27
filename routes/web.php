@@ -43,7 +43,6 @@ use App\Http\Controllers\Editedfingerprints;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
     Route::get('/feature-profile', function () {
         return view('pages.feature-profile', ['type_menu' => 'features']);

@@ -39,7 +39,7 @@ class FingerprintsController extends Controller
             ->toArray();
 
         $employeesQuery = Employee::with('position', 'store')
-            ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id');
+            ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id','status_employee');
 
         if ($storeName) {
             $employeesQuery->whereHas('store', function ($q) use ($storeName) {
@@ -86,6 +86,7 @@ class FingerprintsController extends Controller
             $row = [
                 'pin' => $pin,
                 'employee_name' => $employee->employee_name ?? 'No Data',
+                'status_employee' => $employee->status_employee ?? 'No Data',
                 'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
                 'name' => $employee->store->name ?? 'No Data',
                 'position_name' => $employee ? optional($employee->position)->name : '-',

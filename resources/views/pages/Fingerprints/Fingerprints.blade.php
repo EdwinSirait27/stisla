@@ -238,9 +238,10 @@
                                             <tr>
                                                 <th class="text-center">Location</th>
                                                 <th class="text-center">PIN</th>
-                                                <th class="text-center th-name">NAME</th>
+                                                <th class="text-center th-name">Name</th>
                                                 <th class="text-center">NIP</th>
                                                 <th class="text-center">Position</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Scan Date</th>
                                                 @for ($i = 1; $i <= 10; $i++)
                                                     <th class="text-center">Scan {{ $i }}</th>
@@ -402,6 +403,11 @@
                     {
                         data: 'position_name',
                         name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status_employee',
+                        name: 'status_employee',
                         className: 'text-center'
                     },
                     {

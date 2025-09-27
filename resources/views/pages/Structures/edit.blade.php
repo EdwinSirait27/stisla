@@ -167,11 +167,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Structure {{ $structure->Employee->employee_name }}</h1>
+                <h1>Update Structure {{ $employee->Employee->employee_name }}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
                     <div class="breadcrumb-item"><a href="{{ route('pages.Structures') }}">Structure</a></div>
-                    <div class="breadcrumb-item">Update Structure {{ $structure->employee->employee_name }}</div>
+                    <div class="breadcrumb-item">Update Structure {{ $employee->employee->employee_name }}</div>
                 </div>
             </div>
 
@@ -182,7 +182,7 @@
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
                                     <h6 class="mb-0">{{ __('Update Structure') }}
-                                        {{ $structure->employee->employee_name }}</h6>
+                                        {{ $employee->employee->employee_name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -225,7 +225,7 @@
                                                             <option value="">Choose Superior</option>
                                                             @foreach ($employees as $id => $employeeName)
                                                                 <option value="{{ $id }}"
-                                                                    {{ old('level_id', $structure->Employee->level_id) == $id ? 'selected' : '' }}>
+                                                                    {{ old('level_id', $employee->Employee->level_id) == $id ? 'selected' : '' }}>
                                                                     {{ $employeeName }}
                                                                 </option>
                                                             @endforeach
@@ -283,7 +283,7 @@
                                                         <input type="checkbox" name="is_manager" id="is_manager"
                                                             value="1"
                                                             class="form-check-input @error('is_manager') is-invalid @enderror"
-                                                            {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                            {{ old('is_manager', $employee->is_manager) ? 'checked' : '' }}>
 
                                                         <label class="form-check-label" for="is_manager">
                                                             <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
