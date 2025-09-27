@@ -246,9 +246,9 @@
                                                 @for ($i = 1; $i <= 10; $i++)
                                                     <th class="text-center">Scan {{ $i }}</th>
                                                 @endfor
-
                                                 <th class="text-center">Duration</th>
-                                                <th class="text-center">Status</th>
+                                                <th class="text-center">Total</th>
+                                                {{-- <th class="text-center">Status</th> --}}
                                                 <th class="text-center">Action</th>
 
                                             </tr>
@@ -432,6 +432,7 @@
                         data: 'duration',
                         name: 'duration'
                     },
+                   
                     {
                         data: 'updated',
                         name: 'updated',

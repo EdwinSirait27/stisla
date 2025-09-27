@@ -146,28 +146,7 @@ class FingerprintsController extends Controller
         return DataTables::of($result)
 
 
-            // ->addColumn('action', function ($row) {
-            //     $editBtn = '';
-            //     if ($row['is_updated']) {
-            //         $editBtn = '<button class="btn btn-sm btn-secondary" disabled>Edited</button>';
-            //     } else {
-            //         $editUrl = route('pages.Fingerprints.edit', [
-            //             'pin' => $row['pin'],
-            //             // 'employee_name' => $row['employee_name'],
-            //             'scan_date' => $row['scan_date'],
-            //         ]);
-            //         $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">Edit</a>';
-            //     }
-
-
-            //     $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
-            //     data-pin="' . $row['pin'] . '"
-            //     data-employee="' . e($row['employee_name']) . '">
-            //     Lihat Total
-            // </button>';
-
-            //     return $editBtn . $lihatBtn;
-            // })
+            
             ->addColumn('action', function ($row) {
     $editBtn = '';
     if ($row['is_updated']) {
@@ -199,6 +178,7 @@ class FingerprintsController extends Controller
             ->rawColumns(['action', 'updated_status'])
             ->make(true);
     }
+  
     public function editFingerprint($pin)
     {
         Log::info('Akses editFingerprint', compact('pin'));
