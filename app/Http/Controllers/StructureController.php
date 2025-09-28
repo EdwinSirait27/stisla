@@ -77,37 +77,37 @@ class StructureController extends Controller
             'employees' => $employees,
         ]);
     }
-    // public function update(Request $request, $hashedId)
-    // {
-    //     $employee = User::with('Employee.employees', 'Employee.company')->get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-    //     if (!$employee) {
-    //         return redirect()->route('pages.Structures')->with('error', 'ID tidak valid.');
-    //     }
-    //     $validatedData = $request->validate([
-    //         'level_id' => [
-    //             'nullable',
-    //             'string',
-    //             'max:255',
-    //             new NoXSSInput()
-    //         ],
-    //         'is_manager' => [
-    //             'nullable',
-    //             'boolean',
-    //             new NoXSSInput()
-    //         ],
-    //     ]);
-    //     $employeeData = [
-    //         'level_id' => $validatedData['level_id'],
-    //         'is_manager'  => $validatedData['is_manager'] ?? 0,
-    //     ];
-    //     DB::beginTransaction();
-    //     $employee->update($employeeData);
-    //     DB::commit();
-    //     return redirect()->route('pages.Structures')->with('success', 'Structure Updated Successfully.');
-    // }
+    public function update(Request $request, $hashedId)
+    {
+        $employee = User::with('Employee.employees', 'Employee.company')->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+        if (!$employee) {
+            return redirect()->route('pages.Structures')->with('error', 'ID tidak valid.');
+        }
+        $validatedData = $request->validate([
+            'level_id' => [
+                'nullable',
+                'string',
+                'max:255',
+                new NoXSSInput()
+            ],
+            'is_manager' => [
+                'nullable',
+                'boolean',
+                new NoXSSInput()
+            ],
+        ]);
+        $employeeData = [
+            'level_id' => $validatedData['level_id'],
+            'is_manager'  => $validatedData['is_manager'] ?? 0,
+        ];
+        DB::beginTransaction();
+        $employee->Employee->update($employeeData);
+        DB::commit();
+        return redirect()->route('pages.Structures')->with('success', 'Structure Updated Successfully.');
+    }
     public function create()
     {
         $employees = Employee::pluck('employee_name', 'id');

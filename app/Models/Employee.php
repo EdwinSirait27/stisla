@@ -62,6 +62,8 @@ class Employee extends Model
         'end_date',
         'level_id',
         'is_manager',
+        'pending_email',
+        'pending_telp_number',
         'daily_duit'
     ];
     protected static function booted()

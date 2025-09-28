@@ -959,8 +959,6 @@
                                                         <input type="date" name="end_date"
                                                             value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
                                                             class="form-control @error('end_date') is-invalid @enderror">
-
-
                                                         @error('end_date')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -1015,36 +1013,37 @@
                                             </div>
                                         </div>
                                 </div>
-
-
-
-
-                                <div class="alert alert-secondary mt-4" role="alert">
-                                    <span class="text-dark">
-                                        <strong>Important Note:</strong> <br>
-                                        - Don't fill in the status column, just leave it as it is, if the employee
-                                        is inactive, then change it okay.<br>
-                                        - please use English to get used to it.<br>
-                                        - Before editing data, please check first whether there is already similar
-                                        or identical data to avoid double input.
-                                    </span>
-                                </div>
-
-                                <div class="d-flex justify-content-end mt-4">
-                                    <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
-                                        <i class="fas fa-times"></i> {{ __('Back') }}
-                                    </a>
-
-                                    <button type="submit" class="btn bg-primary">
-                                        <i class="fas fa-save"></i> {{ __('Update') }}
-                                    </button>
-                                </div>
-                                </form>
                             </div>
+
+
+
+
+                            <div class="alert alert-secondary mt-4" role="alert">
+                                <span class="text-dark">
+                                    <strong>Important Note:</strong> <br>
+                                    - Don't fill in the status column, just leave it as it is, if the employee
+                                    is inactive, then change it okay.<br>
+                                    - please use English to get used to it.<br>
+                                    - Before editing data, please check first whether there is already similar
+                                    or identical data to avoid double input.
+                                </span>
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> {{ __('Back') }}
+                                </a>
+
+                                <button type="submit" class="btn bg-primary">
+                                    <i class="fas fa-save"></i> {{ __('Update') }}
+                                </button>
+                            </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
+    </div>
     </div>
     </section>
     </div>

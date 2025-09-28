@@ -7,7 +7,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 @endpush
 <style>
-    
     /* Card Styles */
     .card {
         border: none;
@@ -17,15 +16,18 @@
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         background-color: #fff;
     }
+
     .card:hover {
         transform: translateY(-3px);
         box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
     }
+
     .card-header {
         background-color: #f8fafc;
         border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         padding: 1.25rem 1.5rem;
     }
+
     .card-header h6 {
         margin: 0;
         font-weight: 600;
@@ -34,6 +36,7 @@
         align-items: center;
         font-size: 0.95rem;
     }
+
     .card-header h6 i {
         margin-right: 0.75rem;
         color: #5e72e4;
@@ -45,8 +48,8 @@
         padding: 0 1.5rem;
         overflow: hidden;
     }
-tes 
-    .table {
+
+    tes .table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
