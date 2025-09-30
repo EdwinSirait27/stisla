@@ -458,7 +458,7 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                             } else if (data === 'Pending') {
                                 return '<span class="badge bg-secondary">Pending</span>';
                             }
-                            return '<span class="badge bg-secondary">Pending</span>';
+                            return '<span class="badge bg-warning">Resign</span>';
                         }
                     },
                     {

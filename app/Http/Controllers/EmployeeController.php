@@ -238,8 +238,6 @@ class EmployeeController extends Controller
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
-
-
         $positions = Position::get();
         $companys = Company::get();
          $employees = Employee::pluck('employee_name', 'id');

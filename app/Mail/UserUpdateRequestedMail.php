@@ -11,24 +11,27 @@ class UserUpdateRequestedMail extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
-    public $field;
-    public $newValue;
+    public $changes;
 
-    public function __construct($user, $field, $newValue)
+    /**
+     * Buat instance mail baru
+     */
+    public function __construct($user, array $changes)
     {
         $this->user = $user;
-        $this->field = $field;
-        $this->newValue = $newValue;
+        $this->changes = $changes;
     }
 
+    /**
+     * Build the message.
+     */
     public function build()
     {
-        return $this->subject(ucfirst($this->field) . ' Update Request')
+        return $this->subject('Employee Data Update Request')
             ->view('emails.user_update_requested')
             ->with([
-                'user'     => $this->user,
-                'field'    => $this->field,
-                'newValue' => $this->newValue,
+                'user'    => $this->user,
+                'changes' => $this->changes,
             ]);
     }
 }

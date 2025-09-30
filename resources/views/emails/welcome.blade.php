@@ -75,7 +75,7 @@
             <strong>HR Department<br>PT. Mahendradata Jaya Mandiri</strong>
         </p>
         <div class="note">
-            This email was sent automatically. Please do not reply.<br><br>
+            This email was sent automatically. Please do not reply.<br>
             For further information, please contact our HR Department via WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
                 HR Department Mahendradata Jaya Mandiri
@@ -99,14 +99,14 @@
             <strong>Departemen HR<br>PT. Mahendradata Jaya Mandiri</strong>
         </p>
         <div class="note">
-            Email ini dikirim secara otomatis. Mohon untuk tidak membalas.<br><br>
+            Email ini dikirim secara otomatis. Mohon untuk tidak membalas.<br>
             Untuk bantuan lebih lanjut, silakan menghubungi HR Departemen melalui WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
                 Departemen HR Mahendradata Jaya Mandiri
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} PT Mahendradata Jaya Mandiri Created by Edwin Sirait.
+            © {{ date('Y') }} HRX. PT Mahendradata Jaya Mandiri Created by Edwin Sirait.
         </div>
     </div>
 </body>

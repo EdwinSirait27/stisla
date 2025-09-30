@@ -194,7 +194,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Banks.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Banks
+                                        <i class="fas fa-plus-circle"></i> Create Bank
                                     </button>
                                 </div>
                             </div>

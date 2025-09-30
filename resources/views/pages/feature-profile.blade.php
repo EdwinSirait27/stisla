@@ -180,8 +180,8 @@
             </div>
 
             <div class="section-body">
-                <h2 class="section-title">Hai, {{ Auth::user()->employee->employee_name }}</h2>
-                <p class="section-lead">Bring out your morning spirit</p>
+                {{-- <h2 class="section-title">Hai, {{ Auth::user()->employee->employee_name }}</h2>
+                <p class="section-lead">Bring out your morning spirit</p> --}}
 
                 <div class="row mt-sm-4">
                     <div class="col-12">
@@ -239,8 +239,8 @@
                                                     class="form-control @error('employee_name') is-invalid @enderror"
                                                     id="employee_name" name="employee_name"
                                                     value="{{ old('employee_name', $user->employee->employee_name ?? '') }}"
-                                                    placeholder="Enter username" disabled>
-                                                @error('username')
+                                                    placeholder="Enter Employee Name" disabled>
+                                                @error('employee_name')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
                                                     </span>
@@ -256,7 +256,7 @@
                                                     class="form-control @error('nik') is-invalid @enderror"
                                                     id="nik" name="nik"
                                                     value="{{ old('nik', $user->employee->nik ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter NIK" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -273,7 +273,7 @@
                                                     class="form-control @error('bpjs_ket') is-invalid @enderror"
                                                     id="bpjs_ket" name="bpjs_ket"
                                                     value="{{ old('bpjs_ket', $user->employee->bpjs_ket ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter BPJS Ketenagakerjaan" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -290,7 +290,7 @@
                                                     class="form-control @error('bpjs_kes') is-invalid @enderror"
                                                     id="bpjs_kes" name="bpjs_kes"
                                                     value="{{ old('bpjs_kes', $user->employee->bpjs_kes ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter BPJS Kesehatan" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -307,7 +307,7 @@
                                                     class="form-control @error('npwp') is-invalid @enderror"
                                                     id="npwp" name="npwp"
                                                     value="{{ old('npwp', $user->employee->npwp ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter NPWP" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -324,7 +324,7 @@
                                                     class="form-control @error('place_of_birth') is-invalid @enderror"
                                                     id="place_of_birth" name="place_of_birth"
                                                     value="{{ old('place_of_birth', $user->employee->place_of_birth ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Place of Birth" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -341,7 +341,7 @@
                                                     class="form-control @error('date_of_birth') is-invalid @enderror"
                                                     id="date_of_birth" name="date_of_birth"
                                                     value="{{ old('date_of_birth', $user->employee->date_of_birth ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Date" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -359,7 +359,7 @@
                                                     class="form-control @error('status_employee') is-invalid @enderror"
                                                     id="status_employee" name="status_employee"
                                                     value="{{ old('status_employee', $user->employee->status_employee ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Status" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -376,7 +376,7 @@
                                                     class="form-control @error('name') is-invalid @enderror"
                                                     id="name" name="name"
                                                     value="{{ old('name', $user->employee->company->name ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Cmpany Name" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -394,7 +394,7 @@
                                                     class="form-control @error('grading_name') is-invalid @enderror"
                                                     id="grading_name" name="grading_name"
                                                     value="{{ old('grading_name', $user->employee->grading->grading_name ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Grading" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -411,7 +411,7 @@
                                                     class="form-control @error('department_name') is-invalid @enderror"
                                                     id="department_name" name="department_name"
                                                     value="{{ old('department_name', $user->employee->department->department_name ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Department" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -428,7 +428,7 @@
                                                     class="form-control @error('name') is-invalid @enderror"
                                                     id="name" name="name"
                                                     value="{{ old('name', $user->employee->position->name ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Position" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -445,7 +445,7 @@
                                                     class="form-control @error('name') is-invalid @enderror"
                                                     id="name" name="name"
                                                     value="{{ old('name', $user->employee->store->name ?? '') }}"
-                                                    placeholder="Enter username" disabled>
+                                                    placeholder="Enter Location" disabled>
                                                 @error('nik')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -511,7 +511,7 @@
                                                 </div>
                                                 <small class="text-muted">
                                                     Password must contain at least 1 uppercase letter, 1 lowercase letter,
-                                                    1 number, and 1 symbol, and must not contain spaces. Min 8 - Max 12 characters.
+                                                    1 number, and 1 symbol, and must not contain spaces. Min 8 - Max 20 characters.
                                                 </small>
                                                 @error('password')
                                                     <span class="invalid-feedback" role="alert">

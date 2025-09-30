@@ -184,7 +184,7 @@ class FingerprintsController extends Controller
         Log::info('Akses editFingerprint', compact('pin'));
 
         // Ambil data terakhir dari EditedFingerprint berdasarkan pin
-        $data = EditedFingerprint::where('pin', $pin)
+        $data = Fingerprints::with('devicefingerprints')->where('pin', $pin)
             ->orderByDesc('scan_date')
             ->first();
 
@@ -215,6 +215,42 @@ class FingerprintsController extends Controller
 
         return view('pages.Fingerprints.edit', ['data' => $data]);
     }
+    // public function editFingerprint($pin)
+    // {
+    //     Log::info('Akses editFingerprint', compact('pin'));
+
+    //     // Ambil data terakhir dari EditedFingerprint berdasarkan pin
+    //     $data = EditedFingerprint::where('pin', $pin)
+    //         ->orderByDesc('scan_date')
+    //         ->first();
+
+    //     if (!$data) {
+    //         Log::info('Tidak ditemukan di EditedFingerprint, ambil dari source fingerprint', compact('pin'));
+
+    //         // Ambil dari getFingerprints
+    //         $response = $this->getFingerprints(request());
+    //         $result = $response->getData()->data;
+
+    //         Log::info('Data dari getFingerprints total:', ['count' => count($result)]);
+
+    //         // Ambil data paling terakhir dari sumber berdasarkan pin
+    //         $data = collect($result)
+    //             ->where('pin', $pin)
+    //             ->sortByDesc('scan_date')
+    //             ->first();
+
+    //         if (!$data) {
+    //             Log::warning('Data fingerprint tidak ditemukan sama sekali!', compact('pin'));
+    //             return response()->json(['message' => 'Data not found'], 404);
+    //         }
+
+    //         Log::info('Data ditemukan di sumber fingerprint.', (array) $data);
+    //     } else {
+    //         Log::info('Data ditemukan di EditedFingerprint.', $data->toArray());
+    //     }
+
+    //     return view('pages.Fingerprints.edit', ['data' => $data]);
+    // }
 
     public function updateFingerprint(Request $request)
     {
