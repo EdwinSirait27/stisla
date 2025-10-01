@@ -21,164 +21,478 @@ class FingerprintsController extends Controller
             ->pluck('name');
         return view('pages.Fingerprints.Fingerprints', compact('stores'));
     }
+    // public function getFingerprints(Request $request)
+    // {
+    //     ini_set('memory_limit', '1024M');
+    //     $storeName = $request->input('store_name');
 
-    public function getFingerprints(Request $request)
-    {
-        ini_set('memory_limit', '1024M');
-        $storeName = $request->input('store_name');
-       
-        $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()))
-            ->startOfDay();
+    //     $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()))
+    //         ->startOfDay();
 
-        $endDate = Carbon::parse($request->input('end_date', now()->toDateString()))
-            ->endOfDay();
+    //     $endDate = Carbon::parse($request->input('end_date', now()->toDateString()))
+    //         ->endOfDay();
+
+    //     $edited = EditedFingerprint::select('pin', 'scan_date')->get()
+    //         ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
+    //         ->toArray();
+
+    //     $employeesQuery = Employee::with('position', 'store')
+    //         ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee');
+
+    //     if ($storeName) {
+    //         $employeesQuery->whereHas('store', function ($q) use ($storeName) {
+    //             $q->where('name', $storeName);
+    //         });
+    //     }
+
+    //     $employees = $employeesQuery->get()->keyBy('pin');
+
+    //     $fingerprints = Fingerprints::with('devicefingerprints')
+    //         ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
+    //         ->whereBetween('scan_date', [$startDate, $endDate])
+    //         ->orderBy('scan_date')
+    //         ->get();
+
+    //     $grouped = $fingerprints->groupBy(function ($item) {
+    //         return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
+    //     });
+
+    //     // Hitung total hari per pin dari grouped (konsisten dengan rows yang dibuat)
+    //     $totalHariPerPin = $grouped
+    //         ->map(function ($items) {
+    //             $first = $items->first();
+    //             return [
+    //                 'pin' => $first->pin,
+    //                 'date' => Carbon::parse($first->scan_date)->toDateString()
+    //             ];
+    //         })
+    //         ->groupBy('pin')
+    //         ->map(fn($items) => collect($items)->pluck('date')->unique()->count());
+
+    //     $result = [];
+
+    //     foreach ($grouped as $group) {
+    //         $first = $group->first();
+    //         $pin = $first->pin;
+    //         $scanDate = Carbon::parse($first->scan_date)->toDateString();
+    //         $employee = $employees->get($pin);
+
+    //         // gunakan data_get agar aman jika $employee null
+    //         $row = [
+    //             'pin' => $pin,
+    //             'employee_name' => data_get($employee, 'employee_name', 'No Data'),
+    //             'status_employee' => data_get($employee, 'status_employee', 'No Data'),
+    //             'employee_pengenal' => data_get($employee, 'employee_pengenal', 'No Data'),
+    //             'name' => data_get($employee, 'store.name', 'No Data'),
+    //             'position_name' => data_get($employee, 'position.name', '-'),
+    //             'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
+    //             'scan_date' => $scanDate,
+    //         ];
+
+    //         // default in_1 .. in_10
+    //         for ($i = 1; $i <= 5; $i++) {
+    //             $row['in_' . $i] = null;
+    //         }
+
+    //         $byMode = $group->groupBy('inoutmode');
+    //         foreach ($byMode as $mode => $items) {
+    //             if ($mode >= 1 && $mode <= 5) {
+    //                 $earliest = $items->sortBy('scan_date')->first();
+    //                 $row['in_' . $mode] = $earliest && $earliest->scan_date
+    //                     ? Carbon::parse($earliest->scan_date)->format('H:i:s')
+    //                     : '';
+    //                 $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
+    //                     ? $earliest->devicefingerprints->device_name
+    //                     : '';
+    //             }
+    //         }
+
+    //         for ($i = 1; $i <= 5; $i++) {
+    //             $jam = $row['in_' . $i] ?? '';
+    //             $device = $row['device_' . $i] ?? '';
+    //             $row['combine_' . $i] = trim($jam . ' ' . $device);
+    //         }
+
+    //         // durasi
+    //         $scanTimes = collect(range(1, 5))
+    //             ->map(fn($i) => $row['in_' . $i])
+    //             ->filter()
+    //             ->sort()
+    //             ->values();
+
+    //         if ($scanTimes->count() >= 2) {
+    //             $start = Carbon::parse($scanTimes->first());
+    //             $end = Carbon::parse($scanTimes->last());
+    //             $diffInMinutes = $start->diffInMinutes($end);
+    //             $hours = floor($diffInMinutes / 60);
+    //             $minutes = $diffInMinutes % 60;
+
+    //             $row['duration'] = ($hours > 0 ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
+    //                 ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
+    //             $row['duration'] = trim($row['duration']) ?: '0 minutes';
+    //         } else {
+    //             $row['duration'] = 'invalid';
+    //         }
+
+    //         // updated flag
+    //         $isUpdated = in_array($pin . '_' . $scanDate, $edited);
+    //         $row['updated'] = $isUpdated ? '✔️ Updated' : '❌ Original';
+    //         $row['is_updated'] = $isUpdated;
+
+    //         // total hari per pin (aman jika tidak ada)
+    //         $row['total_hari'] = $totalHariPerPin[$pin] ?? 0;
+
+    //         $result[] = $row;
+    //     }
+
+    //     $result = collect($result)->sortBy('scan_date')->values();
+
+    //     return DataTables::of($result)
+    //         ->addColumn('action', function ($row) {
+    //             $editBtn = '';
+    //             if ($row['is_updated']) {
+    //                 $editBtn = '<button class="btn btn-sm btn-secondary" disabled>
+    //                             <i class="fas fa-edit"></i>
+    //                         </button>';
+    //             } else {
+    //                 $editUrl = route('pages.Fingerprints.edit', [
+    //                     'pin' => $row['pin'],
+    //                     'scan_date' => $row['scan_date'],
+    //                 ]);
+    //                 $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">
+    //                             <i class="fas fa-edit"></i>
+    //                         </a>';
+    //             }
+
+    //             $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
+    //             data-pin="' . e($row['pin']) . '"
+    //             data-employee="' . e($row['employee_name']) . '"
+    //             data-scan-date="' . e($row['scan_date']) . '"
+    //             data-total-hari="' . e($row['total_hari']) . '">
+    //             <i class="fas fa-eye"></i>
+    //         </button>';
+
+    //             return $editBtn . $lihatBtn;
+    //         })
+    //         ->addColumn('updated_status', function ($row) {
+    //             return $row['updated'];
+    //         })
+    //         ->rawColumns(['action', 'updated_status'])
+    //         ->make(true);
+    // }
+
+    //     public function getFingerprints(Request $request)
+    // {
+    //     ini_set('memory_limit', '1024M');
+    //     $storeName = $request->input('store_name');
+
+    //     $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()))
+    //         ->startOfDay();
+
+    //     $endDate = Carbon::parse($request->input('end_date', now()->toDateString()))
+    //         ->endOfDay();
+
+    //     $edited = EditedFingerprint::select('pin', 'scan_date')->get()
+    //         ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
+    //         ->toArray();
+
+    //     $employeesQuery = Employee::with('position', 'store')
+    //         ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id','status_employee');
+
+    //     if ($storeName) {
+    //         $employeesQuery->whereHas('store', function ($q) use ($storeName) {
+    //             $q->where('name', $storeName);
+    //         });
+    //     }
+
+    //     $employees = $employeesQuery->get()->keyBy('pin');
+
+    //     $fingerprints = Fingerprints::with('devicefingerprints')
+    //         ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
+    //         ->whereBetween('scan_date', [$startDate, $endDate])
+    //         ->orderBy('scan_date')
+    //         ->get();
+
+    //     $grouped = $fingerprints->groupBy(function ($item) {
+    //         return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
+    //     });
+
+    //     // ✅ hitung total hari konsisten dari grouped
+    //     $totalHariPerPin = $grouped
+    //         ->map(function ($items) {
+    //             $first = $items->first();
+    //             return [
+    //                 'pin' => $first->pin,
+    //                 'date' => Carbon::parse($first->scan_date)->toDateString()
+    //             ];
+    //         })
+    //         ->groupBy('pin')
+    //         ->map(fn($items) => collect($items)->pluck('date')->unique()->count());
+
+    //     $result = [];
+
+    //     foreach ($grouped as $group) {
+    //         $first = $group->first();
+    //         $pin = $first->pin;
+    //         $scanDate = Carbon::parse($first->scan_date)->toDateString();
+    //         $employee = $employees->get($pin);
+
+    //         $row = [
+    //             'pin' => $pin,
+    //             'employee_name' => $employee->employee_name ?? 'No Data',
+    //             'status_employee' => $employee->status_employee ?? 'No Data',
+    //             'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
+    //             'name' => optional($employee->store)->name ?? 'No Data',
+    //             'position_name' => optional($employee->position)->name ?? '-',
+    //             'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
+    //             'scan_date' => $scanDate,
+    //         ];
+
+    //         // isi jam
+    //         for ($i = 1; $i <= 10; $i++) {
+    //             $row['in_' . $i] = null;
+    //         }
+
+    //         $byMode = $group->groupBy('inoutmode');
+    //         foreach ($byMode as $mode => $items) {
+    //             if ($mode >= 1 && $mode <= 10) {
+    //                 $earliest = $items->sortBy('scan_date')->first();
+    //                 $row['in_' . $mode] = $earliest && $earliest->scan_date
+    //                     ? Carbon::parse($earliest->scan_date)->format('H:i:s')
+    //                     : '';
+    //                 $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
+    //                     ? $earliest->devicefingerprints->device_name
+    //                     : '';
+    //             }
+    //         }
+
+    //         // gabung jam + device
+    //         for ($i = 1; $i <= 10; $i++) {
+    //             $jam = $row['in_' . $i] ?? '';
+    //             $device = $row['device_' . $i] ?? '';
+    //             $row['combine_' . $i] = trim($jam . ' ' . $device);
+    //         }
+
+    //         // durasi
+    //         $scanTimes = collect(range(1, 10))
+    //             ->map(fn($i) => $row['in_' . $i])
+    //             ->filter()
+    //             ->sort()
+    //             ->values();
+
+    //         if ($scanTimes->count() >= 2) {
+    //             $start = Carbon::parse($scanTimes->first());
+    //             $end = Carbon::parse($scanTimes->last());
+    //             $diffInMinutes = $start->diffInMinutes($end);
+    //             $hours = floor($diffInMinutes / 60);
+    //             $minutes = $diffInMinutes % 60;
+
+    //             $row['duration'] = ($hours > 0 ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
+    //                 ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
+    //             $row['duration'] = trim($row['duration']) ?: '0 minutes';
+    //         } else {
+    //             $row['duration'] = 'invalid';
+    //         }
+
+    //         // updated?
+    //         $isUpdated = in_array($pin . '_' . $scanDate, $edited);
+    //         $row['updated'] = $isUpdated ? '✔️ Updated' : '❌ Original';
+    //         $row['is_updated'] = $isUpdated;
+
+    //         $result[] = $row;
+    //     }
+
+    //     $result = collect($result)->sortBy('scan_date')->values();
+
+    //     return DataTables::of($result)
+    //         ->addColumn('action', function ($row) {
+    //             $editBtn = '';
+    //             if ($row['is_updated']) {
+    //                 $editBtn = '<button class="btn btn-sm btn-secondary" disabled>
+    //                                 <i class="fas fa-edit"></i>
+    //                             </button>';
+    //             } else {
+    //                 $editUrl = route('pages.Fingerprints.edit', [
+    //                     'pin' => $row['pin'],
+    //                     'scan_date' => $row['scan_date'],
+    //                 ]);
+    //                 $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">
+    //                                 <i class="fas fa-edit"></i>
+    //                             </a>';
+    //             }
+
+    //             $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
+    //                 data-pin="' . $row['pin'] . '"
+    //                 data-employee="' . e($row['employee_name']) . '">
+    //                 <i class="fas fa-eye"></i>
+    //             </button>';
+
+    //             return $editBtn . $lihatBtn;
+    //         })
+    //         ->addColumn('updated_status', function ($row) {
+    //             return $row['updated'];
+    //         })
+    //         ->rawColumns(['action', 'updated_status'])
+    //         ->make(true);
+    // }
+
+        public function getFingerprints(Request $request)
+        {
+            ini_set('memory_limit', '1024M');
+            $storeName = $request->input('store_name');
+
+            $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()))
+                ->startOfDay();
+
+            $endDate = Carbon::parse($request->input('end_date', now()->toDateString()))
+                ->endOfDay();
 
 
-        $edited = EditedFingerprint::select('pin', 'scan_date')->get()
-            ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
-            ->toArray();
+            $edited = EditedFingerprint::select('pin', 'scan_date')->get()
+                ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
+                ->toArray();
 
-        $employeesQuery = Employee::with('position', 'store')
-            ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id','status_employee');
+            $employeesQuery = Employee::with('position', 'store')
+                ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id','status_employee');
 
-        if ($storeName) {
-            $employeesQuery->whereHas('store', function ($q) use ($storeName) {
-                $q->where('name', $storeName);
-            });
-        }
+            if ($storeName) {
+                $employeesQuery->whereHas('store', function ($q) use ($storeName) {
+                    $q->where('name', $storeName);
+                });
+            }
 
-        $employees = $employeesQuery->get()->keyBy('pin');
+            $employees = $employeesQuery->get()->keyBy('pin');
 
-        $fingerprints = Fingerprints::with('devicefingerprints')
-            ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
-            ->whereBetween('scan_date', [$startDate, $endDate])
-            ->orderBy('scan_date')
-            ->get();
+            $fingerprints = Fingerprints::with('devicefingerprints')
+                ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
+                ->whereBetween('scan_date', [$startDate, $endDate])
+                ->orderBy('scan_date')
+                ->get();
 
-        $grouped = $fingerprints->groupBy(function ($item) {
-            return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
-        });
-
-        $result = [];
-        $totalHariPerPin = $fingerprints
-            ->groupBy(function ($item) {
+            $grouped = $fingerprints->groupBy(function ($item) {
                 return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
-            })
-            ->map(function ($items) {
-                $first = $items->first();
-                return [
-                    'pin' => $first->pin,
-                    'date' => Carbon::parse($first->scan_date)->toDateString()
-                ];
-            })
-            ->groupBy('pin')
-            ->map(fn($items) => collect($items)->pluck('date')->unique()->count());
+            });
 
-        foreach ($grouped as $group) {
-            $first = $group->first();
-            $pin = $first->pin;
-            $scanDate = Carbon::parse($first->scan_date)->toDateString();
-            $employee = $employees->get($pin);
-            if (!$employee) {
-                continue;
-            }
-            $totalHari = $totalHariPerPin[$pin] ?? 0;
-            $row = [
-                'pin' => $pin,
-                'employee_name' => $employee->employee_name ?? 'No Data',
-                'status_employee' => $employee->status_employee ?? 'No Data',
-                'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
-                'name' => $employee->store->name ?? 'No Data',
-                'position_name' => $employee ? optional($employee->position)->name : '-',
-                'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
-                'scan_date' => $scanDate,
-            ];
-            for ($i = 1; $i <= 10; $i++) {
-                $row['in_' . $i] = null;
-            }
-            $byMode = $group->groupBy('inoutmode');
-            foreach ($byMode as $mode => $items) {
-                if ($mode >= 1 && $mode <= 10) {
-                    $earliest = $items->sortBy('scan_date')->first();
-                    $row['in_' . $mode] = $earliest && $earliest->scan_date
-                        ? Carbon::parse($earliest->scan_date)->format('H:i:s')
-                        : '';
-                    $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
-                        ? $earliest->devicefingerprints->device_name
-                        : '';
+            $result = [];
+            $totalHariPerPin = $fingerprints
+                ->groupBy(function ($item) {
+                    return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
+                })
+                ->map(function ($items) {
+                    $first = $items->first();
+                    return [
+                        'pin' => $first->pin,
+                        'date' => Carbon::parse($first->scan_date)->toDateString()
+                    ];
+                })
+                ->groupBy('pin')
+                ->map(fn($items) => collect($items)->pluck('date')->unique()->count());
+
+            foreach ($grouped as $group) {
+                $first = $group->first();
+                $pin = $first->pin;
+                $scanDate = Carbon::parse($first->scan_date)->toDateString();
+                $employee = $employees->get($pin);
+                if (!$employee) {
+                    continue;
                 }
+                $totalHari = $totalHariPerPin[$pin] ?? 0;
+                $row = [
+                    'pin' => $pin,
+                    'employee_name' => $employee->employee_name ?? 'No Data',
+                    'status_employee' => $employee->status_employee ?? 'No Data',
+                    'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
+                    'name' => $employee->store->name ?? 'No Data',
+                    'position_name' => $employee ? optional($employee->position)->name : '-',
+                    'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
+                    'scan_date' => $scanDate,
+                ];
+                for ($i = 1; $i <= 10; $i++) {
+                    $row['in_' . $i] = null;
+                }
+                $byMode = $group->groupBy('inoutmode');
+                foreach ($byMode as $mode => $items) {
+                    if ($mode >= 1 && $mode <= 10) {
+                        $earliest = $items->sortBy('scan_date')->first();
+                        $row['in_' . $mode] = $earliest && $earliest->scan_date
+                            ? Carbon::parse($earliest->scan_date)->format('H:i:s')
+                            : '';
+                        $row['device_' . $mode] = $earliest && $earliest->devicefingerprints
+                            ? $earliest->devicefingerprints->device_name
+                            : '';
+                    }
+                }
+
+                for ($i = 1; $i <= 10; $i++) {
+                    $jam = $row['in_' . $i] ?? '';
+                    $device = $row['device_' . $i] ?? '';
+                    $row['combine_' . $i] = $jam . ' ' . $device;
+                }
+                $scanTimes = collect(range(1, 10))
+                    ->map(fn($i) => $row['in_' . $i])
+                    ->filter()
+                    ->sort()
+                    ->values();
+                if ($scanTimes->count() >= 2) {
+                    $start = Carbon::parse($scanTimes->first());
+                    $end = Carbon::parse($scanTimes->last());
+                    $diffInMinutes = $start->diffInMinutes($end);
+                    $hours = floor($diffInMinutes / 60);
+                    $minutes = $diffInMinutes % 60;
+
+                    $row['duration'] = ($hours > 0 ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
+                        ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
+                    $row['duration'] = trim($row['duration']) ?: '0 minutes';
+                } else {
+                    $row['duration'] = 'invalid';
+                }
+
+                // ✅ Penanda apakah data sudah diedit
+                $isUpdated = in_array($pin . '_' . $scanDate, $edited);
+                $row['updated'] = $isUpdated ? '✔️ Updated' : '❌ Original';
+                $row['is_updated'] = $isUpdated;
+
+                $result[] = $row;
             }
 
-            for ($i = 1; $i <= 10; $i++) {
-                $jam = $row['in_' . $i] ?? '';
-                $device = $row['device_' . $i] ?? '';
-                $row['combine_' . $i] = $jam . ' ' . $device;
-            }
-            $scanTimes = collect(range(1, 10))
-                ->map(fn($i) => $row['in_' . $i])
-                ->filter()
-                ->sort()
-                ->values();
-            if ($scanTimes->count() >= 2) {
-                $start = Carbon::parse($scanTimes->first());
-                $end = Carbon::parse($scanTimes->last());
-                $diffInMinutes = $start->diffInMinutes($end);
-                $hours = floor($diffInMinutes / 60);
-                $minutes = $diffInMinutes % 60;
+            $result = collect($result)->sortBy('scan_date')->values();
 
-                $row['duration'] = ($hours > 0 ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
-                    ($minutes > 0 ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
-                $row['duration'] = trim($row['duration']) ?: '0 minutes';
-            } else {
-                $row['duration'] = 'invalid';
-            }
+            return DataTables::of($result)
 
-            // ✅ Penanda apakah data sudah diedit
-            $isUpdated = in_array($pin . '_' . $scanDate, $edited);
-            $row['updated'] = $isUpdated ? '✔️ Updated' : '❌ Original';
-            $row['is_updated'] = $isUpdated;
 
-            $result[] = $row;
+
+                ->addColumn('action', function ($row) {
+        $editBtn = '';
+        if ($row['is_updated']) {
+            $editBtn = '<button class="btn btn-sm btn-secondary" disabled>
+                            <i class="fas fa-edit"></i>
+                        </button>';
+        } else {
+            $editUrl = route('pages.Fingerprints.edit', [
+                'pin' => $row['pin'],
+                'scan_date' => $row['scan_date'],
+            ]);
+            $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">
+                            <i class="fas fa-edit"></i>
+                        </a>';
         }
 
-        $result = collect($result)->sortBy('scan_date')->values();
+        $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
+            data-pin="' . $row['pin'] . '"
+            data-employee="' . e($row['employee_name']) . '">
+            <i class="fas fa-eye"></i>
+        </button>';
 
-        return DataTables::of($result)
+        return $editBtn . $lihatBtn;
+    })
 
+                ->addColumn('updated_status', function ($row) {
+                    return $row['updated'];
+                })
+                ->rawColumns(['action', 'updated_status'])
+                ->make(true);
+        }
 
-            
-            ->addColumn('action', function ($row) {
-    $editBtn = '';
-    if ($row['is_updated']) {
-        $editBtn = '<button class="btn btn-sm btn-secondary" disabled>
-                        <i class="fas fa-edit"></i>
-                    </button>';
-    } else {
-        $editUrl = route('pages.Fingerprints.edit', [
-            'pin' => $row['pin'],
-            'scan_date' => $row['scan_date'],
-        ]);
-        $editBtn = '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">
-                        <i class="fas fa-edit"></i>
-                    </a>';
-    }
-
-    $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
-        data-pin="' . $row['pin'] . '"
-        data-employee="' . e($row['employee_name']) . '">
-        <i class="fas fa-eye"></i>
-    </button>';
-
-    return $editBtn . $lihatBtn;
-})
-
-            ->addColumn('updated_status', function ($row) {
-                return $row['updated'];
-            })
-            ->rawColumns(['action', 'updated_status'])
-            ->make(true);
-    }
-  
     public function editFingerprint($pin)
     {
         Log::info('Akses editFingerprint', compact('pin'));

@@ -43,12 +43,13 @@ use App\Http\Controllers\Editedfingerprints;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
     // Route::get('/feature-profile', function () {
     //     return view('pages.feature-profile', ['type_menu' => 'features']);
     // });
-     Route::get('/feature-profile', [UserprofileController::class, 'index'])
-            ->name('pages.feature-profile');
+    Route::get('/feature-profile', [UserprofileController::class, 'index'])
+        ->name('pages.feature-profile');
 
     Route::put('/feature-profile/update', [UserprofileController::class, 'updatePassword'])->name('feature-profile.update');
     Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
@@ -90,7 +91,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/permissions/edit/{hashedId}', [PermissionController::class, 'edit'])->name('permissions.edit');
         Route::put('/permissions/{hashedId}', [PermissionController::class, 'update'])->name('permissions.update');
         Route::get('/permissions/permissions', [PermissionController::class, 'getPermissions'])->name('permissions.permissions');
-
     });
     // Head HR
     Route::group(['middleware' => ['permission:dashboardHR']], function () {
@@ -99,7 +99,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/dashboardHR/data', [DashboardHRController::class, 'getMonthlyData'])->name('dashboardHR.data');
         Route::get('/announcements/announcements', [DashboardHRController::class, 'getAnnouncements'])->name('announcements.announcements');
         Route::post('/dashboardHR', [DashboardHRController::class, 'store'])->name('dashboardHR.store');
-
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
 
@@ -124,7 +123,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
             ->name('pages.Importuser');
         Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
-
     });
     Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
 
@@ -146,12 +144,11 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
             ->name('pages.Importpayroll');
         Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
         // });
-// Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
+        // Route::post('/payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('payrolls.generateAll');
 
         Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
 
         Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
-
     });
 
     Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
@@ -188,7 +185,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
             ->name('pages.Editedfinger');
         Route::match(['GET', 'POST'], '/editedfinger/editedfinger', [Editedfingerprints::class, 'getEditedfingerprints'])->name('editedfinger.editedfinger');
-
     });
 
     // Position    
@@ -223,6 +219,10 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/Pubholi/edit/{hashedId}', [PHController::class, 'edit'])->name('Pubholi.edit');
         Route::put('/Pubholi/{hashedId}', [PHController::class, 'update'])->name('Pubholi.update');
         Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
+        Route::get('/ImportPH', [PHController::class, 'indexphs'])
+            ->name('pages.ImportPH');
+        Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
+        Route::get('/Pubholi/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('Pubholi.downloadphs');
     });
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
 
@@ -234,7 +234,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
         Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
     });
-     Route::group(['middleware' => ['permission:ManageGrading']], function () {
+    Route::group(['middleware' => ['permission:ManageGrading']], function () {
 
         Route::get('/Grading', [GradingController::class, 'index'])
             ->name('pages.Grading');
@@ -297,7 +297,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('Categories/create', [CategoriesController::class, 'create'])->name('Categories.create');
         Route::post('/Categories', [CategoriesController::class, 'store'])->name('Categories.store');
         // Route::get('/Categories/edit/{hashedId}', [CategoriesController::class, 'edit'])->name('Categories.edit');
-// Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
+        // Route::put('/Categories/{hashedId}', [CategoriesController::class, 'update'])->name('Categories.update');
         Route::get('/categories/categories', [CategoriesController::class, 'getCategories'])->name('categories.categories');
         Route::get('categories/tree', [CategoriesController::class, 'getCategoryTree'])->name('categories.tree');
     });
@@ -348,16 +348,14 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
     });
     // banks   
-// import
+    // import
 });
 Route::middleware(['auth', 'role:ManagerStore'])->group(function () {
 
     Route::group(['middleware' => ['permission:dashboardManager']], function () {
 
         Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
-
     });
-
 });
 Route::middleware(['can:isKasir', 'auth'])->group(function () {
     Route::get('/dashboardKasir', [dashboardKasirController::class, 'index'])->name('pages.dashboardKasir');

@@ -243,7 +243,7 @@
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Scan Date</th>
-                                                @for ($i = 1; $i <= 10; $i++)
+                                                @for ($i = 1; $i <= 5; $i++)
                                                     <th class="text-center">Scan {{ $i }}</th>
                                                 @endfor
                                                 <th class="text-center">Duration</th>
@@ -418,13 +418,13 @@
 
 
 
-                    @for ($i = 1; $i <= 10; $i++)
+                    @for ($i = 1; $i <= 5; $i++)
                         {
                             data: 'combine_{{ $i }}',
                             name: 'combine_{{ $i }}',
                             className: 'text-center'
                         }
-                        @if ($i < 10)
+                        @if ($i < 5)
                             ,
                         @endif
                     @endfor ,

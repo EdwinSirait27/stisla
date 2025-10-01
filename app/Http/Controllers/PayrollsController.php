@@ -24,14 +24,14 @@ class PayrollsController extends Controller
     public function generateAll()
     {
         ini_set('max_execution_time', 180);
-        $currentCarbon = Carbon::now(); 
+        $currentCarbon = Carbon::now();
 
         $payrolls = Payrolls::with('employee')
             ->whereMonth('created_at', $currentCarbon->month)
             ->whereYear('created_at', $currentCarbon->year)
             ->get();
         foreach ($payrolls as $payroll) {
-          
+
             try {
                 $carbonMonthYear = Carbon::parse($payroll->month_year);
             } catch (\Exception $e) {
@@ -63,19 +63,6 @@ class PayrollsController extends Controller
             $deductions = $payroll->deductions ?? '-';
             $salary = $payroll->salary ?? '-';
             $take_home = $payroll->take_home ?? '-';
-//                 $salaryincome = (
-//     intval($attendance) * intval($daily_allowance)
-// ) + intval($overtime)
-//   + intval($bonus)
-//   + intval($house_allowance)
-//   + intval($meal_allowance)
-//   + intval($transport_allowance);
-//             $salaryoutcome = intval($punishment) + intval($tax)
-//                 + intval($late_fine) + intval($bpjs_ket)
-//                 + intval($bpjs_kes);
-                
-//                 $takehome =   intval($salaryincome) - intval($salaryoutcome);
-
             $data = [
                 'payroll' => $payroll,
                 'attendance' => $attendance,
@@ -132,72 +119,112 @@ class PayrollsController extends Controller
 
 
     public function getPayrolls(Request $request)
-    {
-        ini_set('max_execution_time', 120);
-        $payrollsQuery = Payrolls::with('Employee')
-            ->select([
-                'id',
-                'employee_id',
-                'daily_allowance',
-                'bonus',
-                'house_allowance',
-                'meal_allowance',
-                'transport_allowance',
-                'period',
-                'tax',
-                'deductions',
-                'salary',
-                'take_home',
-                'month_year',
-                'overtime',
-                'attendance',
-                'late_fine',
-                'bpjs_ket',
-                'bpjs_kes',
-                'debt',
-                'punishment'
-            ]);
-        // Filter berdasarkan month_year (Hanya Y-m, bukan Y-m-d)
-        if ($request->filled('month_year')) {
-            $payrollsQuery->whereRaw("DATE_FORMAT(month_year, '%Y-%m') = ?", [$request->month_year]);
-        }
-        $payrolls = $payrollsQuery->get()->map(function ($payroll) {
-            try {
-                $payroll->bonus = $payroll->bonus ? ($payroll->bonus) : null;
-                $payroll->house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
-                $payroll->meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
-                $payroll->tax = $payroll->tax ? ($payroll->tax) : null;
-                $payroll->transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
-                $payroll->overtime = $payroll->overtime ? ($payroll->overtime) : null;
-                $payroll->daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
-                $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
-                $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
-                $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
-                $payroll->debt = $payroll->debt ? ($payroll->debt) : null;
-                $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
-                $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
-                $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
-                $payroll->take_home = $payroll->take_home ? ($payroll->take_home) : null;
-              
-            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                Log::error("Decrypt error: " . $e->getMessage());
-            }
-            $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-            // $payroll->checkbox = '<input type="checkbox" class="payroll_ids[]" value="' . $payroll->id_hashed . '">';
-            $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
-            // $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
+{
+    ini_set('max_execution_time', 120);
 
+    $payrollsQuery = Payrolls::with('Employee')
+        ->select([
+            'id',
+            'employee_id',
+            'daily_allowance',
+            'bonus',
+            'house_allowance',
+            'meal_allowance',
+            'transport_allowance',
+            'period',
+            'tax',
+            'deductions',
+            'salary',
+            'take_home',
+            'month_year',
+            'overtime',
+            'attendance',
+            'late_fine',
+            'bpjs_ket',
+            'bpjs_kes',
+            'debt',
+            'punishment'
+        ]);
 
-            return $payroll;
-        });
-        return DataTables::of($payrolls)
-            ->addColumn('employee_name', function ($payroll) {
-                return $payroll->employee->employee_name ?? 'Empty';
-            })
-            ->rawColumns(['checkbox', 'employee_name'])
-            // ->rawColumns(['action', 'checkbox', 'employee_name'])
-            ->make(true);
-    }   
+    if ($request->filled('month_year')) {
+        $payrollsQuery->whereRaw("DATE_FORMAT(month_year, '%Y-%m') = ?", [$request->month_year]);
+    }
+
+    $payrolls = $payrollsQuery->get()->map(function ($payroll) {
+        // nggak perlu decrypt manual lagi
+        $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+        $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
+        return $payroll;
+    });
+
+    return DataTables::of($payrolls)
+        ->addColumn('employee_name', function ($payroll) {
+            return $payroll->employee->employee_name ?? 'Empty';
+        })
+        ->rawColumns(['checkbox', 'employee_name'])
+        ->make(true);
+}
+
+    // public function getPayrolls(Request $request)
+    // {
+    //     ini_set('max_execution_time', 120);
+    //     $payrollsQuery = Payrolls::with('Employee')
+    //         ->select([
+    //             'id',
+    //             'employee_id',
+    //             'daily_allowance',
+    //             'bonus',
+    //             'house_allowance',
+    //             'meal_allowance',
+    //             'transport_allowance',
+    //             'period',
+    //             'tax',
+    //             'deductions',
+    //             'salary',
+    //             'take_home',
+    //             'month_year',
+    //             'overtime',
+    //             'attendance',
+    //             'late_fine',
+    //             'bpjs_ket',
+    //             'bpjs_kes',
+    //             'debt',
+    //             'punishment'
+    //         ]);
+    //     if ($request->filled('month_year')) {
+    //         $payrollsQuery->whereRaw("DATE_FORMAT(month_year, '%Y-%m') = ?", [$request->month_year]);
+    //     }
+    //     $payrolls = $payrollsQuery->get()->map(function ($payroll) {
+    //         try {
+    //             $payroll->bonus = $payroll->bonus ? ($payroll->bonus) : null;
+    //             $payroll->house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
+    //             $payroll->meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
+    //             $payroll->tax = $payroll->tax ? ($payroll->tax) : null;
+    //             $payroll->transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
+    //             $payroll->overtime = $payroll->overtime ? ($payroll->overtime) : null;
+    //             $payroll->daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
+    //             $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
+    //             $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
+    //             $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
+    //             $payroll->debt = $payroll->debt ? ($payroll->debt) : null;
+    //             $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
+    //             $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
+    //             $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
+    //             $payroll->take_home = $payroll->take_home ? ($payroll->take_home) : null;
+    //         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+    //             Log::error("Decrypt error: " . $e->getMessage());
+    //         }
+    //         $payroll->id_hashed = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+    //         $payroll->checkbox = '<input type="checkbox" class="payroll-checkbox" name="payroll_ids[]" value="' . $payroll->id_hashed . '">';
+    //         return $payroll;
+    //     });
+    //     return DataTables::of($payrolls)
+    //         ->addColumn('employee_name', function ($payroll) {
+    //             return $payroll->employee->employee_name ?? 'Empty';
+    //         })
+    //         ->rawColumns(['checkbox', 'employee_name'])
+    //         ->make(true);
+    // }
     public function generate($hashedId)
     {
         Log::info('Payroll PDF generation started.', ['hashedId' => $hashedId]);
@@ -323,253 +350,31 @@ class PayrollsController extends Controller
 
 
 
-    public function edit($hashedId)
+  
+  
+    public function bulkDelete(Request $request)
     {
-        $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
+        $idsRaw = $request->input('payroll_ids', '');
+        $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+        if (empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
+        }
+        $matchedIds = [];
+        Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
+            foreach ($payrolls as $payroll) {
+                $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+                if (in_array($hash, $ids)) {
+                    $matchedIds[] = $payroll->id;
+                }
+            }
         });
-        if (!$payroll) {
-            abort(404, 'Payroll not found.');
-        }
-        try {
-            $payroll->bonus = $payroll->bonus ? ($payroll->bonus) : null;
-            $payroll->daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
-            $payroll->house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
-            $payroll->meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
-            $payroll->tax = $payroll->tax ? ($payroll->tax) : null;
-            $payroll->transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
-            $payroll->deductions = $payroll->deductions ? ($payroll->deductions) : null;
-            $payroll->salary = $payroll->salary ? ($payroll->salary) : null;
-            $payroll->overtime = $payroll->overtime ? ($payroll->overtime) : null;
-            $payroll->late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
-            $payroll->bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
-            $payroll->bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
-            $payroll->punishment = $payroll->punishment ? ($payroll->punishment) : null;
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            abort(500, 'Failed to decrypt payroll data.');
-        }
 
+        $deleted = Payrolls::whereIn('id', $matchedIds)->delete();
 
-        return view('pages.Payrolls.edit', [
-            'payroll' => $payroll,
-            'hashedId' => $hashedId,
-        ]);
-    }
-    public function create()
-    {
-        $payrolls = Payrolls::with('employee')->get();
-        return view('pages.Payrolls.create', compact('payrolls'));
+        return back()->with('success', "$deleted data berhasil dihapus.");
     }
 
-    public function update(Request $request, $hashedId)
-    {
-        $payroll = Payrolls::with('employee')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$payroll) {
-            return redirect()->route('pages.Payrolls')->with('error', 'ID tidak valid.');
-        }
-        $validatedData = $request->validate([
-            'bonus' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'house_allowance' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'meal_allowance' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'transport_allowance' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'tax' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'attendance' => [
-                'required',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'daily_allowance' => [
-                'required',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'overtime' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'bpjs_ket' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'bpjs_kes' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-
-            'punishment' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'late_fine' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'salary' => [
-                'nullable',
-                'numeric',
-                new NoXSSInput()
-            ],
-            'information' => [
-                'nullable',
-                'string',
-                new NoXSSInput()
-            ],
-            'period' => [
-                'nullable',
-                'string',
-                new NoXSSInput()
-            ],
-        ], [
-            'bonus.numeric' => 'Bonus must be a number.',
-            'house_allowance.numeric' => 'House allowance must be a number.',
-            'meal_allowance.numeric' => 'Meal allowance must be a number.',
-            'transport_taxallowance.numeric' => 'Transport allowance must be a number.',
-            'tax.numeric' => 'Transport allowance must be a number.',
-            'daily_allowance.numeric' => 'Transport allowance must be a number.',
-            'overtime.numeric' => 'Net salary must be a number.',
-            'attendance.numeric' => 'Net salary must be a number.',
-            'attendance.required' => 'Net salary must be filled.',
-            'daily_allowance.required' => 'daily allowance must be filled.',
-            'bpjs_kes.numeric' => 'bpjs kesehatan must be a number.',
-            'bpjs_ket.numeric' => 'bpjs ketenagakerjaan must be a number.',
-            'punishment.numeric' => 'punishment salary must be a number.',
-            'late_fine.numeric' => 'late fine salary must be a number.',
-            'deductions.numeric' => 'Deductions must be a number.',
-        ]);
-        $calculatedDeduction =
-            ($validatedData['punishment'] ?? 0) +
-            ($validatedData['bpjs_ket'] ?? 0) +
-            ($validatedData['bpjs_kes'] ?? 0) +
-            ($validatedData['tax'] ?? 0) +
-            ($validatedData['late_fine'] ?? 0);
-
-        $calculatedSalary =
-            ($validatedData['attendance'] ?? 0) *
-            ($validatedData['daily_allowance'] ?? 0) +
-            ($validatedData['overtime'] ?? 0) +
-            ($validatedData['bonus'] ?? 0) +
-            ($validatedData['house_allowance'] ?? 0) +
-            ($validatedData['meal_allowance'] ?? 0) +
-            ($validatedData['transport_allowance'] ?? 0) -
-            ($calculatedDeduction ?? 0);
-
-
-        $payrollData = [
-            'bonus' => ($validatedData['bonus']),
-            'house_allowance' => ($validatedData['house_allowance']),
-            'meal_allowance' => ($validatedData['meal_allowance']),
-            'tax' => ($validatedData['tax']),
-            'daily_allowance' => ($validatedData['daily_allowance']),
-            'transport_allowance' => ($validatedData['transport_allowance']),
-            'attendance' => ($validatedData['attendance']),
-            'overtime' => ($validatedData['overtime']),
-            'punishment' => ($validatedData['punishment']),
-            'late_fine' => ($validatedData['late_fine']),
-            'bpjs_ket' => ($validatedData['bpjs_ket']),
-            'bpjs_kes' => ($validatedData['bpjs_kes']),
-            'deductions' => ($calculatedDeduction),
-            'salary' => ($calculatedSalary),
-            'information' => $validatedData['information'] ?? null,
-            'period' => $validatedData['period'] ?? null,
-        ];
-        DB::beginTransaction();
-        $payroll->update($payrollData);
-        DB::commit();
-        return redirect()->route('pages.Payrolls')->with('success', 'Payrolls updated successfully.');
-    }
-    // public function deletepayroll(Request $request)
-    // {
-    //     $request->validate([
-
-    //         'ids' => ['required', 'array', 'min:1', new NoXSSInput()],
-    //         'ids.*' => ['uuid', new NoXSSInput()],
-
-    //     ]);
-    //     Payrolls::whereIn('id', $request->ids)->delete();
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Selected users and their related data deleted successfully.'
-    //     ]);
-    // }
-//     public function bulkDelete(Request $request)
-// {
-//     $ids = $request->input('payroll_ids', []);
-
-//     if (empty($ids)) {
-//         return back()->with('error', 'Tidak ada data yang dipilih.');
-//     }
-
-//     // Dekripsi manual hashed ID (pastikan hash-nya unik)
-//     $deleted = 0;
-//     foreach (Payrolls::all() as $payroll) {
-//         $expectedHash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-//         if (in_array($expectedHash, $ids)) {
-//             $payroll->delete();
-//             $deleted++;
-//         }
-//     }
-
-//     return back()->with('success', "$deleted data berhasil dihapus.");
-// }
-public function bulkDelete(Request $request)
-{
-    $idsRaw = $request->input('payroll_ids', '');
-
-$ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
-
-
-    if (empty($ids)) {
-        return back()->with('error', 'Tidak ada data yang dipilih.');
-    }
-
-    // Ambil hanya ID payroll yang cocok dengan hash yang dikirim
-   $matchedIds = [];
-
-Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
-    foreach ($payrolls as $payroll) {
-        $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-        if (in_array($hash, $ids)) {
-            $matchedIds[] = $payroll->id;
-        }
-    }
-});
-
-$deleted = Payrolls::whereIn('id', $matchedIds)->delete();
-
-return back()->with('success', "$deleted data berhasil dihapus.");
-
-}
-
-  public function indexpayrolls()
+    public function indexpayrolls()
     {
         $files = Storage::disk('public')->files('templatepayrolls');
         return view('pages.Importpayroll.Importpayroll', compact('files'));
@@ -583,27 +388,26 @@ return back()->with('success', "$deleted data berhasil dihapus.");
         }
         abort(404);
     }
-   
+
     public function Importpayrolls(Request $request)
-{
-    $request->validate([
-        'file' => 'required|mimes:xlsx,csv,xls'
-    ]);
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv,xls'
+        ]);
 
-    $errors = [];
-    $import = new PayrollsImport($errors);
-    $import->import($request->file('file'));
+        $errors = [];
+        $import = new PayrollsImport($errors);
+        $import->import($request->file('file'));
 
-    if ($import->failures()->isNotEmpty()) {
-    return back()->with([
-        'failures' => $import->failures(), // INI YANG WAJIB
-        'errors' => $errors, // opsional
-    ]);
-}
-    if (!empty($errors)) {
-        return back()->with('failures', $errors);
+        if ($import->failures()->isNotEmpty()) {
+            return back()->with([
+                'failures' => $import->failures(), // INI YANG WAJIB
+                'errors' => $errors, // opsional
+            ]);
+        }
+        if (!empty($errors)) {
+            return back()->with('failures', $errors);
+        }
+        return back()->with('success', 'Payrolls import successfully!');
     }
-
-    return back()->with('success', 'Payrolls import successfully!');
-}
 }

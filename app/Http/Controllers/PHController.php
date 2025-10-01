@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\PHImport;
 use App\Models\Ph;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+use Illuminate\Support\Facades\Log;
 
 
 class PHController extends Controller
@@ -70,15 +75,7 @@ class PHController extends Controller
     }
     public function store(Request $request)
     {
-        // dd($request->all());
         $validatedData = $request->validate([
-            // 'type' => [
-            //     'required',
-            //     'string',
-            //     'max:255',
-            //     'unique:departments_tables,department_name',
-            //     new NoXSSInput()
-            // ],
              'remark' => ['required', 'string', 'max:255', 'unique:ph,remark', new NoXSSInput()],
             'type' => ['required', 'string', 'max:255', new NoXSSInput()],
             'date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
@@ -134,4 +131,41 @@ class PHController extends Controller
         DB::commit();
         return redirect()->route('pages.Pubholi')->with('success', 'Public Holiday Updated Successfully.');
     }
+
+    public function indexphs()
+    {
+        $files = Storage::disk('public')->files('templateph');
+        return view('pages.ImportPH.ImportPH', compact('files'));
+    }
+     public function downloadphs($filename)
+    {
+        $path = 'templatephs/' . $filename;
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->download($path);
+        }
+        abort(404);
+    }
+    public function Importphs(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,csv,xls'
+    ]);
+
+    $errors = [];
+    $import = new PHImport($errors);
+    $import->import($request->file('file'));
+
+    if ($import->failures()->isNotEmpty()) {
+    return back()->with([
+        'failures' => $import->failures(), // INI YANG WAJIB
+        'errors' => $errors, // opsional
+    ]);
+}
+    if (!empty($errors)) {
+        return back()->with('failures', $errors);
+    }
+
+    return back()->with('success', 'Public Holidays import successfully!');
+}
 }

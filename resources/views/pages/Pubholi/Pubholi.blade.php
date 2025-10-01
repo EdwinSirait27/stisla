@@ -192,9 +192,9 @@
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Pubholi.create') }}'"
+                                    <button type="button" onclick="window.location='{{ route('Pages.ImportPH') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Public Holiday
+                                        <i class="fas fa-plus-circle"></i> Import Public Holidays
                                     </button>
                                 </div>
                             </div>

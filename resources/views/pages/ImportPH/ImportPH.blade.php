@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Import Payrolls')
+@section('title', 'Import Public Holidays')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -93,18 +93,18 @@
 @section('main')<div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Import Payrolls</h1>
+                <h1>Import Public Holidays</h1>
             </div>
 
             @if (session('failures'))
                 <div class="alert alert-danger">
-                    <strong>Import Gagal (Validasi Excel):</strong>
+                    <strong>Import Failed (Excel Validation):</strong>
                     <ul>
                         @foreach (session('failures') as $failure)
                             @if (is_object($failure) && method_exists($failure, 'row'))
                                 <li>
-                                    Baris {{ $failure->row() }} – Kolom: {{ $failure->attribute() }} –
-                                    Pesan: {{ implode(', ', $failure->errors()) }}
+                                    Row {{ $failure->row() }} – Kolom: {{ $failure->attribute() }} –
+                                    Message: {{ implode(', ', $failure->errors()) }}
                                 </li>
                             @endif
                         @endforeach
@@ -113,11 +113,11 @@
             @endif
             @if (session('errors'))
                 <div class="alert alert-warning">
-                    <strong>Error Kustom:</strong>
+                    <strong>Error Custom:</strong>
                     <ul>
                         @foreach (session('errors') as $err)
                             <li>
-                                Baris {{ $err['row'] ?? '-' }} – Pesan: {{ $err['error'] ?? 'Unknown error' }}
+                                Row {{ $err['row'] ?? '-' }} – Message: {{ $err['error'] ?? 'Unknown error' }}
                             </li>
                         @endforeach
                     </ul>

@@ -3,6 +3,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Crypt;
 class Payrolls extends Model
 {
     use HasFactory;
@@ -20,21 +21,21 @@ class Payrolls extends Model
     }
     protected $casts = [
             'month_year' => 'date:Y-m-d',
-        'bonus' => 'float',
-        'overtime' => 'float',
-        'house_allowance' => 'float',
-        'daily_allowance' => 'float',
-        'meal_allowance' => 'float',
-        'transport_allowance' => 'float',
-        'bpjs_ket' => 'float',
-        'bpjs_kes' => 'float',
-        'debt' => 'float',
-        'punishment' => 'float',
-        'late_fine' => 'float',
-        'deductions' => 'float',
-        'salary' => 'float',
-        'take_home' => 'float',
-        'tax' => 'float',
+        // 'bonus' => 'float',
+        // 'overtime' => 'float',
+        // 'house_allowance' => 'float',
+        // 'daily_allowance' => 'float',
+        // 'meal_allowance' => 'float',
+        // 'transport_allowance' => 'float',
+        // 'bpjs_ket' => 'float',
+        // 'bpjs_kes' => 'float',
+        // 'debt' => 'float',
+        // 'punishment' => 'float',
+        // 'late_fine' => 'float',
+        // 'deductions' => 'float',
+        // 'salary' => 'float',
+        // 'take_home' => 'float',
+        // 'tax' => 'float',
     ];
     protected $fillable = [
         'employee_id',
@@ -63,5 +64,79 @@ class Payrolls extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+    public function getDailyAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getHouseAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getMealAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getTransportAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getBonusAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getOvertimeAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getLateFineAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getPunishmentAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getBpjsKesAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getBpjsKetAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getTaxAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getDebtAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getDeductionsAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getSalaryAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+
+    public function getTakeHomeAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
     }
 }
