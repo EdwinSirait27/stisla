@@ -256,7 +256,7 @@
                                             onsubmit="return confirm('Generate Payrolls?')">
                                             @csrf
                                             <button type="submit" class="btn btn-primary h-100 d-flex align-items-center">
-                                                <i class="fas fa-file-pdf me-1"></i> Generate All
+                                                <i class="fas fa-book me-1"></i> Generate All
                                             </button>
                                         </form>
 
