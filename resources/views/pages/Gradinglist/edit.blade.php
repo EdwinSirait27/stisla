@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Update Structure')
+@section('title', 'Update Grading List')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -167,11 +167,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Structure {{ $employee->Employee->employee_name }}</h1>
+                <h1>Update Grading {{ $gradinglist->employee->employee_name }}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Structures') }}">Structure</a></div>
-                    <div class="breadcrumb-item">Update Structure {{ $employee->employee->employee_name }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Gradinglist') }}">Grading</a></div>
+                    <div class="breadcrumb-item">Update Grading {{ $gradinglist->employee->employee_name }}</div>
                 </div>
             </div>
 
@@ -182,7 +182,7 @@
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
                                     <h6 class="mb-0">{{ __('Update Structure') }}
-                                        {{ $employee->employee->employee_name }}</h6>
+                                        {{ $gradinglist->employee->employee_name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -208,7 +208,7 @@
                                         </div>
                                     @endif
 
-                                    <form id="departments-edit" action="{{ route('Structures.update', $hashedId) }}"
+                                    <form id="departments-edit" action="{{ route('Gradinglist.update', $hashedId) }}"
                                         method="POST">
                                         @csrf
                                         @method('PUT')
@@ -216,46 +216,26 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="level_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
+                                                    <label for="grading_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Grading Name') }}
                                                     </label>
                                                     <div>
-                                                        <select name="level_id"
-                                                            class="form-control select2 @error('level_id') is-invalid @enderror">
-                                                            <option value="">Choose Superior</option>
-                                                            @foreach ($employees as $id => $employeeName)
+                                                        <select name="grading_id"
+                                                            class="form-control select2 @error('grading_id') is-invalid @enderror">
+                                                            <option value="">Choose Grading</option>
+                                                            @foreach ($gradings as $id => $gradingName)
                                                                 <option value="{{ $id }}"
-                                                                    {{ old('level_id', $employee->Employee->level_id) == $id ? 'selected' : '' }}>
-                                                                    {{ $employeeName }}
+                                                                    {{ old('grading_id', $gradinglist->Employee->grading_id) == $id ? 'selected' : '' }}>
+                                                                    {{ $gradingName }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
-                                                        @error('level_id')
+                                                        @error('grading_id')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
                                                         @enderror
                                                     </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" name="is_manager" id="is_manager"
-                                                            value="1"
-                                                            class="form-check-input @error('is_manager') is-invalid @enderror"
-                                                            {{ old('is_manager', $employee->is_manager) ? 'checked' : '' }}>
-
-                                                        <label class="form-check-label" for="is_manager">
-                                                            <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
-                                                        </label>
-
-                                                    </div>
-                                                    @error('is_manager')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
                                                 </div>
                                             </div>
                                         </div>
@@ -267,19 +247,14 @@
                                 <div class="alert alert-secondary mt-4" role="alert">
                                     <span class="text-dark">
                                         <strong>Important Note:</strong> <br>
-                                        - If a Employee name is already registered, you cannot register it
-                                        again.<br>
-                                        - Superior can be empty.<br>
-                                        - please use English to get used to it.<br>
-                                        - Before updating data, please check first whether there is already similar
-                                        or identical data to avoid double input.
-
+                                        - Must be filled okay.<br>
+                                        
 
                                     </span>
                                 </div>
 
                                 <div class="d-flex justify-content-end mt-4">
-                                    <a href="{{ route('pages.Structures') }}" class="btn btn-secondary">
+                                    <a href="{{ route('pages.Gradinglist') }}" class="btn btn-secondary">
                                         <i class="fas fa-times"></i> {{ __('Cancel') }}
                                     </a>
                                     <button type="submit" id="edit-btn" class="btn bg-primary">

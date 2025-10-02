@@ -47,9 +47,15 @@ class StoreController extends Controller
             abort(404, 'Store not found.');
         }
 
-        $managers = User::with('Employee')
+    //     $managers = User::with('Employee')
+    // ->get()
+    // ->pluck('Employee.employee_name','id');
+    $managers = User::whereHas('Employee', function ($q) {
+        $q->where('status', 'Active'); // filter status di tabel employees
+    })
+    ->with('Employee')
     ->get()
-    ->pluck('Employee.employee_name','id');
+    ->pluck('Employee.employee_name', 'id');
         return view('pages.Store.edit', [
             'store' => $store,
             'hashedId' => $hashedId,
@@ -59,9 +65,15 @@ class StoreController extends Controller
  
     public function create()
     {
-       $managers = User::with('Employee')
+    //    $managers = User::with('Employee')
+    // ->get()
+    // ->pluck('Employee.employee_name','id');
+    $managers = User::whereHas('Employee', function ($q) {
+        $q->where('status', 'Active'); // filter status di tabel employees
+    })
+    ->with('Employee')
     ->get()
-    ->pluck('Employee.employee_name','id');
+    ->pluck('Employee.employee_name', 'id');
         
         return view('pages.Store.create',compact('managers'));
     }

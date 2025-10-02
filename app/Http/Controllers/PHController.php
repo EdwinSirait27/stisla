@@ -17,127 +17,27 @@ use Illuminate\Support\Facades\Log;
 
 class PHController extends Controller
 {
-     public function index()
+    public function index()
     {
         return view('pages.Pubholi.Pubholi');
     }
-   public function getPubholidays()
-{
-    $pubholidays = Ph::select(['id', 'type', 'date','remark'])
-        ->get()
-        ->map(function ($pubholiday) {
-            $pubholiday->id_hashed = substr(hash('sha256', $pubholiday->id . env('APP_KEY')), 0, 8);
-
-            // Checkbox untuk bulk delete
-            $pubholiday->checkbox = '
-                <input type="checkbox" class="pubholiday-checkbox" value="' . $pubholiday->id . '">
-            ';
-
-            // Action button (edit)
-            $pubholiday->action = '
-                <a href="' . route('Pubholi.edit', $pubholiday->id_hashed) . '" 
-                   class="mx-3" 
-                   data-bs-toggle="tooltip" 
-                   data-bs-original-title="Edit user"
-                   title="Edit pubholiday: ' . e($pubholiday->remark) . '">
-                    <i class="fas fa-user-edit text-secondary"></i>
-                </a>';
-            return $pubholiday;
-        });
-
-    return DataTables::of($pubholidays)
-        ->rawColumns(['checkbox','action'])
-        ->make(true);
-}
-
-    public function edit($hashedId)
+    public function getPubholidays()
     {
-        $pubholi = Ph::get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+        $pubholidays = Ph::select(['id', 'type', 'date', 'remark'])
+            ->get()
+            ->map(function ($pubholiday) {
+                return $pubholiday;
+            });
 
-        if (!$pubholi) {
-            abort(404, 'pubholi not found.');
-        }
-  $status_type = ['Hindu', 'Non Hindu', 'All'];
-         return view('pages.Pubholi.edit', [
-            'pubholi' => $pubholi,
-            'hashedId' => $hashedId,
-            'status_type' => $status_type,
-        ]);
+        return DataTables::of($pubholidays)
+            ->make(true);
     }
-    public function create()
-    {
-        $status_type = ['Hindu', 'Non Hindu', 'All'];
-        
-        return view('pages.Pubholi.create', compact('status_type'));
-    }
-    public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-             'remark' => ['required', 'string', 'max:255', 'unique:ph,remark', new NoXSSInput()],
-            'type' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-
-            
-
-        ]);
-        try {
-            DB::beginTransaction();
-            $pubholi = Ph::create([
-                'remark' => $validatedData['remark'],
-                'type' => $validatedData['type'],
-                'date' => $validatedData['date'],
-            ]);
-            DB::commit();
-            return redirect()->route('pages.Pubholi')->with('success', 'Public Holiday created Succesfully!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
-                ->withInput();
-        }
-    }
-    public function update(Request $request, $hashedId)
-    {
-        $pubholi = Ph::get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$pubholi) {
-            return redirect()->route('pages.Pubholi')->with('error', 'ID tidak valid.');
-        }
-        $validatedData = $request->validate([
-            'remark' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('ph')->ignore($pubholi->id),
-                new NoXSSInput()
-            ],
-            'type' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-
-       
-        ]);
-        $pubholiData = [
-            'remark' => $validatedData['remark'],
-            'type' => $validatedData['type'],
-            'date' => $validatedData['date'],
-        ];
-        DB::beginTransaction();
-        $pubholi->update($pubholiData);
-        DB::commit();
-        return redirect()->route('pages.Pubholi')->with('success', 'Public Holiday Updated Successfully.');
-    }
-
     public function indexphs()
     {
-        $files = Storage::disk('public')->files('templateph');
+        $files = Storage::disk('public')->files('templatephs');
         return view('pages.ImportPH.ImportPH', compact('files'));
     }
-     public function downloadphs($filename)
+    public function downloadphs($filename)
     {
         $path = 'templatephs/' . $filename;
 
@@ -146,26 +46,53 @@ class PHController extends Controller
         }
         abort(404);
     }
+    // public function Importphs(Request $request)
+    // {
+    //     $request->validate([
+    //         'file' => 'required|mimes:xlsx,csv,xls'],
+    //         [
+    // 'file.required' => 'Silakan pilih file Excel untuk diimport.',
+    //     ]);
+
+    //     $errors = [];
+    //     $import = new PHImport($errors);
+    //     $import->import($request->file('file'));
+
+    //     if ($import->failures()->isNotEmpty()) {
+    //         return back()->with([
+    //             'failures' => $import->failures(),
+    //             'errors' => $errors, 
+    //         ]);
+    //     }
+    //     if (!empty($errors)) {
+    //         return back()->with('failures', $errors);
+    //     }
+
+    //     return back()->with('success', 'Public Holidays import successfully!');
+    // }
     public function Importphs(Request $request)
 {
     $request->validate([
         'file' => 'required|mimes:xlsx,csv,xls'
+    ], [
+        'file.required' => 'Please select an Excel file to import..',
+        'file.mimes'    => 'File format must be Excel (xlsx, xls) or CSV.',
     ]);
-
     $errors = [];
     $import = new PHImport($errors);
     $import->import($request->file('file'));
-
     if ($import->failures()->isNotEmpty()) {
-    return back()->with([
-        'failures' => $import->failures(), // INI YANG WAJIB
-        'errors' => $errors, // opsional
-    ]);
-}
+        return back()->with([
+            'failures'       => $import->failures(),
+            'import_errors'  => $errors, 
+        ]);
+    }
+
     if (!empty($errors)) {
-        return back()->with('failures', $errors);
+        return back()->with('import_errors', $errors); // 🔑 sama, jangan pakai 'errors'
     }
 
     return back()->with('success', 'Public Holidays import successfully!');
 }
+
 }

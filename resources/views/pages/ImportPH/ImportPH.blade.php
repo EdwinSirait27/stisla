@@ -111,7 +111,7 @@
                     </ul>
                 </div>
             @endif
-            @if (session('errors'))
+            {{-- @if (session('errors'))
                 <div class="alert alert-warning">
                     <strong>Error Custom:</strong>
                     <ul>
@@ -122,11 +122,30 @@
                         @endforeach
                     </ul>
                 </div>
-            @endif
+            @endif --}}
+            @if (session('import_errors'))
+    <div class="alert alert-warning">
+        <strong>Error Custom:</strong>
+        <ul>
+            @foreach (session('import_errors') as $err)
+                <li>
+                    Row {{ $err['row'] ?? '-' }} – Message: {{ $err['error'] ?? 'Unknown error' }}
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+            @error('file')
+    <div class="alert alert-danger">
+        {{ $message }}
+    </div>
+@enderror
+
             <div class="section-body">
                 <div class="form-container">
-                    <h2>The moment we've been waiting for</h2>
-                    <form id="import-create" action="{{ route('Importpayroll.payrolls') }}" method="POST"
+                    <h2>Import Public Holidays</h2>
+                    <form id="import-create" action="{{ route('ImportPH.phs') }}" method="POST"
                         enctype="multipart/form-data">
                         @csrf
                         <div class="form-group">
@@ -135,7 +154,7 @@
                         </div>
                         <div class="form-actions"
                             style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                            <a href="{{ route('pages.Payrolls') }}" class="btn btn-secondary">
+                            <a href="{{ route('pages.Pubholi') }}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                             </a>
                             <button id="create-btn" type="submit" class="btn btn-primary">
@@ -152,7 +171,7 @@
             @forelse($files as $file)
                 <li>
                     {{ basename($file) }} -
-                    <a href="{{ route('Payrolls.downloadpayrolls', ['filename' => basename($file)]) }}">
+                    <a href="{{ route('ImportPH.downloadphs', ['filename' => basename($file)]) }}">
                         Download
                     </a>
                 </li>
@@ -165,7 +184,7 @@
             <span class="text-dark">
                 <strong>Important Note:</strong> <br>
                 - for the file use excel xlsx type, csv may not work.<br>
-                - for colom deductions, salary, take_home, and created_at just leave the value blank.<br>
+                - For the date and remark columns that will be imported from Excel, they must be unique.<br>
             </span>
         </div>
     </div>

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Public Holidays')
+@section('title', 'Gradinglist')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -41,6 +41,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -167,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Public Holidays</h1>
+                <h1>Gradinglist</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Public Holidays</h6>
+                                <h6><i class="fas fa-user-shield"></i> Grading list</h6>
                             </div>
 
                             <div class="card-body">
@@ -183,19 +184,13 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                <th class="text-center">Date</th>
-                                                <th class="text-center">Remark</th>
-                                                <th class="text-center">Type</th>
-                                                {{-- <th class="text-center">Action</th> --}}
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Grading Code</th>
+                                                <th class="text-center">Grading Name</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('pages.ImportPH') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Import Public Holidays
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -216,7 +211,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('pubholis.pubholis') }}',
+                    url: '{{ route('gradinglists.gradinglists') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -236,20 +231,40 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_code',
+                        name: 'grading_code',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
+                    },
+                    {
+                        data: 'grading_name',
+                        name: 'grading_name',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
+                    },
+
+                    // {
+                    //     data: 'is_manager',
+                    //     name: 'is_manager',
+                    //     className: 'text-center',
+                    //     render: function(data, type, row) {
+                    //         return data == 1 ? 'Yes' : 'No';
+                    //     }
+                    // },
                   
+
+
                     {
-                        data: 'date',
-                        name: 'date',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'remark',
-                        name: 'remark',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'type',
-                        name: 'type',
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
                         className: 'text-center'
                     }
                 ],
@@ -260,13 +275,13 @@
             });
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
     </script>
 @endpush

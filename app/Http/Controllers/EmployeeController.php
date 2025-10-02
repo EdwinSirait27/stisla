@@ -69,7 +69,6 @@ class EmployeeController extends Controller
             });
         return DataTables::of($employees)
             ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
-            ->addColumn('grading_code', fn($e) => optional(optional($e->Employee)->grading)->grading_code ?? 'Empty')
             ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->grading)->grading_name ?? 'Empty')
             ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
             ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
@@ -80,7 +79,7 @@ class EmployeeController extends Controller
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_code','grading_name','action'])
+            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee','grading_name','action'])
             ->make(true);
     }
 
@@ -206,7 +205,7 @@ class EmployeeController extends Controller
         $gender = ['Male', 'Female', 'MD'];
         $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active','Resign'];
         $banks = Banks::get();
-        $gradings = Grading::get();
+        // $gradings = Grading::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.edit', [
@@ -220,7 +219,7 @@ class EmployeeController extends Controller
             'gender' => $gender,
             'status' => $status,
             'banks' => $banks,
-            'gradings' => $gradings,
+            // 'gradings' => $gradings,
             'religion' => $religion,
             'last_education' => $last_education,
             'positions' => $positions,
@@ -283,7 +282,7 @@ class EmployeeController extends Controller
         $departments = Departments::pluck('department_name', 'id')->all();
         $companys = Company::pluck('name', 'id')->all();
         $banks = Banks::pluck('name', 'id')->all();
-        $gradings = Grading::pluck('grading_name', 'id','grading_code')->all();
+        // $gradings = Grading::pluck('grading_name', 'id','grading_code')->all();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
         $status_child = ['0', '1', '2', '3', '4', '5'];
         $status_marriage = ['Yes', 'No'];
@@ -292,7 +291,7 @@ class EmployeeController extends Controller
 
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        return view('pages.Employee.create', compact('employees','companys', 'stores', 'banks','gradings' ,'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
+        return view('pages.Employee.create', compact('employees','companys', 'stores', 'banks' ,'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
 
     public function store(Request $request)
@@ -351,7 +350,7 @@ class EmployeeController extends Controller
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-            'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
+            // 'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
 
         ], [
             'password.min' => 'The password must be at least 7 characters.',
@@ -415,8 +414,8 @@ class EmployeeController extends Controller
             'department_id.required' => 'The Department is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
-            'grading_id.exists' => 'The selected grading is invalid.',
-            'grading_id.required' => 'The grading is required.',
+            // 'grading_id.exists' => 'The selected grading is invalid.',
+            // 'grading_id.required' => 'The grading is required.',
         ]);
         try {
             DB::beginTransaction();
@@ -451,7 +450,7 @@ class EmployeeController extends Controller
                 'position_id' => $validatedData['position_id'] ?? '',
                 'company_id' => $validatedData['company_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
-                'grading_id' => $validatedData['grading_id'] ?? '',
+                // 'grading_id' => $validatedData['grading_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
                 'department_id' => $validatedData['department_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
@@ -561,7 +560,7 @@ class EmployeeController extends Controller
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
-            'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
+            // 'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ], [
             'join_date.required' => 'The join date is required.',
@@ -620,7 +619,7 @@ class EmployeeController extends Controller
             'store_id.required' => 'The Store is required.',
             'company_id.required' => 'The Company is required.',
             'department_id.required' => 'The Department is required.',
-            'grading_id.required' => 'The grading is required.',
+            // 'grading_id.required' => 'The grading is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
         ]);
@@ -635,7 +634,7 @@ class EmployeeController extends Controller
             'store_id' => $validatedData['store_id'] ?? '',
             'department_id' => $validatedData['department_id'] ?? '',
             'banks_id' => $validatedData['banks_id'] ?? '',
-            'grading_id' => $validatedData['grading_id'] ?? '',
+            // 'grading_id' => $validatedData['grading_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
             'join_date' => $validatedData['join_date'] ?? '',
             // 'end_date' => $validatedData['end_date'] ?? '',
@@ -665,7 +664,7 @@ class EmployeeController extends Controller
             'is_manager'  => $validatedData['is_manager'] ?? 0,
         ]);
         DB::commit();
-        return redirect()->route('pages.Employee')->with('success', 'Employee Berhasil Diupdate.');
+        return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
     }
 
     public function transferAllToPayroll(Request $request)

@@ -32,6 +32,7 @@ use App\Http\Controllers\FingerprintsController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\PHController;
+use App\Http\Controllers\GradinglistController;
 use App\Http\Controllers\Editedfingerprints;
 /*
 |--------------------------------------------------------------------------
@@ -221,8 +222,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
         Route::get('/ImportPH', [PHController::class, 'indexphs'])
             ->name('pages.ImportPH');
-        Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
-        Route::get('/Pubholi/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('Pubholi.downloadphs');
+                Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
+        
+        Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
 
@@ -233,6 +235,14 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/Structures/edit/{hashedId}', [StructureController::class, 'edit'])->name('Structures.edit');
         Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
         Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
+    });
+    Route::group(['middleware' => ['permission:ManageGradinglist']], function () {
+
+        Route::get('/Gradinglist', [GradinglistController::class, 'index'])
+            ->name('pages.Gradinglist');
+        Route::get('/Gradinglist/edit/{hashedId}', [GradinglistController::class, 'edit'])->name('Gradinglist.edit');
+        Route::put('/Gradinglist/{hashedId}', [GradinglistController::class, 'update'])->name('Gradinglist.update');
+        Route::get('/gradinglists/gradinglists', [GradinglistController::class, 'getGradinglists'])->name('gradinglists.gradinglists');
     });
     Route::group(['middleware' => ['permission:ManageGrading']], function () {
 

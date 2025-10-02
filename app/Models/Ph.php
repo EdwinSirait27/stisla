@@ -21,6 +21,9 @@ class Ph extends Model
         });
     }
     protected $table = 'ph';
+    protected $casts = [
+            'date' => 'date:Y-m-d',
+    ];
     protected $fillable = [
         'type',
         'date',

@@ -915,7 +915,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="grading_id" class="form-control-label">
@@ -926,13 +926,11 @@
                                                             class="form-control @error('grading_id') is-invalid @enderror"
                                                             required>
 
-                                                            {{-- Default option --}}
                                                             <option value="" disabled
                                                                 {{ old('grading_id', optional($employee->Employee)->grading_id) ? '' : 'selected' }}>
                                                                 {{ __('Choose Grading') }}
                                                             </option>
 
-                                                            {{-- Loop options --}}
                                                             @foreach ($gradings as $grading)
                                                                 <option value="{{ $grading->id }}"
                                                                     {{ old('grading_id', optional($employee->Employee)->grading_id) == $grading->id ? 'selected' : '' }}>
@@ -949,7 +947,8 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
+                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="end_date" class="form-control-label">
@@ -967,8 +966,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="level_id" class="form-control-label">
@@ -993,6 +990,8 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"
@@ -1012,38 +1011,36 @@
                                                 </div>
                                             </div>
                                         </div>
+
+
+
+
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - Don't fill in the status column, just leave it as it is, if the employee
+                                        is inactive, then change it okay.<br>
+                                        - please use English to get used to it.<br>
+                                        - Before editing data, please check first whether there is already similar
+                                        or identical data to avoid double input.
+                                    </span>
                                 </div>
+
+                                <div class="d-flex justify-content-end mt-4">
+                                    <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> {{ __('Back') }}
+                                    </a>
+
+                                    <button type="submit" class="btn bg-primary">
+                                        <i class="fas fa-save"></i> {{ __('Update') }}
+                                    </button>
+                                </div>
+                                </form>
                             </div>
-
-
-
-
-                            <div class="alert alert-secondary mt-4" role="alert">
-                                <span class="text-dark">
-                                    <strong>Important Note:</strong> <br>
-                                    - Don't fill in the status column, just leave it as it is, if the employee
-                                    is inactive, then change it okay.<br>
-                                    - please use English to get used to it.<br>
-                                    - Before editing data, please check first whether there is already similar
-                                    or identical data to avoid double input.
-                                </span>
-                            </div>
-
-                            <div class="d-flex justify-content-end mt-4">
-                                <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> {{ __('Back') }}
-                                </a>
-
-                                <button type="submit" class="btn bg-primary">
-                                    <i class="fas fa-save"></i> {{ __('Update') }}
-                                </button>
-                            </div>
-                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-    </div>
     </div>
     </section>
     </div>

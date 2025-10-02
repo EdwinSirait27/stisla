@@ -860,9 +860,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                      
-                                </div>
-                                        <div class="row mt-3">
+
+                                        </div>
+                                        {{-- <div class="row mt-3">
                                                 <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="grading_id" class="form-control-label">
@@ -888,11 +888,11 @@
 
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
 
-                                
-                                      
-                                  <div class="col-md-6">
+
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="level_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
@@ -918,12 +918,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
-                                        <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager" id="is_manager" value="1"
+                                                    <input type="checkbox" name="is_manager" id="is_manager"
+                                                        value="1"
                                                         class="form-check-input @error('is_manager') is-invalid @enderror"
                                                         {{ old('is_manager') ? 'checked' : '' }}>
                                                     <label for="is_manager" class="form-check-label">
@@ -938,7 +937,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        </div>
+                                </div>
 
 
 
@@ -948,7 +947,8 @@
                                         <strong>Important Note:</strong> <br>
                                         - Fill all the input okay except notes:).<br>
                                         - please use English to get used to it.<br>
-                                        - Before creating data, please check first whether there is already similar or identical data to avoid double input.<br>
+                                        - Before creating data, please check first whether there is already similar or
+                                        identical data to avoid double input.<br>
                                     </span>
                                 </div>
 
@@ -972,7 +972,6 @@
 @endsection
 
 @push('scripts')
-
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

@@ -39,11 +39,18 @@
                         <span>Employee</span></a>
                     <ul class="dropdown-menu">
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">List Employees</a>
+                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
                         <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Shifts</a>
                         </li>
+                         <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
+                        </li>
+                         <li class="{{ Request::is('Structures') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Structures') }}">Structure List</a>
+                        </li>
+                        
                         <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
                         </li>
@@ -71,9 +78,7 @@
                         <li class="{{ Request::is('Grading') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
                         </li>
-                        <li class="{{ Request::is('Structures') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Structures') }}">Structures</a>
-                        </li>
+                       
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
@@ -155,9 +160,7 @@
                         <li class="{{ Request::is('Grading') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
                         </li>
-                        <li class="{{ Request::is('Structures') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Structures') }}">Structures</a>
-                        </li>
+                        
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
