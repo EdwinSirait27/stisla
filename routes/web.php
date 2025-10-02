@@ -222,16 +222,14 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
         Route::get('/ImportPH', [PHController::class, 'indexphs'])
             ->name('pages.ImportPH');
-                Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
-        
+        Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
+
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
 
         Route::get('/Structures', [StructureController::class, 'index'])
             ->name('pages.Structures');
-        // Route::get('Structures/create', [StructureController::class, 'create'])->name('Structures.create');
-        // Route::post('/Structures', [StructureController::class, 'store'])->name('Structures.store');
         Route::get('/Structures/edit/{hashedId}', [StructureController::class, 'edit'])->name('Structures.edit');
         Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
         Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
@@ -248,10 +246,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
 
         Route::get('/Grading', [GradingController::class, 'index'])
             ->name('pages.Grading');
-        // Route::get('Grading/create', [GradingController::class, 'create'])->name('Grading.create');
-        // Route::post('/Grading', [GradingController::class, 'store'])->name('Grading.store');
-        // Route::get('/Grading/edit/{hashedId}', [GradingController::class, 'edit'])->name('Grading.edit');
-        // Route::put('/Grading/{hashedId}', [GradingController::class, 'update'])->name('Grading.update');
         Route::get('/gradings/gradings', [GradingController::class, 'getGradings'])->name('gradings.gradings');
     });
     // store  

@@ -248,297 +248,6 @@
                                         </div>
                                     </div>
                                     <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="position_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Position Name') }}
-                                                </label>
-                                                <div>
-                                                    <select name="position_id" id="position_id"
-                                                        class="form-control select2 @error('position_id') is-invalid @enderror"disabled>
-                                                        <option value="">-- Choose Position --</option>
-                                                        @foreach ($positions as $position)
-                                                            <option value="{{ $position->id }}"
-                                                                {{ old('position_id', $employee->Employee->position_id ?? '') == $position->id ? 'selected' : '' }}>
-                                                                {{ $position->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-
-                                                    @error('position_id')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="store_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Location Name') }}
-                                                </label>
-                                                <div>
-
-                                                    <select name="store_id" id="store_id"
-                                                        class="form-control select2 @error('store_id') is-invalid @enderror"disabled>
-                                                        <option value="">Choose Position</option>
-                                                        @foreach ($stores as $store)
-                                                            <option value="{{ $store->id }}"
-                                                                {{ old('store_id', $employee->Employee->store_id ?? '') == $store->id ? 'selected' : '' }}>
-                                                                {{ $store->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-
-                                                    @error('store_id')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="department_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Department Name') }}
-                                                </label>
-                                                <div>
-
-                                                    <select name="department_id" id="department_id"
-                                                        class="form-control select2 @error('department_id') is-invalid @enderror"disabled>
-                                                        <option value="">Choose Department</option>
-                                                        @foreach ($departments as $depart)
-                                                            <option value="{{ $depart->id }}"
-                                                                {{ old('department_id', $employee->Employee->department_id ?? '') == $depart->id ? 'selected' : '' }}>
-                                                                {{ $depart->department_name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('department_id')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="status_employee" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Status Employee') }}
-                                                </label>
-                                                <div>
-                                                    <select name="status_employee"
-                                                        class="form-control @error('status_employee') is-invalid @enderror"disabled>
-                                                        <option value="">-- Choose Status Employee --</option>
-                                                        @foreach ($status_employee as $value)
-                                                            <option value="{{ $value }}"
-                                                                {{ old('status_employee', $employee->Employee->status_employee ?? '') == $value ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('status_employee')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="join_date" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Join Date') }}
-                                                </label>
-                                                <div>
-                                                    <input type="date" name="join_date"
-                                                        value="{{ $employee->Employee->join_date ? \Carbon\Carbon::parse($employee->Employee->join_date)->format('Y-m-d') : '' }}"
-                                                        class="form-control @error('join_date') is-invalid @enderror"disabled>
-
-
-                                                    @error('join_date')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="marriage" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Status Marriage') }}
-                                                </label>
-                                                <div>
-                                                    <select name="marriage"
-                                                        class="form-control @error('marriage') is-invalid @enderror"disabled>
-                                                        <option value="">-- Choose Status Marriage --</option>
-                                                        @foreach ($marriage as $value)
-                                                            <option value="{{ $value }}"
-                                                                {{ old('marriage', $employee->Employee->marriage ?? '') == $value ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('marriage')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="child" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Child') }}
-                                                </label>
-                                                <div>
-                                                    <select name="child"
-                                                        class="form-control @error('child') is-invalid @enderror"disabled>
-                                                        <option value="">-- Choose Have Child --</option>
-                                                        @foreach ($child as $value)
-                                                            <option value="{{ $value }}"
-                                                                {{ old('child', $employee->Employee->child ?? '') == $value ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('child')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="telp_number" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Telephone Number') }}
-                                                </label>
-                                                <div>
-                                                    <input class="form-control @error('telp_number') is-invalid @enderror"
-                                                        value="{{ old('telp_number', $employee->Employee->telp_number ?? '') }}"
-                                                        type="number" id="telp_number" name="telp_number"
-                                                        value="{{ old('telp_number') }}"
-                                                        aria-describedby="info-telp_number"
-                                                        placeholder="Insert Telephone Number" disabled>
-                                                    @error('telp_number')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="gender" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Gender') }}
-                                                </label>
-                                                <div>
-                                                    <select name="gender"
-                                                        class="form-control @error('gender') is-invalid @enderror"disabled>
-                                                        <option value="">-- Choose Gender --</option>
-                                                        @foreach ($gender as $value)
-                                                            <option value="{{ $value }}"
-                                                                {{ old('gender', $employee->Employee->gender ?? '') == $value ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('gender')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="date_of_birth" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Date of Birth') }}
-                                                </label>
-                                                <div>
-                                                    <input
-                                                        class="form-control @error('date_of_birth') is-invalid @enderror"
-                                                        value="{{ old('date_of_birth', $employee->Employee->date_of_birth ?? '') }}"
-                                                        type="date" id="date_of_birth" name="date_of_birth"
-                                                        value="{{ old('date_of_birth') }}"
-                                                        aria-describedby="info-date_of_birth" disabled>
-                                                    @error('date_of_birth')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="place_of_birth" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Place of Birth') }}
-                                                </label>
-                                                <div>
-                                                    <input
-                                                        class="form-control @error('place_of_birth') is-invalid @enderror"
-                                                        value="{{ old('place_of_birth', $employee->Employee->place_of_birth ?? '') }}"
-                                                        type="text" id="place_of_birth" name="place_of_birth"
-                                                        value="{{ old('place_of_birth') }}"
-                                                        aria-describedby="info-place_of_birth"
-                                                        placeholder="Insert Place of Birth" disabled>
-                                                    @error('place_of_birth')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="biological_mother_name" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Biological Mother Name') }}
-                                                </label>
-                                                <div>
-                                                    <input
-                                                        class="form-control @error('biological_mother_name') is-invalid @enderror"
-                                                        value="{{ old('biological_mother_name', $employee->Employee->biological_mother_name ?? '') }}"
-                                                        type="text" id="biological_mother_name"
-                                                        name="biological_mother_name"
-                                                        value="{{ old('biological_mother_name') }}"
-                                                        aria-describedby="info-biological_mother_name"
-                                                        placeholder="Insert Biological Mother's Name" disabled>
-                                                    @error('biological_mother_name')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
 
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -565,8 +274,98 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="gender" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Gender') }}
+                                                </label>
+                                                <div>
+                                                    <select name="gender"
+                                                        class="form-control @error('gender') is-invalid @enderror"disabled>
+                                                        <option value="">-- Choose Gender --</option>
+                                                        @foreach ($gender as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('gender', $employee->Employee->gender ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('gender')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
 
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="date_of_birth" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Date of Birth') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('date_of_birth') is-invalid @enderror"
+                                                        value="{{ old('date_of_birth', $employee->Employee->date_of_birth ?? '') }}"
+                                                        type="date" id="date_of_birth" name="date_of_birth"
+                                                        value="{{ old('date_of_birth') }}"
+                                                        aria-describedby="info-date_of_birth" disabled>
+                                                    @error('date_of_birth')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="place_of_birth" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Place of Birth') }}
+                                                </label>
+                                                <div>
+                                                    <input
+                                                        class="form-control @error('place_of_birth') is-invalid @enderror"
+                                                        value="{{ old('place_of_birth', $employee->Employee->place_of_birth ?? '') }}"
+                                                        type="text" id="place_of_birth" name="place_of_birth"
+                                                        value="{{ old('place_of_birth') }}"
+                                                        aria-describedby="info-place_of_birth"
+                                                        placeholder="Insert Place of Birth" disabled>
+                                                    @error('place_of_birth')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
 
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="biological_mother_name" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Biological Mother Name') }}
+                                                </label>
+                                                <div>
+                                                    <input
+                                                        class="form-control @error('biological_mother_name') is-invalid @enderror"
+                                                        value="{{ old('biological_mother_name', $employee->Employee->biological_mother_name ?? '') }}"
+                                                        type="text" id="biological_mother_name"
+                                                        name="biological_mother_name"
+                                                        value="{{ old('biological_mother_name') }}"
+                                                        aria-describedby="info-biological_mother_name"
+                                                        placeholder="Insert Biological Mother's Name" disabled>
+                                                    @error('biological_mother_name')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="current_address" class="form-control-label">
@@ -659,16 +458,112 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="npwp" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('NPWP') }}
+                                                <label for="marriage" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Status Marriage') }}
                                                 </label>
                                                 <div>
-                                                    <input class="form-control @error('npwp') is-invalid @enderror"
-                                                        value="{{ old('npwp', $employee->Employee->npwp ?? '') }}"
-                                                        type="text" id="npwp" name="npwp"
-                                                        value="{{ old('npwp') }}" aria-describedby="info-npwp"
-                                                        placeholder="Insert NPWP" disabled>
-                                                    @error('npwp')
+                                                    <select name="marriage"
+                                                        class="form-control @error('marriage') is-invalid @enderror"disabled>
+                                                        <option value="">-- Choose Status Marriage --</option>
+                                                        @foreach ($marriage as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('marriage', $employee->Employee->marriage ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('marriage')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="child" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Child') }}
+                                                </label>
+                                                <div>
+                                                    <select name="child"
+                                                        class="form-control @error('child') is-invalid @enderror"disabled>
+                                                        <option value="">-- Choose Have Child --</option>
+                                                        @foreach ($child as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('child', $employee->Employee->child ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('child')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="emergency_contact_name" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i>
+                                                    {{ __('Emergency Contact Name & Number') }}
+                                                </label>
+                                                <div>
+                                                    <input
+                                                        class="form-control @error('emergency_contact_name') is-invalid @enderror"
+                                                        value="{{ old('emergency_contact_name', $employee->Employee->emergency_contact_name ?? '') }}"
+                                                        type="text" id="emergency_contact_name"
+                                                        name="emergency_contact_name"
+                                                        value="{{ old('emergency_contact_name') }}"
+                                                        aria-describedby="info-emergency_contact_name"
+                                                        placeholder="(ibu) 081248124xxx)" disabled>
+                                                    @error('emergency_contact_name')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="email" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Email') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('email') is-invalid @enderror"
+                                                        value="{{ old('email', $employee->Employee->email ?? '') }}"
+                                                        type="email" id="email" name="email"
+                                                        value="{{ old('email') }}" aria-describedby="info-email"
+                                                        placeholder="Insert Email" disabled>
+                                                    @error('email')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="telp_number" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Telephone Number') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('telp_number') is-invalid @enderror"
+                                                        value="{{ old('telp_number', $employee->Employee->telp_number ?? '') }}"
+                                                        type="number" id="telp_number" name="telp_number"
+                                                        value="{{ old('telp_number') }}"
+                                                        aria-describedby="info-telp_number"
+                                                        placeholder="Insert Telephone Number" disabled>
+                                                    @error('telp_number')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -717,50 +612,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="email" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Email') }}
-                                                </label>
-                                                <div>
-                                                    <input class="form-control @error('email') is-invalid @enderror"
-                                                        value="{{ old('email', $employee->Employee->email ?? '') }}"
-                                                        type="email" id="email" name="email"
-                                                        value="{{ old('email') }}" aria-describedby="info-email"
-                                                        placeholder="Insert Email" disabled>
-                                                    @error('email')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="emergency_contact_name" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i>
-                                                    {{ __('Emergency Contact Name & Number') }}
-                                                </label>
-                                                <div>
-                                                    <input
-                                                        class="form-control @error('emergency_contact_name') is-invalid @enderror"
-                                                        value="{{ old('emergency_contact_name', $employee->Employee->emergency_contact_name ?? '') }}"
-                                                        type="text" id="emergency_contact_name"
-                                                        name="emergency_contact_name"
-                                                        value="{{ old('emergency_contact_name') }}"
-                                                        aria-describedby="info-emergency_contact_name"
-                                                        placeholder="(ibu) 081248124xxx)" disabled>
-                                                    @error('emergency_contact_name')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                     <div class="row mt-3">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -786,8 +638,6 @@
                                                 </div>
                                             </div>
                                         </div>
-
-
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="bank_account_number" class="form-control-label">
@@ -811,29 +661,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3">
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="notes" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
-                                                </label>
-                                                <div>
-                                                    <input class="form-control @error('notes') is-invalid @enderror"
-                                                        value="{{ old('notes', $employee->Employee->notes ?? '') }}"
-                                                        type="text" id="notes" name="notes"
-                                                        value="{{ old('notes') }}" aria-describedby="info-notes"
-                                                        placeholder="notes"disabled>
-                                                    @error('notes')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div class="row mt-3">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -859,54 +686,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="status" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Status') }}
-                                                </label>
-                                                <div>
-                                                    <select name="status"
-                                                        class="form-control @error('status') is-invalid @enderror"disabled>
-                                                        <option value="">-- Choose Status --</option>
-                                                        @foreach ($status as $value)
-                                                            <option value="{{ $value }}"
-                                                                {{ old('status', $employee->Employee->status ?? '') == $value ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('status')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="pin" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Pin Fingerspot') }}
-                                                </label>
-                                                <div>
-                                                    <input class="form-control @error('pin') is-invalid @enderror"disabled
-                                                        value="{{ old('pin', $employee->Employee->pin ?? '') }}"
-                                                        type="number" id="pin" name="pin"
-                                                        value="{{ old('pin') }}" aria-describedby="info-pin"
-                                                        placeholder="pin finger">
-                                                    @error('pin')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="grading_id" class="form-control-label">
@@ -940,6 +719,139 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="department_id" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Department Name') }}
+                                                </label>
+                                                <div>
+
+                                                    <select name="department_id" id="department_id"
+                                                        class="form-control select2 @error('department_id') is-invalid @enderror"disabled>
+                                                        <option value="">Choose Department</option>
+                                                        @foreach ($departments as $depart)
+                                                            <option value="{{ $depart->id }}"
+                                                                {{ old('department_id', $employee->Employee->department_id ?? '') == $depart->id ? 'selected' : '' }}>
+                                                                {{ $depart->department_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('department_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="position_id" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Position Name') }}
+                                                </label>
+                                                <div>
+                                                    <select name="position_id" id="position_id"
+                                                        class="form-control select2 @error('position_id') is-invalid @enderror"disabled>
+                                                        <option value="">-- Choose Position --</option>
+                                                        @foreach ($positions as $position)
+                                                            <option value="{{ $position->id }}"
+                                                                {{ old('position_id', $employee->Employee->position_id ?? '') == $position->id ? 'selected' : '' }}>
+                                                                {{ $position->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('position_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-3">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="store_id" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Location Name') }}
+                                                </label>
+                                                <div>
+
+                                                    <select name="store_id" id="store_id"
+                                                        class="form-control select2 @error('store_id') is-invalid @enderror"disabled>
+                                                        <option value="">Choose Position</option>
+                                                        @foreach ($stores as $store)
+                                                            <option value="{{ $store->id }}"
+                                                                {{ old('store_id', $employee->Employee->store_id ?? '') == $store->id ? 'selected' : '' }}>
+                                                                {{ $store->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('store_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="status_employee" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Status Employee') }}
+                                                </label>
+                                                <div>
+                                                    <select name="status_employee"
+                                                        class="form-control @error('status_employee') is-invalid @enderror"disabled>
+                                                        <option value="">-- Choose Status Employee --</option>
+                                                        @foreach ($status_employee as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('status_employee', $employee->Employee->status_employee ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('status_employee')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="join_date" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Join Date') }}
+                                                </label>
+                                                <div>
+                                                    <input type="date" name="join_date"
+                                                        value="{{ $employee->Employee->join_date ? \Carbon\Carbon::parse($employee->Employee->join_date)->format('Y-m-d') : '' }}"
+                                                        class="form-control @error('join_date') is-invalid @enderror"disabled>
+
+
+                                                    @error('join_date')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="end_date" class="form-control-label">
@@ -960,6 +872,180 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="row mt-3">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="npwp" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('NPWP') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('npwp') is-invalid @enderror"
+                                                        value="{{ old('npwp', $employee->Employee->npwp ?? '') }}"
+                                                        type="text" id="npwp" name="npwp"
+                                                        value="{{ old('npwp') }}" aria-describedby="info-npwp"
+                                                        placeholder="Insert NPWP" disabled>
+                                                    @error('npwp')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="notes" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('notes') is-invalid @enderror"
+                                                        value="{{ old('notes', $employee->Employee->notes ?? '') }}"
+                                                        type="text" id="notes" name="notes"
+                                                        value="{{ old('notes') }}" aria-describedby="info-notes"
+                                                        placeholder="notes"disabled>
+                                                    @error('notes')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="status" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Status') }}
+                                                </label>
+                                                <div>
+                                                    <select name="status"
+                                                        class="form-control @error('status') is-invalid @enderror"disabled>
+                                                        <option value="">-- Choose Status --</option>
+                                                        @foreach ($status as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('status', $employee->Employee->status ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="pin" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Pin Fingerspot') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('pin') is-invalid @enderror"disabled
+                                                        value="{{ old('pin', $employee->Employee->pin ?? '') }}"
+                                                        type="number" id="pin" name="pin"
+                                                        value="{{ old('pin') }}" aria-describedby="info-pin"
+                                                        placeholder="pin finger">
+                                                    @error('pin')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- <div class="row mt-3">
+                                      <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="level_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="level_id" id="level_id"
+                                                            class="form-control select2 @error('level_id') is-invalid @enderror">
+                                                            <option value="">Choose Superior</option>
+                                                            @foreach ($gradings as $grading)
+                                                                <option value="{{ $grading->id }}"
+                                                                    {{ old('level_id', $employee->Employee->grading_id == $id ?? '') == $grading->id ? 'selected' : '' }}>
+                                                                    {{ $grading->grading_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('level_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                </div>
+                                            </div>
+                                        </div> --}}
+                                    <div class="row mt-3">
+
+                                        <div class="col-md-6">
+    <div class="form-group">
+        <label for="level_id" class="form-control-label">
+            <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
+        </label>
+        <div>
+            <input type="text" 
+                   class="form-control" 
+                   value="{{ $employee->Employee->employees->employee_name ?? '-' }}" 
+                   readonly>
+        </div>
+    </div>
+</div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" name="is_manager" id="is_manager"
+                                                        value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager', $employee->Employee->is_manager) ? 'checked' : '' }} disabled>
+
+                                                    <label for="is_manager" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                    </label>
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                     <div class="d-flex justify-content-end mt-4">
                                         <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
                                             <i class="fas fa-times"></i> {{ __('Back') }}

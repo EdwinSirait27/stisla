@@ -239,7 +239,8 @@ class EmployeeController extends Controller
         }
         $positions = Position::get();
         $companys = Company::get();
-         $employees = Employee::pluck('employee_name', 'id');
+          $employees = Employee::where('status', 'Active')
+    ->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
@@ -253,6 +254,7 @@ class EmployeeController extends Controller
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.show', [
             'employee' => $employee,
+            'employees' => $employees,
             'status_employee' => $status_employee,
             'child' => $child,
             'employees' => $employees,
@@ -260,6 +262,7 @@ class EmployeeController extends Controller
             'stores' => $stores,
             'marriage' => $marriage,
             'gender' => $gender,
+            'gradings' => $gradings,
             'status' => $status,
             'banks' => $banks,
             'gradings' => $gradings,
@@ -326,7 +329,7 @@ class EmployeeController extends Controller
             'email' => ['required', 'string', 'max:255', new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            // 'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
             'telp_number' => ['required', 'numeric', 'digits_between:10,13', 'unique:employees_tables,telp_number', new NoXSSInput()],
@@ -380,7 +383,7 @@ class EmployeeController extends Controller
 
             'emergency_contact_name.required' => 'The emergency contact name is required.',
             'marriage.required' => 'The marriage status is required.',
-            'notes.max' => 'The notes may not be greater than 255 characters.',
+            // 'notes.max' => 'The notes may not be greater than 255 characters.',
             'child.required' => 'The child information is required.',
             'gender.required' => 'The gender is required.',
 
@@ -469,7 +472,7 @@ class EmployeeController extends Controller
                 'email' => $validatedData['email'] ?? '',
                 'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
 
-                'notes' => $validatedData['notes'] ?? '',
+                // 'notes' => $validatedData['notes'] ?? '',
                 'status' => $validatedData['status'] ?? 'Pending',
                 'religion' => $validatedData['religion'] ?? '',
                 'last_education' => $validatedData['last_education'] ?? '',

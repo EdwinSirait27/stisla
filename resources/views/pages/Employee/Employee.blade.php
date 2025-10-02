@@ -185,11 +185,11 @@
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Company</th>
+                                                <th class="text-center">Grd Name</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Departments</th>
-                                                <th class="text-center">Location</th>
                                                 <th class="text-center">Status Employee</th>
-                                                <th class="text-center">Grd Name</th>
+                                                <th class="text-center">Location</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -306,6 +306,11 @@
                         name: 'name_company',
                         className: 'text-center'
                     },
+                     {
+                        data: 'grading_name',
+                        name: 'grading_name',
+                        className: 'text-center'
+                    },
                     {
                         data: 'position_name',
                         name: 'position_name',
@@ -317,25 +322,22 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-                    {
                         data: 'status_employee',
                         name: 'status_employee',
                         className: 'text-center'
                     },
+                    {
+                        data: 'name',
+                        name: 'name',
+                        className: 'text-center'
+                    },
+                    
                     // {
                     //     data: 'grading_code',
                     //     name: 'grading_code',
                     //     className: 'text-center'
                     // },
-                    {
-                        data: 'grading_name',
-                        name: 'grading_name',
-                        className: 'text-center'
-                    },
+                   
                     // {
                     //     data: 'created_at',
                     //     name: 'created_at',
