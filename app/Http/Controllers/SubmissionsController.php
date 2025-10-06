@@ -1,80 +1,105 @@
 <?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Models\Banks;
-use App\Models\Company;
-use App\Models\Departments;
 use App\Models\Employee;
-use App\Models\Position;
-use App\Models\Payrolls;
-use App\Models\User;
 use App\Models\Submissions;
-use Illuminate\Support\Facades\Crypt;
-use Yajra\DataTables\DataTables;
-use App\Models\Stores;
-use Illuminate\Support\Facades\Hash;
-use App\Rules\NoXSSInput;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+
 class SubmissionsController extends Controller
 {
-  public function getSubmissionsall()
-    {
-        $typeFilter = request()->get('type');
-        $query = Submissions::with([
-            'user',
-            'approval'
-            
-        ])->select(['id', 'user_id', 'approval_id','type','duration','status']);
+//    public function store(Request $request)
+//     {
+//         // ✅ Validasi input dari form
+//         $validated = $request->validate([
+//             'type' => 'required|string|max:255',
+//             'leave_date_from' => 'required|date',
+//             'leave_date_to' => 'required|date|after_or_equal:leave_date_from',
+//         ]);
 
-        if (!empty($typeFilter)) {
-            $query->whereHas('type', function ($q) use ($typeFilter) {
-                $q->where('type', $typeFilter);
-            });
-        }
+//         // ✅ Ambil employee yang sedang login
+//         $user = Auth::user();
+//         $employee = $user->employee;
 
-      
+//         if (!$employee) {
+//             return redirect()->back()->with('error', 'Data karyawan tidak ditemukan.');
+//         }
 
-        $submissions = $query->get()->map(function ($submission) {
-            $submission->id_hashed = substr(hash('sha256', $submission->id . env('APP_KEY')), 0, 8);
-            if (auth()->user()->hasRole('HeadHR')) {
+//         // ✅ Cari approver = manager di department yang sama
+//         $approver = Employee::where('department_id', $employee->department_id)
+//             ->where('is_manager', 1)
+//             ->first();
 
-                $submission->action = '
-            <a href="' . route('Submissions.edit', $submission->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit submission" title="Edit Submissions: ' . e(optional($submission->user->employee)->employee_name) . '">
-                <i class="fas fa-user-edit text-secondary"></i>
-            </a>';
-            } else {
-                $submission->action = ''; // Optional: kosongkan jika tidak punya akses
-            }
+//         if (!$approver) {
+//             return redirect()->back()->with('error', 'Tidak ditemukan manager di departemen yang sama.');
+//         }
 
-            return $submission;
-        });
-        // Daftar kolom dari relasi Employee yang ingin ditampilkan
-        $columns = [
-            'user_id' => 'user.employee.employee_name',
-            'approval_id' => 'user.employee.employee_name',
-            'type',
-            'duration',  
-            'status'
-        ];
-        $dataTable = DataTables::of($submissions);
+//         // ✅ Hitung durasi cuti (jumlah hari inklusif)
+//         $from = Carbon::parse($validated['leave_date_from']);
+//         $to = Carbon::parse($validated['leave_date_to']);
+//         $duration = $from->diffInDays($to) + 1;
 
-        foreach ($columns as $key => $relationPath) {
-            $column = is_string($key) ? $key : $relationPath;
+//         // ✅ Simpan data ke tabel submissions
+//         Submissions::create([
+//             'employee_id' => $employee->id,
+//             'approver_id' => $approver->id,
+//             'type' => $validated['type'],
+//             'leave_date_from' => $validated['leave_date_from'],
+//             'leave_date_to' => $validated['leave_date_to'],
+//             'duration' => $duration,
+//             'status' => 'pending',
+//         ]);
 
-            $dataTable->addColumn($column, function ($submission) use ($relationPath) {
-                // Mendapatkan nilai dari relasi dengan dot notation
-                $value = data_get($submission->employee, $relationPath);
-                return $value ?: 'Empty';
-            });
-        }
+//         return redirect()->back()->with('success', 'Submission berhasil dibuat!');
+//     }
 
-        return $dataTable
-            ->addColumn('action', function ($employee) {
-                return $employee->action;
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'type' => 'required|string|max:255',
+        'leave_date_from' => 'required|date',
+        'leave_date_to' => 'required|date|after_or_equal:leave_date_from',
+    ]);
+
+    $user = Auth::user();
+    $employee = $user->employee;
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'Data karyawan tidak ditemukan.');
     }
+
+    $approver = Employee::where('department_id', $employee->department_id)
+        ->where('is_manager', 1)
+        ->first();
+
+    if (!$approver) {
+        return redirect()->back()->with('error', 'Tidak ditemukan manager di departemen yang sama.');
+    }
+
+    $from = Carbon::parse($validated['leave_date_from']);
+    $to = Carbon::parse($validated['leave_date_to']);
+    $duration = $from->diffInDays($to) + 1;
+
+    DB::transaction(function () use ($employee, $approver, $validated, $duration) {
+        // ✅ Simpan submission baru
+        Submissions::create([
+            'employee_id' => $employee->id,
+            'approver_id' => $approver->id,
+            'type' => $validated['type'],
+            'leave_date_from' => $validated['leave_date_from'],
+            'leave_date_to' => $validated['leave_date_to'],
+            'duration' => $duration,
+            'status' => 'pending',
+        ]);
+
+        // ✅ Update summary cuti
+        $employee->pending += $duration;
+        $employee->remaining = $employee->total - ($employee->approved + $employee->pending);
+        $employee->save();
+    });
+
+    return redirect()->back()->with('success', 'Submission berhasil dibuat!');
+}
+
 }

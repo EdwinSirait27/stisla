@@ -60,3 +60,7 @@ let plugins = [
 plugins.forEach((plugin) => {
     mix.copy("./node_modules/" + plugin, "public/library/" + plugin);
 });
+// mix.js('resources/js/pages/positions.js', 'public/js/pages');
+mix.js('resources/js/app.js', 'public/js')
+   .js('resources/js/positions.js', 'public/js') // ✅ tambahkan baris ini
+   .sass('resources/sass/app.scss', 'public/css');

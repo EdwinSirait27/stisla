@@ -140,4 +140,13 @@ public static function generateSafePin()
     {
         return $this->hasMany(Payrolls::class, 'employee_id');
     }
+    public function submissions()
+{
+    return $this->hasMany(Submissions::class, 'employee_id');
+}
+
+public function approvedSubmissions()
+{
+    return $this->hasMany(Submissions::class, 'approved_id ');
+}
 }

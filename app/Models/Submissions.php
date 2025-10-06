@@ -1,11 +1,9 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
-
+use Carbon\Carbon;
 class Submissions extends Model
 {
      use HasFactory;
@@ -20,21 +18,41 @@ class Submissions extends Model
             }
         });
     }
-    protected $table = 'submissions_tables'; 
+    protected $table = 'submissions'; 
     protected $fillable = [
-        'user_id',
-        'approval_id',
+        'employee_id',
+        'approver_id',
         'type',
+        'leave_date_from',
+        'leave_date_to',
         'duration',
         'status',
+    ];  
+    protected $casts = [
+            'leave_date_form' => 'date:Y-m-d',
+            'leave_date_to' => 'date:Y-m-d',
+     
     ];
-   
-    public function user()
+    public function getDurationAttribute($value)
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        if (is_numeric($value)) {
+            return $value;
+        }
+
+        if ($this->leave_date_from && $this->leave_date_to) {
+            $from = Carbon::parse($this->leave_date_from);
+            $to = Carbon::parse($this->leave_date_to);
+            return $from->diffInDays($to) + 1;
+        }
+
+        return 0;
     }
-    public function approval()
+    public function employee()
     {
-        return $this->belongsTo(User::class, 'approval_id', 'id');
+        return $this->belongsTo(Employee::class, 'employee_id', 'id');
+    }
+    public function approver()
+    {
+        return $this->belongsTo(Employee::class, 'approver_id', 'id');
     }
 }

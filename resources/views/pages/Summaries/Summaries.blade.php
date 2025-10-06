@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Positions')
+@section('title', 'Summaries')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -41,6 +41,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -167,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Positions</h1>
+                <h1>Summaries</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Positions</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Summaries</h6>
                             </div>
 
                             <div class="card-body">
@@ -183,18 +184,14 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">No.</th>
-                                                {{-- <th class="text-center">Positions Key</th> --}}
-                                                <th class="text-center">Name</th>
-                                                <th class="text-center">Action</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Total</th>
+                                                <th class="text-center">Pending</th>
+                                                <th class="text-center">Approved?</th>
+                                                <th class="text-center">Remaining</th>
                                             </tr>
                                         </thead>
                                     </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Position.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Position
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -205,7 +202,6 @@
     </div>
 @endsection
 @push('scripts')
-    
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -216,7 +212,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('positions.positions') }}',
+                    url: '{{ route('summaries.summaries') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -236,22 +232,34 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    // {
-                    //     data: 'id',
-                    //     name: 'id',
-                    //     className: 'text-center'
-                    // },
                     {
-                        data: 'name',
-                        name: 'name',
+                        data: 'employee_name',
+                        name: 'employee_name',
                         className: 'text-center'
                     },
                     {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
+                        data: 'total',
+                        name: 'total',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
+                    },
+                    {
+                        data: 'pending',
+                        name: 'pending',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
+                    },
+                    {
+                        data: 'approved',
+                        name: 'approved',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
+                    },
+                    {
+                        data: 'remaining',
+                        name: 'remaining',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
                     }
                 ],
                 initComplete: function() {
@@ -261,36 +269,13 @@
             });
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
     </script>
-    {{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-      <script src="{{ mix('js/pages/positions.js') }}"></script>
-    <script>
-        window.successMessage = "{{ session('success') }}";
-    </script> --}}
 @endpush
-{{-- @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        window.routes = {
-            positions: '{{ route('positions.positions') }}',
-        };
-        window.sessionSuccess = @json(session('success'));
-    </script>
-
-@endpush
- --}}
- {{-- @section('scripts')
-  
-@endsection --}}

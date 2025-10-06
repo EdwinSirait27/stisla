@@ -33,7 +33,10 @@ use App\Http\Controllers\GradingController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\PHController;
 use App\Http\Controllers\GradinglistController;
+use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
+use App\Http\Controllers\SubmissionsController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -73,6 +76,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
         Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
         Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
+    });
+    Route::group(['middleware' => ['permission:SubmissionsCreate']], function () {
+        Route::post('/Submissions', [SubmissionsController::class, 'store'])->name('Submissions.store');
     });
 
     Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {
@@ -233,6 +239,12 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/Structures/edit/{hashedId}', [StructureController::class, 'edit'])->name('Structures.edit');
         Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
         Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
+    });
+    Route::group(['middleware' => ['permission:ManageSummaries']], function () {
+
+        Route::get('/Summaries', [SummaryController::class, 'index'])
+            ->name('pages.Summaries');
+        Route::get('/summaries/summaries', [SummaryController::class, 'getSummaries'])->name('summaries.summaries');
     });
     Route::group(['middleware' => ['permission:ManageGradinglist']], function () {
 

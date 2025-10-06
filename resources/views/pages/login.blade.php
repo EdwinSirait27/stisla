@@ -242,7 +242,7 @@
 
 
                         <div class="text-small mt-5 text-center">
-                            &copy; Edwin Sirait</span>
+                            {{-- &copy; Edwin Sirait</span> --}}
 
                             <div class="mt-2">
 
