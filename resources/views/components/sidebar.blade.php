@@ -139,6 +139,12 @@
                           <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
                         </li>
+                          <li class="{{ Request::is('Structures') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Structures') }}">Structure List</a>
+                        </li>
+                         <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Summaries') }}">Summaries List</a>
+                        </li>
                         <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Shifts</a>
                         </li>

@@ -369,7 +369,7 @@
                                 aria-hidden="true">&times;</span></button>
                     </div>
 
-                    <div class="modal-body">
+                    {{-- <div class="modal-body">
                      
                         <div class="mb-3">
                             <label class="form-label">Type</label>
@@ -394,7 +394,35 @@
                             <label class="form-label">Duration</label>
                             <input type="number" name="duration" class="form-control" required>
                         </div>
-                    </div>
+                    </div> --}}
+                    <div class="modal-body">
+    <div class="mb-3">
+        <label class="form-label">Type</label>
+        <select name="type" id="type" class="form-control select2" required>
+            <option value="" disabled selected>-- Select Type --</option>
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Overtime">Overtime</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Leave Date From</label>
+        <input type="date" name="leave_date_from" id="leave_date_from" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Leave Date To</label>
+        <input type="date" name="leave_date_to" id="leave_date_to" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Duration</label>
+        <input type="number" name="duration" class="form-control" required>
+    </div>
+</div>
+
+
+
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -423,7 +451,21 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function(){
+    $('#type').on('change', function() {
+        const type = $(this).val();
 
+        if(type === 'Overtime') {
+            $('#leave_date_from').attr('type', 'datetime-local');
+            $('#leave_date_to').attr('type', 'datetime-local');
+        } else {
+            $('#leave_date_from').attr('type', 'date');
+            $('#leave_date_to').attr('type', 'date');
+        }
+    });
+});
+</script>
     <script>
        
         let ctx = document.getElementById('attendanceChart').getContext('2d');
