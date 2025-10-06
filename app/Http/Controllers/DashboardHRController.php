@@ -81,28 +81,27 @@ foreach ($submissions as $submission) {
 }
 public function getMonthlyData(Request $request)
 {
-    // Ambil tanggal mulai dan tanggal akhir dari request
     $startDate = $request->get('start_date');
-    $endDate = $request->get('end_date');
+    $endDate   = $request->get('end_date');
 
-    // Jika user belum pilih periode, pakai default bulan ini
     if (!$startDate || !$endDate) {
         $monthDate = now();
         $startDate = $monthDate->copy()->startOfMonth()->toDateString();
         $endDate   = $monthDate->copy()->endOfMonth()->toDateString();
     }
 
-    // Hitung total karyawan aktif
-    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+    // Ambil semua pin karyawan aktif/pending
+    $employeePins = Employee::whereIn('status', ['Active', 'Pending'])->pluck('pin')->toArray();
+    $totalEmployees = count($employeePins);
 
-    // Ambil data fingerprint berdasarkan periode
+    // Ambil data fingerprint per hari, hitung satu karyawan hanya 1 kali
     $data = Fingerprints::selectRaw('DATE(scan_date) as scan_day, COUNT(DISTINCT pin) as total')
         ->whereBetween('scan_date', [$startDate, $endDate])
+        ->whereIn('pin', $employeePins) // pastikan hanya hitung pin valid
         ->groupBy('scan_day')
         ->orderBy('scan_day')
         ->get();
 
-    // Hitung persentase kehadiran
     $result = $data->map(function ($item) use ($totalEmployees) {
         $percentage = $totalEmployees > 0
             ? round(($item->total / $totalEmployees) * 100, 2)
@@ -115,14 +114,56 @@ public function getMonthlyData(Request $request)
     });
 
     return response()->json([
-        'period'         => [
-            'start' => $startDate,
-            'end'   => $endDate,
-        ],
+        'period'         => ['start' => $startDate, 'end' => $endDate],
         'totalEmployees' => $totalEmployees,
         'data'           => $result,
     ]);
 }
+
+// public function getMonthlyData(Request $request)
+// {
+//     // Ambil tanggal mulai dan tanggal akhir dari request
+//     $startDate = $request->get('start_date');
+//     $endDate = $request->get('end_date');
+
+//     // Jika user belum pilih periode, pakai default bulan ini
+//     if (!$startDate || !$endDate) {
+//         $monthDate = now();
+//         $startDate = $monthDate->copy()->startOfMonth()->toDateString();
+//         $endDate   = $monthDate->copy()->endOfMonth()->toDateString();
+//     }
+
+//     // Hitung total karyawan aktif
+//     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
+//     // Ambil data fingerprint berdasarkan periode
+//     $data = Fingerprints::selectRaw('DATE(scan_date) as scan_day, COUNT(DISTINCT pin) as total')
+//         ->whereBetween('scan_date', [$startDate, $endDate])
+//         ->groupBy('scan_day')
+//         ->orderBy('scan_day')
+//         ->get();
+
+//     // Hitung persentase kehadiran
+//     $result = $data->map(function ($item) use ($totalEmployees) {
+//         $percentage = $totalEmployees > 0
+//             ? round(($item->total / $totalEmployees) * 100, 2)
+//             : 0;
+
+//         return [
+//             'date'       => $item->scan_day,
+//             'percentage' => $percentage,
+//         ];
+//     });
+
+//     return response()->json([
+//         'period'         => [
+//             'start' => $startDate,
+//             'end'   => $endDate,
+//         ],
+//         'totalEmployees' => $totalEmployees,
+//         'data'           => $result,
+//     ]);
+// }
 
 
 // public function getMonthlyData(Request $request)
