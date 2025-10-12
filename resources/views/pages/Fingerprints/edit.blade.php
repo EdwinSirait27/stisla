@@ -4,6 +4,8 @@
 
 @push('style')
     <!-- CSS Libraries if needed -->
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
 @endpush
 
 @section('main')
@@ -19,6 +21,9 @@
                         {{-- <form action="{{ route('Fingerprints.update', [$data->pin, $data->scan_date]) }}" method="POST">
                         @csrf --}}
                         {{-- @method('POST') --}}
+                        <pre>{{ json_encode($data, JSON_PRETTY_PRINT) }}</pre>
+{{-- @dd($data->in_1, $data->in_2) --}}
+
                         <form
                             action="{{ route('Fingerprints.update', ['pin' => $data->pin, 'scan_date' => $data->scan_date]) }}"
                             method="POST" enctype="multipart/form-data">
@@ -49,127 +54,163 @@
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label for="in_1">Scan 1</label>
-                                    <input type="time" name="in_1" class="form-control"
-                                        value="{{ $data->in_1 ?? '' }}">
+                                    {{-- <input type="time" name="in_1" class="form-control"
+       step="1"
+       value="{{ $data->in_1 ? \Carbon\Carbon::parse($data->in_1)->format('H:i:s') : '' }}"> --}}
+        <input 
+    type="text" 
+    name="in_1" 
+    id="in_1"
+    class="form-control timepicker"
+    value="{{ $data->in_1 ?? '' }}">
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_1">Location 1</label>
-                                    <input type="text" name="device_1" class="form-control"
-                                        value="{{ $data->device_1 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_2">Scan 2</label>
-                                    <input type="time" name="in_2" class="form-control"
-                                        value="{{ $data->in_2 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_2">Location 2</label>
-                                    <input type="text" name="device_2" class="form-control"
-                                        value="{{ $data->device_2 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_3">Scan 3</label>
-                                    <input type="time" name="in_3" class="form-control"
-                                        value="{{ $data->in_3 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_3">Location 3</label>
-                                    <input type="text" name="device_3" class="form-control"
-                                        value="{{ $data->device_3 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_4">Scan 4</label>
-                                    <input type="time" name="in_4" class="form-control"
-                                        value="{{ $data->in_4 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_4">Location 4</label>
-                                    <input type="text" name="device_4" class="form-control"
-                                        value="{{ $data->device_4 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_5">Scan 5</label>
-                                    <input type="time" name="in_5" class="form-control"
-                                        value="{{ $data->in_5 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_5">Location 5</label>
-                                    <input type="text" name="device_5" class="form-control"
-                                        value="{{ $data->device_5 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_6">Scan 6</label>
-                                    <input type="time" name="in_6" class="form-control"
-                                        value="{{ $data->in_6 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_6">Location 6</label>
-                                    <input type="text" name="device_6" class="form-control"
-                                        value="{{ $data->device_6 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_7">Scan 7</label>
-                                    <input type="time" name="in_7" class="form-control"
-                                        value="{{ $data->in_7 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_7">Location 7</label>
-                                    <input type="text" name="device_7" class="form-control"
-                                        value="{{ $data->device_7 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_8">Scan 8</label>
-                                    <input type="time" name="in_8" class="form-control"
-                                        value="{{ $data->in_8 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_8">Location 8</label>
-                                    <input type="text" name="device_8" class="form-control"
-                                        value="{{ $data->device_8 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_9">Scan 9</label>
-                                    <input type="time" name="in_9" class="form-control"
-                                        value="{{ $data->in_9 ?? '' }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_9">Location 9</label>
-                                    <input type="text" name="device_9" class="form-control"
-                                        value="{{ $data->device_9 ?? '' }}">
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="in_10">Scan 10</label>
-                                    <input type="time" name="in_10" class="form-control"
-                                        value="{{ $data->in_10 ?? '' }}">
-                                </div>
-                            </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_1">Location 1</label>
+                                        <input type="text" name="device_1" class="form-control"
+                                            value="{{ $data->device_1 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_2">Scan 2</label>
+                                 {{-- <input 
+    type="text" 
+    name="in_2" 
+    class="form-control timepicker"
+    value="{{ $data->in_2 }}"> --}}
+    <input 
+    type="text" 
+    name="in_2" 
+    id="in_2"
+    class="form-control timepicker"
+    value="{{ $data->in_2 ?? '' }}">
 
-                            <div class="row">
-                                <div class="form-group col-md-6">
-                                    <label for="device_10">Location 10</label>
-                                    <input type="text" name="device_10" class="form-control"
-                                        value="{{ $data->device_10 ?? '' }}">
+
+
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_2">Location 2</label>
+                                        <input type="text" name="device_2" class="form-control"
+                                            value="{{ $data->device_2 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_3">Scan 3</label>
+                                       <input 
+    type="text" 
+    name="in_3" 
+    id="in_3"
+    class="form-control timepicker"
+    value="{{ $data->in_3 ?? '' }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_3">Location 3</label>
+                                        <input type="text" name="device_3" class="form-control"
+                                            value="{{ $data->device_3 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_4">Scan 4</label>
+                                        <input 
+    type="text" 
+    name="in_4" 
+    id="in_4"
+    class="form-control timepicker"
+    value="{{ $data->in_4 ?? '' }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_4">Location 4</label>
+                                        <input type="text" name="device_4" class="form-control"
+                                            value="{{ $data->device_4 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_5">Scan 5</label>
+                                         <input 
+    type="text" 
+    name="in_5" 
+    id="in_5"
+    class="form-control timepicker"
+    value="{{ $data->in_5 ?? '' }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_5">Location 5</label>
+                                        <input type="text" name="device_5" class="form-control"
+                                            value="{{ $data->device_5 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_6">Scan 6</label>
+                          <input 
+    type="text" 
+    name="in_6" 
+    id="in_6"
+    class="form-control timepicker"
+    value="{{ $data->in_6 ?? '' }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_6">Location 6</label>
+                                        <input type="text" name="device_6" class="form-control"
+                                            value="{{ $data->device_6 ?? '' }}">
+                                    </div>
+                                    {{-- <div class="form-group col-md-6">
+                                        <label for="in_7">Scan 7</label>
+                                        <input type="time" name="in_7" class="form-control"
+                                            value="{{ $data->in_7 ?? '' }}">
+                                    </div> --}}
+                                </div>
+                                {{-- <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_7">Location 7</label>
+                                        <input type="text" name="device_7" class="form-control"
+                                            value="{{ $data->device_7 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_8">Scan 8</label>
+                                        <input type="time" name="in_8" class="form-control"
+                                            value="{{ $data->in_8 ?? '' }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_8">Location 8</label>
+                                        <input type="text" name="device_8" class="form-control"
+                                            value="{{ $data->device_8 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_9">Scan 9</label>
+                                        <input type="time" name="in_9" class="form-control"
+                                            value="{{ $data->in_9 ?? '' }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_9">Location 9</label>
+                                        <input type="text" name="device_9" class="form-control"
+                                            value="{{ $data->device_9 ?? '' }}">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="in_10">Scan 10</label>
+                                        <input type="time" name="in_10" class="form-control"
+                                            value="{{ $data->in_10 ?? '' }}">
+                                    </div>
                                 </div>
 
-                            </div>
+                                <div class="row">
+                                    <div class="form-group col-md-6">
+                                        <label for="device_10">Location 10</label>
+                                        <input type="text" name="device_10" class="form-control"
+                                            value="{{ $data->device_10 ?? '' }}">
+                                    </div>
+
+                                </div> --}}
+
 
 
 
@@ -211,6 +252,19 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr(".timepicker", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i:S",
+            time_24hr: true,
+            allowInput: true,
+        });
+    });
+</script>
+
     <!-- JS Libraries if needed -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -232,5 +286,7 @@
                 confirmButtonText: 'OK'
             });
         @endif
+        $('.timepicker').inputmask('99:99:99', { placeholder: "HH:MM:SS" });
+
     </script>
 @endpush
