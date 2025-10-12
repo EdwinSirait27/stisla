@@ -187,7 +187,7 @@
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Total</th>
                                                 <th class="text-center">Pending</th>
-                                                <th class="text-center">Approved?</th>
+                                                <th class="text-center">Approved</th>
                                                 <th class="text-center">Remaining</th>
                                             </tr>
                                         </thead>
@@ -210,6 +210,7 @@
             // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
+                autoWidth: false,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('summaries.summaries') }}',

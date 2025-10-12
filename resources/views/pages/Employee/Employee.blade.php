@@ -49,7 +49,7 @@
         overflow: hidden;
     }
 
-    tes .table {
+    .table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
@@ -162,6 +162,8 @@
             font-size: 0.8rem;
         }
     }
+  
+
 </style>
 @section('main')
     <div class="main-content">
@@ -231,7 +233,7 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
+    {{-- <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
                 dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-12"B>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
@@ -331,18 +333,6 @@
                         name: 'name',
                         className: 'text-center'
                     },
-                    
-                    // {
-                    //     data: 'grading_code',
-                    //     name: 'grading_code',
-                    //     className: 'text-center'
-                    // },
-                   
-                    // {
-                    //     data: 'created_at',
-                    //     name: 'created_at',
-                    //     className: 'text-center'
-                    // },
                     {
                         data: 'status',
                         name: 'status',
@@ -389,5 +379,115 @@
                 });
             @endif
         });
-    </script>
+    </script> --}}
+   <script>
+$(document).ready(function() {
+    var table = $('#users-table').DataTable({
+        dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
+        buttons: [
+            {
+                extend: 'csv',
+                text: '<i class="fas fa-file-csv"></i> CSV',
+                className: 'btn btn-sm btn-primary ms-2 me-2',
+                exportOptions: {
+                    columns: [1,2,3,4,5,6,7,8]
+                }
+            },
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                className: 'btn btn-sm btn-success',
+                exportOptions: {
+                    columns: [1,2,3,4,5,6,7,8]
+                }
+            }
+        ],
+        processing: true,
+        serverSide: true,
+        autoWidth: false,
+        ajax: {
+            url: '{{ route('employees.employees') }}',
+            data: function(d) {
+                d.activity_type = $('#activity-type-filter').val();
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Failed to load data!'
+                });
+                console.error(xhr.responseText);
+            }
+        },
+        responsive: true,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "All"]
+        ],
+        pageLength: 10,
+        language: {
+            lengthMenu: "Show _MENU_ entries",
+            search: "_INPUT_",
+            searchPlaceholder: "Search...",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            },
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)"
+        },
+        columns: [
+            { data: null, className: 'text-center align-middle',
+              render: function(data, type, row, meta) {
+                  return meta.row + meta.settings._iDisplayStart + 1;
+              }
+            },
+            { data: 'employee_name', className: 'text-center' },
+            { data: 'name_company', className: 'text-center' },
+            { data: 'grading_name', className: 'text-center' },
+            { data: 'position_name', className: 'text-center' },
+            { data: 'department_name', className: 'text-center' },
+            { data: 'status_employee', className: 'text-center' },
+            { data: 'name', className: 'text-center' },
+            { data: 'status', className: 'text-center',
+              render: function(data) {
+                  const badges = {
+                      'Active': 'success',
+                      'Inactive': 'danger',
+                      'On leave': 'warning',
+                      'Mutation': 'info',
+                      'Pending': 'secondary',
+                      'Resign': 'warning text-dark'
+                  };
+                  return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
+              }
+            },
+            { data: 'action', orderable: false, searchable: false, className: 'text-center' }
+        ],
+        initComplete: function() {
+            $('.dataTables_filter input').addClass('form-control form-control-sm');
+            $('.dataTables_length select').addClass('form-select form-select-sm');
+        }
+    });
+
+    $('#activity-type-filter').change(function() {
+        table.ajax.reload();
+    });
+
+    @if (session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '{{ session('success') }}',
+            timer: 3000
+        });
+    @endif
+});
+</script>
+
+
+
 @endpush

@@ -209,11 +209,10 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
+                autoWidth: false,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('banks.banks') }}',
@@ -256,8 +255,8 @@
                     }
                 ],
                 initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+                    // $('.dataTables_filter input').addClass('form-control');
+                    // $('.dataTables_length select').addClass('form-control');
                 }
             });
 

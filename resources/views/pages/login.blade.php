@@ -256,20 +256,20 @@
                         <div class="text-light p-5 pb-2">
                             <div class="mb-5 pb-3">
 
-                                <h1 class="display-4 font-weight-bold mb-2" id="greeting">Selamat</h1>
+                                <h1 class="display-4 font-weight-bold mb-2" id="greeting">Good</h1>
                                 <script>
                                     function getGreeting() {
                                         const now = new Date();
                                         const hours = now.getUTCHours() + 8;
-                                        let greeting = 'Selamat';
+                                        let greeting = 'Good';
                                         if (hours >= 5 && hours < 10) {
-                                            greeting = 'Selamat Pagi';
+                                            greeting = 'Good Morning';
                                         } else if (hours >= 10 && hours < 15) {
-                                            greeting = 'Selamat Siang';
+                                            greeting = 'Good Afternoon';
                                         } else if (hours >= 15 && hours < 18) {
-                                            greeting = 'Selamat Sore';
+                                            greeting = 'Good Afternoon';
                                         } else {
-                                            greeting = 'Selamat Malam';
+                                            greeting = 'Good Night';
                                         }
 
                                         document.getElementById('greeting').textContent = greeting;

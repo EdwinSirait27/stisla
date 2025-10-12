@@ -217,6 +217,7 @@
         let table = $('#users-table').DataTable({
             processing: true,
             serverSide: true,
+            autoWidth: false,
             ajax: '{{ route('company.company') }}',
             responsive: true,
 

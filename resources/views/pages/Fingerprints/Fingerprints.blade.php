@@ -3,11 +3,12 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
+    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -68,12 +69,6 @@
         top: 0;
         z-index: 10;
         transition: all 0.3s ease;
-        /* width: 200px; */
-    }
-
-    .th-name {
-        width: 300px !important;
-        /* lebar khusus untuk kolom NAME */
     }
 
     .table tbody tr {
@@ -168,10 +163,6 @@
             font-size: 0.8rem;
         }
     }
-
-    div.dataTables_scrollBody {
-        max-height: 750px !important;
-    }
 </style>
 
 
@@ -179,19 +170,16 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Fingerprints</h1>
+                <h1>Fingerprint List</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Fingerprints</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Banks</h6>
                             </div>
-
-
                             <div class="card-body">
-
                                 <div class="row mb-2 align-items-end">
                                     <div class="col-md-2">
                                         <label for="store_name">Filter By Location</label>
@@ -216,24 +204,30 @@
                                             value="{{ request('end_date') ?? now()->toDateString() }}" class="form-control">
                                     </div>
 
-                                    <div class="col-md-2">
-                                        <label>Show Entries</label>
+                                    <div class="col-md-1">
+                                        {{-- <label>Show Entries</label> --}}
                                         <div id="custom-length"></div> {{-- Di sini nanti elemen .dataTables_length akan dipindahkan --}}
                                     </div>
 
                                     <div class="col-md-2">
-                                        <label>Search</label>
+                                        {{-- <label>Search</label> --}}
                                         <div id="custom-search"></div> {{-- Di sini nanti elemen .dataTables_filter akan dipindahkan --}}
                                     </div>
 
-                                    <div class="col-md-2">
+                                    <div class="col-md-1">
                                         <button id="filterBtn" class="btn btn-primary">Filter</button>
                                         <button id="resetBtn" class="btn btn-secondary">Reset</button>
                                     </div>
+                                    <br>
+                                    <br>
+                                    <br>
+                                    <div class="col-md-2" id="custom-buttons">
+                                    
+        <!-- Buttons DataTables akan dipindahkan ke sini -->
+    </div>
                                 </div>
-
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped" id="users-table"style="width:100%">
+                                <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                    <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Location</th>
@@ -243,54 +237,33 @@
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Scan Date</th>
-                                                @for ($i = 1; $i <= 5; $i++)
-                                                    <th class="text-center">Scan {{ $i }}</th>
-                                                @endfor
+                                                <th class="text-center">In</th>
+                                                <th class="text-center">Out</th>
+                                                <th class="text-center">Overtime</th>
+                                                <th class="text-center">Overtime</th>
+                                                <th class="text-center">Overtime</th>
+                                                <th class="text-center">Overtime</th>
                                                 <th class="text-center">Duration</th>
-                                                <th class="text-center">Total</th>
-                                                {{-- <th class="text-center">Status</th> --}}
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
-
                                             </tr>
                                         </thead>
                                     </table>
-                                </div>
-                                <div class="action-buttons">
-
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
     </div>
 
-
-
-    <!-- Modal Total Hari Bekerja -->
-    <div class="modal fade" id="modalTotalHari" tabindex="-1" aria-labelledby="modalTotalHariLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTotalHariLabel">Total Hari Bekerja</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>PIN:</strong> <span id="modal-pin"></span></p>
-                    <p><strong>Total Hari Bekerja:</strong> <span id="modal-total-hari"></span> hari</p>
-                </div>
-            </div>
-        </div>
+    </section>
     </div>
-
 @endsection
-
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
@@ -298,9 +271,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
-
-    <script>
+ <script>
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const year = today.getFullYear();
@@ -326,15 +297,61 @@
 
     <script>
         $(document).ready(function() {
-            $('.select2').select2();
-
+             $('.select2').select2();
             var table = $('#users-table').DataTable({
+                // scrollY: "500px",
+                paging: true, 
                 processing: true,
+                autoWidth: false,
                 serverSide: true,
+                // scrollCollapse: true,
+                responsive: true,
+                dom: "<'d-none'lf>" + // ini akan menyembunyikan tapi tetap membuat elemen length & filter
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-2'<'col-sm-12'B>>" +
+                    "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            //    buttons : [
+
+            //         {
+            //             extend: 'csv',
+            //             className: 'btn btn-sm btn-success',
+            //             text: '<i class="fas fa-file-csv"></i> CSV',
+            //             exportOptions: {
+            //                 columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+            //             }
+            //         },
+            //         {
+            //             extend: 'excel',
+            //             className: 'btn btn-sm btn-info',
+            //             text: '<i class="fas fa-file-excel"></i> Excel',
+            //             exportOptions: {
+            //                 columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
+            //             }
+            //         }
+            //     ],
+            buttons: [
+            {
+                extend: 'csv',
+                className: 'btn btn-sm btn-success',
+                text: '<i class="fas fa-file-csv"></i> CSV',
+                exportOptions: {
+                    columns: ':not(:last-child):not(.no-export)'
+                }
+            },
+            {
+                extend: 'excel',
+                className: 'btn btn-sm btn-info',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                exportOptions: {
+                    columns: ':not(:last-child):not(.no-export)'
+                }
+            }
+        ],
+
                 ajax: {
                     url: '{{ route('fingerprints.fingerprints') }}',
                     type: 'POST',
-                    headers: {
+                headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     data: function(d) {
@@ -343,48 +360,21 @@
                         d.store_name = $('#store_name').val();
                     }
                 },
-                scrollX: '500px',
-                scrollCollapse: false,
-                // paging: false,
-
-                dom: "<'d-none'lf>" + // ini akan menyembunyikan tapi tetap membuat elemen length & filter
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row mt-2'<'col-sm-12'B>>" +
-                    "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                buttons: [
-
-                    {
-                        extend: 'csv',
-                        className: 'btn btn-sm btn-success',
-                        text: '<i class="fas fa-file-csv"></i> CSV',
-                        exportOptions: {
-                            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-                        }
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm btn-info',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        exportOptions: {
-                            columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-                        }
-                    }
-                ],
-
+                
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
                 language: {
                     search: "_INPUT_",
-                    searchPlaceholder: "Search..."
+                    searchPlaceholder: "Search...",
                 },
                 columns: [{
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
+                    data: 'name',
+                    name: 'name',
+                    className: 'text-center'
                     },
-                    {
+                     {
                         data: 'pin',
                         name: 'pin',
                         className: 'text-center'
@@ -393,7 +383,7 @@
                         data: 'employee_name',
                         name: 'employee_name',
                         className: 'text-center',
-                        width: '300px'
+                        width: '200px'
                     },
                     {
                         data: 'employee_pengenal',
@@ -416,43 +406,41 @@
                         className: 'text-center'
                     },
 
-
-
-                    @for ($i = 1; $i <= 5; $i++)
+                    @for ($i = 1; $i <= 6; $i++)
                         {
                             data: 'combine_{{ $i }}',
                             name: 'combine_{{ $i }}',
                             className: 'text-center'
                         }
-                        @if ($i < 5)
+                        @if ($i < 6)
                             ,
                         @endif
                     @endfor ,
+
                     {
                         data: 'duration',
-                        name: 'duration'
+                        name: 'duration',
+                        className: 'text-center'
                     },
-                   
                     {
                         data: 'updated',
                         name: 'updated',
+                        className: 'text-center',
                         render: function(data, type, row) {
-                            if (row.is_updated) {
-                                return '<span class="badge badge-success">✔ Updated</span>';
-                            } else {
-                                return '<span class="badge badge-secondary">Original</span>';
-                            }
+                            return row.is_updated ?
+                                '<span class="badge badge-success">✔ Updated</span>' :
+                                '<span class="badge badge-secondary">Original</span>';
                         }
                     },
                     {
                         data: 'action',
                         name: 'action',
-                        orderable: false,
+                        // orderable: false,
                         searchable: false,
                         className: 'no-export'
                     }
                 ],
-                rowCallback: function(row, data, index) {
+                 rowCallback: function(row, data, index) {
                     if (data.is_edited == 1) {
                         $(row).css('background-color', '#cce5ff');
                     }
@@ -462,17 +450,9 @@
                     // Pindahkan length (show entries) dan search ke lokasi custom
                     $('#custom-length').html($('.dataTables_length'));
                     $('#custom-search').html($('.dataTables_filter'));
+                     table.buttons().container().appendTo('#custom-buttons');
                 }
             });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-
             $('#filterBtn').on('click', function() {
                 table.ajax.reload();
             });
@@ -490,65 +470,16 @@
                     table.ajax.reload(null, false);
                 }
             }, 100000);
-        });
-        $(document).on('click', '.lihat-total', function() {
-            const pin = $(this).data('pin');
-            const employee = $(this).data('employee');
-            const startDate = $('#startDate').val();
-            const endDate = $('#endDate').val();
 
-            if (!startDate || !endDate) {
+            @if (session('success'))
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'Tanggal kosong!',
-                    text: 'Mohon isi tanggal awal dan akhir terlebih dahulu.',
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
                 });
-                return;
-            }
+            @endif
 
-            $.ajax({
-                url: "{{ route('Fingerprints.totalHari') }}",
-                method: 'GET',
-                data: {
-                    pin: pin,
-                    start_date: startDate,
-                    end_date: endDate
-                },
-                success: function(response) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: `Total kehadiran ${employee}`,
-                        text: `${response.total} hari`,
-                    });
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: 'Gagal mengambil data kehadiran.',
-                    });
-                }
-            });
         });
     </script>
-
-    <script>
-        @if (session('success'))
-            Swal.fire({
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonText: 'OK'
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script>
+    
 @endpush

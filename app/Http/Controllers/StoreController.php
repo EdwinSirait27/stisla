@@ -163,7 +163,7 @@ class StoreController extends Controller
         $store->update($storeData);
         DB::commit();
 
-        return redirect()->route('pages.Store')->with('success', 'Store updated Successfully.');
+        return redirect()->route('pages.Store')->with('success', 'Location updated Successfully.');
     }
 }
 

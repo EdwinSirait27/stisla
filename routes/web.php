@@ -47,6 +47,7 @@ use App\Http\Controllers\SubmissionsController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::view('/test-wireui', 'test-wireui');
 
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
     // Route::get('/feature-profile', function () {

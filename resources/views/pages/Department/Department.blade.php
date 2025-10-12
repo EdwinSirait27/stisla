@@ -215,6 +215,7 @@
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
+                autoWidth: false,
                 ajax: {
                     url: '{{ route('departments.departments') }}',
                     type: 'GET'

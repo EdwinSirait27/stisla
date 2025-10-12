@@ -164,7 +164,7 @@ class LoginController extends Controller
             'ip' => $request->ip(),
             'username' => $normalizedUsername ?? null,
         ]);
-        return back()->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
+        return back()->withErrors(['/' => 'An error occurred. Please try again.']);
     }
 }
 

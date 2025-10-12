@@ -23,6 +23,8 @@ class DashboardHRController extends Controller
 
     $startDate = $monthDate->copy()->startOfMonth();
     $endDate   = $monthDate->copy()->endOfMonth();
+        $types = ['Annual Leave', 'Overtime'];
+
 
     // Hitung jumlah karyawan aktif/pending
     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
@@ -73,6 +75,7 @@ foreach ($submissions as $submission) {
     return view('pages.dashboardHR.dashboardHR', [
         'month'          => $month,
         'days'           => $days,
+        'types'           => $types,
         'percentages'    => $percentages,
         'pendingSubmissions'         => $submissions,
         'totalEmployees' => $totalEmployees,

@@ -196,7 +196,7 @@
                         </div>
                     </div>
 
-                   
+
 
                     <div class="col-lg-4 col-md-12 col-12 col-sm-12">
                         <div class="card">
@@ -231,8 +231,10 @@
 
                                                 <span class="text-small text-muted">
                                                     {{ ucfirst($submission->type) }} -
-                                                    {{ $submission->duration }}
-                                                    {{ Str::plural('Day/Hour', $submission->duration) }}
+                                                    {{-- {{ $submission->duration }} --}}
+                                                    {{-- {{ Str::plural('Day/Hour', $submission->duration) }} --}}
+                                                    {{ $submission->formattedDuration }}
+                                                    {{-- {{ ucfirst($submission->type) }} - {{ $submission->formattedDuration }} --}}
                                                 </span>
                                             </div>
                                         </li>
@@ -254,7 +256,7 @@
                         </div>
                     </div>
 
-                  
+
 
 
                 </div>
@@ -396,30 +398,29 @@
                         </div>
                     </div> --}}
                     <div class="modal-body">
-    <div class="mb-3">
-        <label class="form-label">Type</label>
-        <select name="type" id="type" class="form-control select2" required>
-            <option value="" disabled selected>-- Select Type --</option>
-            <option value="Annual Leave">Annual Leave</option>
-            <option value="Overtime">Overtime</option>
-        </select>
-    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <select name="type" id="type"
+                                class="form-control select2 @error('type') is-invalid @enderror"required>
+                                <option value="">Choose Type</option>
+                                @foreach ($types as $value)
+                                    <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>
+                                        {{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Leave Date From</label>
-        <input type="date" name="leave_date_from" id="leave_date_from" class="form-control" required>
-    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Leave Date From</label>
+                            <input type="date" name="leave_date_from" id="leave_date_from" class="form-control"
+                                required>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Leave Date To</label>
-        <input type="date" name="leave_date_to" id="leave_date_to" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Duration</label>
-        <input type="number" name="duration" class="form-control" required>
-    </div>
-</div>
+                        <div class="mb-3">
+                            <label class="form-label">Leave Date To</label>
+                            <input type="date" name="leave_date_to" id="leave_date_to" class="form-control" required>
+                        </div>
+                    </div>
 
 
 
@@ -435,7 +436,11 @@
         </div>
     </div>
 
-
+    {{-- <select name="type" id="type" class="form-control select2" required>
+            <option value="" disabled selected>-- Select Type --</option>
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Overtime">Overtime</option>
+        </select> --}}
 @endsection
 @push('scripts')
     <!-- JS Libraries -->
@@ -451,23 +456,22 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-$(document).ready(function(){
-    $('#type').on('change', function() {
-        const type = $(this).val();
-
-        if(type === 'Overtime') {
-            $('#leave_date_from').attr('type', 'datetime-local');
-            $('#leave_date_to').attr('type', 'datetime-local');
-        } else {
-            $('#leave_date_from').attr('type', 'date');
-            $('#leave_date_to').attr('type', 'date');
-        }
-    });
-});
-</script>
     <script>
-       
+        $(document).ready(function() {
+            $('#type').on('change', function() {
+                const type = $(this).val();
+
+                if (type === 'Overtime') {
+                    $('#leave_date_from').attr('type', 'datetime-local');
+                    $('#leave_date_to').attr('type', 'datetime-local');
+                } else {
+                    $('#leave_date_from').attr('type', 'date');
+                    $('#leave_date_to').attr('type', 'date');
+                }
+            });
+        });
+    </script>
+    <script>
         let ctx = document.getElementById('attendanceChart').getContext('2d');
 
         let attendanceChart = new Chart(ctx, {
@@ -559,6 +563,7 @@ $(document).ready(function(){
             // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
+                autoWidth: false,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('announcements.announcements') }}',
@@ -754,7 +759,7 @@ $(document).ready(function(){
         </script>
     @endpush
 @endpush
- {{-- <div class="col-lg-4 col-md-12 col-12 col-sm-12">
+{{-- <div class="col-lg-4 col-md-12 col-12 col-sm-12">
                         <div class="card">
 
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -866,7 +871,7 @@ $(document).ready(function(){
 
                         </div>
                     </div> --}}
-                     {{-- // let ctx = document.getElementById('attendanceChart').getContext('2d');
+{{-- // let ctx = document.getElementById('attendanceChart').getContext('2d');
 
         // let attendanceChart = new Chart(ctx, {
         //     type: 'bar',
@@ -933,7 +938,7 @@ $(document).ready(function(){
         //         })
         //     ]
         // }); --}}
-           {{-- <div class="mb-3">
+{{-- <div class="mb-3">
                         <label class="form-label">Type</label>
                         <input type="text" name="type" class="form-control"
                             placeholder="Example: Annual Leave" required>

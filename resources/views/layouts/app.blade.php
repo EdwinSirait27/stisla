@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -19,11 +20,14 @@
         {{-- ini bikin error link 2 dibawah ini --}}
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-    @stack('styles')
+@livewireStyles
+   
+        @stack('styles')
 
     <!-- Template CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components.css') }}">
+    <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 
     <!-- Start GA -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-94034622-3"></script>
@@ -38,6 +42,9 @@
         gtag('config', 'UA-94034622-3');
     </script>
     <!-- END GA -->
+{{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    <script src="{{ mix('js/app.js') }}" defer></script>
+
 </head>
 
 <body>
@@ -69,6 +76,7 @@
     <!-- Template JS File -->
     <script src="{{ asset('js/scripts.js') }}"></script>
     <script src="{{ asset('js/custom.js') }}"></script>
+    <script src="{{ mix('js/app.js') }}"></script>
 
     <!-- Main scripts that should always run -->
     <script>
@@ -117,6 +125,7 @@
         })();
     </script>
 
+
     <!-- Stack for view-specific scripts -->
     @stack('scripts')
 
@@ -124,6 +133,8 @@
     {{-- @hasSection('scripts')
         @yield('scripts')
     @endif --}}
+    @livewireScripts
+
 </body>
 
 </html>

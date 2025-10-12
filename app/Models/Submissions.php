@@ -27,25 +27,26 @@ class Submissions extends Model
         'leave_date_to',
         'duration',
         'status',
+        'status_submissions',
+        'time_toil',
     ];  
     protected $casts = [
-            'leave_date_form' => 'date:Y-m-d',
-            'leave_date_to' => 'date:Y-m-d',
-     
+          
+      'leave_date_from' => 'datetime',
+        'leave_date_to'   => 'datetime',
     ];
-    public function getDurationAttribute($value)
+     public function getFormattedDurationAttribute()
     {
-        if (is_numeric($value)) {
-            return $value;
+        $from = $this->leave_date_from;
+        $to = $this->leave_date_to;
+
+        if ($from->format('H:i:s') !== '00:00:00' || $to->format('H:i:s') !== '00:00:00') {
+            // Ada jam → pakai hour
+            return $this->duration . ' ' . (\Illuminate\Support\Str::plural('Hour', $this->duration));
         }
 
-        if ($this->leave_date_from && $this->leave_date_to) {
-            $from = Carbon::parse($this->leave_date_from);
-            $to = Carbon::parse($this->leave_date_to);
-            return $from->diffInDays($to) + 1;
-        }
-
-        return 0;
+        // Hanya tanggal → pakai day
+        return $this->duration . ' ' . (\Illuminate\Support\Str::plural('Day', $this->duration));
     }
     public function employee()
     {

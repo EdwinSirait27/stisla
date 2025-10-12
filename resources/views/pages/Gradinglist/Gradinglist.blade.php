@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Gradinglist')
+@section('title', 'Grading List')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -168,7 +168,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Gradinglist</h1>
+                <h1>Grading List</h1>
             </div>
             <div class="section-body">
                 <div class="row">
@@ -209,6 +209,7 @@
             // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
+                autoWidth: false,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('gradinglists.gradinglists') }}',

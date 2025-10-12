@@ -633,13 +633,13 @@ $('#filter-status input[type="checkbox"]:checked').each(function () {
                      
 
                 ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+                // initComplete: function() {
+                //     $('.dataTables_filter input').addClass('form-control');
+                //     $('.dataTables_length select').addClass('form-control');
 
-                    // Add margin to buttons container
-                    $('.dt-buttons').addClass('mb-3');
-                }
+                //     // Add margin to buttons container
+                //     $('.dt-buttons').addClass('mb-3');
+                // }
             });
 
             @if (session('success'))
