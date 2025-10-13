@@ -21,7 +21,7 @@
                         {{-- <form action="{{ route('Fingerprints.update', [$data->pin, $data->scan_date]) }}" method="POST">
                         @csrf --}}
                         {{-- @method('POST') --}}
-                        <pre>{{ json_encode($data, JSON_PRETTY_PRINT) }}</pre>
+                        {{-- <pre>{{ json_encode($data, JSON_PRETTY_PRINT) }}</pre> --}}
 {{-- @dd($data->in_1, $data->in_2) --}}
 
                         <form
