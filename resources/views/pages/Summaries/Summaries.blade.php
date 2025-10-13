@@ -189,6 +189,7 @@
                                                 <th class="text-center">Pending</th>
                                                 <th class="text-center">Approved</th>
                                                 <th class="text-center">Remaining</th>
+                                                <th class="text-center">TOIL Total</th>
                                             </tr>
                                         </thead>
                                     </table>
@@ -261,6 +262,11 @@
                         name: 'remaining',
                         className: 'text-center',
                         defaultContent: 'Empty'
+                    },
+                    {
+                        data: 'total_toil',
+                        name: 'total_toil',
+                        className: 'text-center'
                     }
                 ],
                 initComplete: function() {

@@ -9,10 +9,25 @@ use App\Models\Structure;
 use App\Models\User;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
+use Carbon\CarbonInterval;
+use Carbon\Carbon;
+    use Illuminate\Database\Eloquent\Casts\Attribute;
+
 use Illuminate\Support\Facades\DB;
 
 class SummaryController extends Controller
 {
+
+protected function totalTimeToil(): Attribute
+{
+    return Attribute::make(
+        get: fn($value) => $value
+            ? sprintf('%d Hours %d Minutes', ...sscanf($value, '%d:%d:%d'))
+            : '0 Hours 0 Minutes'
+    );
+}
+
+
       public function index()
     {
         return view('pages.Summaries.Summaries');
@@ -62,7 +77,29 @@ class SummaryController extends Controller
                     ? $summarie->Employee->remaining
                     : '0';
             })
-            ->rawColumns(['employee_name','total','pending','approved','remaining'])
+            // ->addColumn('total_toil', fn($summarie) => $summarie->Employee->total_time_toil ?? '00:00:00')
+// ->addColumn('total_toil', function ($summarie) {
+//     return $summarie->Employee->total_time_toil ?? 'null';
+// })
+// ->addColumn('total_toil', fn($summarie) => $summarie->Employee->total_time_toil ?? '00:00:00')
+->addColumn('total_toil', function ($summarie) {
+    $time = $summarie->Employee->total_time_toil ?? '00:00:00';
+    // Pastikan hasilnya selalu 02:00:00, bukan 20000
+    if (is_numeric($time)) {
+        // Format ulang numeric seperti 20000 → 02:00:00
+        $time = str_pad($time, 6, '0', STR_PAD_LEFT);
+        $time = substr($time, 0, 2) . ':' . substr($time, 2, 2) . ':' . substr($time, 4, 2);
+    }
+    return $time;
+})
+
+
+
+
+
+            ->rawColumns(['employee_name','total','pending','approved','remaining','total_toil'])
             ->make(true);
     }
+    
+
 }

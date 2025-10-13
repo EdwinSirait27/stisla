@@ -36,6 +36,7 @@ class Employee extends Model
         'department_id',
         'fingerprint_id',
         'grading_id',
+        'submissions_id',
         'status_employee',
         'join_date',
         'marriage',
@@ -96,6 +97,10 @@ public static function generateSafePin()
     {
         return $this->belongsTo(Departments::class, 'department_id');
     }
+    public function submission()
+    {
+        return $this->belongsTo(Submissions::class, 'submissions_id');
+    }
     public function grading()
     {
         return $this->belongsTo(Grading::class, 'grading_id');
@@ -149,4 +154,13 @@ public function approvedSubmissions()
 {
     return $this->hasMany(Submissions::class, 'approved_id ');
 }
+  public function submissionstime_toil()
+    {
+        return $this->hasMany(Submissions::class, 'employee_id', 'id');
+    }
+    public function getTotalTimeToilAttribute()
+{
+    return $this->submissionstime_toil()->sum('time_toil');
+}
+
 }

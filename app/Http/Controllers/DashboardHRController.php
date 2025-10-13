@@ -24,6 +24,7 @@ class DashboardHRController extends Controller
     $startDate = $monthDate->copy()->startOfMonth();
     $endDate   = $monthDate->copy()->endOfMonth();
         $types = ['Annual Leave', 'Overtime'];
+        $statussubmissions = ['Cash', 'TOIL'];
 
 
     // Hitung jumlah karyawan aktif/pending
@@ -71,11 +72,11 @@ foreach ($submissions as $submission) {
         $submission->duration = $from->diffInDays($to) + 1; // termasuk tanggal mulai
     }
 }
-
     return view('pages.dashboardHR.dashboardHR', [
         'month'          => $month,
-        'days'           => $days,
-        'types'           => $types,
+        'days'            => $days,
+        'types'          => $types,
+        'statussubmissions'=> $statussubmissions,
         'percentages'    => $percentages,
         'pendingSubmissions'         => $submissions,
         'totalEmployees' => $totalEmployees,
@@ -314,7 +315,6 @@ public function getMonthlyData(Request $request)
     $request->validate([
         'title' => 'required|string|max:255',
         'content' => 'required|string',
-      
         'publish_date' => 'required|date',
         'end_date' => 'nullable|date',
     ]);

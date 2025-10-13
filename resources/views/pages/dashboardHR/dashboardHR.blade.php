@@ -233,10 +233,7 @@
 
                                                 <span class="text-small text-muted">
                                                     {{ ucfirst($submission->type) }} -
-                                                    {{-- {{ $submission->duration }} --}}
-                                                    {{-- {{ Str::plural('Day/Hour', $submission->duration) }} --}}
                                                     {{ $submission->formattedDuration }}
-                                                    {{-- {{ ucfirst($submission->type) }} - {{ $submission->formattedDuration }} --}}
                                                 </span>
                                             </div>
                                         </li>
@@ -251,8 +248,11 @@
 
                                 <div class="text-center pt-1 pb-1">
                                     <a href="#" class="btn btn-primary btn-lg btn-round">
-                                        View All Submissions
+                                        View Your Submissions
                                     </a>
+                                    {{-- <a href="#" class="btn btn-primary btn-lg btn-round">
+                                        View All Submissions
+                                    </a> --}}
                                 </div>
                             </div>
                         </div>
@@ -400,7 +400,7 @@
                         </div>
                     </div> --}}
                     <div class="modal-body">
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label class="form-label">Type</label>
                             <select name="type" id="type"
                                 class="form-control select2 @error('type') is-invalid @enderror"required>
@@ -411,22 +411,51 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Overtime Type</label>
+                            <select name="status_submissions" id="status_submissions"
+                                class="form-control select2 @error('status_submissions') is-invalid @enderror"required>
+                                <option value="">Choose Status Submissions</option>
+                                @foreach ($statussubmissions as $value)
+                                    <option value="{{ $value }}" {{ old('status_submissions') == $value ? 'selected' : '' }}>
+                                        {{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div> --}}
+                        <div class="mb-3">
+    <label class="form-label">Type</label>
+    <select name="type" id="type"
+        class="form-control select2 @error('type') is-invalid @enderror" required>
+        <option value="">Choose Type</option>
+        @foreach ($types as $value)
+            <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>
+                {{ $value }}</option>
+        @endforeach
+    </select>
+</div>
+
+<div class="mb-3" id="statusDiv" style="display: none;">
+    <label class="form-label">Overtime Type</label>
+    <select name="status_submissions" id="status_submissions"
+        class="form-control select2 @error('status_submissions') is-invalid @enderror">
+        <option value="">Choose Status Submissions</option>
+        @foreach ($statussubmissions as $value)
+            <option value="{{ $value }}" {{ old('status_submissions') == $value ? 'selected' : '' }}>
+                {{ $value }}</option>
+        @endforeach
+    </select>
+</div>
 
                         <div class="mb-3">
                             <label class="form-label">Leave Date From</label>
                             <input type="date" name="leave_date_from" id="leave_date_from" class="form-control"
                                 required>
                         </div>
-
                         <div class="mb-3">
                             <label class="form-label">Leave Date To</label>
                             <input type="date" name="leave_date_to" id="leave_date_to" class="form-control" required>
                         </div>
                     </div>
-
-
-
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">
@@ -459,19 +488,45 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        // $(document).ready(function() {
+        //     $('#type').on('change', function() {
+        //         const type = $(this).val();
+        //         if (type === 'Overtime') {
+        //             $('#leave_date_from').attr('type', 'datetime-local');
+        //             $('#leave_date_to').attr('type', 'datetime-local');
+        //         } else {
+        //             $('#leave_date_from').attr('type', 'date');
+        //             $('#leave_date_to').attr('type', 'date');
+        //         }
+        //     });
+            
+        // });
         $(document).ready(function() {
-            $('#type').on('change', function() {
-                const type = $(this).val();
+    function toggleFields(type) {
+        // Toggle date/datetime
+        if (type === 'Overtime') {
+            $('#leave_date_from').attr('type', 'datetime-local');
+            $('#leave_date_to').attr('type', 'datetime-local');
+            // Tampilkan status_submissions
+            $('#statusDiv').show();
+        } else {
+            $('#leave_date_from').attr('type', 'date');
+            $('#leave_date_to').attr('type', 'date');
+            // Sembunyikan status_submissions
+            $('#statusDiv').hide();
+        }
+    }
 
-                if (type === 'Overtime') {
-                    $('#leave_date_from').attr('type', 'datetime-local');
-                    $('#leave_date_to').attr('type', 'datetime-local');
-                } else {
-                    $('#leave_date_from').attr('type', 'date');
-                    $('#leave_date_to').attr('type', 'date');
-                }
-            });
-        });
+    // Trigger saat halaman load (untuk old value)
+    toggleFields($('#type').val());
+
+    // Trigger saat user ganti select
+    $('#type').on('change', function() {
+        const type = $(this).val();
+        toggleFields(type);
+    });
+});
+
     </script>
     <script>
         let ctx = document.getElementById('attendanceChart').getContext('2d');

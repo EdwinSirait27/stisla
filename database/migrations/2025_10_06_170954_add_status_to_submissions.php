@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('submissions', function (Blueprint $table) {
             // $table->enum('status')->default(false)->nullable();
             $table->enum('status_submissions', ['Cash','TOIL'])->nullable();
-            $table->time('time_toil')->nullable();
         });
     }
     /**

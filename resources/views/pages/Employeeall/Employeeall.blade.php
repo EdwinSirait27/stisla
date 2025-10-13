@@ -225,7 +225,7 @@
                                                 <th class="text-center">Action</th>
                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Employee Name</th>
-                                                <th class="text-center">Employee ID</th>
+                                                <th class="text-center">NIP</th>
                                                 <th class="text-center">Company</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Department</th>
@@ -257,8 +257,6 @@
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Grd Code</th>
                                                 <th class="text-center">Grd Name</th>
-
-
                                             </tr>
                                         </thead>
                                     </table>

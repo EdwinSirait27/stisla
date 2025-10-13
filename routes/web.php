@@ -78,8 +78,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
         Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
     });
-    Route::group(['middleware' => ['permission:SubmissionsCreate']], function () {
-        Route::post('/Submissions', [SubmissionsController::class, 'store'])->name('Submissions.store');
+Route::middleware(['auth'])->group(function () {
+    
+    Route::post('/Submissions', [SubmissionsController::class, 'store'])->name('Submissions.store');
     });
 
     Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {

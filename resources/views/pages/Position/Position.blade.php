@@ -176,7 +176,6 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Positions</h6>
                             </div>
-
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">

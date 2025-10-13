@@ -34,6 +34,7 @@ class Submissions extends Model
           
       'leave_date_from' => 'datetime',
         'leave_date_to'   => 'datetime',
+        // 'time_toil' => 'string',
     ];
      public function getFormattedDurationAttribute()
     {
@@ -56,4 +57,5 @@ class Submissions extends Model
     {
         return $this->belongsTo(Employee::class, 'approver_id', 'id');
     }
+    
 }
