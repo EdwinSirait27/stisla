@@ -184,7 +184,7 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Company</th>
                                                 <th class="text-center">Grd Name</th>
@@ -440,11 +440,11 @@ $(document).ready(function() {
             infoFiltered: "(filtered from _MAX_ total entries)"
         },
         columns: [
-            { data: null, className: 'text-center align-middle',
-              render: function(data, type, row, meta) {
-                  return meta.row + meta.settings._iDisplayStart + 1;
-              }
-            },
+            // { data: null, className: 'text-center align-middle',
+            //   render: function(data, type, row, meta) {
+            //       return meta.row + meta.settings._iDisplayStart + 1;
+            //   }
+            // },
             { data: 'employee_name', className: 'text-center' },
             { data: 'name_company', className: 'text-center' },
             { data: 'grading_name', className: 'text-center' },

@@ -28,5 +28,9 @@ class Stores extends Model
     {
         return $this->belongsTo(User::class, 'manager_id', 'id');
     }
+       public function employees()
+{
+    return $this->hasMany(Employee::class, 'store_id', 'id');
+}
 }
 

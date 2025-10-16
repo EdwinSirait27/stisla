@@ -4,8 +4,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Ramsey\Uuid\Uuid;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+
+use Illuminate\Database\Eloquent\Collection;
 class Employee extends Model
 {
     use HasFactory;
@@ -22,8 +25,8 @@ class Employee extends Model
         });
     }
     protected $casts = [
-        'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil   
-        'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil   
+        'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+        'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
     ];
     protected $fillable = [
         'employee_name',
@@ -95,7 +98,7 @@ public static function generateSafePin()
 }
     public function department()
     {
-        return $this->belongsTo(Departments::class, 'department_id');
+        return $this->belongsTo(Departments::class, 'department_id','id');
     }
     public function submission()
     {
@@ -115,7 +118,7 @@ public static function generateSafePin()
     }
     public function company()
     {
-        return $this->belongsTo(Company::class, 'company_id');
+        return $this->belongsTo(Company::class, 'company_id','id');
     }
     public function position()
     {
@@ -163,4 +166,118 @@ public function approvedSubmissions()
     return $this->submissionstime_toil()->sum('time_toil');
 }
 
+
+
+
+
+
+
+public function manager()
+{
+    return $this->belongsTo(Employee::class, 'level_id');
 }
+
+public function subordinates()
+{
+    return $this->hasMany(Employee::class, 'level_id');
+}
+
+public function subordinatesRecursive()
+{
+    return $this->subordinates()->with('subordinatesRecursive');
+}
+
+public function departmentMembers()
+{
+    return Employee::where('department_id', $this->department_id)->get();
+}
+
+/**
+ * Kembalikan array id semua bawahan (rekursif)
+ */
+public function getAllSubordinateIds(): array
+{
+    $ids = $this->subordinates()->pluck('id')->toArray();
+
+    foreach ($this->subordinates as $sub) {
+        $ids = array_merge($ids, $sub->getAllSubordinateIds());
+    }
+
+    return $ids;
+}
+
+/**
+ * Ambil semua bawahan sebagai Eloquent Collection (rekursif)
+ *
+ * @return \Illuminate\Database\Eloquent\Collection
+ */
+public function getAllSubordinates(): EloquentCollection
+{
+    // mulai dengan Eloquent Collection kosong
+    $all = new EloquentCollection();
+
+    // ambil direct subordinates (query ke DB)
+    $direct = $this->subordinates()->get();
+
+    foreach ($direct as $sub) {
+        // tambahkan subordinate langsung
+        $all->push($sub);
+
+        // rekursif: ambil koleksi Eloquent dari bawahannya
+        $subSubs = $sub->getAllSubordinates(); // ini sudah EloquentCollection
+
+        // merge: EloquentCollection->merge mengembalikan Support collection,
+        // jadi gunakan add() atau concat cara yang aman:
+        foreach ($subSubs as $ss) {
+            $all->push($ss);
+        }
+    }
+
+    // unikkan berdasarkan id (jika ada duplikat)
+    $all = $all->unique('id')->values();
+
+    return $all;
+}
+public function departmentSubordinates(): Collection
+{
+    return Employee::where('department_id', $this->department_id)
+        ->where('id', '!=', $this->id)
+        ->get();
+}
+public function getAllSubordinatesByDepartment(): Collection
+{
+    // Ambil semua dalam 1 department
+    $all = Employee::where('department_id', $this->department_id)->get();
+
+    // Pisahkan mereka yang bukan dirinya sendiri
+    return $all->where('id', '!=', $this->id);
+}
+
+}
+
+// /**
+//  * Ambil semua bawahan (rekursif)
+//  */
+// public function subordinatesRecursive()
+// {
+//     return $this->subordinates()->with('subordinatesRecursive');
+// }
+
+// /**
+//  * Ambil semua employee dalam 1 departemen (manajer + bawahannya)
+//  */
+// public function departmentMembers()
+// {
+//     return Employee::where('department_id', $this->department_id)->get();
+// }
+// public function getAllSubordinateIds(): array
+// {
+//     $ids = $this->subordinates->pluck('id')->toArray();
+//     foreach ($this->subordinates as $sub) {
+//         $ids = array_merge($ids, $sub->getAllSubordinateIds());
+//     }
+//     return $ids;
+// }
+
+
+// }

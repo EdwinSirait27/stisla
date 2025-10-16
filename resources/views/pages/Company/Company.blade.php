@@ -183,7 +183,7 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                {{-- <th class="text-center">No.</th> --}}
                                                 {{-- <th class="text-center">Company Key</th> --}}
                                                 {{-- <th class="text-center">Photo</th> --}}
                                                 <th class="text-center">Name</th>
@@ -231,14 +231,14 @@
                     searchPlaceholder: "Search...",
                 },
             columns: [
-                {
-                    data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
+                // {
+                //     data: null,
+                //         name: 'id',
+                //         className: 'text-center align-middle',
+                //         render: function(data, type, row, meta) {
+                //             return meta.row + meta.settings._iDisplayStart + 1;
+                //         }
+                //     },
                     //  { data: 'id', name: 'id', className: 'text-center' },
                 // {
                 //         data: 'foto',

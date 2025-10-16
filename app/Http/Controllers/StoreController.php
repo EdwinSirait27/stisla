@@ -17,8 +17,11 @@ class StoreController extends Controller
     }
     public function getStores()
     {
-        $stores = Stores::with('user.Employee')->select(['id', 'name','address','phone_num','manager_id'])
-            ->get()
+        $stores = Stores::with(['employees' => function ($query) {
+            $query->where('is_manager', 1);
+        }])
+        ->select(['id','name','address','phone_num'])
+        ->get()
             ->map(function ($store) {
                 $store->id_hashed = substr(hash('sha256', $store->id . env('APP_KEY')), 0, 8);
                 $store->action = '
@@ -28,12 +31,19 @@ class StoreController extends Controller
                 return $store;
             });
         return DataTables::of($stores)
-        ->addColumn('employee_name', function ($store) {
-            return !empty($store->user->Employee) && !empty($store->user->Employee->employee_name)
-                ? $store->user->Employee->employee_name
-                : 'Empty';
+        // ->addColumn('employee_name', function ($store) {
+        //     return !empty($store->user->Employee) && !empty($store->user->Employee->employee_name)
+        //         ? $store->user->Employee->employee_name
+        //         : 'Empty';
+        // })
+         ->addColumn('employee_name', function ($store) {
+            if (!empty($store->employees) && $store->employees->count() > 0) {
+                // Bisa ada lebih dari satu manager, ambil nama-namanya
+                return $store->employees->pluck('employee_name')->join(', ');
+            }
+            return 'Empty';
         })
-            ->rawColumns(['action','employee_name'])
+            ->rawColumns(['action'])
             ->make(true);
     }
     public function edit($hashedId)
@@ -46,36 +56,15 @@ class StoreController extends Controller
         if (!$store) {
             abort(404, 'Store not found.');
         }
-
-    //     $managers = User::with('Employee')
-    // ->get()
-    // ->pluck('Employee.employee_name','id');
-    $managers = User::whereHas('Employee', function ($q) {
-        $q->where('status', 'Active'); // filter status di tabel employees
-    })
-    ->with('Employee')
-    ->get()
-    ->pluck('Employee.employee_name', 'id');
         return view('pages.Store.edit', [
             'store' => $store,
             'hashedId' => $hashedId,
-            'managers' => $managers,
         ]);
     }
  
     public function create()
     {
-    //    $managers = User::with('Employee')
-    // ->get()
-    // ->pluck('Employee.employee_name','id');
-    $managers = User::whereHas('Employee', function ($q) {
-        $q->where('status', 'Active'); // filter status di tabel employees
-    })
-    ->with('Employee')
-    ->get()
-    ->pluck('Employee.employee_name', 'id');
-        
-        return view('pages.Store.create',compact('managers'));
+        return view('pages.Store.create');
     }
 
     public function store(Request $request)
@@ -85,8 +74,8 @@ class StoreController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string','max:255', 'unique:stores_tables,name',
                 new NoXSSInput()],
-            'manager_id' => ['required','max:255',
-                new NoXSSInput()],
+            // 'manager_id' => ['required','max:255',
+            //     new NoXSSInput()],
             // 'manager_id' => ['required','max:255', 'unique:stores_tables,manager_id',
             //     new NoXSSInput()],
             'address' => ['required','max:255', 
@@ -98,7 +87,6 @@ class StoreController extends Controller
             'name.required' => 'name wajib diisi.',
             'name.string' => 'name hanya boleh berupa teks.',
             'name.max' => 'Username maksimal terdiri dari 255 karakter.',
-            'manager_id.required' => 'manager wajib diisi.',
             'address.required' => 'address wajib diisi.',
             'phone_num.required' => 'telephone number wajib diisi.',
             // 'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
@@ -107,7 +95,6 @@ class StoreController extends Controller
             DB::beginTransaction();
             $store = Stores::create([
                 'name' => $validatedData['name'], 
-                'manager_id' => $validatedData['manager_id'], 
                 'address' => $validatedData['address'], 
                 'phone_num' => $validatedData['phone_num'],  
             ]);
@@ -132,8 +119,8 @@ class StoreController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255',Rule::unique('stores_tables')->ignore($store->id),
             new NoXSSInput()],
-            'manager_id' => ['required', 'string', 'max:255',
-            new NoXSSInput()],
+            // 'manager_id' => ['required', 'string', 'max:255',
+            // new NoXSSInput()],
             // 'manager_id' => ['required', 'string', 'max:255', Rule::unique('stores_tables')->ignore($store->id),
             // new NoXSSInput()],
 
@@ -146,7 +133,6 @@ class StoreController extends Controller
         'name.required' => 'name wajib diisi.',
         'name.string' => 'name hanya boleh berupa teks.',
         'name.max' => 'Username maksimal terdiri dari 255 karakter.',
-        'manager_id.required' => 'manager wajib diisi.',
         'address.required' => 'address wajib diisi.',
         'phone_num.required' => 'telephone number wajib diisi.',
         // 'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
@@ -156,7 +142,7 @@ class StoreController extends Controller
             'name' => $validatedData['name'],
             'address' => $validatedData['address'],
             'phone_num' => $validatedData['phone_num'],
-            'manager_id' => $validatedData['manager_id'],
+            // 'manager_id' => $validatedData['manager_id'],
             
         ];
         DB::beginTransaction();

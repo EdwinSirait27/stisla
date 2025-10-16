@@ -183,7 +183,10 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                {{-- <th class="text-center">No.</th> --}}
+                                                <th class="text-center">Company</th>
+                                                <th class="text-center">Department</th>
+                                                <th class="text-center">Manager Department</th>
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">Superior</th>
                                                 <th class="text-center">Is Manager?</th>
@@ -230,13 +233,29 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
+                columns: [
+                    // {
+                    //     data: null,
+                    //     name: 'id',
+                    //     className: 'text-center align-middle',
+                    //     render: function(data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     }
+                    // },
+                    {
+                        data: 'company_name',
+                        name: 'company_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_name',
+                        name: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'manager_name',
+                        name: 'manager_name',
+                        className: 'text-center'
                     },
                     {
                         data: 'employee_name',

@@ -183,11 +183,11 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                {{-- <th class="text-center">No.</th> --}}
+                                                <th class="text-center">Manager Name</th>
                                                <th class="text-center">Location Name</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">Phone Number</th>
-                                                <th class="text-center">Manager Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -231,13 +231,19 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
+                columns: [
+                    // {
+                    //     data: null,
+                    //     name: 'id',
+                    //     className: 'text-center align-middle',
+                    //     render: function(data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     }
+                    // },
+                     {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
                     },
                    
                     {
@@ -255,11 +261,11 @@
                         name: 'phone_num',
                         className: 'text-center'
                     },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'employee_name',
+                    //     name: 'employee_name',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'action',
                         name: 'action',
@@ -269,8 +275,8 @@
                     }
                 ],
                 initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+                    // $('.dataTables_filter input').addClass('form-control');
+                    // $('.dataTables_length select').addClass('form-control');
                 }
             });
 

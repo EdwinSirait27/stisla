@@ -359,7 +359,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="createSubmissionModal" tabindex="-1" role="dialog"
+    {{-- <div class="modal fade" id="createSubmissionModal" tabindex="-1" role="dialog"
         aria-labelledby="createSubmissionLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -373,55 +373,8 @@
                                 aria-hidden="true">&times;</span></button>
                     </div>
 
-                    {{-- <div class="modal-body">
-                     
-                        <div class="mb-3">
-                            <label class="form-label">Type</label>
-                            <select name="type" id="type" class="form-control select2" required>
-                                <option value="" disabled selected>-- Select Type --</option>
-                                <option value="Annual Leave">Annual Leave</option>
-                                <option value="Overtime">Overtime</option>
-                            </select>
-                        </div>
-
-
-                        <div class="mb-3">
-                            <label class="form-label">Leave Date From</label>
-                            <input type="date" name="leave_date_from" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Leave Date To</label>
-                            <input type="date" name="leave_date_to" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Duration</label>
-                            <input type="number" name="duration" class="form-control" required>
-                        </div>
-                    </div> --}}
+                
                     <div class="modal-body">
-                        {{-- <div class="mb-3">
-                            <label class="form-label">Type</label>
-                            <select name="type" id="type"
-                                class="form-control select2 @error('type') is-invalid @enderror"required>
-                                <option value="">Choose Type</option>
-                                @foreach ($types as $value)
-                                    <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>
-                                        {{ $value }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Overtime Type</label>
-                            <select name="status_submissions" id="status_submissions"
-                                class="form-control select2 @error('status_submissions') is-invalid @enderror"required>
-                                <option value="">Choose Status Submissions</option>
-                                @foreach ($statussubmissions as $value)
-                                    <option value="{{ $value }}" {{ old('status_submissions') == $value ? 'selected' : '' }}>
-                                        {{ $value }}</option>
-                                @endforeach
-                            </select>
-                        </div> --}}
                         <div class="mb-3">
     <label class="form-label">Type</label>
     <select name="type" id="type"
@@ -465,13 +418,120 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div> --}}
+    <div class="modal fade" id="createSubmissionModal" tabindex="-1" role="dialog"
+    aria-labelledby="createSubmissionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="{{ route('Submissions.store') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createSubmissionLabel">
+                        <i class="fas fa-plus me-2"></i> Create New Submission
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
 
-    {{-- <select name="type" id="type" class="form-control select2" required>
-            <option value="" disabled selected>-- Select Type --</option>
-            <option value="Annual Leave">Annual Leave</option>
-            <option value="Overtime">Overtime</option>
-        </select> --}}
+                <div class="modal-body">
+
+                    {{-- 🔹 Type Submission --}}
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select name="type" id="type"
+                            class="form-control select2 @error('type') is-invalid @enderror" required>
+                            <option value="">Choose Type</option>
+
+                            {{-- Hanya tampilkan Overtime jika user manager --}}
+                            @foreach ($types as $value)
+                                @if ($value === 'Overtime' && !$canCreateOvertime)
+                                    @continue
+                                @endif
+                                <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>
+                                    {{ $value }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- 🔹 Jika Type = Overtime → tampilkan opsi status --}}
+                    <div class="mb-3" id="statusDiv" style="display: none;">
+                        <label class="form-label">Overtime Type</label>
+                        <select name="status_submissions" id="status_submissions"
+                            class="form-control select2 @error('status_submissions') is-invalid @enderror">
+                            <option value="">Choose Status Submissions</option>
+                            @foreach ($statussubmissions as $value)
+                                <option value="{{ $value }}" {{ old('status_submissions') == $value ? 'selected' : '' }}>
+                                    {{ $value }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- 🔹 Employee list (hanya untuk manager dan hanya saat Overtime) --}}
+                    {{-- @if ($canCreateOvertime)
+                        <div class="mb-3" id="employeeList" style="display: none;">
+                            <label class="form-label">Select Employee(s)</label>
+                            <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;">
+                                @foreach ($managedEmployees as $emp)
+                                    <div class="form-check">
+                                        <input type="checkbox" name="employee_ids[]" value="{{ $emp->id }}"
+                                            class="form-check-input" id="emp_{{ $emp->id }}">
+                                        <label for="emp_{{ $emp->id }}" class="form-check-label">
+                                            {{ $emp->employee_name }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <small class="text-muted">Manager dapat memilih dirinya sendiri atau bawahan satu departemen.</small>
+                        </div>
+                    @else
+                        <input type="hidden" name="employee_ids[]" value="{{ Auth::user()->employee->id }}">
+                    @endif --}}
+                    @if ($canCreateOvertime)
+    <div class="mb-3" id="employeeList" style="display: none;">
+        <label class="form-label">Select Employee(s)</label>
+        <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;">
+            @foreach ($managedEmployees as $emp)
+                <div class="form-check">
+                    <input type="checkbox" name="employee_ids[]" value="{{ $emp->id }}"
+                        class="form-check-input" id="emp_{{ $emp->id }}">
+                    <label for="emp_{{ $emp->id }}" class="form-check-label">
+                        {{ $emp->employee_name }}
+                    </label>
+                </div>
+            @endforeach
+        </div>
+        <small class="text-muted">Manager dapat memilih dirinya sendiri atau bawahan satu departemen.</small>
+    </div>
+@endif
+
+
+                    {{-- 🔹 Date fields --}}
+                    <div class="mb-3">
+                        <label class="form-label">Leave Date From</label>
+                        <input type="date" name="leave_date_from" id="leave_date_from"
+                            class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Leave Date To</label>
+                        <input type="date" name="leave_date_to" id="leave_date_to"
+                            class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+   
 @endsection
 @push('scripts')
     <!-- JS Libraries -->
@@ -499,33 +559,67 @@
         //             $('#leave_date_to').attr('type', 'date');
         //         }
         //     });
-            
+
         // });
-        $(document).ready(function() {
-    function toggleFields(type) {
-        // Toggle date/datetime
-        if (type === 'Overtime') {
-            $('#leave_date_from').attr('type', 'datetime-local');
-            $('#leave_date_to').attr('type', 'datetime-local');
-            // Tampilkan status_submissions
-            $('#statusDiv').show();
-        } else {
-            $('#leave_date_from').attr('type', 'date');
-            $('#leave_date_to').attr('type', 'date');
-            // Sembunyikan status_submissions
-            $('#statusDiv').hide();
+//         $(document).ready(function() {
+//     function toggleFields(type) {
+//         // Toggle date/datetime
+//         if (type === 'Overtime') {
+//             $('#leave_date_from').attr('type', 'datetime-local');
+//             $('#leave_date_to').attr('type', 'datetime-local');
+//             // Tampilkan status_submissions
+//             $('#statusDiv').show();
+//         } else {
+//             $('#leave_date_from').attr('type', 'date');
+//             $('#leave_date_to').attr('type', 'date');
+//             // Sembunyikan status_submissions
+//             $('#statusDiv').hide();
+//         }
+//     }
+
+//     // Trigger saat halaman load (untuk old value)
+//     toggleFields($('#type').val());
+
+//     // Trigger saat user ganti select
+//     $('#type').on('change', function() {
+//         const type = $(this).val();
+//         toggleFields(type);
+//     });
+// });
+  $(document).ready(function() {
+
+        function toggleFields(type) {
+            if (type === 'Overtime') {
+                $('#leave_date_from').attr('type', 'datetime-local');
+                $('#leave_date_to').attr('type', 'datetime-local');
+                $('#statusDiv').show();
+
+                // tampilkan list employee jika manager
+                @if ($canCreateOvertime)
+                    $('#employeeList').show();
+                @endif
+
+            } else {
+                $('#leave_date_from').attr('type', 'date');
+                $('#leave_date_to').attr('type', 'date');
+                $('#statusDiv').hide();
+
+                // sembunyikan list employee
+                @if ($canCreateOvertime)
+                    $('#employeeList').hide();
+                @endif
+            }
         }
-    }
 
-    // Trigger saat halaman load (untuk old value)
-    toggleFields($('#type').val());
+        // Trigger awal
+        toggleFields($('#type').val());
 
-    // Trigger saat user ganti select
-    $('#type').on('change', function() {
-        const type = $(this).val();
-        toggleFields(type);
+        // Trigger setiap ganti Type
+        $('#type').on('change', function() {
+            const type = $(this).val();
+            toggleFields(type);
+        });
     });
-});
 
     </script>
     <script>
@@ -688,7 +782,7 @@
 
             });
         });
-        // preview modal 
+        // preview modal
         $(document).on('click', '.preview-btn', function() {
             let title = $(this).data('title');
             let content = $(this).data('content');
@@ -816,187 +910,3 @@
         </script>
     @endpush
 @endpush
-{{-- <div class="col-lg-4 col-md-12 col-12 col-sm-12">
-                        <div class="card">
-
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4>
-                                    <i class="fas fa-atom me-2"></i>
-                                    Submission Pending
-                                </h4>
-                                <button id="btn-submission" class="btn btn-primary btn-sm" data-toggle="modal"
-                                    data-target="#createSubmissionModal">
-                                    <i class="fas fa-plus me-1"></i>
-                                    Create Submission
-                                </button>
-
-
-                            </div>
-
-                            <div class="card-body">
-
-                                <ul class="list-unstyled list-unstyled-border">
-                                    @forelse($pendingSubmissions as $submission)
-                                        <li class="media">
-                                            <img class="mr-3 rounded-circle" width="50"
-                                                src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
-                                                alt="avatar">
-
-                                            <div class="media-body">
-                                                <div class="float-right">
-                                                    <small>{{ $submission->created_at->diffForHumans() }}</small>
-                                                </div>
-
-                                                <div class="media-title">
-                                                    {{ $submission->employee->employee_name }}
-                                                </div>
-
-                                                <span class="text-small text-muted">
-                                                    {{ ucfirst($submission->type) }} -
-                                                    {{ $submission->duration }}
-                                                    {{ Str::plural('Day', $submission->duration) }}
-                                                </span>
-                                            </div>
-                                        </li>
-                                    @empty
-                                        <li class="media">
-                                            <div class="media-body text-center text-muted">
-                                                Belum ada pengajuan pending.
-                                            </div>
-                                        </li>
-                                    @endforelse
-                                </ul>
-
-                                <div class="text-center pt-1 pb-1">
-                                    <a href="#" class="btn btn-primary btn-lg btn-round">
-                                        View All Submissions
-                                    </a>
-                                </div>
-                            </div>
-
-
-
-                            <div class="modal fade" id="createSubmissionModal" tabindex="-1"
-                                aria-labelledby="createSubmissionLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <form action="{{ route('Submissions.store') }}" method="POST">
-                                            @csrf
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="createSubmissionLabel">
-                                                    <i class="fas fa-plus me-2"></i> Create New Submission
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Type</label>
-                                                    <input type="text" name="type" class="form-control"
-                                                        placeholder="Example: Annual Leave" required>
-                                                </div>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label">Leave Date From</label>
-                                                    <input type="date" name="leave_date_from" class="form-control"
-                                                        required>
-                                                </div>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label">Leave Date To</label>
-                                                    <input type="date" name="leave_date_to" class="form-control"
-                                                        required>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-save me-1"></i> Save
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
-
-
-
-
-                        </div>
-                    </div> --}}
-{{-- // let ctx = document.getElementById('attendanceChart').getContext('2d');
-
-        // let attendanceChart = new Chart(ctx, {
-        //     type: 'bar',
-        //     data: {
-        //         labels: [], // Senin–Sabtu nanti dari AJAX
-        //         datasets: [{
-        //             label: 'Number of Attendees',
-        //             data: [],
-        //             backgroundColor: 'rgba(54, 162, 235, 0.6)',
-        //             borderColor: 'rgba(54, 162, 235, 1)',
-        //             borderWidth: 1
-        //         }]
-        //     },
-        //     options: {
-        //         responsive: true,
-        //         scales: {
-        //             y: {
-        //                 beginAtZero: true,
-        //                 // tidak perlu max: 100 karena bukan persen lagi
-        //                 ticks: {
-        //                     precision: 0 // biar tidak ada koma
-        //                 },
-        //                 title: {
-        //                     display: true,
-        //                     text: 'Jumlah Karyawan Hadir'
-        //                 }
-        //             },
-        //             x: {
-        //                 title: {
-        //                     display: true,
-        //                     text: 'Hari (Senin–Sabtu)'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // });
-
-        // function loadChartData(month) {
-        //     fetch(`{{ route('dashboardHR.data') }}?month=${month}`)
-        //         .then(res => res.json())
-        //         .then(data => {
-        //             attendanceChart.data.labels = data.days;
-        //             attendanceChart.data.datasets[0].data = data.counts; // pakai counts dari controller
-        //             attendanceChart.update();
-        //         });
-        // }
-
-        // document.addEventListener("DOMContentLoaded", function() {
-        //     loadChartData(document.getElementById('monthPicker').value);
-        // });
-
-        // document.getElementById('monthPicker').addEventListener('change', function() {
-        //     loadChartData(this.value);
-        // });
-        //    flatpickr("#monthPicker", {
-        //     locale: "en", // Bahasa Indonesia
-        //     plugins: [
-        //         new monthSelectPlugin({
-        //             shorthand: true, // Jan, Feb, ...
-        //             dateFormat: "Y-m", // format kirim ke backend
-        //             altFormat: "F Y", // format tampilan
-        //             theme: "light",
-        //             // bisa diganti "dark", "material_blue", dll
-        //         })
-        //     ]
-        // }); --}}
-{{-- <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <input type="text" name="type" class="form-control"
-                            placeholder="Example: Annual Leave" required>
-                    </div> --}}

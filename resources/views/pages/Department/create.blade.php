@@ -227,34 +227,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                         
-                                       <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="manager_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
-                                                    </label>
-                                                    <div>
-
-                                                         <select name="manager_id"
-                                                            class="form-control select2 @error('manager_id') is-invalid @enderror"
-                                                            required>
-                                                            <option value="">Choose Manager</option>
-                                                            @foreach ($managers as $id => $employeeName)
-        <option value="{{ $id }}" {{ old('manager_id') == $id ? 'selected' : '' }}>
-            {{ $employeeName }}
-        </option>
-    @endforeach
-                                                        </select>
-                                                        @error('manager_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-
-                                                    </div>
-                                                </div>
                                             </div>
-                                        </div>
+                                         
+                                    
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

@@ -266,7 +266,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            </div>
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="manager_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
@@ -292,7 +293,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                        
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

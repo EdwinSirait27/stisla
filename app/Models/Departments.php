@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
-
 class Departments extends Model
 {
     use HasFactory;
@@ -29,4 +28,9 @@ class Departments extends Model
     {
         return $this->belongsTo(User::class, 'manager_id', 'id');
     }
+    public function employees()
+{
+    return $this->hasMany(Employee::class, 'department_id', 'id');
+}
+
 }

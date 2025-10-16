@@ -182,7 +182,7 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Date</th>
                                                 <th class="text-center">Remark</th>
                                                 <th class="text-center">Type</th>
@@ -229,14 +229,15 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
+                columns: [
+                    // {
+                    //     data: null,
+                    //     name: 'id',
+                    //     className: 'text-center align-middle',
+                    //     render: function(data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     }
+                    // },
                   
                     {
                         data: 'date',
@@ -255,8 +256,8 @@
                     }
                 ],
                 initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+                    // $('.dataTables_filter input').addClass('form-control');
+                    // $('.dataTables_length select').addClass('form-control');
                 }
             });
 

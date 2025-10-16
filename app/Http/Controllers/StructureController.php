@@ -27,6 +27,7 @@ class StructureController extends Controller
                 },
                 'Employee.employees',
                 'Employee.company',
+                'Employee.department',
             ])
             ->select(['id', 'employee_id'])
             ->get()
@@ -39,9 +40,24 @@ class StructureController extends Controller
                 return $employee;
             });
         return DataTables::of($employees)
+            ->addColumn('company_name', function ($employee) {
+                return !empty($employee->Employee->company) && !empty($employee->Employee->company->name)
+                    ? $employee->Employee->company->name
+                    : 'Empty';
+            })
             ->addColumn('employee_name', function ($employee) {
                 return !empty($employee->Employee) && !empty($employee->Employee->employee_name)
                     ? $employee->Employee->employee_name
+                    : 'Empty';
+            })
+            ->addColumn('department_name', function ($employee) {
+                return !empty($employee->Employee->department) && !empty($employee->Employee->department->department_name)
+                    ? $employee->Employee->department->department_name
+                    : 'Empty';
+            })
+            ->addColumn('manager_name', function ($employee) {
+                return !empty($employee->Employee->department->user->employee) && !empty($employee->Employee->department->user->employee->employee_name)
+                    ? $employee->Employee->department->user->employee->employee_name
                     : 'Empty';
             })
 

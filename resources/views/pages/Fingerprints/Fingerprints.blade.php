@@ -239,10 +239,10 @@
                                                 <th class="text-center">Scan Date</th>
                                                 <th class="text-center">In</th>
                                                 <th class="text-center">Out</th>
-                                                <th class="text-center">Overtime</th>
-                                                <th class="text-center">Overtime</th>
-                                                <th class="text-center">Overtime</th>
-                                                <th class="text-center">Overtime</th>
+                                                <th class="text-center">Break In</th>
+                                                <th class="text-center">Break Out</th>
+                                                <th class="text-center">Ovt In</th>
+                                                <th class="text-center">Ovt Out</th>
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>

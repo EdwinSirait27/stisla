@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
-    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -182,7 +181,7 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Grading Code</th>
                                                 <th class="text-center">Grading Name</th>
                                                 {{-- <th class="text-center">Action</th> --}}
@@ -228,14 +227,15 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
+                columns: [
+                    // {
+                    //     data: null,
+                    //     name: 'id',
+                    //     className: 'text-center align-middle',
+                    //     render: function(data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     }
+                    // },
                   
                     {
                         data: 'grading_code',
