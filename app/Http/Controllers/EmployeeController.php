@@ -321,6 +321,11 @@ class EmployeeController extends Controller
                 'boolean',
                 new NoXSSInput()
             ],
+              'is_manager_store' => [
+                'nullable',
+                'boolean',
+                new NoXSSInput()
+            ],
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'employee_name' => ['required', 'string', 'max:255', 'unique:employees_tables,employee_name', new NoXSSInput()],
@@ -467,6 +472,7 @@ class EmployeeController extends Controller
 
  'level_id' => $validatedData['level_id'],
                 'is_manager' => $validatedData['is_manager'] ?? 0,
+                'is_manager_store' => $validatedData['is_manager_store'] ?? 0,
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
                 'email' => $validatedData['email'] ?? '',
@@ -533,6 +539,11 @@ class EmployeeController extends Controller
                 new NoXSSInput()
             ],
             'is_manager' => [
+                'nullable',
+                'boolean',
+                new NoXSSInput()
+            ],
+            'is_manager_store' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
@@ -665,6 +676,7 @@ class EmployeeController extends Controller
             'pin' => $validatedData['pin'] ?? '',
                'level_id' => $validatedData['level_id'],
             'is_manager'  => $validatedData['is_manager'] ?? 0,
+            'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
         ]);
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');

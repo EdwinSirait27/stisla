@@ -66,6 +66,7 @@ class Employee extends Model
         'end_date',
         'level_id',
         'is_manager',
+        'is_manager_store',
         'pending_email',
         'pending_telp_number',
         'total',

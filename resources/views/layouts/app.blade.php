@@ -20,7 +20,7 @@
         {{-- ini bikin error link 2 dibawah ini --}}
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-@livewireStyles
+
    
         @stack('styles')
 

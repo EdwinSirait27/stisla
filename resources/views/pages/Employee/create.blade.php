@@ -258,7 +258,7 @@
                                                     </label>
                                                     <div>
                                                         <select name="religion"
-                                                            class="form-control @error('religion') is-invalid @enderror"
+                                                            class="form-control select2 @error('religion') is-invalid @enderror"
                                                             required>
                                                             <option value="">Choose Religion</option>
                                                             @foreach ($status_religion as $value)
@@ -282,7 +282,7 @@
                                                         </label>
                                                         <div>
                                                             <select name="gender"
-                                                                class="form-control @error('gender') is-invalid @enderror"
+                                                                class="form-control select2 @error('gender') is-invalid @enderror"
                                                                 required>
                                                                 <option value="">Choose Gender</option>
                                                                 @foreach ($status_gender as $value)
@@ -419,7 +419,7 @@
                                                     </label>
                                                     <div>
                                                         <select name="last_education"
-                                                            class="form-control @error('last_education') is-invalid @enderror"
+                                                            class="form-control select2 @error('last_education') is-invalid @enderror"
                                                             required>
                                                             <option value="">Choose Education</option>
                                                             @foreach ($status_last_education as $value)
@@ -466,7 +466,7 @@
                                                     </label>
                                                     <div>
                                                         <select name="marriage"
-                                                            class="form-control @error('marriage') is-invalid @enderror"required>
+                                                            class="form-control select2 @error('marriage') is-invalid @enderror"required>
                                                             <option value="">Choose Status Marriage</option>
                                                             @foreach ($status_marriage as $value)
                                                                 <option value="{{ $value }}"
@@ -491,7 +491,7 @@
                                                     </label>
                                                     <div>
                                                         <select name="child"
-                                                            class="form-control @error('child') is-invalid @enderror"
+                                                            class="form-control select2 @error('child') is-invalid @enderror"
                                                             required>
                                                             <option value="">How Many?</option>
                                                             @foreach ($status_child as $value)
@@ -623,7 +623,7 @@
                                     </label>
                                     <div>
                                         <select name="banks_id"
-                                            class="form-control @error('banks_id') is-invalid @enderror"required>
+                                            class="form-control select2 @error('banks_id') is-invalid @enderror"required>
                                             <option value="">Choose Banks</option>
                                             @foreach ($banks as $key => $value)
                                                 <option value="{{ $key }}"
@@ -669,7 +669,7 @@
                                         </label>
                                         <div>
                                             <select name="company_id"
-                                                class="form-control @error('company_id') is-invalid @enderror"required>
+                                                class="form-control select2 @error('company_id') is-invalid @enderror"required>
                                                 <option value="">Choose Companies</option>
                                                 @foreach ($companys as $key => $value)
                                                     <option value="{{ $key }}"
@@ -774,7 +774,7 @@
                                             </label>
                                             <div>
                                                 <select name="status_employee"
-                                                    class="form-control @error('status_employee') is-invalid @enderror"required>
+                                                    class="form-control select2 @error('status_employee') is-invalid @enderror"required>
                                                     <option value="">Choose Status Employee</option>
                                                     @foreach ($status_employee as $value)
                                                         <option value="{{ $value }}"
@@ -931,26 +931,82 @@
                                             </div>
                                         </div>
                                         </div>
-                                        <div class="row mt-3">
-
-                                        <div class="col-md-6">
-                                            <div class="form-check mt-2">
-                                                <input type="checkbox" name="is_manager" id="is_manager" value="1"
+                                        {{-- <div class="row mt-3">
+                                            <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="is_manager" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Is Manager Department') }}
+                                                </label>
+                                          
+                                                   <input type="checkbox" name="is_manager" id="is_manager" value="1"
                                                     class="form-check-input @error('is_manager') is-invalid @enderror"
                                                     {{ old('is_manager') ? 'checked' : '' }}>
-                                                <label for="is_manager" class="form-check-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
-                                                </label>
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
 
-                                                @error('is_manager')
-                                                    <span class="invalid-feedback d-block" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
                                             </div>
                                         </div>
-                                    </div>
+                                          <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="is_manager_store" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Is Manager Store') }}
+                                                </label>
+                                          
+                                                   <input type="checkbox" name="is_manager_store" id="is_manager_store" value="1"
+                                                    class="form-check-input @error('is_manager_store') is-invalid @enderror"
+                                                    {{ old('is_manager_store') ? 'checked' : '' }}>
+                                                    @error('is_manager_store')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
 
+                                            </div>
+                                        </div>
+                                    </div> --}}
+                                     <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" name="is_manager" id="is_manager"
+                                                        value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager') ? 'checked' : '' }}>
+
+                                                    <label for="is_manager" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Department') }}
+                                                    </label>
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+
+                                            <div class="col-md-6">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" name="is_manager_store" id="is_manager_store"
+                                                        value="1"
+                                                        class="form-check-input @error('is_manager_store') is-invalid @enderror"
+                                                        {{ old('is_manager_store') ? 'checked' : '' }}>
+
+                                                    <label for="is_manager_store" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Store') }}
+                                                    </label>
+                                                    @error('is_manager_store')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                   
 
 
 

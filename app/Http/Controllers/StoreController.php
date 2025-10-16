@@ -18,7 +18,7 @@ class StoreController extends Controller
     public function getStores()
     {
         $stores = Stores::with(['employees' => function ($query) {
-            $query->where('is_manager', 1);
+            $query->where('is_manager_store', 1);
         }])
         ->select(['id','name','address','phone_num'])
         ->get()
@@ -31,11 +31,7 @@ class StoreController extends Controller
                 return $store;
             });
         return DataTables::of($stores)
-        // ->addColumn('employee_name', function ($store) {
-        //     return !empty($store->user->Employee) && !empty($store->user->Employee->employee_name)
-        //         ? $store->user->Employee->employee_name
-        //         : 'Empty';
-        // })
+        
          ->addColumn('employee_name', function ($store) {
             if (!empty($store->employees) && $store->employees->count() > 0) {
                 // Bisa ada lebih dari satu manager, ambil nama-namanya
@@ -46,6 +42,11 @@ class StoreController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
+    // ->addColumn('employee_name', function ($store) {
+        //     return !empty($store->user->Employee) && !empty($store->user->Employee->employee_name)
+        //         ? $store->user->Employee->employee_name
+        //         : 'Empty';
+        // })
     public function edit($hashedId)
     {
         $store = Stores::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
