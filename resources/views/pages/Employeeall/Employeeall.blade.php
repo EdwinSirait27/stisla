@@ -822,6 +822,48 @@
             font-size: 0.8rem;
         }
     }
+     /* .DTFC_LeftBodyLiner, 
+    .DTFC_RightBodyLiner {
+        background: white;
+        z-index: 999;
+    }
+
+    table.dataTable thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 1000;
+    } */
+     /* Atur area kolom fixed agar menutupi bayangan transparan */
+.DTFC_LeftBodyLiner, 
+.DTFC_LeftHeadWrapper, 
+.DTFC_RightBodyLiner, 
+.DTFC_RightHeadWrapper {
+    background-color: #fff !important;  
+    z-index: 999 !important;
+}
+
+table.dataTable thead th,
+table.dataTable thead td {
+    background-color: #f8f9fa !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.dataTables_scrollBody {
+    overflow-x: auto !important;
+}
+
+table.dataTable, 
+table.dataTable th, 
+table.dataTable td {
+    border-color: #dee2e6 !important;
+} .DTFC_LeftBodyLiner {
+    border-right: none !important;
+}
+
+
 </style>
 @section('main')
     <div class="main-content">
@@ -865,8 +907,10 @@
 
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
-                                        <thead>
+                                    {{-- <table class="table table-hover" id="users-table"> --}}
+                                        <table id="users-table" class="table table-bordered table-striped table-hover" style="width:100%">
+                                        {{-- <thead> --}}
+                                                <thead class="table-light">
                                             <tr>
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Action</th>
@@ -968,7 +1012,7 @@ $(document).ready(function() {
         scrollX: true,
         autoWidth: false,
         fixedColumns: {
-            leftColumns: 2  // kalau tidak mau kolom kiri dikunci
+            leftColumns: 3  // kalau tidak mau kolom kiri dikunci
             // rightColumns: 2  // Action dan Status dikunci di kanan
         },
         ajax: {

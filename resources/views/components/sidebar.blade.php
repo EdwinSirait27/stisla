@@ -29,6 +29,18 @@
                     </ul>
                 </li>
             @endrole
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Profile</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('feature-profile') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('feature-profile') }}">Profile</a>
+                        </li>
+                        <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
+                        </li>
+                    </ul>
+                </li>
             @role('HeadHR')
                 <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('dashboardHR') }}"><i class="fas fa-house"></i>

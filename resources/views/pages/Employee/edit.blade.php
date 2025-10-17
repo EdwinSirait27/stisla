@@ -895,7 +895,7 @@
                                                     </label>
                                                     <div>
                                                         <select name="status"
-                                                            class="form-control @error('status') is-invalid @enderror"required>
+                                                            class="form-control select2 @error('status') is-invalid @enderror"required>
                                                             <option value="">-- Choose Status --</option>
                                                             @foreach ($status as $value)
                                                                 <option value="{{ $value }}"
