@@ -329,7 +329,7 @@
                 if (!isSearching) {
                     table.ajax.reload(null, false); // false = tidak reset pagination
                 }
-            }, 15000);
+            }, 60000);
 
 
             @if (session('success'))
