@@ -178,7 +178,6 @@
             align-items: center;
             justify-content: center;
         }
-        
         .qty-btn {
             width: 25px;
             height: 25px;

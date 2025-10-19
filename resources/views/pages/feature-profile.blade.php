@@ -139,22 +139,17 @@
 @endpush --}}
 @extends('layouts.app')
 @section('title', 'Profile')
-
 @push('style')
-    <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
     <link rel="stylesheet" href="{{ asset('library/bootstrap-social/assets/css/bootstrap.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
     <style>
         .password-wrapper {
             position: relative;
         }
-
         .password-wrapper input {
             padding-right: 2.5rem;
         }
-
         .toggle-password {
             position: absolute;
             top: 50%;
@@ -167,7 +162,6 @@
         }
     </style>
 @endpush
-
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -178,11 +172,7 @@
                     <div class="breadcrumb-item">Profile</div>
                 </div>
             </div>
-
             <div class="section-body">
-                {{-- <h2 class="section-title">Hai, {{ Auth::user()->employee->employee_name }}</h2>
-                <p class="section-lead">Bring out your morning spirit</p> --}}
-
                 <div class="row mt-sm-4">
                     <div class="col-12">
                         <div class="card">

@@ -14,6 +14,7 @@ class SubmissionsController extends Controller
     $validated = $request->validate([
         'type' => 'required|string|max:255',
         'status_submissions' => 'required|string|max:255',
+        'notes' => 'required|string|max:255',
         'leave_date_from' => 'required|date',
         'leave_date_to' => 'required|date|after_or_equal:leave_date_from',
         'employee_ids' => 'nullable|array',
@@ -75,6 +76,7 @@ class SubmissionsController extends Controller
                 'status_submissions' => $validated['status_submissions'],
                 'leave_date_from' => $validated['leave_date_from'],
                 'leave_date_to' => $validated['leave_date_to'],
+                'notes' => $validated['notes'],
                 'duration' => $duration,
                 'time_toil' => $timeToil,
                 'status' => $status,

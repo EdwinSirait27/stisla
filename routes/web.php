@@ -69,7 +69,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
         Route::get('/dashboardAdmin/show/{hashedId}', [dashboardAdminController::class, 'show'])->name('dashboardAdmin.show');
         Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
-        Route::get('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+        Route::POST('/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
     });
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
 

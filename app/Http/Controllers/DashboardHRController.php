@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use App\Models\Employee;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Fingerprints;
@@ -10,9 +8,7 @@ use App\Models\Announcment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\DataTables;
-
 use Illuminate\Support\Facades\DB;
-
 class DashboardHRController extends Controller
 {
     // public function index(Request $request)
@@ -245,7 +241,6 @@ class DashboardHRController extends Controller
 //             ->take(8)
 //             ->get();
 //     }
-
 //     // 🔹 Hitung durasi (Annual Leave dsb)
 //     foreach ($submissions as $submission) {
 //         if (!is_numeric($submission->duration)) {
@@ -356,28 +351,23 @@ public function index(Request $request)
             $submission->duration = $from->diffInDays($to) + 1;
         }
 
-        // optional: buat property formattedDuration untuk view jika dipakai
         if (!isset($submission->formattedDuration)) {
             $submission->formattedDuration = $submission->duration . ' day(s)';
         }
     }
 
-    // 🔹 Siapkan data cuti jika type = Annual Leave
     $leaveData = null;
     if ($selectedType === 'Annual Leave' && $employee) {
-        // coba beberapa nama kolom umum di model Employee, fallback ke 0
-        $total = $employee->total ?? $employee->total ?? $employee->total ?? 0;
-        $pending = $employee->pending ?? $employee->pending ?? $employee->pendingLeaves ?? 0;
+        $total = $employee->total ?? $employee->total ?? $employee->total ?? 12;
+        $pending = $employee->pending ?? $employee->pending ?? $employee->pending ?? 0;
         $remaining = $employee->remaining ?? $employee->remaining ?? $employee->remaining ?? 0;
 
-        // jika nilai berupa null, paksa jadi 0
         $leaveData = [
-            'total' => $total ?? 0,
+            'total' => $total ?? 12,
             'pending' => $pending ?? 0,
             'remaining' => $remaining ?? 0,
         ];
     }
-
     return view('pages.dashboardHR.dashboardHR', [
         'month'              => $month,
         'days'               => $days,
@@ -389,7 +379,6 @@ public function index(Request $request)
         'announcements'      => $announcements,
         'canCreateOvertime'  => $canCreateOvertime,
         'managedEmployees'   => $managedEmployees,
-        // ===== kirim variable baru supaya blade tidak error =====
         'selectedType'       => $selectedType,
         'leaveData'          => $leaveData,
     ]);

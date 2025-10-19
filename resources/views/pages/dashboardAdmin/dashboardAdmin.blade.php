@@ -4,6 +4,8 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
 @endpush
 <style>
     /* Card Styles */
@@ -177,7 +179,7 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Users</h6>
                             </div>
-{{-- <form id="filter-form">
+                            {{-- <form id="filter-form">
     <select name="store_name" id="store_name" class="form-control">
         <option value="">-- Semua Store --</option>
         @foreach ($storeList as $store)
@@ -209,7 +211,7 @@
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                  
+
 
                                 </div>
                             </div>
@@ -222,20 +224,22 @@
 @endsection
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: '{{ route('users.users') }}',
-                    type: 'GET',
-                      data: function(d) {
-            d.store_name = $('#store_name').val();
-        }
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
                 },
                 responsive: true,
                 lengthMenu: [
@@ -294,25 +298,25 @@
                         name: 'device_lan_mac',
                         className: 'text-center'
                     },
-                   
+
                     {
                         data: 'roles',
                         name: 'roles',
                         className: 'text-center'
                     },
-                     {
-                data: 'status',
-                name: 'status',
-                className: 'text-center',
-                render: function(data) {
-                    let badgeClass = 'bg-secondary';
-                    if (data === 'Active') badgeClass = 'bg-success';
-                    else if (data === 'Inactive') badgeClass = 'bg-danger';
-                    else if (data === 'On leave') badgeClass = 'bg-warning';
-                    else if (data === 'Mutation') badgeClass = 'bg-info';
-                    return `<span class="badge ${badgeClass}">${data}</span>`;
-                }
-            },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center',
+                        render: function(data) {
+                            let badgeClass = 'bg-secondary';
+                            if (data === 'Active') badgeClass = 'bg-success';
+                            else if (data === 'Inactive') badgeClass = 'bg-danger';
+                            else if (data === 'On leave') badgeClass = 'bg-warning';
+                            else if (data === 'Mutation') badgeClass = 'bg-info';
+                            return `<span class="badge ${badgeClass}">${data}</span>`;
+                        }
+                    },
                     {
                         data: 'action',
                         name: 'action',
@@ -326,19 +330,22 @@
                     $('.dataTables_length select').addClass('form-control');
                 }
             });
-            $('#store_name').on('change', function () {
-    $('#datatable').DataTable().ajax.reload();
-});
+            setInterval(function() {
+                var isSearching = $('.dataTables_filter input').val().trim().length > 0;
+                if (!isSearching) {
+                    table.ajax.reload(null, false); // false = tidak reset pagination
+                }
+            }, 6000);
 
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
     </script>
 @endpush

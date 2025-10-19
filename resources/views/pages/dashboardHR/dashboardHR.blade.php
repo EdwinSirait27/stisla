@@ -594,14 +594,12 @@
 
                 <div class="modal-body">
 
-                    {{-- 🔹 Type Submission --}}
                     <div class="mb-3">
                         <label class="form-label">Type</label>
                         <select name="type" id="type"
                             class="form-control select2 @error('type') is-invalid @enderror" required>
                             <option value="">Choose Type</option>
 
-                            {{-- Hanya tampilkan Overtime jika user manager --}}
                             @foreach ($types as $value)
                                 @if ($value === 'Overtime' && !$canCreateOvertime)
                                     @continue
@@ -613,7 +611,6 @@
                         </select>
                     </div>
 
-                    {{-- 🔹 Jika Type = Overtime --}}
                     <div class="mb-3" id="statusDiv" style="display: none;">
                         <label class="form-label">Overtime Type</label>
                         <select name="status_submissions" id="status_submissions"
@@ -627,13 +624,12 @@
                         </select>
                     </div>
 
-                    {{-- 🔹 Jika Type = Annual Leave --}}
-                    <div class="mb-3" id="annualLeaveInfo" style="display: none;">
+                <div class="mb-3" id="annualLeaveInfo" style="display: none;">
                         <label class="form-label">Annual Leave Info</label>
                         <div class="border rounded p-3 bg-light">
-                            <p class="mb-1"><strong>Total Leave:</strong> <span id="leave_total">{{ $employee->total_leave ?? 0 }}</span></p>
-                            <p class="mb-1"><strong>Pending Leave:</strong> <span id="leave_pending">{{ $employee->pending_leave ?? 0 }}</span></p>
-                            <p class="mb-0"><strong>Remaining Leave:</strong> <span id="leave_remaining">{{ $employee->remaining_leave ?? 0 }}</span></p>
+                            <p class="mb-1"><strong>Total Leave:</strong> <span id="total">{{ $employee->total ?? 0 }}</span></p>
+                            <p class="mb-1"><strong>Pending Leave:</strong> <span id="pending">{{ $employee->pending ?? 0 }}</span></p>
+                            <p class="mb-0"><strong>Remaining Leave:</strong> <span id="remaining">{{ $employee->remaining ?? 0 }}</span></p>
                         </div>
                     </div>
 
@@ -665,6 +661,11 @@
                     <div class="mb-3">
                         <label class="form-label">Leave Date To</label>
                         <input type="date" name="leave_date_to" id="leave_date_to"
+                            class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <input type="text" name="notes" id="notes"
                             class="form-control" required>
                     </div>
                 </div>

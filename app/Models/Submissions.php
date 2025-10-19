@@ -29,6 +29,7 @@ class Submissions extends Model
         'status',
         'status_submissions',
         'time_toil',
+        'notes',
     ];  
     protected $casts = [
           

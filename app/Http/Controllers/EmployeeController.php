@@ -79,7 +79,7 @@ class EmployeeController extends Controller
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee','grading_name','action'])
+            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
 
@@ -118,13 +118,12 @@ class EmployeeController extends Controller
             <i class="fas fa-user-edit text-secondary"></i>
         </a>';
             } else {
-                $employee->action = ''; // Optional: kosongkan jika tidak punya akses
+                $employee->action = '';
             }
 
 
             return $employee;
         });
-        // Daftar kolom dari relasi Employee yang ingin ditampilkan
         $columns = [
             'name' => 'store.name',
             'name_company' => 'company.name',
@@ -185,25 +184,24 @@ class EmployeeController extends Controller
 
     public function edit($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank','Employee.grading','Employee.employees')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
         $positions = Position::get();
         $companys = Company::get();
-       $employees = Employee::where('status', 'Active')
-    ->pluck('employee_name', 'id');
+        $employees = Employee::where('status', 'Active')
+            ->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active','Resign'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
         $banks = Banks::get();
         // $gradings = Grading::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
@@ -219,7 +217,6 @@ class EmployeeController extends Controller
             'gender' => $gender,
             'status' => $status,
             'banks' => $banks,
-            // 'gradings' => $gradings,
             'religion' => $religion,
             'last_education' => $last_education,
             'positions' => $positions,
@@ -229,7 +226,7 @@ class EmployeeController extends Controller
     }
     public function show($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store','Employee.grading', 'Employee.department', 'Employee.position', 'Employee.bank','Employee.employees')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.grading', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -239,15 +236,15 @@ class EmployeeController extends Controller
         }
         $positions = Position::get();
         $companys = Company::get();
-          $employees = Employee::where('status', 'Active')
-    ->pluck('employee_name', 'id');
+        $employees = Employee::where('status', 'Active')
+            ->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active','Resign'];
+        $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
         $banks = Banks::get();
         $gradings = Grading::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
@@ -278,7 +275,7 @@ class EmployeeController extends Controller
     {
         //  $employees = Employee::pluck('employee_name', 'id');
         $employees = Employee::where('status', 'Active')
-    ->pluck('employee_name', 'id');
+            ->pluck('employee_name', 'id');
 
         $stores = Stores::pluck('name', 'id')->all();
         $positions = Position::pluck('name', 'id')->all();
@@ -290,16 +287,14 @@ class EmployeeController extends Controller
         $status_child = ['0', '1', '2', '3', '4', '5'];
         $status_marriage = ['Yes', 'No'];
         $status_gender = ['Male', 'Female', 'MD'];
-        $status = ['Active', 'Pending', 'Inactive', 'On Leave', 'Mutation','Resign'];
+        $status = ['Active', 'Pending', 'Inactive', 'On Leave', 'Mutation', 'Resign'];
 
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        return view('pages.Employee.create', compact('employees','companys', 'stores', 'banks' ,'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
+        return view('pages.Employee.create', compact('employees', 'companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
-
     public function store(Request $request)
     {
-        // dd($request->all());
         $validatedData = $request->validate([
             'password' => ['nullable', 'string', 'min:7', 'max:30', new NoXSSInput()],
             'username' => [
@@ -316,12 +311,12 @@ class EmployeeController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
-              'is_manager' => [
+            'is_manager' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
             ],
-              'is_manager_store' => [
+            'is_manager_store' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
@@ -334,7 +329,6 @@ class EmployeeController extends Controller
             'email' => ['required', 'string', 'max:255', new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
-            // 'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
             'telp_number' => ['required', 'numeric', 'digits_between:10,13', 'unique:employees_tables,telp_number', new NoXSSInput()],
@@ -344,57 +338,42 @@ class EmployeeController extends Controller
             'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
-            // 'daily_allowance' => ['nullable','numeric',
-            //                 new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
             'npwp' => ['required', 'string', 'max:50', new NoXSSInput()],
-            // 'pin' => ['nullable', 'string', 'max:4', new NoXSSInput()],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-            // 'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
-
         ], [
             'password.min' => 'The password must be at least 7 characters.',
             'password.max' => 'The password may not be greater than 30 characters.',
-
             'username.min' => 'The username must be at least 12 characters.',
             'username.max' => 'The username may not be greater than 30 characters.',
             'username.regex' => 'The username may only contain letters, numbers, underscores, and dashes.',
             'username.unique' => 'This username is already taken.',
-
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
-
             'date_of_birth.required' => 'The date of birth is required.',
             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
-
             'employee_name.required' => 'The employee name is required.',
             'employee_name.max' => 'The employee name may not be greater than 255 characters.',
-
             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
-
             'email.required' => 'The email is required.',
             'email.max' => 'The email may not be greater than 255 characters.',
-
             'emergency_contact_name.required' => 'The emergency contact name is required.',
             'marriage.required' => 'The marriage status is required.',
-            // 'notes.max' => 'The notes may not be greater than 255 characters.',
             'child.required' => 'The child information is required.',
             'gender.required' => 'The gender is required.',
-
             'telp_number.required' => 'The phone number is required.',
             'telp_number.numeric' => 'The phone number must be numeric.',
-
             'status_employee.required' => 'The employee status is required.',
             'nik.required' => 'The NIK is required.',
             'nik.max' => 'The NIK may not be greater than 20 characters.',
@@ -422,35 +401,25 @@ class EmployeeController extends Controller
             'department_id.required' => 'The Department is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
-            // 'grading_id.exists' => 'The selected grading is invalid.',
-            // 'grading_id.required' => 'The grading is required.',
         ]);
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
-            $currentYearMonth = date('Ym'); // Format: TahunBulan (contoh: 202504)
+            $currentYearMonth = date('Ym');
             if ($lastEmployee) {
                 $lastId = $lastEmployee->employee_pengenal;
-                // Ambil 5 digit terakhir
                 $lastSequence = (int) substr($lastId, -5);
-                // Ambil bagian tahun-bulan dari ID terakhir
                 $lastYearMonth = substr($lastId, 0, 6);
-
                 if ($lastYearMonth === $currentYearMonth) {
-                    // Jika tahun-bulan sama, increment sequence
                     $sequence = $lastSequence + 1;
                 } else {
-                    // Jika tahun-bulan berbeda, tetap increment sequence
                     $sequence = $lastSequence + 1;
                 }
             } else {
                 $sequence = 1; // Jika tidak ada data, mulai dari 1
             }
-
-            // Format employee_id: TahunBulan + 5 digit sequence dengan leading zero
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
-                // 'employee_name' => $request->employee_name,
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -458,7 +427,6 @@ class EmployeeController extends Controller
                 'position_id' => $validatedData['position_id'] ?? '',
                 'company_id' => $validatedData['company_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
-                // 'grading_id' => $validatedData['grading_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
                 'department_id' => $validatedData['department_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
@@ -468,21 +436,16 @@ class EmployeeController extends Controller
                 'telp_number' => $validatedData['telp_number'] ?? '',
                 'gender' => $validatedData['gender'] ?? '',
                 'date_of_birth' => $validatedData['date_of_birth'] ?? '',
-                // 'daily_allowance' => Crypt::encrypt($validatedData['daily_allowance']),
-
- 'level_id' => $validatedData['level_id'],
+                'level_id' => $validatedData['level_id'],
                 'is_manager' => $validatedData['is_manager'] ?? 0,
                 'is_manager_store' => $validatedData['is_manager_store'] ?? 0,
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
                 'email' => $validatedData['email'] ?? '',
                 'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
-
-                // 'notes' => $validatedData['notes'] ?? '',
                 'status' => $validatedData['status'] ?? 'Pending',
                 'religion' => $validatedData['religion'] ?? '',
                 'last_education' => $validatedData['last_education'] ?? '',
-                // disini masi error
                 'place_of_birth' => $validatedData['place_of_birth'] ?? '',
                 'biological_mother_name' => $validatedData['biological_mother_name'] ?? '',
                 'current_address' => $validatedData['current_address'] ?? '',
@@ -493,16 +456,12 @@ class EmployeeController extends Controller
             if ($employees) {
                 Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
             }
-            // dd($employees->toArray());
             $user = User::create([
                 'username' => $employeeId,
                 'password' => Hash::make($employeeId),
                 'employee_id' => $employees->id,
             ]);
-
-
-
-            // dd($user->toArray());
+            $user->assignRole('Human');
             DB::commit();
             return redirect()->route('pages.Employee')->with('success', 'Done!');
         } catch (\Exception $e) {
@@ -533,7 +492,7 @@ class EmployeeController extends Controller
                 Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
                 new NoXSSInput()
             ],
-              'level_id' => [
+            'level_id' => [
                 'nullable',
                 'exists:employees_tables,id',
                 new NoXSSInput()
@@ -579,7 +538,7 @@ class EmployeeController extends Controller
         ], [
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
-           
+
             'date_of_birth.required' => 'The date of birth is required.',
             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
 
@@ -674,7 +633,7 @@ class EmployeeController extends Controller
             'institution' => $validatedData['institution'] ?? '',
             'npwp' => $validatedData['npwp'] ?? '',
             'pin' => $validatedData['pin'] ?? '',
-               'level_id' => $validatedData['level_id'],
+            'level_id' => $validatedData['level_id'],
             'is_manager'  => $validatedData['is_manager'] ?? 0,
             'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
         ]);
