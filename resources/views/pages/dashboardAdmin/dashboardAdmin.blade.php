@@ -5,7 +5,6 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
 @endpush
 <style>
     /* Card Styles */
@@ -179,21 +178,12 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Users</h6>
                             </div>
-                            {{-- <form id="filter-form">
-    <select name="store_name" id="store_name" class="form-control">
-        <option value="">-- Semua Store --</option>
-        @foreach ($storeList as $store)
-            <option value="{{ $store->name }}">{{ $store->name }}</option>
-        @endforeach
-    </select>
-</form> --}}
-
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">No.</th>
+                                                <th class="text-center">Choose</th>
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">Position</th>
@@ -202,7 +192,6 @@
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Mac Wifi</th>
                                                 <th class="text-center">Mac Lan</th>
-                                                {{-- <th class="text-center">Status</th> --}}
                                                 <th class="text-center">Roles</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
@@ -211,8 +200,7 @@
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-
-
+                                    <button id="bulk-update-btn" class="btn btn-primary mt-3">Update Role to Human</button>
                                 </div>
                             </div>
                         </div>
@@ -251,13 +239,19 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
+                        data: 'checkbox',
+                        orderable: false,
+                        className: 'text-center',
+                        searchable: false
                     },
+                    // {
+                    //     data: null,
+                    //     name: 'id',
+                    //     className: 'text-center align-middle',
+                    //     render: function(data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     }
+                    // },
                     {
                         data: 'employee_name',
                         name: 'employee_name',
@@ -335,7 +329,7 @@
                 if (!isSearching) {
                     table.ajax.reload(null, false); // false = tidak reset pagination
                 }
-            }, 6000);
+            }, 15000);
 
 
             @if (session('success'))
@@ -346,6 +340,51 @@
                 });
             @endif
 
+        });
+        $('#check-all').on('click', function() {
+            $('.user-checkbox').prop('checked', $(this).is(':checked'));
+        });
+
+        // 🔹 Bulk update button click
+        $('#bulk-update-btn').on('click', function() {
+            var selectedIds = $('.user-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selectedIds.length === 0) {
+                Swal.fire('Warning', 'Please select at least one user.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Change selected users to role: Human?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, update!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ route('users.bulkUpdateRole') }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            user_ids: selectedIds
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Updated!', response.message, 'success');
+                                table.ajax.reload(null, false);
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Failed to update users.', 'error');
+                        }
+                    });
+                }
+            });
         });
     </script>
 @endpush
