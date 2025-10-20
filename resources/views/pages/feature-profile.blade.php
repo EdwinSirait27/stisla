@@ -9,11 +9,9 @@
         .password-wrapper {
             position: relative;
         }
-
         .password-wrapper input {
             padding-right: 2.5rem;
         }
-
         .toggle-password {
             position: absolute;
             top: 50%;
@@ -527,13 +525,10 @@
 @endsection
 
 @push('scripts')
-    <!-- JS Libraies -->
     <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
     <script src="{{ asset('library/jquery.pwstrength/jquery.pwstrength.min.js') }}"></script>
     <script src="{{ asset('js/page/features-profile.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
     <script>
         function togglePassword() {
             let passwordInput = document.getElementById('password');

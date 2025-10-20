@@ -223,6 +223,41 @@
                     </div>
                 </div>
             </div>
+
+
+
+
+
+
+
+
+
+            <div class="card mt-4">
+    <div class="card-header">
+        <h5>Employee Activity History</h5>
+    </div>
+    <div class="card-body">
+                                <div class="table-responsive">
+        
+       <table id="activityTable" class="table-striped">
+        <thead>
+            <tr>
+                <th class="text-center">No</th>
+                <th class="text-center">Description</th>
+                {{-- <th>Changes</th> --}}
+                <th class="text-center">By</th>
+                <th class="text-center">Date</th>
+            </tr>
+        </thead>
+      
+    </table>
+      {{-- <div class="d-flex justify-content-center">
+        {{ $activities->links() }}
+    </div> --}}
+    </div>
+    </div>
+</div>
+
         </section>
     </div>
 @endsection
@@ -487,7 +522,33 @@ $(document).ready(function() {
     @endif
 });
 </script>
-
+<script>
+$(function () {
+    $('#activityTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('data.data') }}",
+        columns: [
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center'},
+            { data: 'description', name: 'description', className: 'text-center'},
+            // { data: 'changes', name: 'changes' },
+            { data: 'causer', name: 'causer', className: 'text-center'},
+            { data: 'created_at', name: 'created_at', className: 'text-center'},
+        ],
+        order: [[3, 'desc']],
+        language: {
+            searchPlaceholder: 'Search...',
+            sSearch: '',
+            lengthMenu: '_MENU_ Show entries',
+        },
+        responsive: true,
+         lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, "All"]
+        ]
+    });
+});
+</script>
 
 
 @endpush

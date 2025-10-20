@@ -42,11 +42,7 @@ class StoreController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    // ->addColumn('employee_name', function ($store) {
-        //     return !empty($store->user->Employee) && !empty($store->user->Employee->employee_name)
-        //         ? $store->user->Employee->employee_name
-        //         : 'Empty';
-        // })
+  
     public function edit($hashedId)
     {
         $store = Stores::with('user.Employee')->get()->first(function ($u) use ($hashedId) {

@@ -21,7 +21,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeEmployeeMail;
 use Illuminate\Support\Facades\Mail;
-
+use Spatie\Activitylog\Models\Activity;
 class EmployeeController extends Controller
 {
     public function indexall()
@@ -30,12 +30,57 @@ class EmployeeController extends Controller
         $statusList = Employee::select('status')->distinct()->pluck('status');
         return view('pages.Employeeall.Employeeall', compact('storeList', 'statusList'));
     }
-    public function index()
-    {
-        $storeList = Stores::select('name')->distinct()->pluck('name');
+    // public function index()
+    // {
+    //     $userList = Employee::select('employee_name')->distinct()->pluck('employee');
+    //       $logs = Activity::where('log_name', 'store')
+    //     ->with('causer') // untuk ambil user yang menyebabkan event
+    //     ->latest()
+    //     ->take(20)
+    //     ->get();
 
-        return view('pages.Employee.Employee', compact('storeList'));
+    //     return view('pages.Employee.Employee', compact('storeList','logs'));
+    // }
+    public function index()
+{
+    // Ambil daftar employee untuk filter/log view
+    //   $activities = Activity::where('log_name', 'employee')
+    //         ->with('causer.employee') // relasi user → employee
+    //         ->latest()
+    //         ->paginate(20);
+
+
+    return view('pages.Employee.Employee');
+}
+  public function getActivities(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Activity::where('log_name', 'employee')
+                ->with(['causer.employee'])
+                ->latest();
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('description', function ($row) {
+                    return $row->description ?? '-';
+                })
+                ->addColumn('causer', function ($row) {
+                    return $row->causer->employee->employee_name
+                        ?? $row->causer->name
+                        ?? 'System';
+                })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at->format('d M Y H:i');
+                })
+                ->addColumn('changes', function ($row) {
+    return json_encode($row->properties['attributes'] ?? []);
+})
+
+                ->rawColumns(['description'])
+                ->make(true);
+        }
     }
+
 
     public function getEmployees(Request $request, DataTables $dataTables)
     {

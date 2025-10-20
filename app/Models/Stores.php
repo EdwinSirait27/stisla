@@ -1,8 +1,11 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
+
 
 class Stores extends Model
 {
@@ -22,15 +25,21 @@ class Stores extends Model
         });
     }
     protected $fillable = [
-        'name','address','phone_num','manager_id'
+        'name',
+        'address',
+        'phone_num',
+        'manager_id'
     ];
     public function user()
     {
         return $this->belongsTo(User::class, 'manager_id', 'id');
     }
-       public function employees()
-{
-    return $this->hasMany(Employee::class, 'store_id', 'id');
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'store_id', 'id');
+    }
+    /**
+     * Konfigurasi log activity
+     */
+ 
 }
-}
-

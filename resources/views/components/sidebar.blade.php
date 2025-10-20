@@ -9,6 +9,42 @@
         </div>
         <ul class="sidebar-menu">
             {{-- <li class="menu-header">Menu</li> --}}
+             <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Profile</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('feature-profile') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('feature-profile') }}">Profile</a>
+                        </li>
+                        <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
+                        </li>
+                    </ul>
+                </li>
+            @role('Human')
+              <li class="{{ Request::is('dashboard') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ url('dashboard') }}"><i class="fas fa-house"></i>
+                        <span>Dashboard</span></a>
+                </li>
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Users</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('dashboardAdmin') }}">List Users</a>
+                        </li>
+                        <li class="{{ Request::is('Activity') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Activity') }}">Activity Logs</a>
+                        </li>
+                        <li class="{{ Request::is('roles') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('roles') }}">Roles</a>
+                        </li>
+                        <li class="{{ Request::is('permission') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('permissions') }}">Permission</a>
+                        </li>
+                    </ul>
+                </li>
+            @endrole
             @role('Admin')
                 <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
@@ -29,7 +65,7 @@
                     </ul>
                 </li>
             @endrole
-                <li class="nav-item dropdown ">
+                {{-- <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Profile</span></a>
                     <ul class="dropdown-menu">
@@ -40,7 +76,7 @@
                             <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
             @role('HeadHR')
                 <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('dashboardHR') }}"><i class="fas fa-house"></i>

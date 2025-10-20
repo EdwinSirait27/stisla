@@ -7,11 +7,12 @@ use Ramsey\Uuid\Uuid;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Collection;
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     protected $table = 'employees_tables';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -253,7 +254,74 @@ public function getAllSubordinatesByDepartment(): Collection
     // Pisahkan mereka yang bukan dirinya sendiri
     return $all->where('id', '!=', $this->id);
 }
+//    public function getActivitylogOptions(): LogOptions
+//     {
+//         return LogOptions::defaults()
+//             ->logFillable()
+//             ->useLogName('employee')
+//             ->setDescriptionForEvent(function (string $eventName) {
+//                 $actor = auth()->user()->employee->employee_name;
+//                 $target = $this->employee_name ?? 'Unknown Employee';
 
+//                 // ambil field yang berubah
+//                 $changes = collect($this->getChanges())->keys()->implode(', ');
+//                 $fieldInfo = $eventName === 'updated' && $changes
+//                     ? "Field diubah: {$changes}"
+//                     : '';
+
+//                 return "Employee Data {$target} has been {$eventName} by {$actor}. {$fieldInfo}";
+//             });
+//     }
+  public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->useLogName('employee')
+            ->setDescriptionForEvent(function (string $eventName) {
+                $actor = auth()->user()->employee->employee_name
+                    ?? auth()->user()->name
+                    ?? 'system';
+                $target = $this->employee_name ?? 'Unknown Employee';
+
+                $changes = $this->getChanges();
+                $original = $this->getOriginal();
+
+                $relationNames = [
+                    'company_id' => fn($id) => optional(Company::find($id))->name,
+                    'store_id' => fn($id) => optional(Stores::find($id))->name,
+                    'position_id' => fn($id) => optional(Position::find($id))->name,
+                    'bank_id' => fn($id) => optional(Banks::find($id))->name,
+                    'department_id' => fn($id) => optional(Departments::find($id))->department_name,
+                    'grading_id' => fn($id) => optional(Departments::find($id))->grading_name,
+                    'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
+                ];
+
+                $changesInfo = '';
+                if ($eventName === 'updated' && !empty($changes)) {
+                    $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames) {
+                        $old = $original[$field] ?? 'null';
+
+                        // Jika field ada di daftar relasi, ubah ID ke nama relasinya
+                        if (isset($relationNames[$field])) {
+                            $oldLabel = $relationNames[$field]($old) ?? $old;
+                            $newLabel = $relationNames[$field]($new) ?? $new;
+                            return "{$field}: {$oldLabel} → {$newLabel}";
+                        }
+
+                        // Selain relasi, tampilkan nilai langsung
+                        if ($old == $new) return null;
+                        return "{$field}: {$old} → {$new}";
+                    })
+                    ->filter()
+                    ->values()
+                    ->implode(', ');
+
+                    $changesInfo = $details ? "Changes: {$details}" : '';
+                }
+
+                return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
+            });
+    }
 }
 
 // /**

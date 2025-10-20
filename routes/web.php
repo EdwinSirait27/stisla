@@ -36,6 +36,7 @@ use App\Http\Controllers\GradinglistController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\SubmissionsController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -113,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
 
-
+Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
         Route::get('/Employee', [EmployeeController::class, 'index'])
             ->name('pages.Employee');
         Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
@@ -389,6 +390,11 @@ Route::group(['middleware' => 'guest'], function () {
         });
     });
 });
+  Route::group(['middleware' => ['auth','permission:dashboardHuman']], function () {
+        Route::get('/Dashboard', [DashboardController::class, 'index'])
+            ->name('pages.Dashboard.Dashboard');
+
+    });
 
 
 
