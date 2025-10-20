@@ -7,14 +7,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Ramsey\Uuid\Uuid;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -110,13 +108,6 @@ protected $casts = [
     public function getActiveSessioCountAttribute()
     {
         return $this->sessions()->where('last_activity', '>', now()->subHours(2))->count();
-    }
-   public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll() // log semua atribut fillable
-            ->useLogName('user') // nama log
-            ->setDescriptionForEvent(fn(string $eventName) => "User data has been{$eventName} by " . (auth()->user()->employee->employee_name ?? 'system'));
     }
 }
 
