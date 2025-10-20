@@ -162,8 +162,6 @@
             font-size: 0.8rem;
         }
     }
-  
-
 </style>
 @section('main')
     <div class="main-content">
@@ -233,30 +231,30 @@
 
 
             <div class="card mt-4">
-    <div class="card-header">
-        <h5>Employee Activity History</h5>
-    </div>
-    <div class="card-body">
-                                <div class="table-responsive">
-        
-       <table id="activityTable" class="table-striped">
-        <thead>
-            <tr>
-                <th class="text-center">No</th>
-                <th class="text-center">Description</th>
-                {{-- <th>Changes</th> --}}
-                <th class="text-center">By</th>
-                <th class="text-center">Date</th>
-            </tr>
-        </thead>
-      
-    </table>
-      {{-- <div class="d-flex justify-content-center">
+                <div class="card-header">
+                    <h5>Employee Activity History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+
+                        <table id="activityTable" class="table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">No</th>
+                                    <th class="text-center">Description</th>
+                                    {{-- <th>Changes</th> --}}
+                                    <th class="text-center">By</th>
+                                    <th class="text-center">Date</th>
+                                </tr>
+                            </thead>
+
+                        </table>
+                        {{-- <div class="d-flex justify-content-center">
         {{ $activities->links() }}
     </div> --}}
-    </div>
-    </div>
-</div>
+                    </div>
+                </div>
+            </div>
 
         </section>
     </div>
@@ -415,140 +413,184 @@
             @endif
         });
     </script> --}}
-   <script>
-$(document).ready(function() {
-    var table = $('#users-table').DataTable({
-        dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-        buttons: [
-            {
-                extend: 'csv',
-                text: '<i class="fas fa-file-csv"></i> CSV',
-                className: 'btn btn-sm btn-primary ms-2 me-2',
-                exportOptions: {
-                    columns: [1,2,3,4,5,6,7,8]
+    <script>
+        $(document).ready(function() {
+            var table = $('#users-table').DataTable({
+                dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
+                buttons: [{
+                        extend: 'csv',
+                        text: '<i class="fas fa-file-csv"></i> CSV',
+                        className: 'btn btn-sm btn-primary ms-2 me-2',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-sm btn-success',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                        }
+                    }
+                ],
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                ajax: {
+                    url: '{{ route('employees.employees') }}',
+                    data: function(d) {
+                        d.activity_type = $('#activity-type-filter').val();
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Failed to load data!'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    },
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                columns: [
+                    // { data: null, className: 'text-center align-middle',
+                    //   render: function(data, type, row, meta) {
+                    //       return meta.row + meta.settings._iDisplayStart + 1;
+                    //   }
+                    // },
+                    {
+                        data: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name_company',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status_employee',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: function(data) {
+                            const badges = {
+                                'Active': 'success',
+                                'Inactive': 'danger',
+                                'On leave': 'warning',
+                                'Mutation': 'info',
+                                'Pending': 'secondary',
+                                'Resign': 'warning text-dark'
+                            };
+                            return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control form-control-sm');
+                    $('.dataTables_length select').addClass('form-select form-select-sm');
                 }
-            },
-            {
-                extend: 'excel',
-                text: '<i class="fas fa-file-excel"></i> Excel',
-                className: 'btn btn-sm btn-success',
-                exportOptions: {
-                    columns: [1,2,3,4,5,6,7,8]
-                }
-            }
-        ],
-        processing: true,
-        serverSide: true,
-        autoWidth: false,
-        ajax: {
-            url: '{{ route('employees.employees') }}',
-            data: function(d) {
-                d.activity_type = $('#activity-type-filter').val();
-            },
-            error: function(xhr) {
+            });
+
+            $('#activity-type-filter').change(function() {
+                table.ajax.reload();
+            });
+
+            @if (session('success'))
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Failed to load data!'
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    timer: 3000
                 });
-                console.error(xhr.responseText);
-            }
-        },
-        responsive: true,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        pageLength: 10,
-        language: {
-            lengthMenu: "Show _MENU_ entries",
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            },
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)"
-        },
-        columns: [
-            // { data: null, className: 'text-center align-middle',
-            //   render: function(data, type, row, meta) {
-            //       return meta.row + meta.settings._iDisplayStart + 1;
-            //   }
-            // },
-            { data: 'employee_name', className: 'text-center' },
-            { data: 'name_company', className: 'text-center' },
-            { data: 'grading_name', className: 'text-center' },
-            { data: 'position_name', className: 'text-center' },
-            { data: 'department_name', className: 'text-center' },
-            { data: 'status_employee', className: 'text-center' },
-            { data: 'name', className: 'text-center' },
-            { data: 'status', className: 'text-center',
-              render: function(data) {
-                  const badges = {
-                      'Active': 'success',
-                      'Inactive': 'danger',
-                      'On leave': 'warning',
-                      'Mutation': 'info',
-                      'Pending': 'secondary',
-                      'Resign': 'warning text-dark'
-                  };
-                  return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
-              }
-            },
-            { data: 'action', orderable: false, searchable: false, className: 'text-center' }
-        ],
-        initComplete: function() {
-            $('.dataTables_filter input').addClass('form-control form-control-sm');
-            $('.dataTables_length select').addClass('form-select form-select-sm');
-        }
-    });
-
-    $('#activity-type-filter').change(function() {
-        table.ajax.reload();
-    });
-
-    @if (session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: '{{ session('success') }}',
-            timer: 3000
+            @endif
         });
-    @endif
-});
-</script>
-<script>
-$(function () {
-    $('#activityTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: "{{ route('data.data') }}",
-        columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center'},
-            { data: 'description', name: 'description', className: 'text-center'},
-            // { data: 'changes', name: 'changes' },
-            { data: 'causer', name: 'causer', className: 'text-center'},
-            { data: 'created_at', name: 'created_at', className: 'text-center'},
-        ],
-        order: [[3, 'desc']],
-        language: {
-            searchPlaceholder: 'Search...',
-            sSearch: '',
-            lengthMenu: '_MENU_ Show entries',
-        },
-        responsive: true,
-         lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ]
-    });
-});
-</script>
-
-
+    </script>
+    <script>
+        $(function() {
+            $('#activityTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('data.data') }}",
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'description',
+                        name: 'description',
+                        className: 'text-center'
+                    },
+                    // { data: 'changes', name: 'changes' },
+                    {
+                        data: 'causer',
+                        name: 'causer',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-center'
+                    },
+                ],
+                order: [
+                    [3, 'desc']
+                ],
+                language: {
+                    searchPlaceholder: 'Search...',
+                    sSearch: '',
+                    lengthMenu: '_MENU_ Show entries',
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ]
+            });
+        });
+    </script>
 @endpush
