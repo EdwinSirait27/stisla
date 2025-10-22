@@ -95,8 +95,8 @@ class Employee extends Model
                 ->lockForUpdate()
                 ->orderByDesc('pin')
                 ->value('pin');
-            $nextPin = str_pad(((int) $lastPin + 1), 4, '0', STR_PAD_LEFT);
-            if ((int)$nextPin > 9999) {
+            $nextPin = str_pad(((int) $lastPin + 1), 5, '0', STR_PAD_LEFT);
+            if ((int)$nextPin > 99999) {
                 throw new \Exception("PIN sudah habis (lebih dari 9999)");
             }
             return $nextPin;
