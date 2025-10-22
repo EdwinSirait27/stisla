@@ -227,6 +227,25 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="nickname" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Nickname') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="text"
+                                                            class="form-control @error('nickname') is-invalid @enderror"
+                                                            id="nickname" name="nickname"
+                                                            value="{{ old('nickname') }}" required
+                                                            placeholder="exmpl OPR with capslock">
+                                                        @error('nickname')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
                                             </div>
                                          
                                     

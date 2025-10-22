@@ -77,6 +77,7 @@ class Employee extends Model
         'pending',
         'approved',
         'remaining',
+        'structure_id',
         'daily_duit'
     ];
     protected static function booted()
@@ -298,7 +299,6 @@ class Employee extends Model
                     'grading_id' => fn($id) => optional(Departments::find($id))->grading_name,
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
                 ];
-
                 $changesInfo = '';
                 if ($eventName === 'updated' && !empty($changes)) {
                     $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames) {
@@ -324,6 +324,10 @@ class Employee extends Model
 
                 return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
             });
+    }
+    public function structuresnew()
+    {
+        return $this->belongsTo(Structuresnew::class, 'structure_id');
     }
 }
 

@@ -246,12 +246,27 @@
                                                     </div>
                                                 </div>
                                             </div>
-
-
-
-
-
-
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="nickname" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Nickname') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="text"
+                                                            class="form-control @error('nickname') is-invalid @enderror"
+                                                            id="nickname" name="nickname"
+                                                            value="{{ old('nickname', $company->nickname) }}"
+                                                            placeholder="exmple:MJM" required>
+                                                        @error('nickname')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                        <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -259,14 +274,6 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Company Image') }}
                                                     </label>
                                                     <div>
-                                                        {{-- Preview Image --}}
-                                                        {{-- <div class="mb-2">
-                                                            @if ($company->foto)
-                                                                <img id="preview-image" src="{{ asset('storage/company/' . $company->foto) }}" alt="Preview" class="img-thumbnail" width="150">
-                                                            @else
-                                                                <img id="preview-image" src="https://via.placeholder.com/150" alt="Preview" class="img-thumbnail" width="150">
-                                                            @endif
-                                                        </div> --}}
                                                         <div class="mb-2">
                                                             @if ($company->foto)
                                                                 <img id="preview-image"
@@ -287,7 +294,6 @@
                                                         <input class="form-control @error('foto') is-invalid @enderror"
                                                             type="file" id="foto" name="foto" accept="image/*"
                                                             onchange="previewImage(event)">
-
                                                         @error('foto')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -296,11 +302,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-
-
-                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="address" class="form-control-label">
@@ -311,7 +312,7 @@
                                                             value="{{ old('address', $company->address ?? '') }}"
                                                             type="text" id="address" name="address"
                                                             aria-describedby="info-address"
-                                                            placeholder="Insert Store Address" maxlength="255">
+                                                            placeholder="Insert Comapny  Address" maxlength="255">
                                                         @error('address')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -319,7 +320,10 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+                                                </div>
                                             </div>
+                                        <div class="row mt-3">
+
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="npwp" class="form-control-label">

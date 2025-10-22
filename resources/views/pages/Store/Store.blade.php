@@ -186,6 +186,7 @@
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Manager Name</th>
                                                <th class="text-center">Location Name</th>
+                                               <th class="text-center">Nickname</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">Phone Number</th>
                                                 <th class="text-center">Action</th>
@@ -249,6 +250,11 @@
                     {
                         data: 'name',
                         name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nickname',
+                        name: 'nickname',
                         className: 'text-center'
                     },
                     {

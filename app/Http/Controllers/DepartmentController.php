@@ -48,7 +48,7 @@ class DepartmentController extends Controller
     $departments = Departments::with(['employees' => function ($query) {
             $query->where('is_manager', 1);
         }])
-        ->select(['id', 'department_name'])
+        ->select(['id', 'department_name','nickname'])
         ->get()
         ->map(function ($department) {
             $department->id_hashed = substr(hash('sha256', $department->id . env('APP_KEY')), 0, 8);
@@ -112,6 +112,12 @@ class DepartmentController extends Controller
                 'unique:departments_tables,department_name',
                 new NoXSSInput()
             ],
+            'nickname' => [
+                'required',
+                'string',
+                'max:255',
+                new NoXSSInput()
+            ],
            
         ], [
             'department_name.required' => 'Department name is required.',
@@ -123,6 +129,7 @@ class DepartmentController extends Controller
             DB::beginTransaction();
             $department = Departments::create([
                 'department_name' => $validatedData['department_name'],
+                'nickname' => $validatedData['nickname'],
             ]);
             DB::commit();
             return redirect()->route('pages.Department')->with('success', 'Department created Succesfully!');
@@ -150,19 +157,25 @@ class DepartmentController extends Controller
                 Rule::unique('departments_tables')->ignore($department->id),
                 new NoXSSInput()
             ],
+            'nickname' => [
+                'required',
+                'string',
+                'max:255',
+                new NoXSSInput()
+            ],
            
         ], [
             'department_name.required' => 'name wajib diisi.',
-            'manager_id.required' => 'Manager wajib diisi.',
-            'department_name.string' => 'name hanya boleh berupa teks.',
+            'nickname.string' => 'name hanya boleh berupa teks.',
         ]);
         $departmentData = [
             'department_name' => $validatedData['department_name'],
-            'manager_id' => $validatedData['manager_id'],
+            'nickname' => $validatedData['nickname'],
+            
         ];
         DB::beginTransaction();
         $department->update($departmentData);
         DB::commit();
-        return redirect()->route('pages.Department')->with('success', 'Department Berhasil Diupdate.');
+        return redirect()->route('pages.Department')->with('success', 'Department updated successfully.');
     }
 }

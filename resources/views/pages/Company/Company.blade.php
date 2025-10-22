@@ -187,6 +187,7 @@
                                                 {{-- <th class="text-center">Company Key</th> --}}
                                                 {{-- <th class="text-center">Photo</th> --}}
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Nickname</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">NPWP</th>
                                                 <th class="text-center">Action</th>
@@ -255,6 +256,7 @@
                 //         }
                 //     },
                 { data: 'name', name: 'name', className: 'text-center' },
+                { data: 'nickname', name: 'nickname', className: 'text-center' },
                 { data: 'address', name: 'address', className: 'text-center' },
                 { data: 'npwp', name: 'npwp', className: 'text-center' },
                

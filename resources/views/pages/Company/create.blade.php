@@ -267,7 +267,7 @@
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('address') is-invalid @enderror"
-                                                            value="{{ old('address', $store->address ?? '') }}"
+                                                            value="{{ old('address') }}"
                                                             type="text" id="address" name="address"
                                                             value="{{ old('address') }}" aria-describedby="info-address"
                                                             maxlength="255" placeholder="Insert Company Address">
@@ -278,6 +278,26 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+                                        </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="nickname" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Nickname') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('nickname') is-invalid @enderror"
+                                                            value="{{ old('nickname') }}"
+                                                            type="text" id="nickname" name="nickname"
+                                                            value="{{ old('nickname') }}" aria-describedby="info-address"
+                                                            maxlength="255" placeholder="Insert Company Nickname">
+                                                        @error('nickname')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                        </div>
                                         </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -297,9 +317,7 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                                </div>
-                                            </div>
-                                           
+                                                </div>  
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

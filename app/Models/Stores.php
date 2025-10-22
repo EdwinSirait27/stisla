@@ -28,6 +28,7 @@ class Stores extends Model
         'name',
         'address',
         'phone_num',
+        'nickname',
         'manager_id'
     ];
     public function user()

@@ -52,34 +52,77 @@ class EmployeeController extends Controller
 
     return view('pages.Employee.Employee');
 }
-  public function getActivities(Request $request)
-    {
-        if ($request->ajax()) {
-            $query = Activity::where('log_name', 'employee')
-                ->with(['causer.employee'])
-                ->latest();
+//   public function getActivities(Request $request)
+//     {
+//         if ($request->ajax()) {
+//             $query = Activity::where('log_name', 'employee')
+//                 ->with(['causer.employee'])
+//                 ->latest();
 
-            return DataTables::of($query)
-                ->addIndexColumn()
-                ->addColumn('description', function ($row) {
-                    return $row->description ?? '-';
-                })
-                ->addColumn('causer', function ($row) {
-                    return $row->causer->employee->employee_name
-                        ?? $row->causer->name
-                        ?? 'System';
-                })
-                ->addColumn('created_at', function ($row) {
-                    return $row->created_at->format('d M Y H:i');
-                })
-                ->addColumn('changes', function ($row) {
-    return json_encode($row->properties['attributes'] ?? []);
-})
+//             return DataTables::of($query)
+//                 ->addIndexColumn()
+//                 ->addColumn('description', function ($row) {
+//                     return $row->description ?? '-';
+//                 })
+//                 ->addColumn('causer', function ($row) {
+//                     return $row->causer->employee->employee_name
+//                         ?? $row->causer->name
+//                         ?? 'System';
+//                 })
+//                 ->addColumn('created_at', function ($row) {
+//                     return $row->created_at->format('d M Y H:i');
+//                 })
+//                 ->addColumn('changes', function ($row) {
+//     return json_encode($row->properties['attributes'] ?? []);
+// })
 
-                ->rawColumns(['description'])
-                ->make(true);
-        }
+//                 ->rawColumns(['description'])
+//                 ->make(true);
+//         }
+//     }
+public function getActivities(Request $request)
+{
+    if ($request->ajax()) {
+        $query = Activity::where('log_name', 'employee')
+            ->with(['causer.employee'])
+            ->latest();
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('description', function ($row) {
+                return $row->description ?? '-';
+            })
+            ->addColumn('causer', function ($row) {
+                return $row->causer->employee->employee_name
+                    ;
+            })
+            ->addColumn('created_at', function ($row) {
+                return $row->created_at->format('d M Y H:i');
+            })
+            ->addColumn('changes', function ($row) {
+                return json_encode($row->properties['attributes'] ?? []);
+            })
+
+            // 🔍 Tambahkan bagian filter untuk search
+            ->filter(function ($instance) use ($request) {
+                if ($request->has('search') && $request->get('search')['value'] != '') {
+                    $search = $request->get('search')['value'];
+
+                    $instance->where(function ($q) use ($search) {
+                        $q->where('description', 'like', "%{$search}%")
+                          ->orWhereHas('causer.employee', function ($q2) use ($search) {
+                              $q2->where('employee_name', 'like', "%{$search}%");
+                          })
+                          ->orWhereHas('causer.employee', function ($q3) use ($search) {
+                              $q3->where('employee_name', 'like', "%{$search}%");
+                          });
+                    });
+                }
+            })
+            ->rawColumns(['description'])
+            ->make(true);
     }
+}
 
 
     public function getEmployees(Request $request, DataTables $dataTables)
@@ -93,7 +136,8 @@ class EmployeeController extends Controller
             'Employee.position',
             'Employee.department',
             'Employee.grading',
-            'Employee.employees'
+            'Employee.employees',
+            'Employee.structuresnew',
         ])
             ->select(['id', 'employee_id'])
             ->get()
@@ -227,7 +271,7 @@ class EmployeeController extends Controller
             ->make(true);
     }
 
-    public function edit($hashedId)
+    public function edsit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);

@@ -23,6 +23,7 @@ class Departments extends Model
     protected $fillable = [
         'manager_id',
         'department_name',
+        'nickname',
     ];
     public function user()
     {

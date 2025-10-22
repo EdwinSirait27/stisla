@@ -20,7 +20,7 @@ class StoreController extends Controller
         $stores = Stores::with(['employees' => function ($query) {
             $query->where('is_manager_store', 1);
         }])
-        ->select(['id','name','address','phone_num'])
+        ->select(['id','name','address','phone_num','nickname'])
         ->get()
             ->map(function ($store) {
                 $store->id_hashed = substr(hash('sha256', $store->id . env('APP_KEY')), 0, 8);
@@ -77,6 +77,8 @@ class StoreController extends Controller
             //     new NoXSSInput()],
             'address' => ['required','max:255', 
                 new NoXSSInput()],
+            'nickname' => ['required','max:255', 
+                new NoXSSInput()],
             'phone_num' => ['required','max:255',
                 new NoXSSInput()],
             
@@ -93,6 +95,7 @@ class StoreController extends Controller
             $store = Stores::create([
                 'name' => $validatedData['name'], 
                 'address' => $validatedData['address'], 
+                'nickname' => $validatedData['nickname'], 
                 'phone_num' => $validatedData['phone_num'],  
             ]);
             DB::commit();
@@ -123,6 +126,8 @@ class StoreController extends Controller
 
         'address' => ['required','max:255', 
             new NoXSSInput()],
+        'nickname' => ['required','max:255', 
+            new NoXSSInput()],
         'phone_num' => ['required','max:255',
             new NoXSSInput()],
         
@@ -139,6 +144,7 @@ class StoreController extends Controller
             'name' => $validatedData['name'],
             'address' => $validatedData['address'],
             'phone_num' => $validatedData['phone_num'],
+            'nickname' => $validatedData['nickname'],
             // 'manager_id' => $validatedData['manager_id'],
             
         ];

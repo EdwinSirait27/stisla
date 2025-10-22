@@ -185,6 +185,7 @@
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Company</th>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Nickname</th>
                                                 <th class="text-center">Manager Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -247,6 +248,11 @@
                     {
                         data: 'department_name',
                         name: 'department_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nickname',
+                        name: 'nickname',
                         className: 'text-center'
                     },
                     {

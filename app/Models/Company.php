@@ -28,6 +28,7 @@ class Company extends Model
         'foto',
         'address',
         'npwp',  
+        'nickname',  
     ];
    
     public function user()

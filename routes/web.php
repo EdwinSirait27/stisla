@@ -37,6 +37,7 @@ use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StructuresnewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -238,12 +239,25 @@ Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('da
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
-
         Route::get('/Structures', [StructureController::class, 'index'])
             ->name('pages.Structures');
         Route::get('/Structures/edit/{hashedId}', [StructureController::class, 'edit'])->name('Structures.edit');
         Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
         Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
+    });
+    Route::group(['middleware' => ['permission:ManageStructuresnew']], function () {
+
+        Route::get('/Structuresnew', [StructuresnewController::class, 'index'])
+            ->name('pages.Structuresnew');
+        Route::post('/Structuresnew', [StructuresnewController::class, 'store'])->name('Structuresnew.store');
+
+             Route::get('Structuresnew/create', [StructuresnewController::class, 'create'])->name('Structuresnew.create');
+        Route::get('/Structuresnew/edit/{hashedId}', [StructuresnewController::class, 'edit'])->name('Structuresnew.edit');
+        Route::put('/Structuresnew/{hashedId}', [StructuresnewController::class, 'update'])->name('Structuresnew.update');
+        Route::get('/structuresnew/structuresnew', [StructuresnewController::class, 'getStructuresnew'])->name('structuresnew.structuresnew');
+        Route::get('/orgchart/orgchart', [StructuresnewController::class, 'getOrgChartData'])->name('orgchart.orgchart');
+        Route::delete('/structures/delete-bulk', [StructuresnewController::class, 'bulkDelete'])->name('structuresnew.bulkDelete');
+    
     });
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
 

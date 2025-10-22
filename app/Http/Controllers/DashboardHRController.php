@@ -270,7 +270,7 @@ public function index(Request $request)
     $startDate = $monthDate->copy()->startOfMonth();
     $endDate   = $monthDate->copy()->endOfMonth();
 
-    $types = ['Annual Leave', 'Overtime'];
+    $types = ['Annual Leave', 'Overtime','Cash Advances'];
     $statussubmissions = ['Cash', 'TOIL'];
 
     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();

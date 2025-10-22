@@ -18,7 +18,7 @@ class CompanyController extends Controller
     }
     public function getCompanys()
     {
-        $companys = Company::select(['id', 'foto', 'name', 'address', 'npwp'])
+        $companys = Company::select(['id', 'foto', 'name', 'address', 'npwp','nickname'])
             ->get()
             ->map(function ($company) {
                 $company->id_hashed = substr(hash('sha256', $company->id . env('APP_KEY')), 0, 8);
@@ -66,6 +66,9 @@ class CompanyController extends Controller
         'address' => [
             'required', 'max:255', new NoXSSInput()
         ],
+        'nickname' => [
+            'required','string', 'max:255', new NoXSSInput()
+        ],
         'npwp' => [
             'required', 'max:255', 'unique:company_tables,npwp', new NoXSSInput()
         ],
@@ -98,6 +101,7 @@ class CompanyController extends Controller
             'foto' => $filePath,
             'name' => $validatedData['name'],
             'npwp' => $validatedData['npwp'],
+            'nickname' => $validatedData['nickname'],
             'address' => $validatedData['address'],
         ]);
         DB::commit();
@@ -135,6 +139,11 @@ class CompanyController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
+            'nickname' => [
+                'required',
+                'max:255',
+                new NoXSSInput()
+            ],
             'npwp' => [
                 'required',
                 'max:255',
@@ -167,9 +176,10 @@ class CompanyController extends Controller
             }
         }
         
-        // Siapkan data yang akan diupdate
+        // Siapkan dta yang akan diupdate
         $companyData = [
             'name' => $validatedData['name'],
+            'nickname' => $validatedData['nickname'],
             'address' => $validatedData['address'],
             'npwp' => $validatedData['npwp'],
         ];

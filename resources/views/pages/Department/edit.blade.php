@@ -232,26 +232,19 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
 
-                                            {{-- <div class="col-md-6">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="manager_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Manager Name') }}
+                                                    <label for="nickname" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Nickname') }}
                                                     </label>
      <div>
-                                                    <select name="manager_id"
-                                                        class="form-control select2 @error('manager_id') is-invalid @enderror"
-                                                        required>
-                                                        <option value="">Choose Manager</option>
-                                                        @foreach ($managers as $id => $employeeName)
-                                                            <option value="{{ $id }}"
-                                                                {{ old('manager_id', $department->manager_id) == $id ? 'selected' : '' }}>
-                                                                {{ $employeeName }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('manager_id')
+                                                   <input type="text"
+                                                            class="form-control @error('nickname') is-invalid @enderror"
+                                                            id="nickname" name="nickname"
+                                                            value="{{ old('nickname', $department->nickname) }}"
+                                                            placeholder="exmpl OPR with capslock" required>
+                                                    @error('nickname')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -259,7 +252,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        </div> --}}
+                                        </div>
 
 
 
