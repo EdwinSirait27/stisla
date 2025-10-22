@@ -136,8 +136,7 @@ public function getActivities(Request $request)
             'Employee.position',
             'Employee.department',
             'Employee.grading',
-            'Employee.employees',
-            'Employee.structuresnew',
+            'Employee.employees'
         ])
             ->select(['id', 'employee_id'])
             ->get()
@@ -271,7 +270,7 @@ public function getActivities(Request $request)
             ->make(true);
     }
 
-    public function edsit($hashedId)
+    public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
