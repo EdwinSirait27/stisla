@@ -84,9 +84,7 @@ class StructuresnewController extends Controller
                     ? $structure->parent->position->name
                     : 'Empty';
             })
-        //      ->addColumn('checkbox', function ($structure) {
-        //     return '<input type="checkbox" class="user-checkbox" value="' . e($structure->id) . '">';
-        // })
+       
        
 
 

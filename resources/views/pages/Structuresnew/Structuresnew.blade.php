@@ -207,6 +207,7 @@
                                                 <th class="text-center">Manager Location</th>
                                                 <th class="text-center">Manager Department</th>
                                                 <th class="text-center">Hierarchy</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
