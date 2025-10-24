@@ -204,9 +204,9 @@
                                                 <th class="text-center">Location</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Structure Code</th>
-                                                <th class="text-center">Manager Location</th>
-                                                <th class="text-center">Manager Department</th>
-                                                <th class="text-center">Hierarchy</th>
+                                                <th class="text-center">Is Manager?</th>
+                                                {{-- <th class="text-center">Manager Department</th> --}}
+                                                <th class="text-center">Direct Superior</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -321,19 +321,25 @@
                                 '<span class="badge bg-danger">No</span>';
                         }
                     },
-                    {
-                        data: 'is_manager_department',
-                        name: 'is_manager_department',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data == 1 ?
-                                '<span class="badge bg-success">Yes</span>' :
-                                '<span class="badge bg-danger">No</span>';
-                        }
-                    },
+                    // {
+                    //     data: 'is_manager_department',
+                    //     name: 'is_manager_department',
+                    //     className: 'text-center',
+                    //     render: function(data) {
+                    //         return data == 1 ?
+                    //             '<span class="badge bg-success">Yes</span>' :
+                    //             '<span class="badge bg-danger">No</span>';
+                    //     }
+                    // },
                     {
                         data: 'parent',
                         name: 'parent',
+                        className: 'text-center'
+                    },
+                       {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
                         className: 'text-center'
                     }
                     // {

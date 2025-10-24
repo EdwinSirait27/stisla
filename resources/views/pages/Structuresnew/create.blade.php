@@ -509,7 +509,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Store') }}
                                                     </label>
                                                     <select name="store_id" class="form-control select2 @error('store_id') is-invalid @enderror" required>
-                                                        <option value="">Choose Location</option>
+                                                        <option value="">Choose Store</option>
                                                         @foreach ($stores as $key => $value)
                                                             <option value="{{ $key }}" {{ old('store_id') == $key ? 'selected' : '' }}>
                                                                 {{ $value }}
@@ -551,10 +551,10 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="parent_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Hierarchy') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
                                                     </label>
                                                     <select name="parent_id" class="form-control select2 @error('parent_id') is-invalid @enderror">
-                                                        <option value="">Choose Hierarchy</option>
+                                                        <option value="">Choose Superior</option>
                                                         @foreach ($parents as $key => $value)
                                                             <option value="{{ $key }}" {{ old('parent_id') == $key ? 'selected' : '' }}>
                                                                 {{ $value }}
@@ -575,7 +575,7 @@
                                                         class="form-check-input @error('is_manager_store') is-invalid @enderror"
                                                         {{ old('is_manager_store') ? 'checked' : '' }}>
                                                     <label for="is_manager_store" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Store?') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
                                                     </label>
                                                     @error('is_manager_store')
                                                         <span class="invalid-feedback d-block" role="alert">
@@ -586,7 +586,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="row">
+                                        {{-- <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager_department" id="is_manager_department" value="1"
@@ -602,19 +602,17 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
 
                                         {{-- Notes --}}
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong><br>
-                                                - If an Employee name is already registered, you cannot register it again.<br>
                                                 - Superior can be empty.<br>
                                                 - Please use English to get used to it.<br>
-                                                - Before creating data, please check whether there is already similar or identical data to avoid double input on Employee Name.
+                                                - Before creating data, please check whether there is already similar or identical data to avoid double input on Structure.
                                             </span>
                                         </div>
-
                                         {{-- Buttons --}}
                                         <div class="d-flex justify-content-end mt-4">
                                             <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">

@@ -28,7 +28,7 @@ class Structuresnew extends Model
         'parent_id',
         'structure_code',
         'is_manager_store',
-        'is_manager_department',
+        // 'is_manager_department',
     ];
     protected $casts = [
         'is_manager_store' => 'boolean',

@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Models\Grading;
 use App\Models\Payrolls;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeEmployeeMail;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
+
 class EmployeeController extends Controller
 {
     public function indexall()
@@ -30,104 +32,54 @@ class EmployeeController extends Controller
         $statusList = Employee::select('status')->distinct()->pluck('status');
         return view('pages.Employeeall.Employeeall', compact('storeList', 'statusList'));
     }
-    // public function index()
-    // {
-    //     $userList = Employee::select('employee_name')->distinct()->pluck('employee');
-    //       $logs = Activity::where('log_name', 'store')
-    //     ->with('causer') // untuk ambil user yang menyebabkan event
-    //     ->latest()
-    //     ->take(20)
-    //     ->get();
-
-    //     return view('pages.Employee.Employee', compact('storeList','logs'));
-    // }
     public function index()
-{
-    // Ambil daftar employee untuk filter/log view
-    //   $activities = Activity::where('log_name', 'employee')
-    //         ->with('causer.employee') // relasi user → employee
-    //         ->latest()
-    //         ->paginate(20);
-
-
-    return view('pages.Employee.Employee');
-}
-//   public function getActivities(Request $request)
-//     {
-//         if ($request->ajax()) {
-//             $query = Activity::where('log_name', 'employee')
-//                 ->with(['causer.employee'])
-//                 ->latest();
-
-//             return DataTables::of($query)
-//                 ->addIndexColumn()
-//                 ->addColumn('description', function ($row) {
-//                     return $row->description ?? '-';
-//                 })
-//                 ->addColumn('causer', function ($row) {
-//                     return $row->causer->employee->employee_name
-//                         ?? $row->causer->name
-//                         ?? 'System';
-//                 })
-//                 ->addColumn('created_at', function ($row) {
-//                     return $row->created_at->format('d M Y H:i');
-//                 })
-//                 ->addColumn('changes', function ($row) {
-//     return json_encode($row->properties['attributes'] ?? []);
-// })
-
-//                 ->rawColumns(['description'])
-//                 ->make(true);
-//         }
-//     }
-public function getActivities(Request $request)
-{
-    if ($request->ajax()) {
-        $query = Activity::where('log_name', 'employee')
-            ->with(['causer.employee'])
-            ->latest();
-
-        return DataTables::of($query)
-            ->addIndexColumn()
-            ->addColumn('description', function ($row) {
-                return $row->description ?? '-';
-            })
-            ->addColumn('causer', function ($row) {
-                return $row->causer->employee->employee_name
-                    ;
-            })
-            ->addColumn('created_at', function ($row) {
-                return $row->created_at->format('d M Y H:i');
-            })
-            ->addColumn('changes', function ($row) {
-                return json_encode($row->properties['attributes'] ?? []);
-            })
-
-            // 🔍 Tambahkan bagian filter untuk search
-            ->filter(function ($instance) use ($request) {
-                if ($request->has('search') && $request->get('search')['value'] != '') {
-                    $search = $request->get('search')['value'];
-
-                    $instance->where(function ($q) use ($search) {
-                        $q->where('description', 'like', "%{$search}%")
-                          ->orWhereHas('causer.employee', function ($q2) use ($search) {
-                              $q2->where('employee_name', 'like', "%{$search}%");
-                          })
-                          ->orWhereHas('causer.employee', function ($q3) use ($search) {
-                              $q3->where('employee_name', 'like', "%{$search}%");
-                          });
-                    });
-                }
-            })
-            ->rawColumns(['description'])
-            ->make(true);
+    {
+        return view('pages.Employee.Employee');
     }
-}
+    public function getActivities(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Activity::where('log_name', 'employee')
+                ->with(['causer.employee'])
+                ->latest();
 
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('description', function ($row) {
+                    return $row->description ?? '-';
+                })
+                ->addColumn('causer', function ($row) {
+                    return $row->causer->employee->employee_name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at->format('d M Y H:i');
+                })
+                ->addColumn('changes', function ($row) {
+                    return json_encode($row->properties['attributes'] ?? []);
+                })
 
+                // 🔍 Tambahkan bagian filter untuk search
+                ->filter(function ($instance) use ($request) {
+                    if ($request->has('search') && $request->get('search')['value'] != '') {
+                        $search = $request->get('search')['value'];
+
+                        $instance->where(function ($q) use ($search) {
+                            $q->where('description', 'like', "%{$search}%")
+                                ->orWhereHas('causer.employee', function ($q2) use ($search) {
+                                    $q2->where('employee_name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('causer.employee', function ($q3) use ($search) {
+                                    $q3->where('employee_name', 'like', "%{$search}%");
+                                });
+                        });
+                    }
+                })
+                ->rawColumns(['description'])
+                ->make(true);
+        }
+    }
     public function getEmployees(Request $request, DataTables $dataTables)
     {
-        // $isHeadHR = auth()->user()->hasRole('HeadHR');
         $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
 
         $employees = User::with([
@@ -163,9 +115,14 @@ public function getActivities(Request $request)
             ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
 
+            ->addColumn('photo', function ($e) {
+                $photo = optional($e->Employee)->photo;
+                return $photo
+                    ? asset('storage/employeephoto' . $photo)
+                    : 'Empty';
+            })
+
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
-            ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
-            ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
             ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
@@ -365,6 +322,7 @@ public function getActivities(Request $request)
         $employees = Employee::where('status', 'Active')
             ->pluck('employee_name', 'id');
 
+
         $stores = Stores::pluck('name', 'id')->all();
         $positions = Position::pluck('name', 'id')->all();
         $departments = Departments::pluck('department_name', 'id')->all();
@@ -394,6 +352,7 @@ public function getActivities(Request $request)
                 'unique:users,username',
                 new NoXSSInput()
             ],
+            'photo' => ['nullable', 'image', 'max:512'],
             'level_id' => [
                 'nullable',
                 'max:255',
@@ -489,7 +448,18 @@ public function getActivities(Request $request)
             'department_id.required' => 'The Department is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
+            'photo.image' => 'photo must be jpg or jpeg or png.',
+            'photo.max' => 'size under 512 kb.',
+
         ]);
+        $filePath = null;
+
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+            $file->storeAs('public/employeephoto', $fileName);
+            $filePath = $fileName;
+        }
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -508,6 +478,7 @@ public function getActivities(Request $request)
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
+                'photo' => $filePath,
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -554,11 +525,15 @@ public function getActivities(Request $request)
             return redirect()->route('pages.Employee')->with('success', 'Done!');
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($filePath && Storage::exists('public/employeephoto/' . $filePath)) {
+                Storage::delete('public/employeephoto/' . $filePath);
+            }
             return redirect()->back()
                 ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
                 ->withInput();
         }
     }
+    
     public function update(Request $request, $hashedId)
     {
         $user = User::with('Employee')->get()->first(function ($u) use ($hashedId) {
@@ -573,6 +548,8 @@ public function getActivities(Request $request)
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+
+            'photo' => ['nullable', 'image', 'max:512'],
             'employee_name' => [
                 'required',
                 'string',
@@ -621,49 +598,38 @@ public function getActivities(Request $request)
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
-            // 'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ], [
+            'photo.max' => 'under 512 kb.',
+            'photo.image' => 'must be jpg jpeg or png .',
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
-
             'date_of_birth.required' => 'The date of birth is required.',
             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
-
             'employee_name.required' => 'The employee name is required.',
             'employee_name.max' => 'The employee name may not be greater than 255 characters.',
-
             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
-
             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
-
             'email.required' => 'The email is required.',
             'email.max' => 'The email may not be greater than 255 characters.',
-
             'emergency_contact_name.required' => 'The emergency contact name is required.',
             'marriage.required' => 'The marriage status is required.',
             'notes.max' => 'The notes may not be greater than 255 characters.',
             'child.required' => 'The child information is required.',
             'gender.required' => 'The gender is required.',
-
             'telp_number.required' => 'The phone number is required.',
             'telp_number.numeric' => 'The phone number must be numeric.',
             'telp_number.max' => 'The phone number may not be greater than 13 digits.',
-
             'status_employee.required' => 'The employee status is required.',
             'nik.required' => 'The NIK is required.',
             'nik.max' => 'The NIK may not be greater than 20 characters.',
             'bank_account_number.required' => 'The bank account number is required.',
             'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
-
-
             'last_education.required' => 'The last education field is required.',
             'last_education.max' => 'The last education may not be greater than 255 characters.',
-
             'religion.required' => 'The religion field is required.',
-
             'place_of_birth.required' => 'The place of birth is required.',
             'biological_mother_name.required' => 'The biological mother\'s name is required.',
             'current_address.required' => 'The current address is required.',
@@ -671,7 +637,6 @@ public function getActivities(Request $request)
             'institution.required' => 'The institution is required.',
             'npwp.required' => 'The NPWP is required.',
             'npwp.max' => 'The NPWP may not be greater than 50 characters.',
-
             'position_id.exists' => 'The selected position is invalid.',
             'store_id.exists' => 'The selected store is invalid.',
             'company_id.exists' => 'The selected company is invalid.',
@@ -680,11 +645,22 @@ public function getActivities(Request $request)
             'store_id.required' => 'The Store is required.',
             'company_id.required' => 'The Company is required.',
             'department_id.required' => 'The Department is required.',
-            // 'grading_id.required' => 'The grading is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
         ]);
-
+        $filePath = $user->employee->photo;
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+            $file->storeAs('public/employeephoto', $fileName);
+            $filePath = $fileName;
+            if ($user->employee && $user->employee->photo && Storage::exists('public/employeephoto/' . $user->employee->photo)) {
+                Storage::delete('public/company/' . $user->employee->photo);
+            }
+        }
+        if ($request->hasFile('photo')) {
+            $companyData['photo'] = $filePath;
+        }
         DB::beginTransaction();
         $user->Employee->update([
             'employee_name' => $validatedData['employee_name'] ?? '',
@@ -695,12 +671,9 @@ public function getActivities(Request $request)
             'store_id' => $validatedData['store_id'] ?? '',
             'department_id' => $validatedData['department_id'] ?? '',
             'banks_id' => $validatedData['banks_id'] ?? '',
-            // 'grading_id' => $validatedData['grading_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
             'join_date' => $validatedData['join_date'] ?? '',
-            // 'end_date' => $validatedData['end_date'] ?? '',
             'end_date' => $validatedData['end_date'] ?? null,
-
             'marriage' => $validatedData['marriage'] ?? '',
             'child' => $validatedData['child'] ?? '',
             'telp_number' => $validatedData['telp_number'] ?? '',
@@ -728,7 +701,6 @@ public function getActivities(Request $request)
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
     }
-
     public function transferAllToPayroll(Request $request)
     {
         try {
