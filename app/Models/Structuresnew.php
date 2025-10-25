@@ -27,12 +27,12 @@ class Structuresnew extends Model
         'position_id',
         'parent_id',
         'structure_code',
-        'is_manager_store',
-        // 'is_manager_department',
+        'is_manager',
+        'is_head',
     ];
     protected $casts = [
-        'is_manager_store' => 'boolean',
-        'is_manager_department' => 'boolean',
+        'is_manager' => 'boolean',
+        
     ];
     public function company()
     {

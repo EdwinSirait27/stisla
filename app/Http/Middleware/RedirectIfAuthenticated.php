@@ -20,8 +20,7 @@ class RedirectIfAuthenticated
     public function handle($request, Closure $next, ...$guards)
 {
     if (Auth::check()) {
-        $user = auth()->user();
-        
+        $user = auth()->user();        
         if ($user->can('isAdmin')) {
             return redirect('/dashboardAdmin');
         }
@@ -34,9 +33,6 @@ class RedirectIfAuthenticated
         if ($user->can('isHR')) {
             return redirect('/dashboardHR');
         }
-        if ($user->can('isManagerStore')) {
-            return redirect('/dashboardManager');
-        }
         if ($user->can('isSupervisor')) {
             return redirect('/dashboardSupervisor');
         }
@@ -46,19 +42,16 @@ class RedirectIfAuthenticated
         if ($user->can('isBuyer')) {
             return redirect('/dashboard');
         }
+        if ($user->can('isManager')) {
+            return redirect('/feature-profile');
+        }
         if ($user->can('isHuman')) {
     return redirect()->route('feature-profile')
         ->with('success', 'Selamat datang di Feature Profile!');
 }
-
-
-        // Jika user_type tidak valid, logout dan kembali ke login
         Auth::logout();
-        return redirect('/')->withErrors(['error' => 'Akses ditolak.']);
+        return redirect('/')->withErrors(['error' => 'Access Denied.']);
     }
-
     return $next($request);
-}
-
-    
+}    
 }

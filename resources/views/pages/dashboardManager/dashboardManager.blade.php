@@ -1,4 +1,4 @@
-
+{{-- 
 @extends('layouts.app')
 
 @section('title', 'Dashboard Manager')
@@ -47,7 +47,6 @@
             color: var(--gray-800);
         }
 
-        /* Utility Classes */
         .d-flex {
             display: flex;
         }
@@ -175,7 +174,6 @@
             text-align: center;
         }
 
-        /* Page Header */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -205,7 +203,6 @@
             background-color: var(--white);
         }
 
-        /* Stats Cards */
         .dashboard-stats {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -280,14 +277,12 @@
             color: var(--danger);
         }
 
-        /* Grid Layout */
         .content-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 1.5rem;
         }
 
-        /* Cards */
         .card {
             background-color: var(--white);
             border-radius: var(--border-radius);
@@ -331,7 +326,6 @@
             flex-wrap: wrap;
         }
 
-        /* Buttons */
         .btn {
             padding: 0.5rem 1rem;
             font-size: 0.9rem;
@@ -369,7 +363,6 @@
             background-color: var(--primary-light);
         }
 
-        /* Tables */
         .table-responsive {
             overflow-x: auto;
             margin-bottom: 1rem;
@@ -398,7 +391,6 @@
             background-color: var(--gray-100);
         }
 
-        /* Badges */
         .badge {
             padding: 0.3rem 0.6rem;
             font-size: 0.75rem;
@@ -427,7 +419,6 @@
             color: var(--info);
         }
 
-        /* Action Buttons */
         .action-btn {
             background: none;
             border: none;
@@ -443,7 +434,6 @@
             background-color: var(--gray-100);
         }
 
-        /* Charts */
         .chart-container {
             height: 250px;
             margin-top: 1rem;
@@ -454,7 +444,6 @@
             justify-content: center;
         }
 
-        /* Quick Actions */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -493,7 +482,6 @@
             color: var(--gray-600);
         }
 
-        /* Performance Summary */
         .performance-summary {
             display: flex;
             justify-content: space-between;
@@ -519,7 +507,6 @@
             font-weight: 600;
         }
 
-        /* Notification cards */
         .notification-card {
             padding: 0.8rem;
             border-left: 4px solid transparent;
@@ -567,7 +554,6 @@
             margin-top: 0.3rem;
         }
 
-        /* Responsive design */
         @media (max-width: 1200px) {
             .dashboard-stats {
                 grid-template-columns: repeat(2, 1fr);
@@ -1018,733 +1004,936 @@
         </div>
     </div>
 </section>
+@endsection --}}
 
-    <!-- JavaScript untuk fungsionalitas responsive -->
-
-@endsection
 {{-- @extends('layouts.app')
-
-@section('title', 'Dashboard Manager')
+@section('title', 'Manager Dashboard')
 
 @push('style')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.css" />
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    .card-icon { font-size: 2rem; color: #fff; }
+
+    .quick-action-card {
+        transition: all 0.25s ease-in-out;
+        border-radius: 12px;
+        border: none;
     }
-    
-    body {
-        background-color: #f8f9fa;
+
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
-    
-    .navbar {
-        background-color: #1a237e;
-        color: white;
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
+
+    .icon-circle {
+        display: inline-flex;
         align-items: center;
-    }
-    
-    .logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-    
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-    
-    .user-info img {
-        width: 40px;
-        height: 40px;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
-        background-color: #c5cae9;
-        border: 2px solid white;
     }
-    
-    .sidebar {
-        width: 260px;
-        background-color: #ffffff;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        height: calc(100vh - 64px);
-        position: fixed;
-        top: 64px;
-        overflow-y: auto;
+
+    .section-header h1 {
+        font-weight: 600;
     }
-    
-    .menu-category {
-        padding: 1rem;
-        font-size: 0.8rem;
-        font-weight: bold;
-        color: #7986cb;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+
+    .list-unstyled li {
+        margin-bottom: 8px;
     }
-    
-    .menu-item {
-        padding: 0.8rem 1rem 0.8rem 2rem;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        color: #424242;
-        text-decoration: none;
-        border-left: 4px solid transparent;
-    }
-    
-    .menu-item:hover, .menu-item.active {
-        background-color: #ede7f6;
-        color: #3f51b5;
-        border-left: 4px solid #3f51b5;
-    }
-    
-    .menu-item-icon {
-        font-size: 1.2rem;
-        width: 20px;
-        text-align: center;
-    }
-    
-    .main-content {
-        margin-left: 260px;
-        padding: 1.5rem;
-    }
-    
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    
-    .page-title {
-        font-size: 1.8rem;
-        color: #212529;
-    }
-    
-    .date-range {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-    }
-    
-    .date-range select {
-        padding: 0.5rem;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
-    
-    .dashboard-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .stat-card {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 1.5rem;
+
+    /* === Fix agar Chart tidak mengecil === */
+    .chart-container {
         position: relative;
-        overflow: hidden;
+        min-height: 300px;
+        height: 100%;
     }
-    
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-    }
-    
-    .stat-card:nth-child(1)::before { background-color: #3f51b5; }
-    .stat-card:nth-child(2)::before { background-color: #4caf50; }
-    .stat-card:nth-child(3)::before { background-color: #ff9800; }
-    .stat-card:nth-child(4)::before { background-color: #f44336; }
-    
-    .stat-title {
-        color: #6c757d;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-value {
-        font-size: 1.8rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-comparison {
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-    
-    .positive {
-        color: #4caf50;
-    }
-    
-    .negative {
-        color: #f44336;
-    }
-    
-    .content-cards {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 1.5rem;
-    }
-    
-    .card {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #f2f2f2;
-    }
-    
-    .card-title {
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #343a40;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .card-icon {
-        width: 24px;
-        height: 24px;
-        background-color: #e3f2fd;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #3f51b5;
-    }
-    
-    .card-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .card-btn {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-        border-radius: 4px;
-        cursor: pointer;
-        border: 1px solid #ced4da;
-        background-color: white;
-    }
-    
-    .btn-primary {
-        background-color: #3f51b5;
-        color: white;
-        border: none;
-    }
-    
-    .btn-outline {
-        border: 1px solid #3f51b5;
-        color: #3f51b5;
-    }
-    
-    .table-responsive {
-        overflow-x: auto;
-    }
-    
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    th, td {
-        padding: 0.8rem;
-        text-align: left;
-        border-bottom: 1px solid #f2f2f2;
-    }
-    
-    th {
-        font-weight: 600;
-        color: #495057;
-        background-color: #f8f9fa;
-    }
-    
-    tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .badge {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.75rem;
-        border-radius: 20px;
-    }
-    
-    .badge-success {
-        background-color: #e8f5e9;
-        color: #4caf50;
-    }
-    
-    .badge-warning {
-        background-color: #fff3e0;
-        color: #ff9800;
-    }
-    
-    .badge-danger {
-        background-color: #ffebee;
-        color: #f44336;
-    }
-    
-    .badge-info {
-        background-color: #e3f2fd;
-        color: #2196f3;
-    }
-    
-    .action-btn {
-        background: none;
-        border: none;
-        color: #3f51b5;
-        cursor: pointer;
-        font-size: 0.9rem;
-    }
-    
-    .performance-chart {
-        height: 250px;
-        margin-top: 1rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .chart-placeholder {
-        font-size: 1.2rem;
-        color: #6c757d;
-    }
-    
-    .top-products {
-        list-style: none;
-    }
-    
-    .product-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.8rem 0;
-        border-bottom: 1px solid #f2f2f2;
-    }
-    
-    .product-info {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-    
-    .product-image {
-        width: 40px;
-        height: 40px;
-        border-radius: 4px;
-        background-color: #f8f9fa;
-    }
-    
-    .product-name {
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-    
-    .product-category {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    
-    .product-stats {
-        text-align: right;
-    }
-    
-    .product-sales {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    
-    .product-quantity {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    
-    .quick-actions {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-    }
-    
-    .action-card {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 1.5rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .action-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-    }
-    
-    .action-icon {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-    
-    .action-title {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    
-    .action-description {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    
-    .performance-summary {
-        display: flex;
-        justify-content: space-between;
-        padding: 1rem 0;
-    }
-    
-    .summary-item {
-        text-align: center;
-    }
-    
-    .summary-label {
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-    }
-    
-    .summary-value {
-        font-size: 1.2rem;
-        font-weight: 600;
+
+    canvas {
+        width: 100% !important;
+        height: 300px !important;
     }
 </style>
-
 @endpush
 
-@section('main')<div class="main-content">
+@section('main')
+<div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Dashboard Manager</h1>
+        </div>
+
+        <div class="section-body">
+            <!-- Header Profil -->
+            <div class="row align-items-center mb-4">
+                <div class="col-md-8 d-flex align-items-center">
+                    <img alt="image" src="{{ asset('img/avatar/avatar-2.png') }}" class="rounded-circle mr-3" width="70">
+                    <div>
+                        <h4 class="mb-1">{{ Auth::user()->employee->name ?? Auth::user()->username }}</h4>
+                        <p class="text-muted mb-1">
+                            {{ Auth::user()->employee->position->name ?? 'Manager' }} -
+                            {{ Auth::user()->employee->department->name ?? 'Department' }}
+                        </p>
+                        <span class="badge badge-primary">Manager</span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-right mt-3 mt-md-0">
+                    <small>Bergabung sejak {{ Auth::user()->employee->join_date ?? '2021-01-01' }}</small><br>
+                    <small>Lama kerja: 3 Tahun 2 Bulan</small>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                @php
+                    $actions = [
+                        ['icon' => 'fa-user-check', 'label' => 'Setujui Cuti', 'url' => '#', 'color' => '#4e73df'],
+                        ['icon' => 'fa-users', 'label' => 'Data Tim', 'url' => '#', 'color' => '#1cc88a'],
+                        ['icon' => 'fa-chart-bar', 'label' => 'Evaluasi Kinerja', 'url' => '#', 'color' => '#36b9cc'],
+                        ['icon' => 'fa-clock', 'label' => 'Monitoring Absensi', 'url' => '#', 'color' => '#f6c23e'],
+                        ['icon' => 'fa-file-alt', 'label' => 'Laporan Bulanan', 'url' => '#', 'color' => '#e74a3b'],
+                        ['icon' => 'fa-calendar-alt', 'label' => 'Agenda Tim', 'url' => '#', 'color' => '#858796'],
+                    ];
+                @endphp
+
+                @foreach ($actions as $action)
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                        <a href="{{ $action['url'] }}" class="text-decoration-none">
+                            <div class="card text-center shadow-sm quick-action-card h-100">
+                                <div class="card-body py-4">
+                                    <div class="icon-circle mb-3" style="background: {{ $action['color'] }}20;">
+                                        <i class="fas {{ $action['icon'] }}" style="color: {{ $action['color'] }}; font-size: 28px;"></i>
+                                    </div>
+                                    <div class="text-dark font-weight-bold small">{{ $action['label'] }}</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Statistik Utama -->
+            <div class="row">
+                @php
+                    $stats = [
+                        ['color' => 'bg-primary', 'icon' => 'fa-users', 'title' => 'Total Anggota Tim', 'value' => '12'],
+                        ['color' => 'bg-success', 'icon' => 'fa-plane', 'title' => 'Cuti Aktif', 'value' => '3 Orang'],
+                        ['color' => 'bg-warning', 'icon' => 'fa-clock', 'title' => 'Kehadiran Rata-rata', 'value' => '92%'],
+                        ['color' => 'bg-info', 'icon' => 'fa-chart-line', 'title' => 'Performa Tim', 'value' => '89 / 100'],
+                    ];
+                @endphp
+
+                @foreach ($stats as $stat)
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card card-statistic-1">
+                        <div class="card-icon {{ $stat['color'] }}">
+                            <i class="fas {{ $stat['icon'] }}"></i>
+                        </div>
+                        <div class="card-wrap">
+                            <div class="card-header"><h4>{{ $stat['title'] }}</h4></div>
+                            <div class="card-body">{{ $stat['value'] }}</div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <!-- Grafik & Notifikasi -->
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header"><h4>Grafik Kehadiran Tim</h4></div>
+                        <div class="card-body chart-container">
+                            <canvas id="teamAttendanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header"><h4>Notifikasi HR</h4></div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-2"><i class="fas fa-bullhorn"></i> Evaluasi Q4 segera dimulai</div>
+                            <div class="alert alert-warning mb-0"><i class="fas fa-user-clock"></i> 2 pengajuan cuti menunggu persetujuan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aktivitas & Performa -->
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header"><h4>Aktivitas Tim Terbaru</h4></div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> Rina melakukan clock-in pukul 08:05</li>
+                                <li><i class="fas fa-plane text-primary"></i> Budi mengajukan cuti 3 hari</li>
+                                <li><i class="fas fa-chart-line text-info"></i> Evaluasi tim marketing selesai</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header"><h4>Performa Departemen</h4></div>
+                        <div class="card-body chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+@endsection
+
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Hapus grafik sebelumnya agar tidak duplikat jika halaman re-render
+    if (window.teamChart) window.teamChart.destroy();
+    if (window.perfChart) window.perfChart.destroy();
+
+    const teamCtx = document.getElementById('teamAttendanceChart').getContext('2d');
+    window.teamChart = new Chart(teamCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt'],
+            datasets: [{
+                label: 'Kehadiran Tim (%)',
+                data: [88, 90, 91, 92, 93, 94, 92, 95, 94, 96],
+                borderColor: '#004085',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#004085'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+
+    const perfCtx = document.getElementById('performanceChart').getContext('2d');
+    window.perfChart = new Chart(perfCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Finance', 'HR', 'Marketing', 'IT', 'Sales'],
+            datasets: [{
+                label: 'Nilai Kinerja',
+                data: [85, 90, 88, 92, 89],
+                backgroundColor: '#36b9cc'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+});
+</script>
+@endpush --}}
+@extends('layouts.app')
+@section('title', 'Manager Dashboard')
+
+@push('style')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.css" />
+    <style>
+        .card-icon {
+            font-size: 2rem;
+            color: #fff;
+        }
+
+        .quick-action-card {
+            transition: all 0.25s ease-in-out;
+            border-radius: 12px;
+            border: none;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+        }
+
+        .section-header h1 {
+            font-weight: 600;
+        }
+
+        .list-unstyled li {
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .list-unstyled li:hover {
+            background: #f8f9fa;
+        }
+
+        .chart-container {
+            position: relative;
+            min-height: 300px;
+            height: 100%;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100px !important;
+        }
+
+        .stat-trend {
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .stat-trend.up {
+            color: #28a745;
+        }
+
+        .stat-trend.down {
+            color: #dc3545;
+        }
+
+        .team-member-card {
+            border-left: 3px solid #6777ef;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 6px;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        .team-member-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-present {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-late {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-absent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-leave {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .pending-approval {
+            border-left: 3px solid #ffc107;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .notification-item:hover {
+            transform: translateX(5px);
+        }
+
+        .time-ago {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .progress-thin {
+            height: 8px;
+            border-radius: 10px;
+        }
+    </style>
+@endpush
+
+@section('main')
+    <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Dashboard Admin</h1>
+                <h1>Dashboard Manager</h1>
+                <div class="section-header-breadcrumb">
+                    <div class="breadcrumb-item active">Dashboard</div>
+                </div>
             </div>
 
             <div class="section-body">
-                <div class="main-content">
-                    <div class="page-header">
-                        <h1 class="page-title">Dashboard Manager</h1>
-                        <div class="date-range">
-                            <span>Periode:</span>
-                            <select>
-                                <option>Hari Ini</option>
-                                <option>Minggu Ini</option>
-                                <option selected>Bulan Ini</option>
-                                <option>Bulan Lalu</option>
-                                <option>Kuartal Ini</option>
-                                <option>Tahun Ini</option>
-                                <option>Kustom...</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="dashboard-stats">
-                        <div class="stat-card">
-                            <div class="stat-title">Total Pendapatan</div>
-                            <div class="stat-value">Rp 154.780.500</div>
-                            <div class="stat-comparison positive">
-                                <span>▲ 15.2%</span>
-                                <span>dari bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Laba Kotor</div>
-                            <div class="stat-value">Rp 42.345.200</div>
-                            <div class="stat-comparison positive">
-                                <span>▲ 8.7%</span>
-                                <span>dari bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Jumlah Transaksi</div>
-                            <div class="stat-value">2,458</div>
-                            <div class="stat-comparison positive">
-                                <span>▲ 3.1%</span>
-                                <span>dari bulan lalu</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Nilai Transaksi Rata-rata</div>
-                            <div class="stat-value">Rp 62.900</div>
-                            <div class="stat-comparison negative">
-                                <span>▼ 2.5%</span>
-                                <span>dari bulan lalu</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="quick-actions">
-                        <div class="action-card">
-                            <div class="action-icon">📊</div>
-                            <div class="action-title">Laporan Lengkap</div>
-                            <div class="action-description">Lihat laporan penjualan, keuangan, dan operasional</div>
-                        </div>
-                        <div class="action-card">
-                            <div class="action-icon">🏷️</div>
-                            <div class="action-title">Kelola Produk</div>
-                            <div class="action-description">Tambah, edit, atau hapus produk dan kategori</div>
-                        </div>
-                        <div class="action-card">
-                            <div class="action-icon">👥</div>
-                            <div class="action-title">Manajemen Pengguna</div>
-                            <div class="action-description">Kelola akun staff dan pengaturan akses</div>
-                        </div>
-                    </div>
-                    
-                    <div class="content-cards">
+                <!-- Header Profil -->
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-8 d-flex align-items-center">
+                        <img alt="image" src="{{ asset('img/avatar/avatar-2.png') }}" class="rounded-circle mr-3"
+                            width="70">
                         <div>
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title">
-                                        <div class="card-icon">📈</div>
-                                        <span>Tren Penjualan</span>
-                                    </div>
-                                    <div class="card-actions">
-                                        <button class="card-btn btn-outline">Mingguan</button>
-                                        <button class="card-btn btn-primary">Bulanan</button>
-                                    </div>
-                                </div>
-                                
-                                <div class="performance-chart">
-                                    <div class="chart-placeholder">[Grafik Tren Penjualan]</div>
-                                </div>
-                                
-                                <div class="performance-summary">
-                                    <div class="summary-item">
-                                        <div class="summary-label">Penjualan Tertinggi</div>
-                                        <div class="summary-value">Rp 8.2 jt</div>
-                                    </div>
-                                    <div class="summary-item">
-                                        <div class="summary-label">Penjualan Terendah</div>
-                                        <div class="summary-value">Rp 3.5 jt</div>
-                                    </div>
-                                    <div class="summary-item">
-                                        <div class="summary-label">Rata-rata Harian</div>
-                                        <div class="summary-value">Rp 5.1 jt</div>
-                                    </div>
-                                    <div class="summary-item">
-                                        <div class="summary-label">Pertumbuhan</div>
-                                        <div class="summary-value">+12.8%</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title">
-                                        <div class="card-icon">👥</div>
-                                        <span>Performa Staff</span>
-                                    </div>
-                                    <div class="card-actions">
-                                        <button class="card-btn btn-primary">Lihat Detail</button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Nama</th>
-                                                <th>Posisi</th>
-                                                <th>Transaksi</th>
-                                                <th>Total Penjualan</th>
-                                                <th>Rata-rata</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Dewi Lestari</td>
-                                                <td>Kasir</td>
-                                                <td>547</td>
-                                                <td>Rp 36.450.000</td>
-                                                <td>Rp 66.600</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Budi Santoso</td>
-                                                <td>Kasir</td>
-                                                <td>512</td>
-                                                <td>Rp 32.180.000</td>
-                                                <td>Rp 62.800</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Sari Widodo</td>
-                                                <td>Supervisor</td>
-                                                <td>385</td>
-                                                <td>Rp 28.975.000</td>
-                                                <td>Rp 75.200</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Andi Nugroho</td>
-                                                <td>Kasir</td>
-                                                <td>498</td>
-                                                <td>Rp 29.840.000</td>
-                                                <td>Rp 59.900</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Lina Putri</td>
-                                                <td>Kasir</td>
-                                                <td>516</td>
-                                                <td>Rp 27.335.500</td>
-                                                <td>Rp 53.000</td>
-                                                <td><span class="badge badge-warning">Cuti</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title">
-                                        <div class="card-icon">📦</div>
-                                        <span>Stok Produk</span>
-                                    </div>
-                                    <div class="card-actions">
-                                        <button class="card-btn btn-outline">Eksport</button>
-                                        <button class="card-btn btn-primary">Kelola Stok</button>
+                            <h4 class="mb-1">{{ Auth::user()->employee->name ?? Auth::user()->username }}</h4>
+                            <p class="text-muted mb-1">
+                                {{ Auth::user()->employee->position->name ?? 'Manager' }} -
+                                {{ Auth::user()->employee->department->name ?? 'Department' }}
+                            </p>
+                            <span class="badge badge-primary">Manager</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-right mt-3 mt-md-0">
+                        <small class="d-block"><i class="fas fa-calendar-check"></i> Joined since
+                            {{ Auth::user()->employee->join_date ?? '2021-01-01' }}</small>
+                        {{-- <small class="d-block"><i class="fas fa-clock"></i> Lama kerja: 3 Tahun 2 Bulan</small> --}}
+                        <small class="d-block text-primary"><i class="fas fa-briefcase"></i> {{ date('l, d F Y') }}</small>
+                    </div>
+                </div>
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    @php
+                        $actions = [
+                            [
+                                'icon' => 'fa-user-check',
+                                'label' => 'Approval',
+                                'url' => route('Position.create'),
+                                'color' => '#4e73df',
+                                'badge' => '2',
+                            ],
+                            [
+                                'icon' => 'fa-users',
+                                'label' => 'Team Data',
+                                'url' => route('Position.create'),
+                                'color' => '#1cc88a',
+                                'badge' => '',
+                            ],
+                            // ['icon' => 'fa-chart-bar', 'label' => 'Evaluasi Kinerja', 'url' => route('Position.create'), 'color' => '#36b9cc', 'badge' => ''],
+                            [
+                                'icon' => 'fa-clock',
+                                'label' => 'Attendance Monitoring',
+                                'url' => route('Position.create'),
+                                'color' => '#f6c23e',
+                                'badge' => '',
+                            ],
+                            // ['icon' => 'fa-file-alt', 'label' => 'Laporan Bulanan', 'url' => route('Position.create'), 'color' => '#e74a3b', 'badge' => ''],
+                            [
+                                'icon' => 'fa-calendar-alt',
+                                'label' => 'Team Agenda',
+                                'url' => route('Position.create'),
+                                'color' => '#858796',
+                                'badge' => '',
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach ($actions as $action)
+                        <div class="col-lg-3 col-md-3 col-sm-4 col-8 mb-4">
+                            <a href="{{ $action['url'] }}" class="text-decoration-none position-relative">
+                                @if ($action['badge'])
+                                    <span class="badge badge-danger position-absolute"
+                                        style="top: -5px; right: 15px; z-index: 10;">{{ $action['badge'] }}</span>
+                                @endif
+                                <div class="card text-center shadow-sm quick-action-card h-100">
+                                    <div class="card-body py-4">
+                                        <div class="icon-circle mb-3" style="background: {{ $action['color'] }}20;">
+                                            <i class="fas {{ $action['icon'] }}"
+                                                style="color: {{ $action['color'] }}; font-size: 28px;"></i>
+                                        </div>
+                                        <div class="text-dark font-weight-bold small">{{ $action['label'] }}</div>
                                     </div>
                                 </div>
-                                
-                                <div class="table-responsive">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Produk</th>
-                                                <th>Kategori</th>
-                                                <th>Stok</th>
-                                                <th>Min. Stok</th>
-                                                <th>Status</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Beras Pulen Cap Bunga 5kg</td>
-                                                <td>Bahan Pokok</td>
-                                                <td>3</td>
-                                                <td>8</td>
-                                                <td><span class="badge badge-danger">Kritis</span></td>
-                                                <td><button class="action-btn">Pesan</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Minyak Goreng Bimoli 2L</td>
-                                                <td>Bahan Pokok</td>
-                                                <td>5</td>
-                                                <td>10</td>
-                                                <td><span class="badge badge-warning">Menipis</span></td>
-                                                <td><button class="action-btn">Pesan</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Tissue Paseo 250 sheets</td>
-                                                <td>Keperluan Rumah</td>
-                                                <td>4</td>
-                                                <td>12</td>
-                                                <td><span class="badge badge-danger">Kritis</span></td>
-                                                <td><button class="action-btn">Pesan</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Sabun Lifebuoy 85g</td>
-                                                <td>Peralatan Mandi</td>
-                                                <td>25</td>
-                                                <td>15</td>
-                                                <td><span class="badge badge-success">Tersedia</span></td>
-                                                <td><button class="action-btn">Detail</button></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Indomie Goreng</td>
-                                                <td>Makanan Instan</td>
-                                                <td>145</td>
-                                                <td>50</td>
-                                                <td><span class="badge badge-success">Tersedia</span></td>
-                                                <td><button class="action-btn">Detail</button></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Statistik Utama dengan Trend -->
+                <div class="row">
+                    @php
+                        $stats = [
+                            [
+                                'color' => 'bg-primary',
+                                'icon' => 'fa-users',
+                                'title' => 'Total Team Members',
+                                'value' => '12',
+                                'trend' => 'up',
+                                'trendValue' => '+2 bulan ini',
+                            ],
+                            [
+                                'color' => 'bg-success',
+                                'icon' => 'fa-plane',
+                                'title' => 'Active Leave',
+                                'value' => '3 Orang',
+                                'trend' => '',
+                                'trendValue' => '25% dari tim',
+                            ],
+                            [
+                                'color' => 'bg-warning',
+                                'icon' => 'fa-clock',
+                                'title' => 'Average Attendance',
+                                'value' => '92%',
+                                'trend' => 'up',
+                                'trendValue' => '+2% dari bulan lalu',
+                            ],
+                            [
+                                'color' => 'bg-info',
+                                'icon' => 'fa-chart-line',
+                                'title' => 'Submission',
+                                'value' => '0',
+                                'trend' => 'up',
+                                'trendValue' => '+3',
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach ($stats as $stat)
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="card card-statistic-1">
+                                <div class="card-icon {{ $stat['color'] }}">
+                                    <i class="fas {{ $stat['icon'] }}"></i>
+                                </div>
+                                <div class="card-wrap">
+                                    <div class="card-header">
+                                        <h4>{{ $stat['title'] }}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ $stat['value'] }}
+                                        @if ($stat['trend'])
+                                            <div class="stat-trend {{ $stat['trend'] }}">
+                                                <i class="fas fa-arrow-{{ $stat['trend'] }}"></i>
+                                                {{ $stat['trendValue'] }}
+                                            </div>
+                                        @else
+                                            <div class="stat-trend text-muted">{{ $stat['trendValue'] }}</div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div>
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title">
-                                        <div class="card-icon">🔔</div>
-                                        <span>Notifikasi Sistem</span>
+                    @endforeach
+                </div>
+
+                <!-- Grafik & Persetujuan Pending -->
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Team Attendance Chart</h4>
+                                <div class="card-header-action">
+                                    <a href="{{ route('Position.create') }}" class="btn btn-primary btn-sm">Details</a>
+                                </div>
+                            </div>
+                            <div class="card-body chart-container">
+                                <canvas id="teamAttendanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Waiting for Approval</h4>
+                                <div class="card-header-action">
+                                    <span class="badge badge-warning">2 Item</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="pending-approval">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>edw</strong>
+                                            <p class="mb-1 small">Annual Leave - 3 Days</p>
+                                            <small class="text-muted">15-17 Nov 2024</small>
+                                        </div>
+                                        <span class="badge badge-warning">Pending</span>
+                                    </div>
+                                    <div class="approval-actions">
+                                        <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                                        <button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Deny</button>
                                     </div>
                                 </div>
-                                
-                                <div>
-                                    <div style="padding: 0.8rem; border-left: 4px solid #f44336; background-color: #ffebee; margin-bottom: 0.8rem;">
-                                        <div style="font-weight: bold; margin-bottom: 0.3rem;">Stok Menipis</div>
-                                        <div style="font-size: 0.9rem;">6 produk berada di bawah batas minimal stok</div>
-                                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.3rem;">5 jam yang lalu</div>
+
+                                <div class="pending-approval">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>edw</strong>
+                                            <p class="mb-1 small">Izin Sakit</p>
+                                            <small class="text-muted">22 Okt 2024</small>
+                                        </div>
+                                        <span class="badge badge-warning">Pending</span>
                                     </div>
-                                    
-                                    <div style="padding: 0.8rem; border-left: 4px solid #ff9800; background-color: #fff3e0; margin-bottom: 0.8rem;">
-                                        <div style="font-weight: bold; margin-bottom: 0.3rem;">Pembatalan Transaksi</div>
-                                        <div style="font-size: 0.9rem;">Transaksi #INV-2019 dibatalkan oleh Supervisor</div>
-                                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.3rem;">8 jam yang lalu</div>
+                                    <div class="approval-actions">
+                                        <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                                        <button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Deny</button>
                                     </div>
-                                    
-                                    <div style="padding: 0.8rem; border-left: 4px solid #4caf50; background-color: #e8f5e9; margin-bottom: 0.8rem;">
-                                        <div style="font-weight: bold; margin-bottom: 0.3rem;">Penerimaan Stok</div>
-                                        <div style="font-size: 0.9rem;">Pengiriman dari PT Sukses Makmur telah diterima</div>
-                                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.3rem;">Kemarin, 15:30</div>
+                                </div>
+
+                                <a href="{{ route('Position.create') }}" class="btn btn-primary btn-block mt-3">
+                                    See Detail
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Tim Hari Ini & Notifikasi -->
+                <div class="row">
+                    {{-- <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Status Tim Hari Ini</h4>
+                            <div class="card-header-action">
+                                <small>{{ date('d M Y') }}</small>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="team-member-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ asset('img/avatar/avatar-1.png') }}" class="rounded-circle mr-2" width="35">
+                                        <div>
+                                            <strong class="d-block">Rina Wijaya</strong>
+                                            <small class="text-muted">Clock in: 08:05</small>
+                                        </div>
                                     </div>
-                                    
-                                    <div style="padding: 0.8rem; border-left: 4px solid #2196f3; background-color: #e3f2fd; margin-bottom: 0.8rem;">
-                                        <div style="font-weight: bold; margin-bottom: 0.3rem;">Closing Harian</div>
-                                        <div style="font-size: 0.9rem;">Closing harian tanggal 16 Mar 2025 selesai</div>
-                                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.3rem;">Kemarin, 22:15</div>
+                                    <span class="status-badge status-present">Hadir</span>
+                                </div>
+                            </div>
+
+                            <div class="team-member-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ asset('img/avatar/avatar-2.png') }}" class="rounded-circle mr-2" width="35">
+                                        <div>
+                                            <strong class="d-block">Ahmad Yani</strong>
+                                            <small class="text-muted">Clock in: 08:45</small>
+                                        </div>
+                                    </div>
+                                    <span class="status-badge status-late">Terlambat</span>
+                                </div>
+                            </div>
+
+                            <div class="team-member-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ asset('img/avatar/avatar-3.png') }}" class="rounded-circle mr-2" width="35">
+                                        <div>
+                                            <strong class="d-block">Budi Santoso</strong>
+                                            <small class="text-muted">Cuti: 15-17 Nov</small>
+                                        </div>
+                                    </div>
+                                    <span class="status-badge status-leave">Cuti</span>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('Position.create') }}" class="btn btn-outline-primary btn-block mt-3">
+                                Lihat Semua Tim
+                            </a>
+                        </div>
+                    </div>
+                </div> --}}
+
+                    <div class="col-lg-4 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Notifikasi HR</h4>
+                                <div class="card-header-action">
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="notification-item alert alert-info mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <i class="fas fa-bullhorn"></i> <strong>Evaluasi Q4</strong>
+                                            <p class="mb-1 small">Evaluasi Q4 segera dimulai. Siapkan dokumen tim Anda.</p>
+                                        </div>
+                                    </div>
+                                    <span class="time-ago"><i class="fas fa-clock"></i> 2 jam lalu</span>
+                                </div>
+
+                                <div class="notification-item alert alert-warning mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <i class="fas fa-user-clock"></i> <strong>Pengajuan Cuti</strong>
+                                            <p class="mb-1 small">2 pengajuan cuti menunggu persetujuan Anda.</p>
+                                        </div>
+                                    </div>
+                                    <span class="time-ago"><i class="fas fa-clock"></i> 5 jam lalu</span>
+                                </div>
+
+                                <div class="notification-item alert alert-success mb-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <i class="fas fa-check-circle"></i> <strong>Laporan Disetujui</strong>
+                                            <p class="mb-1 small">Laporan bulanan Anda telah disetujui direktur.</p>
+                                        </div>
+                                    </div>
+                                    <span class="time-ago"><i class="fas fa-clock"></i> 1 hari lalu</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- <div class="col-lg-4 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Target Bulanan</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Kehadiran Tim</small>
+                                        <small class="font-weight-bold">92%</small>
+                                    </div>
+                                    <div class="progress progress-thin">
+                                        <div class="progress-bar bg-success" style="width: 92%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Penyelesaian Proyek</small>
+                                        <small class="font-weight-bold">75%</small>
+                                    </div>
+                                    <div class="progress progress-thin">
+                                        <div class="progress-bar bg-info" style="width: 75%"></div>
+                                    </div>
+                                </div>
+
+
+                                <div class="mb-0">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Laporan Bulanan</small>
+                                        <small class="font-weight-bold">100%</small>
+                                    </div>
+                                    <div class="progress progress-thin">
+                                        <div class="progress-bar bg-primary" style="width: 100%"></div>
                                     </div>
                                 </div>
                             </div>
-                            
-                         
-                                
-                                
+                        </div>
+                    </div> --}}
+                </div>
+
+                <!-- Aktivitas & Performa -->
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Aktivitas Tim Terbaru</h4>
+                                <div class="card-header-action">
+                                    <a href="#" class="btn btn-primary btn-sm">Refresh</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li>
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <strong>Rina Wijaya</strong> melakukan clock-in pukul 08:05
+                                        <span class="time-ago float-right">5 menit lalu</span>
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-plane text-primary"></i>
+                                        <strong>Budi Santoso</strong> mengajukan cuti 3 hari
+                                        <span class="time-ago float-right">2 jam lalu</span>
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-chart-line text-info"></i>
+                                        Evaluasi tim <strong>Marketing</strong> selesai
+                                        <span class="time-ago float-right">1 hari lalu</span>
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-file-alt text-warning"></i>
+                                        <strong>Ahmad Yani</strong> submit laporan mingguan
+                                        <span class="time-ago float-right">2 hari lalu</span>
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-calendar-check text-success"></i>
+                                        Meeting tim dijadwalkan untuk besok jam 10:00
+                                        <span class="time-ago float-right">3 hari lalu</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Performa Departemen</h4>
+                                <div class="card-header-action">
+                                    <a href="{{ route('Position.create') }}" class="btn btn-primary btn-sm">Detail</a>
+                                </div>
+                            </div>
+                            <div class="card-body chart-container">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
     </div>
 @endsection
+
 @push('scripts')
-  
-@endpush --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hapus grafik sebelumnya
+            if (window.teamChart) window.teamChart.destroy();
+            if (window.perfChart) window.perfChart.destroy();
+
+            // Grafik Kehadiran Tim
+            const teamCtx = document.getElementById('teamAttendanceChart').getContext('2d');
+            window.teamChart = new Chart(teamCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt'],
+                    datasets: [{
+                        label: 'Attendance Team (%)',
+                        data: [88, 90, 91, 92, 93, 94, 92, 95, 94, 96],
+                        borderColor: '#6777ef',
+                        backgroundColor: 'rgba(103, 119, 239, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#6777ef',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 13
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Grafik Performa Departemen
+            const perfCtx = document.getElementById('performanceChart').getContext('2d');
+            window.perfChart = new Chart(perfCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Finance', 'HR', 'Marketing', 'IT', 'Sales'],
+                    datasets: [{
+                        label: 'Nilai Kinerja',
+                        data: [85, 90, 88, 92, 89],
+                        backgroundColor: [
+                            'rgba(103, 119, 239, 0.8)',
+                            'rgba(28, 200, 138, 0.8)',
+                            'rgba(252, 196, 25, 0.8)',
+                            'rgba(54, 185, 204, 0.8)',
+                            'rgba(231, 74, 59, 0.8)'
+                        ],
+                        borderColor: [
+                            '#6777ef',
+                            '#1cc88a',
+                            '#fcc419',
+                            '#36b9cc',
+                            '#e74a3b'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

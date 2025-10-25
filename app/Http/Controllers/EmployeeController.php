@@ -84,6 +84,7 @@ class EmployeeController extends Controller
 
         $employees = User::with([
             'Employee.company',
+            'Employee.structuresnew',
             'Employee.store',
             'Employee.position',
             'Employee.department',
@@ -108,23 +109,23 @@ class EmployeeController extends Controller
                 return $employee;
             });
         return DataTables::of($employees)
-            ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
-            ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->grading)->grading_name ?? 'Empty')
-            ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
-            ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
-            ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
+            ->addColumn('company_name', fn($e) => optional(optional($e->Employee)->structuresnew->company)->name ?? 'Empty')
+            ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->structuresnew->grading)->grading_name ?? 'Empty')
+            ->addColumn('location_name', fn($e) => optional(optional($e->Employee)->structuresnew->store)->name ?? 'Empty')
+            ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->structuresnew->position)->name ?? 'Empty')
+            ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->structuresnew->department)->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
 
-            ->addColumn('photo', function ($e) {
-                $photo = optional($e->Employee)->photo;
-                return $photo
-                    ? asset('storage/employeephoto' . $photo)
-                    : 'Empty';
-            })
+            // ->addColumn('photo', function ($e) {
+            //     $photo = optional($e->Employee)->photo;
+            //     return $photo
+            //         ? asset('storage/employeephoto' . $photo)
+            //         : 'Empty';
+            // })
 
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'location_name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
 
@@ -229,7 +230,7 @@ class EmployeeController extends Controller
 
     public function edit($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -533,7 +534,7 @@ class EmployeeController extends Controller
                 ->withInput();
         }
     }
-    
+
     public function update(Request $request, $hashedId)
     {
         $user = User::with('Employee')->get()->first(function ($u) use ($hashedId) {

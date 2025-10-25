@@ -140,13 +140,13 @@ class LoginController extends Controller
         $dashboardRoutes = [
             'Admin' => 'pages.dashboardAdmin',
             'Human' => 'pages.feature-profile',
+            'Manager' => 'pages.dashboardManager',
             'HeadHR' => 'pages.dashboardHR',
             'HR' => 'pages.dashboardHR',
             'head-warehouse' => 'pages.dashboardHeadWarehouse',
             'head-buyer' => 'pages.dashboardHeadBuyer',
             'cashier-store' => 'pages.dashboardKasir',
-            'supervisor-store' => 'pages.dashboardSupervisor',
-            'ManagerStore' => 'pages.dashboardManager'
+            'supervisor-store' => 'pages.dashboardSupervisor'
         ];
 
         foreach ($dashboardRoutes as $role => $route) {

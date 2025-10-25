@@ -25,6 +25,22 @@ class Position extends Model
         });
     }
     protected $fillable = [
-        'name'
+        'name',
+        'status',
+        'reason_reject',
+        'approval_1',
+        'approval_2',
+        'role_summary',
+        'key_respon',
+        'qualifications',
+        'work_location'
     ];
+    public function approval1()
+    {
+        return $this->belongsTo(Structuresnew::class, 'approval_1', 'id');
+    }
+    public function approval2()
+    {
+        return $this->belongsTo(Structuresnew::class, 'approval_2', 'id');
+    }
 }

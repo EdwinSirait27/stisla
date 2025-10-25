@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\dashboardAdminController;
-use App\Http\Controllers\dashboardManagerController;
+use App\Http\Controllers\DashboardManagerController;
 use App\Http\Controllers\dashboardKasirController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
@@ -49,9 +49,10 @@ use App\Http\Controllers\StructuresnewController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::view('/test-wireui', 'test-wireui');
 
-Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
+Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager'])->group(function () {
     // Route::get('/feature-profile', function () {
     //     return view('pages.feature-profile', ['type_menu' => 'features']);
     // });
@@ -71,9 +72,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
         Route::get('/dashboardAdmin/show/{hashedId}', [dashboardAdminController::class, 'show'])->name('dashboardAdmin.show');
         Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
-        Route::match(['GET', 'POST'],'/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+        Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
         Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
-
     });
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
 
@@ -82,9 +82,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human'])->group(function () {
         Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
         Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
     });
-Route::middleware(['auth'])->group(function () {
-    
-    Route::post('/Submissions', [SubmissionsController::class, 'store'])->name('Submissions.store');
+    Route::middleware(['auth'])->group(function () {
+
+        Route::post('/Submissions', [SubmissionsController::class, 'store'])->name('Submissions.store');
     });
 
     Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {
@@ -115,7 +115,7 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
 
-Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
+        Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
         Route::get('/Employee', [EmployeeController::class, 'index'])
             ->name('pages.Employee');
         Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
@@ -251,13 +251,12 @@ Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('da
             ->name('pages.Structuresnew');
         Route::post('/Structuresnew', [StructuresnewController::class, 'store'])->name('Structuresnew.store');
 
-             Route::get('Structuresnew/create', [StructuresnewController::class, 'create'])->name('Structuresnew.create');
+        Route::get('Structuresnew/create', [StructuresnewController::class, 'create'])->name('Structuresnew.create');
         Route::get('/Structuresnew/edit/{hashedId}', [StructuresnewController::class, 'edit'])->name('Structuresnew.edit');
         Route::put('/Structuresnew/{hashedId}', [StructuresnewController::class, 'update'])->name('Structuresnew.update');
         Route::get('/structuresnew/structuresnew', [StructuresnewController::class, 'getStructuresnew'])->name('structuresnew.structuresnew');
         Route::get('/orgchart/orgchart', [StructuresnewController::class, 'getOrgChartData'])->name('orgchart.orgchart');
         Route::delete('/structures/delete-bulk', [StructuresnewController::class, 'bulkDelete'])->name('structuresnew.bulkDelete');
-    
     });
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
 
@@ -385,13 +384,13 @@ Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('da
     // banks   
     // import
 });
-Route::middleware(['auth', 'role:ManagerStore'])->group(function () {
+// Route::middleware(['auth', 'role:ManagerStore'])->group(function () {
 
-    Route::group(['middleware' => ['permission:dashboardManager']], function () {
+//     Route::group(['middleware' => ['permission:dashboardManager']], function () {
 
-        Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
-    });
-});
+//         Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
+//     });
+// });
 Route::middleware(['can:isKasir', 'auth'])->group(function () {
     Route::get('/dashboardKasir', [dashboardKasirController::class, 'index'])->name('pages.dashboardKasir');
 });
@@ -404,11 +403,15 @@ Route::group(['middleware' => 'guest'], function () {
         });
     });
 });
-  Route::group(['middleware' => ['auth','permission:dashboardHuman']], function () {
-        Route::get('/Dashboard', [DashboardController::class, 'index'])
-            ->name('pages.Dashboard.Dashboard');
+Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function () {
+    Route::get('/Dashboard', [DashboardController::class, 'index'])
+        ->name('pages.Dashboard.Dashboard');
+});
+Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function () {
+    Route::get('/dashboardManager', [DashboardManagerController::class, 'index'])
+        ->name('pages.dashboardManager');
+});
 
-    });
 
 
 
