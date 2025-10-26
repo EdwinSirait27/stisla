@@ -257,6 +257,10 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager'])->group(functio
         Route::get('/structuresnew/structuresnew', [StructuresnewController::class, 'getStructuresnew'])->name('structuresnew.structuresnew');
         Route::get('/orgchart/orgchart', [StructuresnewController::class, 'getOrgChartData'])->name('orgchart.orgchart');
         Route::delete('/structures/delete-bulk', [StructuresnewController::class, 'bulkDelete'])->name('structuresnew.bulkDelete');
+       
+Route::get('/structuresnew/available-positions', [StructuresnewController::class, 'getAvailablePositions'])
+    ->name('Structuresnew.availablePositions');
+
     });
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
 

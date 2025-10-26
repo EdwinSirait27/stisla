@@ -19,19 +19,22 @@ class Structuresnew extends Model
             }
         });
     }
-    protected $table = 'structures';
+    protected $table = 'structures_tables';
     protected $fillable = [
+        'parent_id',
         'company_id',
         'department_id',
-        'store_id',
         'position_id',
-        'parent_id',
+        'store_id',
         'structure_code',
         'is_manager',
         'is_head',
+        'status',
+        
     ];
     protected $casts = [
         'is_manager' => 'boolean',
+        'is_head' => 'boolean',
         
     ];
     public function company()
@@ -58,7 +61,10 @@ public function children()
 {
     return $this->hasMany(Structuresnew::class, 'parent_id', 'id');
 }
-
+public function employee()
+{
+    return $this->hasMany(Employee::class, 'structure_id', 'id');
+}
 }
 
 

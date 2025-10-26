@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
+use App\Models\Structuresnew;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\NoXSSInput;
 use Carbon\Carbon;
@@ -78,18 +79,71 @@ class EmployeeController extends Controller
                 ->make(true);
         }
     }
+    // public function getEmployees(Request $request, DataTables $dataTables)
+    // {
+    //     $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
+
+    //     $employees = User::with([
+    //         'Employee.structuresnew.company',
+    //         'Employee.structuresnew',
+    //         'Employee.structuresnew.store',
+    //         'Employee.structuresnew.position',
+    //         'Employee.structuresnew.department',
+    //         'Employee.grading',
+    //         'Employee.employees'
+    //     ])
+    //         ->select(['id', 'employee_id'])
+    //         ->get()
+    //         ->map(function ($employee) use ($isHeadHR) {
+    //             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
+    //             $employeeName = optional($employee->Employee)->employee_name;
+
+    //             $employee->action = $isHeadHR
+    //                 ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
+    //                 <i class="fas fa-user-edit text-secondary"></i>
+    //            </a>
+    //            <a href="' . route('Employee.show', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="show Employee: ' . e($employeeName) . '">
+    //                 <i class="fas fa-eye text-secondary"></i>
+    //            </a>'
+    //                 : '';
+
+    //             return $employee;
+    //         });
+    //     return DataTables::of($employees)
+    //         ->addColumn('company_name', fn($e) => optional(optional($e->Employee)->structuresnew->company)->name ?? 'Empty')
+    //         ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->structuresnew->grading)->grading_name ?? 'Empty')
+    //         ->addColumn('location_name', fn($e) => optional(optional($e->Employee)->structuresnew->store)->name ?? 'Empty')
+    //         ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->structuresnew->position)->name ?? 'Empty')
+    //         ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->structuresnew->department)->department_name ?? 'Empty')
+    //         ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
+
+    //         // ->addColumn('photo', function ($e) {
+    //         //     $photo = optional($e->Employee)->photo;
+    //         //     return $photo
+    //         //         ? asset('storage/employeephoto' . $photo)
+    //         //         : 'Empty';
+    //         // })
+
+    //         ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
+    //         ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
+    //         ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'location_name', 'status_employee', 'grading_name', 'action'])
+    //         ->make(true);
+    // }
     public function getEmployees(Request $request, DataTables $dataTables)
     {
+        // $isHeadHR = auth()->user()->hasRole('HeadHR');
         $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
 
         $employees = User::with([
             'Employee.company',
-            'Employee.structuresnew',
             'Employee.store',
             'Employee.position',
+            'Employee.structuresnew.position',
             'Employee.department',
             'Employee.grading',
-            'Employee.employees'
+            'Employee.employees',
+            'Employee.structuresnew.company',
+            'Employee.structuresnew'
         ])
             ->select(['id', 'employee_id'])
             ->get()
@@ -109,23 +163,20 @@ class EmployeeController extends Controller
                 return $employee;
             });
         return DataTables::of($employees)
-            ->addColumn('company_name', fn($e) => optional(optional($e->Employee)->structuresnew->company)->name ?? 'Empty')
-            ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->structuresnew->grading)->grading_name ?? 'Empty')
-            ->addColumn('location_name', fn($e) => optional(optional($e->Employee)->structuresnew->store)->name ?? 'Empty')
-            ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->structuresnew->position)->name ?? 'Empty')
-            ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->structuresnew->department)->department_name ?? 'Empty')
+            ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
+            ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->grading)->grading_name ?? 'Empty')
+            ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
+            // ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
+            // ->addColumn('company_name', fn($e) => optional(optional($e->Employee->structuresnew)->company)->name ?? 'Empty') //ini pedoman berhasil
+            ->addColumn('position_name', fn($e) => optional(optional($e->Employee->structuresnew)->position)->name ?? 'Empty')
+            ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
 
-            // ->addColumn('photo', function ($e) {
-            //     $photo = optional($e->Employee)->photo;
-            //     return $photo
-            //         ? asset('storage/employeephoto' . $photo)
-            //         : 'Empty';
-            // })
-
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
+            ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
+            ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name', 'status', 'department_name', 'created_at', 'employee_name', 'location_name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['position_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
 
@@ -166,8 +217,6 @@ class EmployeeController extends Controller
             } else {
                 $employee->action = '';
             }
-
-
             return $employee;
         });
         $columns = [
@@ -207,19 +256,14 @@ class EmployeeController extends Controller
             'pin',
             'status'
         ];
-
         $dataTable = DataTables::of($employees);
-
         foreach ($columns as $key => $relationPath) {
             $column = is_string($key) ? $key : $relationPath;
-
             $dataTable->addColumn($column, function ($employee) use ($relationPath) {
-                // Mendapatkan nilai dari relasi dengan dot notation
                 $value = data_get($employee->Employee, $relationPath);
                 return $value ?: 'Empty';
             });
         }
-
         return $dataTable
             ->addColumn('action', function ($employee) {
                 return $employee->action;
@@ -227,7 +271,6 @@ class EmployeeController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
@@ -239,8 +282,7 @@ class EmployeeController extends Controller
         }
         $positions = Position::get();
         $companys = Company::get();
-        $employees = Employee::where('status', 'Active')
-            ->pluck('employee_name', 'id');
+        $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
@@ -249,13 +291,14 @@ class EmployeeController extends Controller
         $gender = ['Male', 'Female', 'MD'];
         $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
         $banks = Banks::get();
-        // $gradings = Grading::get();
+        $structures = Structuresnew::with('company','department','store','position')->get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.edit', [
             'employee' => $employee,
             'status_employee' => $status_employee,
             'child' => $child,
+            'structures' => $structures,
             'employees' => $employees,
             'companys' => $companys,
             'stores' => $stores,
@@ -280,6 +323,7 @@ class EmployeeController extends Controller
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
+        $structures = Structuresnew::with('company','department','store','position')->get();
         $positions = Position::get();
         $companys = Company::get();
         $employees = Employee::where('status', 'Active')
@@ -319,7 +363,6 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        //  $employees = Employee::pluck('employee_name', 'id');
         $employees = Employee::where('status', 'Active')
             ->pluck('employee_name', 'id');
 
@@ -329,7 +372,6 @@ class EmployeeController extends Controller
         $departments = Departments::pluck('department_name', 'id')->all();
         $companys = Company::pluck('name', 'id')->all();
         $banks = Banks::pluck('name', 'id')->all();
-        // $gradings = Grading::pluck('grading_name', 'id','grading_code')->all();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
         $status_child = ['0', '1', '2', '3', '4', '5'];
         $status_marriage = ['Yes', 'No'];
@@ -397,6 +439,7 @@ class EmployeeController extends Controller
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
+            'structure_id' => ['required', 'exists:structures_tables,id', new NoXSSInput()],
         ], [
             'password.min' => 'The password must be at least 7 characters.',
             'password.max' => 'The password may not be greater than 30 characters.',
@@ -475,7 +518,7 @@ class EmployeeController extends Controller
                     $sequence = $lastSequence + 1;
                 }
             } else {
-                $sequence = 1; // Jika tidak ada data, mulai dari 1
+                $sequence = 1; 
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
@@ -488,6 +531,7 @@ class EmployeeController extends Controller
                 'company_id' => $validatedData['company_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
+                'structure_id' => $validatedData['structure_id'] ?? '',
                 'department_id' => $validatedData['department_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
                 'join_date' => $validatedData['join_date'] ?? '',
@@ -561,6 +605,11 @@ class EmployeeController extends Controller
             'level_id' => [
                 'nullable',
                 'exists:employees_tables,id',
+                new NoXSSInput()
+            ],
+            'structure_id' => [
+                'nullable',
+                'exists:structures_tables,id',
                 new NoXSSInput()
             ],
             'is_manager' => [
@@ -670,6 +719,7 @@ class EmployeeController extends Controller
             'position_id' => $validatedData['position_id'] ?? '',
             'company_id' => $validatedData['company_id'] ?? '',
             'store_id' => $validatedData['store_id'] ?? '',
+            'structure_id' => $validatedData['structure_id'] ?? '',
             'department_id' => $validatedData['department_id'] ?? '',
             'banks_id' => $validatedData['banks_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
@@ -705,7 +755,7 @@ class EmployeeController extends Controller
     public function transferAllToPayroll(Request $request)
     {
         try {
-            $month_year = $request->input('month_year', date('Y-m-d')); // Format: YYYY-MM-DD
+            $month_year = $request->input('month_year', date('Y-m-d')); 
 
             $month = date('m', strtotime($month_year));
             $year = date('Y', strtotime($month_year));

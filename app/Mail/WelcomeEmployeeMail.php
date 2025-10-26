@@ -33,7 +33,6 @@ class WelcomeEmployeeMail extends Mailable
                         'position' => $this->employee->position,
                         'company' => $this->employee->company,
                         'store' => $this->employee->store,
-                     
                     ]);
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Company;
 use App\Models\Departments;
 use App\Models\Stores;
@@ -103,11 +102,13 @@ class StructuresnewController extends Controller
         'parent',
         'children',
     ])
-        ->select(['id', 'position_id', 'company_id', 'department_id', 'store_id', 'structure_code', 'is_manager_store', 'parent_id'])
+        ->select(['id', 'position_id', 'company_id', 'department_id', 'store_id', 'structure_code', 'is_manager','is_head', 'parent_id','status'])
         ->get()
         ->map(function ($structure) {
             // 🔒 Gunakan hash penuh SHA-256 (tidak dipotong)
-            $structure->id_hashed = hash('sha256', $structure->id . env('APP_KEY'));
+            // $structure->id_hashed = hash('sha256', $structure->id . env('APP_KEY'));
+                $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
+
 
             $structure->action = '
                 <a href="' . route('Structuresnew.edit', $structure->id_hashed) . '" class="mx-3" 
@@ -178,42 +179,85 @@ public function bulkDelete(Request $request)
 
     return back()->with('success', "$deleted data berhasil dihapus.");
 }
+//    public function getOrgChartData()
+// {
+//     $data = Structuresnew::with(['position', 'parent','employee'])
+//         ->get()
+//         ->map(function ($s) {
+//             return [
+//                 'id' => $s->id,
+//                 'pid' => $s->parent_id,
+//                 'Position' => $s->position->name ?? 'Unknown',
+//                 'Employee' => $s->employee->employee_name ?? 'Empty',
+//                 'title' => $s->employee->pin,
+//                 'status' => $s->status,
+//             ];
+//         });
+//     return response()->json($data);
+// }
+public function getOrgChartData()
+{
+    $data = Structuresnew::with(['position', 'parent', 'employee','employee.store'])
+        ->get()
+        ->map(function ($s) {
+            return [
+                'id'        => $s->id,
+                'pid'       => $s->parent_id,
+                'Position'  => $s->position->name ?? 'Unknown',
+                'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
+                 'Location'     => $s->employee
+                                    ->pluck('store.name')
+                                    ->unique()
+                                    ->join(', ') ?: 'Empty',
+                'status'    => $s->status,
+            ];
+        });
 
-     public function getOrgChartData()
-    {
-        $data = Structuresnew::with(['position', 'parent'])
-            ->get()
-            ->map(function ($s) {
-                return [
-                    'id' => $s->id,
-                    'pid' => $s->parent_id,
-                    'name' => $s->position->name ?? 'Unknown',
-                    'title' => $s->structure_code,
-                ];
-            });
+    return response()->json($data);
+}
 
-        return response()->json($data);
-    }
-
-    
     public function edit($hashedId)
     {
         $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-
         if (!$structure) {
             abort(404, 'Structure not found.');
         }
         $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
+        $statuses = ['active' => 'active','inactive' => 'inactive', 'vacant' => 'vacant'];
         return view('pages.Structuresnew.edit', [
             'structure' => $structure,
             'parents' => $parents,
+            'statuses' => $statuses,
             'hashedId' => $hashedId,
-
         ]);
     }
+    //  public function edit($hashedId)
+    // {
+    //     $structure = Structuresnew::with('company', 'department', 'store', 'position')->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+
+    //     if (!$structure) {
+    //         abort(404, 'Position not found.');
+    //     }
+
+    //            $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
+
+
+    //     // Dapatkan role pertama user (untuk selected value)
+        
+    //     return view('pages.Structuresnew.edit', [
+    //         'structure' => $structure,
+    //         'hashedId' => $hashedId,
+    //         // 'selectedName' => $selectedName
+    //         'parents' => $parents,
+            
+    //     ]);
+    // }
     public function update(Request $request, $hashedId)
     {
         $structure = Structuresnew::with('company', 'department', 'store', 'position')->get()->first(function ($u) use ($hashedId) {
@@ -225,7 +269,17 @@ public function bulkDelete(Request $request)
         }
         $validatedData = $request->validate([
 
-            'is_manager_store' => [
+            'is_manager' => [
+                'nullable',
+                'boolean',
+                new NoXSSInput()
+            ],
+            'status' => [
+                'required',
+                'string',
+                new NoXSSInput()
+            ],
+            'is_head' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
@@ -238,26 +292,242 @@ public function bulkDelete(Request $request)
             ],
         ]);
         $structureeData = [
-            'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
+            'is_manager'  => $validatedData['is_manager'] ?? 0,
+            'is_head'  => $validatedData['is_head'] ?? 0,
             'parent_id'  => $validatedData['parent_id'] ?? null,
+            'status'  => $validatedData['status'],
         ];
         DB::beginTransaction();
         $structure->update($structureeData);
         DB::commit();
         return redirect()->route('pages.Structuresnew')->with('success', 'Structure Updated Successfully.');
     }
-    public function create()
-    {
-        $stores = Stores::pluck('nickname', 'id');
-        $departments = Departments::pluck('nickname', 'id');
-        $companys = Company::pluck('nickname', 'id');
-        $positions = Position::pluck('name', 'id');
-        $parents = Structuresnew::with('position')->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->id => $item->position->name ?? '-'];
-            });
-        return view('pages.Structuresnew.create', compact('departments', 'stores', 'companys', 'positions', 'parents'));
-    }
+// public function create() 
+// {
+//     $usedPositionIds = Structuresnew::pluck('position_id')->unique()->toArray();
+//     $companys = Company::pluck('nickname', 'id');
+//     $stores = Stores::pluck('nickname', 'id');
+//     $departments = Departments::pluck('nickname', 'id');
+//     $positions = Position::whereNotIn('id', $usedPositionIds)->pluck('name', 'id');
+//     // Ambil parent (struktur yang sudah ada)
+//     $parents = Structuresnew::with('position')->get()
+//         ->mapWithKeys(function ($item) {
+//             return [$item->id => $item->position->name ?? '-'];
+//         });
+//     // Cek apakah sudah lengkap semua struktur
+//     $isComplete = Structuresnew::whereNotNull('company_id')
+//         ->whereNotNull('store_id')
+//         ->whereNotNull('department_id')
+//         ->whereNotNull('position_id')
+//         ->whereNotNull('parent_id')
+//         ->exists();
+
+//     return view('pages.Structuresnew.create', compact(
+//         'departments',
+//         'stores',
+//         'companys',
+//         'positions',
+//         'parents',
+//         'isComplete'
+//     ));
+// }
+// public function create()
+// {
+//     $existingStructures = Structuresnew::select('company_id', 'store_id', 'department_id', 'position_id')
+//         ->whereNotNull('company_id')
+//         ->whereNotNull('store_id')
+//         ->whereNotNull('department_id')
+//         ->whereNotNull('position_id')
+//         ->get();
+
+//     $companys = Company::pluck('nickname', 'id');
+//     $stores = Stores::pluck('nickname', 'id');
+//     $departments = Departments::pluck('nickname', 'id');
+//     $positions = Position::pluck('name', 'id');
+
+//     $parents = Structuresnew::with('position')->get()
+//         ->mapWithKeys(fn($item) => [$item->id => $item->position->name ?? '-']);
+
+//     $isComplete = Structuresnew::whereNotNull('company_id')
+//         ->whereNotNull('store_id')
+//         ->whereNotNull('department_id')
+//         ->whereNotNull('position_id')
+//         ->whereNotNull('parent_id')
+//         ->exists();
+
+//     $usedCombinations = $existingStructures->toArray();
+
+//     return view('pages.Structuresnew.create', compact(
+//         'departments',
+//         'stores',
+//         'companys',
+//         'positions',
+//         'parents',
+//         'isComplete',
+//         'usedCombinations'
+//     ));
+// }
+// public function create()
+// {
+//     $existingStructures = Structuresnew::select('company_id', 'store_id', 'department_id', 'position_id')
+//         ->whereNotNull('company_id')
+//         ->whereNotNull('store_id')
+//         ->whereNotNull('department_id')
+//         ->whereNotNull('position_id')
+//         ->get();
+
+//     $companys = Company::pluck('nickname', 'id');
+//     $stores = Stores::pluck('nickname', 'id');
+//     $departments = Departments::pluck('nickname', 'id');
+
+//     // ambil semua posisi terlebih dahulu
+//     $positions = Position::pluck('name', 'id');
+
+//     // ambil semua parent
+//     $parents = Structuresnew::with('position')->get()
+//         ->mapWithKeys(fn($item) => [$item->id => $item->position->name ?? '-']);
+
+//     $isComplete = Structuresnew::whereNotNull('company_id')
+//         ->whereNotNull('store_id')
+//         ->whereNotNull('department_id')
+//         ->whereNotNull('position_id')
+//         ->whereNotNull('parent_id')
+//         ->exists();
+
+//     // ambil kombinasi unik berdasarkan company_id
+//     $usedCombinations = $existingStructures->groupBy('company_id')->map(function ($items) {
+//         return $items->map(function ($item) {
+//             return [
+//                 'store_id' => $item->store_id,
+//                 'department_id' => $item->department_id,
+//                 'position_id' => $item->position_id,
+//             ];
+//         });
+//     });
+
+//     // contoh: kalau sedang create untuk company tertentu (misalnya id=1),
+//     // filter posisi yang sudah dipakai oleh company_id itu
+//     $currentCompanyId = request()->get('company_id'); // atau bisa diubah sesuai logika create-mu
+//     if ($currentCompanyId) {
+//         $usedPositionIds = $existingStructures
+//             ->where('company_id', $currentCompanyId)
+//             ->pluck('position_id')
+//             ->unique()
+//             ->toArray();
+
+//         // sembunyikan posisi yang sudah dipakai oleh company_id yang sama
+//         $positions = $positions->except($usedPositionIds);
+//     }
+
+//     return view('pages.Structuresnew.create', compact(
+//         'departments',
+//         'stores',
+//         'companys',
+//         'positions',
+//         'parents',
+//         'isComplete',
+//         'usedCombinations'
+//     ));
+// }
+// public function getAvailablePositions(Request $request)
+// {
+//     $company_id = $request->company_id;
+//     $store_id = $request->store_id;
+//     $department_id = $request->department_id;
+
+//     // Ambil semua posisi
+//     $positions = Position::pluck('name', 'id');
+
+//     // Ambil kombinasi yang sudah ada untuk company yang sama
+//     $usedPositions = Structuresnew::where('company_id', $company_id)
+//         ->where('store_id', $store_id)
+//         ->where('department_id', $department_id)
+//         ->pluck('position_id')
+//         ->toArray();
+
+//     // Hapus posisi yang sudah digunakan
+//     $availablePositions = $positions->except($usedPositions);
+
+//     return response()->json($availablePositions);
+// }
+// public function create()
+// {
+//     $companys = Company::pluck('nickname', 'id');
+//     $stores = Stores::pluck('nickname', 'id');
+//     $departments = Departments::pluck('nickname', 'id');
+
+//     $parents = Structuresnew::with('position')->get()
+//         ->mapWithKeys(fn($item) => [$item->id => $item->position->name ?? '-']);
+
+//     $isComplete = Structuresnew::whereNotNull('company_id')
+//         ->whereNotNull('store_id')
+//         ->whereNotNull('department_id')
+//         ->whereNotNull('position_id')
+//         ->whereNotNull('parent_id')
+//         ->exists();
+
+//     return view('pages.Structuresnew.create', compact(
+//         'departments',
+//         'stores',
+//         'companys',
+//         'parents',
+//         'isComplete'
+//     ));
+// }
+public function create()
+{
+    // Langsung sembunyi/exclude kombinasi yang sudah ada
+    $existingStructures = Structuresnew::select('company_id', 'store_id', 'department_id', 'position_id')
+        ->whereNotNull('company_id')
+        ->whereNotNull('store_id')
+        ->whereNotNull('department_id')
+        ->whereNotNull('position_id')
+        ->get();
+
+    $companys = Company::pluck('nickname', 'id');
+    $stores = Stores::pluck('nickname', 'id');
+    $departments = Departments::pluck('nickname', 'id');
+    
+    // Modifikasi: Gunakan Position::pluck('name', 'id') seperti remark baris 1
+    $positions = Position::pluck('name', 'id');
+    
+    $parents = Structuresnew::with('position')->get()
+        ->mapWithKeys(fn($item) => [$item->id => $item->position->name ?? '-']);
+
+    $isComplete = Structuresnew::whereNotNull('company_id')
+        ->whereNotNull('store_id')
+        ->whereNotNull('department_id')
+        ->whereNotNull('position_id')
+        ->whereNotNull('parent_id')
+        ->exists();
+
+    // Modifikasi: Format kombinasi yang sudah digunakan
+    // Untuk ditampilkan/dicek berdasarkan company_id berbeda (remark baris 2)
+    $usedCombinations = $existingStructures->map(function($item) {
+        return [
+            'company_id' => $item->company_id,
+            'store_id' => $item->store_id,
+            'department_id' => $item->department_id,
+            'position_id' => $item->position_id,
+        ];
+    })->toArray();
+
+    return view('pages.Structuresnew.create', compact(
+        'departments',
+        'stores',
+        'companys',
+        'positions',
+        'parents',
+        'isComplete',
+        'usedCombinations'
+    ));
+}
+
+
+
+
+
+
 
     public function store(Request $request)
     {
@@ -269,7 +539,9 @@ public function bulkDelete(Request $request)
             'parent_id' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'store_id' => ['required', 'string', 'max:255', new NoXSSInput()],
             'position_id' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-            'is_manager_store' => ['nullable', 'boolean', new NoXSSInput()],
+            'is_manager' => ['nullable', 'boolean', new NoXSSInput()],
+            'is_head' => ['nullable', 'boolean', new NoXSSInput()],
+            'status' => ['nullable', 'string', new NoXSSInput()],
             // 'is_manager_department' => ['nullable', 'boolean', new NoXSSInput()],
         ]);
 
@@ -319,7 +591,9 @@ public function bulkDelete(Request $request)
                 'parent_id' => $validatedData['parent_id'],
                 'position_id' => $validatedData['position_id'],
                 'structure_code' => $structureCode,
-                'is_manager_store' => $validatedData['is_manager_store'] ?? 0,
+                'is_manager' => $validatedData['is_manager'] ?? 0,
+                'is_head' => $validatedData['is_head'] ?? 0,
+                'status' => $validatedData['status'] ?? 'Active',
                 // 'is_manager_department' => $validatedData['is_manager_department'] ?? 0,
             ]);
 

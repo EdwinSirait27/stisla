@@ -161,6 +161,12 @@
             font-size: 0.8rem;
         }
     }
+
+    /* #tree {
+        width: 100%;
+        height: 100vh;
+        background: #f5f5f5;
+    } */
 </style>
 
 @section('main')
@@ -185,70 +191,72 @@
                                     <i class="fas fa-plus-circle me-1"></i> Create Structure
                                 </button>
                             </div>
-  <form id="bulk-delete-form" method="POST" action="{{ route('structuresnew.bulkDelete') }}">
-                                    @csrf
-                                    @method('DELETE')
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover align-middle" id="users-table">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="text-center">
+                            <form id="bulk-delete-form" method="POST" action="{{ route('structuresnew.bulkDelete') }}">
+                                @csrf
+                                @method('DELETE')
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover align-middle" id="users-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="text-center">
                                                         <button type="button" id="select-all"
                                                             class="btn btn-primary btn-sm">
                                                             Select All
                                                         </button>
                                                     </th>
-                                                <th class="text-center">Company</th>
-                                                <th class="text-center">Department</th>
-                                                <th class="text-center">Location</th>
-                                                <th class="text-center">Position</th>
-                                                <th class="text-center">Structure Code</th>
-                                                <th class="text-center">Is Manager?</th>
-                                                {{-- <th class="text-center">Manager Department</th> --}}
-                                                <th class="text-center">Direct Superior</th>
-                                                <th class="text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                                
-                                
-                                <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}"
-                                                                         method="POST">
-                                                                         @csrf
-                                                             <div class="d-flex flex-wrap gap-2 align-items-stretch">
-                                                                     <input type="hidden" name="structure_ids" id="bulk-delete-hidden">
-                                                                     <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
-                                                                         <i class="fas fa-trash me-1"></i> Delete selected
-                                                                     </button>
-                                                                     </form>
+                                                    <th class="text-center">Company</th>
+                                                    <th class="text-center">Department</th>
+                                                    <th class="text-center">Location</th>
+                                                    <th class="text-center">Position</th>
+                                                    <th class="text-center">Structure Code</th>
+                                                    <th class="text-center">Is Manager?</th>
+                                                    <th class="text-center">Is Head?</th>
+                                                    <th class="text-center">Direct Superior</th>
+                                                    <th class="text-center">Status</th>
+                                                    <th class="text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+
+
+                                    <form id="bulk-delete-form" action="{{ route('structuresnew.bulkDelete') }}"
+                                        method="POST">
+                                        @csrf
+                                        <div class="d-flex flex-wrap gap-2 align-items-stretch">
+                                            <input type="hidden" name="structure_ids" id="bulk-delete-hidden">
+                                            <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
+                                                <i class="fas fa-trash me-1"></i> Delete selected
+                                            </button>
+                                    </form>
                                 </div>
                             </form>
 
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ORG CHART --}}
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0 text-primary">
-                                    <i class="fas fa-network-wired me-1"></i> Organization Chart
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div id="orgchart" style="height: 700px;"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+
+            {{-- ORG CHART --}}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-network-wired me-1"></i> Organization Chart
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="tree" style="height: 700px;"></div>
+                            {{-- <div id="tree"></div> --}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </section>
     </div>
 @endsection
 
@@ -256,7 +264,11 @@
     {{-- DataTables & SweetAlert --}}
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- <script src="https://balkangraph.com/js/latest/OrgChart.js"></script> --}}
     <script src="https://balkan.app/js/OrgChart.js"></script>
+    {{-- <script src="https://d3js.org/d3.v7.min.js"></script> --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@2"></script> --}}
+
 
     <script>
         $(document).ready(function() {
@@ -278,8 +290,7 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search..."
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'checkbox',
                         name: 'checkbox',
                         orderable: false,
@@ -312,8 +323,8 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'is_manager_store',
-                        name: 'is_manager_store',
+                        data: 'is_manager',
+                        name: 'is_manager',
                         className: 'text-center',
                         render: function(data) {
                             return data == 1 ?
@@ -321,38 +332,40 @@
                                 '<span class="badge bg-danger">No</span>';
                         }
                     },
-                    // {
-                    //     data: 'is_manager_department',
-                    //     name: 'is_manager_department',
-                    //     className: 'text-center',
-                    //     render: function(data) {
-                    //         return data == 1 ?
-                    //             '<span class="badge bg-success">Yes</span>' :
-                    //             '<span class="badge bg-danger">No</span>';
-                    //     }
-                    // },
+                    {
+                        data: 'is_head',
+                        name: 'is_head',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data == 1 ?
+                                '<span class="badge bg-success">Yes</span>' :
+                                '<span class="badge bg-danger">No</span>';
+                        }
+                    },
                     {
                         data: 'parent',
                         name: 'parent',
                         className: 'text-center'
                     },
-                       {
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: function(data) {
+                            const badges = {
+                                'active': 'success'
+                            };
+                            return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
+                        }
+                    },
+                    {
                         data: 'action',
                         orderable: false,
                         searchable: false,
                         className: 'text-center'
                     }
-                    // {
-                    //     data: 'checkbox',
-                    //     name: 'checkbox',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     className: 'text-center'
-                    // }
+                 
                 ],
                 initComplete: function() {
-                    // $('.dataTables_filter input').addClass('form-control form-control-sm');
-                    // $('.dataTables_length select').addClass('form-select form-select-sm');
                 }
             });
 
@@ -368,25 +381,145 @@
             @endif
 
             // === ORGCHART ===
-            fetch("{{ route('orgchart.orgchart') }}")
-                .then(res => res.json())
-                .then(data => {
-                    new OrgChart(document.getElementById("orgchart"), {
-                        nodes: data,
-                        nodeBinding: {
-                            field_0: "name",
-                            field_1: "title"
-                        },
-                        template: "olivia",
-                        collapse: {
-                            level: 3
-                        },
-                        nodeMouseClick: OrgChart.action.none
-                    });
+            // fetch("{{ route('orgchart.orgchart') }}")
+            //     .then(res => res.json())
+            //     .then(data => {
+            //         console.log(data);
+            //         new OrgChart(document.getElementById("orgchart"), {
+            //             nodes: data,
+            //             nodeBinding: {
+            //                 field_0: "name",
+            //                 field_1: "title",
+            //                 field_2: "tags"
+            //             },
+            //             template: "olivia",
+            //             collapse: {
+            //                 level: 3
+            //             },
+            //             nodeMouseClick: OrgChart.action.none
+            //         });
+            //     });
+
+        OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+        OrgChart.templates.myTemplate.size = [250, 150];
+
+        OrgChart.templates.myTemplate.node = `
+            <rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>
+        `;
+        OrgChart.templates.myTemplate.img_0 = `
+    <clipPath id="avatarClip">
+        <circle cx="125" cy="45" r="35"></circle>
+    </clipPath>
+    <image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image>
+    <circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>
+`;
+
+        OrgChart.templates.myTemplate.field_ = `
+            <text 
+                style="font-size:12px;font-weight:700;" 
+                fill="#212121" 
+                x="125" y="30" text-anchor="middle" alignment-baseline="middle">
+                {val}
+            </text>
+        `;
+        OrgChart.templates.myTemplate.field_0 = `
+            <text 
+                style="font-size:11px;font-weight:500;" 
+                fill="#212121" 
+                x="125" y="65" text-anchor="middle" alignment-baseline="middle">
+                {val}
+            </text>
+        `;
+
+        OrgChart.templates.myTemplate.field_1 = `
+            <text 
+                style="font-size:13px;font-weight:500;" 
+                fill="#616161" 
+                x="125" y="90" text-anchor="middle" alignment-baseline="middle">
+                {val}
+            </text>
+        `;
+
+        // ✅ PERBAIKAN: Hapus field_2 dari template, kita render manual
+        OrgChart.templates.myTemplate.field_2 = `
+            <g transform="translate(60,105)">
+                <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+            </g>
+        `;
+
+        OrgChart.templates.myTemplate.field_3 = `
+            <text 
+                style="font-size:12px;font-weight:600;" 
+                fill="#ffffff" 
+                x="125" y="122" 
+                text-anchor="middle" alignment-baseline="middle">{val}</text>
+        `;
+
+        // Warna status
+        const statusColors = {
+            active: '#4CAF50',    // Hijau
+            inactive: '#F44336',  // Merah
+            vacant: '#9E9E9E'     // Abu-abu
+        };
+
+        const chart = new OrgChart(document.getElementById("tree"), {
+            template: "myTemplate",
+            nodeBinding: {
+                img_0: "photo", 
+                field_: "Employee",
+                field_0: "Position",
+                field_1: "Location",
+                field_2: "statusColor",  
+                field_3: "status"        
+            },
+            enableSearch: true,
+            mouseScrool: OrgChart.action.zoom,
+            scaleInitial: OrgChart.match.boundary,
+            toolbar: {
+                zoom: true,
+                fit: true,
+                expandAll: true
+            }
+        });
+
+        fetch("{{ route('orgchart.orgchart') }}")
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 Raw data:', data);
+
+                // Proses data dengan warna status yang benar
+                const processedData = data.map(node => {
+                    const statusText = (node.status || '').trim();
+                    const statusLower = statusText.toLowerCase();
+                    
+                    // Ambil warna berdasarkan status
+                    const color = statusColors[statusLower] || '#9E9E9E';
+                    
+                    console.log(`Status: "${statusText}" → Color: ${color}`);
+                    
+                    return {
+                        ...node,
+                        status: statusText,
+                        statusColor: color  // Ini yang akan jadi fill di rect
+                    };
                 });
+
+                console.log('✅ Processed data:', processedData);
+                chart.load(processedData);
+            })
+            .catch(error => {
+                console.error('❌ Error loading chart:', error);
+                alert('Gagal memuat organization chart.');
+            });
+
+
+
+
         });
     </script>
-
     <script>
         document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
             const checked = document.querySelectorAll('input.payroll-checkbox:checked');
@@ -430,177 +563,3 @@
         });
     </script>
 @endpush
-
-
-{{-- 
-@section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Structuresnew</h1>
-            </div>
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Structuresnew</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">Company</th>
-                                                <th class="text-center">Department</th>
-                                                <th class="text-center">Locaton</th>
-                                                <th class="text-center">Position</th>
-                                                <th class="text-center">Structure Code</th>
-                                                <th class="text-center">Manager Location</th>
-                                                <th class="text-center">Manager Depart</th>
-                                                <th class="text-center">Hierarchy</th>
-                                             
-                                                <th class="text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Structuresnew.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Structure
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-    <div class="container mt-5">
-    <h4>Bagan Organisasi</h4>
-    <div id="orgchart" style="height:700px;"></div>
-</div>
-@endsection
-@push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://balkan.app/js/OrgChart.js"></script>
-
-    <script>
-        jQuery(document).ready(function($) {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                autoWidth: false,
-                ajax: {
-                    url: '{{ route('structuresnew.structuresnew') }}',
-                    type: 'GET'
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [
-
-                    {
-                        data: 'company_name',
-                        name: 'company_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'store_name',
-                        name: 'store_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'structure_code',
-                        name: 'structure_code',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'is_manager_store',
-                        name: 'is_manager_store',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data == 1) {
-                                return '<span class="badge bg-success">Yes</span>';
-                            } else {
-                                return '<span class="badge bg-danger">No</span>';
-                            }
-                        }
-                    },
-                    {
-                        data: 'is_manager_department',
-                        name: 'is_manager_department',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data == 1) {
-                                return '<span class="badge bg-success">Yes</span>';
-                            } else {
-                                return '<span class="badge bg-danger">No</span>';
-                            }
-                        }
-                    },
-                    {
-                        data: 'parent',
-                        name: 'parent',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-
-        });
-    </script>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
-    fetch("{{ route('orgchart.orgchart') }}")
-        .then(res => res.json())
-        .then(data => {
-            var chart = new OrgChart(document.getElementById("orgchart"), {
-                nodes: data,
-                nodeBinding: {
-                    field_0: "name",
-                    field_1: "title"
-                },
-                template: "olivia"
-            });
-        });
-});
-</script>
-    @endpush --}}

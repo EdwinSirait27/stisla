@@ -423,7 +423,6 @@
                     <div class="breadcrumb-item">Create Structuresnew</div>
                 </div>
             </div>
-
             <div class="section-body">
                 <div class="container-fluid">
                     <div class="row">
@@ -457,6 +456,7 @@
                                         @csrf
 
                                         {{-- Company & Department --}}
+                                        
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -531,11 +531,11 @@
                                                     </label>
                                                     <select name="position_id" class="form-control select2 @error('position_id') is-invalid @enderror" required>
                                                         <option value="">Choose Position</option>
-                                                        @foreach ($positions as $key => $value)
-                                                            <option value="{{ $key }}" {{ old('position_id') == $key ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
+                                                          @forelse ($positions as $id => $name)
+            <option value="{{ $id }}">{{ $name }}</option>
+        @empty
+            <option disabled>Semua posisi sudah digunakan</option>
+        @endforelse
                                                     </select>
                                                     @error('position_id')
                                                         <span class="invalid-feedback" role="alert">
@@ -545,7 +545,6 @@
                                                 </div>
                                             </div>
                                         </div>
-
                                         {{-- Hierarchy & Manager Flags --}}
                                         <div class="row">
                                             <div class="col-md-6">
@@ -568,16 +567,17 @@
                                                     @enderror
                                                 </div>
                                             </div>
+      
 
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager_store" id="is_manager_store" value="1"
-                                                        class="form-check-input @error('is_manager_store') is-invalid @enderror"
-                                                        {{ old('is_manager_store') ? 'checked' : '' }}>
-                                                    <label for="is_manager_store" class="form-check-label">
+                                                    <input type="checkbox" name="is_manager" id="is_manager" value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager') ? 'checked' : '' }}>
+                                                    <label for="is_manager" class="form-check-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
                                                     </label>
-                                                    @error('is_manager_store')
+                                                    @error('is_manager')
                                                         <span class="invalid-feedback d-block" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -585,26 +585,24 @@
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {{-- <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager_department" id="is_manager_department" value="1"
-                                                        class="form-check-input @error('is_manager_department') is-invalid @enderror"
-                                                        {{ old('is_manager_department') ? 'checked' : '' }}>
-                                                    <label for="is_manager_department" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Department?') }}
+                                                    <input type="checkbox" name="is_head" id="is_head" value="1"
+                                                        class="form-check-input @error('is_head') is-invalid @enderror"
+                                                        {{ old('is_head') ? 'checked' : '' }}>
+                                                    <label for="is_head" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Head?') }}
                                                     </label>
-                                                    @error('is_manager_department')
+                                                    @error('is_head')
                                                         <span class="invalid-feedback d-block" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
                                             </div>
-                                        </div> --}}
 
-                                        {{-- Notes --}}
+                                     
+                                                                            
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong><br>
@@ -624,16 +622,16 @@
                                         </div>
                                     </form>
                                 </div>
-                            </div> {{-- end card --}}
-                        </div> {{-- end col --}}
-                    </div> {{-- end row --}}
-                </div> {{-- end container-fluid --}}
-            </div> {{-- end section-body --}}
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+            </div> 
         </section>
     </div>
 @endsection
 
-@push('scripts')
+{{-- @push('scripts')
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -644,11 +642,9 @@
         });
     </script>
     <script>
-        // $(document).ready(function() {
-        //     $('.select2').select2();
-        // });
+       
         document.getElementById('create-btn').addEventListener('click', function(e) {
-            e.preventDefault(); // Mencegah pengiriman form langsung
+            e.preventDefault(); 
             Swal.fire({
                 title: 'Are You Sure?',
                 text: "Make sure the data you entered is correct!",
@@ -666,6 +662,126 @@
             });
         });
     </script>
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>
+ 
+@endpush --}}
+
+@push('scripts')
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+            
+            // Data kombinasi yang sudah digunakan dari backend
+            const usedCombinations = @json($usedCombinations);
+            
+            // Function untuk cek kombinasi sudah digunakan atau belum
+            function checkCombination() {
+                const companyId = $('select[name="company_id"]').val();
+                const storeId = $('select[name="store_id"]').val();
+                const departmentId = $('select[name="department_id"]').val();
+                const positionId = $('select[name="position_id"]').val();
+                
+                // Cek apakah kombinasi sudah ada
+                const isDuplicate = usedCombinations.some(combo => 
+                    combo.company_id == companyId && 
+                    combo.store_id == storeId && 
+                    combo.department_id == departmentId && 
+                    combo.position_id == positionId
+                );
+                
+                // Tampilkan peringatan jika kombinasi sudah ada
+                if (isDuplicate && companyId && storeId && departmentId && positionId) {
+                    Swal.fire({
+                        title: 'Combination Already Exists!',
+                        text: 'This combination of Company and Position has been used.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                    
+                    // Disable tombol submit
+                    $('#create-btn').prop('disabled', true);
+                    return false;
+                } else {
+                    // Enable tombol submit
+                    $('#create-btn').prop('disabled', false);
+                    return true;
+                }
+            }
+            
+            // Jalankan validasi setiap kali ada perubahan pada dropdown
+            $('select[name="company_id"], select[name="store_id"], select[name="department_id"], select[name="position_id"]').on('change', function() {
+                checkCombination();
+            });
+        });
+    </script>
+
+    <script>
+        document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); 
+            
+            // Cek kombinasi sebelum submit
+            const companyId = document.querySelector('select[name="company_id"]').value;
+            const storeId = document.querySelector('select[name="store_id"]').value;
+            const departmentId = document.querySelector('select[name="department_id"]').value;
+            const positionId = document.querySelector('select[name="position_id"]').value;
+            
+            const usedCombinations = @json($usedCombinations);
+            const isDuplicate = usedCombinations.some(combo => 
+                combo.company_id == companyId && 
+                combo.store_id == storeId && 
+                combo.department_id == departmentId && 
+                combo.position_id == positionId
+            );
+            
+            if (isDuplicate) {
+                Swal.fire({
+                    title: 'Kombinasi Sudah Ada!',
+                    text: 'Kombinasi Company, Store, Department, dan Position ini sudah digunakan.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('departments-create').submit();
+                }
+            });
+        });
+    </script>
+
     <script>
         @if (session('success'))
             Swal.fire({

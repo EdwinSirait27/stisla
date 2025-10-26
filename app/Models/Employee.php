@@ -328,7 +328,7 @@ class Employee extends Model
     }
     public function structuresnew()
     {
-        return $this->belongsTo(Structuresnew::class, 'structure_id');
+        return $this->belongsTo(Structuresnew::class, 'structure_id','id');
     }
 }
 

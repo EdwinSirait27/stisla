@@ -25,12 +25,14 @@
             height: 100%;
             border: 0;
         }
+
         .form-control {
             border-radius: 8px;
             padding: 10px 15px;
             transition: all 0.3s ease;
             border: 1px solid #d1d1d1;
         }
+
         .form-control:focus {
             border-color: #6777ef;
             box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.25);
@@ -166,7 +168,6 @@
             <div class="section-header">
                 <h1>Update Structuresnew {{ $structure->structure_code }}</h1>
                 <div class="section-header-breadcrumb">
-                    {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
                     <div class="breadcrumb-item"><a href="{{ route('pages.Structures') }}">Structuresnew</a></div>
                     <div class="breadcrumb-item">Update Structure {{ $structure->structure_code }}</div>
                 </div>
@@ -209,7 +210,7 @@
                                         @csrf
                                         @method('PUT')
 
-                                        <div class="row">
+                                        {{-- <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <div class="form-check">
@@ -255,6 +256,128 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        </div>
+                                        <div class="row">
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="status" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Status') }}
+                                                </label>
+                                                <div>
+                                                   <select name="status"
+                                                            class="form-control select2 @error('status') is-invalid @enderror"required>
+                                                            <option value="">-- Choose Status --</option>
+                                                            @foreach ($statuses as $value)
+                                                                <option value="{{ $value }}"
+                                                                    {{ old('status', $structure->status ?? '') == $value ? 'selected' : '' }}>
+                                                                    {{ $value }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('status')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+
+                                                </div>
+                                                </div> --}}
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" name="is_manager" id="is_manager"
+                                                            value="1"
+                                                            class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                            {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="is_manager">
+                                                            <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                        </label>
+                                                    </div>
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                 <div class="form-group">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" name="is_head" id="is_head"
+                                                            value="1"
+                                                            class="form-check-input @error('is_head') is-invalid @enderror"
+                                                            {{ old('is_head', $structure->is_head) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="is_head">
+                                                            <i class="fas fa-id-card"></i> {{ __('Is Head?') }}
+                                                        </label>
+                                                    </div>
+                                                    @error('is_head')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            </div>
+                                        <div class="row mt-3">
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="parent_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="parent_id"
+                                                            class="form-control select2 @error('parent_id') is-invalid @enderror">
+                                                            <option value="">Choose Superior</option>
+                                                            @foreach ($parents as $id => $parentName)
+                                                                <option value="{{ $id }}"
+                                                                    {{ old('parent_id', $structure->parent_id) == $id ? 'selected' : '' }}>
+                                                                    {{ $parentName }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('parent_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div> <!-- end first row -->
+
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Status') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="status"
+                                                            class="form-control select2 @error('status') is-invalid @enderror"
+                                                            required>
+                                                            <option value="">-- Choose Status --</option>
+                                                            @foreach ($statuses as $value)
+                                                                <option value="{{ $value }}"
+                                                                    {{ old('status', $structure->status ?? '') == $value ? 'selected' : '' }}>
+                                                                    {{ $value }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('status')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
