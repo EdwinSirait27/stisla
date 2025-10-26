@@ -345,13 +345,7 @@ class PayrollsController extends Controller
         Log::info('PDF generated successfully.', ['filename' => $filename]);
 
         return $pdf->download($filename);
-    }
-
-
-
-
-  
-  
+    }  
     public function bulkDelete(Request $request)
     {
         $idsRaw = $request->input('payroll_ids', '');

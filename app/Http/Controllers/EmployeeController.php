@@ -132,7 +132,7 @@ class EmployeeController extends Controller
     public function getEmployees(Request $request, DataTables $dataTables)
     {
         // $isHeadHR = auth()->user()->hasRole('HeadHR');
-        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR']);
+        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR','Admin']);
 
         $employees = User::with([
             'Employee.company',
@@ -166,20 +166,17 @@ class EmployeeController extends Controller
             ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
             ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->grading)->grading_name ?? 'Empty')
             ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
-            // ->addColumn('position_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
-            // ->addColumn('company_name', fn($e) => optional(optional($e->Employee->structuresnew)->company)->name ?? 'Empty') //ini pedoman berhasil
+            ->addColumn('oldposition_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
             ->addColumn('position_name', fn($e) => optional(optional($e->Employee->structuresnew)->position)->name ?? 'Empty')
             ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
-
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['position_name','oldposition_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
-
     public function getEmployeesall()
     {
         $storeFilter = request()->get('name');
@@ -208,7 +205,6 @@ class EmployeeController extends Controller
 
         $employees = $query->get()->map(function ($employee) {
             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-            // if (auth()->user()->hasRole('HeadHR')) 
             if (auth()->user()->hasAnyRole(['HeadHR', 'HR'])) {
                 $employee->action = '
         <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">

@@ -6,6 +6,7 @@ use App\Models\Departments;
 use App\Models\Stores;
 use App\Models\Position;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 use App\Models\Structuresnew;
 use App\Rules\NoXSSInput;
@@ -92,7 +93,62 @@ class StructuresnewController extends Controller
 
     //     return back()->with('success', "$deleted data berhasil dihapus.");
     // }
-    public function getStructuresnew()
+//     public function getStructuresnew()
+// {
+//     $structures = Structuresnew::with([
+//         'company',
+//         'department',
+//         'store',
+//         'position',
+//         'parent',
+//         'children',
+//     ])
+//         ->select(['id', 'position_id', 'company_id', 'department_id', 'store_id', 'structure_code', 'is_manager','is_head', 'parent_id','status'])
+//         ->get()
+//         ->map(function ($structure) {
+//                $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
+
+
+//             $structure->action = '
+//                 <a href="' . route('Structuresnew.edit', $structure->id_hashed) . '" class="mx-3" 
+//                     data-bs-toggle="tooltip" data-bs-original-title="Edit Structure"
+//                     title="Edit structure: ' . e($structure->structure_name) . '">
+//                     <i class="fas fa-user-edit text-secondary"></i>
+//                 </a>';
+
+//             $structure->checkbox = '<input type="checkbox" class="payroll-checkbox" 
+//                 name="structure_ids[]" 
+//                 value="' . $structure->id_hashed . '">';
+
+//             return $structure;
+//         });
+
+//     return DataTables::of($structures)
+//         ->addColumn('company_name', fn($structure) =>
+//             !empty($structure->company) && !empty($structure->company->name)
+//                 ? $structure->company->name : 'Empty'
+//         )
+//         ->addColumn('department_name', fn($structure) =>
+//             !empty($structure->department) && !empty($structure->department->nickname)
+//                 ? $structure->department->nickname : 'Empty'
+//         )
+//         ->addColumn('store_name', fn($structure) =>
+//             !empty($structure->store) && !empty($structure->store->nickname)
+//                 ? $structure->store->nickname : 'Empty'
+//         )
+//         ->addColumn('position_name', fn($structure) =>
+//             !empty($structure->position) && !empty($structure->position->name)
+//                 ? $structure->position->name : 'Empty'
+//         )
+//         ->addColumn('parent', fn($structure) =>
+//             !empty($structure->parent) && !empty($structure->parent->position->name)
+//                 ? $structure->parent->position->name : 'Empty'
+//         )
+    
+//         ->rawColumns(['action', 'position_name', 'company_name', 'checkbox', 'department_name', 'store_name', 'parent', 'children'])
+//         ->make(true);
+// }
+public function getStructuresnew()
 {
     $structures = Structuresnew::with([
         'company',
@@ -100,15 +156,16 @@ class StructuresnewController extends Controller
         'store',
         'position',
         'parent',
-        'children',
+        'children.position', // pastikan load posisi anak
     ])
-        ->select(['id', 'position_id', 'company_id', 'department_id', 'store_id', 'structure_code', 'is_manager','is_head', 'parent_id','status'])
+        ->select([
+            'id', 'position_id', 'company_id', 'department_id',
+            'store_id', 'structure_code', 'is_manager', 'is_head',
+            'parent_id', 'status'
+        ])
         ->get()
         ->map(function ($structure) {
-            // 🔒 Gunakan hash penuh SHA-256 (tidak dipotong)
-            // $structure->id_hashed = hash('sha256', $structure->id . env('APP_KEY'));
-                $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
-
+            $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
 
             $structure->action = '
                 <a href="' . route('Structuresnew.edit', $structure->id_hashed) . '" class="mx-3" 
@@ -117,7 +174,6 @@ class StructuresnewController extends Controller
                     <i class="fas fa-user-edit text-secondary"></i>
                 </a>';
 
-            // ✅ Checkbox pakai hash penuh juga
             $structure->checkbox = '<input type="checkbox" class="payroll-checkbox" 
                 name="structure_ids[]" 
                 value="' . $structure->id_hashed . '">';
@@ -126,59 +182,131 @@ class StructuresnewController extends Controller
         });
 
     return DataTables::of($structures)
-        ->addColumn('company_name', fn($structure) =>
-            !empty($structure->company) && !empty($structure->company->name)
-                ? $structure->company->name : 'Empty'
-        )
-        ->addColumn('department_name', fn($structure) =>
-            !empty($structure->department) && !empty($structure->department->nickname)
-                ? $structure->department->nickname : 'Empty'
-        )
-        ->addColumn('store_name', fn($structure) =>
-            !empty($structure->store) && !empty($structure->store->nickname)
-                ? $structure->store->nickname : 'Empty'
-        )
-        ->addColumn('position_name', fn($structure) =>
-            !empty($structure->position) && !empty($structure->position->name)
-                ? $structure->position->name : 'Empty'
-        )
-        ->addColumn('parent', fn($structure) =>
+        ->addColumn('company_name', fn($s) => $s->company->name ?? 'Empty')
+        ->addColumn('department_name', fn($s) => $s->department->nickname ?? 'Empty')
+        ->addColumn('store_name', fn($s) => $s->store->nickname ?? 'Empty')
+        ->addColumn('position_name', fn($s) => $s->position->name ?? 'Empty')
+               ->addColumn('parent', fn($structure) =>
             !empty($structure->parent) && !empty($structure->parent->position->name)
                 ? $structure->parent->position->name : 'Empty'
         )
-        ->rawColumns(['action', 'position_name', 'company_name', 'checkbox', 'department_name', 'store_name', 'parent', 'children'])
+        ->addColumn('children', function ($s) {
+            if ($s->children->isEmpty()) {
+                return '<span class="text-muted">No Subordinates</span>';
+            }
+
+            $childPositions = $s->children->map(function ($child) {
+                return e(optional($child->position)->name ?? 'Unknown');
+            })->implode(', ');
+
+            return $childPositions;
+        })
+        ->rawColumns([
+            'action', 'checkbox',
+            'company_name', 'department_name', 'store_name',
+            'position_name', 'parent', 'children'
+        ])
         ->make(true);
 }
 
-public function bulkDelete(Request $request)
-{
-    $idsRaw = $request->input('structure_ids', '');
-    $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
 
-    if (empty($ids)) {
-        return back()->with('error', 'No Data.');
-    }
+// public function bulkDelete(Request $request)
+// {
+//     $idsRaw = $request->input('structure_ids', '');
+//     $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+//     if (empty($ids)) {
+//         return back()->with('error', 'No Data.');
+//     }
+//     $matchedIds = [];
+//     Structuresnew::chunk(100, function ($structures) use (&$matchedIds, $ids) {
+//         foreach ($structures as $structure) {
+//             $hash = hash('sha256', $structure->id . env('APP_KEY'));
+//             if (in_array($hash, $ids)) {
+//                 $matchedIds[] = $structure->id;
+//             }
+//         }
+//     });
 
-    $matchedIds = [];
+//     if (empty($matchedIds)) {
+//         return back()->with('error', 'No matching data found.');
+//     }
 
-    // ✅ Gunakan hash penuh juga di sini
-    Structuresnew::chunk(100, function ($structures) use (&$matchedIds, $ids) {
-        foreach ($structures as $structure) {
-            $hash = hash('sha256', $structure->id . env('APP_KEY'));
-            if (in_array($hash, $ids)) {
-                $matchedIds[] = $structure->id;
-            }
+//     $deleted = Structuresnew::whereIn('id', $matchedIds)->delete();
+
+//     return back()->with('success', "$deleted data berhasil dihapus.");
+// }
+// public function bulkDelete(Request $request)
+// {
+//     Log::info('=== BULK DELETE STARTED ===');
+
+//     $idsRaw = $request->input('structure_ids', '');
+//     Log::info('Raw IDs from request:', ['idsRaw' => $idsRaw]);
+
+//     $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+//     Log::info('Processed IDs array:', ['ids' => $ids]);
+
+//     if (empty($ids) || count(array_filter($ids)) === 0) {
+//         Log::warning('No IDs provided for deletion.');
+//         return back()->with('error', 'No Data.');
+//     }
+
+//     $matchedIds = [];
+//     $totalChecked = 0;
+
+//     Structuresnew::chunk(100, function ($structures) use (&$matchedIds, $ids, &$totalChecked) {
+//         foreach ($structures as $structure) {
+//             $totalChecked++;
+//             $hash = hash('sha256', $structure->id . env('APP_KEY'));
+//             if (in_array($hash, $ids)) {
+//                 $matchedIds[] = $structure->id;
+//                 Log::info('Matched ID found:', [
+//                     'structure_id' => $structure->id,
+//                     'hash' => $hash
+//                 ]);
+//             }
+//         }
+//     });
+
+//     Log::info('Total structures checked:', ['count' => $totalChecked]);
+//     Log::info('Matched IDs for deletion:', ['matchedIds' => $matchedIds]);
+
+//     if (empty($matchedIds)) {
+//         Log::warning('No matching data found for deletion.');
+//         return back()->with('error', 'No matching data found.');
+//     }
+
+//     $deleted = Structuresnew::whereIn('id', $matchedIds)->delete();
+
+//     Log::info('Bulk delete completed.', [
+//         'deleted_count' => $deleted,
+//         'deleted_ids' => $matchedIds
+//     ]);
+
+//     Log::info('=== BULK DELETE FINISHED ===');
+
+//     return back()->with('success', "$deleted data berhasil dihapus.");
+// }
+ public function bulkDelete(Request $request)
+    {
+        $idsRaw = $request->input('structure_ids', '');
+        $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+        if (empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
         }
-    });
+        $matchedIds = [];
+        Structuresnew::chunk(100, function ($structures) use (&$matchedIds, $ids) {
+            foreach ($structures as $structure) {
+                $hash = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
+                if (in_array($hash, $ids)) {
+                    $matchedIds[] = $structure->id;
+                }
+            }
+        });
 
-    if (empty($matchedIds)) {
-        return back()->with('error', 'No matching data found.');
+        $deleted = Structuresnew::whereIn('id', $matchedIds)->delete();
+
+        return back()->with('success', "$deleted data berhasil dihapus.");
     }
-
-    $deleted = Structuresnew::whereIn('id', $matchedIds)->delete();
-
-    return back()->with('success', "$deleted data berhasil dihapus.");
-}
 //    public function getOrgChartData()
 // {
 //     $data = Structuresnew::with(['position', 'parent','employee'])

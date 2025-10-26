@@ -213,6 +213,7 @@
                                                     <th class="text-center">Is Manager?</th>
                                                     <th class="text-center">Is Head?</th>
                                                     <th class="text-center">Direct Superior</th>
+                                                    <th class="text-center">Subordinate</th>
                                                     <th class="text-center">Status</th>
                                                     <th class="text-center">Action</th>
                                                 </tr>
@@ -348,6 +349,11 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'children',
+                        name: 'children',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'status',
                         className: 'text-center',
                         render: function(data) {
@@ -363,10 +369,9 @@
                         searchable: false,
                         className: 'text-center'
                     }
-                 
+
                 ],
-                initComplete: function() {
-                }
+                initComplete: function() {}
             });
 
             // === SWEETALERT SUCCESS ===
@@ -400,13 +405,13 @@
             //         });
             //     });
 
-        OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-        OrgChart.templates.myTemplate.size = [250, 150];
+            OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+            OrgChart.templates.myTemplate.size = [250, 150];
 
-        OrgChart.templates.myTemplate.node = `
+            OrgChart.templates.myTemplate.node = `
             <rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>
         `;
-        OrgChart.templates.myTemplate.img_0 = `
+            OrgChart.templates.myTemplate.img_0 = `
     <clipPath id="avatarClip">
         <circle cx="125" cy="45" r="35"></circle>
     </clipPath>
@@ -414,7 +419,7 @@
     <circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>
 `;
 
-        OrgChart.templates.myTemplate.field_ = `
+            OrgChart.templates.myTemplate.field_ = `
             <text 
                 style="font-size:12px;font-weight:700;" 
                 fill="#212121" 
@@ -422,7 +427,7 @@
                 {val}
             </text>
         `;
-        OrgChart.templates.myTemplate.field_0 = `
+            OrgChart.templates.myTemplate.field_0 = `
             <text 
                 style="font-size:11px;font-weight:500;" 
                 fill="#212121" 
@@ -431,7 +436,7 @@
             </text>
         `;
 
-        OrgChart.templates.myTemplate.field_1 = `
+            OrgChart.templates.myTemplate.field_1 = `
             <text 
                 style="font-size:13px;font-weight:500;" 
                 fill="#616161" 
@@ -440,14 +445,14 @@
             </text>
         `;
 
-        // ✅ PERBAIKAN: Hapus field_2 dari template, kita render manual
-        OrgChart.templates.myTemplate.field_2 = `
+            // ✅ PERBAIKAN: Hapus field_2 dari template, kita render manual
+            OrgChart.templates.myTemplate.field_2 = `
             <g transform="translate(60,105)">
                 <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
             </g>
         `;
 
-        OrgChart.templates.myTemplate.field_3 = `
+            OrgChart.templates.myTemplate.field_3 = `
             <text 
                 style="font-size:12px;font-weight:600;" 
                 fill="#ffffff" 
@@ -455,69 +460,58 @@
                 text-anchor="middle" alignment-baseline="middle">{val}</text>
         `;
 
-        // Warna status
-        const statusColors = {
-            active: '#4CAF50',    // Hijau
-            inactive: '#F44336',  // Merah
-            vacant: '#9E9E9E'     // Abu-abu
-        };
+            const statusColors = {
+                active: '#4CAF50', // Hijau
+                inactive: '#F44336', // Merah
+                vacant: '#9E9E9E' // Abu-abu
+            };
 
-        const chart = new OrgChart(document.getElementById("tree"), {
-            template: "myTemplate",
-            nodeBinding: {
-                img_0: "photo", 
-                field_: "Employee",
-                field_0: "Position",
-                field_1: "Location",
-                field_2: "statusColor",  
-                field_3: "status"        
-            },
-            enableSearch: true,
-            mouseScrool: OrgChart.action.zoom,
-            scaleInitial: OrgChart.match.boundary,
-            toolbar: {
-                zoom: true,
-                fit: true,
-                expandAll: true
-            }
-        });
-
-        fetch("{{ route('orgchart.orgchart') }}")
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                console.log('📊 Raw data:', data);
-
-                // Proses data dengan warna status yang benar
-                const processedData = data.map(node => {
-                    const statusText = (node.status || '').trim();
-                    const statusLower = statusText.toLowerCase();
-                    
-                    // Ambil warna berdasarkan status
-                    const color = statusColors[statusLower] || '#9E9E9E';
-                    
-                    console.log(`Status: "${statusText}" → Color: ${color}`);
-                    
-                    return {
-                        ...node,
-                        status: statusText,
-                        statusColor: color  // Ini yang akan jadi fill di rect
-                    };
-                });
-
-                console.log('✅ Processed data:', processedData);
-                chart.load(processedData);
-            })
-            .catch(error => {
-                console.error('❌ Error loading chart:', error);
-                alert('Gagal memuat organization chart.');
+            const chart = new OrgChart(document.getElementById("tree"), {
+                template: "myTemplate",
+                nodeBinding: {
+                    img_0: "photo",
+                    field_: "Employee",
+                    field_0: "Position",
+                    field_1: "Location",
+                    field_2: "statusColor",
+                    field_3: "status"
+                },
+                enableSearch: true,
+                mouseScrool: OrgChart.action.zoom,
+                scaleInitial: OrgChart.match.boundary,
+                toolbar: {
+                    zoom: true,
+                    fit: true,
+                    expandAll: true
+                }
             });
 
+            fetch("{{ route('orgchart.orgchart') }}")
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('📊 Raw data:', data);
+                    const processedData = data.map(node => {
+                        const statusText = (node.status || '').trim();
+                        const statusLower = statusText.toLowerCase();
+                        const color = statusColors[statusLower] || '#9E9E9E';
+                        console.log(`Status: "${statusText}" → Color: ${color}`);
+                        return {
+                            ...node,
+                            status: statusText,
+                            statusColor: color
+                        };
+                    });
 
-
-
+                    console.log('✅ Processed data:', processedData);
+                    chart.load(processedData);
+                })
+                .catch(error => {
+                    console.error('❌ Error loading chart:', error);
+                    alert('Gagal memuat organization chart.');
+                });
         });
     </script>
     <script>
@@ -525,23 +519,21 @@
             const checked = document.querySelectorAll('input.payroll-checkbox:checked');
             if (checked.length === 0) {
                 e.preventDefault();
-                Swal.fire("Gagal", "Tidak ada data yang dipilih.", "error");
+                Swal.fire("Failed", "No data selected.", "error");
                 return;
             }
 
-            e.preventDefault(); // jangan langsung submit
+            e.preventDefault();
 
             Swal.fire({
-                title: 'Yakin ingin menghapus data terpilih?',
+                title: 'Are you sure you want to delete the selected data?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Yes!',
+                cancelButtonText: 'Abort'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // ambil semua id payroll yang diceklis
                     const ids = Array.from(checked).map(cb => cb.value);
-                    // document.getElementById('bulk-delete-hidden').value = JSON.stringify(ids);
                     document.getElementById('bulk-delete-hidden').value = ids.join(',');
 
                     e.target.submit();
@@ -549,16 +541,9 @@
             });
         });
         $('#select-all').on('click', function() {
-            // Ambil state sekarang (default false)
             let isChecked = $(this).data('checked') || false;
-
-            // Toggle semua checkbox berdasarkan state
             $('input.payroll-checkbox').prop('checked', !isChecked);
-
-            // Simpan state baru
             $(this).data('checked', !isChecked);
-
-            // Ubah tulisan tombol
             $(this).text(!isChecked ? 'Deselect All' : 'Select All');
         });
     </script>

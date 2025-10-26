@@ -619,6 +619,7 @@
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Company</th>
                                                 <th class="text-center">Grd Name</th>
+                                                <th class="text-center">old</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Status Employee</th>
@@ -917,6 +918,11 @@
                     },
                     {
                         data: 'grading_name',
+                        className: 'text-center'
+                    },
+                    
+                    {
+                        data: 'oldposition_name',
                         className: 'text-center'
                     },
                     {
