@@ -527,7 +527,7 @@ class EmployeeController extends Controller
                 'company_id' => $validatedData['company_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
                 'store_id' => $validatedData['store_id'] ?? '',
-                'structure_id' => $validatedData['structure_id'] ?? '',
+                'structure_id' => $validatedData['structure_id'] ?? null,
                 'department_id' => $validatedData['department_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
                 'join_date' => $validatedData['join_date'] ?? '',
