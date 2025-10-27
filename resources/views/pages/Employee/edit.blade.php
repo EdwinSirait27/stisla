@@ -1031,6 +1031,34 @@
                                                 </div>
                                             </div>
                                         </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="structure_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Position') }}
+                                                    </label>
+                                                    <div>
+                                                    <select name="structure_id"
+    class="form-control select2 @error('structure_id') is-invalid @enderror">
+    <option value="">Choose</option>
+    @foreach ($structures as $structure)
+        <option value="{{ $structure->id }}"
+            {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
+            {{ $structure->position->name ?? '-' }}
+            - {{ $structure->company->name ?? '-' }}
+            - {{ $structure->store->name ?? '-' }}
+        </option>
+    @endforeach
+</select>
+
+                                                        @error('structure_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

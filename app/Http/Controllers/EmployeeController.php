@@ -708,6 +708,7 @@ class EmployeeController extends Controller
             $companyData['photo'] = $filePath;
         }
         DB::beginTransaction();
+            $oldStructureId = $user->employee->structure_id;
         $user->Employee->update([
             'employee_name' => $validatedData['employee_name'] ?? '',
             'nik' => $validatedData['nik'] ?? '',
@@ -715,7 +716,8 @@ class EmployeeController extends Controller
             'position_id' => $validatedData['position_id'] ?? '',
             'company_id' => $validatedData['company_id'] ?? '',
             'store_id' => $validatedData['store_id'] ?? '',
-            'structure_id' => $validatedData['structure_id'] ?? '',
+            // 'structure_id' => $validatedData['structure_id'] ?? '',
+            'structure_id' => $validatedData['structure_id'] ?? null,
             'department_id' => $validatedData['department_id'] ?? '',
             'banks_id' => $validatedData['banks_id'] ?? '',
             'status_employee' => $validatedData['status_employee'] ?? '',
@@ -745,6 +747,18 @@ class EmployeeController extends Controller
             'is_manager'  => $validatedData['is_manager'] ?? 0,
             'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
         ]);
+         // 🔥 Tambahan logika: ubah status structure jika structure_id null
+    // if (empty($validatedData['structure_id']) && $user->employee->structuresnew) {
+    //     $user->employee->structuresnew->update([
+    //         'status' => 'vacant',
+    //     ]);
+    // }
+     if (empty($validatedData['structure_id']) && !empty($oldStructureId)) {
+        $oldStructure = Structuresnew::find($oldStructureId);
+        if ($oldStructure) {
+            $oldStructure->update(['status' => 'vacant']);
+        }
+    }
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
     }
