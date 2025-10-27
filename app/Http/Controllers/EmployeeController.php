@@ -391,7 +391,7 @@ class EmployeeController extends Controller
                 'unique:users,username',
                 new NoXSSInput()
             ],
-            'foto' => ['nullable', 'image', 'max:512'],
+            // 'foto' => ['nullable', 'image', 'max:512'],
             'level_id' => [
                 'nullable',
                 'max:255',
@@ -488,18 +488,18 @@ class EmployeeController extends Controller
             'department_id.required' => 'The Department is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
-            'foto.image' => 'foto must be jpg or jpeg or png.',
-            'foto.max' => 'size under 512 kb.',
+            // 'foto.image' => 'foto must be jpg or jpeg or png.',
+            // 'foto.max' => 'size under 512 kb.',
 
         ]);
-        $filePath = null;
+        // $filePath = null;
 
-        if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-            $file->storeAs('public/employeefoto', $fileName);
-            $filePath = $fileName;
-        }
+        // if ($request->hasFile('foto')) {
+        //     $file = $request->file('foto');
+        //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+        //     $file->storeAs('public/employeefoto', $fileName);
+        //     $filePath = $fileName;
+        // }
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -518,7 +518,7 @@ class EmployeeController extends Controller
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
-                'foto' => $filePath,
+                // 'foto' => $filePath,
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -566,9 +566,9 @@ class EmployeeController extends Controller
             return redirect()->route('pages.Employee')->with('success', 'Done!');
         } catch (\Exception $e) {
             DB::rollBack();
-            if ($filePath && Storage::exists('public/employeefoto/' . $filePath)) {
-                Storage::delete('public/employeefoto/' . $filePath);
-            }
+            // if ($filePath && Storage::exists('public/employeefoto/' . $filePath)) {
+            //     Storage::delete('public/employeefoto/' . $filePath);
+            // }
             return redirect()->back()
                 ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
                 ->withInput();
@@ -590,7 +590,7 @@ class EmployeeController extends Controller
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
 
-            'foto' => ['nullable', 'image', 'max:512'],
+            // 'foto' => ['nullable', 'image', 'max:512'],
             'employee_name' => [
                 'required',
                 'string',
@@ -646,8 +646,8 @@ class EmployeeController extends Controller
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ], [
-            'foto.max' => 'under 512 kb.',
-            'foto.image' => 'must be jpg jpeg or png .',
+            // 'foto.max' => 'under 512 kb.',
+            // 'foto.image' => 'must be jpg jpeg or png .',
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
             'date_of_birth.required' => 'The date of birth is required.',
@@ -694,19 +694,19 @@ class EmployeeController extends Controller
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
         ]);
-        $filePath = $user->employee->foto;
-        if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-            $file->storeAs('public/employeefoto', $fileName);
-            $filePath = $fileName;
-            if ($user->employee && $user->employee->foto && Storage::exists('public/employeefoto/' . $user->employee->foto)) {
-                Storage::delete('public/company/' . $user->employee->foto);
-            }
-        }
-        if ($request->hasFile('foto')) {
-            $companyData['foto'] = $filePath;
-        }
+        // $filePath = $user->employee->foto;
+        // if ($request->hasFile('foto')) {
+        //     $file = $request->file('foto');
+        //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+        //     $file->storeAs('public/employeefoto', $fileName);
+        //     $filePath = $fileName;
+        //     if ($user->employee && $user->employee->foto && Storage::exists('public/employeefoto/' . $user->employee->foto)) {
+        //         Storage::delete('public/company/' . $user->employee->foto);
+        //     }
+        // }
+        // if ($request->hasFile('foto')) {
+        //     $companyData['foto'] = $filePath;
+        // }
         DB::beginTransaction();
             $oldStructureId = $user->employee->structure_id;
         $user->Employee->update([
