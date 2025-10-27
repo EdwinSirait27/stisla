@@ -435,7 +435,7 @@ class EmployeeController extends Controller
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-            'structure_id' => ['required', 'exists:structures_tables,id', new NoXSSInput()],
+            'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
         ], [
             'password.min' => 'The password must be at least 7 characters.',
             'password.max' => 'The password may not be greater than 30 characters.',
