@@ -16,7 +16,7 @@ return new class extends Migration
             
                   $table->foreign('structure_id')
                 ->references('id')
-                ->on('structures_tables')->onDelete('cascade');
+                ->on('structures_tables')->nullOnDelete();
         });
     }
 
