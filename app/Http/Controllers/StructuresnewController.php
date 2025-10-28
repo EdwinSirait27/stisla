@@ -325,7 +325,7 @@ public function getStructuresnew()
 // }
 public function getOrgChartData()
 {
-    $data = Structuresnew::with(['position', 'parent', 'employee','employee.store'])
+    $data = Structuresnew::with(['position', 'parent', 'employee','employee.store','store'])
         ->get()
         ->map(function ($s) {
             return [
@@ -333,10 +333,11 @@ public function getOrgChartData()
                 'pid'       => $s->parent_id,
                 'Position'  => $s->position->name ?? 'Unknown',
                 'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
-                 'Location'     => $s->employee
-                                    ->pluck('store.name')
-                                    ->unique()
-                                    ->join(', ') ?: 'Empty',
+                //  'Location'     => $s->employee
+                //                     ->pluck('store.name')
+                //                     ->unique()
+                //                     ->join(', ') ?: 'Empty',
+                'Location'  => $s->store->name ?? 'Empty',
                 'status'    => $s->status,
             ];
         });
