@@ -2,21 +2,8 @@
 @section('title', 'Lowongan Pekerjaan - CareerHub')
 @push('styles')
     <style>
-        /* .hero-section { */
-        /* background-image: url('/img/bg4.jpg'); path gambar kamu */
-        /* background-size: cover;       agar menyesuaikan ukuran layar */
-        /* background-position: center;  biar fokus di tengah */
-        /* background-repeat: no-repeat; agar tidak berulang */
-        /* height: 100vh;                tinggi penuh layar (bisa diubah) */
-        /* display: flex; */
-        /* align-items: center; */
-        /* justify-content: center; */
-        /* color: rgb(255, 255, 255); */
-        /* text-align: center; */
-        /* margin-bottom: 3rem;  */
-        /* } */
-        .hero-section {
-            background-image: url('/img/bg4.jpg');
+        /* .hero-section {
+            background-image: url('/img/bg4-min.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -29,7 +16,43 @@
             margin-bottom: 3rem;
             opacity: 0;
             animation: fadeInBg 2s ease-in-out forwards;
-        }
+        } */
+         .hero-section {
+    position: relative;
+    background-image: url('/img/bg4-min.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeInBg 2s ease-in-out forwards;
+    overflow: hidden;
+}
+
+/* Overlay gelap di atas background */
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* ubah 0.5 jadi 0.6/0.7 kalau mau lebih gelap */
+    z-index: 1;
+}
+
+/* Pastikan isi konten tetap di atas overlay */
+.hero-section > * {
+    position: relative;
+    z-index: 2;
+}
+
 
         @keyframes fadeInBg {
             from {
@@ -56,9 +79,10 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin-top: 2rem;
         }
+         
 
         .filter-section {
-            background: #f9fafb;
+            background: #575757;
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
@@ -198,8 +222,11 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8 mx-auto text-center">
+                    <img src="{{ asset('/img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png')}}" alt="Logo MJM" style="width:300px; margin-bottom:20px;">
+
                     <h1>Welcome to Mahendradata Jaya Mandiri Vacancy</h1>
-                    <div class="search-box">
+                    <h6>Discover Promising Career Opportunities with Us</h6>
+                    {{-- <div class="search-box">
                         <form action="{{ url('/careers') }}" method="GET">
                             <div class="row g-3">
                                 <div class="col-md-9">
@@ -213,7 +240,7 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>

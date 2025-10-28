@@ -10,6 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
+    <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+
     <style>
         :root {
             --primary-color: #BE7A14;
@@ -139,13 +144,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/') }}">Home Page</a>
+                        <a class="nav-link" href="{{ url('/Career') }}">Home Page</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/careers') }}">Vacancy</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/about') }}">About Us</a>
+                        <a class="nav-link" href="{{ url('/About-us') }}">About Us</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/contact') }}">Contact</a>
@@ -173,10 +178,13 @@
                     <h5><i class="fas fa-briefcase"></i> CareerHub</h5>
                     <p class="text-muted">Platform terpercaya untuk menemukan karir impian Anda. Bergabunglah dengan ribuan profesional yang telah menemukan pekerjaan mereka melalui kami.</p>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.facebook.com/p/PT-Mahendradata-Jaya-Mandiri-61579008674856/"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        {{-- <a href="#"><i class="fab fa-glints"></i></a> --}}
+                     <a href="https://glints.com/id/companies/pt-mahendradata-jaya-mandiri/55743ab7-b370-4e8a-acaf-598134009924"><i class="fas fa-user-tie"></i></a>
+
+
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6 mb-4">

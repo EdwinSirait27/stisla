@@ -404,6 +404,7 @@ Route::group(['middleware' => 'guest'], function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
         Route::get('/', [LoginController::class, 'index'])->name('login');
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
+        Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
         Route::get('/portofolio', function () {
             return view('pages.portofolio');
         });

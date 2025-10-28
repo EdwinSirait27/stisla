@@ -1,7 +1,5 @@
-{{-- ini yang dipake --}}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
@@ -13,12 +11,10 @@
     <link rel="icon" type="image/png"
         href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
     <link rel="stylesheet" href="{{ asset('library/bootstrap-social/bootstrap-social.css') }}">
-
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-keyboard/build/css/index.css">
     <script src="https://cdn.jsdelivr.net/npm/simple-keyboard/build/index.min.js"></script>
-
     <style>
         .keyboard-container {
             display: none;
@@ -33,17 +29,14 @@
             border: 1px solid #e0e0e0;
             transition: all 0.3s ease;
         }
-
         .keyboard-container.active {
             display: block;
         }
-
         .keyboard {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         .keyboard button {
             margin: 8px;
             padding: 12px 20px;
@@ -57,29 +50,24 @@
             transition: all 0.2s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         .keyboard button:hover {
             background-color: #d0d0d0;
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
         }
-
         .keyboard button:active {
             background-color: #b0b0b0;
             transform: translateY(0);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         .keyboard .btn-clear,
         .keyboard .btn-close {
             background-color: #ff6b6b;
             color: white;
         }
-
         .keyboard .btn-close {
             background-color: #6b6bff;
         }
-
         .keyboard .btn-clear:hover,
         .keyboard .btn-close:hover {
             opacity: 0.9;
@@ -223,7 +211,7 @@
                             <div class="form-group">
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" name="remember" class="custom-control-input" tabindex="3"
-                                        id="remember" >
+                                        id="remember">
                                     <label class="custom-control-label" for="remember">Remember Me</label>
                                 </div>
                             </div>
@@ -286,7 +274,6 @@
             </div>
         </section>
     </div>
-    <!-- Menggunakan asset dari AIO -->
     <script src="{{ asset('library/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ asset('library/popper.js/dist/umd/popper.js') }}"></script>
     <script src="{{ asset('library/tooltip.js/dist/umd/tooltip.js') }}"></script>
@@ -297,5 +284,4 @@
     <script src="{{ asset('js/scripts.js') }}"></script>
     <script src="{{ asset('js/custom.js') }}"></script>
 </body>
-
 </html>

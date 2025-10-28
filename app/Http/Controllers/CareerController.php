@@ -10,4 +10,8 @@ class CareerController extends Controller
     {
         return view('pages.Career.Career');
     }
+    public function indexabout()
+    {
+        return view('pages.About-us.About-us');
+    }
 }
