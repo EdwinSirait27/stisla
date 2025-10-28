@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\dashboardAdminController;
 use App\Http\Controllers\DashboardManagerController;
 use App\Http\Controllers\dashboardKasirController;
@@ -39,7 +38,6 @@ use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StructuresnewController;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -405,10 +403,14 @@ Route::group(['middleware' => 'guest'], function () {
         Route::get('/', [LoginController::class, 'index'])->name('login');
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
         Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
-        Route::get('/portofolio', function () {
-            return view('pages.portofolio');
-        });
+        // Route::get('/portofolio', function () {
+        //     return view('pages.portofolio');
+        // });
     });
+});
+Route::group(['middleware' => 'guest'], function () {
+        Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
+        Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
 });
 Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function () {
     Route::get('/Dashboard', [DashboardController::class, 'index'])

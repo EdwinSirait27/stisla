@@ -19,7 +19,7 @@
         } */
          .hero-section {
     position: relative;
-    background-image: url('/img/bg4-min.jpg');
+    background-image: url('/img/bg4 (1).jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -245,7 +245,7 @@
             </div>
         </div>
     </section>
-    <section class="container mb-5">
+    {{-- <section class="container mb-5">
         <div class="row">
             <div class="col-md-3 mb-3">
                 <div class="stats-card">
@@ -272,7 +272,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
     <section class="container mb-5">
         <div class="row">
             <div class="col-lg-3">

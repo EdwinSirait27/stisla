@@ -164,7 +164,7 @@
         } */
         .hero-about {
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-                url('/img/bglagi.jpg') center/cover no-repeat;
+                url('/img/bglagi1.jpg') center/cover no-repeat;
             color: white;
             text-align: center;
             padding: 12rem 1rem;
