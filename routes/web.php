@@ -33,6 +33,7 @@ use App\Http\Controllers\GradingController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\PHController;
 use App\Http\Controllers\GradinglistController;
+use App\Http\Controllers\CareerController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\SubmissionsController;
@@ -402,6 +403,7 @@ Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
         Route::get('/', [LoginController::class, 'index'])->name('login');
+        Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
         Route::get('/portofolio', function () {
             return view('pages.portofolio');
         });
