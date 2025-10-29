@@ -175,8 +175,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <h5><i class="fas fa-briefcase"></i> CareerHub</h5>
-                    <p class="text-muted">Platform terpercaya untuk menemukan karir impian Anda. Bergabunglah dengan ribuan profesional yang telah menemukan pekerjaan mereka melalui kami.</p>
+                    <h5><i class="fas fa-briefcase"></i> XXX</h5>
+                    <p class="text-muted">blablabla.</p>
                     <div class="social-links">
                         <a href="https://www.facebook.com/p/PT-Mahendradata-Jaya-Mandiri-61579008674856/"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
