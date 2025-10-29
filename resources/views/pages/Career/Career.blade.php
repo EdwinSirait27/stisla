@@ -2,21 +2,7 @@
 @section('title', 'Lowongan Pekerjaan - CareerHub')
 @push('styles')
     <style>
-        /* .hero-section {
-            background-image: url('/img/bg4-min.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgb(255, 255, 255);
-            text-align: center;
-            margin-bottom: 3rem;
-            opacity: 0;
-            animation: fadeInBg 2s ease-in-out forwards;
-        } */
+
          .hero-section {
     position: relative;
     background-image: url('/img/bg4 (1).jpg');
@@ -277,9 +263,9 @@
         <div class="row">
             <div class="col-lg-3">
                 <div class="filter-section">
-                    <h5 class="mb-3">Filter Pencarian</h5>
+                    <h5 class="mb-3">Jobs Filter</h5>
                     <div class="mb-4">
-                        <h6>Tipe Pekerjaan</h6>
+                        <h6>Jobs Type</h6>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="fulltime">
                             <label class="form-check-label" for="fulltime">Full Time</label>
@@ -298,7 +284,7 @@
                         </div>
                     </div>
                     <div class="mb-4">
-                        <h6>Pengalaman</h6>
+                        <h6>Experience</h6>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="entry">
                             <label class="form-check-label" for="entry">Entry Level</label>
@@ -312,8 +298,8 @@
                             <label class="form-check-label" for="senior">Senior Level</label>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <h6>Gaji (per bulan)</h6>
+                    {{-- <div class="mb-4">
+                        <h6>Salary (per bulan)</h6>
                         <select class="form-select">
                             <option>Semua Range</option>
                             <option>
@@ -322,12 +308,12 @@
                             <option>10 - 15 Juta</option>
                             <option>> 15 Juta</option>
                         </select>
-                    </div>
+                    </div> --}}
 
                     <div class="mb-3">
-                        <h6>Kategori</h6>
+                        <h6>Positions Category</h6>
                         <select class="form-select">
-                            <option>Semua Kategori</option>
+                            <option>All Position</option>
                             <option>IT & Software</option>
                             <option>Marketing</option>
                             <option>Finance</option>
@@ -336,16 +322,15 @@
                         </select>
                     </div>
 
-                    <button class="btn btn-primary-custom w-100 mt-3">Terapkan Filter</button>
+                    <button class="btn btn-primary-custom w-100 mt-3">Filter</button>
                 </div>
             </div>
             <div class="col-lg-9">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4>Menampilkan 24 Lowongan</h4>
+                    <h4>Available Job</h4>
                     <select class="form-select w-auto">
-                        <option>Terbaru</option>
-                        <option>Gaji Tertinggi</option>
-                        <option>Paling Relevan</option>
+                        <option>Newest</option>
+                        <option>Latest</option>
                     </select>
                 </div>
                 <div class="job-card">
@@ -356,7 +341,7 @@
                         <div class="col-md-7">
                             <h5 class="mb-2">Senior Full Stack Developer</h5>
                             <p class="text-muted mb-2">
-                                <i class="fas fa-building"></i> Google Indonesia
+                                <i class="fas fa-building"></i> tes
                             </p>
                             <p class="text-muted mb-2">
                                 <i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia
@@ -364,119 +349,18 @@
                             </p>
                             <div class="mb-2">
                                 <span class="job-badge badge-fulltime">Full Time</span>
-                                <span class="job-badge badge-remote">Remote</span>
-                                <span class="job-badge badge-urgent">Urgent</span>
+                                {{-- <span class="job-badge badge-remote">Remote</span> --}}
+                                {{-- <span class="job-badge badge-urgent">Urgent</span> --}}
                             </div>
                         </div>
                         <div class="col-md-3 text-end">
-                            <div class="job-salary mb-2">Rp 15-25 Juta</div>
-                            <button class="btn btn-apply mb-2 w-100">Lamar Sekarang</button>
-                            <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
+                            {{-- <div class="job-salary mb-2">Rp 15-25 Juta</div> --}}
+                            <button class="btn btn-apply mb-2 w-100">Apply Now</button>
+                            {{-- <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button> --}}
                         </div>
                     </div>
                 </div>
-                <div class="job-card">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="company-logo">T</div>
-                        </div>
-                        <div class="col-md-7">
-                            <h5 class="mb-2">Digital Marketing Manager</h5>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-building"></i> Tokopedia
-                            </p>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-map-marker-alt"></i> Jakarta Selatan
-                                <span class="ms-3"><i class="far fa-clock"></i> 3 hari yang lalu</span>
-                            </p>
-                            <div class="mb-2">
-                                <span class="job-badge badge-fulltime">Full Time</span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <div class="job-salary mb-2">Rp 12-18 Juta</div>
-                            <button class="btn btn-apply mb-2 w-100">Lamar Sekarang</button>
-                            <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="job-card">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="company-logo">G</div>
-                        </div>
-                        <div class="col-md-7">
-                            <h5 class="mb-2">UI/UX Designer</h5>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-building"></i> Gojek Indonesia
-                            </p>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-map-marker-alt"></i> Jakarta Pusat
-                                <span class="ms-3"><i class="far fa-clock"></i> 5 hari yang lalu</span>
-                            </p>
-                            <div class="mb-2">
-                                <span class="job-badge badge-fulltime">Full Time</span>
-                                <span class="job-badge badge-remote">Remote</span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <div class="job-salary mb-2">Rp 10-15 Juta</div>
-                            <button class="btn btn-apply mb-2 w-100">Lamar Sekarang</button>
-                            <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="job-card">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="company-logo">S</div>
-                        </div>
-                        <div class="col-md-7">
-                            <h5 class="mb-2">Data Scientist</h5>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-building"></i> Shopee Indonesia
-                            </p>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia
-                                <span class="ms-3"><i class="far fa-clock"></i> 1 minggu yang lalu</span>
-                            </p>
-                            <div class="mb-2">
-                                <span class="job-badge badge-fulltime">Full Time</span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <div class="job-salary mb-2">Rp 18-28 Juta</div>
-                            <button class="btn btn-apply mb-2 w-100">Lamar Sekarang</button>
-                            <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="job-card">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="company-logo">B</div>
-                        </div>
-                        <div class="col-md-7">
-                            <h5 class="mb-2">Product Manager</h5>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-building"></i> Bukalapak
-                            </p>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-map-marker-alt"></i> Jakarta Barat
-                                <span class="ms-3"><i class="far fa-clock"></i> 1 minggu yang lalu</span>
-                            </p>
-                            <div class="mb-2">
-                                <span class="job-badge badge-fulltime">Full Time</span>
-                                <span class="job-badge badge-urgent">Urgent</span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <div class="job-salary mb-2">Rp 20-30 Juta</div>
-                            <button class="btn btn-apply mb-2 w-100">Lamar Sekarang</button>
-                            <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
-                        </div>
-                    </div>
-                </div>
+               
                 <nav class="pagination-custom">
                     <ul class="pagination justify-content-center">
                         <li class="page-item disabled">

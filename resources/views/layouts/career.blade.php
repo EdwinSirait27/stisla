@@ -187,16 +187,17 @@
 
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h5>Perusahaan</h5>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5>Companies</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#">Tentang Kami</a></li>
-                        <li><a href="#">Tim Kami</a></li>
-                        <li><a href="#">Karir</a></li>
-                        <li><a href="#">Press</a></li>
+                        <li><a href="#">Asian Bay Developmemnt</a></li>
+                        <li><a href="https://mjm-bali.co.id/">Mahendradata Jaya Mandiri</a></li>
+                        <li><a href="https://tenjigroup.com/">Tenji Sushi</a></li>
+                        <li><a href="https://superekonomi.co.id/">Super Ekonomi Supermarket</a></li>
+                        <li><a href="https://unclejo.co.id/">Unclje Jo</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
+                {{-- <div class="col-lg-2 col-md-6 mb-4">
                     <h5>Sumber Daya</h5>
                     <ul class="list-unstyled">
                         <li><a href="#">Blog</a></li>
@@ -204,7 +205,7 @@
                         <li><a href="#">FAQ</a></li>
                         <li><a href="#">Support</a></li>
                     </ul>
-                </div>
+                </div> --}}
                 <div class="col-lg-4 col-md-6 mb-4">
                     <h5>Newsletter</h5>
                     <p class="text-muted">Dapatkan informasi lowongan terbaru langsung ke email Anda.</p>

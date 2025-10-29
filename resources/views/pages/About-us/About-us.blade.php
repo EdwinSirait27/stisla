@@ -413,20 +413,18 @@
     <section class="vision-mission">
         <div class="container">
             <div class="row text-center mb-5">
-                <h2>Visi & Misi Kami</h2>
+                <h2>Our Vision & Mission</h2>
             </div>
             <div class="row text-center">
                 <div class="col-md-6 mb-4">
-                    <h3><i class="fas fa-bullseye"></i> Visi</h3>
-                    <p>Menjadi lebih dari sekadar ritel biasa. Kami berkomitmen untuk menjadi mitra yang dapat diandalkan
-                        bagi setiap pelanggan kami, memberikan layanan terbaik, dan menciptakan pengalaman belanja yang tak
-                        terlupakan.</p>
+                    <h3><i class="fas fa-bullseye"></i> Vision</h3>
+                    <p>Becoming more than just a retailer. We are committed to being a reliable partner for each of our customers, providing the best service, and creating an unforgettable shopping experience.</p>
                 </div>
                 <div class="col-md-6 mb-4">
-                    <h3><i class="fas fa-handshake"></i> Misi</h3>
-                    <p>Menjadi pilihan utama dalam industri supermarket di setiap lokasi yang kami hadiri.</p>
-                    <p>Melayani konsumen dengan penuh dedikasi dan keramahan.</p>
-                    <p>Menyediakan pengalaman berbelanja yang menyenangkan dan memuaskan bagi setiap pelanggan.</p>
+                    <h3><i class="fas fa-handshake"></i> Mission</h3>
+                    <p>To be the first choice in the supermarket industry in every location we serve.</p>
+                    <p>Serving customers with dedication and friendliness.</p>
+                    <p>Providing a pleasant and satisfying shopping experience for every customer.</p>
                 </div>
             </div>
         </div>
