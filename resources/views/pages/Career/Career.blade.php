@@ -1,44 +1,41 @@
 @extends('layouts.career')
-@section('title', 'Lowongan Pekerjaan - CareerHub')
+@section('title', 'Vacancy - Asian Bay Development Career Portal')
 @push('styles')
     <style>
+        .hero-section {
+            position: relative;
+            background-image: url('/img/bg4 (1).jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeInBg 2s ease-in-out forwards;
+            overflow: hidden;
+        }
 
-         .hero-section {
-    position: relative;
-    background-image: url('/img/bg4 (1).jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 3rem;
-    opacity: 0;
-    animation: fadeInBg 2s ease-in-out forwards;
-    overflow: hidden;
-}
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            /* ubah 0.5 jadi 0.6/0.7 kalau mau lebih gelap */
+            z-index: 1;
+        }
 
-/* Overlay gelap di atas background */
-.hero-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* ubah 0.5 jadi 0.6/0.7 kalau mau lebih gelap */
-    z-index: 1;
-}
-
-/* Pastikan isi konten tetap di atas overlay */
-.hero-section > * {
-    position: relative;
-    z-index: 2;
-}
-
+        .hero-section>* {
+            position: relative;
+            z-index: 2;
+        }
 
         @keyframes fadeInBg {
             from {
@@ -65,7 +62,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin-top: 2rem;
         }
-         
+
 
         .filter-section {
             background: #575757;
@@ -90,7 +87,7 @@
             border-color: #2563eb;
         }
 
-        .company-logo {
+        /* .company-logo {
             width: 60px;
             height: 60px;
             border-radius: 8px;
@@ -101,7 +98,24 @@
             font-size: 1.5rem;
             color: #2563eb;
             font-weight: bold;
-        }
+        } */
+         .company-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden; /* supaya gambar ikut rounded */
+    background: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.company-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* biar gambar proporsional */
+}
+
 
         .job-badge {
             display: inline-block;
@@ -208,9 +222,12 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8 mx-auto text-center">
-                    <img src="{{ asset('/img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png')}}" alt="Logo MJM" style="width:300px; margin-bottom:20px;">
+                    <img src="{{ asset('/img/abd.png') }}" alt="Logo MJM"
+                        style="width:300px; margin-bottom:10px;">
+                    {{-- <img src="{{ asset('/img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png') }}" alt="Logo MJM"
+                        style="width:300px; margin-bottom:20px;"> --}}
 
-                    <h1>Welcome to Mahendradata Jaya Mandiri Vacancy</h1>
+                    <h1>Welcome to Asian Bay Development</h1>
                     <h6>Discover Promising Career Opportunities with Us</h6>
                     {{-- <div class="search-box">
                         <form action="{{ url('/careers') }}" method="GET">
@@ -259,7 +276,7 @@
             </div>
         </div>
     </section> --}}
-    <section class="container mb-5">
+    {{-- <section class="container mb-5">
         <div class="row">
             <div class="col-lg-3">
                 <div class="filter-section">
@@ -298,7 +315,7 @@
                             <label class="form-check-label" for="senior">Senior Level</label>
                         </div>
                     </div>
-                    {{-- <div class="mb-4">
+                    <div class="mb-4">
                         <h6>Salary (per bulan)</h6>
                         <select class="form-select">
                             <option>Semua Range</option>
@@ -308,17 +325,12 @@
                             <option>10 - 15 Juta</option>
                             <option>> 15 Juta</option>
                         </select>
-                    </div> --}}
+                    </div>
 
                     <div class="mb-3">
                         <h6>Positions Category</h6>
                         <select class="form-select">
                             <option>All Position</option>
-                            <option>IT & Software</option>
-                            <option>Marketing</option>
-                            <option>Finance</option>
-                            <option>Design</option>
-                            <option>Sales</option>
                         </select>
                     </div>
 
@@ -349,18 +361,14 @@
                             </p>
                             <div class="mb-2">
                                 <span class="job-badge badge-fulltime">Full Time</span>
-                                {{-- <span class="job-badge badge-remote">Remote</span> --}}
-                                {{-- <span class="job-badge badge-urgent">Urgent</span> --}}
                             </div>
                         </div>
                         <div class="col-md-3 text-end">
-                            {{-- <div class="job-salary mb-2">Rp 15-25 Juta</div> --}}
                             <button class="btn btn-apply mb-2 w-100">Apply Now</button>
-                            {{-- <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button> --}}
-                        </div>
+                            </div>
                     </div>
                 </div>
-               
+
                 <nav class="pagination-custom">
                     <ul class="pagination justify-content-center">
                         <li class="page-item disabled">
@@ -378,7 +386,143 @@
                 </nav>
             </div>
         </div>
-    </section>
+    </section> --}}
+    <section class="container mb-5">
+    <div class="row">
+        <!-- Sidebar Filter -->
+        <div class="col-lg-3">
+            <div class="filter-section">
+                <h5 class="mb-3">Search Filter</h5>
+                
+                <div class="mb-4">
+                    <h6>Job Type</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="fulltime">
+                        <label class="form-check-label" for="fulltime">Full Time</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="parttime">
+                        <label class="form-check-label" for="parttime">Part Time</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="contract">
+                        <label class="form-check-label" for="contract">Contract</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="internship">
+                        <label class="form-check-label" for="internship">Internship</label>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>Grade</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="entry">
+                        <label class="form-check-label" for="entry">Staff</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="mid">
+                        <label class="form-check-label" for="mid">Manager</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="senior">
+                        <label class="form-check-label" for="senior">Senior Level</label>
+                    </div>
+                </div>
+                
+                {{-- <div class="mb-4">
+                    <h6>Gaji (per bulan)</h6>
+                    <select class="form-select">
+                        <option>Semua Range</option>
+                        <option>< 5 Juta</option>
+                        <option>5 - 10 Juta</option>
+                        <option>10 - 15 Juta</option>
+                        <option>> 15 Juta</option>
+                    </select>
+                </div> --}}
+                
+                <div class="mb-3">
+                    <h6>Categories</h6>
+                    <select class="form-select">
+                        <option>All Categories</option>
+                        <option>IT & Software</option>
+                        <option>Marketing</option>
+                        <option>Finance</option>
+                        <option>Design</option>
+                        <option>Sales</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary-custom w-100 mt-3">Filter</button>
+            </div>
+        </div>
+        
+        <!-- Job Listings -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                {{-- <h4 style="color">Menampilkan 24 Lowongan</h4> --}}
+                <h4 style="color: black;">Showing Vacancies</h4>
+
+                <select class="form-select w-auto">
+                    <option>Newest</option>
+                    <option>Latest</option>
+                </select>
+            </div>
+            
+            <!-- Job Card 1 -->
+            <div class="job-card">
+                <div class="row">
+                    <div class="col-md-2">
+                        {{-- <div class="company-logo">G</div> --}}
+                        <div class="company-logo">
+    <img src="{{ asset('img/abd.jpg') }}" alt="Logo Perusahaan">
+</div>
+
+                    </div>
+                    <div class="col-md-7">
+                        <h5 style="color: black;" class="mb-2">IT</h5>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-building"></i> Google Indonesia
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia
+                            <span class="ms-3"><i class="far fa-clock"></i> 2 hari yang lalu</span>
+                        </p>
+                        <div class="mb-2">
+                            <span class="job-badge badge-fulltime">Full Time</span>
+                            <span class="job-badge badge-remote">Remote</span>
+                            <span class="job-badge badge-urgent">Urgent</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <div class="job-salary mb-2">BIG SALARY</div>
+                        <button class="btn btn-apply mb-2 w-100">Apply Now</button>
+                        <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            <!-- Pagination -->
+            <nav class="pagination-custom">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">4</a></li>
+                    <li class="page-item"><a class="page-link" href="#">5</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
 @endsection
 @push('scripts')
     <script>

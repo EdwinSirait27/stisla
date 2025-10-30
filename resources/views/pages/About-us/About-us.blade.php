@@ -149,7 +149,7 @@
 @endsection --}}
 @extends('layouts.career')
 
-@section('title', 'About Us - PT. Mahendradata Jaya Mandiri')
+@section('title', 'About Us - Asian Bay Development')
 
 @push('styles')
     <style>

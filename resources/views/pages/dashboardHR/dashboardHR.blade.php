@@ -44,7 +44,6 @@
             border-top-right-radius: 12px;
         }
 
-        /* Tooltip styling (opsional untuk kustomisasi lebih lanjut) */
         .tooltip-custom {
             position: relative;
         }
@@ -85,12 +84,8 @@
                     <div class="breadcrumb-item">HR Manager</div>
                 </div>
             </div>
-
             <div class="section-body">
-                <!-- Overview Cards -->
                 <div class="row">
-
-
                     <div class="col-lg-3 col-md-6 col-sm-6 col-12" title="View list of all employees">
                         <div onclick="window.location='{{ route('pages.Employee') }}';" style="cursor: pointer;"
                             title="Lihat daftar semua karyawan" class="card card-statistic-1 metric-card">
@@ -107,8 +102,6 @@
                             </div>
                         </div>
                     </div>
-
-
                     <div class="col-lg-3 col-md-6 col-sm-6 col-12">
                         <div class="card card-statistic-1 metric-card">
                             <div class="card-icon bg-success">
@@ -155,7 +148,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-lg-8 col-md-12 col-12 col-sm-4">
                         <div class="card">
@@ -164,22 +156,16 @@
                                     <i class="fas fa-calendar-check me-2"></i>
                                     Monthly Attendance Rate
                                 </h4>
-
                                 <div class="card-header-action d-flex gap-2">
                                     <input type="date" id="startDate" class="form-control"
                                         value="{{ now()->startOfMonth()->format('Y-m-d') }}">
                                     <input type="date" id="endDate" class="form-control"
                                         value="{{ now()->endOfMonth()->format('Y-m-d') }}">
-
                                     <button id="filterButton" class="btn btn-primary">
                                         Filter
                                     </button>
                                 </div>
-
-
-
                             </div>
-
                             <div class="card-body">
                                 <canvas id="attendanceChart" height="180"></canvas>
                                 <div class="alert alert-secondary mt-4" role="alert">
@@ -187,7 +173,6 @@
                                         <strong>Important Note:</strong> <br>
                                         - X-axis means date.<br>
                                         - Y-axis total employee attendance based on the x-axis.
-
                                     </span>
                                 </div>
                             </div>
@@ -208,7 +193,6 @@
                             </div>
 
                             <div class="card-body">
-                                {{-- ✅ Jika type = Annual Leave, tampilkan summary cuti --}}
                                 @if ($selectedType === 'Annual Leave' && isset($leaveData))
                                     <div class="mb-3 p-3 rounded bg-light border">
                                         <h6 class="text-primary mb-2"><i class="fas fa-umbrella-beach me-2"></i>Annual Leave
@@ -229,23 +213,19 @@
                                         </div>
                                     </div>
                                 @endif
-
                                 <ul class="list-unstyled list-unstyled-border">
                                     @forelse($pendingSubmissions as $submission)
                                         <li class="media">
                                             <img class="mr-3 rounded-circle" width="50"
                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
                                                 alt="avatar">
-
                                             <div class="media-body">
                                                 <div class="float-right">
                                                     <small>{{ $submission->created_at->diffForHumans() }}</small>
                                                 </div>
-
                                                 <div class="media-title">
                                                     {{ $submission->employee->employee_name }}
                                                 </div>
-
                                                 <span class="text-small text-muted">
                                                     {{ ucfirst($submission->type) }} -
                                                     {{ $submission->formattedDuration }}
@@ -260,7 +240,6 @@
                                         </li>
                                     @endforelse
                                 </ul>
-
                                 <div class="text-center pt-1 pb-1">
                                     <a href="#" class="btn btn-primary btn-lg btn-round">
                                         View Your Submissions
@@ -269,43 +248,26 @@
                             </div>
                         </div>
                     </div>
-
-
-
-
-
                 </div>
-
-
                 <div class="row">
-
-
                     <div class="col-lg-12 col-md-12 col-12 col-sm-12">
-
-
                         <div class="card">
-
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h4>
                                     <i class="fas fa-book me-2"></i>
                                     List of Announcements
                                 </h4>
-
                                 <button id="btn-announcement" class="btn btn-primary btn-sm">
                                     <i class="fas fa-plus me-1"></i>
                                     Make an Announcement
                                 </button>
                             </div>
-
-
-
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Title</th>
-                                                {{-- <th class="text-center">Title</th> --}}
                                                 <th class="text-center">Publish Date</th>
                                                 <th class="text-center">End Date</th>
                                                 <th class="text-center">Action</th>
@@ -317,23 +279,17 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
     </div>
-
-
     <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content rounded-3 shadow-lg border-0">
-
-                <!-- Header -->
                 <div class="modal-header bg-white border-bottom justify-content-center">
                     <h5 class="modal-title fw-bold text-dark mb-0" id="previewTitle">
                         Announcement Preview
                     </h5>
                 </div>
-                <!-- Body -->
                 <div class="modal-body p-4">
                     <div class="mb-4">
                         <table class="table table-sm align-middle mb-0">
@@ -341,7 +297,6 @@
                                 <tr>
                                     <th scope="row" class="text-dark" style="width: 130px;">Publish Date</th>
                                     <td style="width: 180px;"><span id="previewDate" class="fw-semibold"></span></td>
-
                                     <th scope="row" class="text-dark" style="width: 500px; text-align: right;">End
                                         Date</th>
                                     <td style="width: 210px; text-align: right; "><span id="previewEndDate"
@@ -359,7 +314,6 @@
                             style="max-height: 450px; overflow-y: auto; line-height: 1.6;"></div>
                     </div>
                 </div>
-                <!-- Footer -->
                 <div class="modal-footer bg-light border-top justify-content-center text-center">
                     &copy; This is a valid announcement from HR Department.
                     For more information please contact
@@ -372,7 +326,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="createSubmissionModal" tabindex="-1" role="dialog"
         aria-labelledby="createSubmissionLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -387,15 +340,12 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-
                     <div class="modal-body">
-
                         <div class="mb-3">
                             <label class="form-label">Type</label>
                             <select name="type" id="type"
                                 class="form-control select2 @error('type') is-invalid @enderror" required>
                                 <option value="">Choose Type</option>
-
                                 @foreach ($types as $value)
                                     @if ($value === 'Overtime' && !$canCreateOvertime)
                                         @continue
@@ -406,7 +356,6 @@
                                 @endforeach
                             </select>
                         </div>
-
                         <div class="mb-3" id="statusDiv" style="display: none;">
                             <label class="form-label">Overtime Type</label>
                             <select name="status_submissions" id="status_submissions"
@@ -420,7 +369,6 @@
                                 @endforeach
                             </select>
                         </div>
-
                         <div class="mb-3" id="annualLeaveInfo" style="display: none;">
                             <label class="form-label">Annual Leave Info</label>
                             <div class="border rounded p-3 bg-light">
@@ -432,8 +380,6 @@
                                         id="remaining">{{ $employee->remaining ?? 0 }}</span></p>
                             </div>
                         </div>
-
-                        {{-- 🔹 Daftar Employee untuk Manager --}}
                         @if ($canCreateOvertime)
                             <div class="mb-3" id="employeeList" style="display: none;">
                                 <label class="form-label">Select Employee(s)</label>
@@ -452,8 +398,6 @@
                                     departemen.</small>
                             </div>
                         @endif
-
-                        {{-- 🔹 Date fields --}}
                         <div class="mb-3">
                             <label class="form-label">Leave Date From</label>
                             <input type="date" name="leave_date_from" id="leave_date_from" class="form-control"
@@ -480,7 +424,6 @@
     </div>
 @endsection
 @push('scripts')
-    <!-- JS Libraries -->
     <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
     <script src="{{ asset('library/jqvmap/dist/jquery.vmap.min.js') }}"></script>
     <script src="{{ asset('library/jqvmap/dist/maps/jquery.vmap.world.js') }}"></script>
@@ -495,44 +438,34 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-
             function toggleFields(type) {
                 if (type === 'Overtime') {
                     $('#leave_date_from').attr('type', 'datetime-local');
                     $('#leave_date_to').attr('type', 'datetime-local');
                     $('#statusDiv').show();
                     $('#annualLeaveInfo').hide();
-
                     @if ($canCreateOvertime)
                         $('#employeeList').show();
                     @endif
-
                 } else if (type === 'Annual Leave') {
                     $('#leave_date_from').attr('type', 'date');
                     $('#leave_date_to').attr('type', 'date');
                     $('#statusDiv').hide();
                     $('#annualLeaveInfo').show();
-
                     @if ($canCreateOvertime)
                         $('#employeeList').hide();
                     @endif
-
                 } else {
                     $('#leave_date_from').attr('type', 'date');
                     $('#leave_date_to').attr('type', 'date');
                     $('#statusDiv').hide();
                     $('#annualLeaveInfo').hide();
-
                     @if ($canCreateOvertime)
                         $('#employeeList').hide();
                     @endif
                 }
             }
-
-            // Trigger awal saat modal muncul
             toggleFields($('#type').val());
-
-            // Trigger setiap kali Type diganti
             $('#type').on('change', function() {
                 const type = $(this).val();
                 toggleFields(type);
@@ -541,11 +474,10 @@
     </script>
     <script>
         let ctx = document.getElementById('attendanceChart').getContext('2d');
-
         let attendanceChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: [], // tanggal (misal: 2025-10-01)
+                labels: [],
                 datasets: [{
                     label: 'Attendance Percentage (%)',
                     data: [],
@@ -559,7 +491,7 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100, // karena data sekarang dalam persen
+                        max: 100,
                         ticks: {
                             callback: function(value) {
                                 return value + '%';
@@ -580,34 +512,27 @@
             }
         });
 
-        // --- Fungsi Load Data ---
         function loadChartData(startDate, endDate) {
             fetch(`{{ route('dashboardHR.data') }}?start_date=${startDate}&end_date=${endDate}`)
                 .then(res => res.json())
                 .then(data => {
                     const labels = data.data.map(item => item.date);
                     const percentages = data.data.map(item => item.percentage);
-
                     attendanceChart.data.labels = labels;
                     attendanceChart.data.datasets[0].data = percentages;
                     attendanceChart.update();
                 });
         }
-
-        // --- Saat halaman pertama kali dimuat ---
         document.addEventListener("DOMContentLoaded", function() {
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
             loadChartData(start, end);
         });
-
-        // --- Saat tombol Filter ditekan ---
         document.getElementById('filterButton').addEventListener('click', function() {
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
             loadChartData(start, end);
         });
-
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
@@ -624,11 +549,8 @@
             });
         @endif
     </script>
-
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
                 autoWidth: false,
@@ -646,14 +568,11 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [
-
-                    {
+                columns: [{
                         data: 'title',
                         name: 'title',
                         className: 'text-center'
                     },
-
                     {
                         data: 'publish_date',
                         name: 'publish_date',
@@ -696,7 +615,6 @@
                         className: 'text-center'
                     }
                 ],
-
             });
         });
         $(document).on('click', '.preview-btn', function() {
@@ -710,11 +628,9 @@
             $('#previewDate').text(date);
             $('#previewEndDate').text(enddate);
             $('#previewContent').html(content);
-
             $('#previewModal').modal('show');
         });
     </script>
-
     <script>
         document.getElementById('btn-announcement').addEventListener('click', function() {
             Swal.fire({
@@ -761,13 +677,11 @@
                         license_key: 'gpl'
                     });
                 },
-
                 willClose: () => {
                     if (tinymce.get('editor')) {
                         tinymce.get('editor').remove();
                     }
                 },
-
                 preConfirm: () => {
                     tinymce.triggerSave();
                     let title = document.querySelector('input[name="title"]').value.trim();

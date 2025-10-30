@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Career Portal')</title>
+    <title>@yield('title', 'Asian Bay Development Career')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+    <link rel="icon" type="image/png"
+        href="{{ asset('img/abd.ico') }}">  
     <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -89,6 +91,10 @@
             text-decoration: none;
             transition: color 0.3s;
         }
+        footer p {
+            color: #d1d5db;
+            
+        }
         
         footer a:hover {
             color: #fff;
@@ -135,7 +141,7 @@
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url('https://mjm-bali.co.id/') }}">
-    <img src="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png') }}" alt="PT. Mahendradata Jaya Mandiri" height="80">
+    <img src="{{ asset('img/abd.jpg') }}" alt="PT. Mahendradata Jaya Mandiri" height="80">
 </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -157,7 +163,7 @@
                     </li>
                     <li class="nav-item ms-lg-3">
                         <a href="{{ url('/login') }}" class="btn btn-primary-custom">
-                            <i class="fas fa-user"></i> Login
+                            <i class="fas fa-book"></i> Requirements
                         </a>
                     </li>
                 </ul>
@@ -175,8 +181,12 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <h5><i class="fas fa-briefcase"></i> XXX</h5>
-                    <p class="text-muted">blablabla.</p>
+    <img src="{{ asset('img/abd.jpg') }}" alt="PT. Mahendradata Jaya Mandiri" height="125"style="margin-bottom:15px;">
+
+                    {{-- <h5><i class="fas fa-briefcase"></i> XXX</h5> --}}
+                    
+
+                    <p>PT. Asian Bay Development was founded on November 23, 2012. We are a retail company operating in Bali with two well-known supermarket brands, namely SE Supermarket and Uncle Jo Supermarket.</p>
                     <div class="social-links">
                         <a href="https://www.facebook.com/p/PT-Mahendradata-Jaya-Mandiri-61579008674856/"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
@@ -194,7 +204,8 @@
                         <li><a href="https://mjm-bali.co.id/">Mahendradata Jaya Mandiri</a></li>
                         <li><a href="https://tenjigroup.com/">Tenji Sushi</a></li>
                         <li><a href="https://superekonomi.co.id/">Super Ekonomi Supermarket</a></li>
-                        <li><a href="https://unclejo.co.id/">Unclje Jo</a></li>
+                        <li><a href="https://unclejo.co.id/">Uncle Jo</a></li>
+                        <li><a href="https://unclejo.co.id/">Bali in Bali</a></li>
                     </ul>
                 </div>
                 {{-- <div class="col-lg-2 col-md-6 mb-4">
@@ -207,16 +218,34 @@
                     </ul>
                 </div> --}}
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <h5>Newsletter</h5>
-                    <p class="text-muted">Dapatkan informasi lowongan terbaru langsung ke email Anda.</p>
-                    <form class="d-flex">
-                        <input type="email" class="form-control me-2" placeholder="Email Anda">
-                        <button type="submit" class="btn btn-primary-custom">Subscribe</button>
-                    </form>
+                    <h5>Contact Us</h5>
+                     <ul class="list-unstyled">
+                        {{-- <li><a href="#">Asian Bay Developmemnt</a></li> --}}
+                        <li>
+    <a href="https://maps.app.goo.gl/SEdEwn4wFaYVnzg56" target="_blank" rel="noopener noreferrer">
+        <i class="fas fa-map"></i> Jl. Mahendradatta Selatan, Pemecutan Klod, Kec. Denpasar Bar., Kota Denpasar, Bali 80119
+    </a>
+</li>
+                        <li>
+    <a href="https://wa.me/6281138310552" target="_blank" rel="noopener noreferrer">
+        <i class="fab fa-whatsapp"></i> HR Department
+    </a>
+</li>
+                        <li>
+    <a href="mailto:info@mjm-bali.co.id" target="_blank" rel="noopener noreferrer">
+        <i class="fas fa-envelope"></i> info@mjm-bali.co.id
+    </a>
+</li>
+                        {{-- <li><a href="https://mjm-bali.co.id/">Mahendradata Jaya Mandiri</a></li>
+                        <li><a href="https://tenjigroup.com/">Tenji Sushi</a></li>
+                        <li><a href="https://superekonomi.co.id/">Super Ekonomi Supermarket</a></li>
+                        <li><a href="https://unclejo.co.id/">Uncle Jo</a></li>
+                        <li><a href="https://unclejo.co.id/">Bali in Bali</a></li> --}}
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom text-center">
-                <p class="mb-0 text-muted">&copy; {{ date('Y') }}PT. Mahendradata Jaya Mandiri. Created By Edwin Sirait Anjas.</a></p>
+                <p class="mb-0">&copy; {{ date('Y') }} PT. Asian Bay Development. Created By Edwin Sirait.</a></p>
             </div>
         </div>
     </footer>

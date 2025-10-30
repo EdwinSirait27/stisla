@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-         if (env('APP_ENV') !== 'local') {
+          if (env('APP_ENV') !== 'local') {
         URL::forceScheme('https');
     }
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
