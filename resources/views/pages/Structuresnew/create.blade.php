@@ -265,14 +265,14 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Store') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Location') }}
                                                     </label>
                                                     <div>
 
                                                         <select name="store_id"
                                                             class="form-control select2 @error('store_id') is-invalid @enderror"
                                                             required>
-                                                            <option value="">Choose Store</option>
+                                                            <option value="">Choose Location</option>
                                                             @foreach ($stores as $key => $value)
                                                                 <option value="{{ $key }}"
                                                                     {{ old('store_id') == $key ? 'selected' : '' }}>
@@ -343,8 +343,7 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager" id="is_manager"
-                                                        value="1"
+                                                    <input type="checkbox" name="is_manager" id="is_manager" value="1"
                                                         class="form-check-input @error('is_manager') is-invalid @enderror"
                                                         {{ old('is_manager') ? 'checked' : '' }}>
                                                     <label for="is_manager" class="form-check-label">
@@ -359,33 +358,32 @@
                                                 </div>
                                             </div>
                                         </div>
+
+
+
+
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - Colom Superior and is manager can be empty.<br>
+                                        {{-- - Please use English to get used to it.<br> --}}
+                                    </span>
                                 </div>
 
-
-                    
-
-                        <div class="alert alert-secondary mt-4" role="alert">
-                            <span class="text-dark">
-                                <strong>Important Note:</strong> <br>
-                                - Colom Superior and is manager can be empty.<br>
-                                - Please use English to get used to it.<br>
-                            </span>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                    </a>
+                                    <button type="submit" id="create-btn" class="btn bg-primary">
+                                        <i class="fas fa-save"></i> {{ __('Create') }}
+                                    </button>
+                                </div>
+                                </form>
+                            </div>
                         </div>
-
-                        <div class="d-flex justify-content-end mt-4">
-                            <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> {{ __('Cancel') }}
-                            </a>
-                            <button type="submit" id="create-btn" class="btn bg-primary">
-                                <i class="fas fa-save"></i> {{ __('Create') }}
-                            </button>
-                        </div>
-                        </form>
                     </div>
                 </div>
             </div>
-    </div>
-    </div>
     </div>
     </section>
     </div>
@@ -615,9 +613,8 @@
         });
     </script>
     <script>
-       
         document.getElementById('create-btn').addEventListener('click', function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
             Swal.fire({
                 title: 'Are You Sure?',
                 text: "Make sure the data you entered is correct!",
@@ -654,7 +651,6 @@
             });
         @endif
     </script>
- 
 @endpush
 
 {{-- @push('scripts')

@@ -404,11 +404,11 @@ public function getOrgChartData()
                 'boolean',
                 new NoXSSInput()
             ],
-            'status' => [
-                'required',
-                'string',
-                new NoXSSInput()
-            ],
+            // 'status' => [
+            //     'required',
+            //     'string',
+            //     new NoXSSInput()
+            // ],
             // 'is_head' => [
             //     'nullable',
             //     'boolean',
@@ -425,7 +425,7 @@ public function getOrgChartData()
             'is_manager'  => $validatedData['is_manager'] ?? 0,
             // 'is_head'  => $validatedData['is_head'] ?? 0,
             'parent_id'  => $validatedData['parent_id'] ?? null,
-            'status'  => $validatedData['status'],
+            // 'status'  => $validatedData['status'],
         ];
         DB::beginTransaction();
         $structure->update($structureeData);

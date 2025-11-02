@@ -394,9 +394,7 @@ Route::get('/structuresnew/available-positions', [StructuresnewController::class
 //         Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
 //     });
 // });
-Route::middleware(['can:isKasir', 'auth'])->group(function () {
-    Route::get('/dashboardKasir', [dashboardKasirController::class, 'index'])->name('pages.dashboardKasir');
-});
+
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');

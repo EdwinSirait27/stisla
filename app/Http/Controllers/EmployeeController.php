@@ -590,7 +590,6 @@ class EmployeeController extends Controller
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
 
-            // 'foto' => ['nullable', 'image', 'max:512'],
             'employee_name' => [
                 'required',
                 'string',
@@ -646,8 +645,7 @@ class EmployeeController extends Controller
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ], [
-            // 'foto.max' => 'under 512 kb.',
-            // 'foto.image' => 'must be jpg jpeg or png .',
+           
             'join_date.required' => 'The join date is required.',
             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
             'date_of_birth.required' => 'The date of birth is required.',
@@ -694,21 +692,25 @@ class EmployeeController extends Controller
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
         ]);
-        // $filePath = $user->employee->foto;
-        // if ($request->hasFile('foto')) {
-        //     $file = $request->file('foto');
-        //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-        //     $file->storeAs('public/employeefoto', $fileName);
-        //     $filePath = $fileName;
-        //     if ($user->employee && $user->employee->foto && Storage::exists('public/employeefoto/' . $user->employee->foto)) {
-        //         Storage::delete('public/company/' . $user->employee->foto);
-        //     }
-        // }
-        // if ($request->hasFile('foto')) {
-        //     $companyData['foto'] = $filePath;
-        // }
+        
         DB::beginTransaction();
             $oldStructureId = $user->employee->structure_id;
+              // Cek jika status_employee termasuk Resign, Inactive, atau On Leave
+        $statusEmployee = $validatedData['status'];
+        $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+
+        if (in_array($statusEmployee, $statusChangeTriggers)) {
+            // Ubah structure_id menjadi null
+            $validatedData['structure_id'] = null;
+
+            // Jika sebelumnya memiliki structure_id, ubah status structure tersebut menjadi vacant
+            if (!empty($oldStructureId)) {
+                $oldStructure = Structuresnew::find($oldStructureId);
+                if ($oldStructure) {
+                    $oldStructure->update(['status' => 'vacant']);
+                }
+            }
+        }
         $user->Employee->update([
             'employee_name' => $validatedData['employee_name'] ?? '',
             'nik' => $validatedData['nik'] ?? '',
@@ -716,7 +718,6 @@ class EmployeeController extends Controller
             'position_id' => $validatedData['position_id'] ?? '',
             'company_id' => $validatedData['company_id'] ?? '',
             'store_id' => $validatedData['store_id'] ?? '',
-            // 'structure_id' => $validatedData['structure_id'] ?? '',
             'structure_id' => $validatedData['structure_id'] ?? null,
             'department_id' => $validatedData['department_id'] ?? '',
             'banks_id' => $validatedData['banks_id'] ?? '',
@@ -747,12 +748,7 @@ class EmployeeController extends Controller
             'is_manager'  => $validatedData['is_manager'] ?? 0,
             'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
         ]);
-         // 🔥 Tambahan logika: ubah status structure jika structure_id null
-    // if (empty($validatedData['structure_id']) && $user->employee->structuresnew) {
-    //     $user->employee->structuresnew->update([
-    //         'status' => 'vacant',
-    //     ]);
-    // }
+       
      if (empty($validatedData['structure_id']) && !empty($oldStructureId)) {
         $oldStructure = Structuresnew::find($oldStructureId);
         if ($oldStructure) {
@@ -762,6 +758,23 @@ class EmployeeController extends Controller
         DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
     }
+            // 'foto' => ['nullable', 'image', 'max:512'],
+
+     // 'foto.max' => 'under 512 kb.',
+            // 'foto.image' => 'must be jpg jpeg or png .',
+    // $filePath = $user->employee->foto;
+        // if ($request->hasFile('foto')) {
+        //     $file = $request->file('foto');
+        //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+        //     $file->storeAs('public/employeefoto', $fileName);
+        //     $filePath = $fileName;
+        //     if ($user->employee && $user->employee->foto && Storage::exists('public/employeefoto/' . $user->employee->foto)) {
+        //         Storage::delete('public/company/' . $user->employee->foto);
+        //     }
+        // }
+        // if ($request->hasFile('foto')) {
+        //     $companyData['foto'] = $filePath;
+        // }
     public function transferAllToPayroll(Request $request)
     {
         try {

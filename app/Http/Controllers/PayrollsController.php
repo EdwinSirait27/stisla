@@ -479,7 +479,7 @@ public function bulkDelete(Request $request)
     $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
 
     if (empty($ids)) {
-        return back()->with('error', 'Tidak ada data yang dipilih.');
+        return back()->with('error', 'Select data first.');
     }
 
     $matchedIds = [];
@@ -588,7 +588,7 @@ public function bulkDelete(Request $request)
 // }
 try {
     Excel::import(new PayrollsImport, $request->file('file'));
-    return back()->with('success', 'Data payroll berhasil diimport!');
+    return back()->with('success', 'Payroll has been imported!');
 } catch (ValidationException $e) {
     $failures = $e->failures();
     $errors = [];

@@ -423,7 +423,7 @@
     </div>
 @endsection --}}
 @extends('layouts.app')
-@section('title', 'HR Manager Dashboard')
+@section('title', 'HR Dashboard')
 @push('styles')
     <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
@@ -751,7 +751,7 @@
         <section class="section">
             <!-- Header -->
             <div class="section-header">
-                <h1>HR Manager Dashboard</h1>
+                <h1>HR Dashboard</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
                     <div class="breadcrumb-item">HR Manager</div>

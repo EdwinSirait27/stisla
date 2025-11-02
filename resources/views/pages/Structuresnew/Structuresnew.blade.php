@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Structuresnew')
+@section('title', 'Structures')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">

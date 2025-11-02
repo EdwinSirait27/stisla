@@ -22,28 +22,11 @@
                     </ul>
                 </li>
             @role('Human')
-              <li class="{{ Request::is('dashboard') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ url('dashboard') }}"><i class="fas fa-house"></i>
+              <li class="{{ Request::is('Dashboard') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ url('Dashboard') }}"><i class="fas fa-house"></i>
                         <span>Dashboard</span></a>
                 </li>
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Users</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardAdmin') }}">List Users</a>
-                        </li>
-                        <li class="{{ Request::is('Activity') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Activity') }}">Activity Logs</a>
-                        </li>
-                        <li class="{{ Request::is('roles') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('roles') }}">Roles</a>
-                        </li>
-                        <li class="{{ Request::is('permission') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('permissions') }}">Permission</a>
-                        </li>
-                    </ul>
-                </li>
+                
             @endrole
             @role('Admin')
                 <li class="nav-item dropdown ">
@@ -95,8 +78,8 @@
                          <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
                         </li>
-                         <li class="{{ Request::is('Structures') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Structures') }}">Structure List</a>
+                         <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>
                          <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Summaries') }}">Summaries List</a>
@@ -187,8 +170,8 @@
                           <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
                         </li>
-                          <li class="{{ Request::is('Structures') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Structures') }}">Structure List</a>
+                          <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>
                          <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Summaries') }}">Summaries List</a>
@@ -242,35 +225,7 @@
                 </li>
             @endrole
 
-            @role('HeadBuyer')
-
-            <li class="menu-header">Buyer Contoh</li>
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-columns"></i>
-                    <span>buyer lagi</span></a>
-                <ul class="dropdown-menu">
-                    <li class="{{ Request::is('Uoms') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('Uoms') }}">Uoms</a>
-                    </li>
-                    <li class="{{ Request::is('Brands') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('Brands') }}">Brands</a>
-                    </li>
-                    <li class="{{ Request::is('Categories') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('Categories') }}">Categories</a>
-                    </li>
-                    <li class="{{ Request::is('Taxstatus') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('Taxstatus') }}">Tax Status</a>
-                    </li>
-                    <li class="{{ Request::is('Statusproduct') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('Statusproduct') }}">Status Product</a>
-                    </li>
-                </ul>
-            </li>
-            <li class="{{ Request::is('Masterproducts') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ url('Masterproducts') }}"><i class="fas fa-house"></i>
-                    <span>Master Products</span></a>
-            </li>
-            @endrole
+          
 
             {{-- <li class="{{ Request::is('blank-page') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ url('blank-page') }}"><i class="far fa-square"></i> <span>Blank

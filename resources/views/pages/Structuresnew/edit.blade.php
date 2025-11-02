@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Update Structuresnew')
+@section('title', 'Update Structures')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -166,10 +166,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Structuresnew {{ $structure->structure_code }}</h1>
+                <h1>Update Structures {{ $structure->position->name }}</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Structures') }}">Structuresnew</a></div>
-                    <div class="breadcrumb-item">Update Structure {{ $structure->structure_code }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Structures') }}">Structures</a></div>
+                    <div class="breadcrumb-item">Update Structure {{ $structure->position->name }}</div>
                 </div>
             </div>
 
@@ -180,7 +180,7 @@
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
                                     <h6 class="mb-0">{{ __('Update Structure') }}
-                                        {{ $structure->structure_code }}</h6>
+                                        {{ $structure->position->name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -302,8 +302,9 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            </div>
 
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                  <div class="form-group">
                                                     <div class="form-check">
                                                         <input type="checkbox" name="is_head" id="is_head"
@@ -321,9 +322,8 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            </div>
-                                        <div class="row mt-3">
-
+                                            </div> --}}
+                                       
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="parent_id" class="form-control-label">
@@ -348,9 +348,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div> <!-- end first row -->
 
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="status" class="form-control-label">
@@ -376,19 +375,13 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a Employee name is already registered, you cannot register it
-                                                again.<br>
+                                                <strong>Important Note:</strong>
                                                 - Superior can be empty.<br>
-                                                - please use English to get used to it.<br>
-                                                - Before updating data, please check first whether there is already similar
-                                                or identical data to avoid double input.
-
-
+                                                - Is Manager can be empty.<br>
                                             </span>
                                         </div>
 

@@ -1,5 +1,5 @@
 @extends('layouts.career')
-@section('title', 'Vacancy - Asian Bay Development Career Portal')
+@section('title', 'Vacancy - Asian Bay Development Career')
 @push('styles')
     <style>
         .hero-section {
