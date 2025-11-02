@@ -12,18 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('structures_tables', function (Blueprint $table) {
-            $table->boolean('is_head')->nullable();
-            
+            $table->string('role_summary')->nullable();
+            $table->string('key_respon')->nullable();
+            $table->string('qualifications')->nullable();
+            $table->string('work_location')->nullable();
+            $table->uuid('approval_1')->nullable();
+            $table->uuid('approval_2')->nullable();
+            $table->string('reason_reject')->nullable();
+            $table->enum('submission_status', ['Accepted','Pending','Reject','On Review'])->nullable();
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
         Schema::table('structures_tables', function (Blueprint $table) {
-            //
+            
         });
     }
 };

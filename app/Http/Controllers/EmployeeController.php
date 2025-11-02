@@ -267,6 +267,48 @@ class EmployeeController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
+    // public function edit($hashedId)
+    // {
+    //     $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //     $positions = Position::get();
+    //     $companys = Company::get();
+    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+    //     $departments = Departments::with('user.Employee')->get();
+    //     $stores = Stores::with('user.Employee')->get();
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $structures = Structuresnew::with('company','department','store','position')->get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+    //     return view('pages.Employee.edit', [
+    //         'employee' => $employee,
+    //         'status_employee' => $status_employee,
+    //         'child' => $child,
+    //         'structures' => $structures,
+    //         'employees' => $employees,
+    //         'companys' => $companys,
+    //         'stores' => $stores,
+    //         'marriage' => $marriage,
+    //         'gender' => $gender,
+    //         'status' => $status,
+    //         'banks' => $banks,
+    //         'religion' => $religion,
+    //         'last_education' => $last_education,
+    //         'positions' => $positions,
+    //         'departments' => $departments,
+    //         'hashedId' => $hashedId,
+    //     ]);
+    // }
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
@@ -287,7 +329,12 @@ class EmployeeController extends Controller
         $gender = ['Male', 'Female', 'MD'];
         $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
         $banks = Banks::get();
-        $structures = Structuresnew::with('company','department','store','position')->get();
+      $usedStructureIds = Employee::whereNotNull('structure_id')->pluck('structure_id')->toArray();
+
+    $structures = Structuresnew::with('company', 'department', 'store', 'position')
+        ->whereNotIn('id', $usedStructureIds)
+        ->orWhere('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
+        ->get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.edit', [
@@ -315,7 +362,6 @@ class EmployeeController extends Controller
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
@@ -693,17 +739,35 @@ class EmployeeController extends Controller
             'banks_id.required' => 'The banks is required.',
         ]);
         
-        DB::beginTransaction();
-            $oldStructureId = $user->employee->structure_id;
-              // Cek jika status_employee termasuk Resign, Inactive, atau On Leave
+        // DB::beginTransaction();
+        //     $oldStructureId = $user->employee->structure_id;
+        //       // Cek jika status_employee termasuk Resign, Inactive, atau On Leave
+        // $statusEmployee = $validatedData['status'];
+        // $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+
+        // if (in_array($statusEmployee, $statusChangeTriggers)) {
+        //     // Ubah structure_id menjadi null
+        //     $validatedData['structure_id'] = null;
+
+        //     // Jika sebelumnya memiliki structure_id, ubah status structure tersebut menjadi vacant
+        //     if (!empty($oldStructureId)) {
+        //         $oldStructure = Structuresnew::find($oldStructureId);
+        //         if ($oldStructure) {
+        //             $oldStructure->update(['status' => 'vacant']);
+        //         }
+        //     }
+        // }
+           DB::beginTransaction();
+    try {
+        $employee = $user->Employee;
+        $oldStructureId = $employee->structure_id;
         $statusEmployee = $validatedData['status'];
         $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
 
+        // Jika resign/inactive/on leave → kosongkan structure_id dan ubah structure lama jadi vacant
         if (in_array($statusEmployee, $statusChangeTriggers)) {
-            // Ubah structure_id menjadi null
             $validatedData['structure_id'] = null;
 
-            // Jika sebelumnya memiliki structure_id, ubah status structure tersebut menjadi vacant
             if (!empty($oldStructureId)) {
                 $oldStructure = Structuresnew::find($oldStructureId);
                 if ($oldStructure) {
@@ -755,9 +819,19 @@ class EmployeeController extends Controller
             $oldStructure->update(['status' => 'vacant']);
         }
     }
-        DB::commit();
+     if (!empty($validatedData['structure_id'])) {
+            $newStructure = Structuresnew::find($validatedData['structure_id']);
+            if ($newStructure) {
+                $newStructure->update(['status' => 'active']);
+            }
+        }
+       DB::commit();
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+    } catch (\Throwable $th) {
+        DB::rollBack();
+        return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
     }
+}
             // 'foto' => ['nullable', 'image', 'max:512'],
 
      // 'foto.max' => 'under 512 kb.',

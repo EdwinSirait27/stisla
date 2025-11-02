@@ -986,27 +986,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
-
-                                            <div class="col-md-6">
-                                                <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager_store" id="is_manager_store"
-                                                        value="1"
-                                                        class="form-check-input @error('is_manager_store') is-invalid @enderror"
-                                                        {{ old('is_manager_store') ? 'checked' : '' }}>
-
-                                                    <label for="is_manager_store" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Store') }}
-                                                    </label>
-                                                    @error('is_manager_store')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                   
+                                      
 
 
 

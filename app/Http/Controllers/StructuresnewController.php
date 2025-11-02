@@ -560,16 +560,12 @@ public function create()
                 ->orderBy('structure_code', 'desc')
                 ->first();
 
-            // Tentukan nomor urut
             $nextNumber = 1;
             if ($lastStructure) {
-                // Ambil angka terakhir dari struktur code
                 $lastNumber = (int) preg_replace('/\D/', '', $lastStructure->structure_code);
                 $nextNumber = $lastNumber + 1;
             }
-
             $structureCode = $prefix . $nextNumber;
-
             // Simpan ke database
             $structure = Structuresnew::create([
                 'company_id' => $validatedData['company_id'],
@@ -580,7 +576,7 @@ public function create()
                 'structure_code' => $structureCode,
                 'is_manager' => $validatedData['is_manager'] ?? 0,
                 // 'is_head' => $validatedData['is_head'] ?? 0,
-                'status' => $validatedData['status'] ?? 'Active',
+                'status' => $validatedData['status'] ?? 'vacant',
                 // 'is_manager_department' => $validatedData['is_manager_department'] ?? 0,
             ]);
 

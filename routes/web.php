@@ -30,11 +30,13 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\FingerprintsController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\StructureController;
+use App\Http\Controllers\StructureSubmissionController;
 use App\Http\Controllers\PHController;
 use App\Http\Controllers\GradinglistController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
+use App\Http\Controllers\PositionreqController;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StructuresnewController;
@@ -417,6 +419,26 @@ Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function (
 Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function () {
     Route::get('/dashboardManager', [DashboardManagerController::class, 'index'])
         ->name('pages.dashboardManager');
+});
+Route::group(['middleware' => ['auth', 'permission:RequestPosition']], function () {
+    Route::get('/Positionrequest', [StructureSubmissionController::class, 'index'])
+            ->name('pages.Positionrequest');
+        Route::get('Positionrequest/create', [StructureSubmissionController::class, 'create'])->name('Positionrequest.create');
+        Route::post('/Positionrequest', [StructureSubmissionController::class, 'store'])->name('Positionrequest.store');
+        Route::get('/Positionrequest/edit/{hashedId}', [StructureSubmissionController::class, 'edit'])->name('Positionrequest.edit');
+        Route::get('/Positionrequest/show/{hashedId}', [StructureSubmissionController::class, 'show'])->name('Positionrequest.show');
+        Route::put('/Positionrequest/{hashedId}', [StructureSubmissionController::class, 'update'])->name('Positionrequest.update');
+        
+        // Route::resource('Positionrequest', StructureSubmissionController::class);
+        Route::get('/positionrequests/positionrequests', [StructureSubmissionController::class, 'getPositionrequests'])->name('positionrequests.positionrequests');
+        
+    });
+Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], function () {
+    Route::get('/Positionreqlist', [PositionreqController::class, 'index'])
+            ->name('pages.Positionreqlist');
+        Route::get('/Positionreqlist/edit/{hashedId}', [PositionreqController::class, 'edit'])->name('Positionreqlist.edit');
+        Route::put('/Positionreqlist/{hashedId}', [PositionreqController::class, 'update'])->name('Positionreqlist.update');
+        Route::get('/positionreqlists/positionreqlists', [PositionreqController::class, 'getPositionreqlists'])->name('positionreqlists.positionreqlists');
 });
 
 

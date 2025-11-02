@@ -993,6 +993,34 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
+
+                                          <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="structure_id" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Structures') }}
+                                                </label>
+                                                <div>
+                                                    <select name="structure_id"
+                                                        class="form-control select2 @error('structure_id') is-invalid @enderror">
+                                                        <option value="">Choose Posiiton</option>
+                                                        @foreach ($structures as $structure)
+                                                            <option value="{{ $structure->id }}"
+                                                                {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
+                                                                {{ $structure->position->name ?? '-' }}
+                                                                - {{ $structure->company->name ?? '-' }}
+                                                                - {{ $structure->store->name ?? '-' }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('structure_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"
@@ -1001,7 +1029,7 @@
                                                         {{ old('is_manager', $employee->Employee->is_manager) ? 'checked' : '' }}>
 
                                                     <label for="is_manager" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Department') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager') }}
                                                     </label>
                                                     @error('is_manager')
                                                         <span class="invalid-feedback d-block" role="alert">
@@ -1011,82 +1039,35 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
-
-                                            <div class="col-md-6">
-                                                <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager_store" id="is_manager_store"
-                                                        value="1"
-                                                        class="form-check-input @error('is_manager_store') is-invalid @enderror"
-                                                        {{ old('is_manager_store', $employee->Employee->is_manager_store) ? 'checked' : '' }}>
-
-                                                    <label for="is_manager_store" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Store') }}
-                                                    </label>
-                                                    @error('is_manager_store')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="structure_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Position') }}
-                                                    </label>
-                                                    <div>
-                                                    <select name="structure_id"
-    class="form-control select2 @error('structure_id') is-invalid @enderror">
-    <option value="">Choose</option>
-    @foreach ($structures as $structure)
-        <option value="{{ $structure->id }}"
-            {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
-            {{ $structure->position->name ?? '-' }}
-            - {{ $structure->company->name ?? '-' }}
-            - {{ $structure->store->name ?? '-' }}
-        </option>
-    @endforeach
-</select>
-
-                                                        @error('structure_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - Don't fill in the status column, just leave it as it is, if the employee
-                                                is inactive, then change it okay.<br>
-                                                - please use English to get used to it.<br>
-                                                - Before editing data, please check first whether there is already similar
-                                                or identical data to avoid double input.
-                                            </span>
-                                        </div>
-
-                                        <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
-                                                <i class="fas fa-times"></i> {{ __('Back') }}
-                                            </a>
-
-                                            <button type="submit" class="btn bg-primary">
-                                                <i class="fas fa-save"></i> {{ __('Update') }}
-                                            </button>
-                                        </div>
-                                    </form>
+                                      
+                                <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong> <br>
+                                        - Don't fill in the status column, just leave it as it is, if the employee
+                                        is inactive, then change it okay.<br>
+                                        - please use English to get used to it.<br>
+                                        - Before editing data, please check first whether there is already similar
+                                        or identical data to avoid double input.
+                                    </span>
                                 </div>
+
+                                <div class="d-flex justify-content-end mt-4">
+                                    <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> {{ __('Back') }}
+                                    </a>
+
+                                    <button type="submit" class="btn bg-primary">
+                                        <i class="fas fa-save"></i> {{ __('Update') }}
+                                    </button>
+                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+    </div>
+    </section>
     </div>
 @endsection
 @push('scripts')

@@ -204,7 +204,6 @@
                                             </button>
                                         </div>
                                     @endif
-
                                     <form id="position-edit" action="{{ route('Position.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
