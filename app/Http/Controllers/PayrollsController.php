@@ -12,8 +12,12 @@ use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\File;
 use App\Imports\PayrollsImport;
+
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class PayrollsController extends Controller
 {
@@ -114,7 +118,7 @@ class PayrollsController extends Controller
             $payroll->save();
         }
 
-        return redirect()->back()->with('success', 'Semua slip gaji berhasil digenerate!');
+        return redirect()->back()->with('success', 'All payslip generate succesfully!');
     }
 
 
@@ -346,27 +350,185 @@ class PayrollsController extends Controller
 
         return $pdf->download($filename);
     }  
-    public function bulkDelete(Request $request)
-    {
-        $idsRaw = $request->input('payroll_ids', '');
-        $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
-        if (empty($ids)) {
-            return back()->with('error', 'Tidak ada data yang dipilih.');
-        }
-        $matchedIds = [];
-        Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
-            foreach ($payrolls as $payroll) {
-                $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
-                if (in_array($hash, $ids)) {
-                    $matchedIds[] = $payroll->id;
-                }
-            }
-        });
+    // public function bulkDelete(Request $request)
+    // {
+    //     $idsRaw = $request->input('payroll_ids', '');
+    //     $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+    //     if (empty($ids)) {
+    //         return back()->with('error', 'Tidak ada data yang dipilih.');
+    //     }
+    //     $matchedIds = [];
+    //     Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
+    //         foreach ($payrolls as $payroll) {
+    //             $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+    //             if (in_array($hash, $ids)) {
+    //                 $matchedIds[] = $payroll->id;
+    //             }
+    //         }
+    //     });
 
-        $deleted = Payrolls::whereIn('id', $matchedIds)->delete();
+    //     $deleted = Payrolls::whereIn('id', $matchedIds)->delete();
 
-        return back()->with('success', "$deleted data berhasil dihapus.");
+    //     return back()->with('success', "$deleted Delete success.");
+    // }
+
+
+
+
+
+// public function bulkDelete(Request $request)
+// {
+//     $idsRaw = $request->input('payroll_ids', '');
+//     $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+
+//     if (empty($ids)) {
+//         return back()->with('error', 'Tidak ada data yang dipilih.');
+//     }
+
+//     $matchedIds = [];
+
+//     Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
+//         foreach ($payrolls as $payroll) {
+//             $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+//             if (in_array($hash, $ids)) {
+//                 $matchedIds[] = $payroll->id;
+//             }
+//         }
+//     });
+
+//     $payrollsToDelete = Payrolls::whereIn('id', $matchedIds)->get();
+
+//     foreach ($payrollsToDelete as $payroll) {
+//         if (!empty($payroll->attachment_file)) {
+//             $filePath = public_path('storage/' . $payroll->attachment_file);
+
+//             if (file_exists($filePath)) {
+//                 try {
+//                     Log::info('PATH FILE YANG DICARI: ' . $filePath);
+
+//                     unlink($filePath);
+//                     Log::info("File berhasil dihapus: $filePath");
+//                 } catch (\Throwable $e) {
+//                     Log::error("Gagal menghapus file $filePath: " . $e->getMessage());
+//                 }
+//             } else {
+//                 Log::warning("File tidak ditemukan: $filePath");
+//             }
+//         }
+//     }
+
+//     $deleted = Payrolls::whereIn('id', $matchedIds)->delete();
+
+//     // return back()->with('success', "$deleted data payroll berhasil dihapus (cek log untuk status file PDF).");
+//     return response()->json(['deleted' => $deleted, 'path' => $filePath]);
+
+// }
+// public function bulkDelete(Request $request)
+// {
+//     $idsRaw = $request->input('payroll_ids', '');
+//     $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+
+//     if (empty($ids)) {
+//         return back()->with('error', 'Tidak ada data yang dipilih.');
+//     }
+
+//     $matchedIds = [];
+
+//     Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
+//         foreach ($payrolls as $payroll) {
+//             $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+//             if (in_array($hash, $ids)) {
+//                 $matchedIds[] = $payroll->id;
+//             }
+//         }
+//     });
+
+//     $payrollsToDelete = Payrolls::whereIn('id', $matchedIds)->get();
+
+//     // Tambahkan debug: tampilkan semua kolom payrolls yang diambil
+//     $debugData = $payrollsToDelete->map(function ($p) {
+//         return $p->toArray();
+//     });
+
+//     $allPaths = [];
+
+//     foreach ($payrollsToDelete as $payroll) {
+//         if (!empty($payroll->attachment_file)) {
+//             $filePath = public_path('storage/' . $payroll->attachment_file);
+//             $allPaths[] = $filePath;
+
+//             if (file_exists($filePath)) {
+//                 unlink($filePath);
+//             }
+//         }
+//     }
+
+//     $deleted = Payrolls::whereIn('id', $matchedIds)->delete();
+
+//     return response()->json([
+//         'deleted' => $deleted,
+//         'checked_paths' => $allPaths,
+//         'debug' => $debugData
+//     ]);
+// }
+
+
+public function bulkDelete(Request $request)
+{
+    $idsRaw = $request->input('payroll_ids', '');
+    $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
+
+    if (empty($ids)) {
+        return back()->with('error', 'Tidak ada data yang dipilih.');
     }
+
+    $matchedIds = [];
+
+    Payrolls::chunk(100, function ($payrolls) use (&$matchedIds, $ids) {
+        foreach ($payrolls as $payroll) {
+            $hash = substr(hash('sha256', $payroll->id . env('APP_KEY')), 0, 8);
+            if (in_array($hash, $ids)) {
+                $matchedIds[] = $payroll->id;
+            }
+        }
+    });
+
+    $payrollsToDelete = Payrolls::whereIn('id', $matchedIds)->get();
+    $deletedFiles = [];
+    $checked = [];
+
+    foreach ($payrollsToDelete as $payroll) {
+        $attachment = $payroll->getAttributes()['attachment_path'] ?? null;
+
+        if (empty($attachment)) {
+            Log::warning("Tidak ada attachment_path di payroll id {$payroll->id}");
+            $checked[$payroll->id] = ['attachment' => null, 'status' => 'no_attachment'];
+            continue;
+        }
+        $relative = preg_replace('#^(storage/|public/)#i', '', $attachment);
+        $filePath = public_path('storage/' . $relative);
+        $checked[$payroll->id] = ['attachment' => $attachment, 'resolved_path' => $filePath];
+
+        
+        if (File::exists($filePath)) {
+            try {
+                File::delete($filePath);
+                $deletedFiles[] = $filePath;
+                $checked[$payroll->id]['status'] = 'deleted';
+            } catch (\Throwable $e) {
+                $checked[$payroll->id]['status'] = 'delete_failed';
+                $checked[$payroll->id]['error'] = $e->getMessage();
+            }
+        } else {
+            $checked[$payroll->id]['status'] = 'not_found';
+        }
+    }
+
+    $deleted = Payrolls::whereIn('id', $matchedIds)->delete();      
+    return back()->with('success', "$deleted Payrolls data has been deleted).");
+}
+
+
 
     public function indexpayrolls()
     {
@@ -383,25 +545,58 @@ class PayrollsController extends Controller
         abort(404);
     }
 
+    // public function Importpayrolls(Request $request)
+    // {
+    //     $request->validate([
+    //         'file' => 'required|mimes:xlsx,csv,xls'
+    //     ]);
+
+    //     $errors = [];
+    //     $import = new PayrollsImport($errors);
+    //     $import->import($request->file('file'));
+
+    //     if ($import->failures()->isNotEmpty()) {
+    //         return back()->with([
+    //             'failures' => $import->failures(), // INI YANG WAJIB
+    //             'errors' => $errors, // opsional
+    //         ]);
+    //     }
+    //     if (!empty($errors)) {
+    //         return back()->with('failures', $errors);
+    //     }
+    //     return back()->with('success', 'Payrolls import successfully!');
+    // }
     public function Importpayrolls(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls'
-        ]);
+{
+//     try {
+//         Excel::import(new PayrollsImport, $request->file('file'));
+//         return back()->with('success', 'Data payroll berhasil diimport!');
+//     } catch (ValidationException $e) {
+//         $failures = $e->failures();
 
-        $errors = [];
-        $import = new PayrollsImport($errors);
-        $import->import($request->file('file'));
+//         $errors = [];
+//         foreach ($failures as $failure) {
+//             $errors[] = "Row {$failure->row()} - Column: {$failure->attribute()} - Message: {$failure->errors()[0]}";
+//         }
 
-        if ($import->failures()->isNotEmpty()) {
-            return back()->with([
-                'failures' => $import->failures(), // INI YANG WAJIB
-                'errors' => $errors, // opsional
-            ]);
-        }
-        if (!empty($errors)) {
-            return back()->with('failures', $errors);
-        }
-        return back()->with('success', 'Payrolls import successfully!');
+//         // kirim ke view biar bisa ditampilkan
+//         return back()->with('error_custom', $errors);
+//     } catch (\Exception $e) {
+//         // error lain yang bukan validasi Excel
+//         return back()->with('error_custom', [$e->getMessage()]);
+//     }
+// }
+try {
+    Excel::import(new PayrollsImport, $request->file('file'));
+    return back()->with('success', 'Data payroll berhasil diimport!');
+} catch (ValidationException $e) {
+    $failures = $e->failures();
+    $errors = [];
+    foreach ($failures as $failure) {
+        $errors[] = "Row {$failure->row()} - Column: {$failure->attribute()} - Message: {$failure->errors()[0]}";
     }
+    return back()->with('error_custom', $errors);
+}
+
+}
 }

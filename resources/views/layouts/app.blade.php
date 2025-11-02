@@ -16,8 +16,8 @@
         integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="icon" type="image/png"
-        href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
-        {{-- ini bikin error link 2 dibawah ini --}}
+        href="{{ asset('img/abd.ico') }}">
+        
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
 
@@ -41,8 +41,6 @@
 
         gtag('config', 'UA-94034622-3');
     </script>
-    <!-- END GA -->
-{{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
     <script src="{{ mix('js/app.js') }}" defer></script>
 
 </head>
@@ -104,7 +102,7 @@
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         }
                     }).then(() => {
-                        window.location.href = '/'; // Redirect setelah logout
+                        window.location.href = '/';
                     }).catch(() => {
                         window.loggingOut = false;
                     });
@@ -126,15 +124,9 @@
     </script>
 
 
-    <!-- Stack for view-specific scripts -->
     @stack('scripts')
 
-    <!-- Section for view-specific scripts that need to be in the body -->
-    {{-- @hasSection('scripts')
-        @yield('scripts')
-    @endif --}}
-    @livewireScripts
-
+  
 </body>
 
 </html>

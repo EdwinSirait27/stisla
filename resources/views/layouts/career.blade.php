@@ -152,15 +152,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/Career') }}">Home Page</a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ url('/careers') }}">Vacancy</a>
-                    </li>
+                    </li> --}}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url('/About-us') }}">About Us</a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ url('/contact') }}">Contact</a>
-                    </li>
+                    </li> --}}
                     <li class="nav-item ms-lg-3">
                         <a href="{{ url('/login') }}" class="btn btn-primary-custom">
                             <i class="fas fa-book"></i> Requirements
@@ -245,7 +245,7 @@
                 </div>
             </div>
             <div class="footer-bottom text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} PT. Asian Bay Development. Created By Edwin Sirait.</a></p>
+                <p class="mb-0">&copy; {{ date('Y') }} PT. Asian Bay Development. Developed By Edwin Sirait.</a></p>
             </div>
         </div>
     </footer>

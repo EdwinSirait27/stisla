@@ -497,7 +497,7 @@
                     <div class="col-md-3 text-end">
                         <div class="job-salary mb-2">BIG SALARY</div>
                         <button class="btn btn-apply mb-2 w-100">Apply Now</button>
-                        <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button>
+                        {{-- <button class="btn btn-bookmark w-100"><i class="far fa-bookmark"></i> Simpan</button> --}}
                     </div>
                 </div>
             </div>

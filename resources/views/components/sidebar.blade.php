@@ -1,11 +1,11 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand bg-dark">
-            <img src="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png') }}" alt="logo"
-                width="80" class="light mb-5 mt-2">
+            <img src="{{ asset('img/abd.png') }}" alt="logo"
+                width="100" class="light mb-5 mt-10">
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
-            <a href="">MJM</a>
+            <a href="">ABD</a>
         </div>
         <ul class="sidebar-menu">
             {{-- <li class="menu-header">Menu</li> --}}

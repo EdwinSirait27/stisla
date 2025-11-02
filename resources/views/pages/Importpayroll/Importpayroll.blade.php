@@ -98,13 +98,13 @@
 
             @if (session('failures'))
                 <div class="alert alert-danger">
-                    <strong>Import Gagal (Validasi Excel):</strong>
+                    <strong>Failed to import (Excel Validation):</strong>
                     <ul>
                         @foreach (session('failures') as $failure)
                             @if (is_object($failure) && method_exists($failure, 'row'))
                                 <li>
-                                    Baris {{ $failure->row() }} – Kolom: {{ $failure->attribute() }} –
-                                    Pesan: {{ implode(', ', $failure->errors()) }}
+                                    Row {{ $failure->row() }} – Colom: {{ $failure->attribute() }} –
+                                    Message: {{ implode(', ', $failure->errors()) }}
                                 </li>
                             @endif
                         @endforeach
@@ -113,16 +113,26 @@
             @endif
             @if (session('errors'))
                 <div class="alert alert-warning">
-                    <strong>Error Kustom:</strong>
+                    <strong>Error Custom:</strong>
                     <ul>
                         @foreach (session('errors') as $err)
                             <li>
-                                Baris {{ $err['row'] ?? '-' }} – Pesan: {{ $err['error'] ?? 'Unknown error' }}
+                                Row {{ $err['row'] ?? '-' }} – Message: {{ $err['error'] ?? 'Unknown error' }}
                             </li>
                         @endforeach
                     </ul>
                 </div>
             @endif
+            @if(session('error_custom'))
+    <div class="alert alert-danger">
+        <strong>Gagal Import (Excel Validation):</strong>
+        <ul class="mt-2 mb-0">
+            @foreach(session('error_custom') as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
             <div class="section-body">
                 <div class="form-container">
                     <h2>The moment we've been waiting for</h2>

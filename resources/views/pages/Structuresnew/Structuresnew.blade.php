@@ -211,7 +211,7 @@
                                                     <th class="text-center">Position</th>
                                                     <th class="text-center">Structure Code</th>
                                                     <th class="text-center">Is Manager?</th>
-                                                    <th class="text-center">Is Head?</th>
+                                                    {{-- <th class="text-center">Is Head?</th> --}}
                                                     <th class="text-center">Direct Superior</th>
                                                     <th class="text-center">Subordinate</th>
                                                     <th class="text-center">Status</th>
@@ -333,16 +333,16 @@
                                 '<span class="badge bg-danger">No</span>';
                         }
                     },
-                    {
-                        data: 'is_head',
-                        name: 'is_head',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data == 1 ?
-                                '<span class="badge bg-success">Yes</span>' :
-                                '<span class="badge bg-danger">No</span>';
-                        }
-                    },
+                    // {
+                    //     data: 'is_head',
+                    //     name: 'is_head',
+                    //     className: 'text-center',
+                    //     render: function(data) {
+                    //         return data == 1 ?
+                    //             '<span class="badge bg-success">Yes</span>' :
+                    //             '<span class="badge bg-danger">No</span>';
+                    //     }
+                    // },
                     {
                         data: 'parent',
                         name: 'parent',
@@ -427,11 +427,19 @@
                 {val}
             </text>
         `;
+            OrgChart.templates.myTemplate.fieldgrading = `
+            <text 
+                style="font-size:12px;font-weight:600;" 
+                fill="#212121" 
+                x="125" y="50" text-anchor="middle" alignment-baseline="middle">
+                {val}
+            </text>
+        `;
             OrgChart.templates.myTemplate.field_0 = `
             <text 
                 style="font-size:11px;font-weight:500;" 
                 fill="#212121" 
-                x="125" y="65" text-anchor="middle" alignment-baseline="middle">
+                x="125" y="70" text-anchor="middle" alignment-baseline="middle">
                 {val}
             </text>
         `;
@@ -461,9 +469,9 @@
         `;
 
             const statusColors = {
-                active: '#4CAF50', // Hijau
-                inactive: '#F44336', // Merah
-                vacant: '#9E9E9E' // Abu-abu
+                active: '#4CAF50', 
+                inactive: '#F44336',
+                vacant: '#9E9E9E' 
             };
 
             const chart = new OrgChart(document.getElementById("tree"), {
@@ -471,6 +479,7 @@
                 nodeBinding: {
                     img_0: "photo",
                     field_: "Employee",
+                    fieldgrading: "Grading",
                     field_0: "Position",
                     field_1: "Location",
                     field_2: "statusColor",

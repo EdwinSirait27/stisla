@@ -163,7 +163,7 @@
         }
     </style>
 @endpush
-{{-- @section('main')
+@section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -343,15 +343,15 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_manager_store" id="is_manager_store"
+                                                    <input type="checkbox" name="is_manager" id="is_manager"
                                                         value="1"
-                                                        class="form-check-input @error('is_manager_store') is-invalid @enderror"
-                                                        {{ old('is_manager_store') ? 'checked' : '' }}>
-                                                    <label for="is_manager_store" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Store?') }}
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager') ? 'checked' : '' }}>
+                                                    <label for="is_manager" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
                                                     </label>
 
-                                                    @error('is_manager_store')
+                                                    @error('is_manager')
                                                         <span class="invalid-feedback d-block" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -362,36 +362,13 @@
                                 </div>
 
 
-                                <div class="col-md-6">
-                                    <div class="form-check mt-2">
-                                        <input type="checkbox" name="is_manager_department" id="is_manager_department"
-                                            value="1"
-                                            class="form-check-input @error('is_manager_department') is-invalid @enderror"
-                                            {{ old('is_manager_department') ? 'checked' : '' }}>
-                                        <label for="is_manager_department" class="form-check-label">
-                                            <i class="fas fa-id-card"></i> {{ __('Is Manager Department?') }}
-                                        </label>
-
-                                        @error('is_manager_department')
-                                            <span class="invalid-feedback d-block" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    
 
                         <div class="alert alert-secondary mt-4" role="alert">
                             <span class="text-dark">
                                 <strong>Important Note:</strong> <br>
-                                - If a Employee name is already registered, you cannot register it
-                                again.<br>
-                                - Superior can be empty.<br>
+                                - Colom Superior and is manager can be empty.<br>
                                 - Please use English to get used to it.<br>
-                                - Before creating data, please check first whether there is already
-                                similar
-                                or identical data to avoid double input on Employee Name.
                             </span>
                         </div>
 
@@ -412,8 +389,8 @@
     </div>
     </section>
     </div>
-@endsection --}}
-@section('main')
+@endsection
+{{-- @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -455,7 +432,6 @@
                                     <form id="departments-create" action="{{ route('Structuresnew.store') }}" method="POST">
                                         @csrf
 
-                                        {{-- Company & Department --}}
                                         
                                         <div class="row">
                                             <div class="col-md-6">
@@ -501,7 +477,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- Store & Position --}}
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -545,7 +520,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        {{-- Hierarchy & Manager Flags --}}
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -611,7 +585,6 @@
                                                 - Before creating data, please check whether there is already similar or identical data to avoid double input on Structure.
                                             </span>
                                         </div>
-                                        {{-- Buttons --}}
                                         <div class="d-flex justify-content-end mt-4">
                                             <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
@@ -629,9 +602,9 @@
             </div> 
         </section>
     </div>
-@endsection
+@endsection --}}
 
-{{-- @push('scripts')
+@push('scripts')
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -682,9 +655,9 @@
         @endif
     </script>
  
-@endpush --}}
+@endpush
 
-@push('scripts')
+{{-- @push('scripts')
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -693,7 +666,6 @@
         $(document).ready(function() {
             $('.select2').select2();
             
-            // Data kombinasi yang sudah digunakan dari backend
             const usedCombinations = @json($usedCombinations);
             
             // Function untuk cek kombinasi sudah digunakan atau belum
@@ -801,4 +773,4 @@
             });
         @endif
     </script>
-@endpush
+@endpush --}}

@@ -609,7 +609,7 @@
         });
     </script>
 @endpush --}}
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 @section('title', 'Manager Dashboard')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
@@ -704,7 +704,6 @@
             </div>
 
             <div class="section-body">
-                <!-- Overview Cards -->
                 <div class="row">
                     <div class="col-lg-3 col-md-6 col-sm-6 col-12" title="View list of store employees">
                         <div onclick="window.location='{{ route('pages.Employee') }}';" style="cursor: pointer;"
@@ -772,9 +771,7 @@
                     </div>
                 </div>
 
-                <!-- Main Content Row -->
                 <div class="row">
-                    <!-- Attendance Chart -->
                     <div class="col-lg-8 col-md-12 col-12 col-sm-12">
                         <div class="card">
                             <div class="card-header">
@@ -804,7 +801,6 @@
                         </div>
                     </div>
 
-                    <!-- Pending Submissions -->
                     <div class="col-lg-4 col-md-12 col-12 col-sm-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -820,7 +816,6 @@
                             </div>
 
                             <div class="card-body">
-                                {{-- Annual Leave Summary --}}
                                 @if ($selectedType === 'Annual Leave' && isset($leaveData))
                                     <div class="mb-3 p-3 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                                         <h6 class="text-white mb-2">
@@ -886,7 +881,6 @@
                     </div>
                 </div>
 
-                <!-- Announcements Section -->
                 <div class="row">
                     <div class="col-lg-12 col-md-12 col-12 col-sm-12">
                         <div class="card">
@@ -912,7 +906,6 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- DataTable will populate this -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -925,7 +918,6 @@
         </section>
     </div>
 
-    <!-- Preview Modal -->
     <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content rounded-3 shadow-lg border-0">
@@ -981,7 +973,6 @@
         </div>
     </div>
 
-    <!-- Create Submission Modal -->
     <div class="modal fade" id="createSubmissionModal" tabindex="-1" role="dialog"
         aria-labelledby="createSubmissionLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -1107,6 +1098,1287 @@
                         </button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane me-1"></i>Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection --}}
+@extends('layouts.app')
+@section('title', 'Manager Dashboard')
+
+@push('styles')
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ========== Welcome Banner ========== */
+        .welcome-banner {
+            background: var(--primary-gradient);
+            border-radius: 16px;
+            padding: 32px;
+            color: white;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .welcome-banner h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-banner p {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-banner .date-info {
+            position: relative;
+            z-index: 1;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* ========== Quick Stats Cards ========== */
+        .quick-stats {
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.primary { background: var(--primary-gradient); }
+        .stat-icon.success { background: var(--success-gradient); }
+        .stat-icon.warning { background: var(--warning-gradient); }
+        .stat-icon.info { background: var(--info-gradient); }
+
+        .stat-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            color: #344767;
+        }
+
+        .stat-content p {
+            margin: 4px 0 0 0;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stat-trend.up {
+            background: rgba(56, 239, 125, 0.15);
+            color: #11998e;
+        }
+
+        .stat-trend.down {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
+
+        /* ========== Team Overview Section ========== */
+        .team-overview-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .team-overview-card .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 24px;
+            border: none;
+        }
+
+        .team-overview-card .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: white;
+        }
+
+        .team-member-item {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f1f3f5;
+            transition: background-color 0.2s;
+        }
+
+        .team-member-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .team-member-item:last-child {
+            border-bottom: none;
+        }
+
+        .member-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+        }
+
+        .member-info h6 {
+            margin: 0 0 4px 0;
+            font-weight: 600;
+            color: #344767;
+            font-size: 0.95rem;
+        }
+
+        .member-info small {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.present {
+            background: rgba(56, 239, 125, 0.15);
+            color: #11998e;
+        }
+
+        .status-badge.absent {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
+
+        .status-badge.leave {
+            background: rgba(255, 171, 0, 0.15);
+            color: #f59e0b;
+        }
+
+        /* ========== Pending Approvals Section ========== */
+        .pending-approvals-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .pending-approvals-card .card-header {
+            background: white;
+            border-bottom: 2px solid #f1f3f5;
+            padding: 20px 24px;
+        }
+
+        .pending-approvals-card .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #344767;
+        }
+
+        .approval-item {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f3f5;
+            transition: all 0.2s;
+        }
+
+        .approval-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .approval-item:last-child {
+            border-bottom: none;
+        }
+
+        .approval-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .approval-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .approval-type.leave {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .approval-type.overtime {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .approval-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .approval-meta i {
+            width: 16px;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-approve {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+            color: white;
+        }
+
+        .btn-reject {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: #64748b;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .btn-reject:hover {
+            background: #fff5f5;
+            border-color: #f5576c;
+            color: #f5576c;
+        }
+
+        /* ========== Performance Chart ========== */
+        .performance-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .performance-card .card-header {
+            background: white;
+            border-bottom: 2px solid #f1f3f5;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .performance-card .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #344767;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border: 1px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* ========== Quick Actions ========== */
+        .quick-actions-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+        }
+
+        .quick-actions-card h5 {
+            margin: 0 0 20px 0;
+            font-weight: 600;
+            color: #344767;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.2s;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: #344767;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .action-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .action-btn span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* ========== Recent Activities ========== */
+        .activities-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .activities-card .card-header {
+            background: white;
+            border-bottom: 2px solid #f1f3f5;
+            padding: 20px 24px;
+        }
+
+        .activities-card .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #344767;
+        }
+
+        .activity-timeline {
+            padding: 24px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .activity-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            bottom: -24px;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .activity-item:last-child::before {
+            display: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: white;
+            border: 2px solid #e9ecef;
+        }
+
+        .activity-icon.success {
+            background: rgba(56, 239, 125, 0.15);
+            border-color: #11998e;
+            color: #11998e;
+        }
+
+        .activity-icon.warning {
+            background: rgba(255, 171, 0, 0.15);
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .activity-icon.info {
+            background: rgba(79, 172, 254, 0.15);
+            border-color: #4facfe;
+            color: #4facfe;
+        }
+
+        .activity-content h6 {
+            margin: 0 0 4px 0;
+            font-weight: 600;
+            color: #344767;
+            font-size: 0.9rem;
+        }
+
+        .activity-content p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* ========== Empty State ========== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h6 {
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        /* ========== Modal Improvements ========== */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 20px 24px;
+        }
+
+        .modal-header .modal-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .modal-header .close {
+            color: white;
+            opacity: 0.9;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #344767;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+        }
+
+        .form-control,
+        .select2 {
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 10px 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* ========== Responsive Design ========== */
+        @media (max-width: 768px) {
+            .welcome-banner {
+                padding: 24px;
+            }
+
+            .welcome-banner h2 {
+                font-size: 1.5rem;
+            }
+
+            .stat-card {
+                margin-bottom: 16px;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-filters {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
+
+            .approval-actions {
+                flex-direction: column;
+            }
+
+            .btn-approve,
+            .btn-reject {
+                width: 100%;
+            }
+        }
+
+        /* ========== Animations ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* ========== Utility Classes ========== */
+        .text-gradient {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .badge-primary-soft {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+    </style>
+@endpush
+
+@section('main')
+    <div class="main-content">
+        <section class="section">
+            <!-- Welcome Banner -->
+            <div class="welcome-banner animate-fade-in-up">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h2>
+                            <i class="fas fa-hand-wave me-2"></i>
+                            Welcome back, {{ Auth::user()->name ?? 'Manager' }}!
+                        </h2>
+                        <p>Here's what's happening with your team today.</p>
+                        <div class="date-info">
+                            <i class="fas fa-calendar-day me-2"></i>
+                            {{ now()->format('l, F d, Y') }}
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <button class="btn btn-light btn-lg" id="createSubmissionBtn">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            New Submission
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 col-12 mb-4">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon primary">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ $teamCount ?? 0 }}</h3>
+                                <p>Team Members</p>
+                                <span class="stat-trend up">
+                                    <i class="fas fa-arrow-up me-1"></i>
+                                    Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 col-12 mb-4">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon success">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ $presentToday ?? 0 }}</h3>
+                                <p>Present Today</p>
+                                <span class="stat-trend up">
+                                    <i class="fas fa-arrow-up me-1"></i>
+                                    {{ $attendanceRate ?? 0 }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 col-12 mb-4">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ $pendingApprovals ?? 0 }}</h3>
+                                <p>Pending Approvals</p>
+                                @if(($pendingApprovals ?? 0) > 0)
+                                    <span class="stat-trend down">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        Needs Action
+                                    </span>
+                                @else
+                                    <span class="stat-trend up">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        All Clear
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 col-12 mb-4">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon info">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ $onLeave ?? 0 }}</h3>
+                                <p>On Leave</p>
+                                <span class="badge-primary-soft mt-2">
+                                    This Week
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="row">
+                <!-- Pending Approvals -->
+                <div class="col-lg-8 col-12 mb-4">
+                    <div class="pending-approvals-card">
+                        <div class="card-header">
+                            <h4>
+                                <i class="fas fa-tasks me-2"></i>
+                                Pending Approvals
+                            </h4>
+                        </div>
+                        <div class="card-body p-0">
+                            @forelse($submissions ?? [] as $submission)
+                                <div class="approval-item">
+                                    <div class="approval-header">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img class="rounded-circle" 
+                                                 width="40" 
+                                                 height="40"
+                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
+                                                 alt="{{ $submission->employee->employee_name ?? 'Employee' }}">
+                                            <div>
+                                                <h6 class="mb-0">{{ $submission->employee->employee_name ?? 'Unknown' }}</h6>
+                                                <small class="text-muted">{{ $submission->employee->position ?? 'Employee' }}</small>
+                                            </div>
+                                        </div>
+                                        <span class="approval-type {{ strtolower($submission->type) }}">
+                                            {{ $submission->type ?? 'Leave' }}
+                                        </span>
+                                    </div>
+                                    <div class="approval-meta">
+                                        <span>
+                                            <i class="fas fa-calendar"></i>
+                                            {{ \Carbon\Carbon::parse($submission->leave_date_from ?? now())->format('M d') }} - 
+                                            {{ \Carbon\Carbon::parse($submission->leave_date_to ?? now())->format('M d, Y') }}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-clock"></i>
+                                            {{ $submission->created_at->diffForHumans() ?? 'Recently' }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted mb-3">
+                                        <i class="fas fa-comment-alt me-2"></i>
+                                        {{ $submission->notes ?? 'No notes provided' }}
+                                    </p>
+                                    <div class="approval-actions">
+                                        <button class="btn btn-approve" 
+                                                data-id="{{ $submission->id }}"
+                                                data-action="approve">
+                                            <i class="fas fa-check me-1"></i>
+                                            Approve
+                                        </button>
+                                        <button class="btn btn-reject" 
+                                                data-id="{{ $submission->id }}"
+                                                data-action="reject">
+                                            <i class="fas fa-times me-1"></i>
+                                            Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <h6>No Pending Approvals</h6>
+                                    <p>All caught up! No submissions waiting for your approval.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4 col-12">
+                    <!-- Quick Actions -->
+                    <div class="quick-actions-card mb-4">
+                        <h5>
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h5>
+                        <div class="action-grid">
+                            <a href="{{ route('pages.Employee') }}" class="action-btn">
+                                <i class="fas fa-users"></i>
+                                <span>My Team</span>
+                            </a>
+                            <a href="#" class="action-btn" id="requestLeaveBtn">
+                                <i class="fas fa-umbrella-beach"></i>
+                                <span>Request Leave</span>
+                            </a>
+                            <a href="#" class="action-btn" id="viewReportsBtn">
+                                <i class="fas fa-chart-line"></i>
+                                <span>View Reports</span>
+                            </a>
+                            <a href="#" class="action-btn" id="scheduleBtn">
+                                <i class="fas fa-calendar"></i>
+                                <span>Schedule</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="activities-card">
+                        <div class="card-header">
+                            <h4>
+                                <i class="fas fa-history me-2"></i>
+                                Recent Activities
+                            </h4>
+                        </div>
+                        <div class="activity-timeline">
+                            @forelse($recentActivities ?? [] as $activity)
+                                <div class="activity-item">
+                                    <div class="activity-icon {{ $activity->type ?? 'info' }}">
+                                        <i class="fas fa-{{ $activity->icon ?? 'bell' }}"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h6>{{ $activity->title ?? 'Activity' }}</h6>
+                                        <p>{{ $activity->description ?? 'No description' }}</p>
+                                        <div class="activity-time">
+                                            {{ $activity->created_at->diffForHumans() ?? 'Recently' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="empty-state py-4">
+                                    <i class="fas fa-history"></i>
+                                    <h6>No Recent Activities</h6>
+                                    <p>Activities will appear here</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Overview -->
+            <div class="row mt-4">
+                <div class="col-lg-8 col-12 mb-4">
+                    <div class="performance-card">
+                        <div class="card-header">
+                            <h4>
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Team Performance
+                            </h4>
+                            <div class="chart-filters">
+                                <button class="filter-btn active" data-period="week">Week</button>
+                                <button class="filter-btn" data-period="month">Month</button>
+                                <button class="filter-btn" data-period="year">Year</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="performanceChart" height="280"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-12 mb-4">
+                    <div class="team-overview-card">
+                        <div class="card-header">
+                            <h4>
+                                <i class="fas fa-users-cog me-2"></i>
+                                Team Status
+                            </h4>
+                        </div>
+                        <div class="card-body p-0">
+                            @forelse($teamMembers ?? [] as $member)
+                                <div class="team-member-item">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img class="member-avatar" 
+                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
+                                                 alt="{{ $member->employee_name ?? 'Employee' }}">
+                                            <div class="member-info">
+                                                <h6>{{ $member->employee_name ?? 'Unknown' }}</h6>
+                                                <small>{{ $member->position ?? 'Employee' }}</small>
+                                            </div>
+                                        </div>
+                                        <span class="status-badge {{ strtolower($member->status ?? 'present') }}">
+                                            {{ $member->status ?? 'Present' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <h6>No Team Members</h6>
+                                    <p>Your team members will appear here</p>
+                                </div>
+                            @endforelse
+                        </div>
+                        @if(count($teamMembers ?? []) > 0)
+                            <div class="card-footer bg-light text-center">
+                                <a href="{{ route('pages.Employee') }}" class="text-decoration-none">
+                                    View All Team Members
+                                    <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="team-overview-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-bullhorn me-2"></i>
+                                Company Announcements
+                            </h4>
+                            <span class="badge-primary-soft">
+                                {{ count($announcements ?? []) }} Active
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="announcements-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th class="text-center">Published</th>
+                                            <th class="text-center">Expires</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($announcements ?? [] as $announcement)
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="fas fa-file-alt text-primary"></i>
+                                                        <strong>{{ $announcement->title ?? 'Untitled' }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ \Carbon\Carbon::parse($announcement->publish_date ?? now())->format('M d, Y') }}
+                                                </td>
+                                                <td class="text-center">
+                                                    @if($announcement->end_date)
+                                                        {{ \Carbon\Carbon::parse($announcement->end_date)->format('M d, Y') }}
+                                                    @else
+                                                        <span class="badge badge-info">Ongoing</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-primary preview-announcement-btn"
+                                                            data-id="{{ $announcement->id }}"
+                                                            data-title="{{ $announcement->title }}"
+                                                            data-content="{{ $announcement->content }}"
+                                                            data-date="{{ $announcement->publish_date }}"
+                                                            data-enddate="{{ $announcement->end_date }}">
+                                                        <i class="fas fa-eye me-1"></i>
+                                                        View
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4">
+                                                    <div class="empty-state py-3">
+                                                        <i class="fas fa-inbox"></i>
+                                                        <h6>No Announcements</h6>
+                                                        <p>There are no active announcements at the moment</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Create Submission Modal -->
+    <div class="modal fade" id="createSubmissionModal" tabindex="-1" aria-labelledby="createSubmissionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <form action="{{ route('Submissions.store') }}" method="POST" id="submissionForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createSubmissionLabel">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Create New Submission
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label" for="type">
+                                <i class="fas fa-clipboard-list me-1"></i> Type
+                            </label>
+                            <select name="type" id="type"
+                                class="form-control select2 @error('type') is-invalid @enderror" required>
+                                <option value="">Choose submission type</option>
+                                @foreach ($types ?? [] as $value)
+                                    <option value="{{ $value }}" {{ old('type') == $value ? 'selected' : '' }}>
+                                        {{ $value }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Overtime Type (Hidden by default) -->
+                        <div class="mb-4" id="overtimeTypeDiv" style="display: none;">
+                            <label class="form-label" for="overtime_type">
+                                <i class="fas fa-clock me-1"></i> Overtime Type
+                            </label>
+                            <select name="overtime_type" id="overtime_type" class="form-control select2">
+                                <option value="">Choose overtime type</option>
+                                <option value="Weekday">Weekday</option>
+                                <option value="Weekend">Weekend</option>
+                                <option value="Holiday">Holiday</option>
+                            </select>
+                        </div>
+
+                        <!-- Annual Leave Info (Hidden by default) -->
+                        <div class="mb-4" id="annualLeaveInfo" style="display: none;">
+                            <label class="form-label">
+                                <i class="fas fa-info-circle me-1"></i> Annual Leave Balance
+                            </label>
+                            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Total:</strong> <span id="totalLeave">{{ $leaveBalance->total ?? 0 }}</span> days
+                                </div>
+                                <div>
+                                    <strong>Used:</strong> <span id="usedLeave">{{ $leaveBalance->used ?? 0 }}</span> days
+                                </div>
+                                <div>
+                                    <strong>Remaining:</strong> <span id="remainingLeave">{{ $leaveBalance->remaining ?? 0 }}</span> days
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date Range -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label" for="leave_date_from">
+                                    <i class="fas fa-calendar-alt me-1"></i> Start Date
+                                </label>
+                                <input type="date" 
+                                       name="leave_date_from" 
+                                       id="leave_date_from" 
+                                       class="form-control @error('leave_date_from') is-invalid @enderror"
+                                       required>
+                                @error('leave_date_from')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label" for="leave_date_to">
+                                    <i class="fas fa-calendar-check me-1"></i> End Date
+                                </label>
+                                <input type="date" 
+                                       name="leave_date_to" 
+                                       id="leave_date_to" 
+                                       class="form-control @error('leave_date_to') is-invalid @enderror" 
+                                       required>
+                                @error('leave_date_to')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label class="form-label" for="notes">
+                                <i class="fas fa-sticky-note me-1"></i> Notes / Reason
+                            </label>
+                            <textarea name="notes" 
+                                      id="notes" 
+                                      class="form-control @error('notes') is-invalid @enderror" 
+                                      rows="4"
+                                      placeholder="Please provide details about your request..."
+                                      required></textarea>
+                            @error('notes')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Duration Display -->
+                        <div class="alert alert-light border" id="durationDisplay" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-calendar-day me-2"></i><strong>Duration:</strong></span>
+                                <span id="durationText" class="text-primary font-weight-bold">0 days</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcement Preview Modal -->
+    <div class="modal fade" id="announcementPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewTitle">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        Announcement
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">Published</small>
+                                <p class="mb-0 font-weight-bold" id="previewPublishDate">-</p>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Expires</small>
+                                <p class="mb-0 font-weight-bold" id="previewEndDate">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <small class="text-muted text-center w-100">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Official announcement from HR Department
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Action Modal -->
+    <div class="modal fade" id="approvalActionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="approvalForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="approvalActionTitle">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Confirm Action
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="approvalActionMessage">Are you sure you want to proceed with this action?</p>
+                        
+                        <!-- Rejection Reason (shown only for reject) -->
+                        <div id="rejectionReasonDiv" style="display: none;">
+                            <label class="form-label" for="rejection_reason">
+                                <i class="fas fa-comment me-1"></i> Reason for Rejection
+                            </label>
+                            <textarea name="rejection_reason" 
+                                      id="rejection_reason" 
+                                      class="form-control" 
+                                      rows="3"
+                                      placeholder="Please provide a reason..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn" id="confirmActionBtn">
+                            <i class="fas fa-check me-1"></i> Confirm
                         </button>
                     </div>
                 </form>

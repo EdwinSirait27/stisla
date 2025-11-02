@@ -225,7 +225,7 @@
 
         .about-image img {
             background-color: #000000;
-
+ width: 75%; 
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             transition: transform 0.3s ease;
@@ -374,13 +374,13 @@
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6 about-image">
-                    <img src="{{ asset('/img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.png') }}" alt="edwgans"
+                    <img src="{{ asset('/img/abd.jpg') }}" alt="edwgans"
                         class="img-fluid">
                 </div>
                 <div class="col-lg-6 about-section">
                     <h2 class="section-title">Who are We?</h2>
                     <p>
-                        PT. Mahendradata Jaya Mandiri was established on November 23, 2012. Since its inception, we have
+                        PT. Asian Bay Development was established on November 23, 2012. Since its inception, we have
                         been committed to becoming one of the leading retail pioneers in Bali.
                     </p>
                     <p>
@@ -464,7 +464,7 @@
                 <div class="col-md-4 col-sm-6">
                     <div class="team-card">
                         <img src="/img/team1.jpg" alt="CEO">
-                        <h5>Andi Mahendra</h5>
+                        <h5>Edw</h5>
                         <span>CEO & Founder</span>
                         <p>Memimpin dengan visi dan komitmen untuk menjadikan retail Indonesia lebih modern dan inklusif.
                         </p>
@@ -473,7 +473,7 @@
                 <div class="col-md-4 col-sm-6">
                     <div class="team-card">
                         <img src="/img/team2.jpg" alt="Marketing Director">
-                        <h5>Sri Ayu</h5>
+                        <h5>Edw</h5>
                         <span>Marketing Director</span>
                         <p>Mengembangkan strategi pemasaran kreatif untuk memperluas brand awareness di seluruh Indonesia.
                         </p>
@@ -482,7 +482,7 @@
                 <div class="col-md-4 col-sm-6">
                     <div class="team-card">
                         <img src="/img/team3.jpg" alt="Operation Manager">
-                        <h5>Budi Santoso</h5>
+                        <h5>Edw</h5>
                         <span>Operation Manager</span>
                         <p>Mengelola operasional toko agar selalu efisien dan berorientasi pada kepuasan pelanggan.</p>
                     </div>
