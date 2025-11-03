@@ -326,6 +326,7 @@
                                                 </th>
                                                 <th class="text-center">No.</th>
                                                 <th class="text-center">Employee Name</th>
+                                                <th class="text-center">NIP</th>
                                                 <th class="text-center">Attendance</th>
                                                 <th class="text-center">Daily Allowance</th>
                                                 <th class="text-center">House Allowance</th>
@@ -518,6 +519,14 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
+                    },
+                    {
+                        data: 'employee_pengenal',
+                        name: 'employee_pengenal',
                         className: 'text-center',
                         render: function(data) {
                             return data ? data : '-';

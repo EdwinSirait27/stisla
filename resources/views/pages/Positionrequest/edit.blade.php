@@ -258,7 +258,7 @@
                                                                     type="checkbox" name="type[]"
                                                                     id="type_{{ $type }}"
                                                                     value="{{ $type }}"
-                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}>
+                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}required>
                                                                 <label class="form-check-label"
                                                                     for="type_{{ $type }}">
                                                                     {{ $type }}

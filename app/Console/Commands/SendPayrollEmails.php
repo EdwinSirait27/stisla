@@ -15,7 +15,7 @@ class SendPayrollEmails extends Command
                             {month_year? : Periode payroll (format: YYYY-MM)} 
                             {--id= : ID karyawan spesifik} 
                             {--test : Hanya menampilkan info tanpa mengirim email}
-                            {--limit=300 : Batasi jumlah email yang dikirim}';
+                            {--limit=500 : Batasi jumlah email yang dikirim}';
     protected $description = 'Mengirim email slip gaji ke semua karyawan';
     public function handle()
     {

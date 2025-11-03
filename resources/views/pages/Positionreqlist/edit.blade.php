@@ -1,8 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Edit Position Request List')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <style>
         .avatar {
             position: relative;
@@ -180,7 +182,8 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Edit Position Request List') }} from {{ $position->submitter->employee_name }} for {{ $position->position_name }}
+                                    <h6 class="mb-0">{{ __('Edit Position Request List') }} from
+                                        {{ $position->submitter->employee_name }} for {{ $position->position_name }}
                                     </h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
@@ -205,7 +208,8 @@
                                         </div>
                                     @endif
 
-                                    <form id="position-edit" action="{{ route('Positionreqlist.update', $hashedId) }}" method="POST">
+                                    <form id="position-edit" action="{{ route('Positionreqlist.update', $hashedId) }}"
+                                        method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="row">
@@ -244,7 +248,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                          
+
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="type" class="form-control-label">
@@ -253,12 +257,20 @@
                                                     <div>
                                                         @foreach ($types as $type)
                                                             <div class="form-check">
+                                                                {{-- <input
+                                                                    class="form-check-input @error('type') is-invalid @enderror"
+                                                                    type="checkbox" name="type[]"
+                                                                    id="type_{{ $type }}"
+                                                                    value="{{ $type }}"
+                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}> --}}
                                                                 <input
                                                                     class="form-check-input @error('type') is-invalid @enderror"
                                                                     type="checkbox" name="type[]"
                                                                     id="type_{{ $type }}"
                                                                     value="{{ $type }}"
-                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}disabled>
+                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}
+                                                                    disabled>
+
                                                                 <label class="form-check-label"
                                                                     for="type_{{ $type }}">
                                                                     {{ $type }}
@@ -339,6 +351,46 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Status') }}
+                                                    </label>
+                                                    <select name="status"
+                                                        class="form-control select2 @error('status') is-invalid @enderror"required>
+                                                        <option value="">-- Choose Status --</option>
+                                                        @foreach ($statuses as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('status', $position->status ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                               <div class="col-md-6">
+
+                                                <div class="form-group">
+                                                    <label for="reason_reject" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject') }}
+                                                    </label>
+                                                    <input type="text"
+                                                        class="form-control @error('reason_reject') is-invalid @enderror"
+                                                        id="reason_reject" name="reason_reject"
+                                                        value="{{ old('reason_reject', $position->reason_reject) }}"
+                                                        placeholder="message from HR to manager if pending (manager typo or unclear meaning) or reason for rejection">
+                                                    @error('notes')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
 
                                             <div class="col-12">
                                                 <div class="alert alert-secondary mt-4" role="alert">
@@ -375,8 +427,17 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-    <script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                placeholder: "-- Choose Status --",
+                width: '100%'
+            });
+        });
+    </script>
+    <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung
             Swal.fire({

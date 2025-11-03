@@ -95,8 +95,8 @@
                 </tr>
             </table>
 
-            <p>For complete details, please download the attached PDF pay slip.</p>
-            <p><strong>Note:</strong> To open the PDF file, please use your date of birth in the format 
+            <p>For details, please download the attached PDF pay slip.</p>
+            <p><strong>Note:</strong> To open the PDF file, please use your date of birth HR System in the format 
                <code>yyyymmdd</code>. Example: August 6, 2000 → <code>20000806</code>.
             </p>
             
@@ -111,7 +111,7 @@
           <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #e1e1e1;">
             <p style="margin: 5px 0;">This is an automated email. Please do not reply.</p>
             <p style="margin: 5px 0;">Mark important for the sender of this email to get the pay slip notification for the next month.</p>
-            <p style="margin: 5px 0;">&copy; {{ date('Y') }} PT. Mahendradata Jaya Mandiri — Created by Edwin Sirait</p>
+            <p style="margin: 5px 0;">&copy; {{ date('Y') }} PT. Mahendradata Jaya Mandiri — Developed by Edwin Sirait</p>
         </div>
 
         <!-- INDONESIAN VERSION -->
@@ -137,7 +137,7 @@
             </table>
 
             <p>Untuk detail lengkap, silakan unduh lampiran slip gaji dalam format PDF.</p>
-            <p><strong>Catatan:</strong> Untuk membuka file PDF, gunakan tanggal lahir Anda dengan format 
+            <p><strong>Catatan:</strong> Untuk membuka file PDF, gunakan tanggal lahir yang didaftarkan pada sistem HR Anda dengan format 
                <code>yyyymmdd</code>. Contoh: 6 Agustus 2000 → <code>20000806</code>.
             </p>
             
@@ -154,7 +154,7 @@
         <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #e1e1e1;">
             <p style="margin: 5px 0;">Email ini dikirim otomatis. Mohon untuk tidak membalas.</p>
             <p style="margin: 5px 0;">Tandai penting bagi pengirim email ini untuk mendapatkan pemberitahuan slip gaji untuk bulan berikutnya.</p>
-            <p style="margin: 5px 0;">&copy; {{ date('Y') }} PT. Mahendradata Jaya Mandiri — Created by Edwin Sirait</p>
+            <p style="margin: 5px 0;">&copy; {{ date('Y') }} PT. Mahendradata Jaya Mandiri — Developed by Edwin Sirait</p>
         </div>
 
     </div>

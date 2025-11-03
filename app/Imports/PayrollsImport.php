@@ -496,7 +496,7 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
 {
     use \Maatwebsite\Excel\Concerns\SkipsFailures;
 
-    private array $importedNames = [];
+    private array $importedIds = [];
 
     public function model(array $row)
     {
@@ -505,40 +505,38 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             return null;
         }
 
-        $employeeName = trim($row['employee_name'] ?? '');
-        if ($employeeName === '') {
+        $employeePengenal = trim((string)($row['employee_pengenal'] ?? ''));
+        if ($employeePengenal === '') {
             return null;
         }
 
-        $normalizedName = strtolower($employeeName);
-
         // 2️⃣ Cegah duplikat antar baris di file Excel
-        if (in_array($normalizedName, $this->importedNames)) {
+        if (in_array($employeePengenal, $this->importedIds)) {
             $this->onFailure(new Failure(
                 $row['__row'] ?? 0,
-                'employee_name',
-                ["Employee '{$employeeName}' duplikat di file Excel."],
+                'employee_pengenal',
+                ["Employee dengan pengenal {$employeePengenal} duplikat di file Excel."],
                 $row
             ));
             return null;
         }
-        $this->importedNames[] = $normalizedName;
+        $this->importedIds[] = $employeePengenal;
 
-        // 3️⃣ Cari employee di database
-        $employee = Employee::whereRaw('LOWER(TRIM(employee_name)) = ?', [$normalizedName])->first();
+        // 3️⃣ Cari employee di database berdasarkan employee_pengenal
+        $employee = Employee::where('employee_pengenal', $employeePengenal)->first();
 
         if (!$employee) {
             $this->onFailure(new Failure(
                 $row['__row'] ?? 0,
-                'employee_name',
-                ["Employee '{$employeeName}' tidak ditemukan di database."],
+                'employee_pengenal',
+                ["Employee dengan pengenal {$employeePengenal} tidak ditemukan di database."],
                 $row
             ));
             return null;
         }
 
         // 4️⃣ Parsing month_year
-        $monthYear = $this->parseExcelDate($row['month_year'] ?? null, 'Y-m-d', 'month_year', $employeeName);
+        $monthYear = $this->parseExcelDate($row['month_year'] ?? null, 'Y-m-d', 'month_year', $employeePengenal);
         if ($monthYear === false) {
             return null;
         }
@@ -551,15 +549,15 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
         if ($exists) {
             $this->onFailure(new Failure(
                 $row['__row'] ?? 0,
-                'employee_name',
-                ["Payroll untuk '{$employeeName}' dengan tanggal {$monthYear} sudah ada di database."],
+                'employee_pengenal',
+                ["Payroll untuk pengenal {$employeePengenal} dengan tanggal {$monthYear} sudah ada di database."],
                 $row
             ));
             return null;
         }
 
         // 6️⃣ Parsing created_at opsional
-        $createdAt = $this->parseExcelDate($row['created_at'] ?? null, 'Y-m-d H:i:s', 'created_at', $employeeName);
+        $createdAt = $this->parseExcelDate($row['created_at'] ?? null, 'Y-m-d H:i:s', 'created_at', $employeePengenal);
         if ($createdAt === false) {
             return null;
         }
@@ -617,12 +615,12 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
     public function rules(): array
     {
         return [
-            '*.employee_name' => ['required', 'string', 'distinct'],
+            '*.employee_pengenal' => ['required', 'numeric', 'distinct'],
             '*.month_year' => ['nullable'],
         ];
     }
 
-    private function parseExcelDate($value, $format, $field, $employeeName)
+    private function parseExcelDate($value, $format, $field, $identifier)
     {
         if (empty($value)) return null;
 
@@ -642,7 +640,7 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             $this->onFailure(new Failure(
                 0,
                 $field,
-                ["Format tanggal tidak valid di kolom {$field} untuk {$employeeName} (isi: {$value})."],
+                ["Format tanggal tidak valid di kolom {$field} untuk employee pengenal {$identifier} (isi: {$value})."],
                 []
             ));
             return false;
@@ -650,7 +648,7 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             $this->onFailure(new Failure(
                 0,
                 $field,
-                ["Gagal parsing tanggal di kolom {$field} untuk {$employeeName} (isi: {$value})."],
+                ["Gagal parsing tanggal di kolom {$field} untuk employee pengenal {$identifier} (isi: {$value})."],
                 []
             ));
             return false;
@@ -663,3 +661,20 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
     }
 }
 
+  // $employeePengenal = trim($row['employee_pengenal'] ?? '');
+        // if ($employeePengenal === '') {
+        //     return null;
+        // }
+
+        // $normalizedName = strtolower($employeePengenal);
+
+        // if (in_array($normalizedName, $this->importedNames)) {
+        //     $this->onFailure(new Failure(
+        //         $row['__row'] ?? 0,
+        //         'employee_pengenal',
+        //         ["Employee '{$employeePengenal}' duplikat di file Excel."],
+        //         $row
+        //     ));
+        //     return null;
+        // }
+        // $this->importedNames[] = $normalizedName;

@@ -27,7 +27,7 @@ class PayrollsController extends Controller
     }
     public function generateAll()
     {
-        ini_set('max_execution_time', 180);
+        ini_set('max_execution_time', 360);
         $currentCarbon = Carbon::now();
 
         $payrolls = Payrolls::with('employee')
@@ -42,7 +42,6 @@ class PayrollsController extends Controller
                 Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 $carbonMonthYear = now(); // fallback jika gagal
             }
-            // Decrypt field, cek null jika perlu
             $bonus = $payroll->bonus ? ($payroll->bonus) : 0;
             $tax = $payroll->tax ? ($payroll->tax) : 0;
             $house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : 0;
@@ -165,7 +164,10 @@ class PayrollsController extends Controller
         ->addColumn('employee_name', function ($payroll) {
             return $payroll->employee->employee_name ?? 'Empty';
         })
-        ->rawColumns(['checkbox', 'employee_name'])
+        ->addColumn('employee_pengenal', function ($payroll) {
+            return $payroll->employee->employee_pengenal ?? 'Empty';
+        })
+        ->rawColumns(['checkbox', 'employee_name','employee_pengenal'])
         ->make(true);
 }
 
