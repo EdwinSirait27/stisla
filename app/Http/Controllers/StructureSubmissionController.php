@@ -127,9 +127,9 @@ public function getPositionrequests()
         $validatedData = $request->validate([
             'position_name' => ['required', 'string','max:255'],
             'role_summary' => ['required', 'string','max:255'],
-            'key_respon' => ['required', 'string','max:255'],
-            'qualifications' => ['required', 'string','max:255'],
-            'work_location' => ['required', 'string','max:255'],
+            'key_respon' => ['required', 'string'],
+            'qualifications' => ['required', 'string'],
+            'work_location' => ['required', 'string'],
             'type' => ['required','max:255'],
             'notes' => ['nullable', 'string','max:255'],
             'status' => ['nullable', 'string','max:255'],
@@ -173,9 +173,9 @@ public function getPositionrequests()
         }
        $validatedData = $request->validate([
         'position_name'   => ['required', 'string', 'max:255'],
-        'role_summary'    => ['required', 'string', 'max:255'],
-        'key_respon'      => ['required', 'string', 'max:255'],
-        'qualifications'  => ['required', 'string', 'max:255'],
+        'role_summary'    => ['required', 'string'],
+        'key_respon'      => ['required', 'string'],
+        'qualifications'  => ['required', 'string'],
         'work_location'   => ['required', 'string', 'max:255'],
         'type'            => ['required', 'max:255'],
         'notes'           => ['nullable', 'string', 'max:255'],
