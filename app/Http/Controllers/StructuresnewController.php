@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Company;
 use App\Models\Departments;
 use App\Models\Stores;

@@ -126,7 +126,7 @@ public function getPositionrequests()
       
         $validatedData = $request->validate([
             'position_name' => ['required', 'string','max:255'],
-            'role_summary' => ['required', 'string','max:255'],
+            'role_summary' => ['required', 'string'],
             'key_respon' => ['required', 'string'],
             'qualifications' => ['required', 'string'],
             'work_location' => ['required', 'string'],
