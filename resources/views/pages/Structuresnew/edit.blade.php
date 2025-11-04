@@ -162,7 +162,7 @@
         }
     </style>
 @endpush
-@section('main')
+{{-- @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -210,33 +210,32 @@
                                         @csrf
                                         @method('PUT')
 
-                                        {{-- <div class="row">
+
+                                        <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <div class="form-check">
-                                                        <input type="checkbox" name="is_manager_store" id="is_manager_store"
+                                                        <input type="checkbox" name="is_manager" id="is_manager"
                                                             value="1"
-                                                            class="form-check-input @error('is_manager_store') is-invalid @enderror"
-                                                            {{ old('is_manager_store', $structure->is_manager_store) ? 'checked' : '' }}>
-
-                                                        <label class="form-check-label" for="is_manager_store">
+                                                            class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                            {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="is_manager">
                                                             <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
                                                         </label>
-                                                    </div>
-                                                    @error('is_manager_store')
+                                                    @error('is_manager')
                                                         <span class="invalid-feedback d-block" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
                                             </div>
-                                        </div>
+
+
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="parent_id" class="form-control-label">
                                                     <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
                                                 </label>
-                                                <div>
                                                     <select name="parent_id"
                                                         class="form-control select2 @error('parent_id') is-invalid @enderror">
                                                         <option value="">Choose Superior</option>
@@ -252,130 +251,10 @@
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="row">
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="status" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Status') }}
-                                                </label>
-                                                <div>
-                                                   <select name="status"
-                                                            class="form-control select2 @error('status') is-invalid @enderror"required>
-                                                            <option value="">-- Choose Status --</option>
-                                                            @foreach ($statuses as $value)
-                                                                <option value="{{ $value }}"
-                                                                    {{ old('status', $structure->status ?? '') == $value ? 'selected' : '' }}>
-                                                                    {{ $value }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('status')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-
-                                                </div>
-                                                </div> --}}
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" name="is_manager" id="is_manager"
-                                                            value="1"
-                                                            class="form-check-input @error('is_manager') is-invalid @enderror"
-                                                            {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="is_manager">
-                                                            <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
-                                                        </label>
-                                                    </div>
-                                                    @error('is_manager')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
                                                 </div>
                                             </div>
                                             </div>
-
-                                            {{-- <div class="col-md-6">
-                                                 <div class="form-group">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" name="is_head" id="is_head"
-                                                            value="1"
-                                                            class="form-check-input @error('is_head') is-invalid @enderror"
-                                                            {{ old('is_head', $structure->is_head) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="is_head">
-                                                            <i class="fas fa-id-card"></i> {{ __('Is Head?') }}
-                                                        </label>
-                                                    </div>
-                                                    @error('is_head')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                            </div> --}}
                                        
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="parent_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="parent_id"
-                                                            class="form-control select2 @error('parent_id') is-invalid @enderror">
-                                                            <option value="">Choose Superior</option>
-                                                            @foreach ($parents as $id => $parentName)
-                                                                <option value="{{ $id }}"
-                                                                    {{ old('parent_id', $structure->parent_id) == $id ? 'selected' : '' }}>
-                                                                    {{ $parentName }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('parent_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        {{-- <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="status" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Status') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="status"
-                                                            class="form-control select2 @error('status') is-invalid @enderror"
-                                                            required>
-                                                            <option value="">-- Choose Status --</option>
-                                                            @foreach ($statuses as $value)
-                                                                <option value="{{ $value }}"
-                                                                    {{ old('status', $structure->status ?? '') == $value ? 'selected' : '' }}>
-                                                                    {{ $value }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('status')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> --}}
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
@@ -394,6 +273,7 @@
                                             </button>
                                         </div>
                                     </form>
+
                                 </div>
                             </div>
                         </div>
@@ -402,7 +282,162 @@
             </div>
         </section>
     </div>
+@endsection --}}
+@section('main')
+<div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Update Structures {{ $structure->position->name }}</h1>
+            <div class="section-header-breadcrumb">
+                <div class="breadcrumb-item">
+                    <a href="{{ route('pages.Structures') }}">Structures</a>
+                </div>
+                <div class="breadcrumb-item">Update Structure {{ $structure->position->name }}</div>
+            </div>
+        </div>
+
+        <div class="section-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header pb-0 px-3">
+                                <h6 class="mb-0">{{ __('Update Structure') }} {{ $structure->position->name }}</h6>
+                            </div>
+
+                            <div class="card-body pt-4 p-3">
+                                {{-- Alert errors --}}
+                                @if ($errors->any())
+                                    <div class="alert alert-danger">
+                                        <ul class="mb-0">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
+                                {{-- Alert success --}}
+                                @if (session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <span class="alert-text">{{ session('success') }}</span>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <i class="fa fa-close" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                @endif
+
+                                {{-- Form start --}}
+                                <form id="departments-edit" action="{{ route('Structuresnew.update', $hashedId) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="row">
+                                        {{-- Is Manager --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="is_manager" id="is_manager"
+                                                        value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="is_manager">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                    </label>
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Direct Superior --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="parent_id" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
+                                                </label>
+                                                <select name="parent_id"
+                                                    class="form-control select2 @error('parent_id') is-invalid @enderror">
+                                                    <option value="">Choose Superior</option>
+                                                    @foreach ($parents as $id => $parentName)
+                                                        <option value="{{ $id }}"
+                                                            {{ old('parent_id', $structure->parent_id) == $id ? 'selected' : '' }}>
+                                                            {{ $parentName }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('parent_id')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                      <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="type" class="form-control-label">
+                                                        <i class="fas fa-list"></i> {{ __('Type') }}
+                                                    </label>
+                                                    <div>
+                                                        @foreach ($types as $type)
+                                                            <div class="form-check">
+                                                                <input
+                                                                    class="form-check-input @error('type') is-invalid @enderror"
+                                                                    type="checkbox" name="type[]"
+                                                                    id="type_{{ $type }}"
+                                                                    value="{{ $type }}"
+                                                                    {{ in_array($type, explode(',', $structure->type)) ? 'checked' : '' }}
+                                                                    disabled>
+                                                                <label class="form-check-label"
+                                                                    for="type_{{ $type }}">
+                                                                    {{ $type }}
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    @error('type')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                    </div>
+
+                                    {{-- Info Note --}}
+                                    <div class="alert alert-secondary mt-4" role="alert">
+                                        <span class="text-dark">
+                                            <strong>Important Note:</strong><br>
+                                            - Superior can be empty.<br>
+                                            - Is Manager can be empty.<br>
+                                        </span>
+                                    </div>
+
+                                    {{-- Buttons --}}
+                                    <div class="d-flex justify-content-end mt-4">
+                                        <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary me-2">
+                                            <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                        </a>
+                                        <button type="submit" id="edit-btn" class="btn bg-primary">
+                                            <i class="fas fa-save"></i> {{ __('Update') }}
+                                        </button>
+                                    </div>
+                                </form>
+                                {{-- Form end --}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
 @endsection
+
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

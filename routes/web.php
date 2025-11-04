@@ -240,6 +240,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager'])->group(functio
 
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
+
+    
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
         Route::get('/Structures', [StructureController::class, 'index'])
             ->name('pages.Structures');

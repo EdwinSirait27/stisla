@@ -257,12 +257,6 @@
                                                     <div>
                                                         @foreach ($types as $type)
                                                             <div class="form-check">
-                                                                {{-- <input
-                                                                    class="form-check-input @error('type') is-invalid @enderror"
-                                                                    type="checkbox" name="type[]"
-                                                                    id="type_{{ $type }}"
-                                                                    value="{{ $type }}"
-                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}> --}}
                                                                 <input
                                                                     class="form-check-input @error('type') is-invalid @enderror"
                                                                     type="checkbox" name="type[]"

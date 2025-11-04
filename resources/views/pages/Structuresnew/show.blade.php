@@ -1,4 +1,4 @@
-@section('title', 'Show Structuresnew')
+@section('title', 'Show Structures')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -165,126 +165,138 @@
 @extends('layouts.app')
 
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Detail Structuresnew</h1>
-            <div class="section-header-breadcrumb">
-                <div class="breadcrumb-item"><a href="{{ route('pages.Structuresnew') }}">Structure</a></div>
-                <div class="breadcrumb-item">Detail Structuresnew</div>
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Detail Structures</h1>
+                <div class="section-header-breadcrumb">
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Structuresnew') }}">Structure</a></div>
+                    <div class="breadcrumb-item">Detail Structures {{ $structure->position->name }}</div>
+                </div>
             </div>
-        </div>
 
-        <div class="section-body">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header pb-0 px-3">
-                                <h6 class="mb-0">{{ __('Detail Structuresnew') }}</h6>
-                            </div>
+            <div class="section-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header pb-0 px-3">
+                                    <h6 class="mb-0">{{ __('Detail Structures') }} - {{ $structure->position->name }}</h6>
+                                </div>
 
-                            <div class="card-body pt-4 p-3">
-                                {{-- Alert Success --}}
-                                @if (session('success'))
-                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        {{ session('success') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <div class="card-body pt-4 p-3">
+                                    @if (session('success'))
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                            {{ session('success') }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close"></button>
+                                        </div>
+                                    @endif
+
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <tbody>
+                                                <tr>
+                                                    <th width="25%">Company</th>
+                                                    <td>{{ $structure->company->name ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Department</th>
+                                                    <td>{{ $structure->department->department_name ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Location</th>
+                                                    <td>{{ $structure->store->name ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Position</th>
+                                                    <td>{{ $structure->position->name ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Hierarchy</th>
+                                                    <td>{{ $structure->parent->position->name ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Is Manager?</th>
+                                                    <td>
+                                                        @if ($structure->is_manager)
+                                                            <span class="badge bg-success">Yes</span>
+                                                        @else
+                                                            <span class="badge bg-danger">No</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Role Summary</th>
+                                                    <td>{!! $structure->role_summary ?? '<em>Empty</em>' !!}</td>
+
+                                                </tr>
+                                                <tr>
+                                                    <th>Key Responsibility</th>
+                                                    <td>{!! $structure->key_respon ?? '<em>Empty</em>' !!}</td>
+
+
+                                                </tr>
+                                                <tr>
+                                                    <th>Qualifications</th>
+                                                    <td>{!! $structure->qualifications ?? '<em>Empty</em>' !!}</td>
+
+
+                                                </tr>
+                                                <tr>
+                                                    <th>Salary</th>
+                                                    <td>{{ $structure->salary->salary_start ?? '-' }} to
+                                                        {{ $structure->salary->salary_end ?? '-' }}</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <td>
+                                                        @forelse ($structure->type_badges as $badge)
+                                                            <span
+                                                                class="badge bg-{{ $badge['color'] }}">{{ $badge['name'] }}</span>
+                                                        @empty
+                                                            <span class="text-muted">(empty)</span>
+                                                        @endforelse
+                                                    </td>
+                                                </tr>
+
+
+
+
+                                                <tr>
+                                                    <th>Work Location</th>
+                                                    <td>{{ $structure->work_location ?? '-' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Created on date</th>
+                                                    <td>{{ $structure->created_at->format('d M Y, H:i') }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Edited on date</th>
+                                                    <td>{{ $structure->updated_at->format('d M Y, H:i') }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                @endif
 
-                                {{-- Table Detail --}}
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped">
-                                        <tbody>
-                                            <tr>
-                                                <th width="25%">Company</th>
-                                                <td>{{ $structure->company->name ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Department</th>
-                                                <td>{{ $structure->department->name ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Location</th>
-                                                <td>{{ $structure->store->store_name ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Position</th>
-                                                <td>{{ $structure->position->position_name ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Hierarchy</th>
-                                                <td>{{ $structure->parent->position->position_name ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Is Manager?</th>
-                                                <td>
-                                                    @if($structure->is_manager)
-                                                        <span class="badge bg-success">Yes</span>
-                                                    @else
-                                                        <span class="badge bg-danger">No</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Role Summary</th>
-                                                <td>{!! nl2br(e($structure->role_summary)) !!}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Key Responsibility</th>
-                                                <td>{!! nl2br(e($structure->key_respon)) !!}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Qualifications</th>
-                                                <td>{!! nl2br(e($structure->qualifications)) !!}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Salary</th>
-                                                <td>{{ $structure->salary->salary_range ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Type</th>
-                                                <td>
-                                                    @if(is_array($structure->type))
-                                                        @foreach ($structure->type as $t)
-                                                            <span class="badge bg-primary">{{ ucfirst($t) }}</span>
-                                                        @endforeach
-                                                    @else
-                                                        <span class="badge bg-primary">{{ ucfirst($structure->type) }}</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Work Location</th>
-                                                <td>{{ $structure->work_location ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Created At</th>
-                                                <td>{{ $structure->created_at->format('d M Y, H:i') }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Updated At</th>
-                                                <td>{{ $structure->updated_at->format('d M Y, H:i') }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    <div class="d-flex justify-content-end mt-4">
+                                        <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left"></i> {{ __('Back') }}
+                                        </a>
+                                        <a href="{{ route('Structuresnew.edit', $hashedId) }}"
+                                            class="btn btn-primary ms-2">
+                                            <i class="fas fa-edit"></i> {{ __('Edit') }}
+                                        </a>
 
-                                <div class="d-flex justify-content-end mt-4">
-                                    <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left"></i> {{ __('Back') }}
-                                    </a>
-                                    <a href="{{ route('Structuresnew.edit', $structure->id) }}" class="btn btn-primary ms-2">
-                                        <i class="fas fa-edit"></i> {{ __('Edit') }}
-                                    </a>
+
+                                    </div>
                                 </div>
-                            </div> {{-- end card-body --}}
-                        </div> {{-- end card --}}
-                    </div> {{-- end col --}}
-                </div> {{-- end row --}}
-            </div> {{-- end container-fluid --}}
-        </div> {{-- end section-body --}}
-    </section>
-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
 @endsection

@@ -507,10 +507,10 @@
 <div class="main-content">
     <section class="section">
         <div class="section-header">
-            <h1>Create Structuresnew</h1>
+            <h1>Create Structures</h1>
             <div class="section-header-breadcrumb">
                 <div class="breadcrumb-item"><a href="{{ route('pages.Structuresnew') }}">Structure</a></div>
-                <div class="breadcrumb-item">Create Structuresnew</div>
+                <div class="breadcrumb-item">Create Structures</div>
             </div>
         </div>
 
@@ -520,7 +520,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header pb-0 px-3">
-                                <h6 class="mb-0">{{ __('Create Structuresnew') }}</h6>
+                                <h6 class="mb-0">{{ __('Create Structures') }}</h6>
                             </div>
                             <div class="card-body pt-4 p-3">
 
@@ -632,10 +632,10 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="parent_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Hierarchy') }}
+                                                    <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
                                                 </label>
                                                 <select name="parent_id" class="form-control select2 @error('parent_id') is-invalid @enderror">
-                                                    <option value="">Choose Hierarchy</option>
+                                                    <option value="">Choose Superior</option>
                                                     @foreach ($parents as $key => $value)
                                                         <option value="{{ $key }}" {{ old('parent_id') == $key ? 'selected' : '' }}>
                                                             {{ $value }}

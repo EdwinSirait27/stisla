@@ -171,32 +171,88 @@ class StructuresnewController extends Controller
             'hashedId' => $hashedId,
         ]);
     }
-    public function show($hashedId)
-    {
-        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')->get()->first(function ($u) use ($hashedId) {
+//     public function show($hashedId)
+//     {
+//         $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')->get()->first(function ($u) use ($hashedId) {
+//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+//             return $expectedHash === $hashedId;
+//         });
+//         if (!$structure) {
+//             abort(404, 'Structure not found.');
+//         }
+//         $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
+//         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+//         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+//          $salaries = Salary::all()->mapWithKeys(function ($item) {
+//     return [
+//         $item->id => "{$item->salary_start} - {$item->salary_end}"
+//     ];
+// });
+//         return view('pages.Structuresnew.show', [
+//             'structure' => $structure,
+//             'parents' => $parents,
+//             'types' => $types,
+//             'salaries' => $salaries,
+//             'statuses' => $statuses,
+//             'hashedId' => $hashedId,
+//         ]);
+//     }
+public function show($hashedId)
+{
+    $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')
+        ->get()
+        ->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-        if (!$structure) {
-            abort(404, 'Structure not found.');
-        }
-        $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
-        $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
-        $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
-         $salaries = Salary::all()->mapWithKeys(function ($item) {
-    return [
-        $item->id => "{$item->salary_start} - {$item->salary_end}"
-    ];
-});
-        return view('pages.Structuresnew.show', [
-            'structure' => $structure,
-            'parents' => $parents,
-            'types' => $types,
-            'salaries' => $salaries,
-            'statuses' => $statuses,
-            'hashedId' => $hashedId,
-        ]);
+
+    if (!$structure) {
+        abort(404, 'Structure not found.');
     }
+
+   $parents = Structuresnew::with('position')
+    ->get()
+    ->mapWithKeys(function ($item) {
+        return [
+            $item->id => optional($item->position)->name,
+        ];
+    });
+
+    $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+    $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+
+    $salaries = Salary::all()->mapWithKeys(function ($item) {
+        return [
+            $item->id => "{$item->salary_start} - {$item->salary_end}"
+        ];
+    });
+
+    // 💡 Pisahkan dan beri warna sesuai tipe
+    $badgeColors = [
+        'Full Time'   => 'success',
+        'Part Time'   => 'info',
+        'Contract'    => 'warning',
+        'Internship'  => 'secondary',
+        'Remote'      => 'dark',
+        'Urgent'      => 'danger',
+    ];
+
+    // Pastikan field `type` jadi array + beri warna
+    $structure->type_badges = collect(
+        is_array($structure->type) ? $structure->type : explode(',', $structure->type)
+    )->map(function ($t) use ($badgeColors) {
+        $t = trim($t);
+        return [
+            'name' => $t,
+            'color' => $badgeColors[$t] ?? 'primary',
+        ];
+    });
+
+    return view('pages.Structuresnew.show', compact(
+        'structure', 'parents', 'types', 'salaries', 'statuses', 'hashedId'
+    ));
+}
+
 //     public function create()
 //     {
 //         $companys = Company::pluck('nickname', 'id', 'name');
@@ -232,19 +288,19 @@ class StructuresnewController extends Controller
         // dd($request->all());
 
         $validatedData = $request->validate([
-            'company_id' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'department_id' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'parent_id' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-            'store_id' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'position_id' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'salary_id' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'type' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'role_summary' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'key_respon' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'qualifications' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'work_location' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'is_manager' => ['nullable', 'boolean', new NoXSSInput()],
-            'status' => ['nullable', 'string', new NoXSSInput()],
+            'company_id' => ['required', 'string', 'max:255', ],
+            'department_id' => ['required', 'string', 'max:255', ],
+            'parent_id' => ['nullable', 'string', 'max:255', ],
+            'store_id' => ['required', 'string', 'max:255', ],
+            'position_id' => ['required', 'string', 'max:255', ],
+            'salary_id' => ['required', 'string', 'max:255', ],
+            'type' => ['required', 'max:255', ],
+            'role_summary' => ['required', 'string', ],
+            'key_respon' => ['required', 'string', ],
+            'qualifications' => ['required', 'string'],
+            'work_location' => ['required', 'string', 'max:255'],
+            'is_manager' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'string'],
 
         ]);
 
@@ -294,7 +350,7 @@ class StructuresnewController extends Controller
                 'role_summary' => $validatedData['role_summary'],
                 'key_respon' => $validatedData['key_respon'],
                 'qualifications' => $validatedData['qualifications'],
-                'work_flow' => $validatedData['work_flow'],
+                'work_location' => $validatedData['work_location'],
                 'structure_code' => $structureCode,
                 'is_manager' => $validatedData['is_manager'] ?? 0,
                 'status' => $validatedData['status'] ?? 'vacant',
@@ -323,29 +379,29 @@ class StructuresnewController extends Controller
             'is_manager' => [
                 'nullable',
                 'boolean',
-                new NoXSSInput()
+                
             ],
-            'salary_id' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'type' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'role_summary' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'key_respon' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'qualifications' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'work_location' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'salary_id' => ['required', 'string', 'max:255', ],
+            'type' => ['required', 'string', 'max:255', ],
+            'role_summary' => ['required', 'string', 'max:255', ],
+            'key_respon' => ['required', 'string', 'max:255', ],
+            'qualifications' => ['required', 'string', 'max:255', ],
+            'work_location' => ['required', 'string', 'max:255', ],
             // 'status' => [
             //     'required',
             //     'string',
-            //     new NoXSSInput()
+            //     
             // ],
             // 'is_head' => [
             //     'nullable',
             //     'boolean',
-            //     new NoXSSInput()
+            //     
             // ],
             'parent_id' => [
                 'nullable',
                 'string',
                 'max:255',
-                new NoXSSInput()
+                
             ],
         ]);
         $structureeData = [
