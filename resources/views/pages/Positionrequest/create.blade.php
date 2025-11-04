@@ -262,7 +262,7 @@
         </section>
     </div>
 @endsection --}}
-@section('main')
+{{-- @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -437,17 +437,16 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-12">
-                                                <div class="alert alert-secondary mt-4" role="alert">
-                                                    <span class="text-dark">
-                                                        <strong>Important Note:</strong>
+                                           
+                                             <div class="alert alert-secondary mt-4" role="alert">
+                                    <span class="text-dark">
+                                        <strong>Important Note:</strong>
                                                         <br> - please use English to get used to it.
                                                         <br> - Before creating data, please check first whether there is
                                                         already
                                                         similar or identical data to avoid double input.
-                                                    </span>
-                                                </div>
-                                            </div>
+                                    </span>
+                                </div>
 
                                             <div class="col-12 d-flex justify-content-end mt-4">
                                                 <a href="{{ route('pages.Positionrequest') }}" class="btn btn-secondary">
@@ -467,6 +466,220 @@
             </div> 
         </section>
     </div>
+@endsection --}}
+@section('main')
+<div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Create Position Request</h1>
+            <div class="section-header-breadcrumb">
+                <div class="breadcrumb-item">
+                    <a href="{{ route('pages.Positionrequest') }}">Position Request</a>
+                </div>
+                <div class="breadcrumb-item">Create Position Request</div>
+            </div>
+        </div>
+
+        <div class="section-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header pb-0 px-3">
+                                <h6 class="mb-0">{{ __('Create Position Request') }}</h6>
+                            </div>
+
+                            <div class="card-body pt-4 p-3">
+                                {{-- Alert Error --}}
+                                @if ($errors->any())
+                                    <div class="alert alert-danger">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
+                                {{-- Alert Success --}}
+                                @if (session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <span class="alert-text">{{ session('success') }}</span>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <i class="fa fa-close" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                @endif
+
+                                <form id="position-create" action="{{ route('Positionrequest.store') }}" method="POST">
+                                    @csrf
+                                    <div class="row">
+                                        {{-- Position Name --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="position_name" class="form-control-label">
+                                                    <i class="fas fa-user"></i> {{ __('Position Name') }}
+                                                </label>
+                                                <input type="text"
+                                                    class="form-control @error('position_name') is-invalid @enderror"
+                                                    id="position_name" name="position_name"
+                                                    value="{{ old('position_name') }}" required
+                                                    placeholder="Fill Position Name">
+                                                @error('position_name')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Work Location --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="work_location" class="form-control-label">
+                                                    <i class="fas fa-map-marker-alt"></i> {{ __('Work Location') }}
+                                                </label>
+                                                <input type="text"
+                                                    class="form-control @error('work_location') is-invalid @enderror"
+                                                    id="work_location" name="work_location"
+                                                    value="{{ old('work_location') }}" required
+                                                    placeholder="Fill Work Location">
+                                                @error('work_location')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Type --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="type" class="form-control-label">
+                                                    <i class="fas fa-list"></i> {{ __('Type') }}
+                                                </label>
+                                                <div>
+                                                    @foreach ($types as $type)
+                                                        <div class="form-check">
+                                                            <input
+                                                                class="form-check-input @error('type') is-invalid @enderror"
+                                                                type="checkbox" name="type[]" id="type_{{ $type }}"
+                                                                value="{{ $type }}"
+                                                                {{ is_array(old('type')) && in_array($type, old('type')) ? 'checked' : '' }}
+                                                                required>
+                                                            <label class="form-check-label" for="type_{{ $type }}">
+                                                                {{ ucfirst($type) }}
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                @error('type')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Role Summary --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="role_summary" class="form-control-label">
+                                                    <i class="fas fa-file-alt"></i> {{ __('Role Summary') }}
+                                                </label>
+                                                <textarea id="role_summary" name="role_summary"
+                                                    class="form-control @error('role_summary') is-invalid @enderror"
+                                                    rows="8" required>{{ old('role_summary') }}</textarea>
+                                                @error('role_summary')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Key Responsibility --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="key_respon" class="form-control-label">
+                                                    <i class="fas fa-tasks"></i> {{ __('Key Responsibility') }}
+                                                </label>
+                                                <textarea id="key_respon" name="key_respon"
+                                                    class="form-control @error('key_respon') is-invalid @enderror"
+                                                    rows="8" required>{{ old('key_respon') }}</textarea>
+                                                @error('key_respon')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Qualifications --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="qualifications" class="form-control-label">
+                                                    <i class="fas fa-graduation-cap"></i> {{ __('Qualifications') }}
+                                                </label>
+                                                <textarea id="qualifications" name="qualifications"
+                                                    class="form-control @error('qualifications') is-invalid @enderror"
+                                                    rows="8" required>{{ old('qualifications') }}</textarea>
+                                                @error('qualifications')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Notes --}}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="notes" class="form-control-label">
+                                                    <i class="fas fa-sticky-note"></i> {{ __('Notes') }}
+                                                </label>
+                                                <input type="text"
+                                                    class="form-control @error('notes') is-invalid @enderror"
+                                                    id="notes" name="notes" value="{{ old('notes') }}"
+                                                    placeholder="Note from manager requesting additional position">
+                                                @error('notes')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Important Note --}}
+                                        <div class="col-12">
+                                            <div class="alert alert-secondary mt-4" role="alert">
+                                                <span class="text-dark">
+                                                    <strong>Important Note:</strong><br>
+                                                    - Please use English to get used to it.<br>
+                                                    - Before creating data, please check first whether there is already similar or identical data to avoid double input.
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Action Buttons --}}
+                                        <div class="col-12 d-flex justify-content-end mt-4">
+                                            <a href="{{ route('pages.Positionrequest') }}" class="btn btn-secondary">
+                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                            </a>
+                                            <button type="submit" id="create-btn" class="btn bg-primary ms-2">
+                                                <i class="fas fa-save"></i> {{ __('Create') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div> {{-- card-body --}}
+                        </div> {{-- card --}}
+                    </div> {{-- col-12 --}}
+                </div> {{-- row --}}
+            </div> {{-- container-fluid --}}
+        </div> {{-- section-body --}}
+    </section>
+</div>
 @endsection
 
 @push('scripts')

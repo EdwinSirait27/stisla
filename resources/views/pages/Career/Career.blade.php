@@ -393,7 +393,6 @@
         <div class="col-lg-3">
             <div class="filter-section">
                 <h5 class="mb-3">Search Filter</h5>
-                
                 <div class="mb-4">
                     <h6>Job Type</h6>
                     <div class="form-check">
@@ -429,18 +428,6 @@
                         <label class="form-check-label" for="senior">Senior Level</label>
                     </div>
                 </div>
-                
-                {{-- <div class="mb-4">
-                    <h6>Gaji (per bulan)</h6>
-                    <select class="form-select">
-                        <option>Semua Range</option>
-                        <option>< 5 Juta</option>
-                        <option>5 - 10 Juta</option>
-                        <option>10 - 15 Juta</option>
-                        <option>> 15 Juta</option>
-                    </select>
-                </div> --}}
-                
                 <div class="mb-3">
                     <h6>Categories</h6>
                     <select class="form-select">

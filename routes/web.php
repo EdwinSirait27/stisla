@@ -39,6 +39,7 @@ use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\PositionreqController;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\StructuresnewController;
 /*
 |--------------------------------------------------------------------------
@@ -254,6 +255,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager'])->group(functio
 
         Route::get('Structuresnew/create', [StructuresnewController::class, 'create'])->name('Structuresnew.create');
         Route::get('/Structuresnew/edit/{hashedId}', [StructuresnewController::class, 'edit'])->name('Structuresnew.edit');
+        Route::get('/Structuresnew/show/{hashedId}', [StructuresnewController::class, 'show'])->name('Structuresnew.show');
         Route::put('/Structuresnew/{hashedId}', [StructuresnewController::class, 'update'])->name('Structuresnew.update');
         Route::get('/structuresnew/structuresnew', [StructuresnewController::class, 'getStructuresnew'])->name('structuresnew.structuresnew');
         Route::get('/orgchart/orgchart', [StructuresnewController::class, 'getOrgChartData'])->name('orgchart.orgchart');
@@ -431,6 +433,19 @@ Route::group(['middleware' => ['auth', 'permission:RequestPosition']], function 
         
         // Route::resource('Positionrequest', StructureSubmissionController::class);
         Route::get('/positionrequests/positionrequests', [StructureSubmissionController::class, 'getPositionrequests'])->name('positionrequests.positionrequests');
+        
+    });
+Route::group(['middleware' => ['auth', 'permission:Salary']], function () {
+    Route::get('/Salary', [SalaryController::class, 'index'])
+            ->name('pages.Salary');
+        Route::get('Salary/create', [SalaryController::class, 'create'])->name('Salary.create');
+        Route::post('/Salary', [SalaryController::class, 'store'])->name('Salary.store');
+        Route::get('/Salary/edit/{hashedId}', [SalaryController::class, 'edit'])->name('Salary.edit');
+        Route::get('/Salary/show/{hashedId}', [SalaryController::class, 'show'])->name('Salary.show');
+        Route::put('/SalarySalary/{hashedId}', [SalaryController::class, 'update'])->name('Salary.update');
+        
+        // Route::resource('Positionrequest', StructureSubmissionController::class);
+        Route::get('/salaries/salaries', [SalaryController::class, 'getSalaries'])->name('salaries.salaries');
         
     });
 Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], function () {

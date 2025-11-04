@@ -46,10 +46,22 @@
                         </li>
                     </ul>
                 </li>
-                 <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Employee</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Positionrequest') }}">Position Request</a>
+                        </li>
+                        {{-- <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
+                        </li> --}}
+                    </ul>
+                </li>
+                 {{-- <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('Positionrequest') }}"><i class="fas fa-house"></i>
                         <span>Position Request</span></a>
-                </li>
+                </li> --}}
             @endrole
             @role('Admin')
             <li class="nav-item dropdown ">
@@ -167,6 +179,9 @@
                         <li class="{{ Request::is('Grading') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
                         </li>
+                        <li class="{{ Request::is('Salary') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Salary') }}">Salaries</a>
+                        </li>
                        
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
@@ -269,6 +284,9 @@
                         </li>
                         <li class="{{ Request::is('Grading') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
+                        </li>
+                        <li class="{{ Request::is('Salary') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Salary') }}">Salaries</a>
                         </li>
                         
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">

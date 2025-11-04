@@ -25,10 +25,12 @@ class Structuresnew extends Model
         'submitter',
         'company_id',
         'department_id',
+        'salary_id',
         'position_id',
         'store_id',
         'structure_code',
         'is_manager',
+        'type',
         'status',
         'role_summary',
         'key_respon',
@@ -47,6 +49,10 @@ class Structuresnew extends Model
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id', 'id');
+    }
+    public function salary()
+    {
+        return $this->belongsTo(Salary::class, 'salary_id', 'id');
     }
     public function submitter()
     {
