@@ -1,8 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Edit Position Request')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <style>
         .avatar {
             position: relative;
@@ -180,7 +182,8 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Edit Position Request') }} - {{ $position->position_name }}
+                                    <h6 class="mb-0">{{ __('Edit Position Request') }} -
+                                        {{ $submission->positionRelation->name }}
                                     </h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
@@ -205,21 +208,27 @@
                                         </div>
                                     @endif
 
-                                      <form id="position-edit" action="{{ route('Positionrequest.update', $hashedId) }}" method="POST">
+                                    <form id="position-edit" action="{{ route('Positionrequest.update', $hashedId) }}"
+                                        method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="position_name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Position Name') }}
+                                                    <label for="position_id" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Position') }}
                                                     </label>
-                                                    <input type="text"
-                                                        class="form-control @error('position_name') is-invalid @enderror"
-                                                        id="position_name" name="position_name"
-                                                        value="{{ old('position_name', $position->position_name) }}"
-                                                        required placeholder="Fill Position Name">
-                                                    @error('position_name')
+                                                    <select name="position_id"
+                                                        class="form-control select2 @error('position_id') is-invalid @enderror">
+                                                        @foreach ($positions as $id => $name)
+                                                            <option value="{{ $id }}"
+                                                                {{ $submission->position_id == $id ? 'selected' : '' }}>
+                                                                {{ $name }}
+                                                            </option>
+                                                        @endforeach
+
+                                                    </select>
+                                                    @error('position_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -229,50 +238,29 @@
                                             <div class="col-md-6">
 
                                                 <div class="form-group">
-                                                    <label for="work_location" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Work Location') }}
+                                                    <label for="store_id" class="form-control-label">
+                                                        <i class="fas fa-book"></i> {{ __('Location') }}
                                                     </label>
-                                                    <input type="text"
-                                                        class="form-control @error('work_location') is-invalid @enderror"
-                                                        id="work_location" name="work_location"
-                                                        value="{{ old('work_location', $position->work_location) }}"
-                                                        required placeholder="Fill Work Location">
-                                                    @error('work_location')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                          
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="type" class="form-control-label">
-                                                        <i class="fas fa-list"></i> {{ __('Type') }}
-                                                    </label>
-                                                    <div>
-                                                        @foreach ($types as $type)
-                                                            <div class="form-check">
-                                                                <input
-                                                                    class="form-check-input @error('type') is-invalid @enderror"
-                                                                    type="checkbox" name="type[]"
-                                                                    id="type_{{ $type }}"
-                                                                    value="{{ $type }}"
-                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}required>
-                                                                <label class="form-check-label"
-                                                                    for="type_{{ $type }}">
-                                                                    {{ $type }}
-                                                                </label>
-                                                            </div>
+                                                    <select name="store_id"
+                                                        class="form-control select2 @error('store_id') is-invalid @enderror">
+                                                        @foreach ($stores as $id => $name)
+                                                            <option value="{{ $id }}"
+                                                                {{ $submission->store_id == $id ? 'selected' : '' }}>
+                                                                {{ $name }}
+                                                            </option>
                                                         @endforeach
-                                                    </div>
-                                                    @error('type')
+                                                    </select>
+
+
+
+                                                    @error('store_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
                                             </div>
+
 
 
 
@@ -283,7 +271,7 @@
                                                         <i class="fas fa-file-alt"></i> {{ __('Role Summary') }}
                                                     </label>
                                                     <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
-                                                        rows="8"required>{{ old('role_summary', $position->role_summary) }}</textarea>
+                                                        rows="8"required>{{ old('role_summary', $submission->role_summary) }}</textarea>
                                                     @error('role_summary')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -298,7 +286,7 @@
                                                         <i class="fas fa-file-alt"></i> {{ __('Key Responsibility') }}
                                                     </label>
                                                     <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
-                                                        rows="8"required>{{ old('key_respon', $position->key_respon) }}</textarea>
+                                                        rows="8"required>{{ old('key_respon', $submission->key_respon) }}</textarea>
                                                     @error('key_respon')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -311,8 +299,8 @@
                                                     <label for="qualifications" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Qualifications') }}
                                                     </label>
-                                                    <textarea id="qualifications" name="qualifications"
-                                                        class="form-control @error('qualifications') is-invalid @enderror" rows="8"required>{{ old('qualifications', $position->qualifications) }}</textarea>
+                                                    <textarea id="qualifications" name="qualifications" class="form-control @error('qualifications') is-invalid @enderror"
+                                                        rows="8"required>{{ old('qualifications', $submission->qualifications) }}</textarea>
                                                     @error('qualifications')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -322,16 +310,12 @@
                                             </div>
 
                                             <div class="col-md-6">
-
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Notes') }}
                                                     </label>
-                                                    <input type="text"
-                                                        class="form-control @error('notes') is-invalid @enderror"
-                                                        id="notes" name="notes"
-                                                        value="{{ old('notes', $position->notes) }}"
-                                                        placeholder="note from manager requesting additional position">
+                                                    <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3"
+                                                        placeholder="note from manager requesting additional position">{{ old('notes', $submission->notes) }}</textarea>
                                                     @error('notes')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -339,6 +323,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
+
 
                                             <div class="col-12">
                                                 <div class="alert alert-secondary mt-4" role="alert">
@@ -375,8 +360,13 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+    </script>
+    <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung
             Swal.fire({
@@ -443,3 +433,54 @@
         @endif
     </script>
 @endpush
+{{-- <div class="col-md-6">
+
+                                                <div class="form-group">
+                                                    <label for="store_id" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Work Location') }}
+                                                    </label>
+                                                     <select name="store_id"
+                                                            class="form-control @error('store_id') is-invalid @enderror">
+                                                            @foreach ($stores as $store)
+                                                                <option value="{{ $store->id }}"
+                                                                    {{ $position->store->store_id == $store->id ? 'selected' : '' }}>
+                                                                    {{ $store->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    @error('store_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
+
+{{-- <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="type" class="form-control-label">
+                                                        <i class="fas fa-list"></i> {{ __('Type') }}
+                                                    </label>
+                                                    <div>
+                                                        @foreach ($types as $type)
+                                                            <div class="form-check">
+                                                                <input
+                                                                    class="form-check-input @error('type') is-invalid @enderror"
+                                                                    type="checkbox" name="type[]"
+                                                                    id="type_{{ $type }}"
+                                                                    value="{{ $type }}"
+                                                                    {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}required>
+                                                                <label class="form-check-label"
+                                                                    for="type_{{ $type }}">
+                                                                    {{ $type }}
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    @error('type')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}

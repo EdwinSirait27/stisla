@@ -214,6 +214,7 @@
                                                     {{-- <th class="text-center">Is Head?</th> --}}
                                                     <th class="text-center">Direct Superior</th>
                                                     <th class="text-center">Subordinate</th>
+                                                    <th class="text-center">All Subordinate</th>
                                                     <th class="text-center">Status</th>
                                                     <th class="text-center">Action</th>
                                                 </tr>
@@ -239,6 +240,30 @@
                     </div>
                 </div>
             </div>
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Manager Submissions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table-striped" id="submissions-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Manager</th>
+                                    <th class="text-center">Position Request</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">action</th>
+                                    {{-- <th class="text-center">Date</th> --}}
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+
+
 
             {{-- ORG CHART --}}
             <div class="row mt-4">
@@ -259,21 +284,145 @@
     </div>
     </section>
     </div>
-@endsection
 
+
+
+
+    {{-- <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Preview Submission Position</h5>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Company</th>
+                            <td id="preview-company"></td>
+                        </tr>
+                        <tr>
+                            <th>Department</th>
+                            <td id="preview-department"></td>
+                        </tr>
+                        <tr>
+                            <th>Manager Name</th>
+                            <td id="preview-manager"></td>
+                        </tr>
+                        <tr>
+                            <th>Location Request</th>
+                            <td id="preview-store"></td>
+                        </tr>
+                        <tr>
+                            <th>Position Request</th>
+                            <td id="preview-position"></td>
+                        </tr>
+                        <tr>
+                            <th>Role Summary</th>
+                            <td id="preview-role-summary"></td>
+                        </tr>
+                        <tr>
+                            <th>Key Responsibility</th>
+                            <td id="preview-key-responsibility"></td>
+                        </tr>
+                        <tr>
+                            <th>Qualifications</th>
+                            <td id="preview-qualifications"></td>
+                        </tr>
+                        <tr>
+                            <th>HR Approver</th>
+                            <td id="preview-approver1"></td>
+                        </tr>
+                        <tr>
+                            <th>DIR Approver</th>
+                            <td id="preview-approver2"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="preview-status"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div> --}}
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Preview Submission Position</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped align-middle">
+                    <tr><th style="width: 25%;">Company</th><td id="preview-company"></td></tr>
+                    <tr><th>Department</th><td id="preview-department"></td></tr>
+                    <tr><th>Manager Name</th><td id="preview-manager"></td></tr>
+                    <tr><th>Location Request</th><td id="preview-store"></td></tr>
+                    <tr><th>Position Request</th><td id="preview-position"></td></tr>
+                    <tr><th>Role Summary</th><td id="preview-role-summary"></td></tr>
+                    <tr><th>Key Responsibility</th><td id="preview-key-responsibility"></td></tr>
+                    <tr><th>Qualifications</th><td id="preview-qualifications"></td></tr>
+                    <tr><th>HR Approver</th><td id="preview-approver1"></td></tr>
+                    <tr><th>DIR Approver</th><td id="preview-approver2"></td></tr>
+                    <tr><th>Status</th><td id="preview-status"></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@endsection
 @push('scripts')
-    {{-- DataTables & SweetAlert --}}
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    {{-- <script src="https://balkangraph.com/js/latest/OrgChart.js"></script> --}}
     <script src="https://balkan.app/js/OrgChart.js"></script>
-    {{-- <script src="https://d3js.org/d3.v7.min.js"></script> --}}
-    {{-- <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@2"></script> --}}
+    {{-- <script>
+        $(function() {
 
+            // Event untuk tombol preview
+            $(document).on('click', '.preview-btn', function() {
+                $('#preview-company').text($(this).data('company'));
+                $('#preview-department').text($(this).data('department'));
+                $('#preview-manager').text($(this).data('submitter'));
+                $('#preview-store').text($(this).data('store'));
+                $('#preview-position').text($(this).data('position'));
+                $('#preview-role-summary').html($(this).data('role-summary'));
+                $('#preview-key-responsibility').html($(this).data('key-responsibility'));
+                $('#preview-qualifications').html($(this).data('qualifications'));
+
+                $('#preview-approver1').text($(this).data('approver1'));
+                $('#preview-approver2').text($(this).data('approver2'));
+                $('#preview-status').text($(this).data('status'));
+                $('#previewModal').modal('show');
+            });
+        });
+    </script> --}}
+    <script>
+$(function() {
+    $(document).on('click', '.preview-btn', function() {
+        // Text-only fields
+        $('#preview-company').text($(this).data('company'));
+        $('#preview-department').text($(this).data('department'));
+        $('#preview-manager').text($(this).data('submitter'));
+        $('#preview-store').text($(this).data('store'));
+        $('#preview-position').text($(this).data('position'));
+        $('#preview-approver1').text($(this).data('approver1'));
+        $('#preview-approver2').text($(this).data('approver2'));
+        $('#preview-status').text($(this).data('status'));
+
+        // Fields yang berasal dari TinyMCE (berisi HTML)
+       $('#preview-role-summary').html(JSON.parse($(this).data('role-summary') || '""'));
+    $('#preview-key-responsibility').html(JSON.parse($(this).data('key-responsibility') || '""'));
+    $('#preview-qualifications').html(JSON.parse($(this).data('qualifications') || '""'));
+        // Tampilkan modal
+        $('#previewModal').modal('show');
+    });
+});
+</script>
 
     <script>
         $(document).ready(function() {
-            // === DATATABLES ===
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -333,16 +482,7 @@
                                 '<span class="badge bg-danger">No</span>';
                         }
                     },
-                    // {
-                    //     data: 'is_head',
-                    //     name: 'is_head',
-                    //     className: 'text-center',
-                    //     render: function(data) {
-                    //         return data == 1 ?
-                    //             '<span class="badge bg-success">Yes</span>' :
-                    //             '<span class="badge bg-danger">No</span>';
-                    //     }
-                    // },
+
                     {
                         data: 'parent',
                         name: 'parent',
@@ -351,6 +491,11 @@
                     {
                         data: 'children',
                         name: 'children',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'allChildren',
+                        name: 'allChildren',
                         className: 'text-center'
                     },
                     {
@@ -374,7 +519,7 @@
                 initComplete: function() {}
             });
 
-            // === SWEETALERT SUCCESS ===
+
             @if (session('success'))
                 Swal.fire({
                     icon: 'success',
@@ -469,9 +614,9 @@
         `;
 
             const statusColors = {
-                active: '#4CAF50', 
+                active: '#4CAF50',
                 inactive: '#F44336',
-                vacant: '#9E9E9E' 
+                vacant: '#9E9E9E'
             };
 
             const chart = new OrgChart(document.getElementById("tree"), {
@@ -554,6 +699,61 @@
             $('input.payroll-checkbox').prop('checked', !isChecked);
             $(this).data('checked', !isChecked);
             $(this).text(!isChecked ? 'Deselect All' : 'Select All');
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            var table = $('#submissions-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('submissionsreq.submissionsreq') }}',
+                    type: 'GET'
+                },
+                responsive: true,
+                autoWidth: false,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search..."
+                },
+                columns: [{
+                        data: 'sub',
+                        name: 'sub',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: function(data) {
+                            const badges = {
+                                'Accepted': 'success',
+                                'On review': 'warning',
+                                'Pending': 'secondary',
+                                'Draft': 'info',
+                                'Reject': 'danger'
+                            };
+                            return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+
+                ],
+                initComplete: function() {}
+            });
         });
     </script>
 @endpush

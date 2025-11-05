@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Create Position Request')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  
+  <style>
         .avatar {
             position: relative;
         }
@@ -515,7 +517,7 @@
                                     @csrf
                                     <div class="row">
                                         {{-- Position Name --}}
-                                        <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="position_name" class="form-control-label">
                                                     <i class="fas fa-user"></i> {{ __('Position Name') }}
@@ -531,29 +533,55 @@
                                                     </span>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> --}}
+                                        <div class="col-md-6">
+    <div class="form-group">
+        <label for="position_id" class="form-control-label">
+            <i class="fas fa-user"></i> {{ __('Position') }}
+        </label>
+        <select name="position_id"
+            class="form-control select2 @error('position_id') is-invalid @enderror"required>
+            <option value="" selected disabled>Select Position</option>
+            @foreach ($positions as $id => $name)
+                <option value="{{ $id }}" {{ old('position_id') == $id ? 'selected' : '' }}>
+                    {{ $name }}
+                </option>
+            @endforeach
+        </select>
+        @error('position_id')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+        @enderror
+    </div>
+</div>
+
 
                                         {{-- Work Location --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="work_location" class="form-control-label">
-                                                    <i class="fas fa-map-marker-alt"></i> {{ __('Work Location') }}
-                                                </label>
-                                                <input type="text"
-                                                    class="form-control @error('work_location') is-invalid @enderror"
-                                                    id="work_location" name="work_location"
-                                                    value="{{ old('work_location') }}" required
-                                                    placeholder="Fill Work Location">
-                                                @error('work_location')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div>
+                                      <div class="col-md-6">
+    <div class="form-group">
+        <label for="store_id" class="form-control-label">
+            <i class="fas fa-user"></i> {{ __('Location') }}
+        </label>
+        <select name="store_id"
+            class="form-control select2 @error('store_id') is-invalid @enderror" required>
+            <option value="" selected disabled>Select Location</option>
+            @foreach ($stores as $id => $name)
+                <option value="{{ $id }}" {{ old('store_id') == $id ? 'selected' : '' }}>
+                    {{ $name }}
+                </option>
+            @endforeach
+        </select>
+        @error('store_id')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+        @enderror
+    </div>
+</div>
 
                                         {{-- Type --}}
-                                        <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="type" class="form-control-label">
                                                     <i class="fas fa-list"></i> {{ __('Type') }}
@@ -579,7 +607,7 @@
                                                     </span>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> --}}
 
                                         {{-- Role Summary --}}
                                         <div class="col-md-6">
@@ -638,10 +666,14 @@
                                                 <label for="notes" class="form-control-label">
                                                     <i class="fas fa-sticky-note"></i> {{ __('Notes') }}
                                                 </label>
-                                                <input type="text"
+                                                <textarea 
                                                     class="form-control @error('notes') is-invalid @enderror"
                                                     id="notes" name="notes" value="{{ old('notes') }}"
-                                                    placeholder="Note from manager requesting additional position">
+                                                    placeholder="Message for HR department"></textarea>
+
+
+                                                      {{-- <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3"
+                                                        placeholder="note from manager requesting additional position">{{ old('notes', $submission->notes) }}</textarea> --}}
                                                 @error('notes')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -685,6 +717,12 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+      <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+    </script>
     <script>
         document.getElementById('create-btn').addEventListener('click', function(e) {
             e.preventDefault();

@@ -748,7 +748,7 @@
                                         </div>
 
                                         {{-- Work Location --}}
-                                        <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="work_location" class="form-control-label">
                                                     <i class="fas fa-file-alt"></i> {{ __('Work Location') }}
@@ -761,7 +761,7 @@
                                                     <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
 
                                     {{-- Note --}}

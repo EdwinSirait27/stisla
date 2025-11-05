@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    
 @endpush
 <style>
     /* Card Styles */
@@ -184,8 +185,10 @@
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 {{-- <th class="text-center">Positions Key</th> --}}
                                                 <th class="text-center">Position Name</th>
+                                                <th class="text-center">Working Location</th>
                                                 <th class="text-center">HRD Approver</th>
                                                 <th class="text-center">DIR Approver</th>
+                                                <th class="text-center">Remark</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -238,6 +241,11 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'store_name',
+                        name: 'store_name',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'approver1',
                         name: 'approver1',
                         className: 'text-center'
@@ -245,6 +253,11 @@
                     {
                         data: 'approver2',
                         name: 'approver2',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'remark',
+                        name: 'remark',
                         className: 'text-center'
                     },
                  
@@ -256,6 +269,7 @@
                                 'Accepted': 'success',
                                 'On review': 'warning',
                                 'Pending': 'secondary',
+                                'Draft': 'info',
                                 'Reject': 'danger'
                             };
                             return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
@@ -270,8 +284,8 @@
                     }
                 ],
                 initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+                    // $('.dataTables_filter input').addClass('form-control');
+                    // $('.dataTables_length select').addClass('form-control');
                 }
             });
 

@@ -657,14 +657,6 @@
                 </div>
             </div>
 
-
-
-
-
-
-
-
-
             <div class="card mt-4">
                 <div class="card-header">
                     <h5>Employee Activity History</h5>
@@ -677,7 +669,6 @@
                                 <tr>
                                     <th class="text-center">No</th>
                                     <th class="text-center">Description</th>
-                                    {{-- <th>Changes</th> --}}
                                     <th class="text-center">By</th>
                                     <th class="text-center">Date</th>
                                 </tr>
@@ -907,7 +898,7 @@
                     infoFiltered: "(filtered from _MAX_ total entries)"
                 },
                 columns: [
-                  
+
                     {
                         data: 'employee_name',
                         className: 'text-center'
@@ -920,7 +911,7 @@
                         data: 'grading_name',
                         className: 'text-center'
                     },
-                    
+
                     {
                         data: 'oldposition_name',
                         className: 'text-center'
@@ -1034,7 +1025,7 @@
         });
     </script>
 @endpush
-   {{-- <script>
+{{-- <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
                 dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-12"B>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',

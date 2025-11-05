@@ -1,4 +1,4 @@
-@section('title', 'Show Structures')
+@section('title', 'Show Position Request List')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -168,10 +168,10 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Detail Structures</h1>
+                <h1>Detail Position Request List</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Structuresnew') }}">Structure</a></div>
-                    <div class="breadcrumb-item">Detail Structures {{ $structure->position->name }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Positionreqlist') }}">Detail Position Request</a></div>
+                    <div class="breadcrumb-item">Detail Position Request {{ $submission->positionRelation->name }}</div>
                 </div>
             </div>
 
@@ -181,7 +181,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Detail Structures') }} - {{ $structure->position->name }}</h6>
+                                    <h6 class="mb-0">{{ __('Detail Position Request') }} by {{ $submission->submitter->employee_name }}</h6>
                                 </div>
 
                                 <div class="card-body pt-4 p-3">
@@ -198,61 +198,58 @@
                                             <tbody>
                                                 <tr>
                                                     <th width="25%">Company</th>
-                                                    <td>{{ $structure->company->name ?? '-' }}</td>
+                                                    <td>{{ $submission->submitter->structuresnew->company->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Department</th>
-                                                    <td>{{ $structure->department->department_name ?? '-' }}</td>
+                                                    <td>{{ $submission->submitter->structuresnew->department->department_name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Location</th>
-                                                    <td>{{ $structure->store->name ?? '-' }}</td>
+                                                    <td>{{ $submission->store->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Position</th>
-                                                    <td>{{ $structure->position->name ?? '-' }}</td>
+                                                    <th>Position Request</th>
+                                                    <td>{{ $submission->positionRelation->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Hierarchy</th>
-                                                    <td>{{ $structure->parent->position->name ?? '-' }}</td>
+                                                    <th>HRD Approval</th>
+                                                    <td>{{ $submission->approver1->employee_name ?? 'empty' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Is Manager?</th>
-                                                    <td>
-                                                        @if ($structure->is_manager)
-                                                            <span class="badge bg-success">Yes</span>
-                                                        @else
-                                                            <span class="badge bg-danger">No</span>
-                                                        @endif
-                                                    </td>
+                                                    <th>DIR Approval</th>
+                                                    <td>{{ $submission->approver2->employee_name ?? 'empty' }}</td>
                                                 </tr>
-                                                <tr>
+                                              <tr>
                                                     <th>Role Summary</th>
-                                                    <td>{!! $structure->role_summary ?? '<em>Empty</em>' !!}</td>
+                                                    <td>{!! $submission->role_summary ?? '<em>Empty</em>' !!}</td>
 
                                                 </tr>
                                                 <tr>
                                                     <th>Key Responsibility</th>
-                                                    <td>{!! $structure->key_respon ?? '<em>Empty</em>' !!}</td>
-
-
+                                                    <td>{!! $submission->key_respon ?? '<em>Empty</em>' !!}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Qualifications</th>
-                                                    <td>{!! $structure->qualifications ?? '<em>Empty</em>' !!}</td>
-
-
+                                                    <td>{!! $submission->qualifications ?? '<em>Empty</em>' !!}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Salary</th>
-                                                    <td>{{ $structure->salary->salary_start ?? '-' }} to
-                                                        {{ $structure->salary->salary_end ?? '-' }}</td>
+                                                    <th>Reason Reject</th>
+                                                    <td>{{$submission->reason_reject ?? 'Empty' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Manager Notes</th>
+                                                    <td>{{$submission->notes ?? 'Empty' }}</td>
                                                 </tr>
 
-                                                <tr>
-                                                    <th>Type</th>
+                                                {{-- <tr>
+                                                    <th>Status</th>
+                                                    <td>{{$submission->status ?? 'Empty' }}</td>
+                                                </tr> --}}
+                                                  <tr>
+                                                    <th>Status</th>
                                                     <td>
-                                                        @forelse ($structure->type_badges as $badge)
+                                                        @forelse ($submission->type_badges as $badge)
                                                             <span
                                                                 class="badge bg-{{ $badge['color'] }}">{{ $badge['name'] }}</span>
                                                         @empty
@@ -260,36 +257,23 @@
                                                         @endforelse
                                                     </td>
                                                 </tr>
-
-
-
-
-                                                <tr>
-                                                    <th>Work</th>
-                                                    <td>{{ $structure->position->name ?? '-' }}</td>
-                                                </tr>
                                                 <tr>
                                                     <th>Created on date</th>
-                                                    <td>{{ $structure->created_at->format('d M Y, H:i') }}</td>
+                                                    <td>{{ $submission->created_at->format('d M Y, H:i') }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Edited on date</th>
-                                                    <td>{{ $structure->updated_at->format('d M Y, H:i') }}</td>
+                                                    <td>{{ $submission->updated_at->format('d M Y, H:i') }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
 
                                     <div class="d-flex justify-content-end mt-4">
-                                        <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
+                                        <a href="{{ route('pages.Positionreqlist') }}" class="btn btn-secondary">
                                             <i class="fas fa-arrow-left"></i> {{ __('Back') }}
                                         </a>
-                                        {{-- <a href="{{ route('Structuresnew.edit', $hashedId) }}"
-                                            class="btn btn-primary ms-2">
-                                            <i class="fas fa-edit"></i> {{ __('Edit') }}
-                                        </a> --}}
-
-
+                                     
                                     </div>
                                 </div>
                             </div>

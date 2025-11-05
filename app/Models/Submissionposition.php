@@ -1,12 +1,12 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 class Submissionposition extends Model
 {
+    use HasFactory;
+
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -21,7 +21,6 @@ class Submissionposition extends Model
     protected $table = 'submission_position_tables';
     protected $fillable = [
         'employee_id',
-        'position_name',
         'role_summary',
         'key_respon',
         'qualifications',
@@ -30,12 +29,25 @@ class Submissionposition extends Model
         'type',
         'status',
         'notes',
+        'notes_hr',
+        'store_id',
+        'position_id',
         'approver_1',
         'approver_2',
     ];
+    // php artisan tinker
+
     public function submitter()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
+    }
+    public function store()
+    {
+        return $this->belongsTo(Stores::class, 'store_id', 'id');
+    }
+    public function positionRelation()
+    {
+        return $this->belongsTo(Position::class, 'position_id', 'id');
     }
     public function approver1()
     {

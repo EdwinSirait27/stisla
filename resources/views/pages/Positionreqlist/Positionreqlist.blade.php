@@ -186,6 +186,7 @@
                                                 <th class="text-center">Position Request</th>
                                                 <th class="text-center">HRD Approver</th>
                                                 <th class="text-center">DIR Approver</th>
+                                                <th class="text-center">Remark</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -247,6 +248,11 @@
                         name: 'approver2',
                         className: 'text-center'
                     },
+                    {
+                        data: 'remark',
+                        name: 'remark',
+                        className: 'text-center'
+                    },
                  
                      {
                         data: 'status',
@@ -256,6 +262,7 @@
                                 'Accepted': 'success',
                                 'On review': 'warning',
                                 'Pending': 'secondary',
+                                'Draft': 'info',
                                 'Reject': 'danger'
                             };
                             return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
@@ -270,8 +277,8 @@
                     }
                 ],
                 initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
+                    // $('.dataTables_filter input').addClass('form-control');
+                    // $('.dataTables_length select').addClass('form-control');
                 }
             });
 

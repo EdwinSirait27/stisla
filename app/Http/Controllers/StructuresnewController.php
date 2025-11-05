@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Company;
 use App\Models\Departments;
 use App\Models\Stores;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 use App\Models\Structuresnew;
+use App\Models\Submissionposition;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +31,8 @@ class StructuresnewController extends Controller
             'store',
             'position',
             'parent',
-            'children.position', // pastikan load posisi anak
+            'children.position',
+            'allChildren.position',
         ])
             ->select([
                 'id',
@@ -85,6 +88,54 @@ class StructuresnewController extends Controller
 
                 return $childPositions;
             })
+            //     ->addColumn('allChildren', function ($s) {
+            //     $getAllPositions = function ($node) use (&$getAllPositions) {
+            //         $positions = collect();
+
+            //         foreach ($node->children as $child) {
+            //             if ($child->position) {
+            //                 $positions->push($child->position->name);
+            //             }
+            //             $positions = $positions->merge($getAllPositions($child)); // lanjut ke level bawah
+            //         }
+
+            //         return $positions;
+            //     };
+
+            //     $allPositions = $getAllPositions($s)->unique();
+
+            //     if ($allPositions->isEmpty()) {
+            //         return '<span class="text-muted">No Subordinates</span>';
+            //     }
+
+            //     return e($allPositions->implode(', '));
+            // })
+            ->addColumn('allChildren', function ($s) {
+                $getAllPositions = function ($node) use (&$getAllPositions) {
+                    $positions = collect();
+
+                    foreach ($node->children as $child) {
+                        if ($child->position) {
+                            $positions->push($child->position->name);
+                        }
+                        $positions = $positions->merge($getAllPositions($child)); // lanjut ke level bawah
+                    }
+
+                    return $positions;
+                };
+
+                // $allPositions = $getAllPositions($s)->unique();
+                $allPositions = $getAllPositions($s);
+
+
+                if ($allPositions->isEmpty()) {
+                    return '<span class="text-muted">No Subordinates</span>';
+                }
+
+                return e($allPositions->implode(', '));
+            })
+
+
             ->rawColumns([
                 'action',
                 'checkbox',
@@ -93,11 +144,172 @@ class StructuresnewController extends Controller
                 'store_name',
                 'position_name',
                 'parent',
-                'children'
+                'children',
+                'allChildren'
             ])
             ->make(true);
     }
+    //    public function getPositionreqs()
+    // {
 
+    //     $positions = Submissionposition::with(['submitter','approver1','approver2','positionRelation','store'])
+    //         ->select(['id','employee_id','approver_1','approver_2','status','position_id','store_id'])->where('status','Accepted')
+    //         ->get()
+    //         ->map(function ($position) {
+    //             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+
+    //             $lockedStatuses = ['On review', 'Accepted'];
+    //             $showButton = '
+    //                 <a href="' . route('Positionreqlist.show', $position->id_hashed) . '" 
+    //                    class="mx-2" 
+    //                    data-bs-toggle="tooltip" 
+    //                    data-bs-original-title="View details" 
+    //                    title="Show Position Request: ' . e($position->positionRelation->name) . '">
+    //                     <i class="fas fa-eye "></i>
+    //                 </a>';
+    //            if (in_array($position->status, $lockedStatuses)) {
+    //                 $editButton = '
+    //                     <i class="fas fa-lock text-muted mx-2" 
+    //                        data-bs-toggle="tooltip" 
+    //                        title="Edit locked because status: ' . e($position->status) . '"></i>';
+    //             } else {
+    //                 $editButton = '
+    //                     <a href="' . route('Positionreqlist.edit', $position->id_hashed) . '" 
+    //                        class="mx-2" 
+    //                        data-bs-toggle="tooltip" 
+    //                        data-bs-original-title="Edit request" 
+    //                        title="Edit Positionrequest: ' . e($position->positionRelation->name) . '">
+    //                         <i class="fas fa-user-edit text-secondary"></i>
+    //                     </a>';
+    //             }
+
+    //             // Gabungkan action
+    //             $position->action = $showButton . $editButton;
+
+    //             return $position;
+    //         });
+
+    //     return DataTables::of($positions)
+    //        ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
+    //         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
+    //         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
+    //         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+    //         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+    //         ->addColumn('remark', function ($e) {
+    //             return match ($e->status) {
+    //                 'Pending' => 'Do your Duty',
+    //                 'Draft' => ' you have approved this application',
+    //                 'On review' => 'This application has been approved by you, awaiting directors approval',
+    //                 'Accepted' => 'This application has been accepted by directors',
+    //                 default => '-',
+    //             };
+    //         })
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
+    // public function getPositionreqs()
+    // {
+    //     $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+    //         ->select(['id', 'employee_id', 'approver_1', 'approver_2', 'status', 'position_id', 'store_id'])
+    //         ->where('status', 'Accepted')
+    //         ->get()
+    //         ->map(function ($position) {
+    //             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+    //             return $position;
+    //         });
+    //     return DataTables::of($positions)
+    //         ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
+    //         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
+    //         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
+    //         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+    //         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+    //         ->addColumn('remark', function ($e) {
+    //             return match ($e->status) {
+    //                 'Pending' => 'Do your Duty',
+    //                 'Draft' => 'You have approved this application',
+    //                 'On review' => 'Awaiting director approval',
+    //                 'Accepted' => 'Accepted by directors',
+    //                 default => '-',
+    //             };
+    //         })
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
+    public function getPositionreqs()
+{
+    $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+        ->select(['id', 'employee_id', 'approver_1', 'approver_2', 'status', 'position_id', 'store_id','key_respon','role_summary','qualifications'])
+        ->where('status', 'Accepted')
+        ->get()
+        ->map(function ($position) {
+            $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+            return $position;
+        });
+
+    return DataTables::of($positions)
+        ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
+        ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
+        ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
+        ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+        ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+        ->addColumn('remark', function ($e) {
+            return match ($e->status) {
+                'Pending' => 'Do your Duty',
+                'Draft' => 'You have approved this application',
+                'On review' => 'Awaiting director approval',
+                'Accepted' => 'Accepted by directors',
+                default => '-',
+            };
+        })
+        ->addColumn('action', function ($e) {
+            return '<button class="btn btn-sm btn-info preview-btn" 
+                            data-id="'.$e->id.'" 
+                            data-company="'.(optional($e->submitter->structuresnew->company)->name ?? '-').'"
+                            data-department="'.(optional($e->submitter->structuresnew->department)->department_name ?? '-').'"
+                            data-submitter="'.(optional($e->submitter)->employee_name ?? '-').'"
+                            data-position="'.(optional($e->positionRelation)->name ?? '-').'"
+                            data-store="'.(optional($e->store)->name ?? '-').'"
+                             data-role-summary="'.htmlspecialchars(json_encode($e->role_summary), ENT_QUOTES, 'UTF-8').'"
+        data-key-responsibility="'.htmlspecialchars(json_encode($e->key_respon), ENT_QUOTES, 'UTF-8').'"
+        data-qualifications="'.htmlspecialchars(json_encode($e->qualifications), ENT_QUOTES, 'UTF-8').'"
+                            data-approver1="'.(optional($e->approver1)->employee_name ?? '-').'"
+                            data-approver2="'.(optional($e->approver2)->employee_name ?? '-').'"
+                            data-status="'.$e->status.'">
+                        <i class="fas fa-eye"></i> Preview
+                    </button>';
+        })
+        //  ->addColumn('action', function ($e) {
+        //     $company       = optional(optional(optional($e->submitter)->structuresnew)->company)->name ?? '-';
+        //     $department    = optional(optional(optional($e->submitter)->structuresnew)->department)->department_name ?? '-';
+        //     $submitter     = optional($e->submitter)->employee_name ?? '-';
+        //     $position      = optional($e->positionRelation)->name ?? '-';
+        //     $store         = optional($e->store)->name ?? '-';
+        //     $approver1     = optional($e->approver1)->employee_name ?? '-';
+        //     $approver2     = optional($e->approver2)->employee_name ?? '-';
+        //     $status        = $e->status ?? '-';
+        //     $roleSummary   = e($e->role_summary ?? '');
+        //     $keyRespons    = e($e->key_respon ?? '');
+        //     $qualifications = e($e->qualifications ?? '');
+
+        //     return '<button class="btn btn-sm btn-info preview-btn"
+        //                 data-id="'.$e->id.'"
+        //                 data-company="'.$company.'"
+        //                 data-department="'.$department.'"
+        //                 data-submitter="'.$submitter.'"
+        //                 data-position="'.$position.'"
+        //                 data-store="'.$store.'"
+        //                 data-role-summary="'.$roleSummary.'"
+        //                 data-key-responsibility="'.$keyRespons.'"
+        //                 data-qualifications="'.$qualifications.'"
+        //                 data-approver1="'.$approver1.'"
+        //                 data-approver2="'.$approver2.'"
+        //                 data-status="'.$status.'">
+        //                 <i class="fas fa-eye"></i> Preview
+        //             </button>';
+        // })
+        ->rawColumns(['action'])
+        ->make(true);
+}
 
     public function bulkDelete(Request $request)
     {
@@ -156,11 +368,11 @@ class StructuresnewController extends Controller
         $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
-         $salaries = Salary::all()->mapWithKeys(function ($item) {
-    return [
-        $item->id => "{$item->salary_start} - {$item->salary_end}"
-    ];
-});
+        $salaries = Salary::all()->mapWithKeys(function ($item) {
+            return [
+                $item->id => "{$item->salary_start} - {$item->salary_end}"
+            ];
+        });
         return view('pages.Structuresnew.edit', [
             'structure' => $structure,
             'parents' => $parents,
@@ -170,134 +382,171 @@ class StructuresnewController extends Controller
             'hashedId' => $hashedId,
         ]);
     }
-//     public function show($hashedId)
-//     {
-//         $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')->get()->first(function ($u) use ($hashedId) {
-//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//             return $expectedHash === $hashedId;
+    //     public function show($hashedId)
+    //     {
+    //         $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')->get()->first(function ($u) use ($hashedId) {
+    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //             return $expectedHash === $hashedId;
+    //         });
+    //         if (!$structure) {
+    //             abort(404, 'Structure not found.');
+    //         }
+    //         $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
+    //         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+    //         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+    //          $salaries = Salary::all()->mapWithKeys(function ($item) {
+    //     return [
+    //         $item->id => "{$item->salary_start} - {$item->salary_end}"
+    //     ];
+    // });
+    //         return view('pages.Structuresnew.show', [
+    //             'structure' => $structure,
+    //             'parents' => $parents,
+    //             'types' => $types,
+    //             'salaries' => $salaries,
+    //             'statuses' => $statuses,
+    //             'hashedId' => $hashedId,
+    //         ]);
+    //     }
+//     public function see($idHashed)
+// {
+//     $position = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+//         ->get()
+//         ->first(function ($pos) use ($idHashed) {
+//             return substr(hash('sha256', $pos->id . env('APP_KEY')), 0, 8) === $idHashed;
 //         });
-//         if (!$structure) {
-//             abort(404, 'Structure not found.');
-//         }
-//         $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
-//         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
-//         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
-//          $salaries = Salary::all()->mapWithKeys(function ($item) {
-//     return [
-//         $item->id => "{$item->salary_start} - {$item->salary_end}"
-//     ];
-// });
-//         return view('pages.Structuresnew.show', [
-//             'structure' => $structure,
-//             'parents' => $parents,
-//             'types' => $types,
-//             'salaries' => $salaries,
-//             'statuses' => $statuses,
-//             'hashedId' => $hashedId,
-//         ]);
+
+//     if (!$position) {
+//         return response('<p class="text-danger">Data not found.</p>', 404);
 //     }
-public function show($hashedId)
+
+//     return view('Structurenew.partials.see', compact('position'));
+// }
+public function see($idHashed)
 {
-    $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')
+    $structure = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
         ->get()
-        ->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
+        ->first(function ($pos) use ($idHashed) {
+            return substr(hash('sha256', $pos->id . env('APP_KEY')), 0, 8) === $idHashed;
         });
 
     if (!$structure) {
-        abort(404, 'Structure not found.');
+        return response('<p class="text-danger">Data not found.</p>', 404);
     }
 
-   $parents = Structuresnew::with('position')
-    ->get()
-    ->mapWithKeys(function ($item) {
-        return [
-            $item->id => optional($item->position)->name,
-        ];
-    });
+   return view('pages.Structuresnew.partials.see', compact('structure'));
 
-    $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
-    $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
-
-    $salaries = Salary::all()->mapWithKeys(function ($item) {
-        return [
-            $item->id => "{$item->salary_start} - {$item->salary_end}"
-        ];
-    });
-
-    // 💡 Pisahkan dan beri warna sesuai tipe
-    $badgeColors = [
-        'Full Time'   => 'success',
-        'Part Time'   => 'info',
-        'Contract'    => 'warning',
-        'Internship'  => 'secondary',
-        'Remote'      => 'dark',
-        'Urgent'      => 'danger',
-    ];
-
-    // Pastikan field `type` jadi array + beri warna
-    $structure->type_badges = collect(
-        is_array($structure->type) ? $structure->type : explode(',', $structure->type)
-    )->map(function ($t) use ($badgeColors) {
-        $t = trim($t);
-        return [
-            'name' => $t,
-            'color' => $badgeColors[$t] ?? 'primary',
-        ];
-    });
-
-    return view('pages.Structuresnew.show', compact(
-        'structure', 'parents', 'types', 'salaries', 'statuses', 'hashedId'
-    ));
 }
 
-//     public function create()
-//     {
-//         $companys = Company::pluck('nickname', 'id', 'name');
-//         $stores = Stores::pluck('nickname', 'id', 'name');
-       
-//         $salaries = Salary::all()->mapWithKeys(function ($item) {
-//     return [
-//         $item->id => "{$item->salary_start} - {$item->salary_end}"
-//     ];
-// });
 
-//         $departments = Departments::pluck('nickname', 'id', 'department_name');
-//         $positions = Position::pluck('name', 'id', 'name');
-//             $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
 
-//         $parents = Structuresnew::with('position')->get()
-//             ->mapWithKeys(function ($item) {
-//                 return [$item->id => $item->position->name ?? '-'];
-//             });
-//         return view('pages.Structuresnew.create', compact(
-//             'departments',
-//             'stores',
-//             'salaries',
-//             'companys',
-//             'positions',
-//             'types',
-//             'parents'
-//         ));
-//     }
+    public function show($hashedId)
+    {
+        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')
+            ->get()
+            ->first(function ($u) use ($hashedId) {
+                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+                return $expectedHash === $hashedId;
+            });
+
+        if (!$structure) {
+            abort(404, 'Structure not found.');
+        }
+
+        $parents = Structuresnew::with('position')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [
+                    $item->id => optional($item->position)->name,
+                ];
+            });
+
+        $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+        $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+
+        $salaries = Salary::all()->mapWithKeys(function ($item) {
+            return [
+                $item->id => "{$item->salary_start} - {$item->salary_end}"
+            ];
+        });
+
+        // 💡 Pisahkan dan beri warna sesuai tipe
+        $badgeColors = [
+            'Full Time'   => 'success',
+            'Part Time'   => 'info',
+            'Contract'    => 'warning',
+            'Internship'  => 'secondary',
+            'Remote'      => 'dark',
+            'Urgent'      => 'danger',
+        ];
+
+        // Pastikan field `type` jadi array + beri warna
+        $structure->type_badges = collect(
+            is_array($structure->type) ? $structure->type : explode(',', $structure->type)
+        )->map(function ($t) use ($badgeColors) {
+            $t = trim($t);
+            return [
+                'name' => $t,
+                'color' => $badgeColors[$t] ?? 'primary',
+            ];
+        });
+
+        return view('pages.Structuresnew.show', compact(
+            'structure',
+            'parents',
+            'types',
+            'salaries',
+            'statuses',
+            'hashedId'
+        ));
+    }
+
+    //     public function create()
+    //     {
+    //         $companys = Company::pluck('nickname', 'id', 'name');
+    //         $stores = Stores::pluck('nickname', 'id', 'name');
+
+    //         $salaries = Salary::all()->mapWithKeys(function ($item) {
+    //     return [
+    //         $item->id => "{$item->salary_start} - {$item->salary_end}"
+    //     ];
+    // });
+
+    //         $departments = Departments::pluck('nickname', 'id', 'department_name');
+    //         $positions = Position::pluck('name', 'id', 'name');
+    //             $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+
+    //         $parents = Structuresnew::with('position')->get()
+    //             ->mapWithKeys(function ($item) {
+    //                 return [$item->id => $item->position->name ?? '-'];
+    //             });
+    //         return view('pages.Structuresnew.create', compact(
+    //             'departments',
+    //             'stores',
+    //             'salaries',
+    //             'companys',
+    //             'positions',
+    //             'types',
+    //             'parents'
+    //         ));
+    //     }
 
     public function store(Request $request)
     {
         // dd($request->all());
 
         $validatedData = $request->validate([
-            'company_id' => ['required', 'string' ],
-            'department_id' => ['required', 'string' ],
-            'parent_id' => ['nullable', 'string' ],
-            'store_id' => ['required', 'string' ],
-            'position_id' => ['required', 'string' ],
-            'salary_id' => ['required', 'string' ],
+            'company_id' => ['required', 'string'],
+            'department_id' => ['required', 'string'],
+            'parent_id' => ['nullable', 'string'],
+            'store_id' => ['required', 'string'],
+            'position_id' => ['required', 'string'],
+            'salary_id' => ['required', 'string'],
             'type' => ['required'],
             'role_summary' => ['required', 'string'],
             'key_respon' => ['required', 'string'],
             'qualifications' => ['required', 'string'],
-            'work_location' => ['required', 'string'],
+            // 'work_location' => ['required', 'string'],
             'is_manager' => ['nullable', 'boolean'],
             'status' => ['nullable', 'string'],
 
@@ -349,7 +598,7 @@ public function show($hashedId)
                 'role_summary' => $validatedData['role_summary'],
                 'key_respon' => $validatedData['key_respon'],
                 'qualifications' => $validatedData['qualifications'],
-                'work_location' => $validatedData['work_location'],
+                // 'work_location' => $validatedData['work_location'],
                 'structure_code' => $structureCode,
                 'is_manager' => $validatedData['is_manager'] ?? 0,
                 'status' => $validatedData['status'] ?? 'vacant',
@@ -378,14 +627,14 @@ public function show($hashedId)
             'is_manager' => [
                 'nullable',
                 'boolean',
-                
+
             ],
-            'salary_id' => ['required', 'string' ],
-            'type' => ['required', 'string' ],
-            'role_summary' => ['required', 'string' ],
-            'key_respon' => ['required', 'string' ],
-            'qualifications' => ['required', 'string' ],
-            'work_location' => ['required', 'string' ],
+            'salary_id' => ['required', 'string'],
+            'type' => ['required', 'string'],
+            'role_summary' => ['required', 'string'],
+            'key_respon' => ['required', 'string'],
+            'qualifications' => ['required', 'string'],
+            // 'work_location' => ['required', 'string' ],
             // 'status' => [
             //     'required',
             //     'string',
@@ -400,7 +649,7 @@ public function show($hashedId)
                 'nullable',
                 'string',
                 'max:255',
-                
+
             ],
         ]);
         $structureeData = [
@@ -408,7 +657,7 @@ public function show($hashedId)
             'role_summary' => $validatedData['role_summary'],
             'key_respon' => $validatedData['key_respon'],
             'qualifications' => $validatedData['qualifications'],
-            'work_location' => $validatedData['work_location'],
+            // 'work_location' => $validatedData['work_location'],
 
             'is_manager'  => $validatedData['is_manager'] ?? 0,
             'type'          => is_array($validatedData['type'])
@@ -427,16 +676,16 @@ public function show($hashedId)
     {
         $companys = Company::pluck('nickname', 'id', 'name');
         $stores = Stores::pluck('nickname', 'id', 'name');
-       
+
         $salaries = Salary::all()->mapWithKeys(function ($item) {
-    return [
-        $item->id => "{$item->salary_start} - {$item->salary_end}"
-    ];
-});
+            return [
+                $item->id => "{$item->salary_start} - {$item->salary_end}"
+            ];
+        });
 
         $departments = Departments::pluck('nickname', 'id', 'department_name');
         $positions = Position::pluck('name', 'id', 'name');
-            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+        $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
 
         $parents = Structuresnew::with('position')->get()
             ->mapWithKeys(function ($item) {

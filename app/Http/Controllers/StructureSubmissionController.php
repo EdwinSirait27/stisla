@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Position;
+use App\Models\Stores;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Models\Submissionposition;
@@ -17,7 +19,248 @@ class StructureSubmissionController extends Controller
         return view('pages.Positionrequest.Positionrequest', compact('user'));
     }
    
-//     public function getPositionrequests()
+
+public function getPositionrequests()
+{
+    $employeeId = Auth::user()->employee_id;
+
+    $positions = Submissionposition::with(['submitter','approver1','approver2','positionRelation','store'])
+        ->select(['id','employee_id','approver_1','approver_2','status','position_id','store_id'])
+        ->where('employee_id', $employeeId)
+        ->get()
+        ->map(function ($position) {
+            $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+
+            // Daftar status yang dikunci untuk aksi edit
+            $lockedStatuses = ['On review', 'Reject', 'Accepted', 'Draft'];
+
+            // Tombol Show selalu muncul
+            $showButton = '
+                <a href="' . route('Positionrequest.show', $position->id_hashed) . '" 
+                   class="mx-2" 
+                   data-bs-toggle="tooltip" 
+                   data-bs-original-title="View details" 
+                   title="Show Position Request: ' . e($position->positionRelation->name) . '">
+                    <i class="fas fa-eye "></i>
+                </a>';
+
+            // Jika status dikunci, edit digantikan dengan icon lock
+            if (in_array($position->status, $lockedStatuses)) {
+                $editButton = '
+                    <i class="fas fa-lock text-muted mx-2" 
+                       data-bs-toggle="tooltip" 
+                       title="Edit locked because status: ' . e($position->status) . '"></i>';
+            } else {
+                $editButton = '
+                    <a href="' . route('Positionrequest.edit', $position->id_hashed) . '" 
+                       class="mx-2" 
+                       data-bs-toggle="tooltip" 
+                       data-bs-original-title="Edit request" 
+                       title="Edit Positionrequest: ' . e($position->position_name) . '">
+                        <i class="fas fa-user-edit text-secondary"></i>
+                    </a>';
+            }
+
+            // Gabungkan action
+            $position->action = $showButton . $editButton;
+
+            return $position;
+        });
+
+    return DataTables::of($positions)
+        ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+        ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+        ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'empty')
+        ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'empty')
+        ->addColumn('remark', function ($e) {
+            return match ($e->status) {
+                'Pending'   => 'Your application has not been reviewed by the HR Department',
+                'Draft'     => 'Your application is being reviewed by the HR Department',
+                'On review' => 'Your application has been approved by the HR Department, awaiting directors approval',
+                'Reject'    => 'Your application has been Rejected, click show to see the reason',
+                'Accepted'  => 'Your application has been approved by the HR Department, awaiting directors approval',
+                default     => '-',
+            };
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+
+
+    // public function edit($hashedId)
+    // {
+    //     $submission = Submissionposition::with('submitter','approver1','approver2','store','position')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //   $stores = Stores::get()->pluck('name', 'id');
+    //     $positions = Position::get()->pluck('name', 'id');
+
+
+    //     if (!$submission) {
+    //         abort(404, 'Position not found.');
+    //     }
+    //         $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+    //     return view('pages.Positionrequest.edit', [
+    //         'submission' => $submission,
+    //         'positions' => $positions,
+    //         'stores' => $stores,
+    //         'types' => $types,
+    //         'hashedId' => $hashedId       
+    //     ]);
+    // }
+     public function edit($hashedId)
+    {
+        $submission = Submissionposition::with('submitter','approver1','approver2','store','positionRelation')->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+        if (!$submission) {
+            abort(404, 'Position not found.');
+        }
+            $stores = Stores::get()->pluck('name','id');
+        $positions = Position::get()->pluck('name', 'id');
+            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+        return view('pages.Positionrequest.edit', [
+            'submission' => $submission,
+            'stores' => $stores,
+            'positions' => $positions,
+            'types' => $types,
+            'hashedId' => $hashedId
+        ]);
+    }
+    public function show($hashedId)
+    {
+        $submission = Submissionposition::with('submitter','approver1','approver2','positionRelation','store')->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+        if (!$submission) {
+            abort(404, 'submission not found.');
+        }
+          $badgeColors = [
+        'Accepted'   => 'success',
+        'On review'   => 'warning',
+        'Pending'    => 'secondary',
+        'Draft'      => 'info',
+        'Reject'      => 'danger',
+    ];
+     $submission->type_badges = collect(
+        is_array($submission->status) ? $submission->status : explode(',', $submission->status)
+    )->map(function ($t) use ($badgeColors) {
+        $t = trim($t);
+        return [
+            'name' => $t,
+            'color' => $badgeColors[$t] ?? 'primary',
+        ];
+    });
+  $stores = Stores::get()->pluck('name','id');
+        $positions = Position::get()->pluck('name', 'id');
+            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+        return view('pages.Positionrequest.show', [
+            'submission' => $submission,
+            'positions' => $positions,
+            'stores' => $stores,
+            'types' => $types,
+            'hashedId' => $hashedId       
+        ]);
+    }
+    public function create()
+    {
+            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+      $stores = Stores::get()->pluck('name','id');
+        $positions = Position::get()->pluck('name', 'id');
+        //  $stores = Stores::pluck( 'id', 'name');
+        // $positions = Position::pluck( 'id', 'name');
+       
+        return view('pages.Positionrequest.create', compact('types','stores','positions'));
+    }
+
+    public function store(Request $request)
+    {
+      
+        $validatedData = $request->validate([
+            'position_id' => ['required', 'string'],
+            'store_id' => ['required', 'string'],
+            'role_summary' => ['required', 'string'],
+            'key_respon' => ['required', 'string'],
+            'qualifications' => ['required', 'string'],
+            // 'type' => ['required','max:255'],
+            'notes' => ['nullable', 'string','max:255'],
+            'status' => ['nullable', 'string','max:255'],
+            
+        ]);
+        try {
+            DB::beginTransaction();
+            $position = Submissionposition::create([
+                'employee_id'    => Auth::user()->employee_id,
+                'position_id' => $validatedData['position_id'], 
+                'store_id' => $validatedData['store_id'], 
+                'role_summary' => $validatedData['role_summary'], 
+                'key_respon' => $validatedData['key_respon'], 
+                'qualifications' => $validatedData['qualifications'], 
+                'status' => $validatedData['status'] ?? 'Pending', 
+                //  'type'          => is_array($validatedData['type']) 
+                //         ? implode(',', $validatedData['type']) 
+                //         : $validatedData['type'],
+                'notes' => $validatedData['notes'] ?? null, 
+            ]);
+            DB::commit();
+            return redirect()->route('pages.Positionrequest')->with('success', 'Request created Succesfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+    public function update(Request $request, $hashedId)
+    {
+        $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+        if (!$position) {
+            return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
+        }
+       $validatedData = $request->validate([
+        // 'position_name'   => ['required', 'string', 'max:255'],
+        'role_summary'    => ['required', 'string'],
+        'key_respon'      => ['required', 'string'],
+        'store_id'      => ['required', 'string'],
+        'position_id'      => ['required', 'string'],
+        'qualifications'  => ['required', 'string'],
+        // 'work_location'   => ['required', 'string', 'max:255'],
+        // 'type'            => ['required', 'max:255'],
+        'notes'           => ['nullable', 'string', 'max:255'],
+        'status'          => ['nullable', 'string', 'max:255'],
+    ], [
+        'position_name.required' => 'Position must be filled.',
+        'position_name.string'   => 'Position text only.',
+    ]);
+
+        $positionData = [
+            //   'position_name'  => $validatedData['position_name'],
+            'position_id'   => $validatedData['position_id'],
+            'store_id'   => $validatedData['store_id'],
+            'role_summary'   => $validatedData['role_summary'],
+            'key_respon'     => $validatedData['key_respon'],
+            'qualifications' => $validatedData['qualifications'],
+            // 'work_location'  => $validatedData['work_location'],
+            // 'type'           => is_array($validatedData['type'])
+            //                         ? implode(',', $validatedData['type'])
+            //                         : $validatedData['type'],
+            'notes'          => $validatedData['notes'] ?? null,
+            'status'         => $validatedData['status'] ?? $position->status,
+            
+        ];
+        DB::beginTransaction();
+        $position->update($positionData);
+        DB::commit();
+
+        return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
+    }
+    //     public function getPositionrequests()
 // {
 //     $employeeId = Auth::user()->employee_id;
 
@@ -40,170 +283,65 @@ class StructureSubmissionController extends Controller
 //         ->rawColumns(['action'])
 //         ->make(true);
 // }
-public function getPositionrequests()
-{
-    $employeeId = Auth::user()->employee_id;
+// public function getPositionrequests()
+// {
+//     $employeeId = Auth::user()->employee_id;
 
-    $positions = Submissionposition::with(['submitter','approver1','approver2'])
-        ->select(['id','position_name','employee_id','approver_1','approver_2','status'])
-        ->where('employee_id', $employeeId)
-        ->get()
-        ->map(function ($position) {
-            $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+//     $positions = Submissionposition::with(['submitter','approver1','approver2','positionRelation','store'])
+//         ->select(['id','position_name','employee_id','approver_1','approver_2','status','position_id','store_id'])
+//         ->where('employee_id', $employeeId)
+//         ->get()
+//         ->map(function ($position) {
+//             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
 
-            // Cek apakah status termasuk yang dikunci
-            $lockedStatuses = ['On review', 'Reject', 'Accepted'];
+//             // Cek apakah status termasuk yang dikunci
+//             $lockedStatuses = ['On review', 'Reject', 'Accepted','Draft'];
 
-            if (in_array($position->status, $lockedStatuses)) {
-                // Tidak bisa diedit → tampilkan ikon nonaktif
-                $position->action = '
-                    <i class="fas fa-lock text-muted mx-3" 
-                       data-bs-toggle="tooltip" 
-                       title="Tidak dapat diedit karena status: ' . e($position->status) . '"></i>';
-            } else {
-                // Bisa diedit → tampilkan tombol edit
-                $position->action = '
-                    <a href="' . route('Positionrequest.edit', $position->id_hashed) . '" 
-                       class="mx-3" 
-                       data-bs-toggle="tooltip" 
-                       data-bs-original-title="Edit user" 
-                       title="Edit Positionrequest: ' . e($position->position_name) . '">
-                        <i class="fas fa-user-edit text-secondary"></i>
-                    </a>';
-            }
+//             if (in_array($position->status, $lockedStatuses)) {
+//                 $position->action = '
+//                     <i class="fas fa-lock text-muted mx-3" 
+//                        data-bs-toggle="tooltip" 
+//                        title="locked because status: ' . e($position->status) . '"></i>';
+//             } else {
+//                 $position->action = '
+//                     <a href="' . route('Positionrequest.edit', $position->id_hashed) . '" 
+//                        class="mx-3" 
+//                        data-bs-toggle="tooltip" 
+//                        data-bs-original-title="Edit user" 
+//                        title="Edit Positionrequest: ' . e($position->position_name) . '">
+//                         <i class="fas fa-user-edit text-secondary"></i>
+//                     </a>
+//                     <a href="' . route('Positionrequest.show', $position->id_hashed) . '" 
+//                        class="mx-3" 
+//                        data-bs-toggle="tooltip" 
+//                        data-bs-original-title="Show user" 
+//                        title="Edit Positionrequest: ' . e($position->position_name) . '">
+//                         <i class="fas fa-show text-secondary"></i>
+//                     </a>
+//                     ';
+//             }
 
-            return $position;
-        });
+//             return $position;
+//         });
 
-    return DataTables::of($positions)
-        ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
-        ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
-        ->rawColumns(['action'])
-        ->make(true);
-}
-
-    public function edit($hashedId)
-    {
-        $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$position) {
-            abort(404, 'Position not found.');
-        }
-            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
-        return view('pages.Positionrequest.edit', [
-            'position' => $position,
-            'types' => $types,
-            'hashedId' => $hashedId       
-        ]);
-    }
-    public function show($hashedId)
-    {
-        $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$position) {
-            abort(404, 'Position not found.');
-        }
-            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
-        return view('pages.Positionrequest.show', [
-            'position' => $position,
-            'types' => $types,
-            'hashedId' => $hashedId       
-        ]);
-    }
-    public function create()
-    {
-            $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
-        
-        return view('pages.Positionrequest.create', compact('types'));
-    }
-
-    public function store(Request $request)
-    {
-      
-        $validatedData = $request->validate([
-            'position_name' => ['required', 'string','max:255'],
-            'role_summary' => ['required', 'string'],
-            'key_respon' => ['required', 'string'],
-            'qualifications' => ['required', 'string'],
-            'work_location' => ['required', 'string'],
-            'type' => ['required','max:255'],
-            'notes' => ['nullable', 'string','max:255'],
-            'status' => ['nullable', 'string','max:255'],
-            
-        ], [
-            'position_name.required' => 'Position must filled.',
-            'position_name.string' => 'Position text only.',
-        ]);
-        try {
-            DB::beginTransaction();
-            $position = Submissionposition::create([
-                'employee_id'    => Auth::user()->employee_id,
-                'position_name' => $validatedData['position_name'], 
-                'role_summary' => $validatedData['role_summary'], 
-                'key_respon' => $validatedData['key_respon'], 
-                'qualifications' => $validatedData['qualifications'], 
-                'work_location' => $validatedData['work_location'], 
-                'status' => $validatedData['status'] ?? 'Pending', 
-                 'type'          => is_array($validatedData['type']) 
-                        ? implode(',', $validatedData['type']) 
-                        : $validatedData['type'],
-                'notes' => $validatedData['notes'] ?? null, 
-            ]);
-            DB::commit();
-            return redirect()->route('pages.Positionrequest')->with('success', 'Request created Succesfully!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
-                ->withInput();
-        }
-    }
-    public function update(Request $request, $hashedId)
-    {
-        $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$position) {
-            return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
-        }
-       $validatedData = $request->validate([
-        'position_name'   => ['required', 'string', 'max:255'],
-        'role_summary'    => ['required', 'string'],
-        'key_respon'      => ['required', 'string'],
-        'qualifications'  => ['required', 'string'],
-        'work_location'   => ['required', 'string', 'max:255'],
-        'type'            => ['required', 'max:255'],
-        'notes'           => ['nullable', 'string', 'max:255'],
-        'status'          => ['nullable', 'string', 'max:255'],
-    ], [
-        'position_name.required' => 'Position must be filled.',
-        'position_name.string'   => 'Position text only.',
-    ]);
-
-        $positionData = [
-              'position_name'  => $validatedData['position_name'],
-            'role_summary'   => $validatedData['role_summary'],
-            'key_respon'     => $validatedData['key_respon'],
-            'qualifications' => $validatedData['qualifications'],
-            'work_location'  => $validatedData['work_location'],
-            'type'           => is_array($validatedData['type'])
-                                    ? implode(',', $validatedData['type'])
-                                    : $validatedData['type'],
-            'notes'          => $validatedData['notes'] ?? null,
-            'status'         => $validatedData['status'] ?? $position->status,
-            
-        ];
-        DB::beginTransaction();
-        $position->update($positionData);
-        DB::commit();
-
-        return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
-    }
+//     return DataTables::of($positions)
+//         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+//         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+//         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'empty')
+//         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'empty')
+//         ->addColumn('remark', function ($e) {
+//             return match ($e->status) {
+//                 'Pending' => 'Your application has not been reviewed by the HR Department',
+//                 'Draft' => 'Your application is being reviewed by the HR Department',
+//                 'On review' => 'Your application has been approved by the HR Department, awaiting directors approval',
+//                 'Reject' => 'Your application has been Rejected, click show to see the reason',
+//                 'Accepted' => 'Your application has been approved by the HR Department, awaiting directors approval',
+//                 default => '-',
+//             };
+//         })
+//         ->rawColumns(['action'])
+//         ->make(true);
+// }
     // public function index()
     // {
     //     return view('pages.Submissionstructure.Submissionstructure');

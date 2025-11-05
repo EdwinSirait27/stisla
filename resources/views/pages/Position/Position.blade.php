@@ -41,6 +41,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -161,8 +162,6 @@
         }
     }
 </style>
-
-
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -181,8 +180,6 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                {{-- <th class="text-center">No.</th> --}}
-                                                {{-- <th class="text-center">Positions Key</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -200,17 +197,15 @@
                     </div>
                 </div>
             </div>
+          
         </section>
     </div>
 @endsection
 @push('scripts')
-    
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -229,19 +224,6 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    // {
-                    //     data: null,
-                    //     name: 'id',
-                    //     className: 'text-center align-middle',
-                    //     render: function(data, type, row, meta) {
-                    //         return meta.row + meta.settings._iDisplayStart + 1;
-                    //     }
-                    // },
-                    // {
-                    //     data: 'id',
-                    //     name: 'id',
-                    //     className: 'text-center'
-                    // },
                     {
                         data: 'name',
                         name: 'name',
@@ -262,36 +244,57 @@
             });
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
     </script>
-    {{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-      <script src="{{ mix('js/pages/positions.js') }}"></script>
     <script>
-        window.successMessage = "{{ session('success') }}";
-    </script> --}}
-@endpush
-{{-- @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        jQuery(document).ready(function($) {
+            var table = $('#submissions-table').DataTable({
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                ajax: {
+                    url: '{{ route('managersubmissions.managersubmissions') }}',
+                    type: 'GET'
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                },
+                columns: [
+                    {
+                        data: 'name',
+                        name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+            });
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
 
-    <script>
-        window.routes = {
-            positions: '{{ route('positions.positions') }}',
-        };
-        window.sessionSuccess = @json(session('success'));
+        });
     </script>
-
 @endpush
- --}}
- {{-- @section('scripts')
-  
-@endsection --}}

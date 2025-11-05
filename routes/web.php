@@ -240,8 +240,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager'])->group(functio
 
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
-
-    
     Route::group(['middleware' => ['permission:ManageStructures']], function () {
         Route::get('/Structures', [StructureController::class, 'index'])
             ->name('pages.Structures');
@@ -260,11 +258,15 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager'])->group(functio
         Route::get('/Structuresnew/show/{hashedId}', [StructuresnewController::class, 'show'])->name('Structuresnew.show');
         Route::put('/Structuresnew/{hashedId}', [StructuresnewController::class, 'update'])->name('Structuresnew.update');
         Route::get('/structuresnew/structuresnew', [StructuresnewController::class, 'getStructuresnew'])->name('structuresnew.structuresnew');
+        Route::get('/submissionsreq/submissionsreq', [StructuresnewController::class, 'getPositionreqs'])->name('submissionsreq.submissionsreq');
         Route::get('/orgchart/orgchart', [StructuresnewController::class, 'getOrgChartData'])->name('orgchart.orgchart');
         Route::delete('/structures/delete-bulk', [StructuresnewController::class, 'bulkDelete'])->name('structuresnew.bulkDelete');
        
 Route::get('/structuresnew/available-positions', [StructuresnewController::class, 'getAvailablePositions'])
     ->name('Structuresnew.availablePositions');
+    // Route::get('/Structurenew/see/{idHashed}', [StructuresnewController::class, 'see'])
+    // ->name('Structurenew.see');
+    Route::get('/Structuresnew/see/{idHashed}', [StructuresnewController::class, 'see'])->name('Structurenew.see');
 
     });
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
@@ -432,6 +434,7 @@ Route::group(['middleware' => ['auth', 'permission:RequestPosition']], function 
         Route::get('/Positionrequest/edit/{hashedId}', [StructureSubmissionController::class, 'edit'])->name('Positionrequest.edit');
         Route::get('/Positionrequest/show/{hashedId}', [StructureSubmissionController::class, 'show'])->name('Positionrequest.show');
         Route::put('/Positionrequest/{hashedId}', [StructureSubmissionController::class, 'update'])->name('Positionrequest.update');
+        Route::get('/Positionrequest/show/{hashedId}', [StructureSubmissionController::class, 'show'])->name('Positionrequest.show');
         
         // Route::resource('Positionrequest', StructureSubmissionController::class);
         Route::get('/positionrequests/positionrequests', [StructureSubmissionController::class, 'getPositionrequests'])->name('positionrequests.positionrequests');
@@ -454,6 +457,7 @@ Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], funct
     Route::get('/Positionreqlist', [PositionreqController::class, 'index'])
             ->name('pages.Positionreqlist');
         Route::get('/Positionreqlist/edit/{hashedId}', [PositionreqController::class, 'edit'])->name('Positionreqlist.edit');
+        Route::get('/Positionreqlist/show/{hashedId}', [PositionreqController::class, 'show'])->name('Positionreqlist.show');
         Route::put('/Positionreqlist/{hashedId}', [PositionreqController::class, 'update'])->name('Positionreqlist.update');
         Route::get('/positionreqlists/positionreqlists', [PositionreqController::class, 'getPositionreqlists'])->name('positionreqlists.positionreqlists');
 });

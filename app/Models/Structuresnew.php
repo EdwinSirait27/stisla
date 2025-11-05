@@ -8,6 +8,7 @@ use Ramsey\Uuid\Uuid;
 
 class Structuresnew extends Model
 {
+    use HasFactory;
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -90,4 +91,12 @@ class Structuresnew extends Model
     {
         return $this->hasMany(Employee::class, 'structure_id', 'id');
     }
+//     public function allChildren()
+// {
+//     return $this->children()->with('allChildren');
+// }
+public function allChildren()
+{
+    return $this->children()->with('allChildren', 'position');
+}
 }
