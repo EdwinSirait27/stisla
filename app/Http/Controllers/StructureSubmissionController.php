@@ -15,11 +15,8 @@ class StructureSubmissionController extends Controller
       public function index()
     {
         $user = Auth::user();
-
         return view('pages.Positionrequest.Positionrequest', compact('user'));
     }
-   
-
 public function getPositionrequests()
 {
     $employeeId = Auth::user()->employee_id;
@@ -32,7 +29,7 @@ public function getPositionrequests()
             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
 
             // Daftar status yang dikunci untuk aksi edit
-            $lockedStatuses = ['On review', 'Reject', 'Accepted', 'Draft'];
+            $lockedStatuses = ['On Review HR','On Review DIR','Approved HR','Done', 'Reject', 'Accepted','Sent'];
 
             // Tombol Show selalu muncul
             $showButton = '
@@ -68,17 +65,20 @@ public function getPositionrequests()
         });
 
     return DataTables::of($positions)
-        ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
-        ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+        ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'empty')
+        ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'empty')
         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'empty')
         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'empty')
         ->addColumn('remark', function ($e) {
             return match ($e->status) {
-                'Pending'   => 'Your application has not been reviewed by the HR Department',
-                'Draft'     => 'Your application is being reviewed by the HR Department',
-                'On review' => 'Your application has been approved by the HR Department, awaiting directors approval',
+                'Sent'   => 'Your application has been sent to the HR Department',
+                'Draft'     => 'Your application status is Draft, you can still edit this appication',
+                'On Review HR' => 'Your application is being reviewed by the HR Department',
+                'Approved HR' => 'Your application has been reviewed by the HR Department, This application will be sent to the director',
+                'On Review DIR' => 'Your application has been is being reviewed by the Directors',
                 'Reject'    => 'Your application has been Rejected, click show to see the reason',
-                'Accepted'  => 'Your application has been approved by the HR Department, awaiting directors approval',
+                'Done'    => 'This application has entered the structure',
+                'Accepted'  => 'Your application has been approved by directors',
                 default     => '-',
             };
         })
@@ -121,9 +121,11 @@ public function getPositionrequests()
             $stores = Stores::get()->pluck('name','id');
         $positions = Position::get()->pluck('name', 'id');
             $types= ['Full Time', 'Part Time', 'Contract','Internship','Remote','Urgent'];
+            $statuses= ['Draft','Sent'];
         return view('pages.Positionrequest.edit', [
             'submission' => $submission,
             'stores' => $stores,
+            'statuses' => $statuses,
             'positions' => $positions,
             'types' => $types,
             'hashedId' => $hashedId
@@ -140,10 +142,26 @@ public function getPositionrequests()
         }
           $badgeColors = [
         'Accepted'   => 'success',
-        'On review'   => 'warning',
-        'Pending'    => 'secondary',
-        'Draft'      => 'info',
+        'Approved HR'   => 'success',
+        'On Review HR'   => 'info',
+        'On Review DIR'   => 'info',
+        'Draft'      => 'secondary',
+        'Sent'      => 'secondary',
         'Reject'      => 'danger',
+        'Done'      => 'success',
+        // 'Accepted'   => 'success',
+        // 'On review'   => 'warning',
+        // 'Pending'    => 'secondary',
+        // 'Draft'      => 'info',
+        // 'Reject'      => 'danger',
+        //    'Sent'   => 'Your application has been sent to the HR department',
+        //         'Draft'     => 'Your application status is Draft, you can still edit this appication',
+        //         'On Review HR' => 'Your application is being reviewed by the HR Department',
+        //         'Reviewed HR' => 'Your application has been reviewed by the HR Department, This application will be sent to the director',
+        //         'On Review DIR' => 'Your application has been is being reviewed by the Directors',
+        //         'Reviewed DIR' => 'Your application has been reviewed by the Directors, waiting directors approval',
+        //         'Reject'    => 'Your application has been Rejected, click show to see the reason',
+        //         'Accepted'  => 'Your application has been approved by directors',
     ];
      $submission->type_badges = collect(
         is_array($submission->status) ? $submission->status : explode(',', $submission->status)
@@ -199,10 +217,8 @@ public function getPositionrequests()
                 'role_summary' => $validatedData['role_summary'], 
                 'key_respon' => $validatedData['key_respon'], 
                 'qualifications' => $validatedData['qualifications'], 
-                'status' => $validatedData['status'] ?? 'Pending', 
-                //  'type'          => is_array($validatedData['type']) 
-                //         ? implode(',', $validatedData['type']) 
-                //         : $validatedData['type'],
+                'status' => $validatedData['status'] ?? 'Draft', 
+            
                 'notes' => $validatedData['notes'] ?? null, 
             ]);
             DB::commit();
@@ -224,34 +240,27 @@ public function getPositionrequests()
             return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
         }
        $validatedData = $request->validate([
-        // 'position_name'   => ['required', 'string', 'max:255'],
         'role_summary'    => ['required', 'string'],
         'key_respon'      => ['required', 'string'],
         'store_id'      => ['required', 'string'],
         'position_id'      => ['required', 'string'],
         'qualifications'  => ['required', 'string'],
-        // 'work_location'   => ['required', 'string', 'max:255'],
-        // 'type'            => ['required', 'max:255'],
+        'status'  => ['required', 'string'],
         'notes'           => ['nullable', 'string', 'max:255'],
-        'status'          => ['nullable', 'string', 'max:255'],
     ], [
         'position_name.required' => 'Position must be filled.',
         'position_name.string'   => 'Position text only.',
     ]);
 
         $positionData = [
-            //   'position_name'  => $validatedData['position_name'],
             'position_id'   => $validatedData['position_id'],
             'store_id'   => $validatedData['store_id'],
             'role_summary'   => $validatedData['role_summary'],
             'key_respon'     => $validatedData['key_respon'],
+            'status'     => $validatedData['status'],
             'qualifications' => $validatedData['qualifications'],
-            // 'work_location'  => $validatedData['work_location'],
-            // 'type'           => is_array($validatedData['type'])
-            //                         ? implode(',', $validatedData['type'])
-            //                         : $validatedData['type'],
             'notes'          => $validatedData['notes'] ?? null,
-            'status'         => $validatedData['status'] ?? $position->status,
+            // 'status'         => $validatedData['status'] ?? $position->status,
             
         ];
         DB::beginTransaction();

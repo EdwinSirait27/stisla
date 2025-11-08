@@ -262,7 +262,7 @@ class StructuresnewController extends Controller
             };
         })
         ->addColumn('action', function ($e) {
-            return '<button class="btn btn-sm btn-info preview-btn" 
+            return '<button class="btn btn-sm btn-dark preview-btn" 
                             data-id="'.$e->id.'" 
                             data-company="'.(optional($e->submitter->structuresnew->company)->name ?? '-').'"
                             data-department="'.(optional($e->submitter->structuresnew->department)->department_name ?? '-').'"
@@ -344,10 +344,6 @@ class StructuresnewController extends Controller
                     'Position'  => $s->position->name ?? 'Unknown',
                     'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
                     'Grading'  => $s->employee->pluck('grading.grading_name')->join(', ') ?: 'Empty',
-                    //  'Location'     => $s->employee
-                    //                     ->pluck('store.name')
-                    //                     ->unique()
-                    //                     ->join(', ') ?: 'Empty',
                     'Location'  => $s->store->name ?? 'Empty',
                     'status'    => $s->status,
                 ];

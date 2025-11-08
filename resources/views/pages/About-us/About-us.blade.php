@@ -153,15 +153,6 @@
 
 @push('styles')
     <style>
-        /* Hero Section */
-        /* .hero-about {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-                        url('/img/bglagi.jpg') center/cover no-repeat;
-            color: white;
-            text-align: center;
-            padding: 10rem 1rem;
-            position: relative;
-        } */
         .hero-about {
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
                 url('/img/bglagi1.jpg') center/cover no-repeat;
@@ -387,23 +378,7 @@
                         With a focus on the retail industry, we have successfully developed two well-known supermarket
                         brands in Bali: SE Supermarket (Super Ekonomi Supermarket) and Uncle Jo Supermarket.
                     </p>
-                      {{-- <p>
-        <strong>PT. Mahendradata Jaya Mandiri</strong> was established on <strong>November 23, 2012</strong>. 
-        Since its inception, we have been committed to becoming one of the leading retail pioneers in Bali.
-    </p>
-    <p>
-        With a focus on the retail industry, we have successfully developed two well-known supermarket
-        brands in Bali:
-        <a href="https://superekonomi.co.id/" target="_blank" rel="noopener noreferrer" class="brand-link se-link">
-            SE Supermarket (Super Ekonomi Supermarket)
-        </a>
-        and
-        <a href="https://unclejo.co.id/" target="_blank" rel="noopener noreferrer" class="brand-link uj-link">
-            Uncle Jo Supermarket
-        </a>.
-        Our supermarkets are strategically located across Bali, providing easy access to quality products and services 
-        for our customers.
-    </p> --}}
+                 
                 </div>
             </div>
         </div>

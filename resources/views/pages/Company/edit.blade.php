@@ -1,8 +1,10 @@
 @extends('layouts.app')
 @section('title', 'Update Company')
-@push('style')
+@push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <style>
         .avatar {
             position: relative;
@@ -166,7 +168,6 @@
             padding-top: 56.25%;
 
         }
-
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -183,7 +184,6 @@
             <div class="section-header">
                 <h1>Update Company {{ $company->name }}</h1>
                 <div class="section-header-breadcrumb">
-                    {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
                     <div class="breadcrumb-item"><a href="{{ route('pages.Company') }}">Company</a></div>
                     <div class="breadcrumb-item">Update Company {{ $company->name }}</div>
                 </div>
@@ -207,7 +207,6 @@
                                             </ul>
                                         </div>
                                     @endif
-
                                     @if (session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" id="alert-success"
                                             role="alert">
@@ -220,12 +219,10 @@
                                             </button>
                                         </div>
                                     @endif
-
                                     <form id="company-edit" action="{{ route('Company.update', $hashedId) }}" method="POST"
                                         enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
-
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -265,9 +262,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                        </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="foto" class="form-control-label">
@@ -289,8 +285,6 @@
                                                                     onclick="showImageSwal(this.src)">
                                                             @endif
                                                         </div>
-
-                                                        {{-- File Input --}}
                                                         <input class="form-control @error('foto') is-invalid @enderror"
                                                             type="file" id="foto" name="foto" accept="image/*"
                                                             onchange="previewImage(event)">
@@ -320,10 +314,9 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                                </div>
                                             </div>
+                                        </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="npwp" class="form-control-label">
@@ -331,9 +324,10 @@
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('npwp') is-invalid @enderror"
-                                                            value="{{ old('npwp', $company->npwp ?? '') }}" type="text"
-                                                            id="npwp" name="npwp" aria-describedby="info-npwp"
-                                                            placeholder="Insert NPWP Company" maxlength="255">
+                                                            value="{{ old('npwp', $company->npwp ?? '') }}"
+                                                            type="text" id="npwp" name="npwp"
+                                                            aria-describedby="info-npwp" placeholder="Insert NPWP Company"
+                                                            maxlength="255">
                                                         @error('npwp')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -342,18 +336,40 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="remark" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Remark') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="remark"
+                                                            class="form-control select2 @error('remark') is-invalid @enderror"
+                                                            required>
+                                                            <option value="">-- Choose Remark --</option>
+                                                            @foreach ($remarks as $value)
+                                                                <option value="{{ $value }}"
+                                                                    {{ old('remark', $company->remark ?? '') == $value ? 'selected' : '' }}>
+                                                                    {{ $value }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('remark')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-
-
-
-
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a Company name is already registered, you cannot register it again.<br>
                                                 - If a npwp is already registered, you cannot register it again.<br>
                                                 - please use English to get used to it.<br>
-                                                - Before updating data, please check first whether there is already similar or identical data to avoid double input.<br>
+                                                - Before updating data, please check first whether there is already similar
+                                                or identical data to avoid double input.<br>
                                             </span>
                                         </div>
 
@@ -378,17 +394,23 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+</script>
     <script>
         function showImageSwal(src) {
-    Swal.fire({
-        title: 'Preview Image',
-        imageUrl: src,
-        imageAlt: 'Preview',
-        showCloseButton: true,
-        showConfirmButton: false,
-        width: 400
-    });
-}
+            Swal.fire({
+                title: 'Preview Image',
+                imageUrl: src,
+                imageAlt: 'Preview',
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: 400
+            });
+        }
     </script>
     <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {

@@ -15,7 +15,6 @@ class CareerController extends Controller
     public function index()
     {
     $types = Structuresnew::select('type')->distinct()->pluck('type');
-
         return view('pages.Career.Career');
     }
     public function indexabout()

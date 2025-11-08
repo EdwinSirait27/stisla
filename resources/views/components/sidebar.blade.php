@@ -1,17 +1,16 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand bg-dark">
-            <img src="{{ asset('img/abd.png') }}" alt="logo"
-                width="100" class="light mb-5 mt-10">
+            <img src="{{ asset('img/abd.png') }}" alt="logo" width="100" class="light mb-5 mt-10">
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
             <a href="">ABD</a>
         </div>
         <ul class="sidebar-menu">
             {{-- <li class="menu-header">Menu</li> --}}
-             
+
             @role('Human')
-              <li class="{{ Request::is('Dashboard') ? 'active' : '' }}">
+                <li class="{{ Request::is('Dashboard') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('Dashboard') }}"><i class="fas fa-house"></i>
                         <span>Dashboard</span></a>
                 </li>
@@ -27,10 +26,9 @@
                         </li>
                     </ul>
                 </li>
-                
             @endrole
             @role('Manager')
-              <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
+                <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('dashboardManager') }}"><i class="fas fa-house"></i>
                         <span>Dashboard</span></a>
                 </li>
@@ -58,13 +56,43 @@
                         </li> --}}
                     </ul>
                 </li>
-                 {{-- <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
+                {{-- <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('Positionrequest') }}"><i class="fas fa-house"></i>
                         <span>Position Request</span></a>
                 </li> --}}
             @endrole
+            @role('Director')
+                <li class="{{ Request::is('dashboardDirector') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ url('dashboardDirector') }}"><i class="fas fa-house"></i>
+                        <span>Dashboard</span></a>
+                </li>
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Profile</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('feature-profile') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('feature-profile') }}">Profile</a>
+                        </li>
+                        <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
+                        </li>
+                    </ul>
+                       <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                        <span>Employee</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('PositionApproval') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('PositionApproval') }}">Position Request List</a>
+                        </li>
+                        {{-- <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
+                        </li> --}}
+                    </ul>
+                </li>
+                </li>
+            @endrole
             @role('Admin')
-            <li class="nav-item dropdown ">
+                <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Profile</span></a>
                     <ul class="dropdown-menu">
@@ -95,7 +123,7 @@
                     </ul>
                 </li>
             @endrole
-                {{-- <li class="nav-item dropdown ">
+            {{-- <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Profile</span></a>
                     <ul class="dropdown-menu">
@@ -132,9 +160,9 @@
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
                         <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
-                           <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
-                       </li>
-                       <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
+                        </li>
+                        <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
                         </li>
                         <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
@@ -146,14 +174,14 @@
                         <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Shifts</a>
                         </li>
-                         <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
+                        <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>
-                         <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
+                        <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Summaries') }}">Summaries List</a>
                         </li>
-                        
-                        
+
+
 
                     </ul>
                 </li>
@@ -182,7 +210,7 @@
                         <li class="{{ Request::is('Salary') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Salary') }}">Salaries</a>
                         </li>
-                       
+
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
@@ -199,7 +227,7 @@
                         <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Editedfinger') }}">Edited fingerprints</a>
                         </li>
-                      
+
                     </ul>
                 </li>
                 <li class="nav-item dropdown ">
@@ -249,13 +277,13 @@
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">List Employees</a>
                         </li>
-                          <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
+                        <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
                         </li>
-                          <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
+                        <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>
-                         <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
+                        <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Summaries') }}">Summaries List</a>
                         </li>
                         <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
@@ -288,14 +316,14 @@
                         <li class="{{ Request::is('Salary') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Salary') }}">Salaries</a>
                         </li>
-                        
+
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
 
                     </ul>
                 </li>
-                 <li class="nav-item dropdown ">
+                <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Attendance</span></a>
                     <ul class="dropdown-menu">
@@ -305,12 +333,12 @@
                         <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Editedfinger') }}">Edited fingerprints</a>
                         </li>
-                      
+
                     </ul>
                 </li>
             @endrole
 
-          
+
 
             {{-- <li class="{{ Request::is('blank-page') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ url('blank-page') }}"><i class="far fa-square"></i> <span>Blank

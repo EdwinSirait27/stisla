@@ -323,6 +323,30 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                               <div class="col-md-6">
+
+                                                <div class="form-group">
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-book"></i> {{ __('Status') }}
+                                                    </label>
+                                                      <select name="status"
+                                                            class="form-control select2 @error('status') is-invalid @enderror"required>
+                                                            <option value="">-- Choose Status--</option>
+                                                            @foreach ($statuses as $value)
+                                                                <option value="{{ $value }}"
+                                                                    {{ old('status', $submission->status ?? '') == $value ? 'selected' : '' }}>
+                                                                    {{ $value }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+
+                                                    @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
 
 
                                             <div class="col-12">

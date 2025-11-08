@@ -30,6 +30,9 @@ class RedirectIfAuthenticated
         if ($user->can('isHeadHR')) {
             return redirect('/dashboardHR');
         }
+        if ($user->can('isDirector')) {
+            return redirect('/dashboardHR');
+        }
         if ($user->can('isHR')) {
             return redirect('/dashboardHR');
         }

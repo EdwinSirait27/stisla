@@ -7,6 +7,7 @@
         .avatar {
             position: relative;
         }
+
         .iframe-container {
             position: relative;
             overflow: hidden;
@@ -164,7 +165,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create  Company</h1>
+                <h1>Create Company</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item"><a href="{{ route('pages.Company') }}"> Stores</a></div>
                     <div class="breadcrumb-item">Create Company</div>
@@ -191,17 +192,20 @@
                                     @endif
 
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     @endif
 
-                                    <form id="company-create" action="{{ route('Company.store') }}" method="POST" enctype="multipart/form-data">
+                                    <form id="company-create" action="{{ route('Company.store') }}" method="POST"
+                                        enctype="multipart/form-data">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -210,9 +214,10 @@
                                                         <i class="fas fa-user"></i> {{ __('Company Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
-                                                            value="{{ old('name') }}" required
-                                                            placeholder="Fill Company Name">
+                                                        <input type="text"
+                                                            class="form-control @error('name') is-invalid @enderror"
+                                                            id="name" name="name" value="{{ old('name') }}"
+                                                            required placeholder="Fill Company Name">
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -233,22 +238,21 @@
                                                         {{-- Preview Image --}}
                                                         <div class="mb-2">
                                                             @if (!empty($company?->foto))
-                                                                <img id="preview-image" src="{{ asset('storage/company' . $company->foto) }}" alt="Preview" class="img-thumbnail" width="150">
+                                                                <img id="preview-image"
+                                                                    src="{{ asset('storage/company' . $company->foto) }}"
+                                                                    alt="Preview" class="img-thumbnail" width="150">
                                                             @else
-                                                                <img id="preview-image" src="https://via.placeholder.com/150" alt="Preview" class="img-thumbnail" width="150">
+                                                                <img id="preview-image"
+                                                                    src="https://via.placeholder.com/150" alt="Preview"
+                                                                    class="img-thumbnail" width="150">
                                                             @endif
                                                         </div>
-                                            
+
                                                         {{-- File Input --}}
-                                                        <input
-                                                            type="file"
-                                                            name="foto"
-                                                            id="foto" required
+                                                        <input type="file" name="foto" id="foto" required
                                                             class="form-control @error('foto') is-invalid @enderror"
-                                                            accept="image/*"
-                                                            onchange="previewImage(event)"
-                                                        >
-                                            
+                                                            accept="image/*" onchange="previewImage(event)">
+
                                                         @error('foto')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -257,9 +261,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                        </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="address" class="form-control-label">
@@ -267,10 +270,10 @@
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('address') is-invalid @enderror"
-                                                            value="{{ old('address') }}"
-                                                            type="text" id="address" name="address"
-                                                            value="{{ old('address') }}" aria-describedby="info-address"
-                                                            maxlength="255" placeholder="Insert Company Address">
+                                                            value="{{ old('address') }}" type="text" id="address"
+                                                            name="address" value="{{ old('address') }}"
+                                                            aria-describedby="info-address" maxlength="255"
+                                                            placeholder="Insert Company Address">
                                                         @error('address')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -278,7 +281,7 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                        </div>
+                                            </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="nickname" class="form-control-label">
@@ -286,10 +289,10 @@
                                                     </label>
                                                     <div>
                                                         <input class="form-control @error('nickname') is-invalid @enderror"
-                                                            value="{{ old('nickname') }}"
-                                                            type="text" id="nickname" name="nickname"
-                                                            value="{{ old('nickname') }}" aria-describedby="info-address"
-                                                            maxlength="255" placeholder="Insert Company Nickname">
+                                                            value="{{ old('nickname') }}" type="text" id="nickname"
+                                                            name="nickname" value="{{ old('nickname') }}"
+                                                            aria-describedby="info-address" maxlength="255"
+                                                            placeholder="Insert Company Nickname">
                                                         @error('nickname')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -297,35 +300,68 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+                                            </div>
                                         </div>
-                                        </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="npwp" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Company NPWP') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control @error('npwp') is-invalid @enderror"
-                                                            value="{{ old('npwp', $company->npwp ?? '') }}"
-                                                            type="text" id="npwp" name="npwp"
-                                                            value="{{ old('npwp') }}" aria-describedby="info-npwp"
-                                                            maxlength="255" placeholder="Insert npwp Company">
-                                                        @error('npwp')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
+                                        <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="npwp" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Company NPWP') }}
+                                                </label>
+                                                <div>
+                                                    <input class="form-control @error('npwp') is-invalid @enderror"
+                                                        value="{{ old('npwp', $company->npwp ?? '') }}" type="text"
+                                                        id="npwp" name="npwp" value="{{ old('npwp') }}"
+                                                        aria-describedby="info-npwp" maxlength="255"
+                                                        placeholder="Insert npwp Company">
+                                                    @error('npwp')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
                                                 </div>
-                                                </div>  
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="remark" class="form-control-label">
+                                                    <i class="fas fa-id-card"></i> {{ __('Remark') }}
+                                                </label>
+                                                <div>
+                                                    {{-- <input class="form-control select2 @error('remark') is-invalid @enderror"
+                                                        value="{{ old('npwp', $company->npwp ?? '') }}" type="text"
+                                                        id="npwp" name="npwp" value="{{ old('npwp') }}"
+                                                        aria-describedby="info-npwp" maxlength="255"
+                                                        placeholder="Insert npwp Company"> --}}
+                                                           <select name="remark"
+                                                                class="form-control select2 @error('remark') is-invalid @enderror"
+                                                                required>
+                                                                <option value="">Choose Remark</option>
+                                                                @foreach ($remarks as $value)
+                                                                    <option value="{{ $value }}"
+                                                                        {{ old('remark') == $value ? 'selected' : '' }}>
+                                                                        {{ $value }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                    @error('remark')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
+
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a company name is already registered, you cannot register it again.<br>
                                                 - If a npwp is already registered, you cannot register it again.<br>
                                                 - please use English to get used to it.<br>
-                                                - Before creating data, please check first whether there is already similar or identical data to avoid double input.<br>
-                                                
+                                                - Before creating data, please check first whether there is already similar
+                                                or identical data to avoid double input.<br>
+
                                             </span>
                                         </div>
 
@@ -349,27 +385,27 @@
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-<script>
-    document.getElementById('create-btn').addEventListener('click', function(e) {
-     e.preventDefault(); // Mencegah pengiriman form langsung
-     Swal.fire({
-         title: 'Are You Sure?',
-         text: "Make sure the data you entered is correct!",
-         icon: 'warning',
-         showCancelButton: true,
-         confirmButtonColor: '#3085d6',
-         cancelButtonColor: '#d33',
-         confirmButtonText: 'Yes, Assign!',
-         cancelButtonText: 'Abort'
-     }).then((result) => {
-         if (result.isConfirmed) {
-             // Jika pengguna mengkonfirmasi, submit form
-             document.getElementById('company-create').submit();
-         }
-     });
- });
- </script>
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script>
+        document.getElementById('create-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('company-create').submit();
+                }
+            });
+        });
+    </script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -389,16 +425,15 @@
             });
         @endif
 
-    function previewImage(event) {
-        const input = event.target;
-        const reader = new FileReader();
-        reader.onload = function () {
-            document.getElementById('preview-image').src = reader.result;
-        };
-        if (input.files && input.files[0]) {
-            reader.readAsDataURL(input.files[0]);
+        function previewImage(event) {
+            const input = event.target;
+            const reader = new FileReader();
+            reader.onload = function() {
+                document.getElementById('preview-image').src = reader.result;
+            };
+            if (input.files && input.files[0]) {
+                reader.readAsDataURL(input.files[0]);
+            }
         }
-    }
     </script>
 @endpush
-

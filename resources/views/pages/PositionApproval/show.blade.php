@@ -1,4 +1,4 @@
-@section('title', 'Show Position Request')
+@section('title', 'Show Position Approval List')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -163,14 +163,14 @@
     </style>
 @endpush
 @extends('layouts.app')
-
 @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Detail Position Request</h1>
+                <h1>Detail Position Approval List</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Positionrequest') }}">Detail Position Request</a></div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.PositionApproval') }}">Detail Position
+                            Approvals</a></div>
                     <div class="breadcrumb-item">Detail Position Request {{ $submission->positionRelation->name }}</div>
                 </div>
             </div>
@@ -181,7 +181,8 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Detail Position Request') }} by {{ $submission->submitter->employee_name }}</h6>
+                                    <h6 class="mb-0">{{ __('Detail Position Request') }} by
+                                        {{ $submission->submitter->employee_name }}</h6>
                                 </div>
 
                                 <div class="card-body pt-4 p-3">
@@ -198,11 +199,13 @@
                                             <tbody>
                                                 <tr>
                                                     <th width="25%">Company</th>
-                                                    <td>{{ $submission->submitter->structuresnew->company->name ?? '-' }}</td>
+                                                    <td>{{ $submission->submitter->structuresnew->company->name ?? '-' }}
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Department</th>
-                                                    <td>{{ $submission->submitter->structuresnew->department->department_name ?? '-' }}</td>
+                                                    <td>{{ $submission->submitter->structuresnew->department->department_name ?? '-' }}
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Location</th>
@@ -212,21 +215,19 @@
                                                     <th>Position Request</th>
                                                     <td>{{ $submission->positionRelation->name ?? '-' }}</td>
                                                 </tr>
-                                                @if(!is_null($submission->approver_1))
 
                                                 <tr>
                                                     <th>HRD Verifier</th>
                                                     <td>{{ $submission->approver1->employee_name ?? 'empty' }}</td>
                                                 </tr>
-                                                @endif
                                                 @if(!is_null($submission->approver_2))
-
+                                                
                                                 <tr>
                                                     <th>DIR Verifier</th>
                                                     <td>{{ $submission->approver2->employee_name ?? 'empty' }}</td>
                                                 </tr>
                                                 @endif
-                                              <tr>
+                                                <tr>
                                                     <th>Role Summary</th>
                                                     <td>{!! $submission->role_summary ?? '<em>Empty</em>' !!}</td>
 
@@ -239,24 +240,67 @@
                                                     <th>Qualifications</th>
                                                     <td>{!! $submission->qualifications ?? '<em>Empty</em>' !!}</td>
                                                 </tr>
-                                             
-                                                {{-- <tr>
-                                                    <th>Reason Reject by DIR</th>
-                                                    <td>{{$submission->reason_reject_dir ?? 'Empty' }}</td>
-                                                </tr> --}}
                                                 @if(!is_null($submission->notes))
 
                                                 <tr>
-                                                    <th>Your Notes</th>
-                                                    <td>{{$submission->notes ?? 'Empty' }}</td>
+                                                    <th>Manager Notes</th>
+                                                    <td>{{ $submission->notes ?? 'Empty' }}</td>
+                                                </tr>
+                                                @endif
+                                                @if(!is_null($submission->notes_hr))
+
+                                                <tr>
+                                                    <th>HRD Notes</th>
+                                                    <td>{{ $submission->notes_hr ?? 'Empty' }}</td>
                                                 </tr>
                                                 @endif
 
                                                 {{-- <tr>
-                                                    <th>Status</th>
-                                                    <td>{{$submission->status ?? 'Empty' }}</td>
+                                                    <th>Salary set By HR</th>
+                                                    <td>
+                                                        {{ $submission->salary_hr ? number_format($submission->salary_hr, 0, ',', '.') : 'Empty' }}
+                                                    </td>
                                                 </tr> --}}
-                                                  <tr>
+    
+<tr>
+    <th>Salary set By HR</th>
+    <td>{{ number_format($submission->salary_hr, 0, ',', '.') }}</td>
+</tr>
+
+
+                                                <tr>
+                                                    <th>To</th>
+                                                    <td>
+                                                        {{ $submission->salary_hr_end ? number_format($submission->salary_hr_end, 0, ',', '.') : 'Empty' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+
+                                                    <th>Approved Salary by DIR</th>
+                                                    <td>
+                                                        {{ $submission->salary_counter ? number_format($submission->salary_counter, 0, ',', '.') : 'Empty' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>To</th>
+                                                    <td>{{ $submission->salary_counter_end ? number_format($submission->salary_counter_end, 0, ',', '.') : 'Empty' }}
+                                                    </td>
+                                                </tr>
+                                                @if(!is_null($submission->reason_reject))
+
+                                                <tr>
+                                                    <th>Reason Reject by HR</th>
+                                                    <td>{{ $submission->reason_reject ?? 'Empty' }}</td>
+                                                </tr>
+                                                @endif
+                                                @if(!is_null($submission->reason_reject_dir))
+
+                                                <tr>
+                                                    <th>Reason Reject by DIR</th>
+                                                    <td>{{ $submission->reason_reject_dir ?? 'Empty' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    @endif
                                                     <th>Status</th>
                                                     <td>
                                                         @forelse ($submission->type_badges as $badge)
@@ -267,20 +311,6 @@
                                                         @endforelse
                                                     </td>
                                                 </tr>
-                                                @if(!is_null($submission->reason_reject))
-
-                                                <tr>
-                                                    <th>Reason Reject by HR</th>
-                                                    <td>{{$submission->reason_reject ?? 'Empty' }}</td>
-                                                </tr>
-                                                @endif
-                                                @if(!is_null($submission->reason_reject_dir))
-
-                                                <tr>
-                                                    <th>Reason Reject by DIR</th>
-                                                    <td>{{$submission->reason_reject_dir ?? 'Empty' }}</td>
-                                                </tr>
-                                                @endif
                                                 <tr>
                                                     <th>Created on date</th>
                                                     <td>{{ $submission->created_at->format('d M Y, H:i') }}</td>
@@ -292,11 +322,12 @@
                                             </tbody>
                                         </table>
                                     </div>
+
                                     <div class="d-flex justify-content-end mt-4">
-                                        <a href="{{ route('pages.Positionrequest') }}" class="btn btn-secondary">
+                                        <a href="{{ route('pages.PositionApproval') }}" class="btn btn-secondary">
                                             <i class="fas fa-arrow-left"></i> {{ __('Back') }}
                                         </a>
-                                     
+
                                     </div>
                                 </div>
                             </div>

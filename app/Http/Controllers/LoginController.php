@@ -7,10 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use App\Models\Terms;
 use App\Models\UserSession;
-use Illuminate\Support\Str;
-
 class LoginController extends Controller
 {
     public function index()
@@ -47,10 +44,8 @@ class LoginController extends Controller
         'password.min' => 'Password must be at least 8 characters.',
         'password.max' => 'Password cannot be more than 20 characters.',
     ]);
-
     $normalizedUsername = strtolower($request->username);
     $rateLimiterKey = "login:{$normalizedUsername}";
-
     if (RateLimiter::tooManyAttempts($rateLimiterKey, 10)) {
         Log::warning("Rate limiter triggered", [
             'username' => $normalizedUsername,
@@ -59,10 +54,8 @@ class LoginController extends Controller
         ]);
         return back()->withErrors(['/' => 'Too many attempts. Please try again in 1 minute.']);
     }
-
     try {
         $attributes['username'] = $normalizedUsername;
-
         if (!Auth::attempt($attributes, $request->boolean('remember'))) {
             sleep(1);
             Log::warning("Failed login attempt", [
@@ -73,12 +66,9 @@ class LoginController extends Controller
             RateLimiter::hit($rateLimiterKey, 60);
             return back()->withErrors(['/' => 'Wrong usename or Password.']);
         }
-
         $request->session()->regenerate();
         RateLimiter::clear($rateLimiterKey);
-
         $user = Auth::user();
-
         /**
          * 🔍 Cek relasi employee dan status aktif
          */
@@ -87,13 +77,11 @@ class LoginController extends Controller
             RateLimiter::clear($rateLimiterKey);
             return back()->withErrors(['/' => 'Your account is not yet connected to employee data.']);
         }
-
         if ($user->employee->status !== 'Active') {
             Auth::logout();
             RateLimiter::clear($rateLimiterKey);
             return back()->withErrors(['/' => 'Your account is inactive. Please contact HR..']);
         }
-
         /**
          * 🔁 Cek apakah user sudah login di device lain
          */
@@ -101,7 +89,6 @@ class LoginController extends Controller
         $existingSession = UserSession::where('user_id', $user->id)
             ->where('session_id', '!=', $currentSessionId)
             ->first();
-
         if ($existingSession) {
             if (!$request->has('force_login')) {
                 Log::info("User already logged in elsewhere", [
@@ -118,10 +105,8 @@ class LoginController extends Controller
                     'remember' => $request->boolean('remember')
                 ]);
             }
-
             $this->logoutOtherDevices($user, $currentSessionId);
         }
-
         /**
          * 🗂️ Simpan sesi login
          */
@@ -133,7 +118,6 @@ class LoginController extends Controller
                 'device_type' => $request->header('User-Agent')
             ]
         );
-
         /**
          * 🎯 Redirect berdasarkan role (Spatie)
          */
@@ -141,6 +125,7 @@ class LoginController extends Controller
             'Admin' => 'pages.dashboardAdmin',
             'Human' => 'pages.feature-profile',
             'Manager' => 'pages.dashboardManager',
+            'Director' => 'pages.dashboardDirector',
             'HeadHR' => 'pages.dashboardHR',
             'HR' => 'pages.dashboardHR',
             'head-warehouse' => 'pages.dashboardHeadWarehouse',
@@ -148,7 +133,6 @@ class LoginController extends Controller
             'cashier-store' => 'pages.dashboardKasir',
             'supervisor-store' => 'pages.dashboardSupervisor'
         ];
-
         foreach ($dashboardRoutes as $role => $route) {
             if ($user->hasRole($role)) {
                 Log::info("User logged in", [
@@ -160,7 +144,6 @@ class LoginController extends Controller
                 return redirect()->route($route)->with('success', 'Success login, Goodluck!!!');
             }
         }
-
         Log::warning("User has no valid role", [
             'username' => $normalizedUsername,
             'ip' => $request->ip()
@@ -168,7 +151,6 @@ class LoginController extends Controller
         Auth::logout();
         RateLimiter::clear($rateLimiterKey);
         return redirect('/')->with('warning', 'Your account does not have a valid role.');
-
     } catch (\Exception $e) {
         Log::error("Login error", [
             'message' => $e->getMessage(),
@@ -179,7 +161,6 @@ class LoginController extends Controller
         return back()->withErrors(['/' => 'An error occurred. Please try again.']);
     }
 }
-
     // public function store(Request $request)
     // {
     //     $attributes = $request->validate([
@@ -315,9 +296,7 @@ class LoginController extends Controller
         $user = Auth::user();
         if ($user) {
             $user->setRememberToken(null);
-
             UserSession::where('user_id', $user->id)->delete();
-
             $user->save();
         }
         Auth::logout();

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Edit Position Request List')
+@section('title', 'Edit Position Approval List')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -161,18 +161,43 @@
         select.form-control {
             height: 42px;
         }
+        #role_summary {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #key_respon {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #qualifications {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #notes {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #notes_hr {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #notes_dir {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+
     </style>
 @endpush
 @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Edit Position Request List</h1>
+                <h1>Edit Position Approval List</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item">
-                        <a href="{{ route('pages.Positionreqlist') }}">Position Request</a>
+                        <a href="{{ route('pages.PositionApproval') }}">Edit Position Approval</a>
                     </div>
-                    <div class="breadcrumb-item">Edit Position Request List</div>
+                    <div class="breadcrumb-item">Edit Position Approval</div>
                 </div>
             </div>
 
@@ -182,7 +207,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Edit Position Request List') }} from
+                                    <h6 class="mb-0">{{ __('Edit Position Position Approval') }} from
                                         {{ $position->submitter->employee_name }} for
                                         {{ $position->positionRelation->name }}
                                     </h6>
@@ -209,7 +234,7 @@
                                         </div>
                                     @endif
 
-                                    <form id="position-edit" action="{{ route('Positionreqlist.update', $hashedId) }}"
+                                    <form id="position-edit" action="{{ route('PositionApproval.update', $hashedId) }}"
                                         method="POST">
                                         @csrf
                                         @method('PUT')
@@ -264,7 +289,7 @@
                                                                     id="type_{{ $type }}"
                                                                     value="{{ $type }}"
                                                                     {{ in_array($type, explode(',', $position->type)) ? 'checked' : '' }}
-                                                                    required>
+                                                                    disabled>
 
                                                                 <label class="form-check-label"
                                                                     for="type_{{ $type }}">
@@ -289,10 +314,8 @@
                                                     <label for="role_summary" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Role Summary') }}
                                                     </label>
-                                                    {{-- <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
-                                                        rows="8"disabled>{{ old('role_summary', $position->role_summary) }}</textarea> --}}
-                                                    <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
-                                                        rows="8" disabled>{{ html_entity_decode(strip_tags(old('role_summary', $position->role_summary))) }}</textarea>
+                                                  <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
+                                                         disabled>{{ html_entity_decode(strip_tags(old('role_summary', $position->role_summary))) }}</textarea>
 
                                                     @error('role_summary')
                                                         <span class="invalid-feedback" role="alert">
@@ -355,13 +378,28 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Notes From Manager') }}
+                                                        <i class="fas fa-file-alt"></i> {{ __('Notes by Manager') }}
                                                     </label>
 
                                                     <textarea id="notes" name="notes" class="form-control @error('notes') is-invalid @enderror" rows="8"
                                                         placeholder="message from manager to HR" disabled>{{ old('notes', $position->notes) }}</textarea>
 
                                                     @error('notes')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                             <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="notes_hr" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Notes by HRD') }}
+                                                    </label>
+                                                    <textarea id="notes_hr" name="notes_hr" class="form-control @error('notes_hr') is-invalid @enderror" rows="8"
+                                                        placeholder="message from HR to DIR" disabled>{{ old('notes_hr', $position->notes_hr) }}</textarea>
+
+                                                    @error('notes_hr')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -378,7 +416,7 @@
                                                         class="form-control @error('salary_hr') is-invalid @enderror"
                                                         value="{{ old('salary_hr', $position->salary_hr) }}"
                                                         placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  required>
+                                                        inputmode="numeric" disabled>
                                                     @error('salary_hr')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -396,7 +434,7 @@
                                                         class="form-control @error('salary_hr_end') is-invalid @enderror"
                                                         value="{{ old('salary_hr_end', $position->salary_hr_end) }}"
                                                         placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  required>
+                                                        inputmode="numeric"  disabled>
                                                     @error('salary_hr_end')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -414,7 +452,7 @@
                                                         class="form-control @error('salary_counter') is-invalid @enderror"
                                                         value="{{ old('salary_counter', $position->salary_counter) }}"
                                                         placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  disabled>
+                                                        inputmode="numeric"  required>
                                                     @error('salary_counter')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -432,7 +470,7 @@
                                                         class="form-control @error('salary_counter_end') is-invalid @enderror"
                                                         value="{{ old('salary_counter_end', $position->salary_counter_end) }}"
                                                         placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  disabled>
+                                                        inputmode="numeric"  required>
                                                     @error('salary_counter_end')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -444,49 +482,18 @@
 
 
 
+                                           
+                                          
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="notes_hr" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Notes to DIR') }}
+                                                    <label for="notes_dir" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Notes by DIR') }}
                                                     </label>
-                                                    <textarea id="notes_hr" name="notes_hr" class="form-control @error('notes_hr') is-invalid @enderror" rows="8"
-                                                        placeholder="message from HR to DIR">{{ old('notes_hr', $position->notes_hr) }}</textarea>
+                                                    <textarea id="notes_dir" name="notes_dir"
+                                                        class="form-control @error('notes_dir') is-invalid @enderror" rows="8"
+                                                        placeholder="Notes DIR" >{{ old('notes_dir', $position->notes_dir) }}</textarea>
 
-                                                    @error('notes_hr')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-
-                                                <div class="form-group">
-                                                    <label for="reason_reject" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject by HR') }}
-                                                    </label>
-                                                    <input type="text"
-                                                        class="form-control @error('reason_reject') is-invalid @enderror"
-                                                        id="reason_reject" name="reason_reject"
-                                                        value="{{ old('reason_reject', $position->reason_reject) }}"
-                                                        placeholder="message from HR to manager if Draft (manager typo or unclear meaning) or reason for rejection">
-                                                    @error('reason_reject')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="reason_reject_dir" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject DIR') }}
-                                                    </label>
-                                                    <textarea id="reason_reject_dir" name="reason_reject_dir"
-                                                        class="form-control @error('reason_reject_dir') is-invalid @enderror" rows="8"
-                                                        placeholder="Reason reject from DIR" disabled>{{ old('reason_reject_dir', $position->reason_reject_dir) }}</textarea>
-
-                                                    @error('reason_reject_dir')
+                                                    @error('notes_dir')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>

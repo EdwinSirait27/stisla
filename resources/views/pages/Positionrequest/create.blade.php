@@ -686,7 +686,10 @@
                                         <div class="col-12">
                                             <div class="alert alert-secondary mt-4" role="alert">
                                                 <span class="text-dark">
-                                                    <strong>Important Note:</strong><br>
+                                                    <strong>Important Note:</strong>
+                                                    <br>
+                                                    Notes can be blank, but if there is something you want to share with HR department, you can fill it in
+                                                    <br>
                                                     - Please use English to get used to it.<br>
                                                     - Before creating data, please check first whether there is already similar or identical data to avoid double input.
                                                 </span>

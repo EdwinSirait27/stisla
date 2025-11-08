@@ -184,8 +184,6 @@
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Submitter</th>
                                                 <th class="text-center">Position Request</th>
-                                                <th class="text-center">HRD Approver</th>
-                                                <th class="text-center">DIR Approver</th>
                                                 <th class="text-center">Remark</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
@@ -238,16 +236,7 @@
                         name: 'position_name',
                         className: 'text-center'
                     },
-                    {
-                        data: 'approver1',
-                        name: 'approver1',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'approver2',
-                        name: 'approver2',
-                        className: 'text-center'
-                    },
+                  
                     {
                         data: 'remark',
                         name: 'remark',
@@ -260,6 +249,7 @@
                         render: function(data) {
                             const badges = {
                                 'Accepted': 'success',
+                                'Approved HR': 'success',
                                 'On review': 'warning',
                                 'Pending': 'secondary',
                                 'Draft': 'info',

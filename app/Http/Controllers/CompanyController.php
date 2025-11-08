@@ -18,7 +18,7 @@ class CompanyController extends Controller
     }
     public function getCompanys()
     {
-        $companys = Company::select(['id', 'foto', 'name', 'address', 'npwp','nickname'])
+        $companys = Company::select(['id', 'foto', 'name', 'address', 'npwp','nickname','remark'])
             ->get()
             ->map(function ($company) {
                 $company->id_hashed = substr(hash('sha256', $company->id . env('APP_KEY')), 0, 8);
@@ -40,19 +40,23 @@ class CompanyController extends Controller
             return $expectedHash === $hashedId;
         });
 
+        $remarks = ['Holding','Unit'];
+
         if (!$company) {
             abort(404, 'company not found.');
         }
 
         return view('pages.Company.edit', [
             'company' => $company,
+            'remarks' => $remarks,
             'hashedId' => $hashedId,
         ]);
     }
     public function create()
     {
+        $remarks = ['Holding','Unit'];
 
-        return view('pages.Company.create');
+        return view('pages.Company.create',compact('remarks'));
     }
 
     public function store(Request $request)
@@ -69,6 +73,9 @@ class CompanyController extends Controller
         'nickname' => [
             'required','string', 'max:255', new NoXSSInput()
         ],
+        'remark' => [
+            'required','string', new NoXSSInput()
+        ],
         'npwp' => [
             'required', 'max:255', 'unique:company_tables,npwp', new NoXSSInput()
         ],
@@ -76,6 +83,7 @@ class CompanyController extends Controller
 
     ], [
         'name.required' => 'name wajib diisi.',
+        'remark.required' => 'remark wajib diisi.',
         'name.string' => 'name hanya boleh berupa teks.',
         'name.max' => 'name maksimal terdiri dari 255 karakter.',
         'name.unique' => 'name sudah ada.',
@@ -100,6 +108,7 @@ class CompanyController extends Controller
         Company::create([
             'foto' => $filePath,
             'name' => $validatedData['name'],
+            'remark' => $validatedData['remark'],
             'npwp' => $validatedData['npwp'],
             'nickname' => $validatedData['nickname'],
             'address' => $validatedData['address'],
@@ -139,6 +148,10 @@ class CompanyController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
+            'remark' => [
+                'required',
+                new NoXSSInput()
+            ],
             'nickname' => [
                 'required',
                 'max:255',
@@ -152,6 +165,7 @@ class CompanyController extends Controller
             'foto' => ['nullable', 'image', 'max:512'],
         ], [
             'name.required' => 'name wajib diisi.',
+            'remark.required' => 'remark wajib diisi.',
             'name.string' => 'name hanya boleh berupa teks.',
             'name.max' => 'name maksimal terdiri dari 255 karakter.',
             'name.unique' => 'name sudah ada.',
@@ -180,15 +194,14 @@ class CompanyController extends Controller
         $companyData = [
             'name' => $validatedData['name'],
             'nickname' => $validatedData['nickname'],
+            'remark' => $validatedData['remark'],
             'address' => $validatedData['address'],
             'npwp' => $validatedData['npwp'],
         ];
-        
         // Hanya masukkan foto kalau ada file baru
         if ($request->hasFile('foto')) {
             $companyData['foto'] = $filePath;
         }
-        
         DB::beginTransaction();
         $company->update($companyData);
         DB::commit();

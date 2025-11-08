@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
-    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -190,6 +189,7 @@
                                                 <th class="text-center">Nickname</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">NPWP</th>
+                                                <th class="text-center">Remark</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -259,6 +259,7 @@
                 { data: 'nickname', name: 'nickname', className: 'text-center' },
                 { data: 'address', name: 'address', className: 'text-center' },
                 { data: 'npwp', name: 'npwp', className: 'text-center' },
+                { data: 'remark', name: 'remark', className: 'text-center' },
                
                 {
                     data: 'action',
