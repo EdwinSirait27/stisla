@@ -286,6 +286,13 @@
                                                     <td>{{ $submission->salary_counter_end ? number_format($submission->salary_counter_end, 0, ',', '.') : 'Empty' }}
                                                     </td>
                                                 </tr>
+                                                   @if(!is_null($submission->notes_dir))
+
+                                                <tr>
+                                                    <th>Your Notes</th>
+                                                    <td>{{ $submission->notes_dir ?? 'Empty' }}</td>
+                                                </tr>
+                                                @endif
                                                 @if(!is_null($submission->reason_reject))
 
                                                 <tr>

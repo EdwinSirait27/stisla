@@ -30,7 +30,7 @@ class PositionreqController extends Controller
             $position->status = 'Draft';
         }
         $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-        $lockedStatuses = ['Reviewed HR','Done', 'Accepted','Approved HR'];
+        $lockedStatuses = ['Done', 'Accepted','Approved HR','Reject'];
         $showButton = '
         <a href="' . route('Positionreqlist.show', $position->id_hashed) . '" 
            class="mx-2" 
@@ -161,8 +161,8 @@ class PositionreqController extends Controller
     }
         $badgeColors = [
             'Accepted'   => 'success',
-            'On Review HR '   => 'info',
-            'Approved HR '   => 'success',
+            'On Review HR'   => 'info',
+            'Approved HR'   => 'success',
             'Draft'      => 'secondary',
             'Reject'      => 'danger',
             'Done'      => 'success',
@@ -202,6 +202,7 @@ class PositionreqController extends Controller
 
         $validatedData = $request->validate([
             'status'        => ['required', 'string', 'max:255'],
+            'notes_hr'        => ['required', 'string'],
             'type'        => ['required'],
             'salary_hr'        => ['required','regex:/^[0-9]+$/'],
             'salary_hr_end'        => ['required','regex:/^[0-9]+$/'],

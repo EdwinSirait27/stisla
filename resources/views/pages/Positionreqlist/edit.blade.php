@@ -161,6 +161,30 @@
         select.form-control {
             height: 42px;
         }
+            #role_summary {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #key_respon {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #qualifications {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #notes {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #notes_hr {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
+        #notes_dir {
+    height: 200px;
+    resize: vertical; /* biar masih bisa diubah manual */
+}
     </style>
 @endpush
 @section('main')
@@ -404,7 +428,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="salary_counter" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Approved Salary by DIR') }}
@@ -421,8 +445,8 @@
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div>
-                                            <div class="col-md-6">
+                                            </div> --}}
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="salary_counter_end" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('To') }}
@@ -439,7 +463,7 @@
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div>
+                                            </div> --}}
 
 
 
@@ -477,7 +501,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="reason_reject_dir" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Reason Reject DIR') }}
@@ -492,7 +516,7 @@
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                             <div class="col-md-6">
 
                                                 <div class="form-group">

@@ -538,7 +538,7 @@
                                             </div>
 
                                             <div class="col-12 d-flex justify-content-end mt-4">
-                                                <a href="{{ route('pages.Positionreqlist') }}" class="btn btn-secondary">
+                                                <a href="{{ route('pages.PositionApproval') }}" class="btn btn-secondary">
                                                     <i class="fas fa-times"></i> {{ __('Cancel') }}
                                                 </a>
                                                 <button type="submit" id="edit-btn" class="btn bg-primary ">

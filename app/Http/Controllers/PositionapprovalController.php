@@ -19,7 +19,7 @@ class PositionapprovalController extends Controller
     {
         $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
             ->select(['id', 'employee_id', 'status', 'position_id', 'store_id'])
-            ->whereIn('status', ['Approved HR','Reject'])
+            ->whereIn('status', ['Approved HR','Reject','Accepted','Done'])
             ->get()
             ->map(function ($position) {
                 if ($position->status === 'Approved HR') {

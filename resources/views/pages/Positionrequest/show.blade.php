@@ -245,13 +245,11 @@
                                                     <td>{{$submission->reason_reject_dir ?? 'Empty' }}</td>
                                                 </tr> --}}
                                                 @if(!is_null($submission->notes))
-
                                                 <tr>
                                                     <th>Your Notes</th>
                                                     <td>{{$submission->notes ?? 'Empty' }}</td>
                                                 </tr>
                                                 @endif
-
                                                 {{-- <tr>
                                                     <th>Status</th>
                                                     <td>{{$submission->status ?? 'Empty' }}</td>
