@@ -3,7 +3,6 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
@@ -252,8 +251,8 @@
                                                         <td>{{ $submission->notes_hr ?? 'Empty' }}</td>
                                                     </tr>
                                                 @endif
-                                               
-                                                @if (!is_null($submission->salary_hr))
+
+                                                {{-- @if (!is_null($submission->salary_hr))
                                                     <tr>
                                                         <th>Salary set By HR</th>
                                                         <td>
@@ -268,18 +267,30 @@
                                                             {{ $submission->salary_hr_end ? number_format($submission->salary_hr_end, 0, ',', '.') : 'Empty' }}
                                                         </td>
                                                     </tr>
-                                                @endif
+                                                @endif --}}
+                                                <tr>
+                                                    <th>Salary set By HR</th>
+                                                    <td>
+                                                        @if ($submission->salary_hr)
+                                                            {{ number_format($submission->salary_hr, 0, ',', '.') }}
+                                                            @if ($submission->salary_hr_end)
+                                                                &nbsp;–&nbsp;{{ number_format($submission->salary_hr_end, 0, ',', '.') }}
+                                                            @endif
+                                                        @else
+                                                            Empty
+                                                        @endif
+                                                    </td>
+                                                </tr>
                                                 @if (!is_null($submission->reason_reject))
                                                     <tr>
                                                         <th>Reason Reject by HR</th>
                                                         <td>{{ $submission->reason_reject ?? 'Empty' }}</td>
                                                     </tr>
                                                 @endif
-                                                @if (!is_null($submission->salary_counter))
+                                                {{-- @if (!is_null($submission->salary_counter))
                                                     <tr>
 
                                                         <th>Approved Salary by DIR</th>
-                                                        {{-- <td>{{$submission->salary_counter ?? 'Empty' }}</td> --}}
                                                         <td>
                                                             {{ $submission->salary_counter ? number_format($submission->salary_counter, 0, ',', '.') : 'Empty' }}
                                                         </td>
@@ -293,7 +304,20 @@
 
                                                         </td>
                                                     </tr>
-                                                @endif
+                                                @endif --}}
+                                                <tr>
+                                                    <th>Approved Salary by DIR</th>
+                                                    <td>
+                                                        @if ($submission->salary_counter)
+                                                            {{ number_format($submission->salary_counter, 0, ',', '.') }}
+                                                            @if ($submission->salary_counter_end)
+                                                                &nbsp;-&nbsp;{{ number_format($submission->salary_counter_end, 0, ',', '.') }}
+                                                            @endif
+                                                        @else
+                                                            Empty
+                                                        @endif
+                                                    </td>
+                                                </tr>
 
                                                 @if (!is_null($submission->notes_dir))
                                                     <tr>

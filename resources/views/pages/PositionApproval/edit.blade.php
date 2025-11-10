@@ -491,7 +491,7 @@
                                                     </label>
                                                     <textarea id="notes_dir" name="notes_dir"
                                                         class="form-control @error('notes_dir') is-invalid @enderror" rows="8"
-                                                        placeholder="Notes DIR" >{{ old('notes_dir', $position->notes_dir) }}</textarea>
+                                                        placeholder="Notes DIR to HR" >{{ old('notes_dir', $position->notes_dir) }}</textarea>
 
                                                     @error('notes_dir')
                                                         <span class="invalid-feedback" role="alert">
@@ -506,7 +506,7 @@
                                                     <label for="status" class="form-control-label">
                                                         <i class="fas fa-book"></i> {{ __('Status') }}
                                                     </label>
-                                                    <select name="status"
+                                                    <select id="status" name="status"
                                                         class="form-control select2 @error('status') is-invalid @enderror"required>
                                                         <option value="">-- Choose Status--</option>
                                                         @foreach ($statuses as $value)
@@ -518,6 +518,23 @@
                                                     </select>
 
                                                     @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                             <div class="col-md-6" id="reason_reject_dir_field" style="display:none;">
+                                                <div class="form-group">
+                                                    <label for="reason_reject_dir" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject by DIR') }}
+                                                    </label>
+
+                                                    <input type="text" id="reason_reject_dir" name="reason_reject_dir"
+                                                        class="form-control @error('reason_reject_dir') is-invalid @enderror"
+                                                        value="{{ old('reason_reject_dir', $position->reason_reject_dir) }}"
+                                                        placeholder="reason dor rejection">
+                                                    @error('reason_reject_dir')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
@@ -563,13 +580,40 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "-- Choose Status --",
-                width: '100%'
-            });
+        // $(document).ready(function() {
+        //     $('.select2').select2({
+        //         placeholder: "-- Choose Status --",
+        //         width: '100%'
+        //     });
+        // });
+           $(document).ready(function() {
+        // Inisialisasi Select2
+        $('.select2').select2({
+            placeholder: "-- Choose Status --",
+            width: '100%'
         });
+
+        // Tampilkan/sembunyikan Reason Reject sesuai status
+        function toggleReasonField() {
+            const statusVal = $('#status').val();
+            if (statusVal === 'Reject') {
+                $('#reason_reject_dir_field').show();
+            } else {
+                $('#reason_reject_dir_field').hide();
+                $('#reason_reject_dir_field').val('');
+            }
+        }
+
+        // Jalankan sekali saat halaman dimuat
+        toggleReasonField();
+
+        // Jalankan setiap kali select diubah
+        $('#status').on('change', toggleReasonField);
+    });
+</script>
+
     </script>
+    
     <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung

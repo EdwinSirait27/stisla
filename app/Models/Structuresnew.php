@@ -40,6 +40,7 @@ class Structuresnew extends Model
         'position_name',
         'approval_1',
         'approval_2',
+        'submission_position_id',
         'reason_reject',
         'submission_status',
     ];
@@ -78,6 +79,10 @@ class Structuresnew extends Model
     public function position()
     {
         return $this->belongsTo(Position::class, 'position_id', 'id');
+    }
+    public function submissionposition()
+    {
+        return $this->belongsTo(Submissionposition::class, 'submission_position_id', 'id');
     }
     public function parent()
     {

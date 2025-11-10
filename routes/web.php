@@ -221,6 +221,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/structuresnew/available-positions', [StructuresnewController::class, 'getAvailablePositions'])
             ->name('Structuresnew.availablePositions');
         Route::get('/Structuresnew/see/{idHashed}', [StructuresnewController::class, 'see'])->name('Structurenew.see');
+        // Route untuk proses store ke Structuresnew
+Route::post('/store-to-structure/{hashedId}', [StructuresnewController::class, 'storeToStructure'])
+    ->name('store.to.structure');
     });
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
         Route::get('/Summaries', [SummaryController::class, 'index'])

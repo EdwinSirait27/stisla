@@ -10,6 +10,9 @@ use App\Models\Submissionposition;
 use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\Sendpositionrequesttohr;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 class StructureSubmissionController extends Controller
 {
       public function index()
@@ -29,7 +32,7 @@ public function getPositionrequests()
             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
 
             // Daftar status yang dikunci untuk aksi edit
-            $lockedStatuses = ['On Review HR','On Review DIR','Approved HR','Done', 'Reject', 'Accepted','Sent'];
+            $lockedStatuses = ['On Review HR','Approved HR','Done', 'Reject', 'Accepted','Sent','Done'];
 
             // Tombol Show selalu muncul
             $showButton = '
@@ -40,7 +43,6 @@ public function getPositionrequests()
                    title="Show Position Request: ' . e($position->positionRelation->name) . '">
                     <i class="fas fa-eye "></i>
                 </a>';
-
             // Jika status dikunci, edit digantikan dengan icon lock
             if (in_array($position->status, $lockedStatuses)) {
                 $editButton = '
@@ -57,7 +59,6 @@ public function getPositionrequests()
                         <i class="fas fa-user-edit text-secondary"></i>
                     </a>';
             }
-
             // Gabungkan action
             $position->action = $showButton . $editButton;
 
@@ -77,7 +78,7 @@ public function getPositionrequests()
                 'Approved HR' => 'Your application has been reviewed by the HR Department, This application will be sent to the director',
                 'On Review DIR' => 'Your application has been is being reviewed by the Directors',
                 'Reject'    => 'Your application has been Rejected, click show to see the reason',
-                'Done'    => 'This application has entered the structure',
+                'Done'    => 'Your application has entered the structure',
                 'Accepted'  => 'Your application has been approved by directors',
                 default     => '-',
             };
@@ -230,45 +231,107 @@ public function getPositionrequests()
                 ->withInput();
         }
     }
+    // public function update(Request $request, $hashedId)
+    // {
+    //     $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$position) {
+    //         return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
+    //     }
+    //    $validatedData = $request->validate([
+    //     'role_summary'    => ['required', 'string'],
+    //     'key_respon'      => ['required', 'string'],
+    //     'store_id'      => ['required', 'string'],
+    //     'position_id'      => ['required', 'string'],
+    //     'qualifications'  => ['required', 'string'],
+    //     'status'  => ['required', 'string'],
+    //     'notes'           => ['nullable', 'string', 'max:255'],
+    // ], [
+    //     'position_name.required' => 'Position must be filled.',
+    //     'position_name.string'   => 'Position text only.',
+    // ]);
+    //     $positionData = [
+    //         'position_id'   => $validatedData['position_id'],
+    //         'store_id'   => $validatedData['store_id'],
+    //         'role_summary'   => $validatedData['role_summary'],
+    //         'key_respon'     => $validatedData['key_respon'],
+    //         'status'     => $validatedData['status'],
+    //         'qualifications' => $validatedData['qualifications'],
+    //         'notes'          => $validatedData['notes'] ?? null,
+            
+    //     ];
+    //     DB::beginTransaction();
+    //     $position->update($positionData);
+    //     DB::commit();
+    //     return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
+    // }
     public function update(Request $request, $hashedId)
-    {
-        $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$position) {
-            return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
-        }
-       $validatedData = $request->validate([
-        'role_summary'    => ['required', 'string'],
-        'key_respon'      => ['required', 'string'],
-        'store_id'      => ['required', 'string'],
-        'position_id'      => ['required', 'string'],
-        'qualifications'  => ['required', 'string'],
-        'status'  => ['required', 'string'],
-        'notes'           => ['nullable', 'string', 'max:255'],
-    ], [
-        'position_name.required' => 'Position must be filled.',
-        'position_name.string'   => 'Position text only.',
+{
+    $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+
+    if (!$position) {
+        return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
+    }
+
+    $validatedData = $request->validate([
+        'role_summary'   => ['required', 'string'],
+        'key_respon'     => ['required', 'string'],
+        'store_id'       => ['required', 'string'],
+        'position_id'    => ['required', 'string'],
+        'qualifications' => ['required', 'string'],
+        'status'         => ['required', 'string'],
+        'notes'          => ['nullable', 'string', 'max:255'],
     ]);
 
-        $positionData = [
-            'position_id'   => $validatedData['position_id'],
-            'store_id'   => $validatedData['store_id'],
-            'role_summary'   => $validatedData['role_summary'],
-            'key_respon'     => $validatedData['key_respon'],
-            'status'     => $validatedData['status'],
-            'qualifications' => $validatedData['qualifications'],
-            'notes'          => $validatedData['notes'] ?? null,
-            // 'status'         => $validatedData['status'] ?? $position->status,
-            
-        ];
-        DB::beginTransaction();
-        $position->update($positionData);
-        DB::commit();
+    $positionData = [
+        'position_id'   => $validatedData['position_id'],
+        'store_id'      => $validatedData['store_id'],
+        'role_summary'  => $validatedData['role_summary'],
+        'key_respon'    => $validatedData['key_respon'],
+        'status'        => $validatedData['status'],
+        'qualifications'=> $validatedData['qualifications'],
+        'notes'         => $validatedData['notes'] ?? null,
+    ];
 
-        return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
+    DB::beginTransaction();
+    $position->update($positionData);
+    DB::commit();
+
+    // 📨 Kirim email hanya jika status = Sent
+    // if ($validatedData['status'] === 'Sent') {
+    //     // Ambil semua user dengan role HeadHR
+    //     $headHRUsers = User::role('HeadHR')->with('employee')->get();
+
+    //     foreach ($headHRUsers as $hr) {
+    //         // Pastikan employee & email-nya ada
+    //         if ($hr->employee && $hr->employee->email) {
+    //             Mail::to($hr->employee->email)->send(new Sendpositionrequesttohr($position));
+    //         }
+    //     }
+    // }
+if ($validatedData['status'] === 'Sent') {
+    // Ambil semua user dengan role HeadHR yang employee-nya aktif
+    $headHRUsers = User::role('HeadHR')
+        ->whereHas('employee', function ($query) {
+            $query->where('status', 'Active');
+        })
+        ->with('employee')
+        ->get();
+
+    foreach ($headHRUsers as $hr) {
+        if ($hr->employee && $hr->employee->email) {
+            Mail::to($hr->employee->email)->send(new Sendpositionrequesttohr($position));
+        }
     }
+}
+
+    return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
+}
     //     public function getPositionrequests()
 // {
 //     $employeeId = Auth::user()->employee_id;

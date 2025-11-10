@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Models\Submissionposition;
 use App\Models\Stores;
+use App\Models\User;
 use App\Models\Position;
 use App\Rules\NoXSSInput;
+use App\Mail\Sendpositionrequesttodir;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
 class PositionreqController extends Controller
@@ -20,18 +23,18 @@ class PositionreqController extends Controller
     public function getPositionreqlists()
     {
 
-       $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-    ->select(['id', 'employee_id', 'status', 'position_id', 'store_id'])
-      ->whereIn('status', ['Sent', 'On Review HR','Approved HR','Accepted','Done','Reject'])
-    ->get()
-    ->map(function ($position) {
-        // manipulasi status di sini
-        if ($position->status === 'Sent') {
-            $position->status = 'Draft';
-        }
-        $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-        $lockedStatuses = ['Done', 'Accepted','Approved HR','Reject'];
-        $showButton = '
+        $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+            ->select(['id', 'employee_id', 'status', 'position_id', 'store_id'])
+            ->whereIn('status', ['Sent', 'On Review HR', 'Approved HR', 'Accepted', 'Done', 'Reject'])
+            ->get()
+            ->map(function ($position) {
+                // manipulasi status di sini
+                if ($position->status === 'Sent') {
+                    $position->status = 'Draft';
+                }
+                $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+                $lockedStatuses = ['Done', 'Accepted', 'Approved HR', 'Reject'];
+                $showButton = '
         <a href="' . route('Positionreqlist.show', $position->id_hashed) . '" 
            class="mx-2" 
            data-bs-toggle="tooltip" 
@@ -40,25 +43,25 @@ class PositionreqController extends Controller
             <i class="fas fa-eye "></i>
         </a>';
 
-        if (in_array($position->status, $lockedStatuses)) {
-            $editButton = '
+                if (in_array($position->status, $lockedStatuses)) {
+                    $editButton = '
             <i class="fas fa-lock text-muted mx-2" 
                data-bs-toggle="tooltip" 
                title="Edit locked because status: ' . e($position->status) . '"></i>';
-        } else {
-            $editButton = '
+                } else {
+                    $editButton = '
             <a href="' . route('Positionreqlist.edit', $position->id_hashed) . '" 
                class="mx-2" 
                data-bs-toggle="tooltip" 
                data-bs-original-title="Edit request" 
                title="Edit Positionrequest: ' . e($position->positionRelation->name) . '">
-                <i class="fas fa-user-edit text-secondary"></i>
+                <i class="fas fa-user-edit "></i>
             </a>';
-        }
+                }
 
-        $position->action = $showButton . $editButton;
-        return $position;
-    });
+                $position->action = $showButton . $editButton;
+                return $position;
+            });
 
         return DataTables::of($positions)
             ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
@@ -128,10 +131,10 @@ class PositionreqController extends Controller
     //         ->rawColumns(['action'])
     //         ->make(true);
     // }
-    
+
     public function edit($hashedId)
     {
-        $position = Submissionposition::with('submitter', 'approver1', 'approver2','positionRelation', 'store')->get()->first(function ($u) use ($hashedId) {
+        $position = Submissionposition::with('submitter', 'approver1', 'approver2', 'positionRelation', 'store')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -139,7 +142,7 @@ class PositionreqController extends Controller
             abort(404, 'Position not found.');
         }
         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'];
-        $statuses = ['On Review HR', 'Reject', 'Draft','Approved HR'];
+        $statuses = ['On Review HR', 'Reject', 'Draft', 'Approved HR'];
         return view('pages.Positionreqlist.edit', [
             'position' => $position,
             'statuses' => $statuses,
@@ -156,9 +159,9 @@ class PositionreqController extends Controller
         if (!$submission) {
             abort(404, 'submission not found.');
         }
-          if ($submission->status === 'Sent') {
-        $submission->status = 'Draft';
-    }
+        if ($submission->status === 'Sent') {
+            $submission->status = 'Draft';
+        }
         $badgeColors = [
             'Accepted'   => 'success',
             'On Review HR'   => 'info',
@@ -204,10 +207,8 @@ class PositionreqController extends Controller
             'status'        => ['required', 'string', 'max:255'],
             'notes_hr'        => ['required', 'string'],
             'type'        => ['required'],
-            'salary_hr'        => ['required','regex:/^[0-9]+$/'],
-            'salary_hr_end'        => ['required','regex:/^[0-9]+$/'],
-            // 'salary_counter'        => ['nullable','regex:/^[0-9]+$/'],
-            // 'salary_counter_end'        => ['nullable','regex:/^[0-9]+$/'],
+            'salary_hr'        => ['required', 'regex:/^[0-9]+$/'],
+            'salary_hr_end'        => ['required', 'regex:/^[0-9]+$/'],
             'reason_reject' => ['nullable', 'string', 'max:255'],
             'reason_reject_dir' => ['nullable', 'string'],
         ], [
@@ -217,25 +218,34 @@ class PositionreqController extends Controller
             'status'        => $validatedData['status'],
             'salary_hr'        => $validatedData['salary_hr'],
             'salary_hr_end'        => $validatedData['salary_hr_end'],
-            // 'salary_counter_end'        => $validatedData['salary_counter_end'],
-            // 'salary_counter'        => $validatedData['salary_counter'],
-              'type'          => is_array($validatedData['type'])
-                    ? implode(',', $validatedData['type'])
-                    : $validatedData['type'],
+            'type'          => is_array($validatedData['type'])
+                ? implode(',', $validatedData['type'])
+                : $validatedData['type'],
 
             'notes_hr' => $validatedData['notes_hr'] ?? null,
             'reason_reject' => $validatedData['reason_reject'] ?? null,
         ];
-
-        // Jika status "On review" atau "Reject", isi kolom employee_id dengan milik user login
-        if (in_array($validatedData['status'], ['On Review HR','Reviewed HR','Reject'])) {
+        if (in_array($validatedData['status'], ['On Review HR', 'Reviewed HR', 'Reject'])) {
             $positionData['approver_1'] = auth()->user()->employee_id;
         }
-
         DB::beginTransaction();
         try {
             $position->update($positionData);
             DB::commit();
+            if ($validatedData['status'] === 'Approved HR') {
+    $directorUsers = User::role('Director')
+        ->whereHas('employee', function ($query) {
+            $query->where('status', 'Active');
+        })
+        ->with('employee')
+        ->get();
+
+    foreach ($directorUsers as $director) {
+        if ($director->employee && $director->employee->email) {
+            Mail::to($director->employee->email)->send(new Sendpositionrequesttodir($position));
+        }
+    }
+}
             return redirect()->route('pages.Positionreqlist')->with('success', 'Position Request updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();

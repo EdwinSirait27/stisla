@@ -60,7 +60,6 @@
         .card:hover {
             box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.15);
         }
-
         .card-header {
             background-color: #fff;
             border-bottom: 1px solid #f9f9f9;
@@ -144,13 +143,11 @@
             font-size: 13px;
             color: #fc544b;
         }
-
         .alert-danger {
             background-color: #ffdede;
             border-color: #ffd0d0;
             color: #dc3545;
         }
-
         .alert-success {
             background-color: #d4edda;
             border-color: #c3e6cb;

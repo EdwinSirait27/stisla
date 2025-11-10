@@ -161,30 +161,42 @@
         select.form-control {
             height: 42px;
         }
-            #role_summary {
-    height: 200px;
-    resize: vertical; /* biar masih bisa diubah manual */
-}
+
+        #role_summary {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
         #key_respon {
-    height: 200px;
-    resize: vertical; /* biar masih bisa diubah manual */
-}
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
         #qualifications {
-    height: 200px;
-    resize: vertical; /* biar masih bisa diubah manual */
-}
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
         #notes {
-    height: 200px;
-    resize: vertical; /* biar masih bisa diubah manual */
-}
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
         #notes_hr {
-    height: 200px;
-    resize: vertical; /* biar masih bisa diubah manual */
-}
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
         #notes_dir {
-    height: 200px;
-    resize: vertical; /* biar masih bisa diubah manual */
-}
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
     </style>
 @endpush
 @section('main')
@@ -401,8 +413,8 @@
                                                     <input type="number" id="salary_hr" name="salary_hr"
                                                         class="form-control @error('salary_hr') is-invalid @enderror"
                                                         value="{{ old('salary_hr', $position->salary_hr) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  required>
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        required>
                                                     @error('salary_hr')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -419,8 +431,8 @@
                                                     <input type="number" id="salary_hr_end" name="salary_hr_end"
                                                         class="form-control @error('salary_hr_end') is-invalid @enderror"
                                                         value="{{ old('salary_hr_end', $position->salary_hr_end) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  required>
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        required>
                                                     @error('salary_hr_end')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -483,24 +495,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
 
-                                                <div class="form-group">
-                                                    <label for="reason_reject" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject by HR') }}
-                                                    </label>
-                                                    <input type="text"
-                                                        class="form-control @error('reason_reject') is-invalid @enderror"
-                                                        id="reason_reject" name="reason_reject"
-                                                        value="{{ old('reason_reject', $position->reason_reject) }}"
-                                                        placeholder="message from HR to manager if Draft (manager typo or unclear meaning) or reason for rejection">
-                                                    @error('reason_reject')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
                                             {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="reason_reject_dir" class="form-control-label">
@@ -517,13 +512,13 @@
                                                     @enderror
                                                 </div>
                                             </div> --}}
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
 
                                                 <div class="form-group">
                                                     <label for="status" class="form-control-label">
                                                         <i class="fas fa-book"></i> {{ __('Status') }}
                                                     </label>
-                                                    <select name="status"
+                                                    <select id="status" name="status"
                                                         class="form-control select2 @error('status') is-invalid @enderror"required>
                                                         <option value="">-- Choose Status--</option>
                                                         @foreach ($statuses as $value)
@@ -541,6 +536,67 @@
                                                     @enderror
                                                 </div>
                                             </div>
+
+                                            <div class="col-md-6" id="reason_reject_field">
+
+                                                <div class="form-group">
+                                                    <label for="reason_reject" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject by HR') }}
+                                                    </label>
+                                                    <input type="text"
+                                                        class="form-control @error('reason_reject') is-invalid @enderror"
+                                                        id="reason_reject" name="reason_reject"
+                                                        value="{{ old('reason_reject', $position->reason_reject) }}"
+                                                        placeholder="message from HR to manager if Draft (manager typo or unclear meaning) or reason for rejection">
+                                                    @error('reason_reject')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-book"></i> {{ __('Status') }}
+                                                    </label>
+                                                    <select id="status" name="status"
+                                                        class="form-control select2 @error('status') is-invalid @enderror"
+                                                        required>
+                                                        <option value="">-- Choose Status--</option>
+                                                        @foreach ($statuses as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('status', $position->status ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6" id="reason_reject_field" style="display:none;">
+                                                <div class="form-group">
+                                                    <label for="reason_reject" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject by HR') }}
+                                                    </label>
+                                                    <input type="text"
+                                                        class="form-control @error('reason_reject') is-invalid @enderror"
+                                                        id="reason_reject" name="reason_reject"
+                                                        value="{{ old('reason_reject', $position->reason_reject) }}"
+                                                        placeholder="Message from HR to manager for rejection">
+                                                    @error('reason_reject')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
 
                                             <div class="col-12">
                                                 <div class="alert alert-secondary mt-4" role="alert">
@@ -578,15 +634,33 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "-- Choose Status --",
-                width: '100%'
-            });
+ <script>
+    $(document).ready(function() {
+        // Inisialisasi Select2
+        $('.select2').select2({
+            placeholder: "-- Choose Status --",
+            width: '100%'
         });
-    </script>
+
+        // Tampilkan/sembunyikan Reason Reject sesuai status
+        function toggleReasonField() {
+            const statusVal = $('#status').val();
+            if (statusVal === 'Reject') {
+                $('#reason_reject_field').show();
+            } else {
+                $('#reason_reject_field').hide();
+                $('#reason_reject').val('');
+            }
+        }
+
+        // Jalankan sekali saat halaman dimuat
+        toggleReasonField();
+
+        // Jalankan setiap kali select diubah
+        $('#status').on('change', toggleReasonField);
+    });
+</script>
+
     <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung

@@ -346,29 +346,66 @@
         </div>
     </div> --}}
     <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">Preview Submission Position</h5>
-            </div>
-            <div class="modal-body">
-                <table class="table table-striped align-middle">
-                    <tr><th style="width: 25%;">Company</th><td id="preview-company"></td></tr>
-                    <tr><th>Department</th><td id="preview-department"></td></tr>
-                    <tr><th>Manager Name</th><td id="preview-manager"></td></tr>
-                    <tr><th>Location Request</th><td id="preview-store"></td></tr>
-                    <tr><th>Position Request</th><td id="preview-position"></td></tr>
-                    <tr><th>Role Summary</th><td id="preview-role-summary"></td></tr>
-                    <tr><th>Key Responsibility</th><td id="preview-key-responsibility"></td></tr>
-                    <tr><th>Qualifications</th><td id="preview-qualifications"></td></tr>
-                    <tr><th>HR Approver</th><td id="preview-approver1"></td></tr>
-                    <tr><th>DIR Approver</th><td id="preview-approver2"></td></tr>
-                    <tr><th>Status</th><td id="preview-status"></td></tr>
-                </table>
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Preview Submission Position</h5>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped align-middle">
+                        <tr>
+                            <th style="width: 25%;">Company</th>
+                            <td id="preview-company"></td>
+                        </tr>
+                        <tr>
+                            <th>Department</th>
+                            <td id="preview-department"></td>
+                        </tr>
+                        <tr>
+                            <th>Manager Name</th>
+                            <td id="preview-manager"></td>
+                        </tr>
+                        <tr>
+                            <th>Location Request</th>
+                            <td id="preview-store"></td>
+                        </tr>
+                        <tr>
+                            <th>Position Request</th>
+                            <td id="preview-position"></td>
+                        </tr>
+                        <tr>
+                            <th>Role Summary</th>
+                            <td id="preview-role-summary"></td>
+                        </tr>
+                        <tr>
+                            <th>Key Responsibility</th>
+                            <td id="preview-key-responsibility"></td>
+                        </tr>
+                        <tr>
+                            <th>Qualifications</th>
+                            <td id="preview-qualifications"></td>
+                        </tr>
+                        <tr>
+                            <th>HRD Approver</th>
+                            <td id="preview-approver1"></td>
+                        </tr>
+                        <tr>
+                            <th>DIR Approver</th>
+                            <td id="preview-approver2"></td>
+                        </tr>
+                        <tr>
+                            <th>Salary</th>
+                            <td id="preview-salary"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="preview-status"></td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
 @endsection
@@ -376,6 +413,78 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://balkan.app/js/OrgChart.js"></script>
+    <script>
+$(document).on('click', '.store-btn', function() {
+    const hashedId = $(this).data('id');
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This submission will be stored to Structuresnew!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, store it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/store-to-structure/' + hashedId,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Stored!',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    // reload DataTable setelah sukses
+                    $('#submissions-table').DataTable().ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    const msg = xhr.responseJSON?.message || 'Something went wrong';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: msg
+                    });
+                }
+            });
+        }
+    });
+});
+</script>
+
+    {{-- <script>
+$(document).on('click', '.store-btn', function() {
+    const hashedId = $(this).data('id');
+
+    if (!confirm('Are you sure you want to store this submission to Structuresnew?')) {
+        return;
+    }
+
+    $.ajax({
+        url: '/store-to-structure/' + hashedId,
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            alert(response.message);
+            // reload DataTable setelah sukses
+            $('#submissions-table').DataTable().ajax.reload(null, false);
+        },
+        error: function(xhr) {
+            const msg = xhr.responseJSON?.message || 'Something went wrong';
+            alert(msg);
+        }
+    });
+});
+</script> --}}
+
     {{-- <script>
         $(function() {
 
@@ -398,27 +507,39 @@
         });
     </script> --}}
     <script>
-$(function() {
-    $(document).on('click', '.preview-btn', function() {
-        // Text-only fields
-        $('#preview-company').text($(this).data('company'));
-        $('#preview-department').text($(this).data('department'));
-        $('#preview-manager').text($(this).data('submitter'));
-        $('#preview-store').text($(this).data('store'));
-        $('#preview-position').text($(this).data('position'));
-        $('#preview-approver1').text($(this).data('approver1'));
-        $('#preview-approver2').text($(this).data('approver2'));
-        $('#preview-status').text($(this).data('status'));
+        $(function() {
+            $(document).on('click', '.preview-btn', function() {
+                // Text-only fields
+                $('#preview-company').text($(this).data('company'));
+                $('#preview-department').text($(this).data('department'));
+                $('#preview-manager').text($(this).data('submitter'));
+                $('#preview-store').text($(this).data('store'));
+                $('#preview-position').text($(this).data('position'));
+                $('#preview-approver1').text($(this).data('approver1'));
+                // $('#preview-salary_counter').text($(this).data('salary_counter'));
+                 const salaryData = $(this).data('salary'); // ambil data-salary
+        if (salaryData) {
+            const [salaryStart, salaryEnd] = salaryData.toString().split('|');
+            // $('#preview-salary').text(
+            //     `Rp ${Number(salaryStart).toLocaleString()} - Rp ${Number(salaryEnd).toLocaleString()}`
+            // );
+            $('#preview-salary').text(`${Number(salaryStart).toLocaleString()} - ${Number(salaryEnd).toLocaleString()}`);
 
-        // Fields yang berasal dari TinyMCE (berisi HTML)
-       $('#preview-role-summary').html(JSON.parse($(this).data('role-summary') || '""'));
-    $('#preview-key-responsibility').html(JSON.parse($(this).data('key-responsibility') || '""'));
-    $('#preview-qualifications').html(JSON.parse($(this).data('qualifications') || '""'));
-        // Tampilkan modal
-        $('#previewModal').modal('show');
-    });
-});
-</script>
+        } else {
+            $('#preview-salary').text('-');
+        }
+
+                $('#preview-approver2').text($(this).data('approver2'));
+                $('#preview-status').text($(this).data('status'));
+
+                $('#preview-role-summary').html(JSON.parse($(this).data('role-summary') || '""'));
+                $('#preview-key-responsibility').html(JSON.parse($(this).data('key-responsibility') ||
+                    '""'));
+                $('#preview-qualifications').html(JSON.parse($(this).data('qualifications') || '""'));
+                $('#previewModal').modal('show');
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {

@@ -29,7 +29,7 @@ class PositionapprovalController extends Controller
                     $position->status = 'Reject';
                 }
                 $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-                $lockedStatuses = ['On Review HR', 'Done', 'Accepted'];
+                $lockedStatuses = ['On Review HR', 'Done', 'Accepted','Reject'];
                 $showButton = '
         <a href="' . route('PositionApproval.show', $position->id_hashed) . '" 
            class="mx-2" 
@@ -85,9 +85,6 @@ class PositionapprovalController extends Controller
         if ($position->status === 'Approved HR') {
             $position->status = 'Draft';
         }
-        if ($position->status === 'Reject') {
-            $position->status = 'On Review HR';
-        }
         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote'];
         $statuses = ['Reject', 'Draft','Accepted'];
         return view('pages.PositionApproval.edit', [
@@ -97,6 +94,97 @@ class PositionapprovalController extends Controller
             'hashedId' => $hashedId
         ]);
     }
+    // public function update(Request $request, $hashedId)
+    // {
+    //     $position = Submissionposition::with('submitter', 'approver1', 'approver2')
+    //         ->get()
+    //         ->first(function ($u) use ($hashedId) {
+    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //             return $expectedHash === $hashedId;
+    //         });
+
+    //     if (!$position) {
+    //         return redirect()->route('pages.PositionApproval')->with('error', 'ID tidak valid.');
+    //     }
+
+    //     $validatedData = $request->validate([
+    //         'status'        => ['required', 'string', 'max:255'],
+    //         'salary_counter'        => ['required', 'regex:/^[0-9]+$/'],
+    //         'salary_counter_end'        => ['required', 'regex:/^[0-9]+$/'],
+    //         'notes_dir' => ['nullable', 'string', 'max:255'],
+    //     ], [
+    //         'status.required' => 'Status must be filled.',
+    //     ]);
+    //     $positionData = [
+    //         'status'        => $validatedData['status'],
+    //         'salary_counter'        => $validatedData['salary_counter'],
+    //         'salary_counter_end'        => $validatedData['salary_counter_end'],
+    //         'notes_dir' => $validatedData['notes_dir'] ?? null,
+    //     ];
+    //     if (in_array($validatedData['status'], ['On Review HR', 'Accepted', 'Reject'])) {
+    //         $positionData['approver_2'] = auth()->user()->employee_id;
+    //     }
+    //     DB::beginTransaction();
+    //     try {
+    //         $position->update($positionData);
+    //         DB::commit();
+    //         return redirect()->route('pages.PositionApproval')->with('success', 'Position Request updated successfully.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
+    //     }
+    // }
+    public function update(Request $request, $hashedId)
+{
+    $position = Submissionposition::with('submitter', 'approver1', 'approver2')
+        ->get()
+        ->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+
+    if (!$position) {
+        return redirect()->route('pages.PositionApproval')->with('error', 'ID tidak valid.');
+    }
+
+    $validatedData = $request->validate([
+        'status' => ['required', 'string', 'max:255'],
+        'salary_counter' => ['required', 'regex:/^[0-9]+$/'],
+        'salary_counter_end' => ['required', 'regex:/^[0-9]+$/'],
+        'notes_dir' => ['nullable', 'string'],
+        'reason_reject_dir' => ['nullable', 'string'],
+    ], [
+        'status.required' => 'Status must be filled.',
+    ]);
+
+    // 🔹 Jika status yang dipilih Draft → ubah ke On Review HR
+    $finalStatus = $validatedData['status'] === 'Draft' ? 'On Review HR' : $validatedData['status'];
+
+    $positionData = [
+        'status' => $finalStatus,
+        'salary_counter' => $validatedData['salary_counter'],
+        'salary_counter_end' => $validatedData['salary_counter_end'],
+        'notes_dir' => $validatedData['notes_dir'] ?? null,
+        'reason_reject_dir' => $validatedData['reason_reject_dir'] ?? null,
+    ];
+
+    // Jika status termasuk salah satu ini → isi approver_2
+    if (in_array($finalStatus, ['On Review HR', 'Accepted', 'Reject'])) {
+        $positionData['approver_2'] = auth()->user()->employee_id;
+    }
+
+    DB::beginTransaction();
+    try {
+        $position->update($positionData);
+        DB::commit();
+        
+        return redirect()->route('pages.PositionApproval')->with('success', 'Position Request updated successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
+    }
+}
+
     public function show($hashedId)
     {
         $submission = Submissionposition::with('submitter', 'approver1', 'approver2', 'positionRelation', 'store')->get()->first(function ($u) use ($hashedId) {
@@ -137,44 +225,5 @@ class PositionapprovalController extends Controller
             'hashedId' => $hashedId
         ]);
     }
-    public function update(Request $request, $hashedId)
-    {
-        $position = Submissionposition::with('submitter', 'approver1', 'approver2')
-            ->get()
-            ->first(function ($u) use ($hashedId) {
-                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-                return $expectedHash === $hashedId;
-            });
-
-        if (!$position) {
-            return redirect()->route('pages.PositionApproval')->with('error', 'ID tidak valid.');
-        }
-
-        $validatedData = $request->validate([
-            'status'        => ['required', 'string', 'max:255'],
-            'salary_counter'        => ['required', 'regex:/^[0-9]+$/'],
-            'salary_counter_end'        => ['required', 'regex:/^[0-9]+$/'],
-            'notes_dir' => ['nullable', 'string', 'max:255'],
-        ], [
-            'status.required' => 'Status must be filled.',
-        ]);
-        $positionData = [
-            'status'        => $validatedData['status'],
-            'salary_counter'        => $validatedData['salary_counter'],
-            'salary_counter_end'        => $validatedData['salary_counter_end'],
-            'notes_dir' => $validatedData['notes_dir'] ?? null,
-        ];
-        if (in_array($validatedData['status'], ['On Review HR', 'Accepted', 'Reject'])) {
-            $positionData['approver_2'] = auth()->user()->employee_id;
-        }
-        DB::beginTransaction();
-        try {
-            $position->update($positionData);
-            DB::commit();
-            return redirect()->route('pages.PositionApproval')->with('success', 'Position Request updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
-        }
-    }
+    
 }

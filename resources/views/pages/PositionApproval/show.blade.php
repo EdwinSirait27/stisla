@@ -3,19 +3,16 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
         }
-
         .iframe-container {
             position: relative;
             overflow: hidden;
             padding-top: 56.25%;
             /* Aspect ratio 16:9 */
         }
-
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -24,7 +21,6 @@
             height: 100%;
             border: 0;
         }
-
         /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
@@ -32,12 +28,10 @@
             transition: all 0.3s ease;
             border: 1px solid #d1d1d1;
         }
-
         .form-control:focus {
             border-color: #6777ef;
             box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.25);
         }
-
         .form-control-label {
             font-weight: 600;
             margin-bottom: 8px;
@@ -46,37 +40,30 @@
             align-items: center;
             gap: 8px;
         }
-
         .form-control-label i {
             color: #6777ef;
         }
-
         .card {
             border-radius: 15px;
             box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
-
         .card:hover {
             box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.15);
         }
-
         .card-header {
             background-color: #fff;
             border-bottom: 1px solid #f9f9f9;
             padding: 20px;
         }
-
         .card-header h6 {
             font-weight: 700;
             font-size: 16px;
             color: #34395e;
         }
-
         .card-body {
             padding: 30px;
         }
-
         .btn {
             border-radius: 8px;
             padding: 10px 20px;
@@ -84,39 +71,32 @@
             transition: all 0.3s ease;
             margin-left: 10px;
         }
-
         .btn-secondary {
             background-color: #cdd3d8;
             border-color: #cdd3d8;
             color: #34395e;
         }
-
         .btn-secondary:hover {
             background-color: #b9bfc4;
             border-color: #b9bfc4;
         }
-
         .bg-gradient-dark {
             background: linear-gradient(310deg, #2dce89, #2dcec7);
             border: none;
         }
-
         .bg-gradient-dark:hover {
             background: linear-gradient(310deg, #26b179, #26b1a9);
             transform: translateY(-2px);
         }
-
         .alert {
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
         }
-
         .alert-secondary {
             background-color: #f8f9fa;
             border-color: #f1f2f3;
         }
-
         .alert-secondary .text-white {
             color: #6c757d !important;
         }
@@ -215,17 +195,17 @@
                                                     <th>Position Request</th>
                                                     <td>{{ $submission->positionRelation->name ?? '-' }}</td>
                                                 </tr>
-
-                                                <tr>
-                                                    <th>HRD Verifier</th>
-                                                    <td>{{ $submission->approver1->employee_name ?? 'empty' }}</td>
-                                                </tr>
-                                                @if(!is_null($submission->approver_2))
-                                                
-                                                <tr>
-                                                    <th>DIR Verifier</th>
-                                                    <td>{{ $submission->approver2->employee_name ?? 'empty' }}</td>
-                                                </tr>
+                                                @if (!is_null($submission->approver_1))
+                                                    <tr>
+                                                        <th>HRD Verifier</th>
+                                                        <td>{{ $submission->approver1->employee_name ?? 'empty' }}</td>
+                                                    </tr>
+                                                @endif
+                                                @if (!is_null($submission->approver_2))
+                                                    <tr>
+                                                        <th>DIR Verifier</th>
+                                                        <td>{{ $submission->approver2->employee_name ?? 'empty' }}</td>
+                                                    </tr>
                                                 @endif
                                                 <tr>
                                                     <th>Role Summary</th>
@@ -240,19 +220,17 @@
                                                     <th>Qualifications</th>
                                                     <td>{!! $submission->qualifications ?? '<em>Empty</em>' !!}</td>
                                                 </tr>
-                                                @if(!is_null($submission->notes))
-
-                                                <tr>
-                                                    <th>Manager Notes</th>
-                                                    <td>{{ $submission->notes ?? 'Empty' }}</td>
-                                                </tr>
+                                                @if (!is_null($submission->notes))
+                                                    <tr>
+                                                        <th>Manager Notes</th>
+                                                        <td>{{ $submission->notes ?? 'Empty' }}</td>
+                                                    </tr>
                                                 @endif
-                                                @if(!is_null($submission->notes_hr))
-
-                                                <tr>
-                                                    <th>HRD Notes</th>
-                                                    <td>{{ $submission->notes_hr ?? 'Empty' }}</td>
-                                                </tr>
+                                                @if (!is_null($submission->notes_hr))
+                                                    <tr>
+                                                        <th>HRD Notes</th>
+                                                        <td>{{ $submission->notes_hr ?? 'Empty' }}</td>
+                                                    </tr>
                                                 @endif
 
                                                 {{-- <tr>
@@ -261,11 +239,11 @@
                                                         {{ $submission->salary_hr ? number_format($submission->salary_hr, 0, ',', '.') : 'Empty' }}
                                                     </td>
                                                 </tr> --}}
-    
-<tr>
-    <th>Salary set By HR</th>
-    <td>{{ number_format($submission->salary_hr, 0, ',', '.') }}</td>
-</tr>
+
+                                                {{-- <tr>
+                                                    <th>Salary set By HR</th>
+                                                    <td>{{ number_format($submission->salary_hr, 0, ',', '.') }}</td>
+                                                </tr>
 
 
                                                 <tr>
@@ -273,8 +251,22 @@
                                                     <td>
                                                         {{ $submission->salary_hr_end ? number_format($submission->salary_hr_end, 0, ',', '.') : 'Empty' }}
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                                 <tr>
+                                                    <th>Salary set By HR</th>
+                                                    <td>
+                                                        @if ($submission->salary_hr)
+                                                            {{ number_format($submission->salary_hr, 0, ',', '.') }}
+                                                            @if ($submission->salary_hr_end)
+                                                                &nbsp;–&nbsp;{{ number_format($submission->salary_hr_end, 0, ',', '.') }}
+                                                            @endif
+                                                        @else
+                                                            Empty
+                                                        @endif
+                                                    </td>
+                                                </tr>
+
+                                                {{-- <tr>
 
                                                     <th>Approved Salary by DIR</th>
                                                     <td>
@@ -285,38 +277,48 @@
                                                     <th>To</th>
                                                     <td>{{ $submission->salary_counter_end ? number_format($submission->salary_counter_end, 0, ',', '.') : 'Empty' }}
                                                     </td>
-                                                </tr>
-                                                   @if(!is_null($submission->notes_dir))
-
+                                                </tr> --}}
                                                 <tr>
-                                                    <th>Your Notes</th>
-                                                    <td>{{ $submission->notes_dir ?? 'Empty' }}</td>
-                                                </tr>
-                                                @endif
-                                                @if(!is_null($submission->reason_reject))
-
-                                                <tr>
-                                                    <th>Reason Reject by HR</th>
-                                                    <td>{{ $submission->reason_reject ?? 'Empty' }}</td>
-                                                </tr>
-                                                @endif
-                                                @if(!is_null($submission->reason_reject_dir))
-
-                                                <tr>
-                                                    <th>Reason Reject by DIR</th>
-                                                    <td>{{ $submission->reason_reject_dir ?? 'Empty' }}</td>
-                                                </tr>
-                                                <tr>
-                                                    @endif
-                                                    <th>Status</th>
+                                                    <th>Approved Salary by DIR</th>
                                                     <td>
-                                                        @forelse ($submission->type_badges as $badge)
-                                                            <span
-                                                                class="badge bg-{{ $badge['color'] }}">{{ $badge['name'] }}</span>
-                                                        @empty
-                                                            <span class="text-muted">(empty)</span>
-                                                        @endforelse
+                                                        @if ($submission->salary_counter)
+                                                            {{ number_format($submission->salary_counter, 0, ',', '.') }}
+                                                            @if ($submission->salary_counter_end)
+                                                                &nbsp;–&nbsp;{{ number_format($submission->salary_counter_end, 0, ',', '.') }}
+                                                            @endif
+                                                        @else
+                                                            Empty
+                                                        @endif
                                                     </td>
+                                                </tr>
+                                                @if (!is_null($submission->notes_dir))
+                                                    <tr>
+                                                        <th>Your Notes</th>
+                                                        <td>{{ $submission->notes_dir ?? 'Empty' }}</td>
+                                                    </tr>
+                                                @endif
+                                                @if (!is_null($submission->reason_reject))
+                                                    <tr>
+                                                        <th>Reason Reject by HR</th>
+                                                        <td>{{ $submission->reason_reject ?? 'Empty' }}</td>
+                                                    </tr>
+                                                @endif
+                                                @if (!is_null($submission->reason_reject_dir))
+                                                    <tr>
+                                                        <th>Reason Reject by DIR</th>
+                                                        <td>{{ $submission->reason_reject_dir ?? 'Empty' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                @endif
+                                                <th>Status</th>
+                                                <td>
+                                                    @forelse ($submission->type_badges as $badge)
+                                                        <span
+                                                            class="badge bg-{{ $badge['color'] }}">{{ $badge['name'] }}</span>
+                                                    @empty
+                                                        <span class="text-muted">(empty)</span>
+                                                    @endforelse
+                                                </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Created on date</th>
