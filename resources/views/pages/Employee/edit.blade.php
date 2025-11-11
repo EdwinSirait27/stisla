@@ -973,9 +973,9 @@
                                                         @foreach ($structures as $structure)
                                                             <option value="{{ $structure->id }}"
                                                                 {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
-                                                                {{ $structure->position->name ?? '-' }}
-                                                                - {{ $structure->company->name ?? '-' }}
-                                                                - {{ $structure->store->name ?? '-' }}
+                                                                {{ $structure->submissionposition->positionRelation->name ?? '-' }}
+                                                                - {{ $structure->submissionposition->submitter->company->name ?? '-' }}
+                                                                - {{ $structure->submissionposition->store->name ?? '-' }}
                                                             </option>
                                                         @endforeach
                                                     </select>

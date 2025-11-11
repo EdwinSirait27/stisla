@@ -30,9 +30,11 @@ class StructuresnewController extends Controller
             'department',
             'store',
             'position',
+            'parent.submissionposition.positionRelation',
             'parent',
-            'children.position',
-            'allChildren.position',
+            'children.submissionposition.positionRelation',
+            'allChildren.submissionposition.positionRelation',
+            'submissionposition.submitter',
         ])
             ->select([
                 'id',
@@ -43,6 +45,7 @@ class StructuresnewController extends Controller
                 'structure_code',
                 'is_manager',
                 'parent_id',
+                'submission_position_id',
                 'status'
             ])
             ->get()
@@ -65,77 +68,43 @@ class StructuresnewController extends Controller
 
                 return $structure;
             });
-
         return DataTables::of($structures)
-            ->addColumn('company_name', fn($s) => $s->company->name ?? 'Empty')
-            ->addColumn('department_name', fn($s) => $s->department->nickname ?? 'Empty')
-            ->addColumn('store_name', fn($s) => $s->store->nickname ?? 'Empty')
-            ->addColumn('position_name', fn($s) => $s->position->name ?? 'Empty')
+            ->addColumn('company_name', fn($s) => $s->submissionposition->submitter->company->name ?? 'Empty')
+            ->addColumn('department_name', fn($s) => $s->submissionposition->submitter->department->nickname ?? 'Empty')
+            ->addColumn('store_name', fn($s) => $s->submissionposition->store->nickname ?? 'Empty')
+            ->addColumn('position_name', fn($s) => $s->submissionposition->positionRelation->name ?? 'Empty')
             ->addColumn(
                 'parent',
                 fn($structure) =>
-                !empty($structure->parent) && !empty($structure->parent->position->name)
-                    ? $structure->parent->position->name : 'Empty'
+                !empty($structure->parent->submissionposition->positionRelation) && !empty($structure->parent->submissionposition->positionRelation->name)
+                    ? $structure->parent->submissionposition->positionRelation->name : 'Empty'
             )
             ->addColumn('children', function ($s) {
                 if ($s->children->isEmpty()) {
                     return '<span class="text-muted">No Subordinates</span>';
                 }
-
                 $childPositions = $s->children->map(function ($child) {
-                    return e(optional($child->position)->name ?? 'Unknown');
+                    return e(optional($child->submissionposition->positionRelation)->name ?? 'Unknown');
                 })->implode(', ');
-
                 return $childPositions;
             })
-            //     ->addColumn('allChildren', function ($s) {
-            //     $getAllPositions = function ($node) use (&$getAllPositions) {
-            //         $positions = collect();
-
-            //         foreach ($node->children as $child) {
-            //             if ($child->position) {
-            //                 $positions->push($child->position->name);
-            //             }
-            //             $positions = $positions->merge($getAllPositions($child)); // lanjut ke level bawah
-            //         }
-
-            //         return $positions;
-            //     };
-
-            //     $allPositions = $getAllPositions($s)->unique();
-
-            //     if ($allPositions->isEmpty()) {
-            //         return '<span class="text-muted">No Subordinates</span>';
-            //     }
-
-            //     return e($allPositions->implode(', '));
-            // })
             ->addColumn('allChildren', function ($s) {
                 $getAllPositions = function ($node) use (&$getAllPositions) {
                     $positions = collect();
-
                     foreach ($node->children as $child) {
-                        if ($child->position) {
-                            $positions->push($child->position->name);
+                        if ($child->submissionposition->positionRelation) {
+                            $positions->push($child->submissionposition->positionRelation->name);
                         }
-                        $positions = $positions->merge($getAllPositions($child)); // lanjut ke level bawah
+                        $positions = $positions->merge($getAllPositions($child));
                     }
-
                     return $positions;
                 };
-
-                // $allPositions = $getAllPositions($s)->unique();
                 $allPositions = $getAllPositions($s);
-
-
                 if ($allPositions->isEmpty()) {
                     return '<span class="text-muted">No Subordinates</span>';
                 }
-
                 return e($allPositions->implode(', '));
             })
-
-
             ->rawColumns([
                 'action',
                 'checkbox',
@@ -149,147 +118,331 @@ class StructuresnewController extends Controller
             ])
             ->make(true);
     }
+    // public function getStructuresnew()
+    // {
+    //     $structures = Structuresnew::with([
+    //         'company',
+    //         'department',
+    //         'store',
+    //         'position',
+    //         'parent',
+    //         'children.position',
+    //         'allChildren.position',
+    //         'submissionposition.submitter',
+    //     ])
+    //         ->select([
+    //             'id',
+    //             'position_id',
+    //             'company_id',
+    //             'department_id',
+    //             'store_id',
+    //             'structure_code',
+    //             'is_manager',
+    //             'parent_id',
+    //             'parent_id',
+    //             'submission_position_id',
+    //             'status'
+    //         ])
+    //         ->get()
+    //         ->map(function ($structure) {
+    //             $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
+
+    //             $structure->action = '
+    //             <a href="' . route('Structuresnew.edit', $structure->id_hashed) . '" class="mx-3" 
+    //                 data-bs-toggle="tooltip" data-bs-original-title="Edit Structure"
+    //                 title="Edit structure: ' . e($structure->structure_name) . '">
+    //                 <i class="fas fa-user-edit text-secondary"></i>
+    //             </a> 
+    //             <a href="' . route('Structuresnew.show', $structure->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="show Structures: ' . e($structure->structure_name) . '">
+    //                 <i class="fas fa-eye text-secondary"></i>
+    //            </a>';
+
+    //             $structure->checkbox = '<input type="checkbox" class="payroll-checkbox" 
+    //             name="structure_ids[]" 
+    //             value="' . $structure->id_hashed . '">';
+
+    //             return $structure;
+    //         });
+    //     return DataTables::of($structures)
+    //         ->addColumn('company_name', fn($s) => $s->submissionposition->submitter->company->name ?? 'Empty')
+    //         ->addColumn('department_name', fn($s) => $s->submissionposition->submitter->department->nickname ?? 'Empty')
+    //         ->addColumn('store_name', fn($s) => $s->submissionposition->store->nickname ?? 'Empty')
+    //         ->addColumn('position_name', fn($s) => $s->submissionposition->positionRelation->name ?? 'Empty')
+    //         ->addColumn(
+    //             'parent',
+    //             fn($structure) =>
+    //             !empty($structure->parent) && !empty($structure->parent->position->name)
+    //                 ? $structure->parent->position->name : 'Empty'
+    //         )
+    //         ->addColumn('children', function ($s) {
+    //             if ($s->children->isEmpty()) {
+    //                 return '<span class="text-muted">No Subordinates</span>';
+    //             }
+    //             $childPositions = $s->children->map(function ($child) {
+    //                 return e(optional($child->position)->name ?? 'Unknown');
+    //             })->implode(', ');
+    //             return $childPositions;
+    //         })
+    //         ->addColumn('allChildren', function ($s) {
+    //             $getAllPositions = function ($node) use (&$getAllPositions) {
+    //                 $positions = collect();
+
+    //                 foreach ($node->children as $child) {
+    //                     if ($child->position) {
+    //                         $positions->push($child->position->name);
+    //                     }
+    //                     $positions = $positions->merge($getAllPositions($child));
+    //                 }
+    //                 return $positions;
+    //             };
+    //             $allPositions = $getAllPositions($s);
+    //             if ($allPositions->isEmpty()) {
+    //                 return '<span class="text-muted">No Subordinates</span>';
+    //             }
+    //             return e($allPositions->implode(', '));
+    //         })
+    //         ->rawColumns([
+    //             'action',
+    //             'checkbox',
+    //             'company_name',
+    //             'department_name',
+    //             'store_name',
+    //             'position_name',
+    //             'parent',
+    //             'children',
+    //             'allChildren'
+    //         ])
+    //         ->make(true);
+    // }
     
-//     public function getPositionreqs()
-// {
-//     $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-//         ->select(['id', 'employee_id', 'approver_1', 'approver_2', 'status', 'position_id', 'store_id','key_respon','role_summary','qualifications','salary_counter','salary_counter_end'])
-//         ->where('status', 'Accepted')
-//         ->get()
-//         ->map(function ($position) {
-//             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-//             return $position;
-//         });
+    //     public function getPositionreqs()
+    // {
+    //     $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+    //         ->select(['id', 'employee_id', 'approver_1', 'approver_2', 'status', 'position_id', 'store_id','key_respon','role_summary','qualifications','salary_counter','salary_counter_end'])
+    //         ->where('status', 'Accepted')
+    //         ->get()
+    //         ->map(function ($position) {
+    //             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+    //             return $position;
+    //         });
 
-//     return DataTables::of($positions)
-//         ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
-//         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
-//         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
-//         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
-//         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
-//         ->addColumn('remark', function ($e) {
-//             return match ($e->status) {
-//                 'Pending' => 'Do your Duty',
-//                 'Draft' => 'You have approved this application',
-//                 'On review' => 'Awaiting director approval',
-//                 'Accepted' => 'Accepted by directors',
-//                 default => '-',
-//             };
-//         })
-//         ->addColumn('action', function ($e) {
-//             return '<button class="btn btn-sm btn-dark preview-btn" 
-//                     data-id="'.$e->id_hashed.'" 
-//                             data-company="'.(optional($e->submitter->company)->name ?? '-').'"
-//                             data-department="'.(optional($e->submitter->department)->department_name ?? '-').'"
-//                             data-submitter="'.(optional($e->submitter)->employee_name ?? '-').'"
-//                             data-position="'.(optional($e->positionRelation)->name ?? '-').'"
-//                             data-store="'.(optional($e->store)->name ?? '-').'"
-//                              data-role-summary="'.htmlspecialchars(json_encode($e->role_summary), ENT_QUOTES, 'UTF-8').'"
-//         data-key-responsibility="'.htmlspecialchars(json_encode($e->key_respon), ENT_QUOTES, 'UTF-8').'"
-//         data-qualifications="'.htmlspecialchars(json_encode($e->qualifications), ENT_QUOTES, 'UTF-8').'"
-//                             data-approver1="'.(optional($e->approver1)->employee_name ?? '-').'"
-//                             data-approver2="'.(optional($e->approver2)->employee_name ?? '-').'"
-//                        data-salary="'.$e->salary_counter.'|'.$e->salary_counter_end.'"
-//                             data-status="'.$e->status.'">
-//                         <i class="fas fa-eye"></i> Preview
-//                     </button>';
-//         })
-//         ->rawColumns(['action'])
-//         ->make(true);
-// }
-public function getPositionreqs()
-{
-    $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-        ->select([
-            'id', 'employee_id', 'approver_1', 'approver_2', 'status',
-            'position_id', 'store_id', 'key_respon', 'role_summary',
-            'qualifications', 'salary_counter', 'salary_counter_end'
-        ])
-        ->where('status', 'Accepted')
-        ->get()
-        ->map(function ($position) {
-            $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-            return $position;
-        });
+    //     return DataTables::of($positions)
+    //         ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
+    //         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
+    //         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
+    //         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+    //         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+    //         ->addColumn('remark', function ($e) {
+    //             return match ($e->status) {
+    //                 'Pending' => 'Do your Duty',
+    //                 'Draft' => 'You have approved this application',
+    //                 'On review' => 'Awaiting director approval',
+    //                 'Accepted' => 'Accepted by directors',
+    //                 default => '-',
+    //             };
+    //         })
+    //         ->addColumn('action', function ($e) {
+    //             return '<button class="btn btn-sm btn-dark preview-btn" 
+    //                     data-id="'.$e->id_hashed.'" 
+    //                             data-company="'.(optional($e->submitter->company)->name ?? '-').'"
+    //                             data-department="'.(optional($e->submitter->department)->department_name ?? '-').'"
+    //                             data-submitter="'.(optional($e->submitter)->employee_name ?? '-').'"
+    //                             data-position="'.(optional($e->positionRelation)->name ?? '-').'"
+    //                             data-store="'.(optional($e->store)->name ?? '-').'"
+    //                              data-role-summary="'.htmlspecialchars(json_encode($e->role_summary), ENT_QUOTES, 'UTF-8').'"
+    //         data-key-responsibility="'.htmlspecialchars(json_encode($e->key_respon), ENT_QUOTES, 'UTF-8').'"
+    //         data-qualifications="'.htmlspecialchars(json_encode($e->qualifications), ENT_QUOTES, 'UTF-8').'"
+    //                             data-approver1="'.(optional($e->approver1)->employee_name ?? '-').'"
+    //                             data-approver2="'.(optional($e->approver2)->employee_name ?? '-').'"
+    //                        data-salary="'.$e->salary_counter.'|'.$e->salary_counter_end.'"
+    //                             data-status="'.$e->status.'">
+    //                         <i class="fas fa-eye"></i> Preview
+    //                     </button>';
+    //         })
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
+    public function getPositionreqs()
+    {
+        $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+            ->select([
+                'id',
+                'employee_id',
+                'approver_1',
+                'approver_2',
+                'status',
+                'position_id',
+                'store_id',
+                'key_respon',
+                'role_summary',
+                'qualifications',
+                'salary_counter',
+                'salary_counter_end'
+            ])
+            ->where('status', 'Accepted')
+            ->get()
+            ->map(function ($position) {
+                $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
+                return $position;
+            });
 
-    return DataTables::of($positions)
-        ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
-        ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
-        ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
-        ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
-        ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
-        ->addColumn('remark', function ($e) {
-            return match ($e->status) {
-                'Pending' => 'Do your Duty',
-                'Draft' => 'You have approved this application',
-                'On review' => 'Awaiting director approval',
-                'Accepted' => 'Accepted by directors',
-                default => '-',
-            };
-        })
-        ->addColumn('action', function ($e) {
-            return '
+        return DataTables::of($positions)
+            ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
+            ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
+            ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
+            ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
+            ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
+            ->addColumn('remark', function ($e) {
+                return match ($e->status) {
+                    'Pending' => 'Do your Duty',
+                    'Draft' => 'You have approved this application',
+                    'On review' => 'Awaiting director approval',
+                    'Accepted' => 'Accepted by directors',
+                    default => '-',
+                };
+            })
+            ->addColumn('action', function ($e) {
+                return '
                 <button class="btn btn-sm btn-dark preview-btn" 
-                    data-id="'.$e->id_hashed.'" 
-                    data-company="'.(optional($e->submitter->company)->name ?? '-').'"
-                    data-department="'.(optional($e->submitter->department)->department_name ?? '-').'"
-                    data-submitter="'.(optional($e->submitter)->employee_name ?? '-').'"
-                    data-position="'.(optional($e->positionRelation)->name ?? '-').'"
-                    data-store="'.(optional($e->store)->name ?? '-').'"
-                    data-role-summary="'.htmlspecialchars(json_encode($e->role_summary), ENT_QUOTES, 'UTF-8').'"
-                    data-key-responsibility="'.htmlspecialchars(json_encode($e->key_respon), ENT_QUOTES, 'UTF-8').'"
-                    data-qualifications="'.htmlspecialchars(json_encode($e->qualifications), ENT_QUOTES, 'UTF-8').'"
-                    data-approver1="'.(optional($e->approver1)->employee_name ?? '-').'"
-                    data-approver2="'.(optional($e->approver2)->employee_name ?? '-').'"
-                    data-salary="'.$e->salary_counter.'|'.$e->salary_counter_end.'"
-                    data-status="'.$e->status.'">
+                    data-id="' . $e->id_hashed . '" 
+                    data-company="' . (optional($e->submitter->company)->name ?? '-') . '"
+                    data-department="' . (optional($e->submitter->department)->department_name ?? '-') . '"
+                    data-submitter="' . (optional($e->submitter)->employee_name ?? '-') . '"
+                    data-position="' . (optional($e->positionRelation)->name ?? '-') . '"
+                    data-store="' . (optional($e->store)->name ?? '-') . '"
+                    data-role-summary="' . htmlspecialchars(json_encode($e->role_summary), ENT_QUOTES, 'UTF-8') . '"
+                    data-key-responsibility="' . htmlspecialchars(json_encode($e->key_respon), ENT_QUOTES, 'UTF-8') . '"
+                    data-qualifications="' . htmlspecialchars(json_encode($e->qualifications), ENT_QUOTES, 'UTF-8') . '"
+                    data-approver1="' . (optional($e->approver1)->employee_name ?? '-') . '"
+                    data-approver2="' . (optional($e->approver2)->employee_name ?? '-') . '"
+                    data-salary="' . $e->salary_counter . '|' . $e->salary_counter_end . '"
+                    data-status="' . $e->status . '">
                     <i class="fas fa-eye"></i> Preview
                 </button>
-                <button class="btn btn-sm btn-success store-btn" data-id="'.$e->id_hashed.'">
+                <button class="btn btn-sm btn-success store-btn" data-id="' . $e->id_hashed . '">
                     <i class="fas fa-save"></i> Store
                 </button>
             ';
-        })
-        ->rawColumns(['action'])
-        ->make(true);
-}
-public function storeToStructure($hashedId)
-{
-    // Cari data submission berdasarkan hashed ID
-    $submission = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-        ->get()
-        ->first(function ($item) use ($hashedId) {
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+    // public function storeToStructure($hashedId)
+    // {
+    //     // Cari data submission berdasarkan hashed ID
+    //     $submission = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+    //         ->get()
+    //         ->first(function ($item) use ($hashedId) {
+    //             $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
+    //             return $check === $hashedId;
+    //         });
+
+    //     if (!$submission) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Data not found'
+    //         ], 404);
+    //     }
+    //     if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'This submission has already been stored'
+    //         ], 409);
+    //     }
+    //     $structure = Structuresnew::create([
+    //         'submission_position_id' => $submission->id,
+    //         'status' => 'vacant',
+    //     ]);
+
+    //     $submission->update(['status' => 'Done']);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Data successfully stored to Structuresnew!',
+    //         'data' => $structure
+    //     ]);
+    // }
+    public function storeToStructure($hashedId)
+    {
+        $submission = Submissionposition::with([
+            'submitter.company',
+            'submitter.department',
+            'store'
+        ])->get()->first(function ($item) use ($hashedId) {
             $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
             return $check === $hashedId;
         });
 
-    if (!$submission) {
+        if (!$submission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data not found'
+            ], 404);
+        }
+        // Cegah duplikasi
+        if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This submission has already been stored'
+            ], 409);
+        }
+
+        // Pastikan relasi company, department, dan store tersedia
+        $company = $submission->submitter?->company;
+        $department = $submission->submitter?->department;
+        $store = $submission->store;
+
+        if (!$company || !$department || !$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing company, department, or store data'
+            ], 422);
+        }
+
+        // Buat kode unik
+        $companyCode = strtoupper(preg_replace('/\s+/', '', $company->nickname));
+        $departmentCode = strtoupper(preg_replace('/\s+/', '', $department->nickname));
+        $storeCode = strtoupper(preg_replace('/\s+/', '', $store->nickname));
+
+        // Prefix misal: ABCDEPKTBSR
+        $prefix = $companyCode . $departmentCode . $storeCode;
+
+        // Cari kode terakhir dengan prefix sama
+        $lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nickname', $company->nickname))
+            ->whereHas('department', fn($q) => $q->where('nickname', $department->nickname))
+            ->whereHas('store', fn($q) => $q->where('nickname', $store->nickname))
+            ->where('structure_code', 'like', $prefix . '%')
+            ->orderBy('structure_code', 'desc')
+            ->first();
+
+        // Tentukan nomor berikutnya
+        $nextNumber = 1;
+        if ($lastStructure) {
+            $lastNumber = (int) preg_replace('/\D/', '', $lastStructure->structure_code);
+            $nextNumber = $lastNumber + 1;
+        }
+        // Bentuk final code, misal: ABCDEPKTBSR2
+        $structureCode = $prefix . $nextNumber;
+
+        // Simpan ke tabel Structuresnew
+        $structure = Structuresnew::create([
+            'submission_position_id' => $submission->id,
+            'structure_code' => $structureCode,
+            'status' => 'vacant',
+        ]);
+
+        // Update status submission
+        $submission->update(['status' => 'Done']);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Data not found'
-        ], 404);
+            'success' => true,
+            'message' => 'Data successfully stored to Structuresnew!',
+            'data' => $structure
+        ]);
     }
-    if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'This submission has already been stored'
-        ], 409);
-    }
-    $structure = Structuresnew::create([
-        'submission_position_id' => $submission->id,
-        'status' => 'vacant',
-    ]);
 
-    $submission->update(['status' => 'Done']);
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Data successfully stored to Structuresnew!',
-        'data' => $structure
-    ]);
-}
-
-   public function bulkDelete(Request $request)
+    public function bulkDelete(Request $request)
     {
         $idsRaw = $request->input('structure_ids', '');
         $ids = is_array($idsRaw) ? $idsRaw : explode(',', $idsRaw);
@@ -356,28 +509,27 @@ public function storeToStructure($hashedId)
             'hashedId' => $hashedId,
         ]);
     }
-   
-public function see($idHashed)
-{
-    $structure = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-        ->get()
-        ->first(function ($pos) use ($idHashed) {
-            return substr(hash('sha256', $pos->id . env('APP_KEY')), 0, 8) === $idHashed;
-        });
 
-    if (!$structure) {
-        return response('<p class="text-danger">Data not found.</p>', 404);
+    public function see($idHashed)
+    {
+        $structure = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+            ->get()
+            ->first(function ($pos) use ($idHashed) {
+                return substr(hash('sha256', $pos->id . env('APP_KEY')), 0, 8) === $idHashed;
+            });
+
+        if (!$structure) {
+            return response('<p class="text-danger">Data not found.</p>', 404);
+        }
+
+        return view('pages.Structuresnew.partials.see', compact('structure'));
     }
-
-   return view('pages.Structuresnew.partials.see', compact('structure'));
-
-}
 
 
 
     public function show($hashedId)
     {
-        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')
+        $structure = Structuresnew::with('company', 'department', 'store', 'parent', 'salary','submissionposition','submissionposition.positionRelation')
             ->get()
             ->first(function ($u) use ($hashedId) {
                 $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
@@ -416,8 +568,8 @@ public function see($idHashed)
         ];
 
         // Pastikan field `type` jadi array + beri warna
-        $structure->type_badges = collect(
-            is_array($structure->type) ? $structure->type : explode(',', $structure->type)
+        $structure->submissionposition->type_badges = collect(
+            is_array($structure->submissionposition->type) ? $structure->submissionposition->type : explode(',', $structure->submissionposition->type)
         )->map(function ($t) use ($badgeColors) {
             $t = trim($t);
             return [
@@ -436,7 +588,7 @@ public function see($idHashed)
         ));
     }
 
-    
+
     public function store(Request $request)
     {
         // dd($request->all());
@@ -637,7 +789,7 @@ public function see($idHashed)
     //         ));
     //     }
 
-     //     public function show($hashedId)
+    //     public function show($hashedId)
     //     {
     //         $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')->get()->first(function ($u) use ($hashedId) {
     //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
@@ -663,21 +815,21 @@ public function see($idHashed)
     //             'hashedId' => $hashedId,
     //         ]);
     //     }
-//     public function see($idHashed)
-// {
-//     $position = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-//         ->get()
-//         ->first(function ($pos) use ($idHashed) {
-//             return substr(hash('sha256', $pos->id . env('APP_KEY')), 0, 8) === $idHashed;
-//         });
+    //     public function see($idHashed)
+    // {
+    //     $position = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
+    //         ->get()
+    //         ->first(function ($pos) use ($idHashed) {
+    //             return substr(hash('sha256', $pos->id . env('APP_KEY')), 0, 8) === $idHashed;
+    //         });
 
-//     if (!$position) {
-//         return response('<p class="text-danger">Data not found.</p>', 404);
-//     }
+    //     if (!$position) {
+    //         return response('<p class="text-danger">Data not found.</p>', 404);
+    //     }
 
-//     return view('Structurenew.partials.see', compact('position'));
-// }
-//    public function getPositionreqs()
+    //     return view('Structurenew.partials.see', compact('position'));
+    // }
+    //    public function getPositionreqs()
     // {
 
     //     $positions = Submissionposition::with(['submitter','approver1','approver2','positionRelation','store'])

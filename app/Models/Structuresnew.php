@@ -88,6 +88,12 @@ class Structuresnew extends Model
     {
         return $this->belongsTo(Structuresnew::class, 'parent_id', 'id');
     }
+    // public function parent()
+    // {
+    //     // penting: load submissionposition + positionRelation untuk bisa munculkan nama parent
+    //     return $this->belongsTo(self::class, 'parent_id')
+    //         ->with(['submissionposition.positionRelation']);
+    // }
     public function children()
     {
         return $this->hasMany(Structuresnew::class, 'parent_id', 'id');
@@ -96,12 +102,13 @@ class Structuresnew extends Model
     {
         return $this->hasMany(Employee::class, 'structure_id', 'id');
     }
-//     public function allChildren()
-// {
-//     return $this->children()->with('allChildren');
-// }
+
 public function allChildren()
 {
     return $this->children()->with('allChildren', 'position');
 }
+//     public function allChildren()
+// {
+//     return $this->children()->with('allChildren');
+// }
 }

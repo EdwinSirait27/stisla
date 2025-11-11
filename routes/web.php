@@ -336,6 +336,8 @@ Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], funct
     Route::get('/Positionreqlist/show/{hashedId}', [PositionreqController::class, 'show'])->name('Positionreqlist.show');
     Route::put('/Positionreqlist/{hashedId}', [PositionreqController::class, 'update'])->name('Positionreqlist.update');
     Route::get('/positionreqlists/positionreqlists', [PositionreqController::class, 'getPositionreqlists'])->name('positionreqlists.positionreqlists');
+        Route::get('/datarequest/datarequest', [PositionreqController::class, 'getReqactivities'])->name('datarequest.datarequest');
+
 });
 
 

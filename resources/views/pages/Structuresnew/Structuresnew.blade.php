@@ -172,13 +172,10 @@
 @section('main')
     <div class="main-content">
         <section class="section">
-            {{-- SECTION HEADER --}}
             <div class="section-header">
                 <h1><i class="fas fa-sitemap"></i> Structures Overview</h1>
             </div>
-
             <div class="section-body">
-                {{-- DATATABLES --}}
                 <div class="row">
                     <div class="col-12">
                         <div class="card shadow-sm border-0">
@@ -210,10 +207,9 @@
                                                     <th class="text-center">Location</th>
                                                     <th class="text-center">Position</th>
                                                     <th class="text-center">Structure Code</th>
-                                                    <th class="text-center">Is Manager?</th>
-                                                    {{-- <th class="text-center">Is Head?</th> --}}
+                                                    {{-- <th class="text-center">Is Manager?</th> --}}
                                                     <th class="text-center">Direct Superior</th>
-                                                    <th class="text-center">Subordinate</th>
+                                                    {{-- <th class="text-center">Direct Subordinate</th> --}}
                                                     <th class="text-center">All Subordinate</th>
                                                     <th class="text-center">Status</th>
                                                     <th class="text-center">Action</th>
@@ -592,27 +588,27 @@ $(document).on('click', '.store-btn', function() {
                         name: 'structure_code',
                         className: 'text-center'
                     },
-                    {
-                        data: 'is_manager',
-                        name: 'is_manager',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data == 1 ?
-                                '<span class="badge bg-success">Yes</span>' :
-                                '<span class="badge bg-danger">No</span>';
-                        }
-                    },
+                    // {
+                    //     data: 'is_manager',
+                    //     name: 'is_manager',
+                    //     className: 'text-center',
+                    //     render: function(data) {
+                    //         return data == 1 ?
+                    //             '<span class="badge bg-success">Yes</span>' :
+                    //             '<span class="badge bg-danger">No</span>';
+                    //     }
+                    // },
 
                     {
                         data: 'parent',
                         name: 'parent',
                         className: 'text-center'
                     },
-                    {
-                        data: 'children',
-                        name: 'children',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'children',
+                    //     name: 'children',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'allChildren',
                         name: 'allChildren',

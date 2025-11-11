@@ -197,6 +197,27 @@
                     </div>
                 </div>
             </div>
+
+
+              <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Position Request History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="activityTable" class="table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">No</th>
+                                    <th class="text-center">Description</th>
+                                    <th class="text-center">By</th>
+                                    <th class="text-center">Date</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 @endsection
@@ -279,6 +300,52 @@
                 text: '{{ session('success') }}',
             });
         @endif
+        });
+    </script>
+      <script>
+        $(function() {
+            $('#activityTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('datarequest.datarequest') }}",
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'description',
+                        name: 'description',
+                        className: 'text-center'
+                    },
+                    // { data: 'changes', name: 'changes' },
+                    {
+                        data: 'causer',
+                        name: 'causer',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-center'
+                    },
+                ],
+                order: [
+                    [3, 'desc']
+                ],
+                language: {
+                    searchPlaceholder: 'Search...',
+                    sSearch: '',
+                    lengthMenu: '_MENU_ Show entries',
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ]
+            });
         });
     </script>
 @endpush

@@ -12,7 +12,7 @@ use App\Rules\NoXSSInput;
 use App\Mail\Sendpositionrequesttodir;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
-
+use Spatie\Activitylog\Models\Activity;
 class PositionreqController extends Controller
 {
     public function index()
@@ -80,6 +80,132 @@ class PositionreqController extends Controller
             })
             ->rawColumns(['action'])
             ->make(true);
+    }
+      public function getReqactivities(Request $request)
+      {
+        if ($request->ajax()) {
+            $query = Activity::where('log_name', 'Submissionposition')
+                ->with(['causer.employee'])
+                ->latest();
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('description', function ($row) {
+                    return $row->description ?? '-';
+                })
+                ->addColumn('causer', function ($row) {
+                    return $row->causer->employee->employee_name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at->format('d M Y H:i');
+                })
+                ->addColumn('changes', function ($row) {
+                    return json_encode($row->properties['attributes'] ?? []);
+                })
+
+                // 🔍 Tambahkan bagian filter untuk search
+                ->filter(function ($instance) use ($request) {
+                    if ($request->has('search') && $request->get('search')['value'] != '') {
+                        $search = $request->get('search')['value'];
+
+                        $instance->where(function ($q) use ($search) {
+                            $q->where('description', 'like', "%{$search}%")
+                                ->orWhereHas('causer.employee', function ($q2) use ($search) {
+                                    $q2->where('employee_name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('causer.employee', function ($q3) use ($search) {
+                                    $q3->where('employee_name', 'like', "%{$search}%");
+                                });
+                        });
+                    }
+                })
+                ->rawColumns(['description'])
+                ->make(true);
+        }
+    }
+    
+    /**
+     * Format nilai untuk ditampilkan dengan lebih readable
+     */
+    private function formatActivityValue($field, $value)
+    {
+        if (is_null($value) || $value === '') {
+            return '<em class="text-muted">(kosong)</em>';
+        }
+        
+        // Format untuk relasi
+        switch ($field) {
+            case 'employee_id':
+            case 'approver_1':
+            case 'approver_2':
+                $employee = \App\Models\Employee::find($value);
+                return $employee ? $employee->employee_name : $value;
+                
+            case 'store_id':
+                $store = \App\Models\Stores::find($value);
+                return $store ? $store->name : $value;
+                
+            case 'position_id':
+                $position = \App\Models\Position::find($value);
+                return $position ? $position->name : $value;
+                
+            case 'salary_hr':
+            case 'salary_hr_end':
+            case 'salary_counter':
+            case 'salary_counter_end':
+                return 'Rp ' . number_format($value, 0, ',', '.');
+            
+            case 'status':
+                // Tambahkan badge untuk status jika perlu
+                $statusLabels = [
+                    'pending' => '<span class="badge bg-warning">Pending</span>',
+                    'approved' => '<span class="badge bg-success">Approved</span>',
+                    'rejected' => '<span class="badge bg-danger">Rejected</span>',
+                ];
+                return $statusLabels[$value] ?? $value;
+                
+            default:
+                // Potong text yang terlalu panjang
+                if (strlen($value) > 100) {
+                    return substr($value, 0, 100) . '...';
+                }
+                return $value;
+        }
+    }
+    
+    /**
+     * Method untuk menampilkan detail activity log (opsional)
+     */
+    public function showActivityDetail($id)
+    {
+        $activity = Activity::with(['causer.employee', 'subject'])
+            ->findOrFail($id);
+        
+        $changes = [];
+        $labels = Submissionposition::getFieldLabels();
+        
+        if ($activity->event === 'updated') {
+            $attributes = $activity->properties->get('attributes', []);
+            $old = $activity->properties->get('old', []);
+            
+            foreach ($attributes as $key => $newValue) {
+                if (isset($old[$key]) && $old[$key] != $newValue) {
+                    $changes[] = [
+                        'field' => $labels[$key] ?? $key,
+                        'field_key' => $key,
+                        'old_value' => $this->formatActivityValue($key, $old[$key]),
+                        'new_value' => $this->formatActivityValue($key, $newValue),
+                        'old_raw' => $old[$key],
+                        'new_raw' => $newValue,
+                    ];
+                }
+            }
+        }
+        
+        return response()->json([
+            'activity' => $activity,
+            'changes' => $changes,
+        ]);
     }
     // public function getPositionreqlists()
     // {
@@ -190,66 +316,126 @@ class PositionreqController extends Controller
             'hashedId' => $hashedId
         ]);
     }
-    public function update(Request $request, $hashedId)
-    {
-        $position = Submissionposition::with('submitter', 'approver1', 'approver2')
-            ->get()
-            ->first(function ($u) use ($hashedId) {
-                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-                return $expectedHash === $hashedId;
-            });
+//     public function update(Request $request, $hashedId)
+//     {
+//         $position = Submissionposition::with('submitter', 'approver1', 'approver2')
+//             ->get()
+//             ->first(function ($u) use ($hashedId) {
+//                 $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+//                 return $expectedHash === $hashedId;
+//             });
 
-        if (!$position) {
-            return redirect()->route('pages.Position')->with('error', 'ID tidak valid.');
+//         if (!$position) {
+//             return redirect()->route('pages.Position')->with('error', 'ID tidak valid.');
+//         }
+
+//         $validatedData = $request->validate([
+//             'status'        => ['required', 'string', 'max:255'],
+//             'notes_hr'        => ['required', 'string'],
+//             'type'        => ['required'],
+//             'salary_hr'        => ['required', 'regex:/^[0-9]+$/'],
+//             'salary_hr_end'        => ['required', 'regex:/^[0-9]+$/'],
+//             'reason_reject' => ['nullable', 'string', 'max:255'],
+//             'reason_reject_dir' => ['nullable', 'string'],
+//         ], [
+//             'status.required' => 'Status must be filled.',
+//         ]);
+//         $positionData = [
+//             'status'        => $validatedData['status'],
+//             'salary_hr'        => $validatedData['salary_hr'],
+//             'salary_hr_end'        => $validatedData['salary_hr_end'],
+//             'type'          => is_array($validatedData['type'])
+//                 ? implode(',', $validatedData['type'])
+//                 : $validatedData['type'],
+
+//             'notes_hr' => $validatedData['notes_hr'] ?? null,
+//             'reason_reject' => $validatedData['reason_reject'] ?? null,
+//         ];
+//         if (in_array($validatedData['status'], ['On Review HR', 'Reviewed HR', 'Reject'])) {
+//             $positionData['approver_1'] = auth()->user()->employee_id;
+//         }
+//         DB::beginTransaction();
+//         try {
+//             $position->update($positionData);
+//             DB::commit();
+//             if ($validatedData['status'] === 'Approved HR') {
+//     $directorUsers = User::role('Director')
+//         ->whereHas('employee', function ($query) {
+//             $query->where('status', 'Active');
+//         })
+//         ->with('employee')
+//         ->get();
+
+//     foreach ($directorUsers as $director) {
+//         if ($director->employee && $director->employee->email) {
+//             Mail::to($director->employee->email)->send(new Sendpositionrequesttodir($position));
+//         }
+//     }
+// }
+//             return redirect()->route('pages.Positionreqlist')->with('success', 'Position Request updated successfully.');
+//         } catch (\Exception $e) {
+//             DB::rollBack();
+//             return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
+//         }
+//     }
+public function update(Request $request, $hashedId)
+{
+    $position = Submissionposition::all()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+
+    if (!$position) {
+        return redirect()->route('pages.Position')->with('error', 'ID tidak valid.');
+    }
+
+    $validatedData = $request->validate([
+        'status'        => ['required', 'string', 'max:255'],
+        'notes_hr'      => ['required', 'string'],
+        'type'          => ['required'],
+        'salary_hr'     => ['required', 'regex:/^[0-9]+$/'],
+        'salary_hr_end' => ['required', 'regex:/^[0-9]+$/'],
+        'reason_reject' => ['nullable', 'string', 'max:255'],
+        'reason_reject_dir' => ['nullable', 'string'],
+    ]);
+
+    $position->status = $validatedData['status'];
+    $position->salary_hr = $validatedData['salary_hr'];
+    $position->salary_hr_end = $validatedData['salary_hr_end'];
+    $position->type = is_array($validatedData['type'])
+        ? implode(',', $validatedData['type'])
+        : $validatedData['type'];
+    $position->notes_hr = $validatedData['notes_hr'] ?? null;
+    $position->reason_reject = $validatedData['reason_reject'] ?? null;
+
+    if (in_array($validatedData['status'], ['On Review HR', 'Reviewed HR', 'Reject'])) {
+        $position->approver_1 = auth()->user()->employee_id;
+    }
+
+    DB::beginTransaction();
+    try {
+        $position->save(); // ✅ ini memicu Spatie log dengan old/new
+        DB::commit();
+
+        // kirim email kalau Approved HR
+        if ($validatedData['status'] === 'Approved HR') {
+            $directorUsers = User::role('Director')
+                ->whereHas('employee', fn($q) => $q->where('status', 'Active'))
+                ->with('employee')
+                ->get();
+
+            foreach ($directorUsers as $director) {
+                if ($director->employee && $director->employee->email) {
+                    Mail::to($director->employee->email)->send(new Sendpositionrequesttodir($position));
+                }
+            }
         }
 
-        $validatedData = $request->validate([
-            'status'        => ['required', 'string', 'max:255'],
-            'notes_hr'        => ['required', 'string'],
-            'type'        => ['required'],
-            'salary_hr'        => ['required', 'regex:/^[0-9]+$/'],
-            'salary_hr_end'        => ['required', 'regex:/^[0-9]+$/'],
-            'reason_reject' => ['nullable', 'string', 'max:255'],
-            'reason_reject_dir' => ['nullable', 'string'],
-        ], [
-            'status.required' => 'Status must be filled.',
-        ]);
-        $positionData = [
-            'status'        => $validatedData['status'],
-            'salary_hr'        => $validatedData['salary_hr'],
-            'salary_hr_end'        => $validatedData['salary_hr_end'],
-            'type'          => is_array($validatedData['type'])
-                ? implode(',', $validatedData['type'])
-                : $validatedData['type'],
-
-            'notes_hr' => $validatedData['notes_hr'] ?? null,
-            'reason_reject' => $validatedData['reason_reject'] ?? null,
-        ];
-        if (in_array($validatedData['status'], ['On Review HR', 'Reviewed HR', 'Reject'])) {
-            $positionData['approver_1'] = auth()->user()->employee_id;
-        }
-        DB::beginTransaction();
-        try {
-            $position->update($positionData);
-            DB::commit();
-            if ($validatedData['status'] === 'Approved HR') {
-    $directorUsers = User::role('Director')
-        ->whereHas('employee', function ($query) {
-            $query->where('status', 'Active');
-        })
-        ->with('employee')
-        ->get();
-
-    foreach ($directorUsers as $director) {
-        if ($director->employee && $director->employee->email) {
-            Mail::to($director->employee->email)->send(new Sendpositionrequesttodir($position));
-        }
+        return redirect()->route('pages.Positionreqlist')->with('success', 'Position Request updated successfully.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
     }
 }
-            return redirect()->route('pages.Positionreqlist')->with('success', 'Position Request updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
-        }
-    }
+
 }

@@ -171,7 +171,7 @@
                 <h1>Detail Structures</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item"><a href="{{ route('pages.Structuresnew') }}">Structure</a></div>
-                    <div class="breadcrumb-item">Detail Structures {{ $structure->position->name }}</div>
+                    <div class="breadcrumb-item">Detail Structures {{ $structure->submissionposition->positionRelation->name }}</div>
                 </div>
             </div>
 
@@ -181,7 +181,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Detail Structures') }} - {{ $structure->position->name }}</h6>
+                                    <h6 class="mb-0">{{ __('Detail Structures') }} - {{ $structure->submissionposition->positionRelation->name }}</h6>
                                 </div>
 
                                 <div class="card-body pt-4 p-3">
@@ -198,19 +198,19 @@
                                             <tbody>
                                                 <tr>
                                                     <th width="25%">Company</th>
-                                                    <td>{{ $structure->company->name ?? '-' }}</td>
+                                                    <td>{{ $structure->submissionposition->submitter->company->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Department</th>
-                                                    <td>{{ $structure->department->department_name ?? '-' }}</td>
+                                                    <td>{{ $structure->submissionposition->submitter->department->department_name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Location</th>
-                                                    <td>{{ $structure->store->name ?? '-' }}</td>
+                                                    <td>{{ $structure->submissionposition->store->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Position</th>
-                                                    <td>{{ $structure->position->name ?? '-' }}</td>
+                                                    <td>{{ $structure->submissionposition->positionRelation->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Hierarchy</th>
@@ -228,18 +228,18 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Role Summary</th>
-                                                    <td>{!! $structure->role_summary ?? '<em>Empty</em>' !!}</td>
+                                                    <td>{!! $structure->submissionposition->role_summary ?? '<em>Empty</em>' !!}</td>
 
                                                 </tr>
                                                 <tr>
                                                     <th>Key Responsibility</th>
-                                                    <td>{!! $structure->key_respon ?? '<em>Empty</em>' !!}</td>
+                                                    <td>{!! $structure->submissionposition->key_respon ?? '<em>Empty</em>' !!}</td>
 
 
                                                 </tr>
                                                 <tr>
                                                     <th>Qualifications</th>
-                                                    <td>{!! $structure->qualifications ?? '<em>Empty</em>' !!}</td>
+                                                    <td>{!! $structure->submissionposition->qualifications ?? '<em>Empty</em>' !!}</td>
 
 
                                                 </tr>
@@ -252,7 +252,7 @@
                                                 <tr>
                                                     <th>Type</th>
                                                     <td>
-                                                        @forelse ($structure->type_badges as $badge)
+                                                        @forelse ($structure->submissionposition->type_badges as $badge)
                                                             <span
                                                                 class="badge bg-{{ $badge['color'] }}">{{ $badge['name'] }}</span>
                                                         @empty
@@ -264,10 +264,7 @@
 
 
 
-                                                <tr>
-                                                    <th>Work</th>
-                                                    <td>{{ $structure->position->name ?? '-' }}</td>
-                                                </tr>
+                                              
                                                 <tr>
                                                     <th>Created on date</th>
                                                     <td>{{ $structure->created_at->format('d M Y, H:i') }}</td>

@@ -253,7 +253,7 @@
 
         });
     </script>
-    <script>
+    {{-- <script>
         jQuery(document).ready(function($) {
             var table = $('#submissions-table').DataTable({
                 processing: true,
@@ -296,5 +296,5 @@
             @endif
 
         });
-    </script>
+    </script> --}}
 @endpush

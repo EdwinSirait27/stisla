@@ -287,15 +287,19 @@ class Employee extends Model
                     ?? auth()->user()->name
                     ?? 'system';
                 $target = $this->employee_name ?? 'Unknown Employee';
-
                 $changes = $this->getChanges();
                 $original = $this->getOriginal();
-
                 $relationNames = [
                     'company_id' => fn($id) => optional(Company::find($id))->name,
                     'store_id' => fn($id) => optional(Stores::find($id))->name,
                     'position_id' => fn($id) => optional(Position::find($id))->name,
                     'bank_id' => fn($id) => optional(Banks::find($id))->name,
+                    'structure_id' => fn($id) => optional(
+                        optional(
+                            optional(Structuresnew::with('submissionposition.positionRelation')->find($id))
+                                ->submissionposition
+                        )->positionRelation
+                    )->name,
                     'department_id' => fn($id) => optional(Departments::find($id))->department_name,
                     'grading_id' => fn($id) => optional(Departments::find($id))->grading_name,
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
@@ -304,7 +308,6 @@ class Employee extends Model
                 if ($eventName === 'updated' && !empty($changes)) {
                     $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames) {
                         $old = $original[$field] ?? 'null';
-
                         // Jika field ada di daftar relasi, ubah ID ke nama relasinya
                         if (isset($relationNames[$field])) {
                             $oldLabel = $relationNames[$field]($old) ?? $old;
@@ -328,7 +331,7 @@ class Employee extends Model
     }
     public function structuresnew()
     {
-        return $this->belongsTo(Structuresnew::class, 'structure_id','id');
+        return $this->belongsTo(Structuresnew::class, 'structure_id', 'id');
     }
 }
 

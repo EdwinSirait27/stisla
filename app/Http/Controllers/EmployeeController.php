@@ -331,7 +331,7 @@ class EmployeeController extends Controller
         $banks = Banks::get();
       $usedStructureIds = Employee::whereNotNull('structure_id')->pluck('structure_id')->toArray();
 
-    $structures = Structuresnew::with('company', 'department', 'store', 'position')
+    $structures = Structuresnew::with('company', 'department', 'store', 'position','submissionposition')
         ->whereNotIn('id', $usedStructureIds)
         ->orWhere('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
         ->get();
