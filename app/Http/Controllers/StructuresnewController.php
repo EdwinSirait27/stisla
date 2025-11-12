@@ -508,16 +508,16 @@ class StructuresnewController extends Controller
 
     public function getOrgChartData()
     {
-        $data = Structuresnew::with(['position', 'parent', 'employee', 'employee.store', 'store', 'employee.grading'])
+        $data = Structuresnew::with(['position', 'parent', 'employee', 'employee.store', 'store', 'employee.grading','submissionposition'])
             ->get()
             ->map(function ($s) {
                 return [
                     'id'        => $s->id,
                     'pid'       => $s->parent_id,
-                    'Position'  => $s->position->name ?? 'Unknown',
+                    'Position'  => $s->submissionposition->positionRelation->name ?? 'Unknown',
                     'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
                     'Grading'  => $s->employee->pluck('grading.grading_name')->join(', ') ?: 'Empty',
-                    'Location'  => $s->store->name ?? 'Empty',
+                    'Location'  => $s->submissionposition->store->name ?? 'Empty',
                     'status'    => $s->status,
                 ];
             });
