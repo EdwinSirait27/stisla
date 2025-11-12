@@ -171,7 +171,7 @@
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item"><a href="{{ route('pages.Positionreqlist') }}">Detail Position Request</a>
                     </div>
-                    <div class="breadcrumb-item">Detail Position Request {{ $submission->positionRelation->name }}</div>
+                    <div class="breadcrumb-item">Detail Position Request from {{$submission->submitter->employee_name}} for position {{ $submission->positionRelation->name }}</div>
                 </div>
             </div>
 

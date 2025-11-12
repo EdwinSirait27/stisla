@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Structuresnew extends Model
 {
-    use HasFactory;
+    use HasFactory,  LogsActivity; 
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -111,4 +113,65 @@ public function allChildren()
 // {
 //     return $this->children()->with('allChildren');
 // }
+
+
+
+
+public function getActivitylogOptions(): LogOptions
+{
+    return LogOptions::defaults()
+        ->logFillable()
+        ->useLogName('Structuresnew')
+        ->setDescriptionForEvent(function (string $eventName) {
+            $actor = auth()->user()->employee->employee_name
+                ?? auth()->user()->name
+                ?? 'system';
+
+
+            $changes = $this->getChanges();
+            $original = $this->getOriginal();
+
+            // Mapping relasi ID → nama entitas
+            $relationNames = [
+                // 'parent_id' => fn($id) => optional(Structuresnew::find($id))->name,
+                 'parent_id' => fn($id) => optional(Structuresnew::with('submissionposition.positionRelation')->find($id))->submissionposition->positionRelation->name ?? '-',
+
+              ];
+
+            // Mapping label kolom → label human readable
+            $fieldLabels = [
+                'parent_id' => 'Direct Supervisor',
+                
+            ];
+
+            $changesInfo = '';
+            if ($eventName === 'updated' && !empty($changes)) {
+                $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
+                    $old = $original[$field] ?? 'null';
+
+                    // Ganti label field dengan nama yang lebih manusiawi
+                    $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
+
+                    // Jika field termasuk relasi, tampilkan nama relasi
+                    if (isset($relationNames[$field])) {
+                        $oldLabel = $relationNames[$field]($old) ?? $old;
+                        $newLabel = $relationNames[$field]($new) ?? $new;
+                        return "{$label}: {$oldLabel} → {$newLabel}";
+                    }
+
+                    // Selain relasi, tampilkan perubahan nilai biasa
+                    if ($old == $new) return null;
+                    return "{$label}: {$old} → {$new}";
+                })
+                    ->filter()
+                    ->values()
+                    ->implode(', ');
+
+                $changesInfo = $details ? "Changes: {$details}" : '';
+            }
+
+            return "Structuresnew has been {$eventName} by {$actor}. {$changesInfo}";
+        });
+}
+
 }

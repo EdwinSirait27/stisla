@@ -160,6 +160,42 @@
         select.form-control {
             height: 42px;
         }
+
+        #role_summary {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
+        #key_respon {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
+        #qualifications {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
+        #notes {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
+        #notes_hr {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
+
+        #notes_dir {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
     </style>
 @endpush
 {{-- @section('main')
@@ -284,99 +320,100 @@
     </div>
 @endsection --}}
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Update Structures {{ $structure->position->name }}</h1>
-            <div class="section-header-breadcrumb">
-                <div class="breadcrumb-item">
-                    <a href="{{ route('pages.Structures') }}">Structures</a>
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Update Structures {{ $structure->submissionposition->positionRelation->name }}</h1>
+                <div class="section-header-breadcrumb">
+                    <div class="breadcrumb-item">
+                        <a href="{{ route('pages.Structures') }}">Structures</a>
+                    </div>
+                    <div class="breadcrumb-item">Update Structure
+                        {{ $structure->submissionposition->positionRelation->name }}</div>
                 </div>
-                <div class="breadcrumb-item">Update Structure {{ $structure->position->name }}</div>
             </div>
-        </div>
 
-        <div class="section-body">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header pb-0 px-3">
-                                <h6 class="mb-0">{{ __('Update Structure') }} {{ $structure->position->name }}</h6>
-                            </div>
+            <div class="section-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header pb-0 px-3">
+                                    <h6 class="mb-0">{{ __('Update Structure from manager') }}
+                                        {{ $structure->submissionposition->submitter->employee_name }} -
+                                        {{ $structure->submissionposition->positionRelation->name }}</h6>
+                                </div>
 
-                            <div class="card-body pt-4 p-3">
-                                {{-- Alert errors --}}
-                                @if ($errors->any())
-                                    <div class="alert alert-danger">
-                                        <ul class="mb-0">
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
+                                <div class="card-body pt-4 p-3">
+                                    {{-- Alert errors --}}
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger">
+                                            <ul class="mb-0">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
 
-                                {{-- Alert success --}}
-                                @if (session('success'))
-                                    <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
-                                        <span class="alert-text">{{ session('success') }}</span>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                                            <i class="fa fa-close" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                @endif
+                                    {{-- Alert success --}}
+                                    @if (session('success'))
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
+                                            <span class="alert-text">{{ session('success') }}</span>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
+                                                <i class="fa fa-close" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    @endif
 
-                                {{-- Form start --}}
-                                <form id="departments-edit" action="{{ route('Structuresnew.update', $hashedId) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
+                                    {{-- Form start --}}
+                                    <form id="departments-edit" action="{{ route('Structuresnew.update', $hashedId) }}"
+                                        method="POST">
+                                        @csrf
+                                        @method('PUT')
 
-                                    <div class="row">
-                                        {{-- Is Manager --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <div class="form-check">
-                                                    <input type="checkbox" name="is_manager" id="is_manager"
-                                                        value="1"
-                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
-                                                        {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
-                                                    <label class="form-check-label" for="is_manager">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                        <div class="row">
+                                            {{-- Is Manager --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="position_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Position') }}
                                                     </label>
-                                                    @error('is_manager')
-                                                        <span class="invalid-feedback d-block" role="alert">
+
+                                                    <input type="text"
+                                                        class="form-control @error('position_id') is-invalid @enderror"
+                                                        id="position_id" name="position_id"
+                                                        value="{{ old('position_id', $structure->submissionposition->positionRelation->name) }}"
+                                                        disabled placeholder="Fill Position Name">
+                                                    @error('position_id')
+                                                        <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
                                             </div>
-                                        </div>
+                                            <div class="col-md-6">
 
-                                        {{-- Direct Superior --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="parent_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
-                                                </label>
-                                                <select name="parent_id"
-                                                    class="form-control select2 @error('parent_id') is-invalid @enderror">
-                                                    <option value="">Choose Superior</option>
-                                                    @foreach ($parents as $id => $parentName)
-                                                        <option value="{{ $id }}"
-                                                            {{ old('parent_id', $structure->parent_id) == $id ? 'selected' : '' }}>
-                                                            {{ $parentName }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('parent_id')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
+                                                <div class="form-group">
+                                                    <label for="store_id" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Location') }}
+                                                    </label>
+                                                    <input type="text"
+                                                        class="form-control @error('store_id') is-invalid @enderror"
+                                                        id="store_id" name="store_id"
+                                                        value="{{ old('store_id', $structure->submissionposition->store->name) }}"
+                                                        disabled placeholder="Fill Store Name">
+                                                    @error('store_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
                                             </div>
-                                        </div>
-                                      <div class="col-md-6">
+
+                                            <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="type" class="form-control-label">
                                                         <i class="fas fa-list"></i> {{ __('Type') }}
@@ -389,8 +426,9 @@
                                                                     type="checkbox" name="type[]"
                                                                     id="type_{{ $type }}"
                                                                     value="{{ $type }}"
-                                                                    {{ in_array($type, explode(',', $structure->type)) ? 'checked' : '' }}
+                                                                    {{ in_array($type, explode(',', $structure->submissionposition->type)) ? 'checked' : '' }}
                                                                     disabled>
+
                                                                 <label class="form-check-label"
                                                                     for="type_{{ $type }}">
                                                                     {{ $type }}
@@ -405,37 +443,320 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
 
-                                    </div>
+                                                <div class="form-group">
+                                                    <label for="role_summary" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Role Summary') }}
+                                                    </label>
+                                                    {{-- <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
+                                                        rows="8"disabled>{{ old('role_summary', $position->role_summary) }}</textarea> --}}
+                                                    <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
+                                                        rows="8" disabled>{{ html_entity_decode(strip_tags(old('role_summary', $structure->submissionposition->role_summary))) }}</textarea>
 
-                                    {{-- Info Note --}}
-                                    <div class="alert alert-secondary mt-4" role="alert">
-                                        <span class="text-dark">
-                                            <strong>Important Note:</strong><br>
-                                            - Superior can be empty.<br>
-                                            - Is Manager can be empty.<br>
-                                        </span>
-                                    </div>
+                                                    @error('role_summary')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
 
-                                    {{-- Buttons --}}
-                                    <div class="d-flex justify-content-end mt-4">
-                                        <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary me-2">
-                                            <i class="fas fa-times"></i> {{ __('Cancel') }}
-                                        </a>
-                                        <button type="submit" id="edit-btn" class="btn bg-primary">
-                                            <i class="fas fa-save"></i> {{ __('Update') }}
-                                        </button>
-                                    </div>
-                                </form>
-                                {{-- Form end --}}
+                                                <div class="form-group">
+                                                    <label for="key_respon" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Key Responsibility') }}
+                                                    </label>
+                                                    {{-- <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
+                                                        rows="8"disabled>{{ old('key_respon', $position->key_respon) }}</textarea> --}}
+                                                    <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
+                                                        rows="8" disabled>{{ html_entity_decode(strip_tags(old('key_respon', $structure->submissionposition->key_respon))) }}</textarea>
+                                                    @error('key_respon')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="qualifications" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Qualifications') }}
+                                                    </label>
+                                                    {{-- <textarea id="qualifications" name="qualifications"
+                                                        class="form-control @error('qualifications') is-invalid @enderror" rows="8"disabled>{{ old('qualifications', $position->qualifications) }}</textarea> --}}
+                                                    <textarea id="qualifications" name="qualifications"
+                                                        class="form-control @error('qualifications') is-invalid @enderror" rows="8" disabled>{{ html_entity_decode(strip_tags(old('qualifications', $structure->submissionposition->qualifications))) }}</textarea>
+
+                                                    @error('qualifications')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="notes" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Notes From Manager') }}
+                                                    </label>
+
+                                                    <textarea id="notes" name="notes" class="form-control @error('notes') is-invalid @enderror" rows="8"
+                                                        placeholder="message from manager to HR" disabled>{{ old('notes', $structure->submissionposition->notes) }}</textarea>
+
+                                                    @error('notes')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            {{-- <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="salary_hr" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
+                                                    </label>
+
+                                                    <input type="number" id="salary_hr" name="salary_hr"
+                                                        class="form-control @error('salary_hr') is-invalid @enderror"
+                                                        value="{{ old('salary_hr', $structure->submissionposition->salary_hr) }}"
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        disabled>
+                                                    @error('salary_hr')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                               <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="salary_hr_end" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('To') }}
+                                                    </label>
+
+                                                    <input type="number" id="salary_hr_end" name="salary_hr_end"
+                                                        class="form-control @error('salary_hr_end') is-invalid @enderror"
+                                                        value="{{ old('salary_hr_end', $structure->submissionposition->salary_hr_end) }}"
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        disabled>
+                                                    @error('salary_hr_end')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="notes_hr" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Notes HR to DIR') }}
+                                                    </label>
+                                                    <textarea id="notes_hr" name="notes_hr" class="form-control @error('notes_hr') is-invalid @enderror" rows="8"
+                                                        placeholder="message from HR to DIR" disabled>{{ old('notes_hr', $structure->submissionposition->notes_hr) }}</textarea>
+
+                                                    @error('notes_hr')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="salary_hr" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
+                                                    </label>
+                                                    <input type="number" id="salary_hr" name="salary_hr"
+                                                        class="form-control @error('salary_hr') is-invalid @enderror"
+                                                        value="{{ old('salary_hr', $structure->submissionposition->salary_hr) }}"
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        disabled>
+                                                    @error('salary_hr')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="salary_hr_end" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('To') }}
+                                                    </label>
+                                                    <input type="number" id="salary_hr_end" name="salary_hr_end"
+                                                        class="form-control @error('salary_hr_end') is-invalid @enderror"
+                                                        value="{{ old('salary_hr_end', $structure->submissionposition->salary_hr_end) }}"
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        disabled>
+                                                    @error('salary_hr_end')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="notes_dir" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Notes DIR to HR') }}
+                                                    </label>
+                                                    <textarea id="notes_dir" name="notes_dir" class="form-control @error('notes_dir') is-invalid @enderror"
+                                                        rows="8" placeholder="message from DIR to HR" disabled>{{ old('notes_dir', $structure->submissionposition->notes_dir) }}</textarea>
+
+                                                    @error('notes_dir')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="salary_counter" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('Approved salary by DIR') }}
+                                                    </label>
+                                                    <input type="number" id="salary_counter" name="salary_counter"
+                                                        class="form-control @error('salary_counter') is-invalid @enderror"
+                                                        value="{{ old('salary_counter', $structure->submissionposition->salary_counter) }}"
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        disabled>
+                                                    @error('salary_counter')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="salary_counter_end" class="form-control-label">
+                                                        <i class="fas fa-file-alt"></i> {{ __('To') }}
+                                                    </label>
+                                                    <input type="number" id="salary_counter_end"
+                                                        name="salary_counter_end"
+                                                        class="form-control @error('salary_counter_end') is-invalid @enderror"
+                                                        value="{{ old('salary_counter_end', $structure->submissionposition->salary_counter_end) }}"
+                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
+                                                        disabled>
+                                                    @error('salary_counter_end')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="status" class="form-control-label">
+                                                        <i class="fas fa-book"></i> {{ __('Status') }}
+                                                    </label>
+                                                    <select id="status" name="status"
+                                                        class="form-control select2 @error('status') is-invalid @enderror"
+                                                        disabled>
+                                                        <option value="">-- Choose Status--</option>
+                                                        @foreach ($statuses as $value)
+                                                            <option value="{{ $value }}"
+                                                                {{ old('status', $structure->status ?? '') == $value ? 'selected' : '' }}>
+                                                                {{ $value }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('status')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+
+
+
+
+
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="parent_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Direct Superior') }}
+                                                    </label>
+                                                    <select name="parent_id"
+                                                        class="form-control select2 @error('parent_id') is-invalid @enderror">
+                                                        <option value="">Choose Superior</option>
+                                                        @foreach ($parents as $id => $parentName)
+                                                            <option value="{{ $id }}"
+                                                                {{ old('parent_id', $structure->parent_id) == $id ? 'selected' : '' }}>
+                                                                {{ $parentName }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('parent_id')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" name="is_manager" id="is_manager"
+                                                            value="1"
+                                                            class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                            {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="is_manager">
+                                                            <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                        </label>
+                                                        @error('is_manager')
+                                                            <span class="invalid-feedback d-block" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                              
+
+                                            </div>
+                                            </div>
+
+                                            {{-- Info Note --}}
+                                            <div class="alert alert-secondary mt-4" role="alert">
+                                                <span class="text-dark">
+                                                    <strong>Important Note:</strong><br>
+                                                    - Superior can be empty.<br>
+                                                    - Is Manager can be empty.<br>
+                                                </span>
+                                            </div>
+
+                                            {{-- Buttons --}}
+                                            <div class="d-flex justify-content-end mt-4">
+                                                <a href="{{ route('pages.Structuresnew') }}"
+                                                    class="btn btn-secondary me-2">
+                                                    <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                                </a>
+                                                <button type="submit" id="edit-btn" class="btn bg-primary">
+                                                    <i class="fas fa-save"></i> {{ __('Update') }}
+                                                </button>
+                                            </div>
+                                    </form>
+                                    {{-- Form end --}}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 @endsection
 
 
@@ -489,3 +810,21 @@
         @endif
     </script>
 @endpush
+{{-- <div class="col-md-6">
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="is_manager" id="is_manager"
+                                                        value="1"
+                                                        class="form-check-input @error('is_manager') is-invalid @enderror"
+                                                        {{ old('is_manager', $structure->is_manager) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="is_manager">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager?') }}
+                                                    </label>
+                                                    @error('is_manager')
+                                                        <span class="invalid-feedback d-block" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div> --}}

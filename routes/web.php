@@ -209,8 +209,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
     Route::group(['middleware' => ['permission:ManageStructuresnew']], function () {
         Route::get('/Structuresnew', [StructuresnewController::class, 'index'])
             ->name('pages.Structuresnew');
-        Route::post('/Structuresnew', [StructuresnewController::class, 'store'])->name('Structuresnew.store');
-        Route::get('Structuresnew/create', [StructuresnewController::class, 'create'])->name('Structuresnew.create');
+        // Route::post('/Structuresnew', [StructuresnewController::class, 'store'])->name('Structuresnew.store');
+        // Route::get('Structuresnew/create', [StructuresnewController::class, 'create'])->name('Structuresnew.create');
         Route::get('/Structuresnew/edit/{hashedId}', [StructuresnewController::class, 'edit'])->name('Structuresnew.edit');
         Route::get('/Structuresnew/show/{hashedId}', [StructuresnewController::class, 'show'])->name('Structuresnew.show');
         Route::put('/Structuresnew/{hashedId}', [StructuresnewController::class, 'update'])->name('Structuresnew.update');
@@ -224,6 +224,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         // Route untuk proses store ke Structuresnew
 Route::post('/store-to-structure/{hashedId}', [StructuresnewController::class, 'storeToStructure'])
     ->name('store.to.structure');
+        Route::get('/datastructures/datastructures', [StructuresnewController::class, 'getStructuresativities'])->name('datastructures.datastructures');
+
     });
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
         Route::get('/Summaries', [SummaryController::class, 'index'])

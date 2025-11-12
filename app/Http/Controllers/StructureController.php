@@ -7,6 +7,7 @@ use Yajra\DataTables\DataTables;
 use App\Models\Structure;
 use App\Models\User;
 use App\Rules\NoXSSInput;
+use Spatie\Activitylog\Models\Activity;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
@@ -74,6 +75,7 @@ class StructureController extends Controller
             ->rawColumns(['action', 'employee_name', 'level','is_manager'])
             ->make(true);
     }
+     
     public function edit($hashedId)
     {
         $employee = User::with('Employee.employees', 'Employee.company', 'Employee')->get()->first(function ($u) use ($hashedId) {

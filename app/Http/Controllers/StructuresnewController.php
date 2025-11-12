@@ -15,6 +15,7 @@ use App\Models\Submissionposition;
 use App\Rules\NoXSSInput;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Models\Activity;
 
 class StructuresnewController extends Controller
 {
@@ -22,7 +23,48 @@ class StructuresnewController extends Controller
     {
         return view('pages.Structuresnew.Structuresnew');
     }
+ public function getStructuresativities(Request $request)
+      {
+        if ($request->ajax()) {
+            $query = Activity::where('log_name', 'Structuresnew')
+                ->with(['causer.employee'])
+                ->latest();
 
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('description', function ($row) {
+                    return $row->description ?? '-';
+                })
+                ->addColumn('causer', function ($row) {
+                    return $row->causer->employee->employee_name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at->format('d M Y H:i');
+                })
+                ->addColumn('changes', function ($row) {
+                    return json_encode($row->properties['attributes'] ?? []);
+                })
+
+                // 🔍 Tambahkan bagian filter untuk search
+                ->filter(function ($instance) use ($request) {
+                    if ($request->has('search') && $request->get('search')['value'] != '') {
+                        $search = $request->get('search')['value'];
+
+                        $instance->where(function ($q) use ($search) {
+                            $q->where('description', 'like', "%{$search}%")
+                                ->orWhereHas('causer.employee', function ($q2) use ($search) {
+                                    $q2->where('employee_name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('causer.employee', function ($q3) use ($search) {
+                                    $q3->where('employee_name', 'like', "%{$search}%");
+                                });
+                        });
+                    }
+                })
+                ->rawColumns(['description'])
+                ->make(true);
+        }
+    }
     public function getStructuresnew()
     {
         $structures = Structuresnew::with([
@@ -485,14 +527,14 @@ class StructuresnewController extends Controller
 
     public function edit($hashedId)
     {
-        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary')->get()->first(function ($u) use ($hashedId) {
+        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary','submissionposition')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
         if (!$structure) {
             abort(404, 'Structure not found.');
         }
-        $parents = Structuresnew::with('position')->get()->pluck('position.name', 'id');
+        $parents = Structuresnew::with('submissionposition','submissionposition.positionRelation')->get()->pluck('submissionposition.positionRelation.name', 'id');
         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
         $salaries = Salary::all()->mapWithKeys(function ($item) {
@@ -673,7 +715,7 @@ class StructuresnewController extends Controller
     }
     public function update(Request $request, $hashedId)
     {
-        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'types')->get()->first(function ($u) use ($hashedId) {
+        $structure = Structuresnew::with('company', 'department', 'store', 'position')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -687,11 +729,11 @@ class StructuresnewController extends Controller
                 'boolean',
 
             ],
-            'salary_id' => ['required', 'string'],
-            'type' => ['required', 'string'],
-            'role_summary' => ['required', 'string'],
-            'key_respon' => ['required', 'string'],
-            'qualifications' => ['required', 'string'],
+            // 'salary_id' => ['required', 'string'],
+            // 'type' => ['required', 'string'],
+            // 'role_summary' => ['required', 'string'],
+            // 'key_respon' => ['required', 'string'],
+            // 'qualifications' => ['required', 'string'],
             // 'work_location' => ['required', 'string' ],
             // 'status' => [
             //     'required',
@@ -711,16 +753,16 @@ class StructuresnewController extends Controller
             ],
         ]);
         $structureeData = [
-            'salary_id' => $validatedData['salary_id'],
-            'role_summary' => $validatedData['role_summary'],
-            'key_respon' => $validatedData['key_respon'],
-            'qualifications' => $validatedData['qualifications'],
+            // 'salary_id' => $validatedData['salary_id'],
+            // 'role_summary' => $validatedData['role_summary'],
+            // 'key_respon' => $validatedData['key_respon'],
+            // 'qualifications' => $validatedData['qualifications'],
             // 'work_location' => $validatedData['work_location'],
 
             'is_manager'  => $validatedData['is_manager'] ?? 0,
-            'type'          => is_array($validatedData['type'])
-                ? implode(',', $validatedData['type'])
-                : $validatedData['type'],
+            // 'type'          => is_array($validatedData['type'])
+            //     ? implode(',', $validatedData['type'])
+            //     : $validatedData['type'],
             // 'is_head'  => $validatedData['is_head'] ?? 0,
             'parent_id'  => $validatedData['parent_id'] ?? null,
             // 'status'  => $validatedData['status'],

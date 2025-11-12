@@ -183,10 +183,10 @@
                                 <h6 class="mb-0 text-primary">
                                     <i class="fas fa-list-ul me-1"></i> List Structures
                                 </h6>
-                                <button type="button" onclick="window.location='{{ route('Structuresnew.create') }}'"
+                                {{-- <button type="button" onclick="window.location='{{ route('Structuresnew.create') }}'"
                                     class="btn btn-sm btn-primary">
                                     <i class="fas fa-plus-circle me-1"></i> Create Structure
-                                </button>
+                                </button> --}}
                             </div>
                             <form id="bulk-delete-form" method="POST" action="{{ route('structuresnew.bulkDelete') }}">
                                 @csrf
@@ -196,12 +196,12 @@
                                         <table class="table table-striped table-hover align-middle" id="users-table">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th class="text-center">
+                                                    {{-- <th class="text-center">
                                                         <button type="button" id="select-all"
                                                             class="btn btn-primary btn-sm">
                                                             Select All
                                                         </button>
-                                                    </th>
+                                                    </th> --}}
                                                     <th class="text-center">Company</th>
                                                     <th class="text-center">Department</th>
                                                     <th class="text-center">Location</th>
@@ -219,7 +219,7 @@
                                     </div>
 
 
-                                    <form id="bulk-delete-form" action="{{ route('structuresnew.bulkDelete') }}"
+                                    {{-- <form id="bulk-delete-form" action="{{ route('structuresnew.bulkDelete') }}"
                                         method="POST">
                                         @csrf
                                         <div class="d-flex flex-wrap gap-2 align-items-stretch">
@@ -227,7 +227,7 @@
                                             <button type="submit" class="btn btn-danger h-100 d-flex align-items-center">
                                                 <i class="fas fa-trash me-1"></i> Delete selected
                                             </button>
-                                    </form>
+                                    </form> --}}
                                 </div>
                             </form>
 
@@ -256,11 +256,6 @@
                     </div>
                 </div>
             </div>
-
-
-
-
-
             {{-- ORG CHART --}}
             <div class="row mt-4">
                 <div class="col-12">
@@ -277,70 +272,29 @@
                     </div>
                 </div>
             </div>
-    </div>
-    </section>
-    </div>
 
-
-
-
-    {{-- <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title">Preview Submission Position</h5>
+              <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Structures History</h5>
                 </div>
-                <div class="modal-body">
-                    <table class="table table-striped">
-                        <tr>
-                            <th>Company</th>
-                            <td id="preview-company"></td>
-                        </tr>
-                        <tr>
-                            <th>Department</th>
-                            <td id="preview-department"></td>
-                        </tr>
-                        <tr>
-                            <th>Manager Name</th>
-                            <td id="preview-manager"></td>
-                        </tr>
-                        <tr>
-                            <th>Location Request</th>
-                            <td id="preview-store"></td>
-                        </tr>
-                        <tr>
-                            <th>Position Request</th>
-                            <td id="preview-position"></td>
-                        </tr>
-                        <tr>
-                            <th>Role Summary</th>
-                            <td id="preview-role-summary"></td>
-                        </tr>
-                        <tr>
-                            <th>Key Responsibility</th>
-                            <td id="preview-key-responsibility"></td>
-                        </tr>
-                        <tr>
-                            <th>Qualifications</th>
-                            <td id="preview-qualifications"></td>
-                        </tr>
-                        <tr>
-                            <th>HR Approver</th>
-                            <td id="preview-approver1"></td>
-                        </tr>
-                        <tr>
-                            <th>DIR Approver</th>
-                            <td id="preview-approver2"></td>
-                        </tr>
-                        <tr>
-                            <th>Status</th>
-                            <td id="preview-status"></td>
-                        </tr>
-                    </table>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="activityTable" class="table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">No</th>
+                                    <th class="text-center">Description</th>
+                                    <th class="text-center">By</th>
+                                    <th class="text-center">Date</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div> --}}
+            
+    </section>
+    </div>
     <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -410,98 +364,96 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://balkan.app/js/OrgChart.js"></script>
     <script>
-$(document).on('click', '.store-btn', function() {
-    const hashedId = $(this).data('id');
+         $(function() {
+            $('#activityTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('datastructures.datastructures') }}",
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'description',
+                        name: 'description',
+                        className: 'text-center'
+                    },
+                    // { data: 'changes', name: 'changes' },
+                    {
+                        data: 'causer',
+                        name: 'causer',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-center'
+                    },
+                ],
+                order: [
+                    [3, 'desc']
+                ],
+                language: {
+                    searchPlaceholder: 'Search...',
+                    sSearch: '',
+                    lengthMenu: '_MENU_ Show entries',
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ]
+            });
+        });
+    </script>
+    <script>
+        $(document).on('click', '.store-btn', function() {
+            const hashedId = $(this).data('id');
 
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This submission will be stored to Structuresnew!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, store it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: '/store-to-structure/' + hashedId,
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Stored!',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    // reload DataTable setelah sukses
-                    $('#submissions-table').DataTable().ajax.reload(null, false);
-                },
-                error: function(xhr) {
-                    const msg = xhr.responseJSON?.message || 'Something went wrong';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: msg
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This submission will be stored to Structuresnew!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, store it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/store-to-structure/' + hashedId,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Stored!',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            // reload DataTable setelah sukses
+                            $('#submissions-table').DataTable().ajax.reload(null, false);
+                        },
+                        error: function(xhr) {
+                            const msg = xhr.responseJSON?.message || 'Something went wrong';
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: msg
+                            });
+                        }
                     });
                 }
             });
-        }
-    });
-});
-</script>
-
-    {{-- <script>
-$(document).on('click', '.store-btn', function() {
-    const hashedId = $(this).data('id');
-
-    if (!confirm('Are you sure you want to store this submission to Structuresnew?')) {
-        return;
-    }
-
-    $.ajax({
-        url: '/store-to-structure/' + hashedId,
-        type: 'POST',
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        success: function(response) {
-            alert(response.message);
-            // reload DataTable setelah sukses
-            $('#submissions-table').DataTable().ajax.reload(null, false);
-        },
-        error: function(xhr) {
-            const msg = xhr.responseJSON?.message || 'Something went wrong';
-            alert(msg);
-        }
-    });
-});
-</script> --}}
-
-    {{-- <script>
-        $(function() {
-
-            // Event untuk tombol preview
-            $(document).on('click', '.preview-btn', function() {
-                $('#preview-company').text($(this).data('company'));
-                $('#preview-department').text($(this).data('department'));
-                $('#preview-manager').text($(this).data('submitter'));
-                $('#preview-store').text($(this).data('store'));
-                $('#preview-position').text($(this).data('position'));
-                $('#preview-role-summary').html($(this).data('role-summary'));
-                $('#preview-key-responsibility').html($(this).data('key-responsibility'));
-                $('#preview-qualifications').html($(this).data('qualifications'));
-
-                $('#preview-approver1').text($(this).data('approver1'));
-                $('#preview-approver2').text($(this).data('approver2'));
-                $('#preview-status').text($(this).data('status'));
-                $('#previewModal').modal('show');
-            });
         });
-    </script> --}}
+    </script>
+
     <script>
         $(function() {
             $(document).on('click', '.preview-btn', function() {
@@ -513,17 +465,19 @@ $(document).on('click', '.store-btn', function() {
                 $('#preview-position').text($(this).data('position'));
                 $('#preview-approver1').text($(this).data('approver1'));
                 // $('#preview-salary_counter').text($(this).data('salary_counter'));
-                 const salaryData = $(this).data('salary'); // ambil data-salary
-        if (salaryData) {
-            const [salaryStart, salaryEnd] = salaryData.toString().split('|');
-            // $('#preview-salary').text(
-            //     `Rp ${Number(salaryStart).toLocaleString()} - Rp ${Number(salaryEnd).toLocaleString()}`
-            // );
-            $('#preview-salary').text(`${Number(salaryStart).toLocaleString()} - ${Number(salaryEnd).toLocaleString()}`);
+                const salaryData = $(this).data('salary'); // ambil data-salary
+                if (salaryData) {
+                    const [salaryStart, salaryEnd] = salaryData.toString().split('|');
+                    // $('#preview-salary').text(
+                    //     `Rp ${Number(salaryStart).toLocaleString()} - Rp ${Number(salaryEnd).toLocaleString()}`
+                    // );
+                    $('#preview-salary').text(
+                        `${Number(salaryStart).toLocaleString()} - ${Number(salaryEnd).toLocaleString()}`
+                    );
 
-        } else {
-            $('#preview-salary').text('-');
-        }
+                } else {
+                    $('#preview-salary').text('-');
+                }
 
                 $('#preview-approver2').text($(this).data('approver2'));
                 $('#preview-status').text($(this).data('status'));
@@ -556,13 +510,14 @@ $(document).on('click', '.store-btn', function() {
                     search: "_INPUT_",
                     searchPlaceholder: "Search..."
                 },
-                columns: [{
-                        data: 'checkbox',
-                        name: 'checkbox',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center align-middle'
-                    },
+                columns: [
+                    // {
+                    //     data: 'checkbox',
+                    //     name: 'checkbox',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: 'text-center align-middle'
+                    // },
                     {
                         data: 'company_name',
                         name: 'company_name',
