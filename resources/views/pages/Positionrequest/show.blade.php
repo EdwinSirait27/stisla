@@ -195,11 +195,11 @@
                                             <tbody>
                                                 <tr>
                                                     <th width="25%">Company</th>
-                                                    <td>{{ $submission->submitter->structuresnew->company->name ?? '-' }}</td>
+                                                    <td>{{ $submission->company->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Department</th>
-                                                    <td>{{ $submission->submitter->structuresnew->department->department_name ?? '-' }}</td>
+                                                    <td>{{ $submission->department->department_name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Location</th>

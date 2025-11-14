@@ -674,7 +674,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -699,8 +699,8 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-6">
+                                            </div> --}}
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="department_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Department Name') }}
@@ -725,8 +725,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
+                                        </div> --}}
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="position_id" class="form-control-label">
@@ -751,8 +751,8 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-6">
+                                            </div> --}}
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Location Name') }}
@@ -779,7 +779,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         <div class="row mt-3">
 
                                             <div class="col-md-6">
@@ -828,24 +828,9 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        {{-- disini --}}
                                         <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="end_date" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('End Date') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="date" name="end_date"
-                                                            value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
-                                                            class="form-control @error('end_date') is-invalid @enderror">
-                                                        @error('end_date')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
+
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="npwp" class="form-control-label">
@@ -865,27 +850,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control @error('notes') is-invalid @enderror"
-                                                            value="{{ old('notes', $employee->Employee->notes ?? '') }}"
-                                                            type="text" id="notes" name="notes"
-                                                            value="{{ old('notes') }}" aria-describedby="info-notes"
-                                                            placeholder="filled in if the employee resigns or is inactive">
-                                                        @error('notes')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            {{-- disini --}}
+
 
 
                                             <div class="col-md-6">
@@ -894,7 +860,7 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Status') }}
                                                     </label>
                                                     <div>
-                                                        <select name="status"
+                                                        <select id="status" name="status"
                                                             class="form-control select2 @error('status') is-invalid @enderror"required>
                                                             <option value="">-- Choose Status --</option>
                                                             @foreach ($status as $value)
@@ -934,7 +900,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="level_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
@@ -958,37 +924,77 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row mt-3">
+                                        </div> --}}
 
-                                          <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="structure_id" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Structures') }}
-                                                </label>
-                                                <div>
-                                                    <select name="structure_id"
-                                                        class="form-control select2 @error('structure_id') is-invalid @enderror">
-                                                        <option value="">Choose Posiiton</option>
-                                                        @foreach ($structures as $structure)
-                                                            <option value="{{ $structure->id }}"
-                                                                {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
-                                                                {{ $structure->submissionposition->positionRelation->name ?? '-' }}
-                                                                - {{ $structure->submissionposition->submitter->company->name ?? '-' }}
-                                                                - {{ $structure->submissionposition->store->name ?? '-' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="structure_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Structures') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="structure_id"
+                                                            class="form-control select2 @error('structure_id') is-invalid @enderror">
+                                                            <option value="">Choose Posiiton</option>
+                                                            @foreach ($structures as $structure)
+                                                                <option value="{{ $structure->id }}"
+                                                                    {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
+                                                                    {{ $structure->submissionposition->positionRelation->name ?? '-' }}
+                                                                    -
+                                                                    {{ $structure->submissionposition->submitter->company->name ?? '-' }}
+                                                                    -
+                                                                    {{ $structure->submissionposition->store->name ?? '-' }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
 
-                                                    @error('structure_id')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
+                                                        @error('structure_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="row mt-3" id="end_date_field" style="display:none;">
                                             <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="end_date" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('End Date') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="date" id="end_date" name="end_date"
+                                                            value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
+                                                            class="form-control @error('end_date') is-invalid @enderror">
+                                                        @error('end_date')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6" id="notes_field" style="display:none;">
+                                                <div class="form-group">
+                                                    <label for="notes" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('notes') is-invalid @enderror"
+                                                            value="{{ old('notes', $employee->Employee->notes ?? '') }}"
+                                                            type="text" id="notes" name="notes"
+                                                            value="{{ old('notes') }}" aria-describedby="info-notes"
+                                                            placeholder="filled in if the employee resigns or is inactive">
+                                                        @error('notes')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"
                                                         value="1"
@@ -1005,36 +1011,36 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                        </div> --}}
+
+                                        <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Important Note:</strong> <br>
+                                                - Don't fill in the status column, just leave it as it is, if the employee
+                                                is inactive, then change it okay.<br>
+                                                - please use English to get used to it.<br>
+                                                - Before editing data, please check first whether there is already similar
+                                                or identical data to avoid double input.
+                                            </span>
                                         </div>
-                                      
-                                <div class="alert alert-secondary mt-4" role="alert">
-                                    <span class="text-dark">
-                                        <strong>Important Note:</strong> <br>
-                                        - Don't fill in the status column, just leave it as it is, if the employee
-                                        is inactive, then change it okay.<br>
-                                        - please use English to get used to it.<br>
-                                        - Before editing data, please check first whether there is already similar
-                                        or identical data to avoid double input.
-                                    </span>
-                                </div>
 
-                                <div class="d-flex justify-content-end mt-4">
-                                    <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
-                                        <i class="fas fa-times"></i> {{ __('Back') }}
-                                    </a>
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
+                                                <i class="fas fa-times"></i> {{ __('Back') }}
+                                            </a>
 
-                                    <button type="submit" class="btn bg-primary">
-                                        <i class="fas fa-save"></i> {{ __('Update') }}
-                                    </button>
+                                            <button type="submit" class="btn bg-primary">
+                                                <i class="fas fa-save"></i> {{ __('Update') }}
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-    </div>
-    </section>
+        </section>
     </div>
 @endsection
 @push('scripts')
@@ -1042,10 +1048,32 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
-        });
+  <script>
+$(document).ready(function() {
+    $('.select2').select2();
+
+    function toggleReasonField() {
+        const statusVal = $('#status').val();
+        const inactiveStatuses = ['Inactive', 'Resign', 'On Leave'];
+
+        if (inactiveStatuses.includes(statusVal)) {
+            $('#end_date_field').show();
+            $('#notes_field').show();
+        } else {
+            $('#end_date_field').hide();
+            $('#notes_field').hide();
+            $('#notes').val('');
+            $('#end_date').val('');
+        }
+    }
+
+    // Jalankan sekali saat halaman dimuat
+    toggleReasonField();
+
+    // Jalankan setiap kali select diubah
+    $('#status').on('change', toggleReasonField);
+});
+
         @if (session('success'))
             Swal.fire({
                 title: 'Berhasil!',

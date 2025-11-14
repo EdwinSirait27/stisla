@@ -181,8 +181,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Detail Structures') }} from manager {{$structure->submissionposition->submitter->employee_name}}
-                                        {{ $structure->submissionposition->positionRelation->name }}</h6>
+                                    <h6 class="mb-0">{{ __('Detail Structures') }} from manager {{$structure->submissionposition->submitter->employee_name}} for {{ $structure->submissionposition->positionRelation->name }}</h6>
                                 </div>
 
                                 <div class="card-body pt-4 p-3">
@@ -212,12 +211,12 @@
                                                     <td>{{ $structure->submissionposition->store->name ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Position</th>
+                                                    <th>Position Request</th>
                                                     <td>{{ $structure->submissionposition->positionRelation->name ?? '-' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Is Manager?</th>
+                                                    <th>Is Manager</th>
                                                     <td>
                                                         @if ($structure->is_manager)
                                                             <span class="badge bg-success">Yes</span>

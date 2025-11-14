@@ -362,7 +362,7 @@ class StructuresnewController extends Controller
                     <i class="fas fa-eye"></i> Preview
                 </button>
                 <button class="btn btn-sm btn-success store-btn" data-id="' . $e->id_hashed . '">
-                    <i class="fas fa-save"></i> Store
+                    <i class="fas fa-save"></i> Import
                 </button>
             ';
             })
@@ -506,24 +506,95 @@ class StructuresnewController extends Controller
         return back()->with('success', "$deleted data berhasil dihapus.");
     }
 
-    public function getOrgChartData()
-    {
-        $data = Structuresnew::with(['position', 'parent', 'employee', 'employee.store', 'store', 'employee.grading','submissionposition'])
-            ->get()
-            ->map(function ($s) {
-                return [
-                    'id'        => $s->id,
-                    'pid'       => $s->parent_id,
-                    'Position'  => $s->submissionposition->positionRelation->name ?? 'Unknown',
-                    'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
-                    'Grading'  => $s->employee->pluck('grading.grading_name')->join(', ') ?: 'Empty',
-                    'Location'  => $s->submissionposition->store->name ?? 'Empty',
-                    'status'    => $s->status,
-                ];
-            });
+    // public function getOrgChartData()
+    // {
+    //     $data = Structuresnew::with(['position', 'parent', 'employee', 'employee.store', 'store', 'employee.grading','submissionposition'])
+    //         ->get()
+    //         ->map(function ($s) {
+    //             return [
+    //                 'id'        => $s->id,
+    //                 'pid'       => $s->parent_id,
+    //                 'Position'  => $s->submissionposition->positionRelation->name ?? 'Unknown',
+    //                 'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
+    //                 'Grading'  => $s->employee->pluck('grading.grading_name')->join(', ') ?: 'Empty',
+    //                 'Location'  => $s->submissionposition->store->name ?? 'Empty',
+    //                 'status'    => $s->status,
+    //             ];
+    //         });
 
-        return response()->json($data);
-    }
+    //     return response()->json($data);
+    // }
+//     public function getOrgChartData()
+// {
+//     $data = Structuresnew::with([
+//         'position',
+//         'parent',
+//         'employee',
+//         'employee.store',
+//         'store',
+//         'employee.grading',
+//         'submissionposition.positionRelation',
+//         'submissionposition.store',
+//     ])->get()->map(function ($s) {
+//         return [
+//             'id'        => $s->id,
+//             'pid'       => $s->parent_id,
+//             'Position'  => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+//             'Employee'  => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+//             'Grading'   => collect($s->employee)->pluck('grading.grading_name')->join(', ') ?: 'Empty',
+//             'Location'  => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+//             'status'    => $s->status,
+//         ];
+//     });
+
+//     return response()->json($data);
+// }
+public function getOrgChartData()
+{
+    // Tentukan urutan level berdasarkan Grading
+    $gradingPriority = [
+        'Director' => 1,
+        'Head' => 2,
+        'Senior Manager' => 3,
+        'Manager' => 4,
+        'Assistant Manager' => 5,
+        'Supervisor' => 6,
+        'Staff' => 7,
+        'Daily Worker' => 8,
+    ];
+
+    $data = Structuresnew::with([
+        'position',
+        'parent',
+        'employee',
+        'employee.store',
+        'store',
+        'employee.grading',
+        'submissionposition.positionRelation',
+        'submissionposition.store',
+    ])->get()->map(function ($s) use ($gradingPriority) {
+        $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+        $level = $gradingPriority[$gradingName] ?? 999; // default di bawah kalau grading tidak dikenali
+
+        return [
+            'id'         => $s->id,
+            'pid'        => $s->parent_id,
+            'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+            'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+            'Grading'    => $gradingName,
+            'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+            'status'     => $s->status,
+            'level'      => $level, // tambahkan level grading
+        ];
+    });
+
+    // Urutkan berdasarkan level (Director paling atas)
+    $sortedData = $data->sortBy('level')->values();
+
+    return response()->json($sortedData);
+}
+
+
 
     public function edit($hashedId)
     {

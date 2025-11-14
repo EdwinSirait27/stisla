@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,11 +16,13 @@
             color: #333;
             font-size: 12px;
         }
+
         /* setiap bulan 25 sampe 26 ok */
         .payslip-container {
             border: 1px solid #ddd;
             padding: 15px;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -28,6 +31,7 @@
             padding-bottom: 10px;
             border-bottom: 2px solid #f0f0f0;
         }
+
         .logo {
             width: 70px;
             height: auto;
@@ -35,23 +39,28 @@
             background-color: #000;
             padding: 5px;
         }
+
         .confidential {
             color: #FF0000;
             font-weight: bold;
         }
+
         .title-section {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
         }
+
         .title-left {
             font-weight: bold;
             font-size: 16px;
         }
+
         .title-right {
             font-weight: bold;
             font-size: 18px;
         }
+
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1.5fr 1fr 1.5fr;
@@ -123,7 +132,7 @@
      .total-section {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    align-items: center; 
+    align-items: center;
     padding: 8px 12px;
     font-weight: bold;
 }
@@ -131,27 +140,30 @@
         .total-section:first-child {
             border-right: 1px solid #ddd;
         } */
-.totals-row {
-    display: flex;
-    gap: 24px; /* jarak antar kolom income & outcome */
-    margin-bottom: 1rem;
-}
+        .totals-row {
+            display: flex;
+            gap: 24px;
+            /* jarak antar kolom income & outcome */
+            margin-bottom: 1rem;
+        }
 
-.total-section {
-    flex: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* penting agar label & amount sejajar vertikal */
-    padding: 8px 12px;
-    font-weight: bold;
-    border: 1px solid #ddd; /* opsional */
-    border-radius: 4px;
-}
+        .total-section {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* penting agar label & amount sejajar vertikal */
+            padding: 8px 12px;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            /* opsional */
+            border-radius: 4px;
+        }
 
-.table-cell-amount {
-    font-weight: bold;
-    white-space: nowrap;
-}
+        .table-cell-amount {
+            font-weight: bold;
+            white-space: nowrap;
+        }
 
         .take-home {
             display: flex;
@@ -183,18 +195,18 @@
         .transfer-account {
             color: #555;
         }
-        .watermark {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-30deg);
-    font-size: 80px;
-    color: rgba(200, 200, 200, 0.15);
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 0;
-}
 
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 80px;
+            color: rgba(200, 200, 200, 0.15);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+        }
     </style>
 </head>
 
@@ -209,27 +221,58 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <table style="width: 100%; margin-bottom: 20px;">
                 <tr>
-                    <td style="text-align: left;"> 
+                    {{-- <td style="text-align: left;">
                         @php
-                        $foto = 'company/' . ($payroll->employee->company->foto ?? '');
-                        $imageData = '';
-                    
-                        $fotoPath = public_path('storage/' . $foto);
-                    
-                        if (!empty($foto) && file_exists($fotoPath) && is_file($fotoPath)) {
-                            $type = pathinfo($fotoPath, PATHINFO_EXTENSION);
-                            $imageData = 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($fotoPath));
-                        }
-                    @endphp
-                    
-                    @if (!empty($imageData))
-                        <div style="background-color: #000000; display: inline-block; padding: 5px;">
-                            <img src="{{ $imageData }}" alt="Foto Perusahaan" width="70">
-                        </div>
-                    @else
-                        <span>Foto tidak tersedia</span>
-                    @endif
+                            $foto = 'company/' . ($payroll->employee->company->foto ?? '');
+                            $imageData = '';
+
+                            $fotoPath = public_path('storage/' . $foto);
+
+                            if (!empty($foto) && file_exists($fotoPath) && is_file($fotoPath)) {
+                                $type = pathinfo($fotoPath, PATHINFO_EXTENSION);
+                                $imageData =
+                                    'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($fotoPath));
+                            }
+                        @endphp
+
+                        @if (!empty($imageData))
+                            <div style="background-color: #000000; display: inline-block; padding: 5px;">
+                                <img src="{{ $imageData }}" alt="Foto Perusahaan" width="70">
+                            </div>
+                        @else
+                            <span>Foto tidak tersedia</span>
+                        @endif
+                    </td> --}}
+                    <td style="text-align: left;">
+                        @php
+                            $imageData = null;
+
+                            // Ambil path dari relasi, misalnya "company/2025/11/abcd1234.png"
+                            $fotoPath = $payroll->employee->company->foto ?? null;
+
+                            if ($fotoPath) {
+                                $fullPath = storage_path('app/public/' . $fotoPath);
+
+                                if (is_file($fullPath)) {
+                                    $type = pathinfo($fullPath, PATHINFO_EXTENSION);
+                                    $imageData =
+                                        'data:image/' .
+                                        $type .
+                                        ';base64,' .
+                                        base64_encode(file_get_contents($fullPath));
+                                }
+                            }
+                        @endphp
+
+                        @if ($imageData)
+                            <div style="background-color: #000000; display: inline-block; padding: 5px;">
+                                <img src="{{ $imageData }}" alt="Foto Perusahaan" width="70">
+                            </div>
+                        @else
+                            <span style="color: #888;">Foto tidak tersedia</span>
+                        @endif
                     </td>
+
                     <td style="text-align: right; color: red; font-weight: bold; font-size: 18px;">
                         *CONFIDENTIAL
                     </td>
@@ -252,7 +295,7 @@
                 <td><strong>Status :</strong></td>
                 <td>{{ $payroll->employee->status_employee }}</td>
             </tr>
-            
+
             <tr>
                 <td><strong>Job position :</strong></td>
                 <td>{{ optional(optional($payroll->employee)->position)->name ?? '' }}</td>
@@ -267,11 +310,11 @@
                 {{-- <td>{{ $payroll->employee->department->department_name }}</td> --}}
                 <td>{{ optional(optional($payroll->employee)->department)->department_name ?? '' }}</td>
 
-                    <td><strong>Email :</strong></td>
-                               <td>{{ $payroll->employee->email }}</td>
-                
+                <td><strong>Email :</strong></td>
+                <td>{{ $payroll->employee->email }}</td>
+
             </tr>
-         
+
 
         </table>
         <!-- Earnings and Deductions Tables -->
@@ -298,7 +341,7 @@
                             Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}
                         </td>
                         <td>
-                            
+
                             Late Fine: IDR {{ number_format($late_fine, 0, ',', '.') }}<br>
                             Punishment: IDR {{ number_format($punishment, 0, ',', '.') }}<br>
                             BPJS Ketenagakerjaan: IDR {{ number_format($bpjs_ket, 0, ',', '.') }}<br>
@@ -328,18 +371,20 @@
         </div>
         <!-- Transfer Information -->
         <div class="transfer-section">
-          <div class="transfer-title">
-    Transfer To {{$payroll->employee?->bank?->name ?? 'Bank'}}
-</div>
+            <div class="transfer-title">
+                Transfer To {{ $payroll->employee?->bank?->name ?? 'Bank' }}
+            </div>
 
 
             <div class="transfer-details">
                 <div class="transfer-account">{{ $payroll->created_at ? $payroll->created_at->format('d-m-Y') : '-' }}
- {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div>
+                    {{ $payroll->employee->bank_name }} - {{ $payroll->employee->name_account_number }} a/n
+                    {{ $payroll->employee->employee_name }}</div>
                 {{-- <div class="transfer-account">{{ $monthYearHuman }} {{$payroll->employee->bank_name}} - {{$payroll->employee->name_account_number}} a/n {{$payroll->employee->employee_name}}</div> --}}
                 {{-- <div class="table-cell-amount">IDR {{ number_format($takehome, 2, '.', ',') }}</div> --}}
             </div>
         </div>
     </div>
 </body>
+
 </html>

@@ -59,28 +59,93 @@ class CompanyController extends Controller
         return view('pages.Company.create',compact('remarks'));
     }
 
-    public function store(Request $request)
-{
-    // dd($request->file('foto'));
+//     public function store(Request $request)
+// {
+   
+//     $validatedData = $request->validate([
+//         'name' => [
+//             'required', 'string', 'max:255', 'unique:company_tables,name', new NoXSSInput()
+//         ],
+//         'address' => [
+//             'required', 'max:255', new NoXSSInput()
+//         ],
+//         'nickname' => [
+//             'required','string', 'max:255', new NoXSSInput()
+//         ],
+//         'remark' => [
+//             'required','string', new NoXSSInput()
+//         ],
+//         'npwp' => [
+//             'required', 'max:255', 'unique:company_tables,npwp', new NoXSSInput()
+//         ],
+//        'foto' => ['required', 'image', 'max:512'],
 
+//     ], [
+//         'name.required' => 'name wajib diisi.',
+//         'remark.required' => 'remark wajib diisi.',
+//         'name.string' => 'name hanya boleh berupa teks.',
+//         'name.max' => 'name maksimal terdiri dari 255 karakter.',
+//         'name.unique' => 'name sudah ada.',
+//         'address.required' => 'address wajib diisi.',
+//         'npwp.required' => 'npwp wajib diisi.',
+//         'npwp.max' => 'npwp max 255 karakter.',
+//         'foto.required' => 'harus diisi.',
+//         'foto.max' => 'kurang dari 512 kb.',
+//     ]);
+
+//     $filePath = null;
+
+//     if ($request->hasFile('foto')) {
+//         $file = $request->file('foto');
+//         $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+//         $file->storeAs('public/company', $fileName);
+//         $filePath = $fileName;
+//     }
+
+//     try {
+//         DB::beginTransaction();
+//         Company::create([
+//             'foto' => $filePath,
+//             'name' => $validatedData['name'],
+//             'remark' => $validatedData['remark'],
+//             'npwp' => $validatedData['npwp'],
+//             'nickname' => $validatedData['nickname'],
+//             'address' => $validatedData['address'],
+//         ]);
+//         DB::commit();
+//         return redirect()->route('pages.Company')->with('success', 'Companies created successfully!');
+//     } catch (\Exception $e) {
+//         DB::rollBack();
+//         if ($filePath && Storage::exists('public/company/' . $filePath)) {
+//             Storage::delete('public/company/' . $filePath);
+//         }
+//         return redirect()->back()
+//             ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
+//             ->withInput();
+//     }
+// }
+public function store(Request $request)
+{
+    // ✅ Validasi input
     $validatedData = $request->validate([
         'name' => [
             'required', 'string', 'max:255', 'unique:company_tables,name', new NoXSSInput()
         ],
         'address' => [
-            'required', 'max:255', new NoXSSInput()
+            'required', 'string', 'max:255', new NoXSSInput()
         ],
         'nickname' => [
-            'required','string', 'max:255', new NoXSSInput()
+            'required', 'string', 'max:255', new NoXSSInput()
         ],
         'remark' => [
-            'required','string', new NoXSSInput()
+            'required', 'string', new NoXSSInput()
         ],
         'npwp' => [
-            'required', 'max:255', 'unique:company_tables,npwp', new NoXSSInput()
+            'required', 'string', 'max:255', 'unique:company_tables,npwp', new NoXSSInput()
         ],
-       'foto' => ['required', 'image', 'max:512'],
-
+        'foto' => [
+            'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
+        ],
     ], [
         'name.required' => 'name wajib diisi.',
         'remark.required' => 'remark wajib diisi.',
@@ -89,22 +154,31 @@ class CompanyController extends Controller
         'name.unique' => 'name sudah ada.',
         'address.required' => 'address wajib diisi.',
         'npwp.required' => 'npwp wajib diisi.',
-        'npwp.max' => 'npwp max 255 karakter.',
-        'foto.required' => 'harus diisi.',
-        'foto.max' => 'kurang dari 512 kb.',
+        'npwp.max' => 'npwp maksimal 255 karakter.',
+        'foto.required' => 'Foto wajib diisi.',
+        'foto.image' => 'File harus berupa gambar.',
+        'foto.mimes' => 'Format gambar harus jpg, jpeg, png, atau webp.',
+        'foto.max' => 'Ukuran gambar maksimal 512 KB.',
     ]);
 
     $filePath = null;
 
+    // ✅ Upload file aman
     if ($request->hasFile('foto')) {
         $file = $request->file('foto');
-        $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-        $file->storeAs('public/company', $fileName);
-        $filePath = $fileName;
+        $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+        $folderPath = 'company/' . date('Y/m'); // rapi per tahun/bulan
+
+        // Simpan ke storage
+        Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+
+        // Simpan path relatif ke DB
+        $filePath = $folderPath . '/' . $fileName;
     }
 
     try {
         DB::beginTransaction();
+
         Company::create([
             'foto' => $filePath,
             'name' => $validatedData['name'],
@@ -113,100 +187,204 @@ class CompanyController extends Controller
             'nickname' => $validatedData['nickname'],
             'address' => $validatedData['address'],
         ]);
+
         DB::commit();
-        return redirect()->route('pages.Company')->with('success', 'Companies created successfully!');
+
+        return redirect()
+            ->route('pages.Company')
+            ->with('success', 'Companies created successfully!');
     } catch (\Exception $e) {
         DB::rollBack();
-        if ($filePath && Storage::exists('public/company/' . $filePath)) {
-            Storage::delete('public/company/' . $filePath);
+
+        // Hapus file jika gagal
+        if ($filePath && Storage::exists('public/' . $filePath)) {
+            Storage::delete('public/' . $filePath);
         }
-        return redirect()->back()
+
+        return back()
             ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
             ->withInput();
     }
 }
 
-    public function update(Request $request, $hashedId)
-    {
-        $company = Company::get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$company) {
-            return redirect()->route('pages.Company')->with('error', 'ID tidak valid.');
-        }
-        $validatedData = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('company_tables')->ignore($company->id),
-                new NoXSSInput()
-            ],
-            'address' => [
-                'required',
-                'max:255',
-                new NoXSSInput()
-            ],
-            'remark' => [
-                'required',
-                new NoXSSInput()
-            ],
-            'nickname' => [
-                'required',
-                'max:255',
-                new NoXSSInput()
-            ],
-            'npwp' => [
-                'required',
-                'max:255',
-                new NoXSSInput()
-            ],
-            'foto' => ['nullable', 'image', 'max:512'],
-        ], [
-            'name.required' => 'name wajib diisi.',
-            'remark.required' => 'remark wajib diisi.',
-            'name.string' => 'name hanya boleh berupa teks.',
-            'name.max' => 'name maksimal terdiri dari 255 karakter.',
-            'name.unique' => 'name sudah ada.',
-            'address.required' => 'address wajib diisi.',
-            'npwp.required' => 'npwp wajib diisi.',
-            'npwp.max' => 'npwp max 255 karakter.',
-            'foto.required' => 'harus diisi.',
-           
-            'foto.max' => 'kurang dari 512 kb.',
-        ]);
-        $filePath = $company->foto; // Default: tetap pakai foto lama
 
+    // public function update(Request $request, $hashedId)
+    // {
+    //     $company = Company::get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$company) {
+    //         return redirect()->route('pages.Company')->with('error', 'ID tidak valid.');
+    //     }
+    //     $validatedData = $request->validate([
+    //         'name' => [
+    //             'required',
+    //             'string',
+    //             'max:255',
+    //             Rule::unique('company_tables')->ignore($company->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'address' => [
+    //             'required',
+    //             'max:255',
+    //             new NoXSSInput()
+    //         ],
+    //         'remark' => [
+    //             'required',
+    //             new NoXSSInput()
+    //         ],
+    //         'nickname' => [
+    //             'required',
+    //             'max:255',
+    //             new NoXSSInput()
+    //         ],
+    //         'npwp' => [
+    //             'required',
+    //             'max:255',
+    //             new NoXSSInput()
+    //         ],
+    //         'foto' => ['nullable', 'image', 'max:512'],
+    //     ], [
+    //         'name.required' => 'name wajib diisi.',
+    //         'remark.required' => 'remark wajib diisi.',
+    //         'name.string' => 'name hanya boleh berupa teks.',
+    //         'name.max' => 'name maksimal terdiri dari 255 karakter.',
+    //         'name.unique' => 'name sudah ada.',
+    //         'address.required' => 'address wajib diisi.',
+    //         'npwp.required' => 'npwp wajib diisi.',
+    //         'npwp.max' => 'npwp max 255 karakter.',
+    //         'foto.required' => 'harus diisi.',
+           
+    //         'foto.max' => 'kurang dari 512 kb.',
+    //     ]);
+    //     $filePath = $company->foto; // Default: tetap pakai foto lama
+
+    //     if ($request->hasFile('foto')) {
+    //         $file = $request->file('foto');
+    //         $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+    //         $file->storeAs('public/company', $fileName);
+    //         $filePath = $fileName;
+        
+    //         // Hapus file lama jika ada
+    //         if ($company && $company->foto && Storage::exists('public/company/' . $company->foto)) {
+    //             Storage::delete('public/company/' . $company->foto);
+    //         }
+    //     }
+        
+    //     // Siapkan dta yang akan diupdate
+    //     $companyData = [
+    //         'name' => $validatedData['name'],
+    //         'nickname' => $validatedData['nickname'],
+    //         'remark' => $validatedData['remark'],
+    //         'address' => $validatedData['address'],
+    //         'npwp' => $validatedData['npwp'],
+    //     ];
+    //     // Hanya masukkan foto kalau ada file baru
+    //     if ($request->hasFile('foto')) {
+    //         $companyData['foto'] = $filePath;
+    //     }
+    //     DB::beginTransaction();
+    //     $company->update($companyData);
+    //     DB::commit();
+        
+
+    //     return redirect()->route('pages.Company')->with('success', 'Company updated Successfully.');
+    // }
+    public function update(Request $request, $hashedId)
+{
+    // Cari record berdasarkan hashed ID
+    $company = Company::get()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+
+    if (!$company) {
+        return redirect()->route('pages.Company')->with('error', 'ID tidak valid.');
+    }
+
+    // ✅ Validasi input
+    $validatedData = $request->validate([
+        'name' => [
+            'required', 'string', 'max:255',
+            Rule::unique('company_tables')->ignore($company->id),
+            new NoXSSInput()
+        ],
+        'address' => [
+            'required', 'string', 'max:255', new NoXSSInput()
+        ],
+        'nickname' => [
+            'required', 'string', 'max:255', new NoXSSInput()
+        ],
+        'remark' => [
+            'required', 'string', new NoXSSInput()
+        ],
+        'npwp' => [
+            'required', 'string', 'max:255',
+            Rule::unique('company_tables')->ignore($company->id),
+            new NoXSSInput()
+        ],
+        'foto' => [
+            'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
+        ],
+    ], [
+        'name.required' => 'Name wajib diisi.',
+        'remark.required' => 'Remark wajib diisi.',
+        'address.required' => 'Address wajib diisi.',
+        'npwp.required' => 'NPWP wajib diisi.',
+        'foto.image' => 'File harus berupa gambar.',
+        'foto.mimes' => 'Format gambar harus jpg, jpeg, png, atau webp.',
+        'foto.max' => 'Ukuran gambar maksimal 512 KB.',
+    ]);
+
+    $filePath = $company->foto; // default: gunakan foto lama
+
+    try {
+        DB::beginTransaction();
+
+        // ✅ Jika ada upload baru
         if ($request->hasFile('foto')) {
             $file = $request->file('foto');
-            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-            $file->storeAs('public/company', $fileName);
-            $filePath = $fileName;
-        
-            // Hapus file lama jika ada
-            if ($company && $company->foto && Storage::exists('public/company/' . $company->foto)) {
-                Storage::delete('public/company/' . $company->foto);
+            $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+            $folderPath = 'company/' . date('Y/m');
+
+            // Simpan file baru
+            Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+            $newFilePath = $folderPath . '/' . $fileName;
+
+            // Hapus file lama kalau ada
+            if ($filePath && Storage::exists('public/' . $filePath)) {
+                Storage::delete('public/' . $filePath);
             }
+
+            $filePath = $newFilePath;
         }
-        
-        // Siapkan dta yang akan diupdate
-        $companyData = [
+
+        // ✅ Update data
+        $company->update([
             'name' => $validatedData['name'],
             'nickname' => $validatedData['nickname'],
             'remark' => $validatedData['remark'],
             'address' => $validatedData['address'],
             'npwp' => $validatedData['npwp'],
-        ];
-        // Hanya masukkan foto kalau ada file baru
-        if ($request->hasFile('foto')) {
-            $companyData['foto'] = $filePath;
-        }
-        DB::beginTransaction();
-        $company->update($companyData);
-        DB::commit();
-        
+            'foto' => $filePath,
+        ]);
 
-        return redirect()->route('pages.Company')->with('success', 'Company updated Successfully.');
+        DB::commit();
+
+        return redirect()->route('pages.Company')->with('success', 'Company updated successfully!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        // Hapus file baru jika transaksi gagal
+        if (!empty($newFilePath) && Storage::exists('public/' . $newFilePath)) {
+            Storage::delete('public/' . $newFilePath);
+        }
+
+        return back()->withErrors(['error' => 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage()])
+                     ->withInput();
     }
+}
+
+
 }

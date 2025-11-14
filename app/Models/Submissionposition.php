@@ -42,6 +42,8 @@ class Submissionposition extends Model
         'salary_counter_end',
         'store_id',
         'position_id',
+        'company_id',
+        'department_id',
         'approver_1',
         'approver_2',
     ];
@@ -52,6 +54,14 @@ class Submissionposition extends Model
     public function store()
     {
         return $this->belongsTo(Stores::class, 'store_id', 'id');
+    }
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id', 'id');
+    }
+    public function department()
+    {
+        return $this->belongsTo(Departments::class, 'department_id', 'id');
     }
     public function positionRelation()
     {
@@ -65,53 +75,7 @@ class Submissionposition extends Model
     {
         return $this->belongsTo(Employee::class, 'approver_2', 'id');
     }
-    //  public function getActivitylogOptions(): LogOptions
-    // {
-    //     return LogOptions::defaults()
-    //         ->logFillable()
-    //         ->useLogName('Submissionposition')
-    //         ->setDescriptionForEvent(function (string $eventName) {
-    //             $actor = auth()->user()->employee->employee_name
-    //                 ?? auth()->user()->name
-    //                 ?? 'system';
-
-    //             $target = optional($this->submitter)->employee_name ?? 'Unknown Employee';
-
-    //             $changes = $this->getChanges();
-    //             $original = $this->getOriginal();
-
-    //             $relationNames = [
-    //                 'position_id' => fn($id) => optional(Position::find($id))->name,
-    //                 'employee_id' => fn($id) => optional(Employee::find($id))->employee_name,
-    //                 'store_id' => fn($id) => optional(Stores::find($id))->name,
-    //                 'approver_1' => fn($id) => optional(Employee::find($id))->employee_name,
-    //                 'approver_2' => fn($id) => optional(Employee::find($id))->employee_name,
-    //             ];
-
-    //             $changesInfo = '';
-    //             if ($eventName === 'updated' && !empty($changes)) {
-    //                 $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames) {
-    //                     $old = $original[$field] ?? 'null';
-
-    //                     if (isset($relationNames[$field])) {
-    //                         $oldLabel = $relationNames[$field]($old) ?? $old;
-    //                         $newLabel = $relationNames[$field]($new) ?? $new;
-    //                         return "{$field}: {$oldLabel} → {$newLabel}";
-    //                     }
-
-    //                     if ($old == $new) return null;
-    //                     return "{$field}: {$old} → {$new}";
-    //                 })
-    //                     ->filter()
-    //                     ->values()
-    //                     ->implode(', ');
-
-    //                 $changesInfo = $details ? "Changes: {$details}" : '';
-    //             }
-
-    //             return "Submissionposition for {$target} has been {$eventName} by {$actor}. {$changesInfo}";
-    //         });
-    // }
+    
     public function getActivitylogOptions(): LogOptions
 {
     return LogOptions::defaults()

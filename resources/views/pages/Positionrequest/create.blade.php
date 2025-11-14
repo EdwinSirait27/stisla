@@ -161,6 +161,11 @@
         select.form-control {
             height: 42px;
         }
+         #notes {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
     </style>
 @endpush
 {{-- @section('main')
@@ -669,7 +674,7 @@
                                                 <textarea 
                                                     class="form-control @error('notes') is-invalid @enderror"
                                                     id="notes" name="notes" value="{{ old('notes') }}"
-                                                    placeholder="Message for HR department"></textarea>
+                                                    placeholder="Message manager to HR department"></textarea>
 
 
                                                       {{-- <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3"

@@ -168,6 +168,7 @@
             padding-top: 56.25%;
 
         }
+
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -263,7 +264,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
+                                        {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="foto" class="form-control-label">
@@ -295,7 +296,53 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
+                                    <div class="row mt-3">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="foto" class="form-control-label">
+                <i class="fas fa-id-card"></i> {{ __('Company Image') }}
+            </label>
+            <div>
+                {{-- Preview Image --}}
+                <div class="mb-2">
+                    @if (!empty($company->foto))
+                        <img id="preview-image"
+                            src="{{ asset('storage/' . $company->foto) }}"
+                            alt="Preview"
+                            class="img-thumbnail"
+                            width="150"
+                            style="cursor:pointer"
+                            onclick="showImageSwal(this.src)">
+                    @else
+                        <img id="preview-image"
+                            src="https://via.placeholder.com/150"
+                            alt="Preview"
+                            class="img-thumbnail"
+                            width="150"
+                            style="cursor:pointer"
+                            onclick="showImageSwal(this.src)">
+                    @endif
+                </div>
+
+                {{-- File Input --}}
+                <input type="file"
+                    name="foto"
+                    id="foto"
+                    class="form-control @error('foto') is-invalid @enderror"
+                    accept="image/*"
+                    onchange="previewImage(event)">
+
+                @error('foto')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                @enderror
+            </div>
+        </div>
+    </div>
+
+
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="address" class="form-control-label">
@@ -395,12 +442,12 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
+    <script>
         $(document).ready(function() {
             $('.select2').select2();
         });
-</script>
-    <script>
+    </script>
+    {{-- <script>
         function showImageSwal(src) {
             Swal.fire({
                 title: 'Preview Image',
@@ -411,7 +458,7 @@
                 width: 400
             });
         }
-    </script>
+    </script> --}}
     <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung
@@ -432,7 +479,7 @@
             });
         });
     </script>
-    <script>
+    {{-- <script>
         function previewImage(event) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -457,5 +504,41 @@
                 confirmButtonText: 'OK'
             });
         @endif
-    </script>
+    </script> --}}
+   
+{{-- JS Preview + SweetAlert --}}
+<script>
+    function previewImage(event) {
+        const preview = document.getElementById('preview-image');
+        const file = event.target.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+        }
+    }
+
+    function showImageSwal(src) {
+        Swal.fire({
+            imageUrl: src,
+            imageAlt: 'Preview',
+            showConfirmButton: false,
+        });
+    }
+</script>
+
 @endpush
+{{-- JS Preview --}}
+{{-- <script>
+    function previewImage(event) {
+        const preview = document.getElementById('preview-image');
+        preview.src = URL.createObjectURL(event.target.files[0]);
+    }
+
+    function showImageSwal(src) {
+        Swal.fire({
+            imageUrl: src,
+            imageAlt: 'Preview',
+            showConfirmButton: false,
+        });
+    }
+</script>
+ --}}

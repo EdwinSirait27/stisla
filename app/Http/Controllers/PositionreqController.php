@@ -23,8 +23,8 @@ class PositionreqController extends Controller
     public function getPositionreqlists()
     {
 
-        $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-            ->select(['id', 'employee_id', 'status', 'position_id', 'store_id'])
+        $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store','company','department'])
+            ->select(['id', 'employee_id', 'status', 'position_id', 'store_id','company_id','department_id'])
             ->whereIn('status', ['Sent', 'On Review HR', 'Approved HR', 'Accepted', 'Done', 'Reject'])
             ->get()
             ->map(function ($position) {
@@ -278,7 +278,7 @@ class PositionreqController extends Controller
     }
     public function show($hashedId)
     {
-        $submission = Submissionposition::with('submitter', 'approver1', 'approver2', 'positionRelation', 'store')->get()->first(function ($u) use ($hashedId) {
+        $submission = Submissionposition::with('submitter', 'approver1', 'approver2', 'positionRelation', 'store','company','department')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -408,7 +408,7 @@ public function update(Request $request, $hashedId)
     $position->notes_hr = $validatedData['notes_hr'] ?? null;
     $position->reason_reject = $validatedData['reason_reject'] ?? null;
 
-    if (in_array($validatedData['status'], ['On Review HR', 'Reviewed HR', 'Reject'])) {
+    if (in_array($validatedData['status'], ['On Review HR','Reject','Approved HR'])) {
         $position->approver_1 = auth()->user()->employee_id;
     }
 

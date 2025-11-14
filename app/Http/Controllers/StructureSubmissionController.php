@@ -24,7 +24,7 @@ public function getPositionrequests()
 {
     $employeeId = Auth::user()->employee_id;
 
-    $positions = Submissionposition::with(['submitter','approver1','approver2','positionRelation','store'])
+    $positions = Submissionposition::with(['submitter','approver1','approver2','positionRelation','store','company','department'])
         ->select(['id','employee_id','approver_1','approver_2','status','position_id','store_id'])
         ->where('employee_id', $employeeId)
         ->get()
@@ -134,7 +134,7 @@ public function getPositionrequests()
     }
     public function show($hashedId)
     {
-        $submission = Submissionposition::with('submitter','approver1','approver2','positionRelation','store')->get()->first(function ($u) use ($hashedId) {
+        $submission = Submissionposition::with('submitter','approver1','approver2','positionRelation','store','company','department')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -195,78 +195,90 @@ public function getPositionrequests()
         return view('pages.Positionrequest.create', compact('types','stores','positions'));
     }
 
-    public function store(Request $request)
-    {
-      
-        $validatedData = $request->validate([
-            'position_id' => ['required', 'string'],
-            'store_id' => ['required', 'string'],
-            'role_summary' => ['required', 'string'],
-            'key_respon' => ['required', 'string'],
-            'qualifications' => ['required', 'string'],
-            // 'type' => ['required','max:255'],
-            'notes' => ['nullable', 'string','max:255'],
-            'status' => ['nullable', 'string','max:255'],
-            
-        ]);
-        try {
-            DB::beginTransaction();
-            $position = Submissionposition::create([
-                'employee_id'    => Auth::user()->employee_id,
-                'position_id' => $validatedData['position_id'], 
-                'store_id' => $validatedData['store_id'], 
-                'role_summary' => $validatedData['role_summary'], 
-                'key_respon' => $validatedData['key_respon'], 
-                'qualifications' => $validatedData['qualifications'], 
-                'status' => $validatedData['status'] ?? 'Draft', 
-            
-                'notes' => $validatedData['notes'] ?? null, 
-            ]);
-            DB::commit();
-            return redirect()->route('pages.Positionrequest')->with('success', 'Request created Succesfully!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
-                ->withInput();
-        }
-    }
-    // public function update(Request $request, $hashedId)
+    // public function store(Request $request)
     // {
-    //     $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-    //     if (!$position) {
-    //         return redirect()->route('pages.Positionrequest')->with('error', 'ID tidak valid.');
-    //     }
-    //    $validatedData = $request->validate([
-    //     'role_summary'    => ['required', 'string'],
-    //     'key_respon'      => ['required', 'string'],
-    //     'store_id'      => ['required', 'string'],
-    //     'position_id'      => ['required', 'string'],
-    //     'qualifications'  => ['required', 'string'],
-    //     'status'  => ['required', 'string'],
-    //     'notes'           => ['nullable', 'string', 'max:255'],
-    // ], [
-    //     'position_name.required' => 'Position must be filled.',
-    //     'position_name.string'   => 'Position text only.',
-    // ]);
-    //     $positionData = [
-    //         'position_id'   => $validatedData['position_id'],
-    //         'store_id'   => $validatedData['store_id'],
-    //         'role_summary'   => $validatedData['role_summary'],
-    //         'key_respon'     => $validatedData['key_respon'],
-    //         'status'     => $validatedData['status'],
-    //         'qualifications' => $validatedData['qualifications'],
-    //         'notes'          => $validatedData['notes'] ?? null,
+      
+    //     $validatedData = $request->validate([
+    //         'position_id' => ['required', 'string'],
+    //         'company_id' => ['nullable', 'string'],
+    //         'department_id' => ['nullable', 'string'],
+    //         'store_id' => ['required', 'string'],
+    //         'role_summary' => ['required', 'string'],
+    //         'key_respon' => ['required', 'string'],
+    //         'qualifications' => ['required', 'string'],
+    //         'notes' => ['nullable', 'string','max:255'],
+    //         'status' => ['nullable', 'string','max:255'],
             
-    //     ];
-    //     DB::beginTransaction();
-    //     $position->update($positionData);
-    //     DB::commit();
-    //     return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
+    //     ]);
+    //     try {
+    //         DB::beginTransaction();
+    //         $position = Submissionposition::create([
+    //             'employee_id'    => Auth::user()->employee_id,
+    //             'position_id' => $validatedData['position_id'], 
+    //             'store_id' => $validatedData['store_id'], 
+    //             'role_summary' => $validatedData['role_summary'], 
+    //             'key_respon' => $validatedData['key_respon'], 
+    //             'qualifications' => $validatedData['qualifications'], 
+    //             'status' => $validatedData['status'] ?? 'Draft', 
+            
+    //             'notes' => $validatedData['notes'] ?? null, 
+    //         ]);
+    //         DB::commit();
+    //         return redirect()->route('pages.Positionrequest')->with('success', 'Request created Succesfully!');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return redirect()->back()
+    //             ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
+    //             ->withInput();
+    //     }
     // }
+    public function store(Request $request)
+{
+    $validatedData = $request->validate([
+        'position_id' => ['required', 'string'],
+        'company_id' => ['nullable', 'string'],
+        'department_id' => ['nullable', 'string'],
+        'store_id' => ['required', 'string'],
+        'role_summary' => ['required', 'string'],
+        'key_respon' => ['required', 'string'],
+        'qualifications' => ['required', 'string'],
+        'notes' => ['nullable', 'string', 'max:255'],
+        'status' => ['nullable', 'string', 'max:255'],
+    ]);
+
+    try {
+        DB::beginTransaction();
+
+        $user = Auth::user();
+        $employee = $user->employee ?? null;
+
+        $position = Submissionposition::create([
+            'employee_id'   => $user->employee_id,
+            'position_id'   => $validatedData['position_id'],
+            'store_id'      => $validatedData['store_id'],
+            'role_summary'  => $validatedData['role_summary'],
+            'key_respon'    => $validatedData['key_respon'],
+            'qualifications'=> $validatedData['qualifications'],
+            'status'        => $validatedData['status'] ?? 'Draft',
+            'notes'         => $validatedData['notes'] ?? null,
+
+            // Tambahan: ambil dari user yang sedang login
+            'company_id'    => $employee->company_id ?? $validatedData['company_id'] ?? null,
+            'department_id' => $employee->department_id ?? $validatedData['department_id'] ?? null,
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('pages.Positionrequest')
+            ->with('success', 'Request created successfully!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()
+            ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()])
+            ->withInput();
+    }
+}
+
     public function update(Request $request, $hashedId)
 {
     $position = Submissionposition::with('submitter','approver1','approver2')->get()->first(function ($u) use ($hashedId) {
@@ -301,35 +313,19 @@ public function getPositionrequests()
     DB::beginTransaction();
     $position->update($positionData);
     DB::commit();
-
-    // 📨 Kirim email hanya jika status = Sent
-    // if ($validatedData['status'] === 'Sent') {
-    //     // Ambil semua user dengan role HeadHR
-    //     $headHRUsers = User::role('HeadHR')->with('employee')->get();
-
-    //     foreach ($headHRUsers as $hr) {
-    //         // Pastikan employee & email-nya ada
-    //         if ($hr->employee && $hr->employee->email) {
-    //             Mail::to($hr->employee->email)->send(new Sendpositionrequesttohr($position));
-    //         }
-    //     }
-    // }
 if ($validatedData['status'] === 'Sent') {
-    // Ambil semua user dengan role HeadHR yang employee-nya aktif
     $headHRUsers = User::role('HeadHR')
         ->whereHas('employee', function ($query) {
             $query->where('status', 'Active');
         })
         ->with('employee')
         ->get();
-
     foreach ($headHRUsers as $hr) {
         if ($hr->employee && $hr->employee->email) {
             Mail::to($hr->employee->email)->send(new Sendpositionrequesttohr($position));
         }
     }
 }
-
     return redirect()->route('pages.Positionrequest')->with('success', 'Position Request Update Successfully.');
 }
     //     public function getPositionrequests()

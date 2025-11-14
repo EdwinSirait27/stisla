@@ -1045,21 +1045,21 @@
                                 <img src="{{ asset('img/avatar/avatar-1.png') }}" alt="Profile"
                                     class="profile-avatar-large">
                                 <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? 'John Doe' }}</h2>
+                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
                                     <div class="profile-meta">
                                         <div class="profile-meta-item">
                                             <i class="fas fa-briefcase"></i>
-                                            <span>Software Engineer </span>
+                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
                                             {{-- <span>{{ $employee->position ?? 'Software Engineer' }}</span> --}}
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-building"></i>
-                                            <span>Engineering</span>
+                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
                                             {{-- <span>{{ $employee->department ?? 'Engineering' }}</span> --}}
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-id-badge"></i>
-                                            <span>EMP001</span>
+                                            <span>{{ Auth::user()->employee->employee_pengenal ?? 'Edwin Sirait' }}</span>
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-calendar-alt"></i>

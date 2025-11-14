@@ -687,7 +687,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="login-wrapper">
         <!-- FORM SECTION -->

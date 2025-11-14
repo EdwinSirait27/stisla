@@ -273,7 +273,7 @@
                 </div>
             </div>
 
-              <div class="card mt-4">
+            <div class="card mt-4">
                 <div class="card-header">
                     <h5>Structures History</h5>
                 </div>
@@ -292,8 +292,8 @@
                     </div>
                 </div>
             </div>
-            
-    </section>
+
+        </section>
     </div>
     <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -364,7 +364,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://balkan.app/js/OrgChart.js"></script>
     <script>
-         $(function() {
+        $(function() {
             $('#activityTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -415,12 +415,12 @@
 
             Swal.fire({
                 title: 'Are you sure?',
-                text: "This submission will be stored to Structuresnew!",
+                text: "This submission will be imported to Structures!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, store it!'
+                confirmButtonText: 'Yes!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -624,25 +624,15 @@
             OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
             OrgChart.templates.myTemplate.size = [250, 150];
 
-            OrgChart.templates.myTemplate.node = `
-            <rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>
-        `;
-            OrgChart.templates.myTemplate.img_0 = `
-    <clipPath id="avatarClip">
-        <circle cx="125" cy="45" r="35"></circle>
-    </clipPath>
-    <image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image>
-    <circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>
-`;
-
-            OrgChart.templates.myTemplate.field_ = `
-            <text 
-                style="font-size:12px;font-weight:700;" 
+            OrgChart.templates.myTemplate.node = `<rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+            OrgChart.templates.myTemplate.img_0 = `<clipPath id="avatarClip"><circle cx="125" cy="45" r="35"></circle></clipPath><image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image><circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>`;
+            OrgChart.templates.myTemplate.field_ = `<text
+            style="font-size:12px;font-weight:700;" 
                 fill="#212121" 
                 x="125" y="30" text-anchor="middle" alignment-baseline="middle">
                 {val}
             </text>
-        `;
+            `;
             OrgChart.templates.myTemplate.fieldgrading = `
             <text 
                 style="font-size:12px;font-weight:600;" 
@@ -650,7 +640,7 @@
                 x="125" y="50" text-anchor="middle" alignment-baseline="middle">
                 {val}
             </text>
-        `;
+            `;
             OrgChart.templates.myTemplate.field_0 = `
             <text 
                 style="font-size:11px;font-weight:500;" 
@@ -658,7 +648,7 @@
                 x="125" y="70" text-anchor="middle" alignment-baseline="middle">
                 {val}
             </text>
-        `;
+            `;
 
             OrgChart.templates.myTemplate.field_1 = `
             <text 
@@ -667,14 +657,13 @@
                 x="125" y="90" text-anchor="middle" alignment-baseline="middle">
                 {val}
             </text>
-        `;
+          `;
 
-            // ✅ PERBAIKAN: Hapus field_2 dari template, kita render manual
             OrgChart.templates.myTemplate.field_2 = `
             <g transform="translate(60,105)">
                 <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
             </g>
-        `;
+            `;
 
             OrgChart.templates.myTemplate.field_3 = `
             <text 
@@ -682,7 +671,7 @@
                 fill="#ffffff" 
                 x="125" y="122" 
                 text-anchor="middle" alignment-baseline="middle">{val}</text>
-        `;
+            `;
 
             const statusColors = {
                 active: '#4CAF50',
@@ -711,32 +700,53 @@
                 }
             });
 
-            fetch("{{ route('orgchart.orgchart') }}")
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('📊 Raw data:', data);
-                    const processedData = data.map(node => {
-                        const statusText = (node.status || '').trim();
-                        const statusLower = statusText.toLowerCase();
-                        const color = statusColors[statusLower] || '#9E9E9E';
-                        console.log(`Status: "${statusText}" → Color: ${color}`);
-                        return {
-                            ...node,
-                            status: statusText,
-                            statusColor: color
-                        };
-                    });
+            // fetch("{{ route('orgchart.orgchart') }}")
+            //     .then(response => {
+            //         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            //         return response.json();
+            //     })
+            //     .then(data => {
+            //         console.log('📊 Raw data:', data);
+            //         const processedData = data.map(node => {
+            //             const statusText = (node.status || '').trim();
+            //             const statusLower = statusText.toLowerCase();
+            //             const color = statusColors[statusLower] || '#9E9E9E';
+            //             console.log(`Status: "${statusText}" → Color: ${color}`);
+            //             return {
+            //                 ...node,
+            //                 status: statusText,
+            //                 statusColor: color
+            //             };
+            //         });
 
-                    console.log('✅ Processed data:', processedData);
-                    chart.load(processedData);
-                })
-                .catch(error => {
-                    console.error('❌ Error loading chart:', error);
-                    alert('Gagal memuat organization chart.');
-                });
+            //         console.log('✅ Processed data:', processedData);
+            //         chart.load(processedData);
+            //     })
+            //     .catch(error => {
+            //         console.error('❌ Error loading chart:', error);
+            //         alert('Gagal memuat organization chart.');
+            //     });
+            fetch("{{ route('orgchart.orgchart') }}")
+    .then(response => response.json())
+    .then(data => {
+        const statusColors = {
+            active: '#4CAF50',
+            inactive: '#F44336',
+            vacant: '#9E9E9E'
+        };
+
+        const processedData = data.map(node => ({
+            ...node,
+            statusColor: statusColors[(node.status || '').toLowerCase()] || '#9E9E9E'
+        }));
+
+        chart.load(processedData);
+    })
+    .catch(error => {
+        console.error('❌ Error loading chart:', error);
+        alert('Gagal memuat organization chart.');
+    });
+
         });
     </script>
     <script>

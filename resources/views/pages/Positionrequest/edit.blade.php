@@ -161,6 +161,11 @@
         select.form-control {
             height: 42px;
         }
+          #notes {
+            height: 200px;
+            resize: vertical;
+            /* biar masih bisa diubah manual */
+        }
     </style>
 @endpush
 @section('main')
@@ -315,7 +320,7 @@
                                                         <i class="fas fa-file-alt"></i> {{ __('Notes') }}
                                                     </label>
                                                     <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="3"
-                                                        placeholder="note from manager requesting additional position">{{ old('notes', $submission->notes) }}</textarea>
+                                                        placeholder="notes from manager to HR Department ">{{ old('notes', $submission->notes) }}</textarea>
                                                     @error('notes')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -353,6 +358,7 @@
                                                 <div class="alert alert-secondary mt-4" role="alert">
                                                     <span class="text-dark">
                                                         <strong>Important Note:</strong>
+                                                        <br> - Notes can be empty.
                                                         <br> - please use English to get used to it.
                                                         <br> - Before creating data, please check first whether there is
                                                         already
