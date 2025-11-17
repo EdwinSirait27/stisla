@@ -48,6 +48,9 @@
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Employee</span></a>
                     <ul class="dropdown-menu">
+                        <li class="{{ Request::is('Team') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Team') }}">Team List</a>
+                        </li>
                         <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionrequest') }}">Position Request</a>
                         </li>

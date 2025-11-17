@@ -1793,7 +1793,7 @@
                     <div class="col-lg-8">
                         <h2>
                             <i class="fas fa-hand-wave me-2"></i>
-                            Welcome back, {{ Auth::user()->name ?? 'Manager' }}!
+                            Welcome back, {{ Auth::user()->employee->employee_name ?? 'Manager' }}!
                         </h2>
                         <p>Here's what's happening with your team today.</p>
                         <div class="date-info">

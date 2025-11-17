@@ -294,6 +294,11 @@ Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function (
 Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function () {
     Route::get('/dashboardManager', [DashManagerController::class, 'index'])
         ->name('pages.dashboardManager');
+         Route::get('/Team', [DashManagerController::class, 'team'])
+            ->name('pages.Team');
+        Route::get('/Team/show/{hashedId}', [DashManagerController::class, 'show'])->name('Team.show');
+        Route::get('/teams/teams', [DashManagerController::class, 'getTeams'])->name('teams.teams');
+
 });
 Route::group(['middleware' => ['auth', 'permission:dashboardDirector']], function () {
     Route::get('/dashboardDirector', [DashboardHeadController::class, 'index'])
