@@ -510,21 +510,21 @@ class EmployeeController extends Controller
                 new NoXSSInput()
             ],
             // 'foto' => ['nullable', 'image', 'max:512'],
-            'level_id' => [
-                'nullable',
-                'max:255',
-                new NoXSSInput()
-            ],
+            // 'level_id' => [
+            //     'nullable',
+            //     'max:255',
+            //     new NoXSSInput()
+            // ],
             'is_manager' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
             ],
-            'is_manager_store' => [
-                'nullable',
-                'boolean',
-                new NoXSSInput()
-            ],
+            // 'is_manager_store' => [
+            //     'nullable',
+            //     'boolean',
+            //     new NoXSSInput()
+            // ],
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'employee_name' => ['required', 'string', 'max:255', 'unique:employees_tables,employee_name', new NoXSSInput()],
@@ -654,9 +654,9 @@ class EmployeeController extends Controller
                 'telp_number' => $validatedData['telp_number'] ?? '',
                 'gender' => $validatedData['gender'] ?? '',
                 'date_of_birth' => $validatedData['date_of_birth'] ?? '',
-                'level_id' => $validatedData['level_id'],
+                // 'level_id' => $validatedData['level_id'],
                 'is_manager' => $validatedData['is_manager'] ?? 0,
-                'is_manager_store' => $validatedData['is_manager_store'] ?? 0,
+                // 'is_manager_store' => $validatedData['is_manager_store'] ?? 0,
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
                 'email' => $validatedData['email'] ?? '',
@@ -746,6 +746,7 @@ class EmployeeController extends Controller
         'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
         'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
         'npwp' => ['required', 'string', 'max:50'],
+        'is_manager' => ['nullable'],
         'pin' => [
             'required', 'string', 'max:50',
             Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
@@ -801,12 +802,14 @@ class EmployeeController extends Controller
                         $validatedData['department_id'] = $submission->department_id;
                         $validatedData['store_id'] = $submission->store_id;
                         $validatedData['position_id'] = $submission->position_id;
+                        $validatedData['is_manager'] = $submission->is_manager;
 
                         Log::info('Structure fields updated from submissionposition relation', [
                             'structure_id' => $newStructure->id,
                             'company_id' => $submission->company_id,
                             'department_id' => $submission->department_id,
                             'store_id' => $submission->store_id,
+                            'is_manager' => $submission->is_manager,
                             'position_id' => $submission->position_id,
                         ]);
                     } else {

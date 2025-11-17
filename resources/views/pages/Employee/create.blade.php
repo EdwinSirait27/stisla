@@ -904,7 +904,7 @@
                                             </div> --}}
 
 
-                                        <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="level_id" class="form-control-label">
                                                     <i class="fas fa-id-card"></i> {{ __('Superior Name') }}
@@ -930,7 +930,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        </div>
+                                        </div> --}}
                                         {{-- <div class="row mt-3">
                                             <div class="col-md-6">
                                             <div class="form-group">
@@ -967,7 +967,6 @@
                                             </div>
                                         </div>
                                     </div> --}}
-                                     <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"
@@ -976,7 +975,7 @@
                                                         {{ old('is_manager') ? 'checked' : '' }}>
 
                                                     <label for="is_manager" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager Department') }}
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Manager') }}
                                                     </label>
                                                     @error('is_manager')
                                                         <span class="invalid-feedback d-block" role="alert">
@@ -985,6 +984,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                        </div>
                                         </div>
                                       
 

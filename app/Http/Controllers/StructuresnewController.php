@@ -581,7 +581,6 @@ $lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nicknam
         $validated = $request->validate([
             'is_manager' => ['nullable', 'boolean'],
             'parent_id' => ['nullable', 'string', 'max:255'],
-
             'secondary_supervisors' => ['nullable', 'array'],
             'secondary_supervisors.*' => ['string'],
         ]);
