@@ -29,7 +29,7 @@ class SummaryController extends Controller
 {
     $summaries = User::whereHas('Employee', function ($q) {
         $q->whereIn('status', ['Active','Pending','Mutation'])
-          ->whereDate('join_date', '<=', now()->subYear()); // hanya yang join_date lebih dari 1 tahun
+          ->whereDate('join_date', '<=', now()->subYear()); 
     })
         ->with([
             'Employee' => function ($q) {

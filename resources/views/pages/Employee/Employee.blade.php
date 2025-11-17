@@ -618,14 +618,12 @@
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Company</th>
-                                                <th class="text-center">Grd Name</th>
-                                                <th class="text-center">old</th>
-                                                <th class="text-center">Position</th>
                                                 <th class="text-center">Departments</th>
-                                                <th class="text-center">Status Employee</th>
                                                 <th class="text-center">Location</th>
+                                                <th class="text-center">Old Position</th>
+                                                <th class="text-center">Grd Name</th>
+                                                <th class="text-center">Status Employee</th>
                                                 <th class="text-center">Status</th>
-                                                {{-- <th class="text-center">Contoh company struktur</th> --}}
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -908,28 +906,28 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'grading_name',
+                        data: 'department_name',
                         className: 'text-center'
                     },
-
+                    {
+                        data: 'name',
+                        className: 'text-center'
+                    },
                     {
                         data: 'oldposition_name',
                         className: 'text-center'
                     },
                     {
-                        data: 'position_name',
+                        data: 'grading_name',
                         className: 'text-center'
                     },
-                    {
-                        data: 'department_name',
-                        className: 'text-center'
-                    },
+
+                    // {
+                    //     data: 'position_name',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'status_employee',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name',
                         className: 'text-center'
                     },
                     {

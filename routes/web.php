@@ -14,6 +14,7 @@ use App\Http\Controllers\PayrollEmailController;
 use App\Http\Controllers\EmployeeImportController;
 use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\UserprofileController;
+use App\Http\Controllers\DashManagerController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\BanksController;
@@ -291,7 +292,7 @@ Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function (
         ->name('pages.Dashboard.Dashboard');
 });
 Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function () {
-    Route::get('/dashboardManager', [DashboardManagerController::class, 'index'])
+    Route::get('/dashboardManager', [DashManagerController::class, 'index'])
         ->name('pages.dashboardManager');
 });
 Route::group(['middleware' => ['auth', 'permission:dashboardDirector']], function () {
@@ -378,15 +379,6 @@ Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], funct
 
 
 
-
-
-// Route::middleware(['auth', 'role:ManagerStore'])->group(function () {
-
-//     Route::group(['middleware' => ['permission:dashboardManager']], function () {
-
-//         Route::get('/dashboardManager', [dashboardManagerController::class, 'index'])->name('pages.dashboardManager');
-//     });
-// });
 
 
 
