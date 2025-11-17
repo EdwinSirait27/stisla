@@ -11,34 +11,201 @@ use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
 class DashboardHRController extends Controller
 {
-// public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     $month = $request->get('month', now()->format('Y-m'));
+    //     $monthDate = Carbon::createFromFormat('Y-m', $month);
+
+    //     $startDate = $monthDate->copy()->startOfMonth();
+    //     $endDate   = $monthDate->copy()->endOfMonth();
+    //     $types = ['Annual Leave', 'Overtime'];
+    //     $statussubmissions = ['Cash', 'TOIL'];
+
+
+    //     // Hitung jumlah karyawan aktif/pending
+    //     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
+    //     // Ambil data fingerprint per hari dalam bulan terpilih
+    //     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
+    //         ->whereBetween('scan_date', [$startDate, $endDate])
+    //         ->groupBy('day')
+    //         ->orderBy('day')
+    //         ->get();
+
+    //     // Hitung presentase kehadiran
+    //     $days = $data->pluck('day');
+    //     $percentages = $data->pluck('total')->map(function ($value) use ($totalEmployees) {
+    //         return $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0;
+    //     });
+
+    //     $announcements = Announcment::orderBy('created_at', 'desc')->get();
+    //     $user = Auth::user();
+    //     $employee = $user->employee;
+
+    //     if ($employee->is_manager) {
+    //         // Manager → lihat semua submission di departemen yang sama
+    //         $submissions = Submissions::with(['employee', 'approver'])
+    //             ->whereHas('employee', function ($q) use ($employee) {
+    //                 $q->where('department_id', $employee->department_id);
+    //             })
+    //             ->latest()
+    //             ->take(8)
+    //             ->get();
+    //     } else {
+    //         // Non-manager → lihat submission sendiri
+    //         $submissions = Submissions::with(['employee', 'approver'])
+    //             ->where('employee_id', $employee->id)
+    //             ->latest()
+    //             ->take(8)
+    //             ->get();
+    //     }
+    //     // ✅ Hitung duration (hari) secara otomatis jika belum tersimpan dalam bentuk angka
+    //     foreach ($submissions as $submission) {
+    //         if (!is_numeric($submission->duration)) {
+    //             $from = Carbon::parse($submission->leave_date_from);
+    //             $to = Carbon::parse($submission->leave_date_to);
+    //             $submission->duration = $from->diffInDays($to) + 1; // termasuk tanggal mulai
+    //         }
+    //     }
+    //     return view('pages.dashboardHR.dashboardHR', [
+    //         'month'          => $month,
+    //         'days'            => $days,
+    //         'types'          => $types,
+    //         'statussubmissions' => $statussubmissions,
+    //         'percentages'    => $percentages,
+    //         'pendingSubmissions'         => $submissions,
+    //         'totalEmployees' => $totalEmployees,
+    //         'announcements'  => $announcements,
+    //     ]);
+    // }
+//    public function index(Request $request)
 // {
 //     $month = $request->get('month', now()->format('Y-m'));
 //     $monthDate = Carbon::createFromFormat('Y-m', $month);
 //     $startDate = $monthDate->copy()->startOfMonth();
 //     $endDate   = $monthDate->copy()->endOfMonth();
-//     $types = ['Annual Leave', 'Overtime','Cash Advances'];
+
+//     $types = ['Annual Leave', 'Overtime'];
 //     $statussubmissions = ['Cash', 'TOIL'];
+
 //     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
+//     // 🔹 Data kehadiran (fingerprint)
 //     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
 //         ->whereBetween('scan_date', [$startDate, $endDate])
 //         ->groupBy('day')
 //         ->orderBy('day')
 //         ->get();
+
 //     $days = $data->pluck('day');
 //     $percentages = $data->pluck('total')->map(function ($value) use ($totalEmployees) {
 //         return $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0;
 //     });
 
 //     $announcements = Announcment::orderBy('created_at', 'desc')->get();
+
+//     // 🔹 Ambil user & employee
 //     $user = Auth::user();
-//     $employee = $user->employee ?? null;
-//     $selectedType = $request->get('type', null);
+//     $employee = $user->employee;
+
+//     // Default nilai
 //     $submissions = collect();
-//     $managedEmployees = $employee ? collect([$employee]) : collect();
+//     $managedEmployees = collect([$employee]);
+//     $canCreateOvertime = $employee && $employee->is_manager == 1;
+
+//     if ($employee && $employee->is_manager) {
+//         // 🔹 Ambil semua employee di departemen yang sama
+//         $departmentEmployeeIds = Employee::where('department_id', $employee->department_id)
+//             ->pluck('id')
+//             ->toArray();
+
+//         // 🔹 Ambil submissions departemen itu
+//         $submissions = Submissions::with(['employee', 'approver'])
+//             ->whereIn('employee_id', $departmentEmployeeIds)
+//             ->latest()
+//             ->take(8)
+//             ->get();
+
+//         // 🔹 Ambil semua bawahan di departemen yang sama
+//         $subordinates = Employee::where('department_id', $employee->department_id)
+//             ->where('id', '!=', $employee->id)
+//             ->get();
+
+//         // 🔹 Gabungkan manager + bawahannya
+//         $managedEmployees = collect([$employee])
+//             ->merge($subordinates)
+//             ->unique('id')
+//             ->values();
+//     } else {
+//         // 🔹 Non-manager hanya bisa lihat submissions miliknya
+//         $submissions = Submissions::with(['employee', 'approver'])
+//             ->where('employee_id', $employee->id)
+//             ->latest()
+//             ->take(8)
+//             ->get();
+//     }
+
+//     // 🔹 Hitung durasi (Annual Leave dsb)
+//     foreach ($submissions as $submission) {
+//         if (!is_numeric($submission->duration)) {
+//             $from = Carbon::parse($submission->leave_date_from);
+//             $to   = Carbon::parse($submission->leave_date_to);
+//             $submission->duration = $from->diffInDays($to) + 1;
+//         }
+//     }
+
+//     return view('pages.dashboardHR.dashboardHR', [
+//         'month'              => $month,
+//         'days'               => $days,
+//         'types'              => $types,
+//         'statussubmissions'  => $statussubmissions,
+//         'percentages'        => $percentages,
+//         'pendingSubmissions' => $submissions,
+//         'totalEmployees'     => $totalEmployees,
+//         'announcements'      => $announcements,
+//         'canCreateOvertime'  => $canCreateOvertime,
+//         'managedEmployees'   => $managedEmployees,
+//     ]);
+// }
+// public function index(Request $request)
+// {
+//     $month = $request->get('month', now()->format('Y-m'));
+//     $monthDate = Carbon::createFromFormat('Y-m', $month);
+//     $startDate = $monthDate->copy()->startOfMonth();
+//     $endDate   = $monthDate->copy()->endOfMonth();
+
+//     $types = ['Annual Leave', 'Overtime'];
+//     $statussubmissions = ['Cash', 'TOIL'];
+
+//     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
+//     // 🔹 Data kehadiran (fingerprint)
+//     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
+//         ->whereBetween('scan_date', [$startDate, $endDate])
+//         ->groupBy('day')
+//         ->orderBy('day')
+//         ->get();
+
+//     $days = $data->pluck('day');
+//     $percentages = $data->pluck('total')->map(function ($value) use ($totalEmployees) {
+//         return $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0;
+//     });
+
+//     $announcements = Announcment::orderBy('created_at', 'desc')->get();
+
+//     // 🔹 Ambil user & employee
+//     $user = Auth::user();
+//     $employee = $user->employee;
+
+//     // Default nilai
+//     $submissions = collect();
+//     $managedEmployees = collect([$employee]);
 //     $canCreateOvertime = $employee && ($employee->is_manager == 1 || $employee->is_manager_store == 1);
+
 //     if ($employee && ($employee->is_manager == 1 || $employee->is_manager_store == 1)) {
-// $query = Employee::query();
+
+//         // 🔹 Ambil semua employee di department atau store yang sama
+//         $query = Employee::query();
 
 //         if ($employee->is_manager == 1) {
 //             $query->where('department_id', $employee->department_id);
@@ -49,7 +216,6 @@ class DashboardHRController extends Controller
 //         }
 
 //         $managedIds = $query->pluck('id')->toArray();
-//         $managedIds[] = $employee->id; // pastikan dirinya sendiri ikut
 
 //         $submissions = Submissions::with(['employee', 'approver'])
 //             ->whereIn('employee_id', $managedIds)
@@ -67,7 +233,7 @@ class DashboardHRController extends Controller
 //             ->unique('id')
 //             ->values();
 
-//     } else if ($employee) {
+//     } else {
 //         // 🔹 Non-manager hanya bisa lihat submissions miliknya
 //         $submissions = Submissions::with(['employee', 'approver'])
 //             ->where('employee_id', $employee->id)
@@ -75,7 +241,6 @@ class DashboardHRController extends Controller
 //             ->take(8)
 //             ->get();
 //     }
-
 //     // 🔹 Hitung durasi (Annual Leave dsb)
 //     foreach ($submissions as $submission) {
 //         if (!is_numeric($submission->duration)) {
@@ -83,24 +248,8 @@ class DashboardHRController extends Controller
 //             $to   = Carbon::parse($submission->leave_date_to);
 //             $submission->duration = $from->diffInDays($to) + 1;
 //         }
-
-//         if (!isset($submission->formattedDuration)) {
-//             $submission->formattedDuration = $submission->duration . ' day(s)';
-//         }
 //     }
 
-//     $leaveData = null;
-//     if ($selectedType === 'Annual Leave' && $employee) {
-//         $total = $employee->total ?? $employee->total ?? $employee->total ?? 12;
-//         $pending = $employee->pending ?? $employee->pending ?? $employee->pending ?? 0;
-//         $remaining = $employee->remaining ?? $employee->remaining ?? $employee->remaining ?? 0;
-
-//         $leaveData = [
-//             'total' => $total ?? 12,
-//             'pending' => $pending ?? 0,
-//             'remaining' => $remaining ?? 0,
-//         ];
-//     }
 //     return view('pages.dashboardHR.dashboardHR', [
 //         'month'              => $month,
 //         'days'               => $days,
@@ -112,21 +261,21 @@ class DashboardHRController extends Controller
 //         'announcements'      => $announcements,
 //         'canCreateOvertime'  => $canCreateOvertime,
 //         'managedEmployees'   => $managedEmployees,
-//         'selectedType'       => $selectedType,
-//         'leaveData'          => $leaveData,
 //     ]);
 // }
 public function index(Request $request)
 {
     $month = $request->get('month', now()->format('Y-m'));
     $monthDate = Carbon::createFromFormat('Y-m', $month);
-    $startDate = $monthDate->startOfMonth();
-    $endDate   = $monthDate->endOfMonth();
+    $startDate = $monthDate->copy()->startOfMonth();
+    $endDate   = $monthDate->copy()->endOfMonth();
 
     $types = ['Annual Leave', 'Overtime','Cash Advances'];
     $statussubmissions = ['Cash', 'TOIL'];
+
     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
 
+    // 🔹 Data kehadiran (fingerprint)
     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
         ->whereBetween('scan_date', [$startDate, $endDate])
         ->groupBy('day')
@@ -134,69 +283,67 @@ public function index(Request $request)
         ->get();
 
     $days = $data->pluck('day');
-    $percentages = $data->pluck('total')->map(fn ($value) =>
-        $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0
-    );
+    $percentages = $data->pluck('total')->map(function ($value) use ($totalEmployees) {
+        return $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0;
+    });
 
     $announcements = Announcment::orderBy('created_at', 'desc')->get();
 
+    // 🔹 Ambil user & employee
     $user = Auth::user();
     $employee = $user->employee ?? null;
 
+    // Ambil type yang dipilih (bisa dari query string atau form)
     $selectedType = $request->get('type', null);
+
+    // Default nilai
     $submissions = collect();
-    $managedEmployees = collect();
-    $canCreateOvertime = false;
+    $managedEmployees = $employee ? collect([$employee]) : collect();
+    $canCreateOvertime = $employee && ($employee->is_manager == 1 || $employee->is_manager_store == 1);
 
-    // Jika ada employee login
-    if ($employee) {
-        $canCreateOvertime = ($employee->structuresnew->is_manager == 1);
+    if ($employee && ($employee->is_manager == 1 || $employee->is_manager_store == 1)) {
 
-        // Jika manager atau manager store
-        if ($canCreateOvertime) {
+        // 🔹 Ambil semua employee di department atau store yang sama
+        $query = Employee::query();
 
-            $query = Employee::query();
-            $query->where(function($q) use ($employee) {
-
-                if ($employee->structuresnew->is_manager == 1) {
-                    $q->where('department_id', $employee->structuresnew->submissionposition->department_id);
-                }
-
-                if ($employee->is_manager_store == 1) {
-                    $q->orWhere('store_id', $employee->store_id);
-                }
-
-            });
-
-            $managedIds = $query->pluck('id')->toArray();
-            $managedIds[] = $employee->id;
-
-            $submissions = Submissions::with(['employee', 'approver'])
-                ->whereIn('employee_id', $managedIds)
-                ->latest()
-                ->take(8)
-                ->get();
-
-            $subordinates = Employee::whereIn('id', $managedIds)
-                ->where('id', '!=', $employee->id)
-                ->get();
-
-            $managedEmployees = collect([$employee])
-                ->merge($subordinates)
-                ->unique('id')
-                ->values();
-
-        } else {
-            // Non manager: hanya lihat submission sendiri
-            $submissions = Submissions::with(['employee', 'approver'])
-                ->where('employee_id', $employee->id)
-                ->latest()
-                ->take(8)
-                ->get();
+        if ($employee->is_manager == 1) {
+            $query->where('department_id', $employee->department_id);
         }
+
+        if ($employee->is_manager_store == 1) {
+            // gunakan orWhere supaya store manager bisa lihat berdasarkan store
+            $query->orWhere('store_id', $employee->store_id);
+        }
+
+        $managedIds = $query->pluck('id')->toArray();
+        $managedIds[] = $employee->id; // pastikan dirinya sendiri ikut
+
+        $submissions = Submissions::with(['employee', 'approver'])
+            ->whereIn('employee_id', $managedIds)
+            ->latest()
+            ->take(8)
+            ->get();
+
+        // 🔹 Ambil semua bawahannya
+        $subordinates = Employee::whereIn('id', $managedIds)
+            ->where('id', '!=', $employee->id)
+            ->get();
+
+        $managedEmployees = collect([$employee])
+            ->merge($subordinates)
+            ->unique('id')
+            ->values();
+
+    } else if ($employee) {
+        // 🔹 Non-manager hanya bisa lihat submissions miliknya
+        $submissions = Submissions::with(['employee', 'approver'])
+            ->where('employee_id', $employee->id)
+            ->latest()
+            ->take(8)
+            ->get();
     }
 
-    // Hitung durasi
+    // 🔹 Hitung durasi (Annual Leave dsb)
     foreach ($submissions as $submission) {
         if (!is_numeric($submission->duration)) {
             $from = Carbon::parse($submission->leave_date_from);
@@ -204,26 +351,38 @@ public function index(Request $request)
             $submission->duration = $from->diffInDays($to) + 1;
         }
 
-        $submission->formattedDuration = "{$submission->duration} day(s)";
+        if (!isset($submission->formattedDuration)) {
+            $submission->formattedDuration = $submission->duration . ' day(s)';
+        }
     }
 
-    // Annual leave details
     $leaveData = null;
     if ($selectedType === 'Annual Leave' && $employee) {
+        $total = $employee->total ?? $employee->total ?? $employee->total ?? 12;
+        $pending = $employee->pending ?? $employee->pending ?? $employee->pending ?? 0;
+        $remaining = $employee->remaining ?? $employee->remaining ?? $employee->remaining ?? 0;
+
         $leaveData = [
-            'total'     => $employee->total ?? 12,
-            'pending'   => $employee->pending ?? 0,
-            'remaining' => $employee->remaining ?? 0,
+            'total' => $total ?? 12,
+            'pending' => $pending ?? 0,
+            'remaining' => $remaining ?? 0,
         ];
     }
-
-    return view('pages.dashboardHR.dashboardHR', compact(
-        'month', 'days', 'types', 'statussubmissions', 'percentages',
-        'submissions', 'totalEmployees', 'announcements', 'canCreateOvertime',
-        'managedEmployees', 'selectedType', 'leaveData'
-    ));
+    return view('pages.dashboardHR.dashboardHR', [
+        'month'              => $month,
+        'days'               => $days,
+        'types'              => $types,
+        'statussubmissions'  => $statussubmissions,
+        'percentages'        => $percentages,
+        'pendingSubmissions' => $submissions,
+        'totalEmployees'     => $totalEmployees,
+        'announcements'      => $announcements,
+        'canCreateOvertime'  => $canCreateOvertime,
+        'managedEmployees'   => $managedEmployees,
+        'selectedType'       => $selectedType,
+        'leaveData'          => $leaveData,
+    ]);
 }
-
 
 
 
