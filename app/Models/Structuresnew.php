@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-
 class Structuresnew extends Model
 {
     use HasFactory,  LogsActivity; 
@@ -25,26 +24,12 @@ class Structuresnew extends Model
     protected $table = 'structures_tables';
     protected $fillable = [
         'parent_id',
-        'submitter',
-        'company_id',
-        'department_id',
-        'salary_id',
-        'position_id',
-        'store_id',
         'structure_code',
         'is_manager',
-        'type',
         'status',
-        'role_summary',
-        'key_respon',
-        'qualifications',
-        'work_location',
-        'position_name',
         'approval_1',
         'approval_2',
         'submission_position_id',
-        'reason_reject',
-        'submission_status',
     ];
     protected $casts = [
         'is_manager' => 'boolean',
@@ -86,16 +71,8 @@ class Structuresnew extends Model
     {
         return $this->belongsTo(Submissionposition::class, 'submission_position_id', 'id');
     }
-    public function parent()
-    {
-        return $this->belongsTo(Structuresnew::class, 'parent_id', 'id');
-    }
-    // public function parent()
-    // {
-    //     // penting: load submissionposition + positionRelation untuk bisa munculkan nama parent
-    //     return $this->belongsTo(self::class, 'parent_id')
-    //         ->with(['submissionposition.positionRelation']);
-    // }
+  
+    
     public function children()
     {
         return $this->hasMany(Structuresnew::class, 'parent_id', 'id');
@@ -104,15 +81,27 @@ class Structuresnew extends Model
     {
         return $this->hasMany(Employee::class, 'structure_id', 'id');
     }
-
+    public function employees()
+{
+    return $this->hasOne(Employee::class, 'structure_id', 'id');
+}
 public function allChildren()
 {
     return $this->children()->with('allChildren', 'position');
 }
-//     public function allChildren()
-// {
-//     return $this->children()->with('allChildren');
-// }
+  public function parent()
+    {
+        return $this->belongsTo(Structuresnew::class, 'parent_id', 'id');
+    }
+public function secondarySupervisors()
+{
+    return $this->belongsToMany(
+        Structuresnew::class,
+        'structure_supervisors',
+        'structure_id',
+        'supervisor_id'
+    );
+}
 
 
 
@@ -143,7 +132,6 @@ public function getActivitylogOptions(): LogOptions
                 'parent_id' => 'Direct Supervisor',
                 
             ];
-
             $changesInfo = '';
             if ($eventName === 'updated' && !empty($changes)) {
                 $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
@@ -175,3 +163,15 @@ public function getActivitylogOptions(): LogOptions
 }
 
 }
+
+// public function parent()
+    // {
+    //     // penting: load submissionposition + positionRelation untuk bisa munculkan nama parent
+    //     return $this->belongsTo(self::class, 'parent_id')
+    //         ->with(['submissionposition.positionRelation']);
+    // }
+    
+//     public function allChildren()
+// {
+//     return $this->children()->with('allChildren');
+// }

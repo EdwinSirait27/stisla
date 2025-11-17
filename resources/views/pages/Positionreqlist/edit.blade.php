@@ -4,7 +4,6 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
@@ -14,7 +13,6 @@
             position: relative;
             overflow: hidden;
             padding-top: 56.25%;
-            /* Aspect ratio 16:9 */
         }
 
         .iframe-container iframe {
@@ -26,7 +24,6 @@
             border: 0;
         }
 
-        /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
             padding: 10px 15px;
@@ -165,37 +162,31 @@
         #role_summary {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
 
         #key_respon {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
 
         #qualifications {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
 
         #notes {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
 
         #notes_hr {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
 
         #notes_dir {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
     </style>
 @endpush
@@ -211,7 +202,6 @@
                     <div class="breadcrumb-item">Edit Position Request List</div>
                 </div>
             </div>
-
             <div class="section-body">
                 <div class="container-fluid">
                     <div class="row">
@@ -233,7 +223,6 @@
                                             </ul>
                                         </div>
                                     @endif
-
                                     @if (session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" id="alert-success"
                                             role="alert">
@@ -244,7 +233,6 @@
                                             </button>
                                         </div>
                                     @endif
-
                                     <form id="position-edit" action="{{ route('Positionreqlist.update', $hashedId) }}"
                                         method="POST">
                                         @csrf
@@ -268,7 +256,6 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Location') }}
@@ -285,7 +272,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="type" class="form-control-label">
@@ -316,17 +302,11 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
-
-
                                             <div class="col-md-6">
-
                                                 <div class="form-group">
                                                     <label for="role_summary" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Role Summary') }}
                                                     </label>
-                                                    {{-- <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
-                                                        rows="8"disabled>{{ old('role_summary', $position->role_summary) }}</textarea> --}}
                                                     <textarea id="role_summary" name="role_summary" class="form-control @error('role_summary') is-invalid @enderror"
                                                         rows="8" disabled>{{ html_entity_decode(strip_tags(old('role_summary', $position->role_summary))) }}</textarea>
 
@@ -343,8 +323,6 @@
                                                     <label for="key_respon" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Key Responsibility') }}
                                                     </label>
-                                                    {{-- <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
-                                                        rows="8"disabled>{{ old('key_respon', $position->key_respon) }}</textarea> --}}
                                                     <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
                                                         rows="8" disabled>{{ html_entity_decode(strip_tags(old('key_respon', $position->key_respon))) }}</textarea>
                                                     @error('key_respon')
@@ -359,8 +337,6 @@
                                                     <label for="qualifications" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Qualifications') }}
                                                     </label>
-                                                    {{-- <textarea id="qualifications" name="qualifications"
-                                                        class="form-control @error('qualifications') is-invalid @enderror" rows="8"disabled>{{ old('qualifications', $position->qualifications) }}</textarea> --}}
                                                     <textarea id="qualifications" name="qualifications"
                                                         class="form-control @error('qualifications') is-invalid @enderror" rows="8" disabled>{{ html_entity_decode(strip_tags(old('qualifications', $position->qualifications))) }}</textarea>
 
@@ -371,23 +347,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
-
-                                                <div class="form-group">
-                                                    <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Notes From Manager') }}
-                                                    </label>
-                                                 
-                                                           <textarea id="notes" name="notes"
-                                                        class="form-control @error('notes') is-invalid @enderror" rows="8"disabled>{{ old('notes', $position->notes) }}</textarea>
-
-                                                    @error('notes')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
@@ -404,7 +363,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="salary_hr" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
@@ -421,8 +380,42 @@
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                             <div class="col-md-6">
+    <div class="form-group">
+        <label for="salary_hr" class="form-control-label">
+            <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
+        </label>
+
+        <input type="text" id="salary_hr_display"
+               class="form-control @error('salary_hr') is-invalid @enderror"
+               value="{{ number_format(old('salary_hr', $position->salary_hr), 0, ',', '.') }}"
+               placeholder="100.000"
+               required>
+
+        <input type="hidden" name="salary_hr" id="salary_hr"
+               value="{{ old('salary_hr', $position->salary_hr) }}">
+
+        @error('salary_hr')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+        @enderror
+    </div>
+</div>
+
+<script>
+document.getElementById('salary_hr_display').addEventListener('input', function () {
+    let value = this.value.replace(/\D/g, '');          // Hapus selain angka
+    let formatted = new Intl.NumberFormat('id-ID').format(value);
+
+    this.value = formatted;                             // Tampilkan 100.000
+
+    document.getElementById('salary_hr').value = value; // Kirim 100000 ke server
+});
+</script>
+
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="salary_hr_end" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('To') }}
@@ -439,47 +432,40 @@
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div>
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="salary_counter" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Approved Salary by DIR') }}
-                                                    </label>
-
-                                                    <input type="number" id="salary_counter" name="salary_counter"
-                                                        class="form-control @error('salary_counter') is-invalid @enderror"
-                                                        value="{{ old('salary_counter', $position->salary_counter) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  disabled>
-                                                    @error('salary_counter')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
                                             </div> --}}
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="salary_counter_end" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('To') }}
-                                                    </label>
+                                             <div class="col-md-6">
+    <div class="form-group">
+        <label for="salary_hr_end" class="form-control-label">
+            <i class="fas fa-file-alt"></i> {{ __('To') }}
+        </label>
 
-                                                    <input type="number" id="salary_counter_end" name="salary_counter_end"
-                                                        class="form-control @error('salary_counter_end') is-invalid @enderror"
-                                                        value="{{ old('salary_counter_end', $position->salary_counter_end) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  disabled>
-                                                    @error('salary_counter_end')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
+        <input type="text" id="salary_hr_end_display"
+               class="form-control @error('salary_hr_end') is-invalid @enderror"
+               value="{{ number_format(old('salary_hr_end', $position->salary_hr_end), 0, ',', '.') }}"
+               placeholder="100.000"
+               required>
 
+        <input type="hidden" name="salary_hr_end" id="salary_hr_end"
+               value="{{ old('salary_hr_end', $position->salary_hr_end) }}">
 
+        @error('salary_hr_end')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+        @enderror
+    </div>
+</div>
 
+<script>
+document.getElementById('salary_hr_end_display').addEventListener('input', function () {
+    let value = this.value.replace(/\D/g, '');          // Hapus selain angka
+    let formatted = new Intl.NumberFormat('id-ID').fo`rmat(value);
 
+    this.value = formatted;                             // Tampilkan 100.000
+
+    document.getElementById('salary_hr_end').value = value; // Kirim 100000 ke server
+});
+</script>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes_hr" class="form-control-label">
@@ -495,66 +481,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="reason_reject_dir" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject DIR') }}
-                                                    </label>
-                                                    <textarea id="reason_reject_dir" name="reason_reject_dir"
-                                                        class="form-control @error('reason_reject_dir') is-invalid @enderror" rows="8"
-                                                        placeholder="Reason reject from DIR" disabled>{{ old('reason_reject_dir', $position->reason_reject_dir) }}</textarea>
-
-                                                    @error('reason_reject_dir')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
-                                            {{-- <div class="col-md-6">
-
-                                                <div class="form-group">
-                                                    <label for="status" class="form-control-label">
-                                                        <i class="fas fa-book"></i> {{ __('Status') }}
-                                                    </label>
-                                                    <select id="status" name="status"
-                                                        class="form-control select2 @error('status') is-invalid @enderror"required>
-                                                        <option value="">-- Choose Status--</option>
-                                                        @foreach ($statuses as $value)
-                                                            <option value="{{ $value }}"
-                                                                {{ old('status', $position->status ?? '') == $value ? 'selected' : '' }}>
-                                                                {{ $value }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-
-                                                    @error('status')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6" id="reason_reject_field">
-
-                                                <div class="form-group">
-                                                    <label for="reason_reject" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Reason Reject by HR') }}
-                                                    </label>
-                                                    <input type="text"
-                                                        class="form-control @error('reason_reject') is-invalid @enderror"
-                                                        id="reason_reject" name="reason_reject"
-                                                        value="{{ old('reason_reject', $position->reason_reject) }}"
-                                                        placeholder="message from HR to manager if Draft (manager typo or unclear meaning) or reason for rejection">
-                                                    @error('reason_reject')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="status" class="form-control-label">
@@ -634,36 +560,29 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
- <script>
-    $(document).ready(function() {
-        // Inisialisasi Select2
-        $('.select2').select2({
-            placeholder: "-- Choose Status --",
-            width: '100%'
-        });
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                placeholder: "-- Choose Status --",
+                width: '100%'
+            });
 
-        // Tampilkan/sembunyikan Reason Reject sesuai status
-        function toggleReasonField() {
-            const statusVal = $('#status').val();
-            if (statusVal === 'Reject') {
-                $('#reason_reject_field').show();
-            } else {
-                $('#reason_reject_field').hide();
-                $('#reason_reject').val('');
+            function toggleReasonField() {
+                const statusVal = $('#status').val();
+                if (statusVal === 'Reject') {
+                    $('#reason_reject_field').show();
+                } else {
+                    $('#reason_reject_field').hide();
+                    $('#reason_reject').val('');
+                }
             }
-        }
-
-        // Jalankan sekali saat halaman dimuat
-        toggleReasonField();
-
-        // Jalankan setiap kali select diubah
-        $('#status').on('change', toggleReasonField);
-    });
-</script>
-
+            toggleReasonField();
+            $('#status').on('change', toggleReasonField);
+        });
+    </script>
     <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
-            e.preventDefault(); // Mencegah pengiriman form langsung
+            e.preventDefault();
             Swal.fire({
                 title: 'Are You Sure?',
                 text: "Make sure the data you entered is correct!",
@@ -675,39 +594,13 @@
                 cancelButtonText: 'Abort'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Jika pengguna mengkonfirmasi, submit form
                     document.getElementById('position-edit').submit();
                 }
             });
         });
     </script>
     <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
-    <script>
-        // tinymce.init({
-        //     selector: '#role_summary',
-        //     plugins: 'lists link image table code',
-        //     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code preview',
-        //     menubar: false,
-        //     height: 300,
-        //     license_key: 'gpl'
-        // });
-        // tinymce.init({
-        //     selector: '#key_respon',
-        //     plugins: 'lists link image table code',
-        //     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code preview',
-        //     menubar: false,
-        //     height: 300,
-        //     license_key: 'gpl'
-        // });
-        // tinymce.init({
-        //     selector: '#qualifications',
-        //     plugins: 'lists link image table code',
-        //     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code preview',
-        //     menubar: false,
-        //     height: 300,
-        //     license_key: 'gpl'
-        // });
-    </script>
+    <script></script>
     <script>
         @if (session('success'))
             Swal.fire({

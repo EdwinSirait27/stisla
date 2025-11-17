@@ -216,6 +216,11 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
+                                                    <th>Employee Name</th>
+                                                    <td>{{ $structure->employees->employee_name ?? '-' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
                                                     <th>Is Manager</th>
                                                     <td>
                                                         @if ($structure->is_manager)

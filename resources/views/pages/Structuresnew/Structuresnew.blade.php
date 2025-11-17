@@ -543,17 +543,6 @@
                         name: 'structure_code',
                         className: 'text-center'
                     },
-                    // {
-                    //     data: 'is_manager',
-                    //     name: 'is_manager',
-                    //     className: 'text-center',
-                    //     render: function(data) {
-                    //         return data == 1 ?
-                    //             '<span class="badge bg-success">Yes</span>' :
-                    //             '<span class="badge bg-danger">No</span>';
-                    //     }
-                    // },
-
                     {
                         data: 'parent',
                         name: 'parent',
@@ -621,131 +610,397 @@
             //         });
             //     });
 
-            OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-            OrgChart.templates.myTemplate.size = [250, 150];
+        //     OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+        //     OrgChart.templates.myTemplate.size = [250, 150];
 
-            OrgChart.templates.myTemplate.node = `<rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
-            OrgChart.templates.myTemplate.img_0 = `<clipPath id="avatarClip"><circle cx="125" cy="45" r="35"></circle></clipPath><image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image><circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>`;
-            OrgChart.templates.myTemplate.field_ = `<text
-            style="font-size:12px;font-weight:700;" 
-                fill="#212121" 
-                x="125" y="30" text-anchor="middle" alignment-baseline="middle">
-                {val}
-            </text>
-            `;
-            OrgChart.templates.myTemplate.fieldgrading = `
-            <text 
-                style="font-size:12px;font-weight:600;" 
-                fill="#212121" 
-                x="125" y="50" text-anchor="middle" alignment-baseline="middle">
-                {val}
-            </text>
-            `;
-            OrgChart.templates.myTemplate.field_0 = `
-            <text 
-                style="font-size:11px;font-weight:500;" 
-                fill="#212121" 
-                x="125" y="70" text-anchor="middle" alignment-baseline="middle">
-                {val}
-            </text>
-            `;
+        //     OrgChart.templates.myTemplate.node =
+        //         `<rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+        //     OrgChart.templates.myTemplate.img_0 =
+        //         `<clipPath id="avatarClip"><circle cx="125" cy="45" r="35"></circle></clipPath><image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image><circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>`;
+        //     OrgChart.templates.myTemplate.field_ = `<text
+        //     style="font-size:12px;font-weight:700;" 
+        //         fill="#212121" 
+        //         x="125" y="30" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //     `;
+        //     OrgChart.templates.myTemplate.fieldgrading = `
+        //     <text 
+        //         style="font-size:12px;font-weight:600;" 
+        //         fill="#212121" 
+        //         x="125" y="50" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //     `;
+        //     OrgChart.templates.myTemplate.field_0 = `
+        //     <text 
+        //         style="font-size:11px;font-weight:500;" 
+        //         fill="#212121" 
+        //         x="125" y="70" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //     `;
 
-            OrgChart.templates.myTemplate.field_1 = `
-            <text 
-                style="font-size:13px;font-weight:500;" 
-                fill="#616161" 
-                x="125" y="90" text-anchor="middle" alignment-baseline="middle">
-                {val}
-            </text>
-          `;
+        //     OrgChart.templates.myTemplate.field_1 = `
+        //     <text 
+        //         style="font-size:13px;font-weight:500;" 
+        //         fill="#616161" 
+        //         x="125" y="90" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //   `;
 
-            OrgChart.templates.myTemplate.field_2 = `
-            <g transform="translate(60,105)">
-                <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
-            </g>
-            `;
+        //     OrgChart.templates.myTemplate.field_2 = `
+        //     <g transform="translate(60,105)">
+        //         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+        //     </g>
+        //     `;
 
-            OrgChart.templates.myTemplate.field_3 = `
-            <text 
-                style="font-size:12px;font-weight:600;" 
-                fill="#ffffff" 
-                x="125" y="122" 
-                text-anchor="middle" alignment-baseline="middle">{val}</text>
-            `;
+        //     OrgChart.templates.myTemplate.field_3 = `
+        //     <text 
+        //         style="font-size:12px;font-weight:600;" 
+        //         fill="#ffffff" 
+        //         x="125" y="122" 
+        //         text-anchor="middle" alignment-baseline="middle">{val}</text>
+        //     `;
 
-            const statusColors = {
-                active: '#4CAF50',
-                inactive: '#F44336',
-                vacant: '#9E9E9E'
-            };
+        //     const statusColors = {
+        //         active: '#4CAF50',
+        //         inactive: '#F44336',
+        //         vacant: '#9E9E9E'
+        //     };
 
-            const chart = new OrgChart(document.getElementById("tree"), {
-                template: "myTemplate",
-                nodeBinding: {
-                    img_0: "photo",
-                    field_: "Employee",
-                    fieldgrading: "Grading",
-                    field_0: "Position",
-                    field_1: "Location",
-                    field_2: "statusColor",
-                    field_3: "status"
-                },
-                enableSearch: true,
-                mouseScrool: OrgChart.action.zoom,
-                scaleInitial: OrgChart.match.boundary,
-                toolbar: {
-                    zoom: true,
-                    fit: true,
-                    expandAll: true
-                }
-            });
+        //     const chart = new OrgChart(document.getElementById("tree"), {
+        //         template: "myTemplate",
+        //         nodeBinding: {
+        //             img_0: "photo",
+        //             field_: "Employee",
+        //             fieldgrading: "Grading",
+        //             field_0: "Position",
+        //             field_1: "Location",
+        //             field_2: "statusColor",
+        //             field_3: "status"
+        //         },
+        //         enableSearch: true,
+        //         mouseScrool: OrgChart.action.zoom,
+        //         scaleInitial: OrgChart.match.boundary,
+        //         toolbar: {
+        //             zoom: true,
+        //             fit: true,
+        //             expandAll: true
+        //         }
+        //     });
+        //     fetch("{{ route('orgchart.orgchart') }}")
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             const statusColors = {
+        //                 active: '#4CAF50',
+        //                 inactive: '#F44336',
+        //                 vacant: '#9E9E9E'
+        //             };
 
-            // fetch("{{ route('orgchart.orgchart') }}")
-            //     .then(response => {
-            //         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            //         return response.json();
-            //     })
-            //     .then(data => {
-            //         console.log('📊 Raw data:', data);
-            //         const processedData = data.map(node => {
-            //             const statusText = (node.status || '').trim();
-            //             const statusLower = statusText.toLowerCase();
-            //             const color = statusColors[statusLower] || '#9E9E9E';
-            //             console.log(`Status: "${statusText}" → Color: ${color}`);
-            //             return {
-            //                 ...node,
-            //                 status: statusText,
-            //                 statusColor: color
-            //             };
-            //         });
+        //             const processedData = data.map(node => ({
+        //                 ...node,
+        //                 statusColor: statusColors[(node.status || '').toLowerCase()] || '#9E9E9E'
+        //             }));
 
-            //         console.log('✅ Processed data:', processedData);
-            //         chart.load(processedData);
-            //     })
-            //     .catch(error => {
-            //         console.error('❌ Error loading chart:', error);
-            //         alert('Gagal memuat organization chart.');
-            //     });
-            fetch("{{ route('orgchart.orgchart') }}")
-    .then(response => response.json())
+        //             chart.load(processedData);
+        //         })
+        //         .catch(error => {
+        //             console.error('❌ Error loading chart:', error);
+                    // alert('Gagal memuat organization chart.');
+        //         });
+   
+    // === TEMPLATE ===
+  OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+OrgChart.templates.myTemplate.size = [250,150];
+
+OrgChart.templates.myTemplate.node =
+    `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+        stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+
+OrgChart.templates.myTemplate.field_ =
+    `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.fieldgrading =
+    `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.field_0 =
+    `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.field_1 =
+    `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.field_2 =
+    `<g transform="translate(60,105)">
+        <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+    </g>`;
+
+OrgChart.templates.myTemplate.field_3 =
+    `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
+
+
+const statusColors = {
+    active: '#4CAF50',
+    inactive: '#F44336',
+    vacant: '#9E9E9E',
+};
+
+
+// === INIT CHART ===
+const chart = new OrgChart(document.getElementById("tree"), {
+    template: "myTemplate",
+    enableSearch: true,
+    mouseScrool: OrgChart.action.zoom,
+    scaleInitial: OrgChart.match.boundary,
+
+    nodeBinding: {
+        field_: "Employee",
+        fieldgrading: "Grading",
+        field_0: "Position",
+        field_1: "Location",
+        field_2: "statusColor",
+        field_3: "status"
+    },
+
+    toolbar: { zoom: true, fit: true, expandAll: true }
+});
+
+
+// === FUNGSI GAMBAR GARIS SECONDARY ===
+function drawSecondaryLinks() {
+    // console.log('🔵 === drawSecondaryLinks DIPANGGIL ===');
+    
+    // Akses SVG langsung dari DOM
+    const treeElement = document.getElementById("tree");
+    if (!treeElement) {
+        // console.log('❌ Element tree tidak ditemukan');
+        return;
+    }
+    
+    const SVG = treeElement.querySelector('svg');
+    if (!SVG) {
+        // console.log('❌ SVG belum siap');
+        return;
+    }
+    // console.log('✅ SVG siap');
+
+    // Hapus garis lama
+    const existingLinks = SVG.querySelectorAll('.secondary-link');
+    // console.log('🗑️ Menghapus', existingLinks.length, 'garis lama');
+    existingLinks.forEach(link => link.remove());
+
+    if (!window.orgData) {
+        // console.log('❌ window.orgData tidak ada');
+        return;
+    }
+    // console.log('✅ window.orgData ada, jumlah nodes:', window.orgData.length);
+
+    let totalLinksCreated = 0;
+
+    window.orgData.forEach(node => {
+        if (!node.secondary || node.secondary.length === 0) return;
+
+        // console.log('👤 Node dengan secondary:', {
+        //     employee: node.Employee,
+        //     nodeId: node.id,
+        //     secondaryIds: node.secondary
+        // });
+
+        node.secondary.forEach(secId => {
+            // console.log('   🔍 Mencari nodes - FROM ID:', secId, 'TO ID:', node.id);
+            
+            const fromNode = chart.getNode(secId);
+            const toNode = chart.getNode(node.id);
+
+            // console.log('   📍 fromNode:', fromNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+            // console.log('   📍 toNode:', toNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+
+            if (!fromNode || !toNode) {
+                // console.log('   ⚠️ SKIP: Node tidak lengkap');
+                return;
+            }
+
+            // Koordinat
+            const fx = fromNode.x + fromNode.w / 2;
+            const fy = fromNode.y + fromNode.h;
+            const tx = toNode.x + toNode.w / 2;
+            const ty = toNode.y;
+
+            // console.log('   📐 Koordinat FROM: (', fx, ',', fy, ')');
+            // console.log('   📐 Koordinat TO: (', tx, ',', ty, ')');
+
+            // Buat PATH dengan curve
+            const midY = (fy + ty) / 2;
+            const pathData = `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("stroke", "#FF5722");
+            path.setAttribute("stroke-width", "5");
+            path.setAttribute("stroke-dasharray", "15,8");
+            path.setAttribute("fill", "none");
+            path.setAttribute("class", "secondary-link");
+            path.setAttribute("stroke-linecap", "round");
+
+            SVG.appendChild(path);
+            
+            totalLinksCreated++;
+            // console.log('   ✅ GARIS BERHASIL DIBUAT!');
+        });
+    });
+// 
+    // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
+}
+
+
+// === FETCH DATA ===
+fetch("{{ route('orgchart.orgchart') }}")
+    .then(res => res.json())
     .then(data => {
-        const statusColors = {
-            active: '#4CAF50',
-            inactive: '#F44336',
-            vacant: '#9E9E9E'
-        };
-
-        const processedData = data.map(node => ({
-            ...node,
-            statusColor: statusColors[(node.status || '').toLowerCase()] || '#9E9E9E'
+        // console.log('Raw data:', data);
+        
+        const processed = data.map(n => ({
+            ...n,
+            statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
         }));
 
-        chart.load(processedData);
-    })
-    .catch(error => {
-        console.error('❌ Error loading chart:', error);
-        alert('Gagal memuat organization chart.');
+        // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
+
+        window.orgData = processed;
+        chart.load(processed);
+        
+        // Panggil manual dengan delay lebih lama
+        setTimeout(() => {
+            // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
+            drawSecondaryLinks();
+        }, 2000); // ⬅ 2 detik
     });
+
+
+// === EVENT LISTENERS ===
+chart.on("init", function () {
+    // console.log('🎬 EVENT: init');
+    setTimeout(drawSecondaryLinks, 500);
+});
+
+chart.on("redraw", function () {
+    // console.log('🔄 EVENT: redraw');
+    setTimeout(drawSecondaryLinks, 300);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //     OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+        //     OrgChart.templates.myTemplate.size = [250, 150];
+
+        //     OrgChart.templates.myTemplate.node =
+        //         `<rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+        //     OrgChart.templates.myTemplate.img_0 =
+        //         `<clipPath id="avatarClip"><circle cx="125" cy="45" r="35"></circle></clipPath><image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image><circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>`;
+        //     OrgChart.templates.myTemplate.field_ = `<text
+        //     style="font-size:12px;font-weight:700;" 
+        //         fill="#212121" 
+        //         x="125" y="30" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //     `;
+        //     OrgChart.templates.myTemplate.fieldgrading = `
+        //     <text 
+        //         style="font-size:12px;font-weight:600;" 
+        //         fill="#212121" 
+        //         x="125" y="50" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //     `;
+        //     OrgChart.templates.myTemplate.field_0 = `
+        //     <text 
+        //         style="font-size:11px;font-weight:500;" 
+        //         fill="#212121" 
+        //         x="125" y="70" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //     `;
+
+        //     OrgChart.templates.myTemplate.field_1 = `
+        //     <text 
+        //         style="font-size:13px;font-weight:500;" 
+        //         fill="#616161" 
+        //         x="125" y="90" text-anchor="middle" alignment-baseline="middle">
+        //         {val}
+        //     </text>
+        //   `;
+
+        //     OrgChart.templates.myTemplate.field_2 = `
+        //     <g transform="translate(60,105)">
+        //         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+        //     </g>
+        //     `;
+
+        //     OrgChart.templates.myTemplate.field_3 = `
+        //     <text 
+        //         style="font-size:12px;font-weight:600;" 
+        //         fill="#ffffff" 
+        //         x="125" y="122" 
+        //         text-anchor="middle" alignment-baseline="middle">{val}</text>
+        //     `;
+
+        //     const statusColors = {
+        //         active: '#4CAF50',
+        //         inactive: '#F44336',
+        //         vacant: '#9E9E9E'
+        //     };
+
+        //     const chart = new OrgChart(document.getElementById("tree"), {
+        //         template: "myTemplate",
+        //         nodeBinding: {
+        //             img_0: "photo",
+        //             field_: "Employee",
+        //             fieldgrading: "Grading",
+        //             field_0: "Position",
+        //             field_1: "Location",
+        //             field_2: "statusColor",
+        //             field_3: "status"
+        //         },
+        //         enableSearch: true,
+        //         mouseScrool: OrgChart.action.zoom,
+        //         scaleInitial: OrgChart.match.boundary,
+        //         toolbar: {
+        //             zoom: true,
+        //             fit: true,
+        //             expandAll: true
+        //         }
+        //     });
+        //     fetch("{{ route('orgchart.orgchart') }}")
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             const statusColors = {
+        //                 active: '#4CAF50',
+        //                 inactive: '#F44336',
+        //                 vacant: '#9E9E9E'
+        //             };
+
+        //             const processedData = data.map(node => ({
+        //                 ...node,
+        //                 statusColor: statusColors[(node.status || '').toLowerCase()] || '#9E9E9E'
+        //             }));
+
+        //             chart.load(processedData);
+        //         })
+        //         .catch(error => {
+        //             console.error('❌ Error loading chart:', error);
+        //             alert('Gagal memuat organization chart.');
+        //         });
 
         });
     </script>

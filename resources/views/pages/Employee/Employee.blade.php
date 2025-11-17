@@ -996,7 +996,6 @@
                         name: 'description',
                         className: 'text-center'
                     },
-                    // { data: 'changes', name: 'changes' },
                     {
                         data: 'causer',
                         name: 'causer',

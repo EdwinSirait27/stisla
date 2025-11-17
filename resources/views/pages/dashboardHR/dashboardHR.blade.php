@@ -959,7 +959,7 @@
 
                                 <!-- Pending Submissions List -->
                                 <div class="submissions-list">
-                                    @forelse($pendingSubmissions as $submission)
+                                    @forelse($submissions as $submission)
                                         <div class="submission-list-item">
                                             <div class="d-flex align-items-center">
                                                 <img class="rounded-circle me-3" 

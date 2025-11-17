@@ -13,6 +13,7 @@ use Yajra\DataTables\DataTables;
 use App\Models\Structuresnew;
 use App\Models\Submissionposition;
 use App\Rules\NoXSSInput;
+
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
@@ -23,8 +24,8 @@ class StructuresnewController extends Controller
     {
         return view('pages.Structuresnew.Structuresnew');
     }
- public function getStructuresativities(Request $request)
-      {
+    public function getStructuresativities(Request $request)
+    {
         if ($request->ajax()) {
             $query = Activity::where('log_name', 'Structuresnew')
                 ->with(['causer.employee'])
@@ -44,12 +45,9 @@ class StructuresnewController extends Controller
                 ->addColumn('changes', function ($row) {
                     return json_encode($row->properties['attributes'] ?? []);
                 })
-
-                // 🔍 Tambahkan bagian filter untuk search
                 ->filter(function ($instance) use ($request) {
                     if ($request->has('search') && $request->get('search')['value'] != '') {
                         $search = $request->get('search')['value'];
-
                         $instance->where(function ($q) use ($search) {
                             $q->where('description', 'like', "%{$search}%")
                                 ->orWhereHas('causer.employee', function ($q2) use ($search) {
@@ -68,24 +66,17 @@ class StructuresnewController extends Controller
     public function getStructuresnew()
     {
         $structures = Structuresnew::with([
-            'company',
-            'department',
-            'store',
-            'position',
             'parent.submissionposition.positionRelation',
             'parent',
             'children.submissionposition.positionRelation',
             'allChildren.submissionposition.positionRelation',
             'submissionposition.submitter',
+            'submissionposition',
+            'employees',
         ])
             ->select([
                 'id',
-                'position_id',
-                'company_id',
-                'department_id',
-                'store_id',
                 'structure_code',
-                'is_manager',
                 'parent_id',
                 'submission_position_id',
                 'status'
@@ -93,7 +84,6 @@ class StructuresnewController extends Controller
             ->get()
             ->map(function ($structure) {
                 $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
-
                 $structure->action = '
                 <a href="' . route('Structuresnew.edit', $structure->id_hashed) . '" class="mx-3" 
                     data-bs-toggle="tooltip" data-bs-original-title="Edit Structure"
@@ -103,18 +93,17 @@ class StructuresnewController extends Controller
                 <a href="' . route('Structuresnew.show', $structure->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="show Structures: ' . e($structure->structure_name) . '">
                     <i class="fas fa-eye text-secondary"></i>
                </a>';
-
                 $structure->checkbox = '<input type="checkbox" class="payroll-checkbox" 
                 name="structure_ids[]" 
                 value="' . $structure->id_hashed . '">';
-
                 return $structure;
             });
         return DataTables::of($structures)
-            ->addColumn('company_name', fn($s) => $s->submissionposition->submitter->company->name ?? 'Empty')
-            ->addColumn('department_name', fn($s) => $s->submissionposition->submitter->department->nickname ?? 'Empty')
+            ->addColumn('company_name', fn($s) => $s->submissionposition->company->name ?? 'Empty')
+            ->addColumn('department_name', fn($s) => $s->submissionposition->department->nickname ?? 'Empty')
             ->addColumn('store_name', fn($s) => $s->submissionposition->store->nickname ?? 'Empty')
             ->addColumn('position_name', fn($s) => $s->submissionposition->positionRelation->name ?? 'Empty')
+            ->addColumn('employee_name', fn($s) => $s->employees->employee_name ?? 'Empty')
             ->addColumn(
                 'parent',
                 fn($structure) =>
@@ -160,150 +149,6 @@ class StructuresnewController extends Controller
             ])
             ->make(true);
     }
-    // public function getStructuresnew()
-    // {
-    //     $structures = Structuresnew::with([
-    //         'company',
-    //         'department',
-    //         'store',
-    //         'position',
-    //         'parent',
-    //         'children.position',
-    //         'allChildren.position',
-    //         'submissionposition.submitter',
-    //     ])
-    //         ->select([
-    //             'id',
-    //             'position_id',
-    //             'company_id',
-    //             'department_id',
-    //             'store_id',
-    //             'structure_code',
-    //             'is_manager',
-    //             'parent_id',
-    //             'parent_id',
-    //             'submission_position_id',
-    //             'status'
-    //         ])
-    //         ->get()
-    //         ->map(function ($structure) {
-    //             $structure->id_hashed = substr(hash('sha256', $structure->id . env('APP_KEY')), 0, 8);
-
-    //             $structure->action = '
-    //             <a href="' . route('Structuresnew.edit', $structure->id_hashed) . '" class="mx-3" 
-    //                 data-bs-toggle="tooltip" data-bs-original-title="Edit Structure"
-    //                 title="Edit structure: ' . e($structure->structure_name) . '">
-    //                 <i class="fas fa-user-edit text-secondary"></i>
-    //             </a> 
-    //             <a href="' . route('Structuresnew.show', $structure->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="show Structures: ' . e($structure->structure_name) . '">
-    //                 <i class="fas fa-eye text-secondary"></i>
-    //            </a>';
-
-    //             $structure->checkbox = '<input type="checkbox" class="payroll-checkbox" 
-    //             name="structure_ids[]" 
-    //             value="' . $structure->id_hashed . '">';
-
-    //             return $structure;
-    //         });
-    //     return DataTables::of($structures)
-    //         ->addColumn('company_name', fn($s) => $s->submissionposition->submitter->company->name ?? 'Empty')
-    //         ->addColumn('department_name', fn($s) => $s->submissionposition->submitter->department->nickname ?? 'Empty')
-    //         ->addColumn('store_name', fn($s) => $s->submissionposition->store->nickname ?? 'Empty')
-    //         ->addColumn('position_name', fn($s) => $s->submissionposition->positionRelation->name ?? 'Empty')
-    //         ->addColumn(
-    //             'parent',
-    //             fn($structure) =>
-    //             !empty($structure->parent) && !empty($structure->parent->position->name)
-    //                 ? $structure->parent->position->name : 'Empty'
-    //         )
-    //         ->addColumn('children', function ($s) {
-    //             if ($s->children->isEmpty()) {
-    //                 return '<span class="text-muted">No Subordinates</span>';
-    //             }
-    //             $childPositions = $s->children->map(function ($child) {
-    //                 return e(optional($child->position)->name ?? 'Unknown');
-    //             })->implode(', ');
-    //             return $childPositions;
-    //         })
-    //         ->addColumn('allChildren', function ($s) {
-    //             $getAllPositions = function ($node) use (&$getAllPositions) {
-    //                 $positions = collect();
-
-    //                 foreach ($node->children as $child) {
-    //                     if ($child->position) {
-    //                         $positions->push($child->position->name);
-    //                     }
-    //                     $positions = $positions->merge($getAllPositions($child));
-    //                 }
-    //                 return $positions;
-    //             };
-    //             $allPositions = $getAllPositions($s);
-    //             if ($allPositions->isEmpty()) {
-    //                 return '<span class="text-muted">No Subordinates</span>';
-    //             }
-    //             return e($allPositions->implode(', '));
-    //         })
-    //         ->rawColumns([
-    //             'action',
-    //             'checkbox',
-    //             'company_name',
-    //             'department_name',
-    //             'store_name',
-    //             'position_name',
-    //             'parent',
-    //             'children',
-    //             'allChildren'
-    //         ])
-    //         ->make(true);
-    // }
-    
-    //     public function getPositionreqs()
-    // {
-    //     $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-    //         ->select(['id', 'employee_id', 'approver_1', 'approver_2', 'status', 'position_id', 'store_id','key_respon','role_summary','qualifications','salary_counter','salary_counter_end'])
-    //         ->where('status', 'Accepted')
-    //         ->get()
-    //         ->map(function ($position) {
-    //             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-    //             return $position;
-    //         });
-
-    //     return DataTables::of($positions)
-    //         ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
-    //         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
-    //         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
-    //         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
-    //         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
-    //         ->addColumn('remark', function ($e) {
-    //             return match ($e->status) {
-    //                 'Pending' => 'Do your Duty',
-    //                 'Draft' => 'You have approved this application',
-    //                 'On review' => 'Awaiting director approval',
-    //                 'Accepted' => 'Accepted by directors',
-    //                 default => '-',
-    //             };
-    //         })
-    //         ->addColumn('action', function ($e) {
-    //             return '<button class="btn btn-sm btn-dark preview-btn" 
-    //                     data-id="'.$e->id_hashed.'" 
-    //                             data-company="'.(optional($e->submitter->company)->name ?? '-').'"
-    //                             data-department="'.(optional($e->submitter->department)->department_name ?? '-').'"
-    //                             data-submitter="'.(optional($e->submitter)->employee_name ?? '-').'"
-    //                             data-position="'.(optional($e->positionRelation)->name ?? '-').'"
-    //                             data-store="'.(optional($e->store)->name ?? '-').'"
-    //                              data-role-summary="'.htmlspecialchars(json_encode($e->role_summary), ENT_QUOTES, 'UTF-8').'"
-    //         data-key-responsibility="'.htmlspecialchars(json_encode($e->key_respon), ENT_QUOTES, 'UTF-8').'"
-    //         data-qualifications="'.htmlspecialchars(json_encode($e->qualifications), ENT_QUOTES, 'UTF-8').'"
-    //                             data-approver1="'.(optional($e->approver1)->employee_name ?? '-').'"
-    //                             data-approver2="'.(optional($e->approver2)->employee_name ?? '-').'"
-    //                        data-salary="'.$e->salary_counter.'|'.$e->salary_counter_end.'"
-    //                             data-status="'.$e->status.'">
-    //                         <i class="fas fa-eye"></i> Preview
-    //                     </button>';
-    //         })
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
     public function getPositionreqs()
     {
         $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
@@ -327,7 +172,6 @@ class StructuresnewController extends Controller
                 $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
                 return $position;
             });
-
         return DataTables::of($positions)
             ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
             ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
@@ -369,41 +213,7 @@ class StructuresnewController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    // public function storeToStructure($hashedId)
-    // {
-    //     // Cari data submission berdasarkan hashed ID
-    //     $submission = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-    //         ->get()
-    //         ->first(function ($item) use ($hashedId) {
-    //             $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
-    //             return $check === $hashedId;
-    //         });
 
-    //     if (!$submission) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Data not found'
-    //         ], 404);
-    //     }
-    //     if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'This submission has already been stored'
-    //         ], 409);
-    //     }
-    //     $structure = Structuresnew::create([
-    //         'submission_position_id' => $submission->id,
-    //         'status' => 'vacant',
-    //     ]);
-
-    //     $submission->update(['status' => 'Done']);
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Data successfully stored to Structuresnew!',
-    //         'data' => $structure
-    //     ]);
-    // }
     public function storeToStructure($hashedId)
     {
         $submission = Submissionposition::with([
@@ -421,52 +231,37 @@ class StructuresnewController extends Controller
                 'message' => 'Data not found'
             ], 404);
         }
-        // Cegah duplikasi
         if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'This submission has already been stored'
             ], 409);
         }
-
-        // Pastikan relasi company, department, dan store tersedia
         $company = $submission->submitter?->company;
         $department = $submission->submitter?->department;
         $store = $submission->store;
-
         if (!$company || !$department || !$store) {
             return response()->json([
                 'success' => false,
                 'message' => 'Missing company, department, or store data'
             ], 422);
         }
-
-        // Buat kode unik
         $companyCode = strtoupper(preg_replace('/\s+/', '', $company->nickname));
         $departmentCode = strtoupper(preg_replace('/\s+/', '', $department->nickname));
         $storeCode = strtoupper(preg_replace('/\s+/', '', $store->nickname));
-
-        // Prefix misal: ABCDEPKTBSR
         $prefix = $companyCode . $departmentCode . $storeCode;
-
-        // Cari kode terakhir dengan prefix sama
-        $lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nickname', $company->nickname))
+$lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nickname', $company->nickname))
             ->whereHas('department', fn($q) => $q->where('nickname', $department->nickname))
             ->whereHas('store', fn($q) => $q->where('nickname', $store->nickname))
             ->where('structure_code', 'like', $prefix . '%')
             ->orderBy('structure_code', 'desc')
             ->first();
-
-        // Tentukan nomor berikutnya
         $nextNumber = 1;
         if ($lastStructure) {
             $lastNumber = (int) preg_replace('/\D/', '', $lastStructure->structure_code);
             $nextNumber = $lastNumber + 1;
         }
-        // Bentuk final code, misal: ABCDEPKTBSR2
         $structureCode = $prefix . $nextNumber;
-
-        // Simpan ke tabel Structuresnew
         $structure = Structuresnew::create([
             'submission_position_id' => $submission->id,
             'structure_code' => $structureCode,
@@ -505,114 +300,84 @@ class StructuresnewController extends Controller
 
         return back()->with('success', "$deleted data berhasil dihapus.");
     }
-
-    // public function getOrgChartData()
-    // {
-    //     $data = Structuresnew::with(['position', 'parent', 'employee', 'employee.store', 'store', 'employee.grading','submissionposition'])
-    //         ->get()
-    //         ->map(function ($s) {
-    //             return [
-    //                 'id'        => $s->id,
-    //                 'pid'       => $s->parent_id,
-    //                 'Position'  => $s->submissionposition->positionRelation->name ?? 'Unknown',
-    //                 'Employee'  => $s->employee->pluck('employee_name')->join(', ') ?: 'Empty',
-    //                 'Grading'  => $s->employee->pluck('grading.grading_name')->join(', ') ?: 'Empty',
-    //                 'Location'  => $s->submissionposition->store->name ?? 'Empty',
-    //                 'status'    => $s->status,
-    //             ];
-    //         });
-
-    //     return response()->json($data);
-    // }
-//     public function getOrgChartData()
-// {
-//     $data = Structuresnew::with([
-//         'position',
-//         'parent',
-//         'employee',
-//         'employee.store',
-//         'store',
-//         'employee.grading',
-//         'submissionposition.positionRelation',
-//         'submissionposition.store',
-//     ])->get()->map(function ($s) {
-//         return [
-//             'id'        => $s->id,
-//             'pid'       => $s->parent_id,
-//             'Position'  => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
-//             'Employee'  => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
-//             'Grading'   => collect($s->employee)->pluck('grading.grading_name')->join(', ') ?: 'Empty',
-//             'Location'  => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
-//             'status'    => $s->status,
-//         ];
-//     });
-
-//     return response()->json($data);
-// }
-public function getOrgChartData()
-{
-    // Tentukan urutan level berdasarkan Grading
-    $gradingPriority = [
-        'Director' => 1,
-        'Head' => 2,
-        'Senior Manager' => 3,
-        'Manager' => 4,
-        'Assistant Manager' => 5,
-        'Supervisor' => 6,
-        'Staff' => 7,
-        'Daily Worker' => 8,
-    ];
-
-    $data = Structuresnew::with([
-        'position',
-        'parent',
-        'employee',
-        'employee.store',
-        'store',
-        'employee.grading',
-        'submissionposition.positionRelation',
-        'submissionposition.store',
-    ])->get()->map(function ($s) use ($gradingPriority) {
-        $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
-        $level = $gradingPriority[$gradingName] ?? 999; // default di bawah kalau grading tidak dikenali
-
-        return [
-            'id'         => $s->id,
-            'pid'        => $s->parent_id,
-            'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
-            'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
-            'Grading'    => $gradingName,
-            'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
-            'status'     => $s->status,
-            'level'      => $level, // tambahkan level grading
+    public function getOrgChartData()
+    {
+        $gradingPriority = [
+            'Director' => 1,
+            'Head' => 2,
+            'Senior Manager' => 3,
+            'Manager' => 4,
+            'Assistant Manager' => 5,
+            'Supervisor' => 6,
+            'Staff' => 7,
+            'Daily Worker' => 8,
         ];
-    });
 
-    // Urutkan berdasarkan level (Director paling atas)
-    $sortedData = $data->sortBy('level')->values();
+        $data = Structuresnew::with([
+            'parent',
+            'employee',
+            'employee.store',
+            'submissionposition',
+            'employee.grading',
+            'submissionposition.positionRelation',
+            'submissionposition.store',
+            'secondarySupervisors' // pastikan relasi ini ada di model
+        ])->get()->map(function ($s) use ($gradingPriority) {
 
-    return response()->json($sortedData);
-}
+            $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+            $level = $gradingPriority[$gradingName] ?? 999;
 
+            // Ambil ID dari secondary supervisors
+            $secondaryIds = $s->secondarySupervisors->pluck('id')->toArray();
 
+            return [
+                'id'         => $s->id,
+                'pid'        => $s->parent_id,
+                'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+                'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+                'Grading'    => $gradingName,
+                'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+                'status'     => $s->status,
+                // 'level'      => $level,
+                'photo'      => collect($s->employee)->pluck('photo')->first() ?? '/default-avatar.png',
+                'secondary'  => $secondaryIds // ⬅ pastikan ini array of IDs
+            ];
+        });
+
+        $sortedData = $data->sortBy('level')->values();
+
+        return response()->json($sortedData);
+    }
 
     public function edit($hashedId)
     {
-        $structure = Structuresnew::with('company', 'department', 'store', 'position', 'parent', 'salary','submissionposition')->get()->first(function ($u) use ($hashedId) {
+        $structure = Structuresnew::with([
+            'parent',
+            'submissionposition',
+            'secondarySupervisors', // <-- tambahkan ini supaya data kebaca
+        ])->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
+
         if (!$structure) {
             abort(404, 'Structure not found.');
         }
-        $parents = Structuresnew::with('submissionposition','submissionposition.positionRelation')->get()->pluck('submissionposition.positionRelation.name', 'id');
+
+        // LIST UNTUK DROPDOWN PARENT DAN SECONDARY SUPERVISOR
+        $parents = Structuresnew::with('submissionposition', 'submissionposition.positionRelation')
+            ->get()
+            ->pluck('submissionposition.positionRelation.name', 'id');
+
         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+
         $salaries = Salary::all()->mapWithKeys(function ($item) {
             return [
                 $item->id => "{$item->salary_start} - {$item->salary_end}"
             ];
         });
+
         return view('pages.Structuresnew.edit', [
             'structure' => $structure,
             'parents' => $parents,
@@ -620,8 +385,12 @@ public function getOrgChartData()
             'salaries' => $salaries,
             'statuses' => $statuses,
             'hashedId' => $hashedId,
+
+            // Kirim data tambahan ini
+            'selectedSecondarySupervisors' => $structure->secondarySupervisors->pluck('id')->toArray(),
         ]);
     }
+
 
     public function see($idHashed)
     {
@@ -642,7 +411,7 @@ public function getOrgChartData()
 
     public function show($hashedId)
     {
-        $structure = Structuresnew::with('company', 'department', 'store', 'parent', 'salary','submissionposition','submissionposition.positionRelation')
+        $structure = Structuresnew::with('parent', 'submissionposition', 'submissionposition.positionRelation', 'employees')
             ->get()
             ->first(function ($u) use ($hashedId) {
                 $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
@@ -653,11 +422,11 @@ public function getOrgChartData()
             abort(404, 'Structure not found.');
         }
 
-        $parents = Structuresnew::with('position')
+        $parents = Structuresnew::with('submissionposition.positionRelation')
             ->get()
             ->mapWithKeys(function ($item) {
                 return [
-                    $item->id => optional($item->position)->name,
+                    $item->id => optional($item->submissionposition->positionRelation)->name,
                 ];
             });
 
@@ -717,7 +486,6 @@ public function getOrgChartData()
             'role_summary' => ['required', 'string'],
             'key_respon' => ['required', 'string'],
             'qualifications' => ['required', 'string'],
-            // 'work_location' => ['required', 'string'],
             'is_manager' => ['nullable', 'boolean'],
             'status' => ['nullable', 'string'],
 
@@ -784,65 +552,90 @@ public function getOrgChartData()
                 ->withInput();
         }
     }
+
+
     public function update(Request $request, $hashedId)
     {
-        $structure = Structuresnew::with('company', 'department', 'store', 'position')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+        Log::info('Update Structure - Request received', [
+            'hashedId' => $hashedId,
+            'request_all' => $request->all()
+        ]);
+
+        $structure = Structuresnew::with('company', 'department', 'store', 'position')
+            ->get()
+            ->first(function ($u) use ($hashedId) {
+                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+                return $expectedHash === $hashedId;
+            });
+
+        Log::info('Structure matching result', [
+            'found' => $structure ? true : false,
+            'structure_id' => $structure->id ?? null
+        ]);
+
         if (!$structure) {
+            Log::warning('Invalid hashed ID during update', ['hashedId' => $hashedId]);
             return redirect()->route('pages.Structuresnew')->with('error', 'ID tidak valid.');
         }
-        $validatedData = $request->validate([
 
-            'is_manager' => [
-                'nullable',
-                'boolean',
+        $validated = $request->validate([
+            'is_manager' => ['nullable', 'boolean'],
+            'parent_id' => ['nullable', 'string', 'max:255'],
 
-            ],
-            // 'salary_id' => ['required', 'string'],
-            // 'type' => ['required', 'string'],
-            // 'role_summary' => ['required', 'string'],
-            // 'key_respon' => ['required', 'string'],
-            // 'qualifications' => ['required', 'string'],
-            // 'work_location' => ['required', 'string' ],
-            // 'status' => [
-            //     'required',
-            //     'string',
-            //     
-            // ],
-            // 'is_head' => [
-            //     'nullable',
-            //     'boolean',
-            //     
-            // ],
-            'parent_id' => [
-                'nullable',
-                'string',
-                'max:255',
-
-            ],
+            'secondary_supervisors' => ['nullable', 'array'],
+            'secondary_supervisors.*' => ['string'],
         ]);
-        $structureeData = [
-            // 'salary_id' => $validatedData['salary_id'],
-            // 'role_summary' => $validatedData['role_summary'],
-            // 'key_respon' => $validatedData['key_respon'],
-            // 'qualifications' => $validatedData['qualifications'],
-            // 'work_location' => $validatedData['work_location'],
 
-            'is_manager'  => $validatedData['is_manager'] ?? 0,
-            // 'type'          => is_array($validatedData['type'])
-            //     ? implode(',', $validatedData['type'])
-            //     : $validatedData['type'],
-            // 'is_head'  => $validatedData['is_head'] ?? 0,
-            'parent_id'  => $validatedData['parent_id'] ?? null,
-            // 'status'  => $validatedData['status'],
-        ];
+        Log::info('Validated data', $validated);
+
         DB::beginTransaction();
-        $structure->update($structureeData);
-        DB::commit();
-        return redirect()->route('pages.Structuresnew')->with('success', 'Structure Updated Successfully.');
+        try {
+
+            Log::info('Updating structure', [
+                'structure_id' => $structure->id,
+                'update_data' => [
+                    'is_manager' => $validated['is_manager'] ?? 0,
+                    'parent_id' => $validated['parent_id'] ?? null,
+                ]
+            ]);
+
+            $structure->update([
+                'is_manager' => $validated['is_manager'] ?? 0,
+                'parent_id' => $validated['parent_id'] ?? null,
+            ]);
+
+            Log::info('Sync secondary supervisors', [
+                'structure_id' => $structure->id,
+                'secondary_supervisors' => $validated['secondary_supervisors'] ?? []
+            ]);
+
+            $structure->secondarySupervisors()->sync(
+                $validated['secondary_supervisors'] ?? []
+            );
+
+            DB::commit();
+
+            Log::info('Structure updated successfully', [
+                'structure_id' => $structure->id
+            ]);
+
+            return redirect()->route('pages.Structuresnew')
+                ->with('success', 'Structure Updated Successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Update structure failed', [
+                'structure_id' => $structure->id ?? null,
+                'error_message' => $e->getMessage(),
+                'stack' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('pages.Structuresnew')
+                ->with('error', 'Gagal update: ' . $e->getMessage());
+        }
     }
+
+
     public function create()
     {
         $companys = Company::pluck('nickname', 'id', 'name');
@@ -872,6 +665,193 @@ public function getOrgChartData()
             'parents'
         ));
     }
+    // public function update(Request $request, $hashedId)
+    // {
+    //     $structure = Structuresnew::with('company', 'department', 'store', 'position')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$structure) {
+    //         return redirect()->route('pages.Structuresnew')->with('error', 'ID tidak valid.');
+    //     }
+    //     $validatedData = $request->validate([
+    //         'is_manager' => [
+    //             'nullable',
+    //             'boolean',
+    //         ],
+    //         'parent_id' => [
+    //             'nullable',
+    //             'string',
+    //             'max:255',
+    //         ],
+
+    //     ]);
+    //     $structureeData = [
+    //         'is_manager'  => $validatedData['is_manager'] ?? 0,
+    //         'parent_id'  => $validatedData['parent_id'] ?? null,
+    //        ];
+    //     DB::beginTransaction();
+    //     $structure->update($structureeData);
+    //     DB::commit();
+    //     return redirect()->route('pages.Structuresnew')->with('success', 'Structure Updated Successfully.');
+    // }
+    //     public function update(Request $request, $hashedId)
+    // {
+    //     $structure = Structuresnew::with('company', 'department', 'store', 'position')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+
+    //     if (!$structure) {
+    //         return redirect()->route('pages.Structuresnew')->with('error', 'ID tidak valid.');
+    //     }
+
+    //     $validated = $request->validate([
+    //         'is_manager' => ['nullable', 'boolean'],
+    //         'parent_id' => ['nullable', 'string', 'max:255'],
+
+    //         'secondary_supervisors' => ['nullable', 'array'],
+    //         'secondary_supervisors.*' => ['string'], 
+    //     ]);
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $structure->update([
+    //             'is_manager' => $validated['is_manager'] ?? 0,
+    //             'parent_id' => $validated['parent_id'] ?? null,
+    //         ]);
+
+    //         $structure->secondarySupervisors()->sync(
+    //             $validated['secondary_supervisors'] ?? []
+    //         );
+
+    //         DB::commit();
+
+    //         return redirect()->route('pages.Structuresnew')->with('success', 'Structure Updated Successfully.');
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return redirect()->route('pages.Structuresnew')->with('error', 'Gagal update: ' . $e->getMessage());
+    //     }
+    // }
+
+    // public function getOrgChartData()
+    // {
+    //     $gradingPriority = [
+    //         'Director' => 1,
+    //         'Head' => 2,
+    //         'Senior Manager' => 3,
+    //         'Manager' => 4,
+    //         'Assistant Manager' => 5,
+    //         'Supervisor' => 6,
+    //         'Staff' => 7,
+    //         'Daily Worker' => 8,
+    //     ];
+
+    //    $data = Structuresnew::with([
+    //     'parent',
+    //     'employee',
+    //     'employee.store',
+    //     'submissionposition',
+    //     'employee.grading',
+    //     'submissionposition.positionRelation',
+    //     'submissionposition.store',
+    //     'secondarySupervisors'
+    // ])->get()->map(function ($s) use ($gradingPriority) {
+
+    //     $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+    //     $level = $gradingPriority[$gradingName] ?? 999;
+
+    //     return [
+    //         'id'         => $s->id,
+    //         'pid'        => $s->parent_id,
+    //         'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+    //         'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+    //         'Grading'    => $gradingName,
+    //         'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+    //         'status'     => $s->status,
+    //         'level'      => $level,
+    //         'secondary'  => $s->secondarySupervisors->pluck('id') // ⬅ id supervisor kedua
+    //     ];
+    // });
+
+
+    //     $sortedData = $data->sortBy('level')->values();
+
+    //     return response()->json($sortedData);
+    // }
+    // public function getOrgChartData()
+    // {
+    //     // Tentukan urutan level berdasarkan Grading
+    //     $gradingPriority = [
+    //         'Director' => 1,
+    //         'Head' => 2,
+    //         'Senior Manager' => 3,
+    //         'Manager' => 4,
+    //         'Assistant Manager' => 5,
+    //         'Supervisor' => 6,
+    //         'Staff' => 7,
+    //         'Daily Worker' => 8,
+    //     ];
+
+    //     $data = Structuresnew::with([
+    //         // 'position',
+    //         'parent',
+    //         'employee',
+    //         'employee.store',
+    //         // 'store',
+    //         'submissionposition',
+    //         'employee.grading',
+    //         'submissionposition.positionRelation',
+    //         'submissionposition.store',
+    //     ])->get()->map(function ($s) use ($gradingPriority) {
+    //         $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+    //         $level = $gradingPriority[$gradingName] ?? 999; // default di bawah kalau grading tidak dikenali
+
+    //         return [
+    //             'id'         => $s->id,
+    //             'pid'        => $s->parent_id,
+    //             'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+    //             'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+    //             'Grading'    => $gradingName,
+    //             'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+    //             'status'     => $s->status,
+    //             'level'      => $level, 
+    //         ];
+    //     });
+
+    //     $sortedData = $data->sortBy('level')->values();
+
+    //     return response()->json($sortedData);
+    // }
+
+
+    // public function edit($hashedId)
+    // {
+    //     $structure = Structuresnew::with('parent','submissionposition')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$structure) {
+    //         abort(404, 'Structure not found.');
+    //     }
+    //     $parents = Structuresnew::with('submissionposition','submissionposition.positionRelation')->get()->pluck('submissionposition.positionRelation.name', 'id');
+    //     $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+    //     $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+    //     $salaries = Salary::all()->mapWithKeys(function ($item) {
+    //         return [
+    //             $item->id => "{$item->salary_start} - {$item->salary_end}"
+    //         ];
+    //     });
+    //     return view('pages.Structuresnew.edit', [
+    //         'structure' => $structure,
+    //         'parents' => $parents,
+    //         'types' => $types,
+    //         'salaries' => $salaries,
+    //         'statuses' => $statuses,
+    //         'hashedId' => $hashedId,
+    //     ]);
+    // }
     //     public function create()
     //     {
     //         $companys = Company::pluck('nickname', 'id', 'name');

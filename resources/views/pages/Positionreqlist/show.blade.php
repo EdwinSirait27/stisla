@@ -214,18 +214,7 @@
                                                     <th>Position Request</th>
                                                     <td>{{ $submission->positionRelation->name ?? '-' }}</td>
                                                 </tr>
-                                                @if (!is_null($submission->approval_1))
-                                                <tr>
-                                                    <th>HRD Verifier</th>
-                                                    <td>{{ $submission->approver1->employee_name ?? 'empty' }}</td>
-                                                </tr>
-                                                @endif
-                                                @if (!is_null($submission->approval_2))
-                                                    <tr>
-                                                        <th>DIR Verifier</th>
-                                                        <td>{{ $submission->approver2->employee_name ?? 'empty' }}</td>
-                                                    </tr>
-                                                @endif
+                                               
                                                 <tr>
                                                     <th>Role Summary</th>
                                                     <td>{!! $submission->role_summary ?? '<em>Empty</em>' !!}</td>
@@ -246,6 +235,13 @@
                                                         <td>{{ $submission->notes ?? 'Empty' }}</td>
                                                     </tr>
                                                 @endif
+                                                 @if (!is_null($submission->approver_1))
+                                                <tr>
+                                                    <th>HRD Verifier</th>
+                                                    <td>{{ $submission->approver1->employee_name ?? 'empty' }}</td>
+                                                </tr>
+                                                @endif
+                                              
                                                 @if (!is_null($submission->notes_hr))
                                                     <tr>
                                                         <th>HRD Notes to Director</th>
@@ -302,8 +298,14 @@
                                                         <td>{{ $submission->reason_reject ?? 'Empty' }}</td>
                                                     </tr>
                                                 @endif
+                                                  @if (!is_null($submission->approver_2))
+                                                    <tr>
+                                                        <th>DIR Verifier</th>
+                                                        <td>{{ $submission->approver2->employee_name ?? 'empty' }}</td>
+                                                    </tr>
+                                                @endif
                                                
-                                                  @if (optional($submission)->salary_hr)
+                                                  @if (optional($submission)->salary_counter)
     <tr>
         <th>Approved Salary by DIR</th>
         <td>

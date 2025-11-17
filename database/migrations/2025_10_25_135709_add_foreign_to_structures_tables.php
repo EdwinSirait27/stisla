@@ -29,7 +29,6 @@ return new class extends Migration
                 ->on('structures_tables')->nullOnDelete();
         });
     }
-
     /**
      * Reverse the migrations.
      */

@@ -414,7 +414,8 @@ class EmployeeController extends Controller
         'Employee.position',
         'Employee.bank',
         'Employee.employees',
-        'Employee.structuresnew'
+        'Employee.structuresnew',
+        'Employee.structuresnew.submissionposition'
     )->get()->first(function ($u) use ($hashedId) {
         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
         return $expectedHash === $hashedId;
