@@ -210,21 +210,21 @@
                                                     <th>Gender</th>
                                                     <td>{{ $employee->Employee->gender ?? 'empty' }}</td>
                                                 </tr>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>Date of Birth</th>
                                                     <td>{{ $employee->Employee->date_of_birth ?? 'empty' }}
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                                 <tr>
                                                     <th>Current Address</th>
                                                     <td>{{ $employee->Employee->current_address ?? 'empty' }}
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>ID Card Address</th>
                                                     <td>{{ $employee->Employee->id_card_address ?? 'empty' }}
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                                 <tr>
                                                     <th>Emergency Contact Name</th>
                                                     <td>{{ $employee->Employee->emergency_contact_name ?? 'empty' }}
@@ -240,11 +240,11 @@
                                                     <td>{{ $employee->Employee->telp_number ?? 'empty' }}
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>Company</th>
                                                     <td>{{ $employee->Employee->company->name ?? 'empty' }}
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                                 <tr>
                                                     <th>Department</th>
                                                     <td>{{ $employee->Employee->department->department_name ?? 'empty' }}
@@ -261,11 +261,11 @@
                                                     </td>
                                                 </tr>
 
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>Grading</th>
                                                     <td>{{ $employee->Employee->grading->grading_name ?? 'empty' }}
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                                 @if (!is_null($isManager))
                                                     <tr>
                                                         <th>Is Manager</th>

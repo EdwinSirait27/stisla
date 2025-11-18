@@ -441,7 +441,7 @@
                                                     @enderror
                                                 </div>
                                             </div> --}}
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_hr" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
@@ -474,17 +474,11 @@
                                                 });
                                             </script>
 
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_hr_end" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('To') }}
                                                     </label>
-
-                                                    {{-- <input type="number" id="salary_hr_end" name="salary_hr_end"
-                                                        class="form-control @error('salary_hr_end') is-invalid @enderror"
-                                                        value="{{ old('salary_hr_end', $position->salary_hr_end) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  disabled> --}}
                                                     <input type="text" id="salary_hr_end_display"
                                                         class="form-control @error('salary_hr_end') is-invalid @enderror"
                                                         value="{{ number_format(old('salary_hr_end', $position->salary_hr_end), 0, ',', '.') }}"
@@ -511,7 +505,7 @@
                                                     document.getElementById('salary_hr_end').value = value; // Kirim 100000 ke server
                                                 });
                                             </script>
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_counter" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Approved Salary by DIR') }}
@@ -542,17 +536,11 @@
                                                     document.getElementById('salary_counter').value = value; // Kirim 100000 ke server
                                                 });
                                             </script>
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_counter_end" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('To') }}
                                                     </label>
-
-                                                    {{-- <input type="number" id="salary_counter_end" name="salary_counter_end"
-                                                        class="form-control @error('salary_counter_end') is-invalid @enderror"
-                                                        value="{{ old('salary_counter_end', $position->salary_counter_end) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric"  required> --}}
                                                     <input type="text" id="salary_counter_end_display"
                                                         class="form-control @error('salary_counter_end') is-invalid @enderror"
                                                         value="{{ number_format(old('salary_counter_end', $position->salary_counter_end), 0, ',', '.') }}"

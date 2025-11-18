@@ -434,6 +434,14 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
+           :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
         /* ========== Card Metrics ========== */
         .metric-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -743,6 +751,50 @@
             border-radius: 12px;
             z-index: 10;
         }
+          .welcome-banner {
+            background: var(--primary-gradient);
+            border-radius: 16px;
+            padding: 32px;
+            color: white;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .welcome-banner h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-banner p {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-banner .date-info {
+            position: relative;
+            z-index: 1;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
     </style>
 @endpush
 
@@ -750,11 +802,32 @@
     <div class="main-content">
         <section class="section">
             <!-- Header -->
-            <div class="section-header">
+            {{-- <div class="section-header">
                 <h1>HR Dashboard</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
                     <div class="breadcrumb-item">HR Manager</div>
+                </div>
+            </div> --}}
+               <div class="welcome-banner animate-fade-in-up">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h2>
+                            <i class="fas fa-hand-wave me-2"></i>
+                            Welcome back, {{ Auth::user()->employee->employee_name ?? 'Manager' }}!
+                        </h2>
+                        {{-- <p>Here's what's happening with your team today.</p> --}}
+                        <div class="date-info">
+                            <i class="fas fa-calendar-day me-2"></i>
+                            {{ now()->format('l, F d, Y') }}
+                        </div>
+                    </div>
+                    {{-- <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <button class="btn btn-light btn-lg" id="createSubmissionBtn">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            New Submission
+                        </button>
+                    </div> --}}
                 </div>
             </div>
 

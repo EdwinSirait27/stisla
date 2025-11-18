@@ -1117,14 +1117,32 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
-        :root {
+        /* :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
+        } */
+         :root {
+    /* Deep Indigo → Royal Blue */
+    --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
+
+    /* Emerald → Dark Teal */
+    --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
+
+    /* Gold → Amber (lebih premium, bukan kuning norak) */
+    --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
+
+    /* Steel Blue → Slate Cyan (soft, tidak neon) */
+    --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
+
+    /* Soft shadow */
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+}
+
 
         /* ========== Welcome Banner ========== */
         .welcome-banner {
@@ -1775,7 +1793,7 @@
 
         .badge-primary-soft {
             background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            color: #ffffff;
             padding: 6px 12px;
             border-radius: 6px;
             font-weight: 600;
@@ -1801,12 +1819,12 @@
                             {{ now()->format('l, F d, Y') }}
                         </div>
                     </div>
-                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    {{-- <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                         <button class="btn btn-light btn-lg" id="createSubmissionBtn">
                             <i class="fas fa-plus-circle me-2"></i>
                             New Submission
                         </button>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 
@@ -1858,7 +1876,7 @@
                             </div>
                             <div class="stat-content">
                                 <h3>{{ $pendingApprovals ?? 0 }}</h3>
-                                <p>Pending Approvals</p>
+                                <p>All Approvals</p>
                                 @if(($pendingApprovals ?? 0) > 0)
                                     <span class="stat-trend down">
                                         <i class="fas fa-exclamation-circle me-1"></i>

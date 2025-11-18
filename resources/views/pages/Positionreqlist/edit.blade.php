@@ -355,7 +355,6 @@
 
                                                     <textarea id="notes" name="notes" class="form-control @error('notes') is-invalid @enderror" rows="8"
                                                         placeholder="message from manager to HR" disabled>{{ old('notes', $position->notes) }}</textarea>
-
                                                     @error('notes')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -363,109 +362,67 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
+                                          
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_hr" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
                                                     </label>
 
-                                                    <input type="number" id="salary_hr" name="salary_hr"
+                                                    <input type="text" id="salary_hr_display"
                                                         class="form-control @error('salary_hr') is-invalid @enderror"
-                                                        value="{{ old('salary_hr', $position->salary_hr) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
-                                                        required>
+                                                        value="{{ number_format(old('salary_hr', $position->salary_hr), 0, ',', '.') }}"
+                                                        placeholder="100.000" required>
+
+                                                    <input type="hidden" name="salary_hr" id="salary_hr"
+                                                        value="{{ old('salary_hr', $position->salary_hr) }}">
+
                                                     @error('salary_hr')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div> --}}
-                                            <div class="col-md-6">
-    <div class="form-group">
-        <label for="salary_hr" class="form-control-label">
-            <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
-        </label>
+                                            </div>
+                                            <script>
+                                                document.getElementById('salary_hr_display').addEventListener('input', function() {
+                                                    let value = this.value.replace(/\D/g, ''); // Hapus selain angka
+                                                    let formatted = new Intl.NumberFormat('id-ID').format(value);
 
-        <input type="text" id="salary_hr_display"
-               class="form-control @error('salary_hr') is-invalid @enderror"
-               value="{{ number_format(old('salary_hr', $position->salary_hr), 0, ',', '.') }}"
-               placeholder="100.000"
-               required>
+                                                    this.value = formatted; // Tampilkan 100.000
 
-        <input type="hidden" name="salary_hr" id="salary_hr"
-               value="{{ old('salary_hr', $position->salary_hr) }}">
-
-        @error('salary_hr')
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-        @enderror
-    </div>
-</div>
-
-<script>
-document.getElementById('salary_hr_display').addEventListener('input', function () {
-    let value = this.value.replace(/\D/g, '');          // Hapus selain angka
-    let formatted = new Intl.NumberFormat('id-ID').format(value);
-
-    this.value = formatted;                             // Tampilkan 100.000
-
-    document.getElementById('salary_hr').value = value; // Kirim 100000 ke server
-});
-</script>
-
-                                            {{-- <div class="col-md-6">
+                                                    document.getElementById('salary_hr').value = value; // Kirim 100000 ke server
+                                                });
+                                            </script>
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_hr_end" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('To') }}
                                                     </label>
 
-                                                    <input type="number" id="salary_hr_end" name="salary_hr_end"
+                                                    <input type="text" id="salary_hr_end_display"
                                                         class="form-control @error('salary_hr_end') is-invalid @enderror"
-                                                        value="{{ old('salary_hr_end', $position->salary_hr_end) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+" inputmode="numeric"
-                                                        required>
+                                                        value="{{ number_format(old('salary_hr_end', $position->salary_hr_end), 0, ',', '.') }}"
+                                                        placeholder="100.000" required>
+
+                                                    <input type="hidden" name="salary_hr_end" id="salary_hr_end"
+                                                        value="{{ old('salary_hr_end', $position->salary_hr_end) }}">
+
                                                     @error('salary_hr_end')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div> --}}
-                                             <div class="col-md-6">
-    <div class="form-group">
-        <label for="salary_hr_end" class="form-control-label">
-            <i class="fas fa-file-alt"></i> {{ __('To') }}
-        </label>
-
-        <input type="text" id="salary_hr_end_display"
-               class="form-control @error('salary_hr_end') is-invalid @enderror"
-               value="{{ number_format(old('salary_hr_end', $position->salary_hr_end), 0, ',', '.') }}"
-               placeholder="100.000"
-               required>
-
-        <input type="hidden" name="salary_hr_end" id="salary_hr_end"
-               value="{{ old('salary_hr_end', $position->salary_hr_end) }}">
-
-        @error('salary_hr_end')
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-        @enderror
-    </div>
-</div>
-
-<script>
-document.getElementById('salary_hr_end_display').addEventListener('input', function () {
-    let value = this.value.replace(/\D/g, '');          // Hapus selain angka
-    let formatted = new Intl.NumberFormat('id-ID').fo`rmat(value);
-
-    this.value = formatted;                             // Tampilkan 100.000
-
-    document.getElementById('salary_hr_end').value = value; // Kirim 100000 ke server
-});
-</script>
+                                            </div>
+                                            <script>
+                                                document.getElementById('salary_hr_end_display').addEventListener('input', function() {
+                                                    let value = this.value.replace(/\D/g, ''); 
+                                                    let formatted = new Intl.NumberFormat('id-ID').format(value);
+                                                    this.value = formatted; 
+                                                    document.getElementById('salary_hr_end').value = value; 
+                                                });
+                                            </script>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes_hr" class="form-control-label">
