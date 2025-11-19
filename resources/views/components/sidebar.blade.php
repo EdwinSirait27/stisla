@@ -28,9 +28,21 @@
                 </li>
             @endrole
             @role('Manager')
-                <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
+                {{-- <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ url('dashboardManager') }}"><i class="fas fa-house"></i>
                         <span>Dashboard</span></a>
+                </li> --}}
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-house"></i>
+                        <span>Dashboards</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('dashboardTeam') }}">Dashboard Team</a>
+                        </li>
+                        <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('dashboardManager') }}">Dashboard Manager</a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>

@@ -321,18 +321,7 @@
                                                     <td>{{ $employee->Employee->grading->grading_name ?? 'empty' }}
                                                     </td>
                                                 </tr>
-                                                {{-- @if (!is_null($employee->Employee->structuresnew->is_manager))
-                                                  <tr>
-                                                    <th>Is Manager</th>
-                                                    <td>
-                                                        @if ($employee->Employee->structuresnew->is_manager)
-                                                            <span class="badge bg-success">Yes</span>
-                                                        @else
-                                                            <span class="badge bg-danger">No</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                @endif --}}
+                                              
                                                 @if (!is_null($isManager))
                                                     <tr>
                                                         <th>Is Manager</th>
@@ -386,6 +375,30 @@
                                                         <td>{{ $employee->Employee->notes }}</td>
                                                     </tr>
                                                 @endif
+                                            
+                                                {{-- @if (!empty($employee->Employee->photos))
+    <tr>
+        <th>Images</th>
+        <td>
+            <img src="{{ asset('storage/' . $employee->Employee->photos) }}"
+                alt="Employee Photo"
+                style="max-width: 150px; height:auto; border-radius: 8px;">
+        </td>
+    </tr>
+@endif --}}
+@if (!empty($employee->Employee->photos))
+    <tr>
+        <th>Images</th>
+        <td>
+            <img src="{{ asset('storage/' . $employee->Employee->photos) }}"
+                alt="images"
+                id="previewImage"
+                style="max-width: 150px; cursor:pointer; border-radius: 8px;">
+        </td>
+    </tr>
+@endif
+
+
                                                 <th>Created on date</th>
                                                 <td>{{ $employee->Employee->created_at->format('d M Y, H:i') }}</td>
                                                 </tr>
@@ -410,4 +423,24 @@
             </div>
         </section>
     </div>
+
 @endsection
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.getElementById('previewImage')?.addEventListener('click', function () {
+
+    Swal.fire({
+        title: 'Employee Photo',
+        html:
+            `<img src="{{ asset('storage/' . $employee->Employee->photos) }}" 
+                  style="width:100%; border-radius:8px;">`,
+        width: '40%',
+        showCloseButton: true,
+        showConfirmButton: false,
+    });
+
+});
+</script>
+@endpush

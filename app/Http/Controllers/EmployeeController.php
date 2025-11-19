@@ -509,22 +509,15 @@ class EmployeeController extends Controller
                 'unique:users,username',
                 new NoXSSInput()
             ],
-            // 'foto' => ['nullable', 'image', 'max:512'],
-            // 'level_id' => [
-            //     'nullable',
-            //     'max:255',
-            //     new NoXSSInput()
-            // ],
-            'is_manager' => [
+             'photos' => [
+            'nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'
+
+        ],
+             'is_manager' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
             ],
-            // 'is_manager_store' => [
-            //     'nullable',
-            //     'boolean',
-            //     new NoXSSInput()
-            // ],
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'employee_name' => ['required', 'string', 'max:255', 'unique:employees_tables,employee_name', new NoXSSInput()],
@@ -606,18 +599,29 @@ class EmployeeController extends Controller
             'department_id.required' => 'The Department is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
-            // 'foto.image' => 'foto must be jpg or jpeg or png.',
-            // 'foto.max' => 'size under 512 kb.',
-
+            'foto' => [
+                'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
+            ],
+            'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
+            'photos.max' => 'photos must under 512 kb.',
+   
         ]);
-        // $filePath = null;
+         $filePath = null;
 
-        // if ($request->hasFile('foto')) {
-        //     $file = $request->file('foto');
-        //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-        //     $file->storeAs('public/employeefoto', $fileName);
-        //     $filePath = $fileName;
-        // }
+    if ($request->hasFile('photos')) {
+        $file = $request->file('photos');
+
+        if ($file->getSize() > 512 * 1024) { return back()->withErrors(['photos' => 'Photos must be under 512 KB']); }
+
+        $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+        $folderPath = 'employeesphotos/' . date('Y/m'); // rapi per tahun/bulan
+
+        // Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+        Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+
+
+        $filePath = $folderPath . '/' . $fileName;
+    }
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -636,7 +640,8 @@ class EmployeeController extends Controller
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
-                // 'foto' => $filePath,
+            'photos' => $filePath,
+
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -654,9 +659,7 @@ class EmployeeController extends Controller
                 'telp_number' => $validatedData['telp_number'] ?? '',
                 'gender' => $validatedData['gender'] ?? '',
                 'date_of_birth' => $validatedData['date_of_birth'] ?? '',
-                // 'level_id' => $validatedData['level_id'],
                 'is_manager' => $validatedData['is_manager'] ?? 0,
-                // 'is_manager_store' => $validatedData['is_manager_store'] ?? 0,
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
                 'email' => $validatedData['email'] ?? '',
@@ -684,18 +687,20 @@ class EmployeeController extends Controller
             return redirect()->route('pages.Employee')->with('success', 'Done!');
         } catch (\Exception $e) {
             DB::rollBack();
-            // if ($filePath && Storage::exists('public/employeefoto/' . $filePath)) {
-            //     Storage::delete('public/employeefoto/' . $filePath);
-            // }
+         
+            
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+    Storage::disk('public')->delete($filePath);
+}
+
+        }
             return redirect()->back()
                 ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
                 ->withInput();
         }
-    }
-    // with locking
+    
     public function update(Request $request, $hashedId)
 {
-    // Ambil user secara efisien tanpa get semua record
     $user = User::with('Employee')
         ->get()
         ->first(function ($u) use ($hashedId) {
@@ -708,14 +713,18 @@ class EmployeeController extends Controller
     }
 
     $validatedData = $request->validate([
+        'photos' => ['nullable','mimes:jpg,jpeg,png,webp', 'max:512'],
+
         'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
         'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
         'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+
         'employee_name' => [
             'required', 'string', 'max:255',
             Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
             new NoXSSInput()
         ],
+
         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
         'bpjs_kes' => ['required', 'string', 'max:255'],
         'bpjs_ket' => ['required', 'string', 'max:255'],
@@ -758,97 +767,277 @@ class EmployeeController extends Controller
         'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
         'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
     ]);
-
+    $filePath = $user->Employee->photos;
     try {
-        DB::transaction(function () use ($user, $validatedData) {
-            // Ambil employee dengan kunci baris agar aman dari race
+        DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
+            /** --------------------------
+             *  Handle Upload Photo
+             * -------------------------*/
+            if ($request->hasFile('photos')) {
+                $file = $request->file('photos');
+                $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+                    $file->getClientOriginalExtension();
+
+                $folderPath = 'employeesphotos/' . date('Y/m');
+
+                Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+                $newFilePath = $folderPath . '/' . $fileName;
+
+                if ($filePath && Storage::exists('public/' . $filePath)) {
+                    Storage::delete('public/' . $filePath);
+                }
+
+                $filePath = $validatedData['photos'] = $newFilePath;
+            }
+
+            /** --------------------------
+             *  Lock employee row
+             * -------------------------*/
             $employee = $user->Employee()->lockForUpdate()->first();
             $oldStructureId = $employee->structure_id;
 
             $statusEmployee = $validatedData['status'];
-            $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+            $inactiveStatus = ['Resign', 'Inactive', 'On Leave'];
 
-            // Jika status berubah ke non-aktif
-            if (in_array($statusEmployee, $statusChangeTriggers)) {
+            /** --------------------------
+             *  Handle Status Non-Aktif
+             * -------------------------*/
+            if (in_array($statusEmployee, $inactiveStatus)) {
                 $validatedData['structure_id'] = null;
 
                 if ($oldStructureId) {
-                    $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
-                    if ($oldStructure) {
-                        $oldStructure->update(['status' => 'vacant']);
-                    }
+                    Structuresnew::where('id', $oldStructureId)
+                        ->lockForUpdate()
+                        ->update(['status' => 'vacant']);
                 }
             }
 
-            // Log::info('Employee update initiated', [
-            //     'employee_id' => $employee->id,
-            //     'old_structure_id' => $oldStructureId,
-            //     'new_structure_id' => $validatedData['structure_id'] ?? null,
-            //     'performed_by' => auth()->user()->name ?? 'system',
-            // ]);
-
-            // Update structure baru jika ada
+            /** --------------------------
+             *  Handle Structure Baru
+             * -------------------------*/
             if (!empty($validatedData['structure_id'])) {
                 $newStructure = Structuresnew::with('submissionposition')
                     ->where('id', $validatedData['structure_id'])
                     ->lockForUpdate()
                     ->first();
 
-                if ($newStructure) {
-                    if ($newStructure->submissionposition) {
-                        $submission = $newStructure->submissionposition;
+                if ($newStructure && $newStructure->submissionposition) {
+                    $submission = $newStructure->submissionposition;
 
-                        $validatedData['company_id'] = $submission->company_id;
-                        $validatedData['department_id'] = $submission->department_id;
-                        $validatedData['store_id'] = $submission->store_id;
-                        $validatedData['position_id'] = $submission->position_id;
-                        $validatedData['is_manager'] = $submission->is_manager;
+                    $validatedData['company_id'] = $submission->company_id;
+                    $validatedData['department_id'] = $submission->department_id;
+                    $validatedData['store_id'] = $submission->store_id;
+                    $validatedData['position_id'] = $submission->position_id;
+                    $validatedData['is_manager'] = $submission->is_manager;
 
-                        Log::info('Structure fields updated from submissionposition relation', [
-                            'structure_id' => $newStructure->id,
-                            'company_id' => $submission->company_id,
-                            'department_id' => $submission->department_id,
-                            'store_id' => $submission->store_id,
-                            'is_manager' => $submission->is_manager,
-                            'position_id' => $submission->position_id,
-                        ]);
-                    } else {
-                        Log::warning('No submissionposition found for structure', [
-                            'structure_id' => $newStructure->id,
-                        ]);
-                    }
-
-                    $newStructure->update(['status' => 'active']);
                 }
+
+                $newStructure->update(['status' => 'active']);
             }
 
-            // Update data employee
+            /** --------------------------
+             *  Update Employee
+             * -------------------------*/
             $employee->update($validatedData);
 
-            // Jika structure dikosongkan, pastikan status structure lama jadi 'vacant'
+            /** --------------------------
+             *  Jika struktur dikosongkan
+             * -------------------------*/
             if (empty($validatedData['structure_id']) && $oldStructureId) {
-                $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
-                if ($oldStructure) {
-                    $oldStructure->update(['status' => 'vacant']);
-                }
+                Structuresnew::where('id', $oldStructureId)
+                    ->lockForUpdate()
+                    ->update(['status' => 'vacant']);
             }
-
-            Log::info('Employee update successful', [
-                'employee_id' => $employee->id,
-                'final_structure_id' => $employee->structure_id,
-            ]);
         });
 
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
 
     } catch (\Throwable $th) {
+
         Log::error('Employee update failed', [
             'error' => $th->getMessage(),
             'employee_id' => $user->Employee->id ?? null,
         ]);
-        return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
+
+        return redirect()->route('pages.Employee')
+            ->with('error', 'Update failed: ' . $th->getMessage());
     }
 }
+
+    // with locking
+//     public function update(Request $request, $hashedId)
+// {
+//     // Ambil user secara efisien tanpa get semua record
+//     $user = User::with('Employee')
+//         ->get()
+//         ->first(function ($u) use ($hashedId) {
+//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+//             return $expectedHash === $hashedId;
+//         });
+
+//     if (!$user) {
+//         return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
+//     }
+
+//     $validatedData = $request->validate([
+//           'photos' => [
+//             'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
+//         ],
+//         'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+//         'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
+//         'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+//         'employee_name' => [
+//             'required', 'string', 'max:255',
+//             Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+//             new NoXSSInput()
+//         ],
+//         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
+//         'bpjs_kes' => ['required', 'string', 'max:255'],
+//         'bpjs_ket' => ['required', 'string', 'max:255'],
+//         'email' => ['required', 'string', 'max:255'],
+//         'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+//         'child' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'telp_number' => [
+//             'required', 'numeric', 'digits_between:10,13',
+//             Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
+//             new NoXSSInput()
+//         ],
+//         'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'nik' => [
+//             'required', 'max:20',
+//             Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
+//             new NoXSSInput()
+//         ],
+//         'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
+//         'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'religion' => ['required', 'string', new NoXSSInput()],
+//         'status' => ['required', 'string', new NoXSSInput()],
+//         'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
+//         'npwp' => ['required', 'string', 'max:50'],
+//         'is_manager' => ['nullable'],
+//         'pin' => [
+//             'required', 'string', 'max:50',
+//             Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
+//             new NoXSSInput()
+//         ],
+//         'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
+//         'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
+//         'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
+//         'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
+//         'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
+        
+//     ]
+// );
+// $filePath = $user->employee->photos;
+
+//     try {
+//         DB::transaction(function () use ($user, $validatedData) {
+// if ($request->hasFile('photos')) {
+//             $file = $request->file('photos');
+//             $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+//             $folderPath = 'employeesphotos/' . date('Y/m');
+
+//             // Simpan file baru
+//             Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+//             $newFilePath = $folderPath . '/' . $fileName;
+
+//             // Hapus file lama kalau ada
+//             if ($filePath && Storage::exists('public/' . $filePath)) {
+//                 Storage::delete('public/' . $filePath);
+//             }
+
+//             $filePath = $newFilePath;
+//         }
+//             // Ambil employee dengan kunci baris agar aman dari race
+//             $employee = $user->Employee()->lockForUpdate()->first();
+//             $oldStructureId = $employee->structure_id;
+
+//             $statusEmployee = $validatedData['status'];
+//             $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+
+//             // Jika status berubah ke non-aktif
+//             if (in_array($statusEmployee, $statusChangeTriggers)) {
+//                 $validatedData['structure_id'] = null;
+
+//                 if ($oldStructureId) {
+//                     $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
+//                     if ($oldStructure) {
+//                         $oldStructure->update(['status' => 'vacant']);
+//                     }
+//                 }
+//             }
+
+    
+
+//             // Update structure baru jika ada
+//             if (!empty($validatedData['structure_id'])) {
+//                 $newStructure = Structuresnew::with('submissionposition')
+//                     ->where('id', $validatedData['structure_id'])
+//                     ->lockForUpdate()
+//                     ->first();
+
+//                 if ($newStructure) {
+//                     if ($newStructure->submissionposition) {
+//                         $submission = $newStructure->submissionposition;
+
+//                         $validatedData['company_id'] = $submission->company_id;
+//                         $validatedData['department_id'] = $submission->department_id;
+//                         $validatedData['store_id'] = $submission->store_id;
+//                         $validatedData['position_id'] = $submission->position_id;
+//                         $validatedData['is_manager'] = $submission->is_manager;
+
+//                         Log::info('Structure fields updated from submissionposition relation', [
+//                             'structure_id' => $newStructure->id,
+//                             'company_id' => $submission->company_id,
+//                             'department_id' => $submission->department_id,
+//                             'store_id' => $submission->store_id,
+//                             'is_manager' => $submission->is_manager,
+//                             'position_id' => $submission->position_id,
+//                         ]);
+//                     } else {
+//                         Log::warning('No submissionposition found for structure', [
+//                             'structure_id' => $newStructure->id,
+//                         ]);
+//                     }
+
+//                     $newStructure->update(['status' => 'active']);
+//                 }
+//             }
+
+//             // Update data employee
+//             $employee->update($validatedData);
+
+//             // Jika structure dikosongkan, pastikan status structure lama jadi 'vacant'
+//             if (empty($validatedData['structure_id']) && $oldStructureId) {
+//                 $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
+//                 if ($oldStructure) {
+//                     $oldStructure->update(['status' => 'vacant']);
+//                 }
+//             }
+
+//             Log::info('Employee update successful', [
+//                 'employee_id' => $employee->id,
+//                 'final_structure_id' => $employee->structure_id,
+//             ]);
+//         });
+
+//         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+
+//     } catch (\Throwable $th) {
+//         Log::error('Employee update failed', [
+//             'error' => $th->getMessage(),
+//             'employee_id' => $user->Employee->id ?? null,
+//         ]);
+//         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
+//     }
+// }
 
 // tanpa locking 
 // public function update(Request $request, $hashedId)

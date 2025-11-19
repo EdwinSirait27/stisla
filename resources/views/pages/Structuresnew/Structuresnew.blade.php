@@ -176,7 +176,31 @@
                 <h1><i class="fas fa-sitemap"></i> Structures Overview</h1>
             </div>
             <div class="section-body">
+<div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-network-wired me-1"></i> Organization Chart
+                            </h6>
+                            {{-- ⬇️ TAMBAHKAN TOMBOL TOGGLE --}}
+                            <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye-slash me-1"></i>
+                                <span id="toggleText">Secondary Supervisors</span>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="tree" style="height: 700px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
                 <div class="row">
+
+                    
                     <div class="col-12">
                         <div class="card shadow-sm border-0">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -188,6 +212,9 @@
                                     <i class="fas fa-plus-circle me-1"></i> Create Structure
                                 </button> --}}
                             </div>
+
+
+                            
                             <form id="bulk-delete-form" method="POST" action="{{ route('structuresnew.bulkDelete') }}">
                                 @csrf
                                 @method('DELETE')
@@ -196,12 +223,7 @@
                                         <table class="table table-striped table-hover align-middle" id="users-table">
                                             <thead class="table-light">
                                                 <tr>
-                                                    {{-- <th class="text-center">
-                                                        <button type="button" id="select-all"
-                                                            class="btn btn-primary btn-sm">
-                                                            Select All
-                                                        </button>
-                                                    </th> --}}
+                                                   
                                                     <th class="text-center">Company</th>
                                                     <th class="text-center">Department</th>
                                                     <th class="text-center">Location</th>
@@ -209,7 +231,6 @@
                                                     <th class="text-center">Structure Code</th>
                                                     {{-- <th class="text-center">Is Manager?</th> --}}
                                                     <th class="text-center">Direct Superior</th>
-                                                    {{-- <th class="text-center">Direct Subordinate</th> --}}
                                                     <th class="text-center">All Subordinate</th>
                                                     <th class="text-center">Status</th>
                                                     <th class="text-center">Action</th>
@@ -256,43 +277,8 @@
                     </div>
                 </div>
             </div>
-            {{-- ORG CHART
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0 text-primary">
-                                <i class="fas fa-network-wired me-1"></i> Organization Chart
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div id="tree" style="height: 700px;"></div>
-                         </div>
-                    </div>
-                </div>
-            </div> --}}
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 text-primary">
-                                <i class="fas fa-network-wired me-1"></i> Organization Chart
-                            </h6>
-                            {{-- ⬇️ TAMBAHKAN TOMBOL TOGGLE --}}
-                            <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye-slash me-1"></i>
-                                <span id="toggleText">Secondary Supervisors</span>
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="tree" style="height: 700px;"></div>
-                            {{-- <div id="tree"></div> --}}
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-
+            
 
             <div class="card mt-4">
                 <div class="card-header">
@@ -1034,7 +1020,7 @@
                         // Buat PATH dengan curve
                         const midY = (fy + ty) / 2;
                         const pathData =
-                        `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+                            `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
 
                         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                         path.setAttribute("d", pathData);

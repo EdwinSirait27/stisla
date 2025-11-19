@@ -4,19 +4,15 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
         }
-
         .iframe-container {
             position: relative;
             overflow: hidden;
             padding-top: 56.25%;
-            /* Aspect ratio 16:9 */
-        }
-
+         }
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -25,20 +21,16 @@
             height: 100%;
             border: 0;
         }
-
-        /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
             padding: 10px 15px;
             transition: all 0.3s ease;
             border: 1px solid #d1d1d1;
         }
-
         .form-control:focus {
             border-color: #6777ef;
             box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.25);
         }
-
         .form-control-label {
             font-weight: 600;
             margin-bottom: 8px;
@@ -47,37 +39,30 @@
             align-items: center;
             gap: 8px;
         }
-
         .form-control-label i {
             color: #6777ef;
         }
-
         .card {
             border-radius: 15px;
             box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
-
         .card:hover {
             box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.15);
         }
-
         .card-header {
             background-color: #fff;
             border-bottom: 1px solid #f9f9f9;
             padding: 20px;
         }
-
         .card-header h6 {
             font-weight: 700;
             font-size: 16px;
             color: #34395e;
         }
-
         .card-body {
             padding: 30px;
         }
-
         .btn {
             border-radius: 8px;
             padding: 10px 20px;
@@ -85,48 +70,39 @@
             transition: all 0.3s ease;
             margin-left: 10px;
         }
-
         .btn-secondary {
             background-color: #cdd3d8;
             border-color: #cdd3d8;
             color: #34395e;
         }
-
         .btn-secondary:hover {
             background-color: #b9bfc4;
             border-color: #b9bfc4;
         }
-
         .bg-gradient-dark {
             background: linear-gradient(310deg, #2dce89, #2dcec7);
             border: none;
         }
-
         .bg-gradient-dark:hover {
             background: linear-gradient(310deg, #26b179, #26b1a9);
             transform: translateY(-2px);
         }
-
         .alert {
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
         }
-
         .alert-secondary {
             background-color: #f8f9fa;
             border-color: #f1f2f3;
         }
-
         .alert-secondary .text-white {
             color: #6c757d !important;
         }
-
         .form-check {
             padding-left: 30px;
             margin-bottom: 10px;
         }
-
         .form-check-input {
             width: 18px;
             height: 18px;
@@ -134,74 +110,55 @@
             margin-left: -30px;
             cursor: pointer;
         }
-
         .form-check-label {
             cursor: pointer;
         }
-
         .invalid-feedback {
             display: block;
             margin-top: 5px;
             font-size: 13px;
             color: #fc544b;
         }
-
         .alert-danger {
             background-color: #ffdede;
             border-color: #ffd0d0;
             color: #dc3545;
         }
-
         .alert-success {
             background-color: #d4edda;
             border-color: #c3e6cb;
             color: #155724;
         }
-
         select.form-control {
             height: 42px;
         }
-
         #role_summary {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
-
         #key_respon {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
-
         #qualifications {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
-
         #notes {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
-
         #notes_hr {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
-
         #notes_dir {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
-
         #reason_reject_dir {
             height: 200px;
             resize: vertical;
-            /* biar masih bisa diubah manual */
         }
     </style>
 @endpush
@@ -239,7 +196,6 @@
                                             </ul>
                                         </div>
                                     @endif
-
                                     @if (session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" id="alert-success"
                                             role="alert">
@@ -274,7 +230,6 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Location') }}
@@ -291,7 +246,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="type" class="form-control-label">
@@ -322,9 +276,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
-
-
                                             <div class="col-md-6">
 
                                                 <div class="form-group">
@@ -347,8 +298,6 @@
                                                     <label for="key_respon" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Key Responsibility') }}
                                                     </label>
-                                                    {{-- <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
-                                                        rows="8"disabled>{{ old('key_respon', $position->key_respon) }}</textarea> --}}
                                                     <textarea id="key_respon" name="key_respon" class="form-control @error('key_respon') is-invalid @enderror"
                                                         rows="8" disabled>{{ html_entity_decode(strip_tags(old('key_respon', $position->key_respon))) }}</textarea>
                                                     @error('key_respon')
@@ -363,8 +312,6 @@
                                                     <label for="qualifications" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Qualifications') }}
                                                     </label>
-                                                    {{-- <textarea id="qualifications" name="qualifications"
-                                                        class="form-control @error('qualifications') is-invalid @enderror" rows="8"disabled>{{ old('qualifications', $position->qualifications) }}</textarea> --}}
                                                     <textarea id="qualifications" name="qualifications"
                                                         class="form-control @error('qualifications') is-invalid @enderror" rows="8" disabled>{{ html_entity_decode(strip_tags(old('qualifications', $position->qualifications))) }}</textarea>
 
@@ -375,23 +322,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
-
-                                                <div class="form-group">
-                                                    <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Notes From Manager') }}
-                                                    </label>
-                                                 
-                                                           <textarea id="notes" name="notes"
-                                                        class="form-control @error('notes') is-invalid @enderror" rows="8"disabled>{{ old('notes', $position->notes) }}</textarea>
-
-                                                    @error('notes')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
@@ -423,24 +353,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="salary_hr" class="form-control-label">
-                                                        <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}
-                                                    </label>
-
-                                                    <input type="number" id="salary_hr" name="salary_hr"
-                                                        class="form-control @error('salary_hr') is-invalid @enderror"
-                                                        value="{{ old('salary_hr', $position->salary_hr) }}"
-                                                        placeholder="numbers only" pattern="[0-9]+"
-                                                        inputmode="numeric" disabled>
-                                                    @error('salary_hr')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_hr" class="form-control-label">
@@ -462,14 +374,11 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
                                             <script>
                                                 document.getElementById('salary_hr_display').addEventListener('input', function() {
-                                                    let value = this.value.replace(/\D/g, ''); // Hapus selain angka
+                                                    let value = this.value.replace(/\D/g, ''); 
                                                     let formatted = new Intl.NumberFormat('id-ID').format(value);
-
-                                                    this.value = formatted; // Tampilkan 100.000
-
+                                                    this.value = formatted; 
                                                     document.getElementById('salary_hr').value = value; // Kirim 100000 ke server
                                                 });
                                             </script>
@@ -483,11 +392,9 @@
                                                         class="form-control @error('salary_hr_end') is-invalid @enderror"
                                                         value="{{ number_format(old('salary_hr_end', $position->salary_hr_end), 0, ',', '.') }}"
                                                         placeholder="100.000" disabled>
-
                                                     <input type="hidden" name="salary_hr_end" id="salary_hr_end"
                                                         value="{{ old('salary_hr_end', $position->salary_hr_end) }}"
                                                         disabled>
-
                                                     @error('salary_hr_end')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -497,12 +404,10 @@
                                             </div>
                                             <script>
                                                 document.getElementById('salary_hr_end_display').addEventListener('input', function() {
-                                                    let value = this.value.replace(/\D/g, ''); // Hapus selain angka
+                                                    let value = this.value.replace(/\D/g, '');
                                                     let formatted = new Intl.NumberFormat('id-ID').format(value);
-
-                                                    this.value = formatted; // Tampilkan 100.000
-
-                                                    document.getElementById('salary_hr_end').value = value; // Kirim 100000 ke server
+                                                    this.value = formatted; 
+                                                    document.getElementById('salary_hr_end').value = value;
                                                 });
                                             </script>
                                             <div class="col-md-3">

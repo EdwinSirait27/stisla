@@ -287,8 +287,6 @@ public function store(Request $request)
     //     DB::beginTransaction();
     //     $company->update($companyData);
     //     DB::commit();
-        
-
     //     return redirect()->route('pages.Company')->with('success', 'Company updated Successfully.');
     // }
     public function update(Request $request, $hashedId)

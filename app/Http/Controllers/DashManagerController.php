@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Structuresnew;
 use App\Models\Position;
 use App\Models\Company;
+use App\Models\Announcment;
 use App\Models\Employee;
 use App\Models\Departments;
 use App\Models\Stores;
@@ -16,6 +17,12 @@ use Yajra\DataTables\DataTables;
 
 class DashManagerController extends Controller
 {
+    public function indexteam()
+    {
+    $announcements = Announcment::orderBy('created_at', 'desc')->get();
+
+        return view('pages.dashboardTeam.dashboardTeam',compact('announcements'));
+    }
     public function index()
     {
         return view('pages.dashboardManager.dashboardManager');
@@ -63,10 +70,11 @@ class DashManagerController extends Controller
             ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
+            ->addColumn('employee_pengenal', fn($e) => optional($e->Employee)->employee_pengenal ?? 'Empty')
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['employee_pengenal','position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
     public function show($hashedId)

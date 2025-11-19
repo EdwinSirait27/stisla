@@ -203,6 +203,10 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
+                                                    <th>NIP</th>
+                                                    <td>{{ $employee->Employee->employee_pengenal ?? 'empty' }}</td>
+                                                </tr>
+                                                <tr>
                                                     <th>Religion</th>
                                                     <td>{{ $employee->Employee->religion ?? 'empty' }}</td>
                                                 </tr>

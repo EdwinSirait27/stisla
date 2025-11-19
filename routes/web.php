@@ -50,13 +50,59 @@ use App\Http\Controllers\StructuresnewController;
 */
 
 Route::view('/test-wireui', 'test-wireui');
+// Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
+//     Route::get('/feature-profile', [UserprofileController::class, 'index'])
+//         ->name('pages.feature-profile');
+//     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
+//         ->name('pages.change-password');
+//     Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])->name('feature-profile.updateemailtelp');
+//     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])->name('change-password.updatepassword');
+//     Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
+//     Route::put('/change-password', [UserprofileController::class, 'indexpassword'])->name('change-password');
+//     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+//         ->name('logout');
+    // Route::get('/feature-profile', [UserprofileController::class, 'index'])
+    //     ->name('pages.feature-profile');
+    // Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])->name('feature-profile.update');
+    // Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
+    // Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+    //     ->name('logout');
+    // FEATURE PROFILE (GET)
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
-    Route::get('/feature-profile', [UserprofileController::class, 'index'])
-        ->name('pages.feature-profile');
-    Route::put('/feature-profile/update', [UserprofileController::class, 'updatePassword'])->name('feature-profile.update');
-    Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
+Route::get('/feature-profile', [UserprofileController::class, 'index'])
+    ->name('pages.feature-profile');
+Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
+    ->name('pages.change-password');
+// FEATURE PROFILE UPDATE (PUT)
+Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
+    ->name('change-password.update');
+Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])
+    ->name('feature-profile.update');
+// LOGOUT
+Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+    ->name('logout');
+
+    Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
+        Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
+            ->name('pages.dashboardAdmin');
+        Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
+        Route::get('/dashboardAdmin/show/{hashedId}', [dashboardAdminController::class, 'show'])->name('dashboardAdmin.show');
+        Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
+        Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+        Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
+    });
+
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         ->name('logout');
+    Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
+        Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
+            ->name('pages.dashboardAdmin');
+        Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
+        Route::get('/dashboardAdmin/show/{hashedId}', [dashboardAdminController::class, 'show'])->name('dashboardAdmin.show');
+        Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
+        Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
+        Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
+    });
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
         Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
             ->name('pages.dashboardAdmin');
@@ -292,6 +338,8 @@ Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function (
         ->name('pages.Dashboard.Dashboard');
 });
 Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function () {
+    Route::get('/dashboardTeam', [DashManagerController::class, 'indexteam'])
+        ->name('pages.dashboardTeam');
     Route::get('/dashboardManager', [DashManagerController::class, 'index'])
         ->name('pages.dashboardManager');
          Route::get('/Team', [DashManagerController::class, 'team'])

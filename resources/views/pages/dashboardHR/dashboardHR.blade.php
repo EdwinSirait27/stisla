@@ -434,14 +434,32 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
-           :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        /* :root {
+                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            } */
+        :root {
+            /* Deep Indigo → Royal Blue */
+            --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
+
+            /* Emerald → Dark Teal */
+            --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
+
+            /* Gold → Amber (lebih premium, bukan kuning norak) */
+            --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
+
+            /* Steel Blue → Slate Cyan (soft, tidak neon) */
+            --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
+
+            /* Soft shadow */
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
         }
+
         /* ========== Card Metrics ========== */
         .metric-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -751,7 +769,8 @@
             border-radius: 12px;
             z-index: 10;
         }
-          .welcome-banner {
+
+        .welcome-banner {
             background: var(--primary-gradient);
             border-radius: 16px;
             padding: 32px;
@@ -795,6 +814,77 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
+        /* ========== Personal Profile Card ========== */
+        .profile-header-card {
+            background: var(--primary-gradient);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .profile-header-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .profile-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            object-fit: cover;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-info h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 24px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .profile-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            opacity: 0.95;
+        }
+
+        .profile-meta-item i {
+            font-size: 1.1rem;
+        }
     </style>
 @endpush
 
@@ -802,32 +892,44 @@
     <div class="main-content">
         <section class="section">
             <!-- Header -->
-            {{-- <div class="section-header">
-                <h1>HR Dashboard</h1>
-                <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item">HR Manager</div>
-                </div>
-            </div> --}}
-               <div class="welcome-banner animate-fade-in-up">
-                <div class="row align-items-center">
-                    <div class="col-lg-8">
-                        <h2>
-                            <i class="fas fa-hand-wave me-2"></i>
-                            Welcome back, {{ Auth::user()->employee->employee_name ?? 'Manager' }}!
-                        </h2>
-                        {{-- <p>Here's what's happening with your team today.</p> --}}
-                        <div class="date-info">
-                            <i class="fas fa-calendar-day me-2"></i>
-                            {{ now()->format('l, F d, Y') }}
+           
+             <div class="profile-header-card animate-fade-in-up">
+                <div class="profile-content">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <div class="d-flex align-items-center gap-4">
+                                   <img src="{{ Auth::user()->employee->photos 
+            ? asset('storage/' . Auth::user()->employee->photos) 
+            : asset('img/avatar/avatar-1.png') }}"
+     alt="Profile"
+     class="profile-avatar-large">
+
+
+                                <div class="profile-info">
+                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
+                                    <div class="profile-meta">
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-briefcase"></i>
+                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-building"></i>
+                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-id-badge"></i>
+                                            <span>{{ Auth::user()->employee->employee_pengenal ?? 'Edwin Sirait' }}</span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>{{ now()->format('l, F d, Y') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
-                    {{-- <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                        <button class="btn btn-light btn-lg" id="createSubmissionBtn">
-                            <i class="fas fa-plus-circle me-2"></i>
-                            New Submission
-                        </button>
-                    </div> --}}
                 </div>
             </div>
 
@@ -835,10 +937,8 @@
                 <!-- Metrics Cards -->
                 <div class="row">
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div onclick="window.location='{{ route('pages.Employee') }}';" 
-                             class="card card-statistic-1 metric-card" 
-                             role="button"
-                             aria-label="View all employees">
+                        <div onclick="window.location='{{ route('pages.Employee') }}';"
+                            class="card card-statistic-1 metric-card" role="button" aria-label="View all employees">
                             <div class="card-icon bg-primary">
                                 <i class="far fa-user"></i>
                             </div>
@@ -902,6 +1002,41 @@
                     </div>
                 </div>
 
+
+<div class="row">
+                    <div class="col-12">
+                        <div class="card announcement-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-bullhorn me-2"></i>
+                                    Announcements
+                                </h4>
+                                <button id="btn-announcement" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-1"></i>
+                                    New Announcement
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="users-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">Title</th>
+                                                <th class="text-center">Publish Date</th>
+                                                <th class="text-center">End Date</th>
+                                                <th class="text-center">Action</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
                 <!-- Chart & Submissions Row -->
                 <div class="row">
                     <!-- Attendance Chart -->
@@ -940,55 +1075,50 @@
                         </div>
                     </div> --}}
                     <div class="col-lg-8 col-12 mb-4">
-    <div class="card chart-card">
-        <div class="card-header">
-            <h4>
-                <i class="fas fa-calendar-check me-2"></i>
-                Monthly Attendance Rate
-            </h4>
-            <div class="card-header-action">
-                <div class="date-filter-container d-flex align-items-center gap-2">
-                    <input type="date" 
-                           id="startDate" 
-                           class="form-control date-input"
-                           aria-label="Start Date"
-                           value="{{ now()->startOfMonth()->format('Y-m-d') }}">
-                    <input type="date" 
-                           id="endDate" 
-                           class="form-control date-input"
-                           aria-label="End Date"
-                           value="{{ now()->endOfMonth()->format('Y-m-d') }}">
-                    <button id="filterButton" class="btn btn-primary">
-                        <i class="fas fa-filter me-1"></i> Filter
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <canvas id="attendanceChart" height="180"></canvas>
-            <div class="alert alert-info-custom mt-4" role="alert">
-                <strong><i class="fas fa-info-circle me-2"></i>Chart Information</strong>
-                <span class="d-block mt-1">X-axis represents dates, Y-axis shows total employee attendance.</span>
-            </div>
-        </div>
-    </div>
-</div>
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h4>
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    Monthly Attendance Rate
+                                </h4>
+                                <div class="card-header-action">
+                                    <div class="date-filter-container d-flex align-items-center gap-2">
+                                        <input type="date" id="startDate" class="form-control date-input"
+                                            aria-label="Start Date" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
+                                        <input type="date" id="endDate" class="form-control date-input"
+                                            aria-label="End Date" value="{{ now()->endOfMonth()->format('Y-m-d') }}">
+                                        <button id="filterButton" class="btn btn-primary">
+                                            <i class="fas fa-filter me-1"></i> Filter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="attendanceChart" height="180"></canvas>
+                                <div class="alert alert-info-custom mt-4" role="alert">
+                                    <strong><i class="fas fa-info-circle me-2"></i>Chart Information</strong>
+                                    <span class="d-block mt-1">X-axis represents dates, Y-axis shows total employee
+                                        attendance.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-<style>
-    /* Ukuran input tanggal diperkecil */
-    .date-input {
-        width: 130px !important;
-        padding: 4px 6px;
-        font-size: 0.9rem;
-    }
+                    <style>
+                        /* Ukuran input tanggal diperkecil */
+                        .date-input {
+                            width: 130px !important;
+                            padding: 4px 6px;
+                            font-size: 0.9rem;
+                        }
 
-    /* Supaya rapat tapi tetap rapi */
-    .date-filter-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-</style>
+                        /* Supaya rapat tapi tetap rapi */
+                        .date-filter-container {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                    </style>
 
 
                     <!-- Submissions List -->
@@ -999,10 +1129,8 @@
                                     <i class="fas fa-file-alt me-2"></i>
                                     Submissions
                                 </h4>
-                                <button id="btn-submission" 
-                                        class="btn btn-primary btn-sm" 
-                                        data-toggle="modal"
-                                        data-target="#createSubmissionModal">
+                                <button id="btn-submission" class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#createSubmissionModal">
                                     <i class="fas fa-plus me-1"></i>
                                     Create
                                 </button>
@@ -1035,19 +1163,19 @@
                                     @forelse($pendingSubmissions as $submission)
                                         <div class="submission-list-item">
                                             <div class="d-flex align-items-center">
-                                                <img class="rounded-circle me-3" 
-                                                     width="48" 
-                                                     height="48"
-                                                     src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
-                                                     alt="{{ $submission->employee->employee_name }}">
+                                                <img class="rounded-circle me-3" width="48" height="48"
+                                                    src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
+                                                    alt="{{ $submission->employee->employee_name }}">
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex justify-content-between align-items-start mb-1">
                                                         <h6 class="mb-0">{{ $submission->employee->employee_name }}</h6>
-                                                        <small class="text-muted">{{ $submission->created_at->diffForHumans() }}</small>
+                                                        <small
+                                                            class="text-muted">{{ $submission->created_at->diffForHumans() }}</small>
                                                     </div>
                                                     <span class="text-small text-muted">
                                                         <i class="fas fa-tag me-1"></i>
-                                                        {{ ucfirst($submission->type) }} - {{ $submission->formattedDuration }}
+                                                        {{ ucfirst($submission->type) }} -
+                                                        {{ $submission->formattedDuration }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1073,42 +1201,14 @@
                 </div>
 
                 <!-- Announcements Table -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card announcement-card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0">
-                                    <i class="fas fa-bullhorn me-2"></i>
-                                    Announcements
-                                </h4>
-                                <button id="btn-announcement" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-plus me-1"></i>
-                                    New Announcement
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">Title</th>
-                                                <th class="text-center">Publish Date</th>
-                                                <th class="text-center">End Date</th>
-                                                <th class="text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
         </section>
     </div>
 
     <!-- Preview Modal -->
-    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1137,14 +1237,13 @@
                             </tr>
                         </tbody>
                     </table>
-                    <div id="previewContent" 
-                         style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
+                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
                     <small class="text-muted text-center w-100">
                         <i class="fas fa-shield-alt me-2"></i>
-                        Official announcement from HR Department • 
+                        Official announcement from HR Department •
                         <a href="https://wa.me/6281138310552" target="_blank" class="text-success">
                             Contact HR
                         </a>
@@ -1155,7 +1254,8 @@
     </div>
 
     <!-- Create Submission Modal -->
-    <div class="modal fade" id="createSubmissionModal" tabindex="-1" aria-labelledby="createSubmissionLabel" aria-hidden="true">
+    <div class="modal fade" id="createSubmissionModal" tabindex="-1" aria-labelledby="createSubmissionLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <form action="{{ route('Submissions.store') }}" method="POST">
@@ -1212,9 +1312,12 @@
                                 <i class="fas fa-info-circle me-1"></i> Annual Leave Balance
                             </label>
                             <div class="info-box">
-                                <p><strong>Total Leave:</strong> <span id="total">{{ $employee->total ?? 0 }}</span> days</p>
-                                <p><strong>Pending Leave:</strong> <span id="pending">{{ $employee->pending ?? 0 }}</span> days</p>
-                                <p class="mb-0"><strong>Remaining Leave:</strong> <span id="remaining">{{ $employee->remaining ?? 0 }}</span> days</p>
+                                <p><strong>Total Leave:</strong> <span id="total">{{ $employee->total ?? 0 }}</span>
+                                    days</p>
+                                <p><strong>Pending Leave:</strong> <span
+                                        id="pending">{{ $employee->pending ?? 0 }}</span> days</p>
+                                <p class="mb-0"><strong>Remaining Leave:</strong> <span
+                                        id="remaining">{{ $employee->remaining ?? 0 }}</span> days</p>
                             </div>
                         </div>
 
@@ -1227,11 +1330,8 @@
                                 <div class="employee-checkbox-container">
                                     @foreach ($managedEmployees as $emp)
                                         <div class="form-check">
-                                            <input type="checkbox" 
-                                                   name="employee_ids[]" 
-                                                   value="{{ $emp->id }}"
-                                                   class="form-check-input" 
-                                                   id="emp_{{ $emp->id }}">
+                                            <input type="checkbox" name="employee_ids[]" value="{{ $emp->id }}"
+                                                class="form-check-input" id="emp_{{ $emp->id }}">
                                             <label for="emp_{{ $emp->id }}" class="form-check-label">
                                                 {{ $emp->employee_name }}
                                             </label>
@@ -1251,21 +1351,15 @@
                                 <label class="form-label" for="leave_date_from">
                                     <i class="fas fa-calendar-alt me-1"></i> Start Date
                                 </label>
-                                <input type="date" 
-                                       name="leave_date_from" 
-                                       id="leave_date_from" 
-                                       class="form-control"
-                                       required>
+                                <input type="date" name="leave_date_from" id="leave_date_from" class="form-control"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label" for="leave_date_to">
                                     <i class="fas fa-calendar-check me-1"></i> End Date
                                 </label>
-                                <input type="date" 
-                                       name="leave_date_to" 
-                                       id="leave_date_to" 
-                                       class="form-control" 
-                                       required>
+                                <input type="date" name="leave_date_to" id="leave_date_to" class="form-control"
+                                    required>
                             </div>
                         </div>
 
@@ -1274,12 +1368,8 @@
                             <label class="form-label" for="notes">
                                 <i class="fas fa-sticky-note me-1"></i> Notes
                             </label>
-                            <textarea name="notes" 
-                                      id="notes" 
-                                      class="form-control" 
-                                      rows="3"
-                                      placeholder="Enter additional notes or reasons..."
-                                      required></textarea>
+                            <textarea name="notes" id="notes" class="form-control" rows="3"
+                                placeholder="Enter additional notes or reasons..." required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">

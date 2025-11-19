@@ -123,16 +123,12 @@ class LoginController extends Controller
          */
         $dashboardRoutes = [
             'Admin' => 'pages.dashboardAdmin',
-            'Human' => 'pages.feature-profile',
+            'Human' => 'pages.Dashboard',
             'Manager' => 'pages.dashboardManager',
             'Director' => 'pages.dashboardDirector',
             'HeadHR' => 'pages.dashboardHR',
             'HR' => 'pages.dashboardHR',
-            'head-warehouse' => 'pages.dashboardHeadWarehouse',
-            'head-buyer' => 'pages.dashboardHeadBuyer',
-            'cashier-store' => 'pages.dashboardKasir',
-            'supervisor-store' => 'pages.dashboardSupervisor'
-        ];
+            ];
         foreach ($dashboardRoutes as $role => $route) {
             if ($user->hasRole($role)) {
                 Log::info("User logged in", [

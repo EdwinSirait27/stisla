@@ -255,8 +255,11 @@
             <div class="dropdown-menu dropdown-menu-right">
                
                 
-               <a href="{{ route('feature-profile') }}" class="dropdown-item has-icon">
+               <a href="{{ route('pages.feature-profile') }}" class="dropdown-item has-icon">
     <i class="far fa-user"></i> Profile
+</a>
+               <a href="{{ route('pages.change-password') }}" class="dropdown-item has-icon">
+    <i class="fas fa-unlock"></i> Change Password
 </a>
 
                 <form method="GET" action="{{ route('logout') }}">

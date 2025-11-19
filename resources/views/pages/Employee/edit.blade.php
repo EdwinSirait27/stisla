@@ -208,7 +208,7 @@
                                         </div>
                                     @endif
 
-                                    <form action="{{ route('Employee.update', $hashedId) }}" method="POST">
+                                    <form action="{{ route('Employee.update', $hashedId) }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
 
@@ -994,6 +994,51 @@
                                                 </div>
                                             </div>
                                         </div>
+                                         <div class="row mt-3">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="photos" class="form-control-label">
+                <i class="fas fa-id-card"></i> {{ __('Images') }}
+            </label>
+            <div>
+                {{-- Preview Image --}}
+                <div class="mb-2">
+                    @if (!empty($employee->Employee->photos))
+                        <img id="preview-image"
+                            src="{{ asset('storage/' . $employee->Employee->photos) }}"
+                            alt="Preview"
+                            class="img-thumbnail"
+                            width="150"
+                            style="cursor:pointer"
+                            onclick="showImageSwal(this.src)">
+                    @else
+                        <img id="preview-image"
+                            src="https://via.placeholder.com/150"
+                            alt="Preview"
+                            class="img-thumbnail"
+                            width="150"
+                            style="cursor:pointer"
+                            onclick="showImageSwal(this.src)">
+                    @endif
+                </div>
+
+                {{-- File Input --}}
+                <input type="file"
+                    name="photos"
+                    id="photos"
+                    class="form-control @error('photos') is-invalid @enderror"
+                    accept="image/*"
+                    onchange="previewImage(event)">
+
+                @error('photos')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                @enderror
+            </div>
+        </div>
+    </div>
+    </div>
                                         {{-- <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"
@@ -1047,7 +1092,23 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    function previewImage(event) {
+        const preview = document.getElementById('preview-image');
+        const file = event.target.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+        }
+    }
 
+    function showImageSwal(src) {
+        Swal.fire({
+            imageUrl: src,
+            imageAlt: 'Preview',
+            showConfirmButton: false,
+        });
+    }
+</script>
   <script>
 $(document).ready(function() {
     $('.select2').select2();

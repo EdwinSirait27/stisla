@@ -18,43 +18,37 @@ class RedirectIfAuthenticated
      * @return mixed
      */
     public function handle($request, Closure $next, ...$guards)
-{
-    if (Auth::check()) {
-        $user = auth()->user();        
-        if ($user->can('isAdmin')) {
-            return redirect('/dashboardAdmin');
+    {
+        if (Auth::check()) {
+            $user = auth()->user();
+            if ($user->can('isAdmin')) {
+                return redirect('/dashboardAdmin');
+            }
+            if ($user->can('isHR')) {
+                return redirect('/dashboardHR');
+            }
+            if ($user->can('isHeadHR')) {
+                return redirect('/dashboardHR');
+            }
+            if ($user->can('isDirector')) {
+                return redirect('/dashboardDirector');
+            }
+            if ($user->can('isSupervisor')) {
+                return redirect('/dashboardSupervisor');
+            }
+            if ($user->can('isManager')) {
+                return redirect('/dashboardManager');
+            }
+            if ($user->can('isHuman')) {
+                return redirect('/Dashboard');
+            }
+            //         if ($user->can('isHuman')) {
+            //     return redirect()->route('feature-profile')
+            //         ->with('success', 'Selamat datang di Feature Profile!');
+            // }
+            Auth::logout();
+            return redirect('/')->withErrors(['error' => 'Access Denied.']);
         }
-        if ($user->can('isHR')) {
-            return redirect('/dashboardHR');
-        }
-        if ($user->can('isHeadHR')) {
-            return redirect('/dashboardHR');
-        }
-        if ($user->can('isDirector')) {
-            return redirect('/dashboardHR');
-        }
-        if ($user->can('isHR')) {
-            return redirect('/dashboardHR');
-        }
-        if ($user->can('isSupervisor')) {
-            return redirect('/dashboardSupervisor');
-        }
-        if ($user->can('isHeadBuyer')) {
-            return redirect('/dashboardBuyer');
-        }
-        if ($user->can('isBuyer')) {
-            return redirect('/dashboard');
-        }
-        if ($user->can('isManager')) {
-            return redirect('/feature-profile');
-        }
-        if ($user->can('isHuman')) {
-    return redirect()->route('feature-profile')
-        ->with('success', 'Selamat datang di Feature Profile!');
-}
-        Auth::logout();
-        return redirect('/')->withErrors(['error' => 'Access Denied.']);
+        return $next($request);
     }
-    return $next($request);
-}    
 }

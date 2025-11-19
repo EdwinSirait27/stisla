@@ -1,184 +1,3 @@
-{{-- @extends('layouts.app')
-@section('title', 'Profile')
-@push('style')
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/bootstrap-social/assets/css/bootstrap.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        .password-wrapper {
-            position: relative;
-        }
-        .password-wrapper input {
-            padding-right: 2.5rem;
-        }
-        .toggle-password {
-            position: absolute;
-            top: 50%;
-            right: 0.75rem;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6c757d;
-            font-size: 1.2rem;
-            z-index: 10;
-        }
-    </style>
-@endpush
-@section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Profile</h1>
-                <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item">Profile</div>
-                </div>
-            </div>
-            <div class="section-body">
-                <div class="row mt-sm-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <form action="{{ route('feature-profile.update') }}" method="POST">
-                                @csrf
-                                @method('PUT')
-
-                                <div class="card-body">
-                                    <h4>Edit Your Profile</h4>
-
-                                    @if (session('status'))
-                                        <div class="alert alert-success">
-                                            {{ session('status') }}
-                                        </div>
-                                    @endif
-                                    @if ($errors->any())
-                                        <div class="alert alert-danger">
-                                            <ul>
-                                                @foreach ($errors->all() as $error)
-                                                    <li>{{ $error }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @endif
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                 <label for="username" class="form-control-label">
-                                                    <i class="fas fa-user"></i> {{ __('Username') }}
-                                                </label>
-                                              <input type="text"
-                                                    class="form-control @error('username') is-invalid @enderror"
-                                                    id="username" name="username"
-                                                    value="{{ old('username', $user->username ?? '') }}"
-                                                    placeholder="Enter username" disabled>
-                                                @error('username')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="employee_name" class="form-control-label">
-                                                    <i class="fas fa-user"></i> {{ __('Employee Name') }}
-                                                </label>
-                                                <input type="text"
-                                                    class="form-control @error('employee_name') is-invalid @enderror"
-                                                    id="employee_name" name="employee_name"
-                                                    value="{{ old('employee_name', $user->employee->employee_name ?? '') }}"
-                                                    placeholder="Enter Employee Name" disabled>
-                                                @error('employee_name')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="password" class="form-control-label">
-                                                    <i class="fas fa-lock"></i> {{ __('Password') }}
-                                                </label>
-                                                <div class="input-group">
-                                                    <input type="password"
-                                                        class="form-control @error('password') is-invalid @enderror"
-                                                        id="password" name="password"
-                                                        placeholder="Leave blank to keep current password"
-                                                        aria-describedby="password-addon"
-                                                        minlength="8" maxlength="20"
-                                                        oninput="this.value = this.value.replace(/\s/g, '');">
-
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text" onclick="togglePassword()" style="cursor: pointer;">
-                                                            <i id="eyeIcon" class="fa fa-eye"></i>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <small class="text-muted">
-                                                    Password must contain at least 1 uppercase letter, 1 lowercase letter,
-                                                    1 number, and 1 symbol, and must not contain spaces. Min 8 - Max 20 characters.
-                                                </small>
-                                                @error('password')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card-footer d-flex justify-content-between">
-                                    <a href="{{ url()->previous() }}" class="btn btn-secondary">Back</a>
-                                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-@endsection
-
-@push('scripts')
-    <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
-    <script src="{{ asset('library/jquery.pwstrength/jquery.pwstrength.min.js') }}"></script>
-    <script src="{{ asset('js/page/features-profile.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        function togglePassword() {
-            let passwordInput = document.getElementById('password');
-            let eyeIcon = document.getElementById('eyeIcon');
-
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
-            } else {
-                passwordInput.type = "password";
-                eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
-            }
-        }
-          @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-        @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script>
-@endpush --}}
 @extends('layouts.app')
 @section('title', 'Profile')
 
@@ -575,8 +394,42 @@
                                                 @enderror
                                             </div>
                                         </div> 
+                                         <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="foto" class="form-control-label">
+                                                <i class="fas fa-id-card"></i> {{ __('Images') }}
+                                            </label>
 
-                                    <div class="col-md-12 mb-3">
+                                                {{-- Preview Image --}}
+                                                <div class="mb-2">
+                                                    @if (!empty($employee->Employee?->foto))
+                                                        <img id="preview-image"
+                                                            src="{{ asset('storage/employeephotos/' . $employee->Employee->photos) }}"
+                                                            alt="Preview" class="img-thumbnail" width="150"
+                                                            style="cursor:pointer" onclick="showImageSwal(this.src)">
+                                                    @else
+                                                        <img id="preview-image" src="https://via.placeholder.com/150"
+                                                            alt="Preview" class="img-thumbnail" width="150"
+                                                            style="cursor:pointer" onclick="showImageSwal(this.src)">
+                                                    @endif
+                                             
+                                                {{-- File Input --}}
+                                                <input type="file" name="photos" id="photos"
+                                                    class="form-control @error('photos') is-invalid @enderror"
+                                                    accept="image/*" onchange="previewImage(event)">
+
+                                                @error('photos')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                    {{-- <div class="col-md-12 mb-3">
                                         <label for="password"><i class="fas fa-lock"></i> Password</label>
                                         <div class="input-group">
                                             <input type="password"
@@ -596,7 +449,7 @@
                                             Password must contain at least 1 uppercase letter, 1 lowercase letter,
                                             1 number, and 1 symbol. (8-20 chars)
                                         </small>
-                                    </div>
+                                    </div> --}}
                                 </div>
                             </div>
 
