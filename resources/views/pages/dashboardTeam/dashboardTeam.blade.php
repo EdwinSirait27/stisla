@@ -316,7 +316,7 @@
                                                             $status = $member->todayAttendanceStatus ?? 'absent';
                                                         @endphp
                                                         <span class="badge 
-                                                            @if($status === 'present') badge-success
+                                                            @if ($status === 'present') badge-success
                                                             @elseif($status === 'leave') badge-warning
                                                             @else badge-danger
                                                             @endif">
@@ -1118,30 +1118,30 @@
 
     <style>
         /* :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        } */
-         :root {
-    /* Deep Indigo → Royal Blue */
-    --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
+                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            } */
+        :root {
+            /* Deep Indigo → Royal Blue */
+            --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
 
-    /* Emerald → Dark Teal */
-    --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
+            /* Emerald → Dark Teal */
+            --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
 
-    /* Gold → Amber (lebih premium, bukan kuning norak) */
-    --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
+            /* Gold → Amber (lebih premium, bukan kuning norak) */
+            --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
 
-    /* Steel Blue → Slate Cyan (soft, tidak neon) */
-    --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
+            /* Steel Blue → Slate Cyan (soft, tidak neon) */
+            --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
 
-    /* Soft shadow */
-    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
-}
+            /* Soft shadow */
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+        }
 
 
         /* ========== Welcome Banner ========== */
@@ -1228,10 +1228,21 @@
             color: white;
         }
 
-        .stat-icon.primary { background: var(--primary-gradient); }
-        .stat-icon.success { background: var(--success-gradient); }
-        .stat-icon.warning { background: var(--warning-gradient); }
-        .stat-icon.info { background: var(--info-gradient); }
+        .stat-icon.primary {
+            background: var(--primary-gradient);
+        }
+
+        .stat-icon.success {
+            background: var(--success-gradient);
+        }
+
+        .stat-icon.warning {
+            background: var(--warning-gradient);
+        }
+
+        .stat-icon.info {
+            background: var(--info-gradient);
+        }
 
         .stat-content h3 {
             font-size: 2rem;
@@ -1773,6 +1784,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1782,12 +1794,14 @@
         .animate-fade-in-up {
             animation: fadeInUp 0.5s ease-out;
         }
+
         .text-gradient {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
         .badge-primary-soft {
             background: rgba(102, 126, 234, 0.1);
             color: #ffffff;
@@ -1796,13 +1810,15 @@
             font-weight: 600;
             font-size: 0.75rem;
         }
+
         /* annoucement */
-         .announcements-card {
+        .announcements-card {
             background: white;
             border-radius: 16px;
             box-shadow: var(--card-shadow);
             overflow: hidden;
         }
+
         .announcements-header {
             background: var(--orange-gradient);
             color: white;
@@ -1863,6 +1879,77 @@
             font-size: 0.75rem;
             color: #94a3b8;
         }
+          /* ========== Personal Profile Card ========== */
+        .profile-header-card {
+            background: var(--primary-gradient);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .profile-header-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .profile-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            object-fit: cover;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-info h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 24px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .profile-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            opacity: 0.95;
+        }
+
+        .profile-meta-item i {
+            font-size: 1.1rem;
+        }
     </style>
 @endpush
 
@@ -1870,7 +1957,7 @@
     <div class="main-content">
         <section class="section">
             <!-- Welcome Banner -->
-            <div class="welcome-banner animate-fade-in-up">
+            {{-- <div class="welcome-banner animate-fade-in-up">
                 <div class="row align-items-center">
                     <div class="col-lg-8">
                         <h2>
@@ -1882,6 +1969,44 @@
                             <i class="fas fa-calendar-day me-2"></i>
                             {{ now()->format('l, F d, Y') }}
                         </div>
+                    </div>
+                </div>
+            </div> --}}
+            <div class="profile-header-card animate-fade-in-up">
+                <div class="profile-content">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <div class="d-flex align-items-center gap-4">
+                                <img src="{{ Auth::user()->employee->photos
+                                    ? asset('storage/' . Auth::user()->employee->photos)
+                                    : asset('img/avatar/avatar-1.png') }}"
+                                    alt="Profile" class="profile-avatar-large">
+                                <div class="profile-info">
+                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
+                                    <div class="profile-meta">
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-briefcase"></i>
+                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
+                                            {{-- <span>{{ $employee->position ?? 'Software Engineer' }}</span> --}}
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-building"></i>
+                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
+                                            {{-- <span>{{ $employee->department ?? 'Engineering' }}</span> --}}
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-id-badge"></i>
+                                            <span>{{ Auth::user()->employee->employee_pengenal ?? 'Edwin Sirait' }}</span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>{{ now()->format('l, F d, Y') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -1935,7 +2060,7 @@
                             <div class="stat-content">
                                 <h3>{{ $pendingApprovals ?? 0 }}</h3>
                                 <p>All Approvals</p>
-                                @if(($pendingApprovals ?? 0) > 0)
+                                @if (($pendingApprovals ?? 0) > 0)
                                     <span class="stat-trend down">
                                         <i class="fas fa-exclamation-circle me-1"></i>
                                         Needs Action
@@ -1968,7 +2093,7 @@
                     </div>
                 </div>
             </div>
-             <div class="col-lg-12 col-12 mb-4">
+            <div class="col-lg-12 col-12 mb-4">
                 <div class="announcements-card">
                     <div class="announcements-header">
                         <h5>
@@ -2084,14 +2209,14 @@
                                 <div class="approval-item">
                                     <div class="approval-header">
                                         <div class="d-flex align-items-center gap-3">
-                                            <img class="rounded-circle" 
-                                                 width="40" 
-                                                 height="40"
-                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
-                                                 alt="{{ $submission->employee->employee_name ?? 'Employee' }}">
+                                            <img class="rounded-circle" width="40" height="40"
+                                                src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
+                                                alt="{{ $submission->employee->employee_name ?? 'Employee' }}">
                                             <div>
-                                                <h6 class="mb-0">{{ $submission->employee->employee_name ?? 'Unknown' }}</h6>
-                                                <small class="text-muted">{{ $submission->employee->position ?? 'Employee' }}</small>
+                                                <h6 class="mb-0">{{ $submission->employee->employee_name ?? 'Unknown' }}
+                                                </h6>
+                                                <small
+                                                    class="text-muted">{{ $submission->employee->position ?? 'Employee' }}</small>
                                             </div>
                                         </div>
                                         <span class="approval-type {{ strtolower($submission->type) }}">
@@ -2101,7 +2226,8 @@
                                     <div class="approval-meta">
                                         <span>
                                             <i class="fas fa-calendar"></i>
-                                            {{ \Carbon\Carbon::parse($submission->leave_date_from ?? now())->format('M d') }} - 
+                                            {{ \Carbon\Carbon::parse($submission->leave_date_from ?? now())->format('M d') }}
+                                            -
                                             {{ \Carbon\Carbon::parse($submission->leave_date_to ?? now())->format('M d, Y') }}
                                         </span>
                                         <span>
@@ -2114,15 +2240,13 @@
                                         {{ $submission->notes ?? 'No notes provided' }}
                                     </p>
                                     <div class="approval-actions">
-                                        <button class="btn btn-approve" 
-                                                data-id="{{ $submission->id }}"
-                                                data-action="approve">
+                                        <button class="btn btn-approve" data-id="{{ $submission->id }}"
+                                            data-action="approve">
                                             <i class="fas fa-check me-1"></i>
                                             Approve
                                         </button>
-                                        <button class="btn btn-reject" 
-                                                data-id="{{ $submission->id }}"
-                                                data-action="reject">
+                                        <button class="btn btn-reject" data-id="{{ $submission->id }}"
+                                            data-action="reject">
                                             <i class="fas fa-times me-1"></i>
                                             Reject
                                         </button>
@@ -2148,7 +2272,7 @@
                             Quick Actions
                         </h5>
                         <div class="action-grid">
-                            <a href="{{ route('pages.Employee') }}" class="action-btn">
+                            <a href="{{ route('pages.Team') }}" class="action-btn">
                                 <i class="fas fa-users"></i>
                                 <span>My Team</span>
                             </a>
@@ -2158,11 +2282,11 @@
                             </a>
                             <a href="#" class="action-btn" id="viewReportsBtn">
                                 <i class="fas fa-chart-line"></i>
-                                <span>View Reports</span>
+                                <span>Coming Soon</span>
                             </a>
                             <a href="#" class="action-btn" id="scheduleBtn">
                                 <i class="fas fa-calendar"></i>
-                                <span>Schedule</span>
+                                <span>Coming Soon</span>
                             </a>
                         </div>
                     </div>
@@ -2235,9 +2359,9 @@
                                 <div class="team-member-item">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-3">
-                                            <img class="member-avatar" 
-                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
-                                                 alt="{{ $member->employee_name ?? 'Employee' }}">
+                                            <img class="member-avatar"
+                                                src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
+                                                alt="{{ $member->employee_name ?? 'Employee' }}">
                                             <div class="member-info">
                                                 <h6>{{ $member->employee_name ?? 'Unknown' }}</h6>
                                                 <small>{{ $member->position ?? 'Employee' }}</small>
@@ -2256,7 +2380,7 @@
                                 </div>
                             @endforelse
                         </div>
-                        @if(count($teamMembers ?? []) > 0)
+                        @if (count($teamMembers ?? []) > 0)
                             <div class="card-footer bg-light text-center">
                                 <a href="{{ route('pages.Employee') }}" class="text-decoration-none">
                                     View All Team Members
@@ -2305,7 +2429,7 @@
                                                     {{ \Carbon\Carbon::parse($announcement->publish_date ?? now())->format('M d, Y') }}
                                                 </td>
                                                 <td class="text-center">
-                                                    @if($announcement->end_date)
+                                                    @if ($announcement->end_date)
                                                         {{ \Carbon\Carbon::parse($announcement->end_date)->format('M d, Y') }}
                                                     @else
                                                         <span class="badge badge-info">Ongoing</span>
@@ -2313,11 +2437,11 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <button class="btn btn-sm btn-primary preview-announcement-btn"
-                                                            data-id="{{ $announcement->id }}"
-                                                            data-title="{{ $announcement->title }}"
-                                                            data-content="{{ $announcement->content }}"
-                                                            data-date="{{ $announcement->publish_date }}"
-                                                            data-enddate="{{ $announcement->end_date }}">
+                                                        data-id="{{ $announcement->id }}"
+                                                        data-title="{{ $announcement->title }}"
+                                                        data-content="{{ $announcement->content }}"
+                                                        data-date="{{ $announcement->publish_date }}"
+                                                        data-enddate="{{ $announcement->end_date }}">
                                                         <i class="fas fa-eye me-1"></i>
                                                         View
                                                     </button>
@@ -2345,7 +2469,8 @@
     </div>
 
     <!-- Create Submission Modal -->
-    <div class="modal fade" id="createSubmissionModal" tabindex="-1" aria-labelledby="createSubmissionLabel" aria-hidden="true">
+    <div class="modal fade" id="createSubmissionModal" tabindex="-1" aria-labelledby="createSubmissionLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <form action="{{ route('Submissions.store') }}" method="POST" id="submissionForm">
@@ -2399,13 +2524,15 @@
                             </label>
                             <div class="alert alert-info d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>Total:</strong> <span id="totalLeave">{{ $leaveBalance->total ?? 0 }}</span> days
+                                    <strong>Total:</strong> <span id="totalLeave">{{ $leaveBalance->total ?? 0 }}</span>
+                                    days
                                 </div>
                                 <div>
                                     <strong>Used:</strong> <span id="usedLeave">{{ $leaveBalance->used ?? 0 }}</span> days
                                 </div>
                                 <div>
-                                    <strong>Remaining:</strong> <span id="remainingLeave">{{ $leaveBalance->remaining ?? 0 }}</span> days
+                                    <strong>Remaining:</strong> <span
+                                        id="remainingLeave">{{ $leaveBalance->remaining ?? 0 }}</span> days
                                 </div>
                             </div>
                         </div>
@@ -2416,11 +2543,8 @@
                                 <label class="form-label" for="leave_date_from">
                                     <i class="fas fa-calendar-alt me-1"></i> Start Date
                                 </label>
-                                <input type="date" 
-                                       name="leave_date_from" 
-                                       id="leave_date_from" 
-                                       class="form-control @error('leave_date_from') is-invalid @enderror"
-                                       required>
+                                <input type="date" name="leave_date_from" id="leave_date_from"
+                                    class="form-control @error('leave_date_from') is-invalid @enderror" required>
                                 @error('leave_date_from')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -2429,11 +2553,8 @@
                                 <label class="form-label" for="leave_date_to">
                                     <i class="fas fa-calendar-check me-1"></i> End Date
                                 </label>
-                                <input type="date" 
-                                       name="leave_date_to" 
-                                       id="leave_date_to" 
-                                       class="form-control @error('leave_date_to') is-invalid @enderror" 
-                                       required>
+                                <input type="date" name="leave_date_to" id="leave_date_to"
+                                    class="form-control @error('leave_date_to') is-invalid @enderror" required>
                                 @error('leave_date_to')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -2445,12 +2566,8 @@
                             <label class="form-label" for="notes">
                                 <i class="fas fa-sticky-note me-1"></i> Notes / Reason
                             </label>
-                            <textarea name="notes" 
-                                      id="notes" 
-                                      class="form-control @error('notes') is-invalid @enderror" 
-                                      rows="4"
-                                      placeholder="Please provide details about your request..."
-                                      required></textarea>
+                            <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror" rows="4"
+                                placeholder="Please provide details about your request..." required></textarea>
                             @error('notes')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -2535,17 +2652,14 @@
                     </div>
                     <div class="modal-body">
                         <p id="approvalActionMessage">Are you sure you want to proceed with this action?</p>
-                        
+
                         <!-- Rejection Reason (shown only for reject) -->
                         <div id="rejectionReasonDiv" style="display: none;">
                             <label class="form-label" for="rejection_reason">
                                 <i class="fas fa-comment me-1"></i> Reason for Rejection
                             </label>
-                            <textarea name="rejection_reason" 
-                                      id="rejection_reason" 
-                                      class="form-control" 
-                                      rows="3"
-                                      placeholder="Please provide a reason..."></textarea>
+                            <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3"
+                                placeholder="Please provide a reason..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">

@@ -11,6 +11,8 @@ use App\Models\Announcment;
 use App\Models\Employee;
 use App\Models\Departments;
 use App\Models\Stores;
+use Illuminate\Support\Facades\DB;
+
 use App\Models\Banks;
 use App\Models\Grading;
 use Yajra\DataTables\DataTables;
@@ -139,4 +141,207 @@ class DashManagerController extends Controller
             'isManager'
         ));
     }
+private function getSubStructureIds($id)
+{
+    $children = Structuresnew::where('parent_id', $id)->pluck('id')->toArray();
+    $all = $children;
+
+    foreach ($children as $childId) {
+        $all = array_merge($all, $this->getSubStructureIds($childId));
+    }
+
+    return $all;
+}
+
+
+public function getOrgChartDataTeam()
+{
+    $user = auth()->user();
+
+    // Ambil struktur root milik employee yang login
+    $rootId = $user->employee->structure_id ?? null;
+
+    if (!$rootId) {
+        return response()->json([]);
+    }
+
+    // Ambil semua anak-anak structure (recursive)
+    $childIds = $this->getSubStructureIds($rootId);
+
+    // Gabungkan root + seluruh anak
+    $allowedIds = array_merge([$rootId], $childIds);
+
+    $gradingPriority = [
+        'Director' => 1,
+        'Head' => 2,
+        'Senior Manager' => 3,
+        'Manager' => 4,
+        'Assistant Manager' => 5,
+        'Supervisor' => 6,
+        'Staff' => 7,
+        'Daily Worker' => 8,
+    ];
+
+    // Ambil struktur yang diizinkan
+    $structures = Structuresnew::with([
+        'parent',
+        'employee',
+        'employee.store',
+        'submissionposition',
+        'employee.grading',
+        'submissionposition.positionRelation',
+        'submissionposition.store',
+        'secondarySupervisors',
+        'secondarySupervisors.employee',
+        'secondarySupervisors.submissionposition.positionRelation',
+        'secondarySupervisors.submissionposition.store',
+    ])
+    ->whereIn('id', $allowedIds)
+    ->get();
+
+    // 🔥 Kumpulkan parent_id dari structures
+    $parentIds = $structures->pluck('parent_id')->filter()->unique()->toArray();
+    
+    // 🔥 Kumpulkan secondary supervisor IDs dari tabel pivot
+    $secondarySupervisorIds = DB::table('structure_supervisors')
+        ->whereIn('structure_id', $allowedIds)
+        ->pluck('supervisor_id')
+        ->unique()
+        ->toArray();
+
+    // 🔥 Gabungkan dan filter hanya yang belum ada
+    $missingIds = array_merge($parentIds, $secondarySupervisorIds);
+    $missingIds = array_diff($missingIds, $allowedIds);
+    $missingIds = array_filter($missingIds); // Hapus null/empty
+
+    // 🔥 Ambil struktur yang missing (parent & secondary supervisors)
+    if (!empty($missingIds)) {
+        $additionalStructures = Structuresnew::with([
+            'parent',
+            'employee',
+            'employee.store',
+            'submissionposition',
+            'employee.grading',
+            'submissionposition.positionRelation',
+            'submissionposition.store',
+            'secondarySupervisors',
+            'secondarySupervisors.employee',
+            'secondarySupervisors.submissionposition.positionRelation',
+            'secondarySupervisors.submissionposition.store',
+        ])
+        ->whereIn('id', $missingIds)
+        ->get();
+
+        // Gabungkan dengan structures yang sudah ada
+        $structures = $structures->merge($additionalStructures);
+    }
+
+    // Map data
+    $data = $structures->map(function ($s) use ($gradingPriority) {
+
+        $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+        $level = $gradingPriority[$gradingName] ?? 999;
+
+        $secondaryData = $s->secondarySupervisors->map(function($secondary) {
+            return [
+                'id' => $secondary->id,
+                'employee_name' => collect($secondary->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+                'position' => optional(optional($secondary->submissionposition)->positionRelation)->name ?? 'Unknown',
+                'location' => optional(optional($secondary->submissionposition)->store)->name ?? 'Empty',
+            ];
+        })->toArray();
+
+        return [
+            'id'         => $s->id,
+            'pid'        => $s->parent_id,
+            'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+            'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+            'Grading'    => $gradingName,
+            'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+            'status'     => $s->status,
+            'photo'      => collect($s->employee)->pluck('photo')->first() ?? '/default-avatar.png',
+            'level'      => $level,
+            'secondary'  => $secondaryData,
+        ];
+    });
+
+    $sortedData = $data->sortBy('level')->values();
+
+    return response()->json($sortedData);
+}
+//     public function getOrgChartDataTeam()
+// {
+//     $user = auth()->user();
+
+//     // Ambil struktur root milik employee yang login
+//     $rootId = $user->employee->structure_id ?? null;
+
+//     if (!$rootId) {
+//         return response()->json([]);
+//     }
+
+//     // Ambil semua anak-anak structure (recursive)
+//     $childIds = $this->getSubStructureIds($rootId);
+
+//     // Gabungkan root + seluruh anak
+//     $allowedIds = array_merge([$rootId], $childIds);
+
+//     $gradingPriority = [
+//         'Director' => 1,
+//         'Head' => 2,
+//         'Senior Manager' => 3,
+//         'Manager' => 4,
+//         'Assistant Manager' => 5,
+//         'Supervisor' => 6,
+//         'Staff' => 7,
+//         'Daily Worker' => 8,
+//     ];
+
+//     // FILTER disini → hanya structure subtree milik user
+//     $data = Structuresnew::with([
+//         'parent',
+//         'employee',
+//         'employee.store',
+//         'submissionposition',
+//         'employee.grading',
+//         'submissionposition.positionRelation',
+//         'submissionposition.store',
+//         'secondarySupervisors',
+//         'secondarySupervisors.employee',
+//         'secondarySupervisors.submissionposition.positionRelation',
+//     ])
+//     ->whereIn('id', $allowedIds) // ⬅🔥 hanya struktur user + anak2nya
+//     ->get()
+//     ->map(function ($s) use ($gradingPriority) {
+
+//         $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+//         $level = $gradingPriority[$gradingName] ?? 999;
+
+//         $secondaryData = $s->secondarySupervisors->map(function($secondary) {
+//             return [
+//                 'id' => $secondary->id,
+//                 'employee_name' => collect($secondary->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+//                 'position' => optional(optional($secondary->submissionposition)->positionRelation)->name ?? 'Unknown',
+//             ];
+//         })->toArray();
+
+//         return [
+//             'id'         => $s->id,
+//             'pid'        => $s->parent_id,
+//             'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
+//             'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+//             'Grading'    => $gradingName,
+//             'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
+//             'status'     => $s->status,
+//             'photo'      => collect($s->employee)->pluck('photo')->first() ?? '/default-avatar.png',
+//             'level'      => $level,
+//             'secondary'  => $secondaryData,
+//         ];
+//     });
+
+//     $sortedData = $data->sortBy('level')->values();
+
+//     return response()->json($sortedData);
+// }
+
 }

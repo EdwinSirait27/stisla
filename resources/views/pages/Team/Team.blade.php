@@ -140,6 +140,12 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    .secondary-link {
+        stroke-dasharray: 4;
+        stroke-width: 2px;
+        stroke: #ff9800 !important;
+    }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
         .table-responsive {
@@ -161,6 +167,9 @@
             padding: 0.85rem 0.5rem;
             font-size: 0.8rem;
         }
+
+
+
     }
 </style>
 @section('main')
@@ -186,7 +195,7 @@
                                                 <th class="text-center">NIP</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Location</th>
-                                                <th class="text-center">Old Position</th>
+                                                <th class="text-center">Position</th>
                                                 <th class="text-center">Status Employee</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
@@ -194,8 +203,30 @@
                                         </thead>
                                     </table>
                                 </div>
-       
+
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-network-wired me-1"></i> Organization Chart
+                            </h6>
+                            {{-- TAMBAHKAN TOMBOL TOGGLE --}}
+                            <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye-slash me-1"></i>
+                                <span id="toggleText">Secondary Supervisors</span>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="tree" style="height: 700px;"></div>
                         </div>
                     </div>
                 </div>
@@ -210,6 +241,228 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://balkan.app/js/OrgChart.js"></script>
+
+    <script>
+        OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+        OrgChart.templates.myTemplate.size = [250, 150];
+
+        OrgChart.templates.myTemplate.node =
+            `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+        stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+
+        OrgChart.templates.myTemplate.field_ =
+            `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+
+        OrgChart.templates.myTemplate.fieldgrading =
+            `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+
+        OrgChart.templates.myTemplate.field_0 =
+            `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+
+        OrgChart.templates.myTemplate.field_1 =
+            `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+
+        OrgChart.templates.myTemplate.field_2 =
+            `<g transform="translate(60,105)">
+        <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+    </g>`;
+
+        OrgChart.templates.myTemplate.field_3 =
+            `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
+
+
+        const statusColors = {
+            active: '#4CAF50',
+            inactive: '#F44336',
+            vacant: '#9E9E9E',
+        };
+
+
+        // === INIT CHART ===
+        const chart = new OrgChart(document.getElementById("tree"), {
+            template: "myTemplate",
+            enableSearch: true,
+            mouseScrool: OrgChart.action.zoom,
+            scaleInitial: OrgChart.match.boundary,
+
+            nodeBinding: {
+                field_: "Employee",
+                fieldgrading: "Grading",
+                field_0: "Position",
+                field_1: "Location",
+                field_2: "statusColor",
+                field_3: "status"
+            },
+
+            toolbar: {
+                zoom: true,
+                fit: true,
+                expandAll: true
+            },
+
+            // ⬇️ TAMBAHKAN INI: Nonaktifkan panel detail
+            nodeMenu: null, // Hilangkan menu node
+            nodeMouseClick: OrgChart.action.none // Tidak ada aksi saat klik node
+        });
+
+
+        // === FUNGSI GAMBAR GARIS SECONDARY ===
+        function drawSecondaryLinks() {
+            // console.log('🔵 === drawSecondaryLinks DIPANGGIL ===');
+
+            // Akses SVG langsung dari DOM
+            const treeElement = document.getElementById("tree");
+            if (!treeElement) {
+                // console.log('❌ Element tree tidak ditemukan');
+                return;
+            }
+
+            const SVG = treeElement.querySelector('svg');
+            if (!SVG) {
+                // console.log('❌ SVG belum siap');
+                return;
+            }
+            // console.log('✅ SVG siap');
+
+            // Hapus garis lama
+            const existingLinks = SVG.querySelectorAll('.secondary-link');
+            // console.log('🗑️ Menghapus', existingLinks.length, 'garis lama');
+            existingLinks.forEach(link => link.remove());
+
+            if (!window.orgData) {
+                // console.log('❌ window.orgData tidak ada');
+                return;
+            }
+            // console.log('✅ window.orgData ada, jumlah nodes:', window.orgData.length);
+
+            let totalLinksCreated = 0;
+
+            window.orgData.forEach(node => {
+                if (!node.secondary || node.secondary.length === 0) return;
+
+                // console.log('👤 Node dengan secondary:', {
+                //     employee: node.Employee,
+                //     nodeId: node.id,
+                //     secondaryData: node.secondary
+                // });
+
+                node.secondary.forEach(secData => {
+                    // ⬇️ PERUBAHAN: Ambil ID dari objek, bukan langsung value
+                    const secId = typeof secData === 'object' ? secData.id : secData;
+
+                    // console.log('   🔍 Mencari nodes - FROM ID:', secId, 'TO ID:', node.id);
+
+                    const fromNode = chart.getNode(secId);
+                    const toNode = chart.getNode(node.id);
+
+                    // console.log('   📍 fromNode:', fromNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+                    // console.log('   📍 toNode:', toNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+
+                    if (!fromNode || !toNode) {
+                        // console.log('   ⚠️ SKIP: Node tidak lengkap');
+                        return;
+                    }
+
+                    // Koordinat
+                    const fx = fromNode.x + fromNode.w / 2;
+                    const fy = fromNode.y + fromNode.h;
+                    const tx = toNode.x + toNode.w / 2;
+                    const ty = toNode.y;
+
+                    // console.log('   📐 Koordinat FROM: (', fx, ',', fy, ')');
+                    // console.log('   📐 Koordinat TO: (', tx, ',', ty, ')');
+
+                    // Buat PATH dengan curve
+                    const midY = (fy + ty) / 2;
+                    const pathData =
+                        `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", pathData);
+                    path.setAttribute("stroke", "#FF5722");
+                    path.setAttribute("stroke-width", "5");
+                    path.setAttribute("stroke-dasharray", "15,8");
+                    path.setAttribute("fill", "none");
+                    path.setAttribute("class", "secondary-link");
+                    path.setAttribute("stroke-linecap", "round");
+
+                    SVG.appendChild(path);
+
+                    totalLinksCreated++;
+                    // console.log('   ✅ GARIS BERHASIL DIBUAT!');
+                });
+            });
+
+            // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
+        }
+
+
+        // === FETCH DATA ===
+        fetch("{{ route('orgchartteam.orgchartteam') }}")
+            .then(res => res.json())
+            .then(data => {
+                // console.log('Raw data:', data);
+
+                const processed = data.map(n => ({
+                    ...n,
+                    statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
+                }));
+
+                // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
+
+                window.orgData = processed;
+                chart.load(processed);
+
+                // Panggil manual dengan delay lebih lama
+                setTimeout(() => {
+                    // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
+                    drawSecondaryLinks();
+                }, 2000); // ⬅ 2 detik
+            });
+
+
+        // === EVENT LISTENERS ===
+        chart.on("init", function() {
+            // console.log('🎬 EVENT: init');
+            setTimeout(drawSecondaryLinks, 500);
+        });
+        chart.on("redraw", function() {
+            setTimeout(drawSecondaryLinks, 300);
+        });
+        let secondaryLinksVisible = true;
+        document.getElementById('toggleSecondaryLinks').addEventListener('click', function() {
+            const treeElement = document.getElementById("tree");
+            const SVG = treeElement.querySelector('svg');
+            const toggleText = document.getElementById('toggleText');
+            const icon = this.querySelector('i');
+
+            if (!SVG) return;
+
+            const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+
+            if (secondaryLinksVisible) {
+                secondaryLinks.forEach(link => {
+                    link.style.display = 'none';
+                });
+                toggleText.textContent = 'Show Secondary Links';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-outline-secondary');
+            } else {
+                secondaryLinks.forEach(link => {
+                    link.style.display = 'block';
+                });
+                toggleText.textContent = 'Hide Secondary Links';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-outline-primary');
+            }
+            secondaryLinksVisible = !secondaryLinksVisible;
+        });
+    </script>
     <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({

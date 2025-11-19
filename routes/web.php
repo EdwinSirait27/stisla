@@ -346,6 +346,7 @@ Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function
             ->name('pages.Team');
         Route::get('/Team/show/{hashedId}', [DashManagerController::class, 'show'])->name('Team.show');
         Route::get('/teams/teams', [DashManagerController::class, 'getTeams'])->name('teams.teams');
+        Route::get('/orgchartteam/orgchartteam', [DashManagerController::class, 'getOrgChartDataTeam'])->name('orgchartteam.orgchartteam');
 
 });
 Route::group(['middleware' => ['auth', 'permission:dashboardDirector']], function () {

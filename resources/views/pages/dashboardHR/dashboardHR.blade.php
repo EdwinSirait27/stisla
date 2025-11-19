@@ -435,13 +435,13 @@
 
     <style>
         /* :root {
-                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            } */
+                        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                        --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                    } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -814,6 +814,7 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
+
         /* ========== Personal Profile Card ========== */
         .profile-header-card {
             background: var(--primary-gradient);
@@ -892,17 +893,16 @@
     <div class="main-content">
         <section class="section">
             <!-- Header -->
-           
-             <div class="profile-header-card animate-fade-in-up">
+
+            <div class="profile-header-card animate-fade-in-up">
                 <div class="profile-content">
                     <div class="row align-items-center">
                         <div class="col-lg-8">
                             <div class="d-flex align-items-center gap-4">
-                                   <img src="{{ Auth::user()->employee->photos 
-            ? asset('storage/' . Auth::user()->employee->photos) 
-            : asset('img/avatar/avatar-1.png') }}"
-     alt="Profile"
-     class="profile-avatar-large">
+                                <img src="{{ Auth::user()->employee->photos
+                                    ? asset('storage/' . Auth::user()->employee->photos)
+                                    : asset('img/avatar/avatar-1.png') }}"
+                                    alt="Profile" class="profile-avatar-large">
 
 
                                 <div class="profile-info">
@@ -1003,7 +1003,7 @@
                 </div>
 
 
-<div class="row">
+                <div class="row">
                     <div class="col-12">
                         <div class="card announcement-card">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -1201,7 +1201,7 @@
                 </div>
 
                 <!-- Announcements Table -->
-                
+
             </div>
         </section>
     </div>

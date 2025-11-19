@@ -385,7 +385,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                         
+
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes_hr" class="form-control-label">
@@ -546,30 +546,28 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-    <div class="form-group">
-        <label for="secondary_supervisors" class="form-control-label">
-            <i class="fas fa-user-friends"></i> Additional / Secondary Supervisor
-        </label>
-
-        <select name="secondary_supervisors[]" 
-                class="form-control select2 @error('secondary_supervisors') is-invalid @enderror" 
-                multiple>
-            @foreach ($parents as $id => $parentName)
-                <option value="{{ $id }}"
-                    @if(collect(old('secondary_supervisors', $structure->secondarySupervisors->pluck('id')->toArray()))
-                        ->contains($id)) selected @endif>
-                    {{ $parentName }}
-                </option>
-            @endforeach
-        </select>
-
-        @error('secondary_supervisors')
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-        @enderror
-    </div>
-</div>
+                                                <div class="form-group">
+                                                    <label for="secondary_supervisors" class="form-control-label">
+                                                        <i class="fas fa-user-friends"></i> Additional / Secondary
+                                                        Superiors
+                                                    </label>
+                                                    <select name="secondary_supervisors[]"
+                                                        class="form-control select2 @error('secondary_supervisors') is-invalid @enderror"
+                                                        multiple>
+                                                        @foreach ($parents as $id => $parentName)
+                                                            <option value="{{ $id }}"
+                                                                @if (collect(old('secondary_supervisors', $structure->secondarySupervisors->pluck('id')->toArray()))->contains($id)) selected @endif>
+                                                                {{ $parentName }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('secondary_supervisors')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -588,28 +586,25 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                              
+                                            </div>
+                                        </div>
 
-                                            </div>
-                                            </div>
+                                        <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Important Note:</strong><br>
+                                                - Superior can be empty.<br>
+                                                - Is Manager can be empty.<br>
+                                            </span>
+                                        </div>
 
-                                            <div class="alert alert-secondary mt-4" role="alert">
-                                                <span class="text-dark">
-                                                    <strong>Important Note:</strong><br>
-                                                    - Superior can be empty.<br>
-                                                    - Is Manager can be empty.<br>
-                                                </span>
-                                            </div>
-
-                                            <div class="d-flex justify-content-end mt-4">
-                                                <a href="{{ route('pages.Structuresnew') }}"
-                                                    class="btn btn-secondary me-2">
-                                                    <i class="fas fa-times"></i> {{ __('Cancel') }}
-                                                </a>
-                                                <button type="submit" id="edit-btn" class="btn bg-primary">
-                                                    <i class="fas fa-save"></i> {{ __('Update') }}
-                                                </button>
-                                            </div>
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary me-2">
+                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                            </a>
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
+                                                <i class="fas fa-save"></i> {{ __('Update') }}
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -672,7 +667,7 @@
         @endif
     </script>
 @endpush
-   {{-- <div class="col-md-6">
+{{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="salary_hr" class="form-control-label">
                                                         <i class="fas fa-file-alt"></i> {{ __('Salary by HR') }}

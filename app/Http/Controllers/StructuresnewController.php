@@ -78,6 +78,7 @@ class StructuresnewController extends Controller
                 'id',
                 'structure_code',
                 'parent_id',
+                'is_manager',
                 'submission_position_id',
                 'status'
             ])
@@ -214,69 +215,254 @@ class StructuresnewController extends Controller
             ->make(true);
     }
 
-    public function storeToStructure($hashedId)
-    {
-        $submission = Submissionposition::with([
-            'submitter.company',
-            'submitter.department',
-            'store'
-        ])->get()->first(function ($item) use ($hashedId) {
-            $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
-            return $check === $hashedId;
-        });
+//     public function storeToStructure($hashedId)
+//     {
+//         $submission = Submissionposition::with([
+//             'submitter.company',
+//             'submitter.department',
+//             'store'
+//         ])->get()->first(function ($item) use ($hashedId) {
+//             $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
+//             return $check === $hashedId;
+//         });
 
-        if (!$submission) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data not found'
-            ], 404);
-        }
-        if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This submission has already been stored'
-            ], 409);
-        }
-        $company = $submission->submitter?->company;
-        $department = $submission->submitter?->department;
-        $store = $submission->store;
-        if (!$company || !$department || !$store) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Missing company, department, or store data'
-            ], 422);
-        }
-        $companyCode = strtoupper(preg_replace('/\s+/', '', $company->nickname));
-        $departmentCode = strtoupper(preg_replace('/\s+/', '', $department->nickname));
-        $storeCode = strtoupper(preg_replace('/\s+/', '', $store->nickname));
-        $prefix = $companyCode . $departmentCode . $storeCode;
-$lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nickname', $company->nickname))
-            ->whereHas('department', fn($q) => $q->where('nickname', $department->nickname))
-            ->whereHas('store', fn($q) => $q->where('nickname', $store->nickname))
-            ->where('structure_code', 'like', $prefix . '%')
-            ->orderBy('structure_code', 'desc')
-            ->first();
-        $nextNumber = 1;
-        if ($lastStructure) {
-            $lastNumber = (int) preg_replace('/\D/', '', $lastStructure->structure_code);
-            $nextNumber = $lastNumber + 1;
-        }
-        $structureCode = $prefix . $nextNumber;
-        $structure = Structuresnew::create([
-            'submission_position_id' => $submission->id,
-            'structure_code' => $structureCode,
-            'status' => 'vacant',
-        ]);
+//         if (!$submission) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => 'Data not found'
+//             ], 404);
+//         }
+//         if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => 'This submission has already been stored'
+//             ], 409);
+//         }
+//         $company = $submission->submitter?->company;
+//         $department = $submission->submitter?->department;
+//         $store = $submission->store;
+//         if (!$company || !$department || !$store) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => 'Missing company, department, or store data'
+//             ], 422);
+//         }
+//         $companyCode = strtoupper(preg_replace('/\s+/', '', $company->nickname));
+//         $departmentCode = strtoupper(preg_replace('/\s+/', '', $department->nickname));
+//         $storeCode = strtoupper(preg_replace('/\s+/', '', $store->nickname));
+//         $prefix = $companyCode . $departmentCode . $storeCode;
+// $lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nickname', $company->nickname))
+//             ->whereHas('department', fn($q) => $q->where('nickname', $department->nickname))
+//             ->whereHas('store', fn($q) => $q->where('nickname', $store->nickname))
+//             ->where('structure_code', 'like', $prefix . '%')
+//             ->orderBy('structure_code', 'desc')
+//             ->first();
+//         $nextNumber = 1;
+//         if ($lastStructure) {
+//             $lastNumber = (int) preg_replace('/\D/', '', $lastStructure->structure_code);
+//             $nextNumber = $lastNumber + 1;
+//         }
+//         $structureCode = $prefix . $nextNumber;
+//         $structure = Structuresnew::create([
+//             'submission_position_id' => $submission->id,
+//             'structure_code' => $structureCode,
+//             'status' => 'vacant',
+//         ]);
+//         // Update status submission
+//         $submission->update(['status' => 'Done']);
 
-        // Update status submission
-        $submission->update(['status' => 'Done']);
+//         return response()->json([
+//             'success' => true,
+//             'message' => 'Data successfully stored to Structuresnew!',
+//             'data' => $structure
+//         ]);
+//     }
+// public function storeToStructure($hashedId)
+// {
+//     $submission = Submissionposition::with([
+//         'submitter.company',
+//         'submitter.department',
+//         'store'
+//     ])->get()->first(function ($item) use ($hashedId) {
+//         $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
+//         return $check === $hashedId;
+//     });
 
+//     if (!$submission) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Data not found'
+//         ], 404);
+//     }
+    
+//     if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'This submission has already been stored'
+//         ], 409);
+//     }
+    
+//     $company = $submission->submitter?->company;
+//     $department = $submission->submitter?->department;
+//     $store = $submission->store;
+    
+//     if (!$company || !$department || !$store) {
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Missing company, department, or store data'
+//         ], 422);
+//     }
+    
+//     $companyCode = strtoupper(preg_replace('/\s+/', '', $company->nickname));
+//     $departmentCode = strtoupper(preg_replace('/\s+/', '', $department->nickname));
+//     $storeCode = strtoupper(preg_replace('/\s+/', '', $store->nickname));
+//     $prefix = $companyCode . $departmentCode . $storeCode;
+    
+//     Log::info('=== DEBUG STRUCTURE CODE ===');
+//     Log::info('Company nickname: ' . $company->nickname);
+//     Log::info('Department nickname: ' . $department->nickname);
+//     Log::info('Store nickname: ' . $store->nickname);
+//     Log::info('Company Code: ' . $companyCode);
+//     Log::info('Department Code: ' . $departmentCode);
+//     Log::info('Store Code: ' . $storeCode);
+//     Log::info('Prefix: ' . $prefix);
+    
+//     $lastStructure = Structuresnew::whereHas('company', fn($q) => $q->where('nickname', $company->nickname))
+//         ->whereHas('department', fn($q) => $q->where('nickname', $department->nickname))
+//         ->whereHas('store', fn($q) => $q->where('nickname', $store->nickname))
+//         ->where('structure_code', 'like', $prefix . '%')
+//         ->orderBy('structure_code', 'desc')
+//         ->first();
+    
+//     $nextNumber = 1;
+//     $numberPart = null;
+    
+//     if ($lastStructure) {
+//         Log::info('Last structure found: ' . $lastStructure->structure_code);
+        
+//         // Hapus prefix dulu, baru ambil angkanya
+//         $lastCode = $lastStructure->structure_code;
+//         $numberPart = substr($lastCode, strlen($prefix));
+//         $lastNumber = (int) $numberPart;
+//         $nextNumber = $lastNumber + 1;
+        
+//         Log::info('Last structure code: ' . $lastStructure->structure_code);
+//         Log::info('Prefix length: ' . strlen($prefix));
+//         Log::info('Number part: ' . $numberPart);
+//         Log::info('Last number (int): ' . $lastNumber);
+//         Log::info('Next number: ' . $nextNumber);
+//     } else {
+//         \Log::info('No last structure found, starting from 1');
+//     }
+    
+//     $structureCode = $prefix . $nextNumber;
+//     Log::info('New structure code: ' . $structureCode);
+//     Log::info('=== END DEBUG ===');
+    
+//     $structure = Structuresnew::create([
+//         'submission_position_id' => $submission->id,
+//         'structure_code' => $structureCode,
+//         'status' => 'vacant',
+//     ]);
+    
+//     // Update status submission
+//     $submission->update(['status' => 'Done']);
+
+//     return response()->json([
+//         'success' => true,
+//         'message' => 'Data successfully stored to Structuresnew!',
+//         'data' => $structure
+//     ]);
+// }
+public function storeToStructure($hashedId)
+{
+    $submission = Submissionposition::with([
+        'submitter.company',
+        'submitter.department',
+        'store'
+    ])->get()->first(function ($item) use ($hashedId) {
+        $check = substr(hash('sha256', $item->id . env('APP_KEY')), 0, 8);
+        return $check === $hashedId;
+    });
+
+    if (!$submission) {
         return response()->json([
-            'success' => true,
-            'message' => 'Data successfully stored to Structuresnew!',
-            'data' => $structure
-        ]);
+            'success' => false,
+            'message' => 'Data not found'
+        ], 404);
     }
+    
+    if (Structuresnew::where('submission_position_id', $submission->id)->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'This submission has already been stored'
+        ], 409);
+    }
+    
+    $company = $submission->submitter?->company;
+    $department = $submission->submitter?->department;
+    $store = $submission->store;
+    
+    if (!$company || !$department || !$store) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Missing company, department, or store data'
+        ], 422);
+    }
+    
+    $companyCode = strtoupper(preg_replace('/\s+/', '', $company->nickname));
+    $departmentCode = strtoupper(preg_replace('/\s+/', '', $department->nickname));
+    $storeCode = strtoupper(preg_replace('/\s+/', '', $store->nickname));
+    $prefix = $companyCode . $departmentCode . $storeCode;
+    
+    Log::info('=== DEBUG STRUCTURE CODE ===');
+    Log::info('Prefix: ' . $prefix);
+    
+    // GANTI QUERY INI - langsung cari berdasarkan prefix di structure_code saja
+    $lastStructure = Structuresnew::where('structure_code', 'like', $prefix . '%')
+        ->orderByRaw('CAST(SUBSTRING(structure_code, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+        ->first();
+    
+    Log::info('Query executed');
+    
+    $nextNumber = 1;
+    $numberPart = null;
+    
+    if ($lastStructure) {
+        Log::info('Last structure found: ' . $lastStructure->structure_code);
+        
+        // Hapus prefix dulu, baru ambil angkanya
+        $lastCode = $lastStructure->structure_code;
+        $numberPart = substr($lastCode, strlen($prefix));
+        $lastNumber = (int) $numberPart;
+        $nextNumber = $lastNumber + 1;
+        
+        Log::info('Number part: ' . $numberPart);
+        Log::info('Last number (int): ' . $lastNumber);
+        Log::info('Next number: ' . $nextNumber);
+    } else {
+        Log::info('No last structure found, starting from 1');
+    }
+    
+    $structureCode = $prefix . $nextNumber;
+    Log::info('New structure code: ' . $structureCode);
+    Log::info('=== END DEBUG ===');
+    
+    $structure = Structuresnew::create([
+        'submission_position_id' => $submission->id,
+        'structure_code' => $structureCode,
+        'status' => 'vacant',
+    ]);
+    
+    // Update status submission
+    $submission->update(['status' => 'Done']);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Data successfully stored to Structuresnew!',
+        'data' => $structure
+    ]);
+}
 
 
     public function bulkDelete(Request $request)

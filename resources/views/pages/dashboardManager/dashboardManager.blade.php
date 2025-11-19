@@ -10,14 +10,14 @@
 
     <style>
         /* :root {
-                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            } */
+                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -472,6 +472,7 @@
             padding-top: 8px;
             border-top: 1px dashed #e9ecef;
         }
+
         /* ========== Announcements Card ========== */
         .announcements-card {
             background: white;
@@ -831,8 +832,10 @@
                     <div class="row align-items-center">
                         <div class="col-lg-8">
                             <div class="d-flex align-items-center gap-4">
-                                <img src="{{ asset('img/avatar/avatar-1.png') }}" alt="Profile"
-                                    class="profile-avatar-large">
+                                <img src="{{ Auth::user()->employee->photos
+                                    ? asset('storage/' . Auth::user()->employee->photos)
+                                    : asset('img/avatar/avatar-1.png') }}"
+                                    alt="Profile" class="profile-avatar-large">
                                 <div class="profile-info">
                                     <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
                                     <div class="profile-meta">
@@ -1529,3 +1532,23 @@
         </div>
     </div>
 @endsection
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>
+@endpush

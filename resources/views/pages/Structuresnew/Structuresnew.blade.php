@@ -176,31 +176,31 @@
                 <h1><i class="fas fa-sitemap"></i> Structures Overview</h1>
             </div>
             <div class="section-body">
-<div class="row mt-4">
-                <div class="col-12">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 text-primary">
-                                <i class="fas fa-network-wired me-1"></i> Organization Chart
-                            </h6>
-                            {{-- ⬇️ TAMBAHKAN TOMBOL TOGGLE --}}
-                            <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye-slash me-1"></i>
-                                <span id="toggleText">Secondary Supervisors</span>
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="tree" style="height: 700px;"></div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-primary">
+                                    <i class="fas fa-network-wired me-1"></i> Organization Chart
+                                </h6>
+                                {{-- ⬇️ TAMBAHKAN TOMBOL TOGGLE --}}
+                                <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye-slash me-1"></i>
+                                    <span id="toggleText">Secondary Supervisors</span>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="tree" style="height: 700px;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
 
 
                 <div class="row">
 
-                    
+
                     <div class="col-12">
                         <div class="card shadow-sm border-0">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -214,7 +214,7 @@
                             </div>
 
 
-                            
+
                             <form id="bulk-delete-form" method="POST" action="{{ route('structuresnew.bulkDelete') }}">
                                 @csrf
                                 @method('DELETE')
@@ -223,13 +223,13 @@
                                         <table class="table table-striped table-hover align-middle" id="users-table">
                                             <thead class="table-light">
                                                 <tr>
-                                                   
+
                                                     <th class="text-center">Company</th>
                                                     <th class="text-center">Department</th>
                                                     <th class="text-center">Location</th>
                                                     <th class="text-center">Position</th>
                                                     <th class="text-center">Structure Code</th>
-                                                    {{-- <th class="text-center">Is Manager?</th> --}}
+                                                    <th class="text-center">Is Manager?</th>
                                                     <th class="text-center">Direct Superior</th>
                                                     <th class="text-center">All Subordinate</th>
                                                     <th class="text-center">Status</th>
@@ -278,7 +278,7 @@
                 </div>
             </div>
 
-            
+
 
             <div class="card mt-4">
                 <div class="card-header">
@@ -363,8 +363,6 @@
             </div>
         </div>
     </div>
-
-
 @endsection
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -542,6 +540,18 @@
                         name: 'structure_code',
                         className: 'text-center'
                     },
+
+                    {
+    data: 'is_manager',
+    className: 'text-center',
+    render: function(data) {
+        if (data == 1) {
+            return `<span class="badge bg-success">Yes</span>`;
+        }
+        return `<span class="badge bg-danger">No</span>`;
+    }
+},
+
                     {
                         data: 'parent',
                         name: 'parent',

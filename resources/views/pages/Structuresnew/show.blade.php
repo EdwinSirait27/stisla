@@ -258,7 +258,7 @@
                                                           {{ number_format($structure->submissionposition->salary_counter, 0, ',', '.') }} to {{ number_format($structure->submissionposition->salary_counter_end, 0, ',', '.') }} </td>
                                                 </tr>
                                                   <tr>
-                                                    <th>Notes from DIR to DIR</th>
+                                                    <th>Notes from DIR to HR</th>
                                                   <td>{{ $structure->submissionposition->notes_dir ?? '-' }}</td>
                                                         
                                                 </tr>

@@ -620,7 +620,7 @@
                                                 <th class="text-center">Company</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Location</th>
-                                                <th class="text-center">Old Position</th>
+                                                <th class="text-center">Position</th>
                                                 <th class="text-center">Grd Name</th>
                                                 <th class="text-center">Status Employee</th>
                                                 <th class="text-center">Status</th>

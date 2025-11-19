@@ -37,7 +37,7 @@ class RedirectIfAuthenticated
                 return redirect('/dashboardSupervisor');
             }
             if ($user->can('isManager')) {
-                return redirect('/dashboardManager');
+                return redirect('/dashboardTeam');
             }
             if ($user->can('isHuman')) {
                 return redirect('/Dashboard');
