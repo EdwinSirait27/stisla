@@ -1280,6 +1280,421 @@
 //     });
 // }
 // ===== ORGCHART SETUP =====
+// OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+// OrgChart.templates.myTemplate.size = [250, 150];
+
+// OrgChart.templates.myTemplate.node =
+//     `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+//         stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+
+// OrgChart.templates.myTemplate.field_ =
+//     `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.fieldgrading =
+//     `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.field_0 =
+//     `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.field_1 =
+//     `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.field_2 =
+//     `<g transform="translate(60,105)">
+//         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+//     </g>`;
+
+// OrgChart.templates.myTemplate.field_3 =
+//     `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
+
+// const statusColors = {
+//     active: '#4CAF50',
+//     inactive: '#F44336',
+//     vacant: '#9E9E9E',
+// };
+
+// const chart = new OrgChart(document.getElementById("tree"), {
+//     template: "myTemplate",
+//     enableSearch: true,
+//     mouseScrool: OrgChart.action.zoom,
+//     scaleInitial: OrgChart.match.boundary,
+//     layout: OrgChart.normal, // Normal layout untuk spacing yang lebih konsisten
+    
+//     // Jarak minimum antar level
+//     levelSeparation: 250,
+//     siblingSeparation: 100,
+//     subtreeSeparation: 150,
+    
+//     // Gunakan layout yang respek terhadap data.min positioning
+//     align: OrgChart.align.center,
+    
+//     nodeBinding: {
+//         field_: "Employee",
+//         fieldgrading: "Grading",
+//         field_0: "Position",
+//         field_1: "Location",
+//         field_2: "statusColor",
+//         field_3: "status"
+//     },
+
+//     toolbar: {
+//         zoom: true,
+//         fit: true,
+//         expandAll: true
+//     },
+
+//     nodeMenu: null,
+//     nodeMouseClick: OrgChart.action.none
+// });
+
+// // ===== STYLING UNTUK INLINE SIDEBAR =====
+// (function addInlineStyles() {
+//     if (document.getElementById('inlineSidebarStyles')) return;
+    
+//     const style = document.createElement('style');
+//     style.id = 'inlineSidebarStyles';
+//     style.textContent = `
+//         .grading-sidebar-inline {
+//             width: 220px;
+//             height: 700px;
+//             background: #fafafa;
+//             overflow-y: auto;
+//             display: flex;
+//             flex-direction: column;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-header {
+//             padding: 20px 15px;
+//             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+//             color: white;
+//             border-bottom: 3px solid #5568d3;
+//             flex-shrink: 0;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-header h6 {
+//             margin: 0;
+//             font-size: 14px;
+//             font-weight: 600;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-header i {
+//             font-size: 14px;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content {
+//             padding: 10px 0;
+//             flex: 1;
+//             overflow-y: auto;
+//         }
+        
+//         .grading-sidebar-inline .grading-item {
+//             padding: 12px 15px;
+//             cursor: pointer;
+//             display: flex;
+//             justify-content: space-between;
+//             align-items: center;
+//             border-left: 4px solid transparent;
+//             transition: all 0.3s ease;
+//             margin: 2px 0;
+//         }
+        
+//         .grading-sidebar-inline .grading-item:hover {
+//             background: #e3f2fd;
+//             border-left-color: #667eea;
+//         }
+        
+//         .grading-sidebar-inline .grading-item.active {
+//             background: #e8eaf6;
+//             border-left-color: #667eea;
+//             font-weight: 600;
+//         }
+        
+//         .grading-sidebar-inline .grading-badge {
+//             font-size: 13px;
+//             font-weight: 500;
+//             color: #424242;
+//             flex: 1;
+//         }
+        
+//         .grading-sidebar-inline .grading-count {
+//             background: #bdbdbd;
+//             color: white;
+//             padding: 3px 10px;
+//             border-radius: 12px;
+//             font-size: 11px;
+//             font-weight: 600;
+//             min-width: 30px;
+//             text-align: center;
+//         }
+        
+//         .grading-sidebar-inline .grading-item.active .grading-count {
+//             background: #667eea;
+//             color: white;
+//         }
+        
+//         .grading-sidebar-inline .all-badge {
+//             color: #667eea;
+//             font-weight: 700;
+//         }
+        
+//         /* Custom Scrollbar */
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar {
+//             width: 6px;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-track {
+//             background: #f1f1f1;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-thumb {
+//             background: #667eea;
+//             border-radius: 3px;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-thumb:hover {
+//             background: #5568d3;
+//         }
+        
+//         /* Responsive */
+//         @media (max-width: 768px) {
+//             .grading-sidebar-inline {
+//                 width: 70px;
+//             }
+            
+//             .grading-sidebar-inline .grading-badge {
+//                 font-size: 10px;
+//                 overflow: hidden;
+//                 text-overflow: ellipsis;
+//                 white-space: nowrap;
+//             }
+            
+//             .grading-sidebar-inline .sidebar-header h6 {
+//                 font-size: 11px;
+//             }
+//         }
+//     `;
+//     document.head.appendChild(style);
+// })();
+
+// // ===== FUNGSI GAMBAR GARIS SECONDARY =====
+// function drawSecondaryLinks() {
+//     const treeElement = document.getElementById("tree");
+//     if (!treeElement) return;
+
+//     const SVG = treeElement.querySelector('svg');
+//     if (!SVG) return;
+
+//     const existingLinks = SVG.querySelectorAll('.secondary-link');
+//     existingLinks.forEach(link => link.remove());
+
+//     if (!window.orgData) return;
+
+//     window.orgData.forEach(node => {
+//         if (!node.secondary || node.secondary.length === 0) return;
+
+//         node.secondary.forEach(secData => {
+//             const secId = typeof secData === 'object' ? secData.id : secData;
+//             const fromNode = chart.getNode(secId);
+//             const toNode = chart.getNode(node.id);
+
+//             if (!fromNode || !toNode) return;
+
+//             const fx = fromNode.x + fromNode.w / 2;
+//             const fy = fromNode.y + fromNode.h;
+//             const tx = toNode.x + toNode.w / 2;
+//             const ty = toNode.y;
+
+//             if (isNaN(fx) || isNaN(fy) || isNaN(tx) || isNaN(ty)) return;
+
+//             const midY = (fy + ty) / 2;
+//             const pathData = `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+
+//             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+//             path.setAttribute("d", pathData);
+//             path.setAttribute("stroke", "#FF5722");
+//             path.setAttribute("stroke-width", "5");
+//             path.setAttribute("stroke-dasharray", "15,8");
+//             path.setAttribute("fill", "none");
+//             path.setAttribute("class", "secondary-link");
+//             path.setAttribute("stroke-linecap", "round");
+
+//             SVG.appendChild(path);
+//         });
+//     });
+// }
+
+// // ===== POPULATE SIDEBAR =====
+// function populateGradingSidebar(data) {
+//     const gradingOrder = ['Director', 'Head', 'Senior Manager', 'Manager', 
+//                           'Assistant Manager', 'Supervisor', 'Staff', 'Daily Worker'];
+    
+//     const gradingCounts = {};
+//     data.forEach(node => {
+//         const grading = node.Grading || 'Empty';
+//         gradingCounts[grading] = (gradingCounts[grading] || 0) + 1;
+//     });
+
+//     const gradingListContainer = document.getElementById('gradingList');
+    
+//     if (!gradingListContainer) {
+//         console.error('Grading list container not found');
+//         return;
+//     }
+
+//     const countAllElement = document.getElementById('count-all');
+//     if (countAllElement) {
+//         countAllElement.textContent = data.length;
+//     }
+
+//     // Clear existing items (except "All")
+//     const existingItems = gradingListContainer.querySelectorAll('.grading-item:not([data-grading="all"])');
+//     existingItems.forEach(item => item.remove());
+
+//     // Add grading items
+//     gradingOrder.forEach(grading => {
+//         if (gradingCounts[grading]) {
+//             const item = document.createElement('div');
+//             item.className = 'grading-item';
+//             item.dataset.grading = grading;
+//             item.innerHTML = `
+//                 <span class="grading-badge">${grading}</span>
+//                 <span class="grading-count">${gradingCounts[grading]}</span>
+//             `;
+//             gradingListContainer.appendChild(item);
+//         }
+//     });
+
+//     // Event Listeners
+//     document.querySelectorAll('.grading-item').forEach(item => {
+//         item.addEventListener('click', function() {
+//             document.querySelectorAll('.grading-item').forEach(i => i.classList.remove('active'));
+//             this.classList.add('active');
+
+//             const selectedGrading = this.dataset.grading;
+//             filterByGrading(selectedGrading);
+//         });
+//     });
+// }
+
+// function filterByGrading(grading) {
+//     if (!window.orgData) return;
+
+//     if (grading === 'all') {
+//         chart.load(window.orgData);
+//     } else {
+//         const filtered = [];
+//         const includedIds = new Set();
+
+//         // Collect matching nodes
+//         window.orgData.forEach(node => {
+//             if (node.Grading === grading) {
+//                 filtered.push(node);
+//                 includedIds.add(node.id);
+//             }
+//         });
+
+//         // Add required parents
+//         window.orgData.forEach(node => {
+//             if (node.Grading === grading) {
+//                 let parentId = node.pid;
+//                 while (parentId) {
+//                     if (!includedIds.has(parentId)) {
+//                         const parentNode = window.orgData.find(n => n.id === parentId);
+//                         if (parentNode) {
+//                             filtered.push(parentNode);
+//                             includedIds.add(parentId);
+//                             parentId = parentNode.pid;
+//                         } else {
+//                             break;
+//                         }
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
+//         });
+
+//         chart.load(filtered);
+//     }
+
+//     setTimeout(drawSecondaryLinks, 500);
+// }
+
+// // ===== FETCH DATA =====
+// fetch("{{ route('orgchart.orgchart') }}")
+//     .then(res => res.json())
+//     .then(data => {
+//         const processed = data.map(n => {
+//             // Hitung jarak Y berdasarkan level grading
+//             const levelGap = 250; // Jarak vertikal per level grading (dalam pixel)
+//             const calculatedY = (n.level || 0) * levelGap;
+            
+//             return {
+//                 ...n,
+//                 statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E',
+//                 // ⬇️ Tambahkan custom min/max level untuk positioning
+//                 min: { y: calculatedY }
+//             };
+//         });
+
+//         window.orgData = processed;
+        
+//         // Populate sidebar yang sudah ada di HTML
+//         populateGradingSidebar(processed);
+        
+//         // Load chart dengan data yang sudah dimodifikasi
+//         chart.load(processed);
+        
+//         setTimeout(drawSecondaryLinks, 2000);
+//     })
+//     .catch(err => console.error('Error loading org chart data:', err));
+
+// // ===== EVENT LISTENERS =====
+// chart.on("init", function() {
+//     setTimeout(drawSecondaryLinks, 500);
+// });
+
+// chart.on("redraw", function() {
+//     setTimeout(drawSecondaryLinks, 300);
+// });
+
+// // Toggle Secondary Links
+// let secondaryLinksVisible = true;
+// const toggleButton = document.getElementById('toggleSecondaryLinks');
+// if (toggleButton) {
+//     toggleButton.addEventListener('click', function() {
+//         const treeElement = document.getElementById("tree");
+//         const SVG = treeElement ? treeElement.querySelector('svg') : null;
+//         const toggleText = document.getElementById('toggleText');
+//         const icon = this.querySelector('i');
+
+//         if (!SVG) return;
+
+//         const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+
+//         if (secondaryLinksVisible) {
+//             secondaryLinks.forEach(link => link.style.display = 'none');
+//             if (toggleText) toggleText.textContent = 'Show Secondary Links';
+//             if (icon) {
+//                 icon.classList.remove('fa-eye-slash');
+//                 icon.classList.add('fa-eye');
+//             }
+//             this.classList.remove('btn-outline-primary');
+//             this.classList.add('btn-outline-secondary');
+//         } else {
+//             secondaryLinks.forEach(link => link.style.display = 'block');
+//             if (toggleText) toggleText.textContent = 'Hide Secondary Links';
+//             if (icon) {
+//                 icon.classList.remove('fa-eye');
+//                 icon.classList.add('fa-eye-slash');
+//             }
+//             this.classList.remove('btn-outline-secondary');
+//             this.classList.add('btn-outline-primary');
+//         }
+//         secondaryLinksVisible = !secondaryLinksVisible;
+//     });
+// }
+// ===== ORGCHART SETUP =====
 OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
 OrgChart.templates.myTemplate.size = [250, 150];
 
@@ -1318,15 +1733,10 @@ const chart = new OrgChart(document.getElementById("tree"), {
     enableSearch: true,
     mouseScrool: OrgChart.action.zoom,
     scaleInitial: OrgChart.match.boundary,
-    layout: OrgChart.normal, // Normal layout untuk spacing yang lebih konsisten
+    layout: OrgChart.normal,
     
-    // Jarak minimum antar level
-    levelSeparation: 250,
+    levelSeparation: 220,
     siblingSeparation: 100,
-    subtreeSeparation: 150,
-    
-    // Gunakan layout yang respek terhadap data.min positioning
-    align: OrgChart.align.center,
     
     nodeBinding: {
         field_: "Employee",
@@ -1346,6 +1756,28 @@ const chart = new OrgChart(document.getElementById("tree"), {
     nodeMenu: null,
     nodeMouseClick: OrgChart.action.none
 });
+
+// ⬇️ EVENT: Adjust positions sebelum render
+chart.on('prerender', function(sender, args) {
+    adjustNodePositionsByGrading(args.nodes);
+    return args;
+});
+
+// ===== ADJUST NODE POSITIONS BY GRADING LEVEL =====
+function adjustNodePositionsByGrading(nodes) {
+    if (!window.orgData || !nodes) return;
+    
+    const gradingGap = 220; // Jarak antar grading level
+    const baseY = 50;
+    
+    nodes.forEach(node => {
+        const nodeData = window.orgData.find(d => d.id == node.id);
+        if (nodeData && nodeData.level !== undefined) {
+            // Override Y position berdasarkan grading level
+            node.y = baseY + (nodeData.level * gradingGap);
+        }
+    });
+}
 
 // ===== STYLING UNTUK INLINE SIDEBAR =====
 (function addInlineStyles() {
@@ -1624,18 +2056,10 @@ function filterByGrading(grading) {
 fetch("{{ route('orgchart.orgchart') }}")
     .then(res => res.json())
     .then(data => {
-        const processed = data.map(n => {
-            // Hitung jarak Y berdasarkan level grading
-            const levelGap = 250; // Jarak vertikal per level grading (dalam pixel)
-            const calculatedY = (n.level || 0) * levelGap;
-            
-            return {
-                ...n,
-                statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E',
-                // ⬇️ Tambahkan custom min/max level untuk positioning
-                min: { y: calculatedY }
-            };
-        });
+        const processed = data.map(n => ({
+            ...n,
+            statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
+        }));
 
         window.orgData = processed;
         
@@ -1645,17 +2069,68 @@ fetch("{{ route('orgchart.orgchart') }}")
         // Load chart dengan data yang sudah dimodifikasi
         chart.load(processed);
         
-        setTimeout(drawSecondaryLinks, 2000);
+        setTimeout(() => {
+            adjustNodePositionsByGrading();
+            drawSecondaryLinks();
+        }, 1000);
     })
     .catch(err => console.error('Error loading org chart data:', err));
 
+// ===== ADJUST NODE POSITIONS BY GRADING LEVEL =====
+function adjustNodePositionsByGrading() {
+    if (!window.orgData) return;
+    
+    const treeElement = document.getElementById("tree");
+    if (!treeElement) return;
+    
+    const SVG = treeElement.querySelector('svg');
+    if (!SVG) return;
+    
+    // Ambil semua nodes dari chart
+    const allNodes = chart.config.nodes;
+    
+    // Base Y position dan jarak antar grading level
+    const baseY = 50;
+    const gradingGap = 220; // Jarak antar grading level
+    
+    allNodes.forEach(node => {
+        const nodeData = window.orgData.find(d => d.id === node.id);
+        if (nodeData && nodeData.level) {
+            // Set Y position berdasarkan grading level
+            const targetY = baseY + (nodeData.level * gradingGap);
+            
+            // Update node position
+            node.y = targetY;
+            
+            // Update elemen DOM (rect dan text)
+            const nodeElement = SVG.querySelector(`[node-id="${node.id}"]`);
+            if (nodeElement) {
+                const currentTransform = nodeElement.getAttribute('transform');
+                const xMatch = currentTransform.match(/translate\(([^,]+),/);
+                const currentX = xMatch ? parseFloat(xMatch[1]) : node.x;
+                
+                nodeElement.setAttribute('transform', `translate(${currentX},${targetY})`);
+            }
+        }
+    });
+    
+    // Redraw connections setelah reposition
+    chart.ripple(allNodes[0].id);
+}
+
 // ===== EVENT LISTENERS =====
 chart.on("init", function() {
-    setTimeout(drawSecondaryLinks, 500);
+    setTimeout(() => {
+        adjustNodePositionsByGrading();
+        drawSecondaryLinks();
+    }, 500);
 });
 
 chart.on("redraw", function() {
-    setTimeout(drawSecondaryLinks, 300);
+    setTimeout(() => {
+        adjustNodePositionsByGrading();
+        drawSecondaryLinks();
+    }, 300);
 });
 
 // Toggle Secondary Links

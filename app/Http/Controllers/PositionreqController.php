@@ -323,7 +323,7 @@ public function update(Request $request, $hashedId)
 
     $validatedData = $request->validate([
         'status'        => ['required', 'string', 'max:255'],
-        'notes_hr'      => ['required', 'string'],
+        'notes_hr'      => ['nullable', 'string'],
         'type'          => ['required'],
         'salary_hr'     => ['required', 'regex:/^[0-9]+$/'],
         'salary_hr_end' => ['required', 'regex:/^[0-9]+$/'],
