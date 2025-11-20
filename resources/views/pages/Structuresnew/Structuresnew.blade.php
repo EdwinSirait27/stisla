@@ -1735,7 +1735,7 @@ const chart = new OrgChart(document.getElementById("tree"), {
     scaleInitial: OrgChart.match.boundary,
     layout: OrgChart.normal,
     
-    levelSeparation: 220,
+    levelSeparation: 100, // Dikurangi karena kita manual adjust
     siblingSeparation: 100,
     
     nodeBinding: {
@@ -1757,24 +1757,98 @@ const chart = new OrgChart(document.getElementById("tree"), {
     nodeMouseClick: OrgChart.action.none
 });
 
-// ⬇️ EVENT: Adjust positions sebelum render
-chart.on('prerender', function(sender, args) {
-    adjustNodePositionsByGrading(args.nodes);
-    return args;
-});
+// Hapus prerender event yang tidak efektif
+// chart.on('prerender', function(sender, args) {
+//     adjustNodePositionsByGrading(args.nodes);
+//     return args;
+// });
 
-// ===== ADJUST NODE POSITIONS BY GRADING LEVEL =====
-function adjustNodePositionsByGrading(nodes) {
-    if (!window.orgData || !nodes) return;
+// ===== ADJUST NODE POSITIONS SETELAH RENDER (POST-PROCESSING) =====
+function forceAdjustNodesByGrading() {
+    if (!window.orgData) return;
+    
+    const treeElement = document.getElementById("tree");
+    if (!treeElement) return;
+    
+    const SVG = treeElement.querySelector('svg');
+    if (!SVG) return;
     
     const gradingGap = 220; // Jarak antar grading level
-    const baseY = 50;
+    const baseY = 80;
     
-    nodes.forEach(node => {
-        const nodeData = window.orgData.find(d => d.id == node.id);
+    // Map untuk menyimpan X position yang sudah ada
+    const nodePositions = new Map();
+    
+    // Ambil semua node groups dari SVG
+    const nodeGroups = SVG.querySelectorAll('[node-id]');
+    
+    nodeGroups.forEach(nodeGroup => {
+        const nodeId = nodeGroup.getAttribute('node-id');
+        const nodeData = window.orgData.find(d => d.id == nodeId);
+        
         if (nodeData && nodeData.level !== undefined) {
-            // Override Y position berdasarkan grading level
-            node.y = baseY + (nodeData.level * gradingGap);
+            // Hitung Y position berdasarkan grading level
+            const targetY = baseY + (nodeData.level * gradingGap);
+            
+            // Ambil current transform
+            const currentTransform = nodeGroup.getAttribute('transform') || 'translate(0,0)';
+            const matches = currentTransform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+            
+            if (matches) {
+                const currentX = parseFloat(matches[1]);
+                
+                // Update transform dengan Y baru
+                nodeGroup.setAttribute('transform', `translate(${currentX}, ${targetY})`);
+                
+                // Simpan posisi untuk redraw links
+                nodePositions.set(nodeId, { x: currentX, y: targetY });
+            }
+        }
+    });
+    
+    // Redraw semua connection lines
+    redrawAllLinks(nodePositions);
+}
+
+// ===== REDRAW SEMUA GARIS KONEKSI =====
+function redrawAllLinks(nodePositions) {
+    if (!window.orgData) return;
+    
+    const treeElement = document.getElementById("tree");
+    const SVG = treeElement?.querySelector('svg');
+    if (!SVG) return;
+    
+    // Hapus semua path lama (kecuali secondary links)
+    const oldPaths = SVG.querySelectorAll('path:not(.secondary-link)');
+    oldPaths.forEach(path => path.remove());
+    
+    // Buat path baru berdasarkan hierarchy
+    window.orgData.forEach(node => {
+        if (!node.pid) return; // Skip root
+        
+        const childPos = nodePositions.get(node.id);
+        const parentPos = nodePositions.get(node.pid);
+        
+        if (childPos && parentPos) {
+            // Hitung koordinat untuk garis vertikal + horizontal
+            const childX = childPos.x + 125; // Tengah node (250/2)
+            const childY = childPos.y;
+            const parentX = parentPos.x + 125;
+            const parentY = parentPos.y + 150; // Bottom of parent node
+            
+            // Buat path dengan style yang sama seperti OrgChart.js
+            const midY = (parentY + childY) / 2;
+            const pathData = `M ${parentX} ${parentY} L ${parentX} ${midY} L ${childX} ${midY} L ${childX} ${childY}`;
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("stroke", "#cccccc");
+            path.setAttribute("stroke-width", "2");
+            path.setAttribute("fill", "none");
+            path.setAttribute("class", "orgchart-link");
+            
+            // Insert sebelum nodes agar tidak menutupi
+            SVG.insertBefore(path, SVG.firstChild);
         }
     });
 }
@@ -2066,71 +2140,20 @@ fetch("{{ route('orgchart.orgchart') }}")
         // Populate sidebar yang sudah ada di HTML
         populateGradingSidebar(processed);
         
-        // Load chart dengan data yang sudah dimodifikasi
+        // Load chart
         chart.load(processed);
         
-        setTimeout(() => {
-            adjustNodePositionsByGrading();
-            drawSecondaryLinks();
-        }, 1000);
+        setTimeout(drawSecondaryLinks, 1000);
     })
     .catch(err => console.error('Error loading org chart data:', err));
 
-// ===== ADJUST NODE POSITIONS BY GRADING LEVEL =====
-function adjustNodePositionsByGrading() {
-    if (!window.orgData) return;
-    
-    const treeElement = document.getElementById("tree");
-    if (!treeElement) return;
-    
-    const SVG = treeElement.querySelector('svg');
-    if (!SVG) return;
-    
-    // Ambil semua nodes dari chart
-    const allNodes = chart.config.nodes;
-    
-    // Base Y position dan jarak antar grading level
-    const baseY = 50;
-    const gradingGap = 220; // Jarak antar grading level
-    
-    allNodes.forEach(node => {
-        const nodeData = window.orgData.find(d => d.id === node.id);
-        if (nodeData && nodeData.level) {
-            // Set Y position berdasarkan grading level
-            const targetY = baseY + (nodeData.level * gradingGap);
-            
-            // Update node position
-            node.y = targetY;
-            
-            // Update elemen DOM (rect dan text)
-            const nodeElement = SVG.querySelector(`[node-id="${node.id}"]`);
-            if (nodeElement) {
-                const currentTransform = nodeElement.getAttribute('transform');
-                const xMatch = currentTransform.match(/translate\(([^,]+),/);
-                const currentX = xMatch ? parseFloat(xMatch[1]) : node.x;
-                
-                nodeElement.setAttribute('transform', `translate(${currentX},${targetY})`);
-            }
-        }
-    });
-    
-    // Redraw connections setelah reposition
-    chart.ripple(allNodes[0].id);
-}
-
 // ===== EVENT LISTENERS =====
 chart.on("init", function() {
-    setTimeout(() => {
-        adjustNodePositionsByGrading();
-        drawSecondaryLinks();
-    }, 500);
+    setTimeout(drawSecondaryLinks, 500);
 });
 
 chart.on("redraw", function() {
-    setTimeout(() => {
-        adjustNodePositionsByGrading();
-        drawSecondaryLinks();
-    }, 300);
+    setTimeout(drawSecondaryLinks, 300);
 });
 
 // Toggle Secondary Links
