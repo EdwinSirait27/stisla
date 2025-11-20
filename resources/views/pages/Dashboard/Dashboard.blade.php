@@ -236,14 +236,31 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
+        /* :root {
+                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            } */
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            /* Deep Indigo → Royal Blue */
+            --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
+
+            /* Emerald → Dark Teal */
+            --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
+
+            /* Gold → Amber (lebih premium, bukan kuning norak) */
+            --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
+
+            /* Steel Blue → Slate Cyan (soft, tidak neon) */
+            --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
+
+            /* Soft shadow */
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
         }
 
         /* ========== Personal Profile Card ========== */
@@ -700,7 +717,7 @@
         .announcements-header h4 {
             margin: 0;
             font-weight: 600;
-            color: white;
+            color: rgb(0, 0, 0);
         }
 
         .announcement-item {
@@ -1069,22 +1086,27 @@
                                 </div>
                             </div>
                         </div>
+
                         {{-- <div class="col-lg-3 text-lg-end mt-3 mt-lg-0">
                             <button  class="btn btn-light btn-lg" id="requestLeaveBtn">
                                 <i class="fas fa-paper-plane me-2"></i>
                                 Request Leave
                             </button>
                         </div> --}}
-                        <div class="col-lg-3 mt-3 mt-lg-0 d-flex justify-content-end">
+                        {{-- <div class="col-lg-3 mt-3 mt-lg-0 d-flex justify-content-end">
                             <button class="btn btn-light btn-lg" id="requestLeaveBtn">
                                 <i class="fas fa-paper-plane me-2"></i>
                                 Request Leave
                             </button>
-                        </div>
+                        </div> --}}
 
                     </div>
                 </div>
             </div>
+
+            
+
+
             <div class="row mb-4">
                 <div class="col-lg-3 col-md-6 col-12 mb-4">
                     <div class="mini-stat-card primary">
@@ -1128,11 +1150,111 @@
                 </div>
             </div>
 
+            <div class="col-lg-12 col-6 mb-4">
+                <div class="announcements-card">
+                    <div class="announcements-header">
+                        <h4>
+                            <i class="fas fa-bullhorn me-2"></i>
+                            Company Announcements
+                        </h4>
+                    </div>
+                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                        <!-- Announcement 1 -->
+                        <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
+                            <div class="announcement-title">
+                                <i class="fas fa-star text-warning"></i>
+                                Holiday Schedule for December
+                                <span class="announcement-badge-new">New</span>
+                            </div>
+                            <div class="announcement-excerpt">
+                                Dear Team, Please note the following holiday schedule for December 2024. The office will
+                                be closed from December 24-26 and December 31 - January 1...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 1 day ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 2 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-gift text-danger"></i>
+                                Year-End Bonus Announcement
+                                <span class="announcement-badge-new">New</span>
+                            </div>
+                            <div class="announcement-excerpt">
+                                We're pleased to announce that year-end bonuses will be distributed on December 15,
+                                2024. The amount will be based on individual performance...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 2 days ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 3 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-laptop-code text-primary"></i>
+                                New HR System Implementation
+                            </div>
+                            <div class="announcement-excerpt">
+                                Starting January 2025, we will be implementing a new HR management system. All employees
+                                are required to attend training sessions...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 5 days ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 4 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-heartbeat text-success"></i>
+                                Health Insurance Update
+                            </div>
+                            <div class="announcement-excerpt">
+                                Our company health insurance coverage has been upgraded to include dental and vision
+                                care for all employees and their families...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 1 week ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 5 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-users text-info"></i>
+                                Team Building Event - December
+                            </div>
+                            <div class="announcement-excerpt">
+                                Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
+                                Resort. Activities include team games, BBQ dinner...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 1 week ago
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light text-center">
+                        <a href="#" class="text-decoration-none">
+                            View All Announcements
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <br>
             <!-- Main Content Grid -->
             <div class="row">
                 <!-- Clock In/Out Section -->
                 <div class="col-lg-4 col-12 mb-4">
-                    <div class="clock-card">
+                    {{-- <div class="clock-card">
                         <h4 class="mb-3">
                             <i class="fas fa-clock me-2"></i>
                             Attendance Clock
@@ -1141,7 +1263,6 @@
                         <div class="clock-date" id="currentDate">Monday, January 01, 2024</div>
 
                         @if (true)
-                            {{-- @if (!$hasCheckedIn ?? true) --}}
                             <button class="btn clock-in-btn pulse-animation" id="clockInBtn">
                                 <i class="fas fa-sign-in-alt me-2"></i>
                                 Clock In
@@ -1153,13 +1274,12 @@
                             </button>
                             <div class="clock-status">
                                 <strong>Clocked in at:</strong>08:00 AM
-                                {{-- <strong>Clocked in at:</strong> {{ $clockInTime ?? '08:00 AM' }} --}}
                             </div>
                         @endif
-                    </div>
+                    </div> --}}
 
                     <!-- Leave Balance -->
-                    <div class="leave-balance-card mt-4">
+                    <div class="leave-balance-card mt-1">
                         <div class="leave-balance-header">
                             <h4>
                                 <i class="fas fa-umbrella-beach me-2"></i>
@@ -1187,8 +1307,8 @@
                             <div class="leave-progress">
                                 <div class="progress">
                                     <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                        {{-- style="width: {{ $leaveBalance->annual->percentage ?? 85 }}%" --}} aria-valuenow= "85" {{-- aria-valuenow="{{ $leaveBalance->annual->percentage ?? 85 }}"  --}} aria-valuemin="0"
-                                        aria-valuemax="100"></div>
+                                        {{-- style="width: {{ $leaveBalance->annual->percentage ?? 85 }}%" --}} aria-valuenow= "85" {{-- aria-valuenow="{{ $leaveBalance->annual->percentage ?? 85 }}"  --}}
+                                        aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
 
@@ -1402,108 +1522,10 @@
             <!-- Announcements & Attendance History Row -->
             <div class="row">
                 <!-- Company Announcements -->
-                <div class="col-lg-6 col-12 mb-4">
-                    <div class="announcements-card">
-                        <div class="announcements-header">
-                            <h4>
-                                <i class="fas fa-bullhorn me-2"></i>
-                                Company Announcements
-                            </h4>
-                        </div>
-                        <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                            <!-- Announcement 1 -->
-                            <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
-                                <div class="announcement-title">
-                                    <i class="fas fa-star text-warning"></i>
-                                    Holiday Schedule for December
-                                    <span class="announcement-badge-new">New</span>
-                                </div>
-                                <div class="announcement-excerpt">
-                                    Dear Team, Please note the following holiday schedule for December 2024. The office will
-                                    be closed from December 24-26 and December 31 - January 1...
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Posted 1 day ago
-                                </div>
-                            </div>
 
-                            <!-- Announcement 2 -->
-                            <div class="announcement-item">
-                                <div class="announcement-title">
-                                    <i class="fas fa-gift text-danger"></i>
-                                    Year-End Bonus Announcement
-                                    <span class="announcement-badge-new">New</span>
-                                </div>
-                                <div class="announcement-excerpt">
-                                    We're pleased to announce that year-end bonuses will be distributed on December 15,
-                                    2024. The amount will be based on individual performance...
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Posted 2 days ago
-                                </div>
-                            </div>
-
-                            <!-- Announcement 3 -->
-                            <div class="announcement-item">
-                                <div class="announcement-title">
-                                    <i class="fas fa-laptop-code text-primary"></i>
-                                    New HR System Implementation
-                                </div>
-                                <div class="announcement-excerpt">
-                                    Starting January 2025, we will be implementing a new HR management system. All employees
-                                    are required to attend training sessions...
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Posted 5 days ago
-                                </div>
-                            </div>
-
-                            <!-- Announcement 4 -->
-                            <div class="announcement-item">
-                                <div class="announcement-title">
-                                    <i class="fas fa-heartbeat text-success"></i>
-                                    Health Insurance Update
-                                </div>
-                                <div class="announcement-excerpt">
-                                    Our company health insurance coverage has been upgraded to include dental and vision
-                                    care for all employees and their families...
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Posted 1 week ago
-                                </div>
-                            </div>
-
-                            <!-- Announcement 5 -->
-                            <div class="announcement-item">
-                                <div class="announcement-title">
-                                    <i class="fas fa-users text-info"></i>
-                                    Team Building Event - December
-                                </div>
-                                <div class="announcement-excerpt">
-                                    Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
-                                    Resort. Activities include team games, BBQ dinner...
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Posted 1 week ago
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-light text-center">
-                            <a href="#" class="text-decoration-none">
-                                View All Announcements
-                                <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Attendance History Calendar -->
-                <div class="col-lg-6 col-12 mb-4">
+                <div class="col-lg-12 col-12 mb-4">
                     <div class="attendance-history-card">
                         <div class="attendance-history-header">
                             <h4>
@@ -1586,7 +1608,7 @@
                                 </div>
                                 <div class="legend-item">
                                     <div class="legend-color" style="background: rgba(255, 171, 0, 0.15);"></div>
-                                    <span>On Leave</span>
+                                    <span>Late</span>
                                 </div>
                                 <div class="legend-item">
                                     <div class="legend-color" style="background: #f8f9fa;"></div>
@@ -1599,7 +1621,6 @@
             </div>
         </section>
     </div>
-
     <!-- Request Leave Modal -->
     <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel"
         aria-hidden="true">

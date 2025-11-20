@@ -176,15 +176,14 @@
                 <h1><i class="fas fa-sitemap"></i> Structures Overview</h1>
             </div>
             <div class="section-body">
-                <div class="row mt-4">
+                {{-- <div class="row mt-4">
                     <div class="col-12">
                         <div class="card shadow-sm border-0">
                             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-primary">
                                     <i class="fas fa-network-wired me-1"></i> Organization Chart
                                 </h6>
-                                {{-- ⬇️ TAMBAHKAN TOMBOL TOGGLE --}}
-                                <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
+                               <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye-slash me-1"></i>
                                     <span id="toggleText">Secondary Supervisors</span>
                                 </button>
@@ -194,7 +193,47 @@
                             </div>
                         </div>
                     </div>
+                </div> --}}
+                <div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-primary">
+                    <i class="fas fa-network-wired me-1"></i> Organization Chart
+                </h6>
+                <button id="toggleSecondaryLinks" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye-slash me-1"></i>
+                    <span id="toggleText">Secondary Supervisors</span>
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <!-- Grading Sidebar -->
+                    <div class="col-auto border-end">
+                        <div id="gradingSidebar" class="grading-sidebar-inline">
+                            <div class="sidebar-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-layer-group me-2"></i>Grading Levels
+                                </h6>
+                            </div>
+                            <div class="sidebar-content" id="gradingList">
+                                <div class="grading-item active" data-grading="all">
+                                    <span class="grading-badge all-badge">All</span>
+                                    <span class="grading-count" id="count-all">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Organization Chart -->
+                    <div class="col">
+                        <div id="tree" style="height: 700px;"></div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
@@ -619,503 +658,1042 @@
             //         });
             //     });
 
-            //     OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-            //     OrgChart.templates.myTemplate.size = [250, 150];
+         
+    //         OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+    //         OrgChart.templates.myTemplate.size = [250, 150];
 
-            //     OrgChart.templates.myTemplate.node =
-            //         `<rect x="0" y="0" width="250" height="150" fill="#ffffff" stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
-            //     OrgChart.templates.myTemplate.img_0 =
-            //         `<clipPath id="avatarClip"><circle cx="125" cy="45" r="35"></circle></clipPath><image xlink:href="{photo}" x="90" y="10" width="70" height="70" clip-path="url(#avatarClip)"></image><circle cx="125" cy="45" r="35" stroke="#ccc" stroke-width="2" fill="none"></circle>`;
-            //     OrgChart.templates.myTemplate.field_ = `<text
-        //     style="font-size:12px;font-weight:700;" 
-        //         fill="#212121" 
-        //         x="125" y="30" text-anchor="middle" alignment-baseline="middle">
-        //         {val}
-        //     </text>
-        //     `;
-            //     OrgChart.templates.myTemplate.fieldgrading = `
-        //     <text 
-        //         style="font-size:12px;font-weight:600;" 
-        //         fill="#212121" 
-        //         x="125" y="50" text-anchor="middle" alignment-baseline="middle">
-        //         {val}
-        //     </text>
-        //     `;
-            //     OrgChart.templates.myTemplate.field_0 = `
-        //     <text 
-        //         style="font-size:11px;font-weight:500;" 
-        //         fill="#212121" 
-        //         x="125" y="70" text-anchor="middle" alignment-baseline="middle">
-        //         {val}
-        //     </text>
-        //     `;
+    //         OrgChart.templates.myTemplate.node =
+    //             `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+    //     stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
 
-            //     OrgChart.templates.myTemplate.field_1 = `
-        //     <text 
-        //         style="font-size:13px;font-weight:500;" 
-        //         fill="#616161" 
-        //         x="125" y="90" text-anchor="middle" alignment-baseline="middle">
-        //         {val}
-        //     </text>
-        //   `;
+    //         OrgChart.templates.myTemplate.field_ =
+    //             `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
 
-            //     OrgChart.templates.myTemplate.field_2 = `
-        //     <g transform="translate(60,105)">
-        //         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
-        //     </g>
-        //     `;
+    //         OrgChart.templates.myTemplate.fieldgrading =
+    //             `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
 
-            //     OrgChart.templates.myTemplate.field_3 = `
-        //     <text 
-        //         style="font-size:12px;font-weight:600;" 
-        //         fill="#ffffff" 
-        //         x="125" y="122" 
-        //         text-anchor="middle" alignment-baseline="middle">{val}</text>
-        //     `;
+    //         OrgChart.templates.myTemplate.field_0 =
+    //             `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
 
-            //     const statusColors = {
-            //         active: '#4CAF50',
-            //         inactive: '#F44336',
-            //         vacant: '#9E9E9E'
-            //     };
+    //         OrgChart.templates.myTemplate.field_1 =
+    //             `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
 
-            //     const chart = new OrgChart(document.getElementById("tree"), {
-            //         template: "myTemplate",
-            //         nodeBinding: {
-            //             img_0: "photo",
-            //             field_: "Employee",
-            //             fieldgrading: "Grading",
-            //             field_0: "Position",
-            //             field_1: "Location",
-            //             field_2: "statusColor",
-            //             field_3: "status"
-            //         },
-            //         enableSearch: true,
-            //         mouseScrool: OrgChart.action.zoom,
-            //         scaleInitial: OrgChart.match.boundary,
-            //         toolbar: {
-            //             zoom: true,
-            //             fit: true,
-            //             expandAll: true
-            //         }
-            //     });
-            //     fetch("{{ route('orgchart.orgchart') }}")
-            //         .then(response => response.json())
-            //         .then(data => {
-            //             const statusColors = {
-            //                 active: '#4CAF50',
-            //                 inactive: '#F44336',
-            //                 vacant: '#9E9E9E'
-            //             };
+    //         OrgChart.templates.myTemplate.field_2 =
+    //             `<g transform="translate(60,105)">
+    //     <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+    // </g>`;
 
-            //             const processedData = data.map(node => ({
-            //                 ...node,
-            //                 statusColor: statusColors[(node.status || '').toLowerCase()] || '#9E9E9E'
-            //             }));
-
-            //             chart.load(processedData);
-            //         })
-            //         .catch(error => {
-            //             console.error('❌ Error loading chart:', error);
-            // alert('Gagal memuat organization chart.');
-            //         });
-
-            // === TEMPLATE yang dipakai sekarang===
-            //   OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-            // OrgChart.templates.myTemplate.size = [250,150];
-
-            // OrgChart.templates.myTemplate.node =
-            //     `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
-        //         stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
-
-            // OrgChart.templates.myTemplate.field_ =
-            //     `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
-
-            // OrgChart.templates.myTemplate.fieldgrading =
-            //     `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
-
-            // OrgChart.templates.myTemplate.field_0 =
-            //     `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
-
-            // OrgChart.templates.myTemplate.field_1 =
-            //     `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
-
-            // OrgChart.templates.myTemplate.field_2 =
-            //     `<g transform="translate(60,105)">
-        //         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
-        //     </g>`;
-
-            // OrgChart.templates.myTemplate.field_3 =
-            //     `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
+    //         OrgChart.templates.myTemplate.field_3 =
+    //             `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
 
 
-            // const statusColors = {
-            //     active: '#4CAF50',
-            //     inactive: '#F44336',
-            //     vacant: '#9E9E9E',
-            // };
+    //         const statusColors = {
+    //             active: '#4CAF50',
+    //             inactive: '#F44336',
+    //             vacant: '#9E9E9E',
+    //         };
 
 
-            // // === INIT CHART ===
-            // const chart = new OrgChart(document.getElementById("tree"), {
-            //     template: "myTemplate",
-            //     enableSearch: true,
-            //     mouseScrool: OrgChart.action.zoom,
-            //     scaleInitial: OrgChart.match.boundary,
+    //         // === INIT CHART ===
+    //         const chart = new OrgChart(document.getElementById("tree"), {
+    //             template: "myTemplate",
+    //             enableSearch: true,
+    //             mouseScrool: OrgChart.action.zoom,
+    //             scaleInitial: OrgChart.match.boundary,
 
-            //     nodeBinding: {
-            //         field_: "Employee",
-            //         fieldgrading: "Grading",
-            //         field_0: "Position",
-            //         field_1: "Location",
-            //         field_2: "statusColor",
-            //         field_3: "status"
-            //     },
+    //             nodeBinding: {
+    //                 field_: "Employee",
+    //                 fieldgrading: "Grading",
+    //                 field_0: "Position",
+    //                 field_1: "Location",
+    //                 field_2: "statusColor",
+    //                 field_3: "status"
+    //             },
 
-            //     toolbar: { zoom: true, fit: true, expandAll: true }
-            // });
+    //             toolbar: {
+    //                 zoom: true,
+    //                 fit: true,
+    //                 expandAll: true
+    //             },
 
-
-            // // === FUNGSI GAMBAR GARIS SECONDARY ===
-            // function drawSecondaryLinks() {
-            //     // console.log('🔵 === drawSecondaryLinks DIPANGGIL ===');
-
-            //     // Akses SVG langsung dari DOM
-            //     const treeElement = document.getElementById("tree");
-            //     if (!treeElement) {
-            //         // console.log('❌ Element tree tidak ditemukan');
-            //         return;
-            //     }
-
-            //     const SVG = treeElement.querySelector('svg');
-            //     if (!SVG) {
-            //         // console.log('❌ SVG belum siap');
-            //         return;
-            //     }
-            //     // console.log('✅ SVG siap');
-
-            //     // Hapus garis lama
-            //     const existingLinks = SVG.querySelectorAll('.secondary-link');
-            //     // console.log('🗑️ Menghapus', existingLinks.length, 'garis lama');
-            //     existingLinks.forEach(link => link.remove());
-
-            //     if (!window.orgData) {
-            //         // console.log('❌ window.orgData tidak ada');
-            //         return;
-            //     }
-            //     // console.log('✅ window.orgData ada, jumlah nodes:', window.orgData.length);
-
-            //     let totalLinksCreated = 0;
-
-            //     window.orgData.forEach(node => {
-            //         if (!node.secondary || node.secondary.length === 0) return;
-
-            //         // console.log('👤 Node dengan secondary:', {
-            //         //     employee: node.Employee,
-            //         //     nodeId: node.id,
-            //         //     secondaryIds: node.secondary
-            //         // });
-
-            //         node.secondary.forEach(secId => {
-            //             // console.log('   🔍 Mencari nodes - FROM ID:', secId, 'TO ID:', node.id);
-
-            //             const fromNode = chart.getNode(secId);
-            //             const toNode = chart.getNode(node.id);
-
-            //             // console.log('   📍 fromNode:', fromNode ? 'FOUND ✅' : 'NOT FOUND ❌');
-            //             // console.log('   📍 toNode:', toNode ? 'FOUND ✅' : 'NOT FOUND ❌');
-
-            //             if (!fromNode || !toNode) {
-            //                 // console.log('   ⚠️ SKIP: Node tidak lengkap');
-            //                 return;
-            //             }
-
-            //             // Koordinat
-            //             const fx = fromNode.x + fromNode.w / 2;
-            //             const fy = fromNode.y + fromNode.h;
-            //             const tx = toNode.x + toNode.w / 2;
-            //             const ty = toNode.y;
-
-            //             // console.log('   📐 Koordinat FROM: (', fx, ',', fy, ')');
-            //             // console.log('   📐 Koordinat TO: (', tx, ',', ty, ')');
-
-            //             // Buat PATH dengan curve
-            //             const midY = (fy + ty) / 2;
-            //             const pathData = `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
-
-            //             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            //             path.setAttribute("d", pathData);
-            //             path.setAttribute("stroke", "#FF5722");
-            //             path.setAttribute("stroke-width", "5");
-            //             path.setAttribute("stroke-dasharray", "15,8");
-            //             path.setAttribute("fill", "none");
-            //             path.setAttribute("class", "secondary-link");
-            //             path.setAttribute("stroke-linecap", "round");
-
-            //             SVG.appendChild(path);
-
-            //             totalLinksCreated++;
-            //             // console.log('   ✅ GARIS BERHASIL DIBUAT!');
-            //         });
-            //     });
-            // // 
-            //     // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
-            // }
+    //             // ⬇️ TAMBAHKAN INI: Nonaktifkan panel detail
+    //             nodeMenu: null, // Hilangkan menu node
+    //             nodeMouseClick: OrgChart.action.none // Tidak ada aksi saat klik node
+    //         });
 
 
-            // // === FETCH DATA ===
-            // fetch("{{ route('orgchart.orgchart') }}")
-            //     .then(res => res.json())
-            //     .then(data => {
-            //         // console.log('Raw data:', data);
+    //         // === FUNGSI GAMBAR GARIS SECONDARY ===
+    //         function drawSecondaryLinks() {
+    //             // console.log('🔵 === drawSecondaryLinks DIPANGGIL ===');
 
-            //         const processed = data.map(n => ({
-            //             ...n,
-            //             statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
-            //         }));
+    //             // Akses SVG langsung dari DOM
+    //             const treeElement = document.getElementById("tree");
+    //             if (!treeElement) {
+    //                 // console.log('❌ Element tree tidak ditemukan');
+    //                 return;
+    //             }
 
-            //         // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
+    //             const SVG = treeElement.querySelector('svg');
+    //             if (!SVG) {
+    //                 // console.log('❌ SVG belum siap');
+    //                 return;
+    //             }
+    //             // console.log('✅ SVG siap');
 
-            //         window.orgData = processed;
-            //         chart.load(processed);
+    //             // Hapus garis lama
+    //             const existingLinks = SVG.querySelectorAll('.secondary-link');
+    //             // console.log('🗑️ Menghapus', existingLinks.length, 'garis lama');
+    //             existingLinks.forEach(link => link.remove());
 
-            //         // Panggil manual dengan delay lebih lama
-            //         setTimeout(() => {
-            //             // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
-            //             drawSecondaryLinks();
-            //         }, 2000); // ⬅ 2 detik
-            //     });
+    //             if (!window.orgData) {
+    //                 // console.log('❌ window.orgData tidak ada');
+    //                 return;
+    //             }
+    //             // console.log('✅ window.orgData ada, jumlah nodes:', window.orgData.length);
+
+    //             let totalLinksCreated = 0;
+
+    //             window.orgData.forEach(node => {
+    //                 if (!node.secondary || node.secondary.length === 0) return;
+
+    //                 // console.log('👤 Node dengan secondary:', {
+    //                 //     employee: node.Employee,
+    //                 //     nodeId: node.id,
+    //                 //     secondaryData: node.secondary
+    //                 // });
+
+    //                 node.secondary.forEach(secData => {
+    //                     // ⬇️ PERUBAHAN: Ambil ID dari objek, bukan langsung value
+    //                     const secId = typeof secData === 'object' ? secData.id : secData;
+
+    //                     // console.log('   🔍 Mencari nodes - FROM ID:', secId, 'TO ID:', node.id);
+
+    //                     const fromNode = chart.getNode(secId);
+    //                     const toNode = chart.getNode(node.id);
+
+    //                     // console.log('   📍 fromNode:', fromNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+    //                     // console.log('   📍 toNode:', toNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+
+    //                     if (!fromNode || !toNode) {
+    //                         // console.log('   ⚠️ SKIP: Node tidak lengkap');
+    //                         return;
+    //                     }
+
+    //                     // Koordinat
+    //                     const fx = fromNode.x + fromNode.w / 2;
+    //                     const fy = fromNode.y + fromNode.h;
+    //                     const tx = toNode.x + toNode.w / 2;
+    //                     const ty = toNode.y;
+
+    //                     // console.log('   📐 Koordinat FROM: (', fx, ',', fy, ')');
+    //                     // console.log('   📐 Koordinat TO: (', tx, ',', ty, ')');
+
+    //                     // Buat PATH dengan curve
+    //                     const midY = (fy + ty) / 2;
+    //                     const pathData =
+    //                         `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+
+    //                     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    //                     path.setAttribute("d", pathData);
+    //                     path.setAttribute("stroke", "#FF5722");
+    //                     path.setAttribute("stroke-width", "5");
+    //                     path.setAttribute("stroke-dasharray", "15,8");
+    //                     path.setAttribute("fill", "none");
+    //                     path.setAttribute("class", "secondary-link");
+    //                     path.setAttribute("stroke-linecap", "round");
+
+    //                     SVG.appendChild(path);
+
+    //                     totalLinksCreated++;
+    //                     // console.log('   ✅ GARIS BERHASIL DIBUAT!');
+    //                 });
+    //             });
+
+    //             // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
+    //         }
 
 
-            // // === EVENT LISTENERS ===
-            // chart.on("init", function () {
-            //     // console.log('🎬 EVENT: init');
-            //     setTimeout(drawSecondaryLinks, 500);
-            // });
+    //         // === FETCH DATA ===
+    //         fetch("{{ route('orgchart.orgchart') }}")
+    //             .then(res => res.json())
+    //             .then(data => {
+    //                 // console.log('Raw data:', data);
 
-            // chart.on("redraw", function () {
-            //     // console.log('🔄 EVENT: redraw');
-            //     setTimeout(drawSecondaryLinks, 300);
-            // });
+    //                 const processed = data.map(n => ({
+    //                     ...n,
+    //                     statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
+    //                 }));
 
-            OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-            OrgChart.templates.myTemplate.size = [250, 150];
+    //                 // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
 
-            OrgChart.templates.myTemplate.node =
-                `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+    //                 window.orgData = processed;
+    //                 chart.load(processed);
+
+    //                 // Panggil manual dengan delay lebih lama
+    //                 setTimeout(() => {
+    //                     // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
+    //                     drawSecondaryLinks();
+    //                 }, 2000); // ⬅ 2 detik
+    //             });
+
+
+    //         // === EVENT LISTENERS ===
+    //         chart.on("init", function() {
+    //             // console.log('🎬 EVENT: init');
+    //             setTimeout(drawSecondaryLinks, 500);
+    //         });
+    //         chart.on("redraw", function() {
+    //             setTimeout(drawSecondaryLinks, 300);
+    //         });
+    //         let secondaryLinksVisible = true;
+    //         document.getElementById('toggleSecondaryLinks').addEventListener('click', function() {
+    //             const treeElement = document.getElementById("tree");
+    //             const SVG = treeElement.querySelector('svg');
+    //             const toggleText = document.getElementById('toggleText');
+    //             const icon = this.querySelector('i');
+
+    //             if (!SVG) return;
+
+    //             const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+
+    //             if (secondaryLinksVisible) {
+    //                 secondaryLinks.forEach(link => {
+    //                     link.style.display = 'none';
+    //                 });
+    //                 toggleText.textContent = 'Show Secondary Links';
+    //                 icon.classList.remove('fa-eye-slash');
+    //                 icon.classList.add('fa-eye');
+    //                 this.classList.remove('btn-outline-primary');
+    //                 this.classList.add('btn-outline-secondary');
+    //             } else {
+    //                 secondaryLinks.forEach(link => {
+    //                     link.style.display = 'block';
+    //                 });
+    //                 toggleText.textContent = 'Hide Secondary Links';
+    //                 icon.classList.remove('fa-eye');
+    //                 icon.classList.add('fa-eye-slash');
+    //                 this.classList.remove('btn-outline-secondary');
+    //                 this.classList.add('btn-outline-primary');
+    //             }
+    //             secondaryLinksVisible = !secondaryLinksVisible;
+    //         });
+//     // ===== SIDEBAR GRADING NAVIGATION =====
+// // ===== ORGCHART SETUP (Inisialisasi dulu) =====
+// // ===== ORGCHART SETUP =====
+// OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+// OrgChart.templates.myTemplate.size = [250, 150];
+
+// OrgChart.templates.myTemplate.node =
+//     `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+//         stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+
+// OrgChart.templates.myTemplate.field_ =
+//     `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.fieldgrading =
+//     `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.field_0 =
+//     `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.field_1 =
+//     `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+
+// OrgChart.templates.myTemplate.field_2 =
+//     `<g transform="translate(60,105)">
+//         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+//     </g>`;
+
+// OrgChart.templates.myTemplate.field_3 =
+//     `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
+
+// const statusColors = {
+//     active: '#4CAF50',
+//     inactive: '#F44336',
+//     vacant: '#9E9E9E',
+// };
+
+// const chart = new OrgChart(document.getElementById("tree"), {
+//     template: "myTemplate",
+//     enableSearch: true,
+//     mouseScrool: OrgChart.action.zoom,
+//     scaleInitial: OrgChart.match.boundary,
+//     layout: OrgChart.mixed,
+//     orderBy: "level",
+    
+//     nodeBinding: {
+//         field_: "Employee",
+//         fieldgrading: "Grading",
+//         field_0: "Position",
+//         field_1: "Location",
+//         field_2: "statusColor",
+//         field_3: "status"
+//     },
+
+//     toolbar: {
+//         zoom: true,
+//         fit: true,
+//         expandAll: true
+//     },
+
+//     nodeMenu: null,
+//     nodeMouseClick: OrgChart.action.none
+// });
+
+// // ===== STYLING UNTUK INLINE SIDEBAR =====
+// (function addInlineStyles() {
+//     if (document.getElementById('inlineSidebarStyles')) return;
+    
+//     const style = document.createElement('style');
+//     style.id = 'inlineSidebarStyles';
+//     style.textContent = `
+//         .grading-sidebar-inline {
+//             width: 220px;
+//             height: 700px;
+//             background: #fafafa;
+//             overflow-y: auto;
+//             display: flex;
+//             flex-direction: column;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-header {
+//             padding: 20px 15px;
+//             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+//             color: white;
+//             border-bottom: 3px solid #5568d3;
+//             flex-shrink: 0;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-header h6 {
+//             margin: 0;
+//             font-size: 14px;
+//             font-weight: 600;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-header i {
+//             font-size: 14px;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content {
+//             padding: 10px 0;
+//             flex: 1;
+//             overflow-y: auto;
+//         }
+        
+//         .grading-sidebar-inline .grading-item {
+//             padding: 12px 15px;
+//             cursor: pointer;
+//             display: flex;
+//             justify-content: space-between;
+//             align-items: center;
+//             border-left: 4px solid transparent;
+//             transition: all 0.3s ease;
+//             margin: 2px 0;
+//         }
+        
+//         .grading-sidebar-inline .grading-item:hover {
+//             background: #e3f2fd;
+//             border-left-color: #667eea;
+//         }
+        
+//         .grading-sidebar-inline .grading-item.active {
+//             background: #e8eaf6;
+//             border-left-color: #667eea;
+//             font-weight: 600;
+//         }
+        
+//         .grading-sidebar-inline .grading-badge {
+//             font-size: 13px;
+//             font-weight: 500;
+//             color: #424242;
+//             flex: 1;
+//         }
+        
+//         .grading-sidebar-inline .grading-count {
+//             background: #bdbdbd;
+//             color: white;
+//             padding: 3px 10px;
+//             border-radius: 12px;
+//             font-size: 11px;
+//             font-weight: 600;
+//             min-width: 30px;
+//             text-align: center;
+//         }
+        
+//         .grading-sidebar-inline .grading-item.active .grading-count {
+//             background: #667eea;
+//             color: white;
+//         }
+        
+//         .grading-sidebar-inline .all-badge {
+//             color: #667eea;
+//             font-weight: 700;
+//         }
+        
+//         /* Custom Scrollbar */
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar {
+//             width: 6px;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-track {
+//             background: #f1f1f1;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-thumb {
+//             background: #667eea;
+//             border-radius: 3px;
+//         }
+        
+//         .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-thumb:hover {
+//             background: #5568d3;
+//         }
+        
+//         /* Responsive */
+//         @media (max-width: 768px) {
+//             .grading-sidebar-inline {
+//                 width: 70px;
+//             }
+            
+//             .grading-sidebar-inline .grading-badge {
+//                 font-size: 10px;
+//                 overflow: hidden;
+//                 text-overflow: ellipsis;
+//                 white-space: nowrap;
+//             }
+            
+//             .grading-sidebar-inline .sidebar-header h6 {
+//                 font-size: 11px;
+//             }
+//         }
+//     `;
+//     document.head.appendChild(style);
+// })();
+
+// // ===== FUNGSI GAMBAR GARIS SECONDARY =====
+// function drawSecondaryLinks() {
+//     const treeElement = document.getElementById("tree");
+//     if (!treeElement) return;
+
+//     const SVG = treeElement.querySelector('svg');
+//     if (!SVG) return;
+
+//     const existingLinks = SVG.querySelectorAll('.secondary-link');
+//     existingLinks.forEach(link => link.remove());
+
+//     if (!window.orgData) return;
+
+//     window.orgData.forEach(node => {
+//         if (!node.secondary || node.secondary.length === 0) return;
+
+//         node.secondary.forEach(secData => {
+//             const secId = typeof secData === 'object' ? secData.id : secData;
+//             const fromNode = chart.getNode(secId);
+//             const toNode = chart.getNode(node.id);
+
+//             if (!fromNode || !toNode) return;
+
+//             const fx = fromNode.x + fromNode.w / 2;
+//             const fy = fromNode.y + fromNode.h;
+//             const tx = toNode.x + toNode.w / 2;
+//             const ty = toNode.y;
+
+//             if (isNaN(fx) || isNaN(fy) || isNaN(tx) || isNaN(ty)) return;
+
+//             const midY = (fy + ty) / 2;
+//             const pathData = `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+
+//             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+//             path.setAttribute("d", pathData);
+//             path.setAttribute("stroke", "#FF5722");
+//             path.setAttribute("stroke-width", "5");
+//             path.setAttribute("stroke-dasharray", "15,8");
+//             path.setAttribute("fill", "none");
+//             path.setAttribute("class", "secondary-link");
+//             path.setAttribute("stroke-linecap", "round");
+
+//             SVG.appendChild(path);
+//         });
+//     });
+// }
+
+// // ===== POPULATE SIDEBAR =====
+// function populateGradingSidebar(data) {
+//     const gradingOrder = ['Director', 'Head', 'Senior Manager', 'Manager', 
+//                           'Assistant Manager', 'Supervisor', 'Staff', 'Daily Worker'];
+    
+//     const gradingCounts = {};
+//     data.forEach(node => {
+//         const grading = node.Grading || 'Empty';
+//         gradingCounts[grading] = (gradingCounts[grading] || 0) + 1;
+//     });
+
+//     const gradingListContainer = document.getElementById('gradingList');
+    
+//     if (!gradingListContainer) {
+//         console.error('Grading list container not found');
+//         return;
+//     }
+
+//     const countAllElement = document.getElementById('count-all');
+//     if (countAllElement) {
+//         countAllElement.textContent = data.length;
+//     }
+
+//     // Clear existing items (except "All")
+//     const existingItems = gradingListContainer.querySelectorAll('.grading-item:not([data-grading="all"])');
+//     existingItems.forEach(item => item.remove());
+
+//     // Add grading items
+//     gradingOrder.forEach(grading => {
+//         if (gradingCounts[grading]) {
+//             const item = document.createElement('div');
+//             item.className = 'grading-item';
+//             item.dataset.grading = grading;
+//             item.innerHTML = `
+//                 <span class="grading-badge">${grading}</span>
+//                 <span class="grading-count">${gradingCounts[grading]}</span>
+//             `;
+//             gradingListContainer.appendChild(item);
+//         }
+//     });
+
+//     // Event Listeners
+//     document.querySelectorAll('.grading-item').forEach(item => {
+//         item.addEventListener('click', function() {
+//             document.querySelectorAll('.grading-item').forEach(i => i.classList.remove('active'));
+//             this.classList.add('active');
+
+//             const selectedGrading = this.dataset.grading;
+//             filterByGrading(selectedGrading);
+//         });
+//     });
+// }
+
+// function filterByGrading(grading) {
+//     if (!window.orgData) return;
+
+//     if (grading === 'all') {
+//         chart.load(window.orgData);
+//     } else {
+//         const filtered = [];
+//         const includedIds = new Set();
+
+//         // Collect matching nodes
+//         window.orgData.forEach(node => {
+//             if (node.Grading === grading) {
+//                 filtered.push(node);
+//                 includedIds.add(node.id);
+//             }
+//         });
+
+//         // Add required parents
+//         window.orgData.forEach(node => {
+//             if (node.Grading === grading) {
+//                 let parentId = node.pid;
+//                 while (parentId) {
+//                     if (!includedIds.has(parentId)) {
+//                         const parentNode = window.orgData.find(n => n.id === parentId);
+//                         if (parentNode) {
+//                             filtered.push(parentNode);
+//                             includedIds.add(parentId);
+//                             parentId = parentNode.pid;
+//                         } else {
+//                             break;
+//                         }
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
+//         });
+
+//         chart.load(filtered);
+//     }
+
+//     setTimeout(drawSecondaryLinks, 500);
+// }
+
+// // ===== FETCH DATA =====
+// fetch("{{ route('orgchart.orgchart') }}")
+//     .then(res => res.json())
+//     .then(data => {
+//         const processed = data.map(n => ({
+//             ...n,
+//             statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
+//         }));
+
+//         window.orgData = processed;
+        
+//         // Populate sidebar yang sudah ada di HTML
+//         populateGradingSidebar(processed);
+        
+//         // Load chart
+//         chart.load(processed);
+        
+//         setTimeout(drawSecondaryLinks, 2000);
+//     })
+//     .catch(err => console.error('Error loading org chart data:', err));
+
+// // ===== EVENT LISTENERS =====
+// chart.on("init", function() {
+//     setTimeout(drawSecondaryLinks, 500);
+// });
+
+// chart.on("redraw", function() {
+//     setTimeout(drawSecondaryLinks, 300);
+// });
+
+// // Toggle Secondary Links
+// let secondaryLinksVisible = true;
+// const toggleButton = document.getElementById('toggleSecondaryLinks');
+// if (toggleButton) {
+//     toggleButton.addEventListener('click', function() {
+//         const treeElement = document.getElementById("tree");
+//         const SVG = treeElement ? treeElement.querySelector('svg') : null;
+//         const toggleText = document.getElementById('toggleText');
+//         const icon = this.querySelector('i');
+
+//         if (!SVG) return;
+
+//         const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+
+//         if (secondaryLinksVisible) {
+//             secondaryLinks.forEach(link => link.style.display = 'none');
+//             if (toggleText) toggleText.textContent = 'Show Secondary Links';
+//             if (icon) {
+//                 icon.classList.remove('fa-eye-slash');
+//                 icon.classList.add('fa-eye');
+//             }
+//             this.classList.remove('btn-outline-primary');
+//             this.classList.add('btn-outline-secondary');
+//         } else {
+//             secondaryLinks.forEach(link => link.style.display = 'block');
+//             if (toggleText) toggleText.textContent = 'Hide Secondary Links';
+//             if (icon) {
+//                 icon.classList.remove('fa-eye');
+//                 icon.classList.add('fa-eye-slash');
+//             }
+//             this.classList.remove('btn-outline-secondary');
+//             this.classList.add('btn-outline-primary');
+//         }
+//         secondaryLinksVisible = !secondaryLinksVisible;
+//     });
+// }
+// ===== ORGCHART SETUP =====
+OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+OrgChart.templates.myTemplate.size = [250, 150];
+
+OrgChart.templates.myTemplate.node =
+    `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
         stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
 
-            OrgChart.templates.myTemplate.field_ =
-                `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+OrgChart.templates.myTemplate.field_ =
+    `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
 
-            OrgChart.templates.myTemplate.fieldgrading =
-                `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+OrgChart.templates.myTemplate.fieldgrading =
+    `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
 
-            OrgChart.templates.myTemplate.field_0 =
-                `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+OrgChart.templates.myTemplate.field_0 =
+    `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
 
-            OrgChart.templates.myTemplate.field_1 =
-                `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+OrgChart.templates.myTemplate.field_1 =
+    `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
 
-            OrgChart.templates.myTemplate.field_2 =
-                `<g transform="translate(60,105)">
+OrgChart.templates.myTemplate.field_2 =
+    `<g transform="translate(60,105)">
         <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
     </g>`;
 
-            OrgChart.templates.myTemplate.field_3 =
-                `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
+OrgChart.templates.myTemplate.field_3 =
+    `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
 
+const statusColors = {
+    active: '#4CAF50',
+    inactive: '#F44336',
+    vacant: '#9E9E9E',
+};
 
-            const statusColors = {
-                active: '#4CAF50',
-                inactive: '#F44336',
-                vacant: '#9E9E9E',
-            };
+const chart = new OrgChart(document.getElementById("tree"), {
+    template: "myTemplate",
+    enableSearch: true,
+    mouseScrool: OrgChart.action.zoom,
+    scaleInitial: OrgChart.match.boundary,
+    layout: OrgChart.normal, // Normal layout untuk spacing yang lebih konsisten
+    
+    // Jarak minimum antar level
+    levelSeparation: 250,
+    siblingSeparation: 100,
+    subtreeSeparation: 150,
+    
+    // Gunakan layout yang respek terhadap data.min positioning
+    align: OrgChart.align.center,
+    
+    nodeBinding: {
+        field_: "Employee",
+        fieldgrading: "Grading",
+        field_0: "Position",
+        field_1: "Location",
+        field_2: "statusColor",
+        field_3: "status"
+    },
 
+    toolbar: {
+        zoom: true,
+        fit: true,
+        expandAll: true
+    },
 
-            // === INIT CHART ===
-            const chart = new OrgChart(document.getElementById("tree"), {
-                template: "myTemplate",
-                enableSearch: true,
-                mouseScrool: OrgChart.action.zoom,
-                scaleInitial: OrgChart.match.boundary,
+    nodeMenu: null,
+    nodeMouseClick: OrgChart.action.none
+});
 
-                nodeBinding: {
-                    field_: "Employee",
-                    fieldgrading: "Grading",
-                    field_0: "Position",
-                    field_1: "Location",
-                    field_2: "statusColor",
-                    field_3: "status"
-                },
-
-                toolbar: {
-                    zoom: true,
-                    fit: true,
-                    expandAll: true
-                },
-
-                // ⬇️ TAMBAHKAN INI: Nonaktifkan panel detail
-                nodeMenu: null, // Hilangkan menu node
-                nodeMouseClick: OrgChart.action.none // Tidak ada aksi saat klik node
-            });
-
-
-            // === FUNGSI GAMBAR GARIS SECONDARY ===
-            function drawSecondaryLinks() {
-                // console.log('🔵 === drawSecondaryLinks DIPANGGIL ===');
-
-                // Akses SVG langsung dari DOM
-                const treeElement = document.getElementById("tree");
-                if (!treeElement) {
-                    // console.log('❌ Element tree tidak ditemukan');
-                    return;
-                }
-
-                const SVG = treeElement.querySelector('svg');
-                if (!SVG) {
-                    // console.log('❌ SVG belum siap');
-                    return;
-                }
-                // console.log('✅ SVG siap');
-
-                // Hapus garis lama
-                const existingLinks = SVG.querySelectorAll('.secondary-link');
-                // console.log('🗑️ Menghapus', existingLinks.length, 'garis lama');
-                existingLinks.forEach(link => link.remove());
-
-                if (!window.orgData) {
-                    // console.log('❌ window.orgData tidak ada');
-                    return;
-                }
-                // console.log('✅ window.orgData ada, jumlah nodes:', window.orgData.length);
-
-                let totalLinksCreated = 0;
-
-                window.orgData.forEach(node => {
-                    if (!node.secondary || node.secondary.length === 0) return;
-
-                    // console.log('👤 Node dengan secondary:', {
-                    //     employee: node.Employee,
-                    //     nodeId: node.id,
-                    //     secondaryData: node.secondary
-                    // });
-
-                    node.secondary.forEach(secData => {
-                        // ⬇️ PERUBAHAN: Ambil ID dari objek, bukan langsung value
-                        const secId = typeof secData === 'object' ? secData.id : secData;
-
-                        // console.log('   🔍 Mencari nodes - FROM ID:', secId, 'TO ID:', node.id);
-
-                        const fromNode = chart.getNode(secId);
-                        const toNode = chart.getNode(node.id);
-
-                        // console.log('   📍 fromNode:', fromNode ? 'FOUND ✅' : 'NOT FOUND ❌');
-                        // console.log('   📍 toNode:', toNode ? 'FOUND ✅' : 'NOT FOUND ❌');
-
-                        if (!fromNode || !toNode) {
-                            // console.log('   ⚠️ SKIP: Node tidak lengkap');
-                            return;
-                        }
-
-                        // Koordinat
-                        const fx = fromNode.x + fromNode.w / 2;
-                        const fy = fromNode.y + fromNode.h;
-                        const tx = toNode.x + toNode.w / 2;
-                        const ty = toNode.y;
-
-                        // console.log('   📐 Koordinat FROM: (', fx, ',', fy, ')');
-                        // console.log('   📐 Koordinat TO: (', tx, ',', ty, ')');
-
-                        // Buat PATH dengan curve
-                        const midY = (fy + ty) / 2;
-                        const pathData =
-                            `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
-
-                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                        path.setAttribute("d", pathData);
-                        path.setAttribute("stroke", "#FF5722");
-                        path.setAttribute("stroke-width", "5");
-                        path.setAttribute("stroke-dasharray", "15,8");
-                        path.setAttribute("fill", "none");
-                        path.setAttribute("class", "secondary-link");
-                        path.setAttribute("stroke-linecap", "round");
-
-                        SVG.appendChild(path);
-
-                        totalLinksCreated++;
-                        // console.log('   ✅ GARIS BERHASIL DIBUAT!');
-                    });
-                });
-
-                // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
+// ===== STYLING UNTUK INLINE SIDEBAR =====
+(function addInlineStyles() {
+    if (document.getElementById('inlineSidebarStyles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'inlineSidebarStyles';
+    style.textContent = `
+        .grading-sidebar-inline {
+            width: 220px;
+            height: 700px;
+            background: #fafafa;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .grading-sidebar-inline .sidebar-header {
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: 3px solid #5568d3;
+            flex-shrink: 0;
+        }
+        
+        .grading-sidebar-inline .sidebar-header h6 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .grading-sidebar-inline .sidebar-header i {
+            font-size: 14px;
+        }
+        
+        .grading-sidebar-inline .sidebar-content {
+            padding: 10px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .grading-sidebar-inline .grading-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            margin: 2px 0;
+        }
+        
+        .grading-sidebar-inline .grading-item:hover {
+            background: #e3f2fd;
+            border-left-color: #667eea;
+        }
+        
+        .grading-sidebar-inline .grading-item.active {
+            background: #e8eaf6;
+            border-left-color: #667eea;
+            font-weight: 600;
+        }
+        
+        .grading-sidebar-inline .grading-badge {
+            font-size: 13px;
+            font-weight: 500;
+            color: #424242;
+            flex: 1;
+        }
+        
+        .grading-sidebar-inline .grading-count {
+            background: #bdbdbd;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .grading-sidebar-inline .grading-item.active .grading-count {
+            background: #667eea;
+            color: white;
+        }
+        
+        .grading-sidebar-inline .all-badge {
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        /* Custom Scrollbar */
+        .grading-sidebar-inline .sidebar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+        
+        .grading-sidebar-inline .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grading-sidebar-inline {
+                width: 70px;
             }
+            
+            .grading-sidebar-inline .grading-badge {
+                font-size: 10px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            .grading-sidebar-inline .sidebar-header h6 {
+                font-size: 11px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+})();
 
+// ===== FUNGSI GAMBAR GARIS SECONDARY =====
+function drawSecondaryLinks() {
+    const treeElement = document.getElementById("tree");
+    if (!treeElement) return;
 
-            // === FETCH DATA ===
-            fetch("{{ route('orgchart.orgchart') }}")
-                .then(res => res.json())
-                .then(data => {
-                    // console.log('Raw data:', data);
+    const SVG = treeElement.querySelector('svg');
+    if (!SVG) return;
 
-                    const processed = data.map(n => ({
-                        ...n,
-                        statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
-                    }));
+    const existingLinks = SVG.querySelectorAll('.secondary-link');
+    existingLinks.forEach(link => link.remove());
 
-                    // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
+    if (!window.orgData) return;
 
-                    window.orgData = processed;
-                    chart.load(processed);
+    window.orgData.forEach(node => {
+        if (!node.secondary || node.secondary.length === 0) return;
 
-                    // Panggil manual dengan delay lebih lama
-                    setTimeout(() => {
-                        // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
-                        drawSecondaryLinks();
-                    }, 2000); // ⬅ 2 detik
-                });
+        node.secondary.forEach(secData => {
+            const secId = typeof secData === 'object' ? secData.id : secData;
+            const fromNode = chart.getNode(secId);
+            const toNode = chart.getNode(node.id);
 
+            if (!fromNode || !toNode) return;
 
-            // === EVENT LISTENERS ===
-            chart.on("init", function() {
-                // console.log('🎬 EVENT: init');
-                setTimeout(drawSecondaryLinks, 500);
-            });
-            chart.on("redraw", function() {
-                setTimeout(drawSecondaryLinks, 300);
-            });
-            let secondaryLinksVisible = true;
-            document.getElementById('toggleSecondaryLinks').addEventListener('click', function() {
-                const treeElement = document.getElementById("tree");
-                const SVG = treeElement.querySelector('svg');
-                const toggleText = document.getElementById('toggleText');
-                const icon = this.querySelector('i');
+            const fx = fromNode.x + fromNode.w / 2;
+            const fy = fromNode.y + fromNode.h;
+            const tx = toNode.x + toNode.w / 2;
+            const ty = toNode.y;
 
-                if (!SVG) return;
+            if (isNaN(fx) || isNaN(fy) || isNaN(tx) || isNaN(ty)) return;
 
-                const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+            const midY = (fy + ty) / 2;
+            const pathData = `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
 
-                if (secondaryLinksVisible) {
-                    secondaryLinks.forEach(link => {
-                        link.style.display = 'none';
-                    });
-                    toggleText.textContent = 'Show Secondary Links';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                    this.classList.remove('btn-outline-primary');
-                    this.classList.add('btn-outline-secondary');
-                } else {
-                    secondaryLinks.forEach(link => {
-                        link.style.display = 'block';
-                    });
-                    toggleText.textContent = 'Hide Secondary Links';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                    this.classList.remove('btn-outline-secondary');
-                    this.classList.add('btn-outline-primary');
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("stroke", "#FF5722");
+            path.setAttribute("stroke-width", "5");
+            path.setAttribute("stroke-dasharray", "15,8");
+            path.setAttribute("fill", "none");
+            path.setAttribute("class", "secondary-link");
+            path.setAttribute("stroke-linecap", "round");
+
+            SVG.appendChild(path);
+        });
+    });
+}
+
+// ===== POPULATE SIDEBAR =====
+function populateGradingSidebar(data) {
+    const gradingOrder = ['Director', 'Head', 'Senior Manager', 'Manager', 
+                          'Assistant Manager', 'Supervisor', 'Staff', 'Daily Worker'];
+    
+    const gradingCounts = {};
+    data.forEach(node => {
+        const grading = node.Grading || 'Empty';
+        gradingCounts[grading] = (gradingCounts[grading] || 0) + 1;
+    });
+
+    const gradingListContainer = document.getElementById('gradingList');
+    
+    if (!gradingListContainer) {
+        console.error('Grading list container not found');
+        return;
+    }
+
+    const countAllElement = document.getElementById('count-all');
+    if (countAllElement) {
+        countAllElement.textContent = data.length;
+    }
+
+    // Clear existing items (except "All")
+    const existingItems = gradingListContainer.querySelectorAll('.grading-item:not([data-grading="all"])');
+    existingItems.forEach(item => item.remove());
+
+    // Add grading items
+    gradingOrder.forEach(grading => {
+        if (gradingCounts[grading]) {
+            const item = document.createElement('div');
+            item.className = 'grading-item';
+            item.dataset.grading = grading;
+            item.innerHTML = `
+                <span class="grading-badge">${grading}</span>
+                <span class="grading-count">${gradingCounts[grading]}</span>
+            `;
+            gradingListContainer.appendChild(item);
+        }
+    });
+
+    // Event Listeners
+    document.querySelectorAll('.grading-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.grading-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+
+            const selectedGrading = this.dataset.grading;
+            filterByGrading(selectedGrading);
+        });
+    });
+}
+
+function filterByGrading(grading) {
+    if (!window.orgData) return;
+
+    if (grading === 'all') {
+        chart.load(window.orgData);
+    } else {
+        const filtered = [];
+        const includedIds = new Set();
+
+        // Collect matching nodes
+        window.orgData.forEach(node => {
+            if (node.Grading === grading) {
+                filtered.push(node);
+                includedIds.add(node.id);
+            }
+        });
+
+        // Add required parents
+        window.orgData.forEach(node => {
+            if (node.Grading === grading) {
+                let parentId = node.pid;
+                while (parentId) {
+                    if (!includedIds.has(parentId)) {
+                        const parentNode = window.orgData.find(n => n.id === parentId);
+                        if (parentNode) {
+                            filtered.push(parentNode);
+                            includedIds.add(parentId);
+                            parentId = parentNode.pid;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
                 }
-                secondaryLinksVisible = !secondaryLinksVisible;
-            });
+            }
+        });
+
+        chart.load(filtered);
+    }
+
+    setTimeout(drawSecondaryLinks, 500);
+}
+
+// ===== FETCH DATA =====
+fetch("{{ route('orgchart.orgchart') }}")
+    .then(res => res.json())
+    .then(data => {
+        const processed = data.map(n => {
+            // Hitung jarak Y berdasarkan level grading
+            const levelGap = 250; // Jarak vertikal per level grading (dalam pixel)
+            const calculatedY = (n.level || 0) * levelGap;
+            
+            return {
+                ...n,
+                statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E',
+                // ⬇️ Tambahkan custom min/max level untuk positioning
+                min: { y: calculatedY }
+            };
+        });
+
+        window.orgData = processed;
+        
+        // Populate sidebar yang sudah ada di HTML
+        populateGradingSidebar(processed);
+        
+        // Load chart dengan data yang sudah dimodifikasi
+        chart.load(processed);
+        
+        setTimeout(drawSecondaryLinks, 2000);
+    })
+    .catch(err => console.error('Error loading org chart data:', err));
+
+// ===== EVENT LISTENERS =====
+chart.on("init", function() {
+    setTimeout(drawSecondaryLinks, 500);
+});
+
+chart.on("redraw", function() {
+    setTimeout(drawSecondaryLinks, 300);
+});
+
+// Toggle Secondary Links
+let secondaryLinksVisible = true;
+const toggleButton = document.getElementById('toggleSecondaryLinks');
+if (toggleButton) {
+    toggleButton.addEventListener('click', function() {
+        const treeElement = document.getElementById("tree");
+        const SVG = treeElement ? treeElement.querySelector('svg') : null;
+        const toggleText = document.getElementById('toggleText');
+        const icon = this.querySelector('i');
+
+        if (!SVG) return;
+
+        const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+
+        if (secondaryLinksVisible) {
+            secondaryLinks.forEach(link => link.style.display = 'none');
+            if (toggleText) toggleText.textContent = 'Show Secondary Links';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-outline-secondary');
+        } else {
+            secondaryLinks.forEach(link => link.style.display = 'block');
+            if (toggleText) toggleText.textContent = 'Hide Secondary Links';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+            this.classList.remove('btn-outline-secondary');
+            this.classList.add('btn-outline-primary');
+        }
+        secondaryLinksVisible = !secondaryLinksVisible;
+    });
+}
         });
     </script>
     <script>
