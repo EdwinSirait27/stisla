@@ -1,10 +1,13 @@
 <?php
 namespace App\Http\Controllers;
+
+use App\Mail\Announcement;
 use App\Models\Employee;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Fingerprints;
 use App\Models\Submissions;
 use App\Models\Announcment;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\DataTables;
@@ -273,7 +276,9 @@ public function index(Request $request)
     $types = ['Annual Leave', 'Overtime','Cash Advances'];
     $statussubmissions = ['Cash', 'TOIL'];
 
-    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending','Mutation'])->count();
+    $totalEmployeespending = Employee::whereIn('status', ['Pending'])->count();
+    $totalEmployeesinactive = Employee::whereIn('status', ['Inactive', 'Resign'])->count();
 
     // 🔹 Data kehadiran (fingerprint)
     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
@@ -368,16 +373,41 @@ public function index(Request $request)
             'remaining' => $remaining ?? 0,
         ];
     }
+ $today = now()->format('Y-m-d');
+$employeePins = Employee::pluck('pin')->toArray();
+
+$presentToday = Fingerprints::whereDate('scan_date', $today)
+    ->whereIn('inoutmode', [1, 2])
+    ->whereIn('pin', $employeePins)
+    ->distinct('pin')  // 1 orang dihitung 1 kali
+    ->count('pin');
+$yesterday = now()->subDay()->toDateString();
+
+$presentYesterday = Fingerprints::whereDate('scan_date', $yesterday)
+    ->whereIn('inoutmode', [1, 2])
+    ->whereIn('pin', $employeePins)
+    ->distinct('pin')
+    ->count('pin');
+
+$trend = $presentToday - $presentYesterday;
+
+
+
     return view('pages.dashboardHR.dashboardHR', [
         'month'              => $month,
         'days'               => $days,
         'types'              => $types,
         'statussubmissions'  => $statussubmissions,
         'percentages'        => $percentages,
+        'totalEmployeesinactive'        => $totalEmployeesinactive,
         'pendingSubmissions' => $submissions,
         'totalEmployees'     => $totalEmployees,
+        'trend'     => $trend,
         'announcements'      => $announcements,
+        'presentToday'      => $presentToday,
+        'presentYesterday'      => $presentYesterday,
         'canCreateOvertime'  => $canCreateOvertime,
+        'totalEmployeespending'  => $totalEmployeespending,
         'managedEmployees'   => $managedEmployees,
         'selectedType'       => $selectedType,
         'leaveData'          => $leaveData,
@@ -426,26 +456,60 @@ public function index(Request $request)
             'data'           => $result,
         ]);
     }
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'publish_date' => 'required|date',
-            'end_date' => 'nullable|date',
-        ]);
+//     public function store(Request $request)
+//     {
+//         $request->validate([
+//             'title' => 'required|string|max:255',
+//             'content' => 'required|string',
+//             'publish_date' => 'required|date',
+//             'end_date' => 'nullable|date',
+//         ]);
+ 
+//         Announcment::create([
+//             'title'        => $request->title,
+//             'content'      => $request->content,
+//             'publish_date' => $request->publish_date,
+//             'end_date' => $request->end_date,
+//             'user_id'      => auth()->id(),
+//         ]);
+//          $employees = Employee::whereNotNull('email')->get();
+//   foreach ($employees as $emp) {
+//         Mail::to($emp->email)->queue(new Announcment($announcement));
+//     }
 
-        Announcment::create([
-            'title'        => $request->title,
-            'content'      => $request->content,
-            'publish_date' => $request->publish_date,
-            'end_date' => $request->end_date,
-            'user_id'      => auth()->id(),
-        ]);
+//         return redirect()->route('pages.dashboardHR')
+//             ->with('success', 'Announcement successfully made.');
+//     }
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'title'        => 'required|string|max:255',
+        'content'      => 'required|string',
+        'publish_date' => 'required|date',
+        'end_date'     => 'nullable|date',
+    ]);
 
-        return redirect()->route('pages.dashboardHR')
-            ->with('success', 'Announcement successfully made.');
-    }
+    $announcement = Announcement::create([
+        'title'        => $validated['title'],
+        'content'      => $validated['content'],
+        'publish_date' => $validated['publish_date'],
+        'end_date'     => $validated['end_date'],
+        'user_id'      => auth()->id(),
+    ]);
+    $employees = Employee::whereIn('status', ['Active', 'Pending', 'Mutation'])
+        ->whereNotNull('email')
+        ->get();
+    // 3. Kirim email ke employee yang memenuhi kriteria
+    // foreach ($employees as $emp) {
+    //     Mail::to($emp->email)->queue(new Announcement($announcement, $emp));
+    // }
+    foreach ($employees as $emp) {
+    Mail::to($emp->email)->later(now()->addMilliseconds(200), new Announcement($announcement, $emp));
+}
+
+    return redirect()->route('pages.dashboardHR')
+        ->with('success', 'Announcement successfully created & sent.');
+}
     public function getAnnouncements()
     {
         $announcements = Announcment::with('user.Employee.department')

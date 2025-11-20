@@ -886,6 +886,93 @@
         .profile-meta-item i {
             font-size: 1.1rem;
         }
+         /* ========== Quick Stats Cards ========== */
+        .quick-stats {
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.primary {
+            background: var(--primary-gradient);
+        }
+
+        .stat-icon.success {
+            background: var(--success-gradient);
+        }
+
+        .stat-icon.warning {
+            background: var(--warning-gradient);
+        }
+
+        .stat-icon.info {
+            background: var(--info-gradient);
+        }
+
+        .stat-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            color: #344767;
+        }
+
+        .stat-content p {
+            margin: 4px 0 0 0;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stat-trend.up {
+            background: rgba(56, 239, 125, 0.15);
+            color: #11998e;
+        }
+
+        .stat-trend.down {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
     </style>
 @endpush
 
@@ -934,73 +1021,98 @@
             </div>
 
             <div class="section-body">
-                <!-- Metrics Cards -->
+                <div class="quick-stats">
                 <div class="row">
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div onclick="window.location='{{ route('pages.Employee') }}';"
-                            class="card card-statistic-1 metric-card" role="button" aria-label="View all employees">
-                            <div class="card-icon bg-primary">
-                                <i class="far fa-user"></i>
-                            </div>
-                            <div class="card-wrap">
-                                <div class="card-header">
-                                    <h4>Total Active</h4>
-                                </div>
-                                <div class="card-body">
-                                    {{ $totalEmployees ?? 0 }} Employees
+                        <div onclick="window.location='{{ route('pages.Employee') }}';" class="stat-card" role="button" title="show employees" aria-label="View all employees">
+                            <div class="stat-card-header">
+                                <div class="stat-icon primary">
+                                    <i class="fas fa-users"></i>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div class="card card-statistic-1 metric-card">
-                            <div class="card-icon bg-success">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="card-wrap">
-                                <div class="card-header">
-                                    <h4>Present Today</h4>
-                                </div>
-                                <div class="card-body">
-                                    {{ $presentToday ?? 0 }}
-                                </div>
+                            <div class="stat-content">
+                                <h3>{{ $totalEmployees ?? 0 }}</h3>
+                                <p>Team Members</p>
+                                <span class="stat-trend up">
+                                    <i class="fas fa-arrow-up me-1"></i>
+                                    {{$totalEmployeespending}} Pending
+                                </span>
+                                <span class="stat-trend down" style="margin-left: 8px;">
+                                    <i class="fas fa-arrow-down me-1"></i>
+                                    {{$totalEmployeesinactive}} Inactive
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div class="card card-statistic-1 metric-card">
-                            <div class="card-icon bg-warning">
-                                <i class="fas fa-user-clock"></i>
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon success">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
                             </div>
-                            <div class="card-wrap">
-                                <div class="card-header">
-                                    <h4>On Leave</h4>
-                                </div>
-                                <div class="card-body">
-                                    {{ $onLeave ?? 0 }}
-                                </div>
+                            <div class="stat-content">
+                                <h3>{{ $presentToday ?? 0 }}</h3>
+                                <p>Present Today</p>
+                                @if ($trend >= 0)
+    <span class="stat-trend up" title="Employees who were present yesterday">
+        <i class="fas fa-arrow-up me-1"></i>
+        {{ $trend }} Employees
+    </span>
+@else
+    <span class="stat-trend down" title="Employees who were present yesterday">
+        <i class="fas fa-arrow-down me-1"></i>
+        {{ $trend }} Employees
+    </span>
+@endif
+
                             </div>
                         </div>
                     </div>
+                    
 
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div class="card card-statistic-1 metric-card">
-                            <div class="card-icon bg-danger">
-                                <i class="fas fa-user-times"></i>
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
                             </div>
-                            <div class="card-wrap">
-                                <div class="card-header">
-                                    <h4>Absent</h4>
+                            <div class="stat-content">
+                                <h3>{{ $pendingApprovals ?? 0 }}</h3>
+                                <p>All Approvals</p>
+                                @if (($pendingApprovals ?? 0) > 0)
+                                    <span class="stat-trend down">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        Needs Action
+                                    </span>
+                                @else
+                                    <span class="stat-trend up">
+                                        <i class="fas fa-check-circle me-1"> </i>All Clear
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-12 mb-4">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-icon info">
+                                    <i class="fas fa-calendar-check"></i>
                                 </div>
-                                <div class="card-body">
-                                    {{ $absent ?? 0 }}
-                                </div>
+                            </div>
+                            <div class="stat-content">
+                                <h3>{{ $onLeave ?? 0 }}</h3>
+                                <p>On Leave</p>
+                                <span class="badge-primary-soft mt-2">
+                                    This Week
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
 
                 <div class="row">
@@ -1039,41 +1151,6 @@
 
                 <!-- Chart & Submissions Row -->
                 <div class="row">
-                    <!-- Attendance Chart -->
-                    {{-- <div class="col-lg-8 col-12 mb-4">
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h4>
-                                    <i class="fas fa-calendar-check me-2"></i>
-                                    Monthly Attendance Rate
-                                </h4>
-                                <div class="card-header-action">
-                                    <div class="date-filter-container">
-                                        <input type="date" 
-                                               id="startDate" 
-                                               class="form-control"
-                                               aria-label="Start Date"
-                                               value="{{ now()->startOfMonth()->format('Y-m-d') }}">
-                                        <input type="date" 
-                                               id="endDate" 
-                                               class="form-control"
-                                               aria-label="End Date"
-                                               value="{{ now()->endOfMonth()->format('Y-m-d') }}">
-                                        <button id="filterButton" class="btn btn-primary">
-                                            <i class="fas fa-filter me-1"></i> Filter
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="attendanceChart" height="180"></canvas>
-                                <div class="alert alert-info-custom mt-4" role="alert">
-                                    <strong><i class="fas fa-info-circle me-2"></i>Chart Information</strong>
-                                    <span class="d-block mt-1">X-axis represents dates, Y-axis shows total employee attendance.</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
                     <div class="col-lg-8 col-12 mb-4">
                         <div class="card chart-card">
                             <div class="card-header">
@@ -1096,7 +1173,7 @@
                             <div class="card-body">
                                 <canvas id="attendanceChart" height="180"></canvas>
                                 <div class="alert alert-info-custom mt-4" role="alert">
-                                    <strong><i class="fas fa-info-circle me-2"></i>Chart Information</strong>
+                                    <strong><i class="fas fa-info-circle me-2"></i> Chart Information</strong>
                                     <span class="d-block mt-1">X-axis represents dates, Y-axis shows total employee
                                         attendance.</span>
                                 </div>
@@ -1129,11 +1206,11 @@
                                     <i class="fas fa-file-alt me-2"></i>
                                     Submissions
                                 </h4>
-                                <button id="btn-submission" class="btn btn-primary btn-sm" data-toggle="modal"
+                                {{-- <button id="btn-submission" class="btn btn-primary btn-sm" data-toggle="modal"
                                     data-target="#createSubmissionModal">
                                     <i class="fas fa-plus me-1"></i>
                                     Create
-                                </button>
+                                </button> --}}
                             </div>
 
                             <div class="card-body">
