@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+
 class Structuresnew extends Model
 {
-    use HasFactory,  LogsActivity; 
+    use HasFactory,  LogsActivity;
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -33,7 +34,6 @@ class Structuresnew extends Model
     ];
     protected $casts = [
         'is_manager' => 'boolean',
-
     ];
     public function company()
     {
@@ -71,8 +71,6 @@ class Structuresnew extends Model
     {
         return $this->belongsTo(Submissionposition::class, 'submission_position_id', 'id');
     }
-  
-    
     public function children()
     {
         return $this->hasMany(Structuresnew::class, 'parent_id', 'id');
@@ -82,86 +80,74 @@ class Structuresnew extends Model
         return $this->hasMany(Employee::class, 'structure_id', 'id');
     }
     public function employees()
-{
-    return $this->hasOne(Employee::class, 'structure_id', 'id');
-}
-public function allChildren()
-{
-    return $this->children()->with('allChildren', 'position');
-}
-  public function parent()
+    {
+        return $this->hasOne(Employee::class, 'structure_id', 'id');
+    }
+    public function allChildren()
+    {
+        return $this->children()->with('allChildren', 'position');
+    }
+    public function parent()
     {
         return $this->belongsTo(Structuresnew::class, 'parent_id', 'id');
     }
-public function secondarySupervisors()
-{
-    return $this->belongsToMany(
-        Structuresnew::class,
-        'structure_supervisors',
-        'structure_id',
-        'supervisor_id'
-    );
-}
+    public function secondarySupervisors()
+    {
+        return $this->belongsToMany(
+            Structuresnew::class,
+            'structure_supervisors',
+            'structure_id',
+            'supervisor_id'
+        );
+    }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->useLogName('Structuresnew')
+            ->setDescriptionForEvent(function (string $eventName) {
+                $actor = auth()->user()->employee->employee_name
+                    ?? auth()->user()->name
+                    ?? 'system';
 
+                $changes = $this->getChanges();
+                $original = $this->getOriginal();
 
+                $relationNames = [
+                    'parent_id' => fn($id) => optional(Structuresnew::with('submissionposition.positionRelation')->find($id))->submissionposition->positionRelation->name ?? '-',
+                ];
 
-public function getActivitylogOptions(): LogOptions
-{
-    return LogOptions::defaults()
-        ->logFillable()
-        ->useLogName('Structuresnew')
-        ->setDescriptionForEvent(function (string $eventName) {
-            $actor = auth()->user()->employee->employee_name
-                ?? auth()->user()->name
-                ?? 'system';
+                $fieldLabels = [
+                    'parent_id' => 'Direct Supervisor',
 
+                ];
+                $changesInfo = '';
+                if ($eventName === 'updated' && !empty($changes)) {
+                    $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
+                        $old = $original[$field] ?? 'null';
 
-            $changes = $this->getChanges();
-            $original = $this->getOriginal();
+                        $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
 
-            // Mapping relasi ID → nama entitas
-            $relationNames = [
-                // 'parent_id' => fn($id) => optional(Structuresnew::find($id))->name,
-                 'parent_id' => fn($id) => optional(Structuresnew::with('submissionposition.positionRelation')->find($id))->submissionposition->positionRelation->name ?? '-',
+                        if (isset($relationNames[$field])) {
+                            $oldLabel = $relationNames[$field]($old) ?? $old;
+                            $newLabel = $relationNames[$field]($new) ?? $new;
+                            return "{$label}: {$oldLabel} → {$newLabel}";
+                        }
 
-              ];
+                        if ($old == $new) return null;
+                        return "{$label}: {$old} → {$new}";
+                    })
+                        ->filter()
+                        ->values()
+                        ->implode(', ');
 
-            // Mapping label kolom → label human readable
-            $fieldLabels = [
-                'parent_id' => 'Direct Supervisor',
-                
-            ];
-            $changesInfo = '';
-            if ($eventName === 'updated' && !empty($changes)) {
-                $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
-                    $old = $original[$field] ?? 'null';
+                    $changesInfo = $details ? "Changes: {$details}" : '';
+                }
 
-                    // Ganti label field dengan nama yang lebih manusiawi
-                    $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
-
-                    // Jika field termasuk relasi, tampilkan nama relasi
-                    if (isset($relationNames[$field])) {
-                        $oldLabel = $relationNames[$field]($old) ?? $old;
-                        $newLabel = $relationNames[$field]($new) ?? $new;
-                        return "{$label}: {$oldLabel} → {$newLabel}";
-                    }
-
-                    // Selain relasi, tampilkan perubahan nilai biasa
-                    if ($old == $new) return null;
-                    return "{$label}: {$old} → {$new}";
-                })
-                    ->filter()
-                    ->values()
-                    ->implode(', ');
-
-                $changesInfo = $details ? "Changes: {$details}" : '';
-            }
-
-            return "Structuresnew has been {$eventName} by {$actor}. {$changesInfo}";
-        });
-}
-
+                return "Structuresnew has been {$eventName} by {$actor}. {$changesInfo}";
+            });
+    }
 }
 
 // public function parent()

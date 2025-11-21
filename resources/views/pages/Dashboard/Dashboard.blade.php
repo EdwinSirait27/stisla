@@ -237,14 +237,14 @@
 
     <style>
         /* :root {
-                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            } */
+                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -1104,7 +1104,7 @@
                 </div>
             </div>
 
-            
+
 
 
             <div class="row mb-4">
@@ -1283,7 +1283,7 @@
                         <div class="leave-balance-header">
                             <h4>
                                 <i class="fas fa-umbrella-beach me-2"></i>
-                                Leave Balance
+                                Leave Balance - {{ Auth::user()->employee->employee_name ?? Auth::user()->employee->employee_name }}
                             </h4>
                         </div>
                         <div class="leave-balance-body">
@@ -1294,14 +1294,14 @@
                                     </div>
                                     <div>
                                         <div class="leave-type-name">Annual Leave</div>
-                                        <div class="leave-type-period">2024</div>
+                                        <div class="leave-type-period">
+                                            {{ Auth::user()->employee->created_at ?? Auth::user()->employee->created_at }}
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="leave-days">
                                     <div class="leave-days-value">12</div>
-                                    {{-- <div class="leave-days-value">{{ $leaveBalance->annual->remaining ?? 12 }}</div> --}}
                                     <div class="leave-days-label">of 14 days</div>
-                                    {{-- <div class="leave-days-label">of {{ $leaveBalance->annual->total ?? 14 }} days</div> --}}
                                 </div>
                             </div>
                             <div class="leave-progress">
@@ -1521,10 +1521,6 @@
 
             <!-- Announcements & Attendance History Row -->
             <div class="row">
-                <!-- Company Announcements -->
-
-
-                <!-- Attendance History Calendar -->
                 <div class="col-lg-12 col-12 mb-4">
                     <div class="attendance-history-card">
                         <div class="attendance-history-header">

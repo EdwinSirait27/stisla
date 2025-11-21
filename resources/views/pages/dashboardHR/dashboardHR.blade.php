@@ -435,13 +435,13 @@
 
     <style>
         /* :root {
-                        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                        --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                    } */
+                            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                        } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -886,7 +886,8 @@
         .profile-meta-item i {
             font-size: 1.1rem;
         }
-         /* ========== Quick Stats Cards ========== */
+
+        /* ========== Quick Stats Cards ========== */
         .quick-stats {
             margin-bottom: 16px;
         }
@@ -1022,97 +1023,98 @@
 
             <div class="section-body">
                 <div class="quick-stats">
-                <div class="row">
-                    <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div onclick="window.location='{{ route('pages.Employee') }}';" class="stat-card" role="button" title="show employees" aria-label="View all employees">
-                            <div class="stat-card-header">
-                                <div class="stat-icon primary">
-                                    <i class="fas fa-users"></i>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 col-12 mb-4">
+                            <div onclick="window.location='{{ route('pages.Employee') }}';" class="stat-card" role="button"
+                                title="show employees" aria-label="View all employees">
+                                <div class="stat-card-header">
+                                    <div class="stat-icon primary">
+                                        <i class="fas fa-users"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $totalEmployees ?? 0 }}</h3>
-                                <p>Team Members</p>
-                                <span class="stat-trend up">
-                                    <i class="fas fa-arrow-up me-1"></i>
-                                    {{$totalEmployeespending}} Pending
-                                </span>
-                                <span class="stat-trend down" style="margin-left: 8px;">
-                                    <i class="fas fa-arrow-down me-1"></i>
-                                    {{$totalEmployeesinactive}} Inactive
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-icon success">
-                                    <i class="fas fa-user-check"></i>
-                                </div>
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $presentToday ?? 0 }}</h3>
-                                <p>Present Today</p>
-                                @if ($trend >= 0)
-    <span class="stat-trend up" title="Employees who were present yesterday">
-        <i class="fas fa-arrow-up me-1"></i>
-        {{ $trend }} Employees
-    </span>
-@else
-    <span class="stat-trend down" title="Employees who were present yesterday">
-        <i class="fas fa-arrow-down me-1"></i>
-        {{ $trend }} Employees
-    </span>
-@endif
-
-                            </div>
-                        </div>
-                    </div>
-                    
-
-                    <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-icon warning">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $pendingApprovals ?? 0 }}</h3>
-                                <p>All Approvals</p>
-                                @if (($pendingApprovals ?? 0) > 0)
-                                    <span class="stat-trend down">
-                                        <i class="fas fa-exclamation-circle me-1"></i>
-                                        Needs Action
-                                    </span>
-                                @else
+                                <div class="stat-content">
+                                    <h3>{{ $totalEmployees ?? 0 }}</h3>
+                                    <p>Team Members</p>
                                     <span class="stat-trend up">
-                                        <i class="fas fa-check-circle me-1"> </i>All Clear
+                                        <i class="fas fa-arrow-up me-1"></i>
+                                        {{ $totalEmployeespending }} Pending
                                     </span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6 col-12 mb-4">
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-icon info">
-                                    <i class="fas fa-calendar-check"></i>
+                                    <span class="stat-trend down" style="margin-left: 8px;">
+                                        <i class="fas fa-arrow-down me-1"></i>
+                                        {{ $totalEmployeesinactive }} Inactive
+                                    </span>
                                 </div>
                             </div>
-                            <div class="stat-content">
-                                <h3>{{ $onLeave ?? 0 }}</h3>
-                                <p>On Leave</p>
-                                <span class="badge-primary-soft mt-2">
-                                    This Week
-                                </span>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-12 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-header">
+                                    <div class="stat-icon success">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>{{ $presentToday ?? 0 }}</h3>
+                                    <p>Present Today</p>
+                                    @if ($trend >= 0)
+                                        <span class="stat-trend up" title="Employees who were present yesterday">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            {{ $trend }} Employees
+                                        </span>
+                                    @else
+                                        <span class="stat-trend down" title="Employees who were present yesterday">
+                                            <i class="fas fa-arrow-down me-1"></i>
+                                            {{ $trend }} Employees
+                                        </span>
+                                    @endif
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6 col-12 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-header">
+                                    <div class="stat-icon warning">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>{{ $pendingApprovals ?? 0 }}</h3>
+                                    <p>All Approvals</p>
+                                    @if (($pendingApprovals ?? 0) > 0)
+                                        <span class="stat-trend down">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            Needs Action
+                                        </span>
+                                    @else
+                                        <span class="stat-trend up">
+                                            <i class="fas fa-check-circle me-1"> </i>All Clear
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-12 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-header">
+                                    <div class="stat-icon info">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>{{ $onLeave ?? 0 }}</h3>
+                                    <p>On Leave</p>
+                                    <span class="badge-primary-soft mt-2">
+                                        This Week
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
 
                 <div class="row">

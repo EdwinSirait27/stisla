@@ -2393,7 +2393,7 @@
             </div>
 
             <!-- Announcements Section -->
-            <div class="row">
+            {{-- <div class="row">
                 <div class="col-12">
                     <div class="team-overview-card">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -2464,7 +2464,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         </section>
     </div>
 
