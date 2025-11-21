@@ -1,12 +1,12 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Mail\Announcement as AnnouncementMail;
+use App\Mail\AnnouncementMail;
 use App\Models\Employee;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Fingerprints;
 use App\Models\Submissions;
-use App\Models\Announcment;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -294,7 +294,7 @@ public function index(Request $request)
         return $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0;
     });
 
-    $announcements = Announcment::orderBy('created_at', 'desc')->get();
+    $announcements = Announcement::orderBy('created_at', 'desc')->get();
 
     // 🔹 Ambil user & employee
     $user = Auth::user();
@@ -467,7 +467,7 @@ $trend = $presentToday - $presentYesterday;
 //             'end_date' => 'nullable|date',
 //         ]);
  
-//         Announcment::create([
+//         Announcement::create([
 //             'title'        => $request->title,
 //             'content'      => $request->content,
 //             'publish_date' => $request->publish_date,
@@ -476,193 +476,47 @@ $trend = $presentToday - $presentYesterday;
 //         ]);
 //          $employees = Employee::whereNotNull('email')->get();
 //   foreach ($employees as $emp) {
-//         Mail::to($emp->email)->queue(new Announcment($announcement));
+//         Mail::to($emp->email)->queue(new Announcement($announcement));
 //     }
 
 //         return redirect()->route('pages.dashboardHR')
 //             ->with('success', 'Announcement successfully made.');
 //     }
-// public function store(Request $request)
-// {
-//     $validated = $request->validate([
-//         'title'        => 'required|string|max:255',
-//         'content'      => 'required|string',
-//         'publish_date' => 'required|date',
-//         'end_date'     => 'nullable|date',
-//     ]);
-
-//     $announcement = Announcement::create([
-//         'title'        => $validated['title'],
-//         'content'      => $validated['content'],
-//         'publish_date' => $validated['publish_date'],
-//         'end_date'     => $validated['end_date'],
-//         'user_id'      => auth()->id(),
-//     ]);
-//     $employees = Employee::whereIn('status', ['Active', 'Pending', 'Mutation'])
-//         ->whereNotNull('email')
-//         ->get();
-   
-//     foreach ($employees as $emp) {
-//     Mail::to($emp->email)->later(now()->addMilliseconds(200), new Announcement($announcement, $emp));
-// }
-
-//     return redirect()->route('pages.dashboardHR')
-//         ->with('success', 'Announcement successfully created & sent.');
-// }
-
-// public function store(Request $request)
-// {
-//     Log::info('Announcement store() START');
-
-//     try {
-//         // Validasi
-//         Log::info('Validating input...');
-//         $validated = $request->validate([
-//             'title'        => 'required|string|max:255',
-//             'content'      => 'required|string',
-//             'publish_date' => 'required|date',
-//             'end_date'     => 'nullable|date',
-//         ]);
-
-//         // Create announcement
-//         Log::info('Creating announcement...', $validated);
-//         $announcement = Announcment::create([
-//             'title'        => $validated['title'],
-//             'content'      => $validated['content'],
-//             'publish_date' => $validated['publish_date'],
-//             'end_date'     => $validated['end_date'],
-//             'user_id'      => auth()->id(),
-//         ]);
-
-//         Log::info('Announcement created', ['id' => $announcement->id]);
-
-//         // Employees
-//         Log::info('Fetching employees...');
-//         $employees = Employee::whereIn('status', ['Active', 'Pending', 'Mutation'])
-//             ->whereNotNull('email')
-//             ->get();
-
-//         Log::info('Employees count: ' . $employees->count());
-
-//         // Loop send mail
-//         foreach ($employees as $emp) {
-//             Log::info('Queueing email to: ' . $emp->email);
-
-//             try {
-//                 Mail::to($emp->email)
-//                     ->later(now()->addMilliseconds(200), new Announcement($announcement, $emp));
-//             } catch (\Exception $e) {
-//                 Log::error('ERROR sending to ' . $emp->email . ': ' . $e->getMessage());
-//             }
-//         }
-        
-
-//         Log::info('Announcement store() END SUCCESS');
-
-//         return redirect()
-//             ->route('pages.dashboardHR')
-//             ->with('success', 'Announcement successfully created & sent.');
-
-//     } catch (\Exception $e) {
-//         Log::error('Announcement store() FAILED: ' . $e->getMessage(), [
-//             'trace' => $e->getTraceAsString()
-//         ]);
-
-//         return back()->with('error', 'Failed to create announcement.');
-//     }
-// }
-// public function store(Request $request)
-// {
-//     Log::info('Announcement store() START');
-
-//     try {
-//         // Validasi
-//         Log::info('Validating input...');
-//         $validated = $request->validate([
-//             'title'        => 'required|string|max:255',
-//             'content'      => 'required|string',
-//             'publish_date' => 'required|date',
-//             'end_date'     => 'nullable|date',
-//         ]);
-
-//         // Create announcement
-//         Log::info('Creating announcement...', $validated);
-//         $announcement = Announcment::create([
-//             'title'        => $validated['title'],
-//             'content'      => $validated['content'],
-//             'publish_date' => $validated['publish_date'],
-//             'end_date'     => $validated['end_date'],
-//             'user_id'      => auth()->id(),
-//         ]);
-
-//         Log::info('Announcement created', ['id' => $announcement->id]);
-
-//         // Employees
-//         Log::info('Fetching employees...');
-//         $employees = Employee::whereIn('status', ['Active', 'Pending', 'Mutation'])
-//             ->whereNotNull('email')
-//             ->get();
-
-//         Log::info('Employees count: ' . $employees->count());
-
-//         // Loop send mail
-//         foreach ($employees as $emp) {
-//             Log::info('Queueing email to: ' . $emp->email);
-
-//             try {
-//                 Mail::to($emp->email)
-//                     ->later(
-//                         now()->addMilliseconds(200),
-//                         new AnnouncementMail($announcement, $emp)
-//                     );
-//             } catch (\Exception $e) {
-//                 Log::error('ERROR sending to ' . $emp->email . ': ' . $e->getMessage());
-//             }
-//         }
-
-//         Log::info('Announcement store() END SUCCESS');
-
-//         return redirect()
-//             ->route('pages.dashboardHR')
-//             ->with('success', 'Announcement successfully created & sent.');
-
-//     } catch (\Exception $e) {
-//         Log::error('Announcement store() FAILED: ' . $e->getMessage(), [
-//             'trace' => $e->getTraceAsString()
-//         ]);
-
-//         return back()->with('error', 'Failed to create announcement.');
-//     }
-// }
 public function store(Request $request)
 {
-    $validated = $request->validate([
-        'title'        => 'required|string|max:255',
-        'content'      => 'required|string',
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
         'publish_date' => 'required|date',
-        'end_date'     => 'nullable|date',
+        'end_date' => 'nullable|date',
     ]);
 
-    $announcement = Announcment::create([
-        'title'        => $validated['title'],
-        'content'      => $validated['content'],
-        'publish_date' => $validated['publish_date'],
-        'end_date'     => $validated['end_date'],
+    // ✅ Simpan hasil create ke variable
+    $announcement = Announcement::create([
+        'title'        => $request->title,
+        'content'      => $request->content,
+        'publish_date' => $request->publish_date,
+        'end_date'     => $request->end_date,
         'user_id'      => auth()->id(),
     ]);
 
-    SendAnnouncementEmailsJob::dispatch($announcement);
-
-    return redirect()
-        ->route('pages.dashboardHR')
-        ->with('success', 'Announcement created. Emails are being sent in background.');
+    // ✅ Kirim email ke semua employee
+    $employees = Employee::whereNotNull('email')->get();
+    
+    foreach ($employees as $employee) {
+        // Gunakan AnnouncementMail (sesuai saran sebelumnya)
+        Mail::to($employee->email)->queue(new AnnouncementMail($announcement, $employee));
+    }
+    return redirect()->route('pages.dashboardHR')
+        ->with('success', 'Announcement successfully made.');
 }
+
 
 
 
     public function getAnnouncements()
     {
-        $announcements = Announcment::with('user.Employee.department')
+        $announcements = Announcement::with('user.Employee.department')
             ->select(['id', 'user_id', 'title', 'content', 'publish_date', 'end_date'])
             ->get()
             ->map(function ($announcement) {
