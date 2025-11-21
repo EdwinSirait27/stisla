@@ -13,9 +13,6 @@ class TestJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $connection = 'redis';
-    public $queue = 'default';
-
     public function handle()
     {
         Log::info("TEST JOB SUCCESSFULLY RAN AT " . now());
