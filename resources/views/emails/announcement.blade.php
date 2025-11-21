@@ -149,7 +149,7 @@
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} HRX — PT Mahendradata Jaya Mandiri. All Rights Reserved.
+            © {{ date('Y') }} HRX — PT Mahendradata Jaya Mandiri.
         </div>
     </div>
 </body>

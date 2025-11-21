@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Mail\Announcement;
+use App\Mail\Announcement as AnnouncementMail;
 use App\Models\Employee;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Fingerprints;
@@ -510,6 +510,67 @@ $trend = $presentToday - $presentYesterday;
 //         ->with('success', 'Announcement successfully created & sent.');
 // }
 
+// public function store(Request $request)
+// {
+//     Log::info('Announcement store() START');
+
+//     try {
+//         // Validasi
+//         Log::info('Validating input...');
+//         $validated = $request->validate([
+//             'title'        => 'required|string|max:255',
+//             'content'      => 'required|string',
+//             'publish_date' => 'required|date',
+//             'end_date'     => 'nullable|date',
+//         ]);
+
+//         // Create announcement
+//         Log::info('Creating announcement...', $validated);
+//         $announcement = Announcment::create([
+//             'title'        => $validated['title'],
+//             'content'      => $validated['content'],
+//             'publish_date' => $validated['publish_date'],
+//             'end_date'     => $validated['end_date'],
+//             'user_id'      => auth()->id(),
+//         ]);
+
+//         Log::info('Announcement created', ['id' => $announcement->id]);
+
+//         // Employees
+//         Log::info('Fetching employees...');
+//         $employees = Employee::whereIn('status', ['Active', 'Pending', 'Mutation'])
+//             ->whereNotNull('email')
+//             ->get();
+
+//         Log::info('Employees count: ' . $employees->count());
+
+//         // Loop send mail
+//         foreach ($employees as $emp) {
+//             Log::info('Queueing email to: ' . $emp->email);
+
+//             try {
+//                 Mail::to($emp->email)
+//                     ->later(now()->addMilliseconds(200), new Announcement($announcement, $emp));
+//             } catch (\Exception $e) {
+//                 Log::error('ERROR sending to ' . $emp->email . ': ' . $e->getMessage());
+//             }
+//         }
+        
+
+//         Log::info('Announcement store() END SUCCESS');
+
+//         return redirect()
+//             ->route('pages.dashboardHR')
+//             ->with('success', 'Announcement successfully created & sent.');
+
+//     } catch (\Exception $e) {
+//         Log::error('Announcement store() FAILED: ' . $e->getMessage(), [
+//             'trace' => $e->getTraceAsString()
+//         ]);
+
+//         return back()->with('error', 'Failed to create announcement.');
+//     }
+// }
 public function store(Request $request)
 {
     Log::info('Announcement store() START');
@@ -526,7 +587,7 @@ public function store(Request $request)
 
         // Create announcement
         Log::info('Creating announcement...', $validated);
-        $announcement = Announcement::create([
+        $announcement = Announcment::create([
             'title'        => $validated['title'],
             'content'      => $validated['content'],
             'publish_date' => $validated['publish_date'],
@@ -550,7 +611,10 @@ public function store(Request $request)
 
             try {
                 Mail::to($emp->email)
-                    ->later(now()->addMilliseconds(200), new Announcement($announcement, $emp));
+                    ->later(
+                        now()->addMilliseconds(200),
+                        new AnnouncementMail($announcement, $emp)
+                    );
             } catch (\Exception $e) {
                 Log::error('ERROR sending to ' . $emp->email . ': ' . $e->getMessage());
             }
@@ -570,6 +634,7 @@ public function store(Request $request)
         return back()->with('error', 'Failed to create announcement.');
     }
 }
+
 
     public function getAnnouncements()
     {
