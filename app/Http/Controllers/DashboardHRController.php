@@ -545,6 +545,7 @@ $trend = $presentToday - $presentYesterday;
 // }
 public function store(Request $request)
 {
+        ini_set('max_execution_time', 360);
     try {
         $request->validate([
             'title' => 'required|string|max:255',
@@ -561,13 +562,11 @@ public function store(Request $request)
             'end_date'     => $request->end_date,
             'user_id'      => auth()->id(),
         ]);
-
         Log::info('Announcement created successfully', [
             'announcement_id' => $announcement->id,
             'title'           => $announcement->title,
             'created_by'      => auth()->id(),
         ]);
-
         // Ambil hanya employee yang allowed: Active, Pending, Mutation
         $employees = Employee::whereNotNull('email')
             ->whereIn('status', ['Active', 'Pending', 'Mutation'])
@@ -596,17 +595,11 @@ public function store(Request $request)
             'trace'   => $e->getTraceAsString(),
             'user_id' => auth()->id(),
         ]);
-
         return redirect()->back()
             ->withInput()
             ->with('error', 'Failed to create announcement. Please try again.');
     }
 }
-
-
-
-
-
     public function getAnnouncements()
     {
         $announcements = Announcement::with('user.Employee.department')

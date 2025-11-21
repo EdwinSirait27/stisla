@@ -9,7 +9,6 @@ use Illuminate\Queue\SerializesModels;
 class AnnouncementMail extends Mailable implements ShouldQueue
 {
    use Queueable, SerializesModels;
-    
     public $announcement;
     public $employee;
 
