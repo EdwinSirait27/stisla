@@ -17,11 +17,11 @@ class SendAnnouncementEmailsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $announcement;
-    public $queue = 'announcement';
 
     public function __construct($announcement)
     {
         $this->announcement = $announcement;
+            $this->queue = 'announcement';
     }
 
     public function handle()
