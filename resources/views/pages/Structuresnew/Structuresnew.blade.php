@@ -1765,36 +1765,22 @@ const chart = new OrgChart(document.getElementById("tree"), {
 
 // ===== ADJUST NODE POSITIONS SETELAH RENDER (POST-PROCESSING) =====
 function forceAdjustNodesByGrading() {
-    console.log('🔧 forceAdjustNodesByGrading called');
-    
-    if (!window.orgData) {
-        console.log('❌ window.orgData not available');
-        return;
-    }
+    if (!window.orgData) return;
     
     const treeElement = document.getElementById("tree");
-    if (!treeElement) {
-        console.log('❌ tree element not found');
-        return;
-    }
+    if (!treeElement) return;
     
     const SVG = treeElement.querySelector('svg');
-    if (!SVG) {
-        console.log('❌ SVG not found');
-        return;
-    }
+    if (!SVG) return;
     
-    console.log('✅ Starting node adjustment');
+    const gradingGap = 220; // Jarak antar grading level
+    const baseY = 80;
     
-    const gradingGap = 250; // INCREASED: Jarak antar grading level
-    const baseY = 50;
-    
-    // Map untuk menyimpan posisi baru
+    // Map untuk menyimpan X position yang sudah ada
     const nodePositions = new Map();
     
     // Ambil semua node groups dari SVG
     const nodeGroups = SVG.querySelectorAll('[node-id]');
-    console.log(`📊 Found ${nodeGroups.length} nodes`);
     
     nodeGroups.forEach(nodeGroup => {
         const nodeId = nodeGroup.getAttribute('node-id');
@@ -1803,8 +1789,6 @@ function forceAdjustNodesByGrading() {
         if (nodeData && nodeData.level !== undefined) {
             // Hitung Y position berdasarkan grading level
             const targetY = baseY + (nodeData.level * gradingGap);
-            
-            console.log(`📍 Node: ${nodeData.Employee} | Grading: ${nodeData.Grading} | Level: ${nodeData.level} | Y: ${targetY}px`);
             
             // Ambil current transform
             const currentTransform = nodeGroup.getAttribute('transform') || 'translate(0,0)';
@@ -1817,17 +1801,10 @@ function forceAdjustNodesByGrading() {
                 nodeGroup.setAttribute('transform', `translate(${currentX}, ${targetY})`);
                 
                 // Simpan posisi untuk redraw links
-                nodePositions.set(nodeId, { 
-                    x: currentX, 
-                    y: targetY,
-                    name: nodeData.Employee,
-                    level: nodeData.level 
-                });
+                nodePositions.set(nodeId, { x: currentX, y: targetY });
             }
         }
     });
-    
-    console.log('✅ Node positions updated, now redrawing links...');
     
     // Redraw semua connection lines
     redrawAllLinks(nodePositions);
@@ -1841,14 +1818,9 @@ function redrawAllLinks(nodePositions) {
     const SVG = treeElement?.querySelector('svg');
     if (!SVG) return;
     
-    console.log('🔗 Redrawing all links...');
-    
     // Hapus semua path lama (kecuali secondary links)
     const oldPaths = SVG.querySelectorAll('path:not(.secondary-link)');
-    console.log(`🗑️ Removing ${oldPaths.length} old paths`);
     oldPaths.forEach(path => path.remove());
-    
-    let linksCreated = 0;
     
     // Buat path baru berdasarkan hierarchy
     window.orgData.forEach(node => {
@@ -1858,16 +1830,13 @@ function redrawAllLinks(nodePositions) {
         const parentPos = nodePositions.get(node.pid);
         
         if (childPos && parentPos) {
-            // Hitung koordinat untuk garis
+            // Hitung koordinat untuk garis vertikal + horizontal
             const childX = childPos.x + 125; // Tengah node (250/2)
-            const childY = childPos.y; // Top of child
-            const parentX = parentPos.x + 125; // Tengah parent
+            const childY = childPos.y;
+            const parentX = parentPos.x + 125;
             const parentY = parentPos.y + 150; // Bottom of parent node
             
-            const distance = childY - parentY;
-            console.log(`🔗 Link: ${parentPos.name} (level ${parentPos.level}) → ${childPos.name} (level ${childPos.level}) | Distance: ${distance}px`);
-            
-            // Buat path dengan elbow connector (L-shape)
+            // Buat path dengan style yang sama seperti OrgChart.js
             const midY = (parentY + childY) / 2;
             const pathData = `M ${parentX} ${parentY} L ${parentX} ${midY} L ${childX} ${midY} L ${childX} ${childY}`;
             
@@ -1880,11 +1849,8 @@ function redrawAllLinks(nodePositions) {
             
             // Insert sebelum nodes agar tidak menutupi
             SVG.insertBefore(path, SVG.firstChild);
-            linksCreated++;
         }
     });
-    
-    console.log(`✅ Created ${linksCreated} new links`);
 }
 
 // ===== STYLING UNTUK INLINE SIDEBAR =====
@@ -2171,38 +2137,23 @@ fetch("{{ route('orgchart.orgchart') }}")
 
         window.orgData = processed;
         
-        console.log('Data loaded with levels:', processed.map(n => ({
-            name: n.Employee,
-            grading: n.Grading,
-            level: n.level
-        })));
-        
         // Populate sidebar yang sudah ada di HTML
         populateGradingSidebar(processed);
         
         // Load chart
         chart.load(processed);
         
-        setTimeout(() => {
-            forceAdjustNodesByGrading();
-            setTimeout(drawSecondaryLinks, 500);
-        }, 1000);
+        setTimeout(drawSecondaryLinks, 1000);
     })
     .catch(err => console.error('Error loading org chart data:', err));
 
 // ===== EVENT LISTENERS =====
 chart.on("init", function() {
-    setTimeout(() => {
-        forceAdjustNodesByGrading();
-        setTimeout(drawSecondaryLinks, 300);
-    }, 500);
+    setTimeout(drawSecondaryLinks, 500);
 });
 
 chart.on("redraw", function() {
-    setTimeout(() => {
-        forceAdjustNodesByGrading();
-        setTimeout(drawSecondaryLinks, 300);
-    }, 300);
+    setTimeout(drawSecondaryLinks, 300);
 });
 
 // Toggle Secondary Links
