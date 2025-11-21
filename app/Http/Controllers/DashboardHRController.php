@@ -14,6 +14,7 @@ use App\Jobs\SendAnnouncementEmailsJob;
 use Carbon\Carbon;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\SendAnnouncementEmail;
 class DashboardHRController extends Controller
 {
     // public function index(Request $request)
@@ -482,33 +483,60 @@ $trend = $presentToday - $presentYesterday;
 //         return redirect()->route('pages.dashboardHR')
 //             ->with('success', 'Announcement successfully made.');
 //     }
+
+
 public function store(Request $request)
 {
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'content' => 'required|string',
-        'publish_date' => 'required|date',
-        'end_date' => 'nullable|date',
-    ]);
+    try {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'publish_date' => 'required|date',
+            'end_date' => 'nullable|date',
+        ]);
 
-    // ✅ Simpan hasil create ke variable
-    $announcement = Announcement::create([
-        'title'        => $request->title,
-        'content'      => $request->content,
-        'publish_date' => $request->publish_date,
-        'end_date'     => $request->end_date,
-        'user_id'      => auth()->id(),
-    ]);
+        // ✅ Simpan hasil create ke variable
+        $announcement = Announcement::create([
+            'title'        => $request->title,
+            'content'      => $request->content,
+            'publish_date' => $request->publish_date,
+            'end_date'     => $request->end_date,
+            'user_id'      => auth()->id(),
+        ]);
 
-    // ✅ Kirim email ke semua employee
-    $employees = Employee::whereNotNull('email')->get();
-    
-    foreach ($employees as $employee) {
-        // Gunakan AnnouncementMail (sesuai saran sebelumnya)
-        Mail::to($employee->email)->queue(new AnnouncementMail($announcement, $employee));
+        Log::info('Announcement created successfully', [
+            'announcement_id' => $announcement->id,
+            'title' => $announcement->title,
+            'created_by' => auth()->id(),
+        ]);
+
+        // ✅ Dispatch job untuk setiap employee (non-blocking)
+        $employees = Employee::whereNotNull('email')->get();
+        
+        foreach ($employees as $employee) {
+            SendAnnouncementEmail::dispatch($announcement, $employee)
+                ->onQueue('emails'); // optional: specify queue name
+        }
+
+        Log::info('Email jobs dispatched successfully', [
+            'announcement_id' => $announcement->id,
+            'total_recipients' => $employees->count(),
+        ]);
+
+        return redirect()->route('pages.dashboardHR')
+            ->with('success', "Announcement created successfully. Emails queued for {$employees->count()} employees.");
+            
+    } catch (\Exception $e) {
+        Log::error('Failed to create announcement', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'user_id' => auth()->id(),
+        ]);
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to create announcement. Please try again.');
     }
-    return redirect()->route('pages.dashboardHR')
-        ->with('success', 'Announcement successfully made.');
 }
 
 
