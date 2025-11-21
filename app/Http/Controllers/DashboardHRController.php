@@ -578,7 +578,11 @@ public function store(Request $request)
             $jobs[] = new SendAnnouncementEmail($announcement, $employee);
         }
 
-        Bus::batch($jobs)->dispatch();
+        // Bus::batch($jobs)->dispatch();
+        Bus::batch($jobs)
+    ->name('Send Announcement: ' . $announcement->id)
+    ->dispatch();
+
 
         Log::info('Email jobs dispatched successfully', [
             'announcement_id'   => $announcement->id,
