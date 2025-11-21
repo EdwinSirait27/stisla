@@ -113,7 +113,6 @@
             </a>
         </div>
         <hr style="margin:30px 0; border:0; border-top:1px solid #dcdcdc;">
-        {{-- ================= INDONESIAN VERSION ================= --}}
         <h2>Kepada Yth. {{ $employee->employee_name }},</h2>
         <p>
             Dengan ini kami menyampaikan informasi mengenai pengumuman resmi perusahaan sebagai berikut:
@@ -123,9 +122,7 @@
             <p><strong>Isi Pengumuman:</strong><br> {!! $announcement->content !!}</p>
             <p><strong>Tanggal Berlaku:</strong>
                 {{ \Carbon\Carbon::parse($announcement->publish_date)->format('d M Y') }}</p>
-            {{-- @if ($announcement->end_date)
-            <p><strong>Berlaku Hingga:</strong> {{ \Carbon\Carbon::parse($announcement->end_date)->format('d M Y') }}</p>
-            @endif --}}
+           
             <p><strong>Berlaku Hingga:</strong>
                 @if ($announcement->end_date)
                     {{ \Carbon\Carbon::parse($announcement->end_date)->format('d M Y') }}
