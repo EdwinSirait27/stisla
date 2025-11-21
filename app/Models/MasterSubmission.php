@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
-class Leaves extends Model
+
+class MasterSubmission extends Model
 {
     use HasFactory;
-    protected $table = 'leaves_tables';
+    protected $table = 'master_submission_tables';
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()

@@ -36,6 +36,8 @@ use App\Http\Controllers\PositionreqController;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\LeavesController;
+use App\Http\Controllers\MasterSubmissionController;
 use App\Http\Controllers\PositionapprovalController;
 use App\Http\Controllers\StructuresnewController;
 /*
@@ -222,6 +224,15 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         Route::get('/Position/edit/{hashedId}', [PositionController::class, 'edit'])->name('Position.edit');
         Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
         Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
+    });
+    Route::group(['middleware' => ['permission:ManageMasterSubmissions']], function () {
+        Route::get('/MasterSubmission', [MasterSubmissionController::class, 'index'])
+            ->name('pages.MasterSubmission');
+        Route::get('MasterSubmission/create', [MasterSubmissionController::class, 'create'])->name('MasterSubmission.create');
+        Route::post('/MasterSubmission', [MasterSubmissionController::class, 'store'])->name('MasterSubmission.store');
+        Route::get('/MasterSubmission/edit/{hashedId}', [MasterSubmissionController::class, 'edit'])->name('MasterSubmission.edit');
+        Route::put('/MasterSubmission/{hashedId}', [MasterSubmissionController::class, 'update'])->name('MasterSubmission.update');
+        Route::get('/mastersubmissions/mastersubmissions', [MasterSubmissionController::class, 'getMasterSubmissions'])->name('mastersubmissions.mastersubmissions');
     });
     // Department    
     Route::group(['middleware' => ['permission:ManageDepartments']], function () {

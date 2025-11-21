@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Mail;
+
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -12,21 +13,19 @@ use App\Models\Announcment;
 class Announcement extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-   public $announcement;
-   public $employee;
+    public $announcement;
+    public $employee;
     /**
      * Create a new message instance.
      */
     public function __construct($announcement, $employee)
     {
         $this->announcement = $announcement;
-    $this->employee = $employee;
+        $this->employee = $employee;
     }
- 
-   public function build()
-{
-    return $this->subject('New Announcement: ' . $this->announcement->title)
-                ->view('emails.announcement');
-}
-
+    public function build()
+    {
+        return $this->subject('New Announcement: ' . $this->announcement->title)
+            ->view('emails.announcement');
+    }
 }

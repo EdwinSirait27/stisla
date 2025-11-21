@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('overtime_quotas', function (Blueprint $table) {
-            $table->id();
+        Schema::create('leaves_tables', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name')->nullable();
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('overtime_quotas');
+        Schema::dropIfExists('leaves_tables');
     }
 };
