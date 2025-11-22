@@ -52,7 +52,6 @@ class SendAnnouncementEmail implements ShouldQueue
             throw $e;
         }
     }
-
     public function failed(\Throwable $exception)
     {
         Log::error('Email job failed permanently', [
