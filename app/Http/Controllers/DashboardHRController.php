@@ -524,7 +524,6 @@ $trend = $presentToday - $presentYesterday;
 public function store(Request $request)
 {
     ini_set('max_execution_time', 360);
-
     try {
         $request->validate([
             'title' => 'required|string|max:255',
