@@ -21,10 +21,7 @@ class MasterSubmissionController extends Controller
             ->get()
             ->map(function ($leave) {
                 $leave->id_hashed = substr(hash('sha256', $leave->id . env('APP_KEY')), 0, 8);
-                $leave->action = '
-                    <a href="' . route('MasterSubmission.edit', $leave->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit leave"title="Edit leave: ' . e($leave->name) . '">
-                        <i class="fas fa-user-edit text-secondary"></i>
-                    </a>';
+              
                 return $leave;
             });
         return DataTables::of($leaves)

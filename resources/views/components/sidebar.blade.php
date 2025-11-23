@@ -174,9 +174,9 @@
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
-                        <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
+                        {{-- <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
-                        </li>
+                        </li> --}}
                         <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
                         </li>
@@ -292,9 +292,9 @@
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">List Employees</a>
                         </li>
-                        <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
+                        {{-- <li class="{{ Request::is('Gradinglist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Gradinglist') }}">Grading List</a>
-                        </li>
+                        </li> --}}
                         <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>

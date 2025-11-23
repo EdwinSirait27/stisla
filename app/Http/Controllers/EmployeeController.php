@@ -320,6 +320,7 @@ class EmployeeController extends Controller
         }
         $positions = Position::get();
         $companys = Company::get();
+        $gradings = Grading::get();
         $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
@@ -346,8 +347,9 @@ class EmployeeController extends Controller
             'companys' => $companys,
             'stores' => $stores,
             'marriage' => $marriage,
-            'gender' => $gender,
             'status' => $status,
+            'gender' => $gender,
+            'gradings' => $gradings,
             'banks' => $banks,
             'religion' => $religion,
             'last_education' => $last_education,
@@ -726,6 +728,7 @@ class EmployeeController extends Controller
         ],
 
         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
+        'grading_id' => ['requried', 'exists:grading,id', new NoXSSInput()],
         'bpjs_kes' => ['required', 'string', 'max:255'],
         'bpjs_ket' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'max:255'],

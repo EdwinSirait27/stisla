@@ -925,6 +925,33 @@
                                                 </div>
                                             </div>
                                         </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="grading_id" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Grading Name') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="grading_id" id="grading_id"
+                                                            class="form-control select2 @error('grading_id') is-invalid @enderror">
+                                                            <option value="">-- Choose Grading --</option>
+                                                            @foreach ($gradings as $grading)
+                                                                <option value="{{ $grading->id }}"
+                                                                    {{ old('grading_id', $employee->Employee->grading_id ?? '') == $grading->id ? 'selected' : '' }}>
+                                                                    {{ $grading->grading_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+
+                                                        @error('grading_id')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                        <div class="row mt-3">
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -953,11 +980,10 @@
                                                             </span>
                                                         @enderror
                                                     </div>
-                                                </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3" id="end_date_field" style="display:none;">
-                                            <div class="col-md-6">
+
+                                            <div class="col-md-6" id="end_date_field" style="display:none;">
                                                 <div class="form-group">
                                                     <label for="end_date" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('End Date') }}
@@ -974,7 +1000,9 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6" id="notes_field" style="display:none;">
+                                            </div>
+                                        <div class="row mt-3" id="notes_field" style="display:none;">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
@@ -993,8 +1021,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                         <div class="row mt-3">
     <div class="col-md-6">
         <div class="form-group">
             <label for="photos" class="form-control-label">

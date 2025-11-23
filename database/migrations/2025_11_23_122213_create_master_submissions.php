@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('leaves_tables', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+        Schema::create('master_submissions', function (Blueprint $table) {
+             $table->uuid('id')->primary();
             $table->string('name')->nullable();
             $table->timestamps();
         });
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('leaves_tables');
+        Schema::dropIfExists('master_submissions');
     }
 };

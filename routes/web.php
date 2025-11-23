@@ -37,8 +37,10 @@ use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\LeavesController;
+use App\Http\Controllers\LeavebalancesController;
 use App\Http\Controllers\MasterSubmissionController;
 use App\Http\Controllers\PositionapprovalController;
+use App\Http\Controllers\LeavetypesController;
 use App\Http\Controllers\StructuresnewController;
 /*
 |--------------------------------------------------------------------------
@@ -233,6 +235,20 @@ Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         Route::get('/MasterSubmission/edit/{hashedId}', [MasterSubmissionController::class, 'edit'])->name('MasterSubmission.edit');
         Route::put('/MasterSubmission/{hashedId}', [MasterSubmissionController::class, 'update'])->name('MasterSubmission.update');
         Route::get('/mastersubmissions/mastersubmissions', [MasterSubmissionController::class, 'getMasterSubmissions'])->name('mastersubmissions.mastersubmissions');
+    });
+    Route::group(['middleware' => ['permission:ManageLeavestype']], function () {
+        Route::get('/Leavestype', [LeavetypesController::class, 'index'])
+            ->name('pages.Leavestype');
+        Route::get('Leavestype/create', [LeavetypesController::class, 'create'])->name('Leavestype.create');
+        Route::post('/Leavestype', [LeavetypesController::class, 'store'])->name('Leavestype.store');
+        Route::get('/Leavestype/edit/{hashedId}', [LeavetypesController::class, 'edit'])->name('Leavestype.edit');
+        Route::put('/Leavestype/{hashedId}', [LeavetypesController::class, 'update'])->name('Leavestype.update');
+        Route::get('/leavestypes/leavestypes', [LeavetypesController::class, 'getLeavestypes'])->name('leavestypes.leavestypes');
+    });
+    Route::group(['middleware' => ['permission:ManageLeavesbalance']], function () {
+        Route::get('/Leavesbalance', [LeavebalancesController::class, 'index'])
+            ->name('pages.Leavesbalance');
+        Route::get('/leavesbalances/leavesbalances', [LeavebalancesController::class, 'getLeavesbalances'])->name('leavesbalances.leavesbalances');
     });
     // Department    
     Route::group(['middleware' => ['permission:ManageDepartments']], function () {

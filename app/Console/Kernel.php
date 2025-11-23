@@ -18,8 +18,8 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('sessions:cleanup')->monthly();
         $schedule->command('payrolls:delete-old')->daily();
+        $schedule->command('leave:anniversary')->dailyAt('21:45');
     }
-
     /**
      * Register the commands for the application.
      *
@@ -27,13 +27,12 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
-
+        $this->load(__DIR__ . '/Commands');
         require base_path('routes/console.php');
     }
     protected $commands = [
         \App\Console\Commands\SendPayrollEmails::class,
         \App\Console\Commands\DeleteOldPayrolls::class,
+        \App\Console\Commands\GiveAnnualLeave::class,
     ];
-    
 }

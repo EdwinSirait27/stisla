@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Master Submission')
+@section('title', 'Leaves Type')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -166,14 +166,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Master Submission</h1>
+                <h1>Leave Type</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Submission</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Leave Type</h6>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -181,15 +181,16 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Name</th>
-                                                {{-- <th class="text-center">Action</th> --}}
+                                                <th class="text-center">Is Paid</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('MasterSubmission.create') }}'"
+                                    <button type="button" onclick="window.location='{{ route('Leavestype.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Submission
+                                        <i class="fas fa-plus-circle"></i> Create Leave Type
                                     </button>
                                 </div>
                             </div>
@@ -211,7 +212,7 @@
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
-                    url: '{{ route('mastersubmissions.mastersubmissions') }}',
+                    url: '{{ route('leavestypes.leavestypes') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -228,20 +229,29 @@
                         data: 'name',
                         name: 'name',
                         className: 'text-center'
+                    },
+                   {
+                        data: 'is_paid',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data == 1) {
+                                return `<span class="badge bg-success">Yes</span>`;
+                            }
+                            return `<span class="badge bg-danger">No</span>`;
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
                     }
-                    // ,
-                    // {
-                    //     data: 'action',
-                    //     name: 'action',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     className: 'text-center'
-                    // }
                 ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
+                // initComplete: function() {
+                //     $('.dataTables_filter input').addClass('form-control');
+                //     $('.dataTables_length select').addClass('form-control');
+                // }
             });
 
             @if (session('success'))
@@ -254,5 +264,4 @@
 
         });
     </script>
-    
 @endpush

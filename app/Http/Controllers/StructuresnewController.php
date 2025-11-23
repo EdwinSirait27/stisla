@@ -530,6 +530,9 @@ public function storeToStructure($hashedId)
 
     //     return response()->json($sortedData);
     // }
+    // 'employee.grading',
+    // 'employee',
+        // 'employee.store',
     public function getOrgChartData()
 {
     $gradingPriority = [
@@ -542,28 +545,24 @@ public function storeToStructure($hashedId)
         'Staff' => 7,
         'Daily Worker' => 8,
     ];
-
     $data = Structuresnew::with([
         'parent',
-        'employee',
-        'employee.store',
         'submissionposition',
-        'employee.grading',
         'submissionposition.positionRelation',
         'submissionposition.store',
         'secondarySupervisors',
-        'secondarySupervisors.employee', // Eager load employee dari secondary
+        'secondarySupervisors.employees', // Eager load employee dari secondary
         'secondarySupervisors.submissionposition.positionRelation', // Eager load position dari secondary
     ])->get()->map(function ($s) use ($gradingPriority) {
 
-        $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
+        $gradingName = optional($s->employees->grading)->grading_name ?? 'Empty';
         $level = $gradingPriority[$gradingName] ?? 999;
         
-        // Ambil data lengkap dari secondary supervisors
         $secondaryData = $s->secondarySupervisors->map(function($secondary) {
             return [
                 'id' => $secondary->id,
-                'employee_name' => collect($secondary->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+                'employee_name' => optional($secondary->employees)->employee_name ?? 'Unknown',
+                // 'employee_name' => collect($secondary->employees)->pluck('employee_name')->join(', ') ?: 'Empty',
                 'position' => optional(optional($secondary->submissionposition)->positionRelation)->name ?? 'Unknown',
             ];
         })->toArray();
@@ -572,14 +571,12 @@ public function storeToStructure($hashedId)
             'id'         => $s->id,
             'pid'        => $s->parent_id,
             'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
-            'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
+            'Employee' => optional($s->employees)->employee_name ?? 'Empty',
             'Grading'    => $gradingName,
             'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
             'status'     => $s->status,
-            'photo'      => collect($s->employee)->pluck('photo')->first() ?? '/default-avatar.png',
-            'level'      => $level, // Tambahkan level untuk sorting
-            'secondary'  => $secondaryData // Sekarang berisi array objek dengan detail lengkap
-        ];
+            'level'      => $level,
+            'secondary'  => $secondaryData ];
     });
 
     $sortedData = $data->sortBy('level')->values();

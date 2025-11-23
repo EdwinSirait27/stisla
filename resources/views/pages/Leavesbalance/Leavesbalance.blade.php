@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Master Submission')
+@section('title', 'Leaves Balance')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -166,32 +166,36 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Master Submission</h1>
+                <h1>Leaves Balance</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Submission</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Leaves Balance</h6>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">Name</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Type</th>
+                                                <th class="text-center">Balance Days</th>
+                                                <th class="text-center">Balance Hours</th>
+                                                <th class="text-center">Years</th>
                                                 {{-- <th class="text-center">Action</th> --}}
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('MasterSubmission.create') }}'"
+                                {{-- <div class="action-buttons">
+                                    <button type="button" onclick="window.location='{{ route('Leavestype.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Submission
+                                        <i class="fas fa-plus-circle"></i> Create Leave Type
                                     </button>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                     </div>
@@ -211,7 +215,7 @@
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
-                    url: '{{ route('mastersubmissions.mastersubmissions') }}',
+                    url: '{{ route('leavesbalances.leavesbalances') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -225,23 +229,35 @@
                 },
                 columns: [
                     {
-                        data: 'name',
-                        name: 'name',
+                        data: 'employees.employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'leaves_type',
+                        name: 'leaves_type',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'balance_days',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'balance_hours',
+                        name: 'balance_hours',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'year',
+                        name: 'year',
                         className: 'text-center'
                     }
-                    // ,
-                    // {
-                    //     data: 'action',
-                    //     name: 'action',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     className: 'text-center'
-                    // }
                 ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
+                // initComplete: function() {
+                //     $('.dataTables_filter input').addClass('form-control');
+                //     $('.dataTables_length select').addClass('form-control');
+                // }
             });
 
             @if (session('success'))
@@ -254,5 +270,4 @@
 
         });
     </script>
-    
 @endpush
