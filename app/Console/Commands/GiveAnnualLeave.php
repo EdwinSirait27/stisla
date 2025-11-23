@@ -53,7 +53,7 @@ class GiveAnnualLeave extends Command
 
         // Cek apakah tahun ini sudah pernah diberi (anti double award)
         $existing = LeaveBalance::where('employee_id', $emp->id)
-            ->where('leave_type_id', '019ab050-da2c-722f-8423-2c3b9fb531ad') // annual
+            ->where('leave_type_id', '019ab134-12f3-73ab-a003-d096b76b25f0') // annual
             ->where('year', now()->year)
             ->first();
 
@@ -65,7 +65,7 @@ class GiveAnnualLeave extends Command
         // Berikan jatah cuti tahunan 12 hari
         LeaveBalance::create([
             'employee_id' => $emp->id,
-            'leave_type_id' => '019ab050-da2c-722f-8423-2c3b9fb531ad',
+            'leave_type_id' => '019ab134-12f3-73ab-a003-d096b76b25f0',
             'balance_days' => 12,
             'year' => now()->year,
         ]);
