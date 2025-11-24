@@ -587,6 +587,75 @@
                                                     </div>
                                                 </div>
                                             </div>
+{{-- @if ($structure->is_manager)
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="stores" class="form-control-label">
+                                                        <i class="fas fa-user-friends"></i> Multi Locations
+                                                    </label>
+                                                    @foreach ($allStores as $store)
+                                                   <input type="checkbox"
+                       name="store_ids[]"
+                       value="{{ $store->id }}"
+                       {{ in_array($store->id, $selectedStores) ? 'checked' : '' }}>
+                {{ $store->name }}        
+                @endforeach         
+                                                </div>
+                                            </div>
+@endif --}} 
+{{-- <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="stores" class="form-control-label">
+                                                        <i class="fas fa-user-friends"></i> Multi Locations
+                                                    </label>
+                                                    <select name="[]"
+                                                        class="form-control select2 @error('') is-invalid @enderror"
+                                                        multiple>
+                                                        @foreach ($ as $id => $)
+                                                            <option value="{{ $id }}"
+                                                                @if (collect(old('', $structure->->pluck('id')->toArray()))->contains($id)) selected @endif>
+                                                                {{ $ }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+    <div class="form-group">
+        <label for="stores" class="form-control-label">
+            <i class="fas fa-user-friends"></i> Multi Locations
+        </label>
+
+        <select name="stores[]"
+            class="form-control select2 @error('stores') is-invalid @enderror"
+            multiple>
+
+            @foreach ($allStores as $store)
+    <option value="{{ $store->id }}"
+        @if (collect(old('stores', $selectedStores))->contains($store->id)) 
+            selected 
+        @endif>
+        {{ $store->name }}
+    </option>
+@endforeach
+
+
+        </select>
+
+        @error('stores')
+            <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+        @enderror
+
+    </div>
+</div>
+
                                         </div>
 
                                         <div class="alert alert-secondary mt-4" role="alert">
@@ -594,6 +663,7 @@
                                                 <strong>Important Note:</strong><br>
                                                 - Superior can be empty.<br>
                                                 - Is Manager can be empty.<br>
+                                                - If is manager checked, then choose multi location if the manager is assigned to several locations.<br>
                                             </span>
                                         </div>
 
@@ -646,6 +716,7 @@
                 }
             });
         });
+          
     </script>
     <script>
         @if (session('success'))
@@ -665,6 +736,7 @@
                 confirmButtonText: 'OK'
             });
         @endif
+     
     </script>
 @endpush
 {{-- <div class="col-md-6">

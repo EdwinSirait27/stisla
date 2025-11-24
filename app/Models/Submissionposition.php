@@ -47,6 +47,15 @@ class Submissionposition extends Model
         'approver_1',
         'approver_2',
     ];
+    public function stores()
+{
+    return $this->belongsToMany(
+        Stores::class,
+        'submission_position_stores_tables',
+        'submission_position_id',
+        'store_id'
+    );
+}
     public function submitter()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');

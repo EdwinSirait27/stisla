@@ -352,7 +352,6 @@ public function index(Request $request)
             ->take(8)
             ->get();
     }
-
     // 🔹 Hitung durasi (Annual Leave dsb)
     foreach ($submissions as $submission) {
         if (!is_numeric($submission->duration)) {
@@ -365,7 +364,6 @@ public function index(Request $request)
             $submission->formattedDuration = $submission->duration . ' day(s)';
         }
     }
-
     $leaveData = null;
     if ($selectedType === 'Annual Leave' && $employee) {
         $total = $employee->total ?? $employee->total ?? $employee->total ?? 12;

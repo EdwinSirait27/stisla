@@ -301,7 +301,7 @@ class Employee extends Model
                         )->positionRelation
                     )->name,
                     'department_id' => fn($id) => optional(Departments::find($id))->department_name,
-                    'grading_id' => fn($id) => optional(Departments::find($id))->grading_name,
+                    'grading_id' => fn($id) => optional(Grading::find($id))->grading_name,
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
                 ];
                 $fieldLabels = [
@@ -351,8 +351,6 @@ class Employee extends Model
     $newLabel = $relationNames[$field]($new) ?? $new;
     return "{$label}: {$oldLabel} → {$newLabel}";
 }
-
-
                         // Selain relasi, tampilkan nilai langsung
                         if ($old == $new) return null;
                         return "{$label}: {$old} → {$new}";

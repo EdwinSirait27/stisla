@@ -11,6 +11,8 @@ use App\Models\Announcment;
 use App\Models\Employee;
 use App\Models\Departments;
 use App\Models\Stores;
+use App\Models\Fingerprints;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Banks;
@@ -269,6 +271,127 @@ public function getOrgChartDataTeam()
 
     return response()->json($sortedData);
 }
+ public function indexteamfingerprint()
+    {
+    //  $stores = Stores::select('id', 'name')
+    //         ->whereNotNull('name')
+    //         ->distinct()
+    //         ->pluck('name');
+        return view('pages.Teamfingerprint.Teamfingerprint',compact('stores'));
+    }
+ public function getTeamfingerprints(Request $request)
+{
+    ini_set('memory_limit', '1024M');
+
+    $storeName = $request->input('store_name');
+    $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()))
+        ->startOfDay();
+    $endDate = Carbon::parse($request->input('end_date', now()))
+        ->endOfDay();
+    // Ambil semua data edited fingerprint sekali saja
+    // Ambil data karyawan + relasinya
+   $employeesQuery = Employee::with(['position:id,name', 'store:id,name'])
+    ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee');
+// Hanya tampilkan karyawan dari store si manager login
+$loggedStoreId = auth()->user()->employee->store_id;
+$employeesQuery->where('store_id', $loggedStoreId);
+    if ($storeName) {
+    $employeesQuery->whereHas('store', function($q) use ($storeName, $loggedStoreId) {
+        $q->where('name', $storeName)
+          ->where('id', $loggedStoreId); // tetap di store manager
+    });
+}
+    $employees = $employeesQuery->get()->keyBy('pin');
+    $pinList = $employees->keys();
+
+
+    // Ambil data fingerprint sesuai periode
+   $fingerprints = Fingerprints::with('devicefingerprints:device_name,sn')
+    ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
+    ->whereIn('pin', $pinList)
+    ->whereBetween('scan_date', [$startDate, $endDate])
+    ->orderBy('scan_date')
+    ->get();
+
+    // Hitung total hari aktif per PIN
+    $totalHariPerPin = $fingerprints->groupBy(fn($f) => $f->pin)
+        ->map(fn($items) => $items->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->toDateString())->unique()->count());
+
+    // Group fingerprint berdasarkan pin + tanggal
+    $grouped = $fingerprints->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
+
+    $result = $grouped->map(function ($group, $key) use ($employees, $totalHariPerPin) {
+        $first = $group->first();
+        $pin = $first->pin;
+        $scanDate = Carbon::parse($first->scan_date)->toDateString();
+
+        $employee = $employees->get($pin);
+        if (!$employee) return null;
+
+        $row = [
+            'pin' => $pin,
+            'employee_name' => $employee->employee_name ?? '-',
+            'status_employee' => $employee->status_employee ?? '-',
+            'employee_pengenal' => $employee->employee_pengenal ?? '-',
+            'name' => $employee->store->name ?? '-',
+            'position_name' => optional($employee->position)->name ?? '-',
+            'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
+            'scan_date' => $scanDate,
+            'total_hari' => $totalHariPerPin[$pin] ?? 0,
+        ];
+
+        // Inisialisasi kolom in_1..10 dan combine_1..10
+        for ($i = 1; $i <= 10; $i++) {
+            $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
+        }
+
+        // Mapping in/out mode
+        $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
+            if ($mode >= 1 && $mode <= 10) {
+                $firstItem = $items->sortBy('scan_date')->first();
+                $row["in_$mode"] = Carbon::parse($firstItem->scan_date)->format('H:i:s');
+                $row["device_$mode"] = optional($firstItem->devicefingerprints)->device_name ?? '';
+                $row["combine_$mode"] = "{$row["in_$mode"]} {$row["device_$mode"]}";
+            }
+        });
+
+        // Hitung durasi antar scan pertama dan terakhir
+        $times = collect(range(1, 10))
+            ->map(fn($i) => $row["in_$i"])
+            ->filter()
+            ->sort()
+            ->values();
+
+        if ($times->count() >= 2) {
+            $start = Carbon::parse($times->first());
+            $end = Carbon::parse($times->last());
+            $minutes = $start->diffInMinutes($end);
+            $row['duration'] = sprintf(
+                '%d hour%s %d minute%s',
+                floor($minutes / 60),
+                floor($minutes / 60) !== 1 ? 's' : '',
+                $minutes % 60,
+                $minutes % 60 !== 1 ? 's' : ''
+            );
+        } else {
+            $row['duration'] = 'invalid';
+        }
+        return $row;
+    })->filter()->values();
+
+    // Return DataTables
+    return DataTables::of($result)
+        ->make(true);
+}
+
+
+
+
+
+
+
+
+
 //     public function getOrgChartDataTeam()
 // {
 //     $user = auth()->user();

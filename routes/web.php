@@ -424,7 +424,13 @@ Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], funct
 
 });
 
+Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], function () {
 
+ Route::get('/Teamfingerprint', [DashManagerController::class, 'indexteamfingerprint'])
+            ->name('pages.Teamfingerprint');
+        Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
+
+});
 
 
 

@@ -728,7 +728,7 @@ class EmployeeController extends Controller
         ],
 
         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
-        'grading_id' => ['requried', 'exists:grading,id', new NoXSSInput()],
+        'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
         'bpjs_kes' => ['required', 'string', 'max:255'],
         'bpjs_ket' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'max:255'],

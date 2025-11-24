@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Fingerprints')
+@section('title', 'Team Fingerprints')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -245,7 +245,7 @@
                                                 <th class="text-center">Ovt Out</th>
                                                 <th class="text-center">Duration</th>
                                                 <th class="text-center">Status</th>
-                                                <th class="text-center">Action</th>
+                                                {{-- <th class="text-center">Action</th> --}}
                                             </tr>
                                         </thead>
                                     </table>
@@ -347,9 +347,8 @@
                 }
             }
         ],
-
                 ajax: {
-                    url: '{{ route('fingerprints.fingerprints') }}',
+                    url: '{{ route('teamfingerprints.teamfingerprints') }}',
                     type: 'POST',
                 headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -431,13 +430,6 @@
                                 '<span class="badge badge-success">✔ Updated</span>' :
                                 '<span class="badge badge-secondary">Original</span>';
                         }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        // orderable: false,
-                        searchable: false,
-                        className: 'no-export'
                     }
                 ],
                  rowCallback: function(row, data, index) {

@@ -587,47 +587,107 @@ public function storeToStructure($hashedId)
 
 
 
-    public function edit($hashedId)
-    {
-        $structure = Structuresnew::with([
-            'parent',
-            'submissionposition',
-            'secondarySupervisors', // <-- tambahkan ini supaya data kebaca
-        ])->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+//     public function edit($hashedId)
+//     {
+//         $structure = Structuresnew::with([
+//             'parent',
+//             'submissionposition',
+//             'submissionposition.stores',
+//             'secondarySupervisors', // <-- tambahkan ini supaya data kebaca
+//         ])->get()->first(function ($u) use ($hashedId) {
+//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+//             return $expectedHash === $hashedId;
+//         });
 
-        if (!$structure) {
-            abort(404, 'Structure not found.');
-        }
+//         if (!$structure) {
+//             abort(404, 'Structure not found.');
+//         }
 
-        // LIST UNTUK DROPDOWN PARENT DAN SECONDARY SUPERVISOR
-        $parents = Structuresnew::with('submissionposition', 'submissionposition.positionRelation')
-            ->get()
-            ->pluck('submissionposition.positionRelation.name', 'id');
+//         // LIST UNTUK DROPDOWN PARENT DAN SECONDARY SUPERVISOR
+//         $parents = Structuresnew::with('submissionposition', 'submissionposition.positionRelation')
+//             ->get()
+//             ->pluck('submissionposition.positionRelation.name', 'id');
 
-        $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
-        $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+//         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+//         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
 
-        $salaries = Salary::all()->mapWithKeys(function ($item) {
-            return [
-                $item->id => "{$item->salary_start} - {$item->salary_end}"
-            ];
-        });
+//         $salaries = Salary::all()->mapWithKeys(function ($item) {
+//             return [
+//                 $item->id => "{$item->salary_start} - {$item->salary_end}"
+//             ];
+//         });
+// $allStores = Stores::select('id', 'name')->orderBy('name')->get();
 
-        return view('pages.Structuresnew.edit', [
-            'structure' => $structure,
-            'parents' => $parents,
-            'types' => $types,
-            'salaries' => $salaries,
-            'statuses' => $statuses,
-            'hashedId' => $hashedId,
+//     // Ambil store yg sudah dipilih di pivot
+//     $selectedStores = $structure->submissionposition->stores->pluck('id')->toArray();
 
-            // Kirim data tambahan ini
-            'selectedSecondarySupervisors' => $structure->secondarySupervisors->pluck('id')->toArray(),
-        ]);
+//         return view('pages.Structuresnew.edit', [
+//             'structure' => $structure,
+//             'parents' => $parents,
+//             'types' => $types,
+//             'salaries' => $salaries,
+//             'statuses' => $statuses,
+//             'hashedId' => $hashedId,
+
+//             // Kirim data tambahan ini
+//             'selectedSecondarySupervisors' => $structure->secondarySupervisors->pluck('id')->toArray(),
+//              'allStores' => $allStores,
+//         'selectedStores' => $selectedStores,
+//         ]);
+//     }
+public function edit($hashedId) 
+{
+    $structure = Structuresnew::with([
+        'parent',
+        'submissionposition',
+        'submissionposition.stores',
+        'secondarySupervisors',
+    ])->get()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+
+    if (!$structure) {
+        abort(404, 'Structure not found.');
     }
+
+    // LIST PARENT
+    $parents = Structuresnew::with('submissionposition', 'submissionposition.positionRelation')
+        ->get()
+        ->pluck('submissionposition.positionRelation.name', 'id');
+
+    $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
+    $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
+
+    $salaries = Salary::all()->mapWithKeys(function ($item) {
+        return [
+            $item->id => "{$item->salary_start} - {$item->salary_end}"
+        ];
+    });
+
+    // AMBIL SEMUA STORE
+    $allStores = Stores::select('id', 'name')->orderBy('name')->get();
+
+    // AMBIL STORE YANG SUDAH DIPILIH
+    $selectedStores = optional(optional($structure->submissionposition)->stores)
+        ->pluck('id')
+        ->toArray() ?? [];
+
+    return view('pages.Structuresnew.edit', [
+        'structure' => $structure,
+        'parents' => $parents,
+        'types' => $types,
+        'salaries' => $salaries,
+        'statuses' => $statuses,
+        'hashedId' => $hashedId,
+
+        'selectedSecondarySupervisors' => $structure->secondarySupervisors->pluck('id')->toArray(),
+
+        'allStores' => $allStores,
+        'selectedStores' => $selectedStores,
+    ]);
+}
+
 
 
     public function see($idHashed)
