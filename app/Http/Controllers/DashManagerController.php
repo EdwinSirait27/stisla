@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Structuresnew;
 use App\Models\Position;
 use App\Models\Company;
-use App\Models\Announcment;
+use App\Models\Announcement;
 use App\Models\Employee;
 use App\Models\Departments;
 use App\Models\Stores;
@@ -23,7 +23,10 @@ class DashManagerController extends Controller
 {
     public function indexteam()
     {
-    $announcements = Announcment::orderBy('created_at', 'desc')->get();
+    // $announcements = Announcment::orderBy('created_at', 'desc')->get();
+$announcements = Announcement::with('user')
+            ->orderBy('publish_date', 'desc')
+            ->paginate(10);
 
         return view('pages.dashboardTeam.dashboardTeam',compact('announcements'));
     }

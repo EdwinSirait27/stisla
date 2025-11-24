@@ -198,12 +198,12 @@
                                             <tbody>
                                                 <tr>
                                                     <th width="25%">Company</th>
-                                                    <td>{{ $structure->submissionposition->submitter->company->name ?? '-' }}
+                                                    <td>{{ $structure->submissionposition->company->name ?? '-' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Department</th>
-                                                    <td>{{ $structure->submissionposition->submitter->department->department_name ?? '-' }}
+                                                    <td>{{ $structure->submissionposition->department->department_name ?? '-' }}
                                                     </td>
                                                 </tr>
                                                 <tr>

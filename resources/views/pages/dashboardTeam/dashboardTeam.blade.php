@@ -1118,13 +1118,13 @@
 
     <style>
         /* :root {
-                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            } */
+                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -1879,7 +1879,8 @@
             font-size: 0.75rem;
             color: #94a3b8;
         }
-          /* ========== Personal Profile Card ========== */
+
+        /* ========== Personal Profile Card ========== */
         .profile-header-card {
             background: var(--primary-gradient);
             border-radius: 20px;
@@ -2093,7 +2094,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-12 col-12 mb-4">
+            {{-- <div class="col-lg-12 col-12 mb-4">
                 <div class="announcements-card">
                     <div class="announcements-header">
                         <h5>
@@ -2191,7 +2192,80 @@
                         </a>
                     </div>
                 </div>
+            </div> --}}
+            <div class="col-lg-12 col-12 mb-4">
+                <div class="announcements-card">
+                    <div class="announcements-header">
+                        <h5>
+                            <i class="fas fa-bullhorn me-2"></i>
+                            Company Announcements
+                        </h5>
+                    </div>
+
+                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+
+                        @forelse($announcements as $a)
+                            <div class="announcement-item" data-toggle="modal"
+                                data-target="#announcementModal-{{ $a->id }}">
+
+                                <div class="announcement-title">
+                                    <i class="fas fa-star text-warning"></i>
+                                    {{ $a->title }}
+
+                                    @if (\Carbon\Carbon::parse($a->publish_date)->greaterThan(now()->subDays(3)))
+                                        <span class="announcement-badge-new">New</span>
+                                    @endif
+                                </div>
+
+                                <div class="announcement-excerpt">
+                                    {{ Str::limit(strip_tags($a->content), 120, '...') }}
+                                </div>
+
+                                <div class="announcement-date">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Posted {{ \Carbon\Carbon::parse($a->publish_date)->diffForHumans() }}
+                                </div>
+                            </div>
+
+                            
+
+                        @empty
+                            <div class="p-3 text-center text-muted">
+                                No announcements found.
+                            </div>
+                        @endforelse
+
+                    </div>
+                    {{-- Modal --}}
+                            {{-- <div class="modal fade" id="announcementModal-{{ $a->id }}">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">{{ $a->title }}</h5>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            {!! $a->content !!}
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <small class="text-muted">
+                                                Posted {{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> --}}
+
+                    <div class="card-footer bg-light text-center">
+                        {{-- <a href="{{ route('announcements.index') }}" class="text-decoration-none">
+                View All Announcements
+                <i class="fas fa-arrow-right ms-2"></i>
+            </a> --}}
+                    </div>
+                </div>
             </div>
+
 
             <!-- Main Content Grid -->
             <div class="row">
@@ -2595,7 +2669,7 @@
     </div>
 
     <!-- Announcement Preview Modal -->
-    <div class="modal fade" id="announcementPreviewModal" tabindex="-1" aria-hidden="true">
+    {{-- <div class="modal fade" id="announcementPreviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -2632,7 +2706,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Approval Action Modal -->
     <div class="modal fade" id="approvalActionModal" tabindex="-1" aria-hidden="true">
