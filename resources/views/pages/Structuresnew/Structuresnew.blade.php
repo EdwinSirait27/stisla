@@ -263,6 +263,7 @@
                                             <thead class="table-light">
                                                 <tr>
 
+                                                    <th class="text-center">Employee Name</th>
                                                     <th class="text-center">Company</th>
                                                     <th class="text-center">Department</th>
                                                     <th class="text-center">Location</th>
@@ -554,6 +555,11 @@
                     //     searchable: false,
                     //     className: 'text-center align-middle'
                     // },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
+                        className: 'text-center'
+                    },
                     {
                         data: 'company_name',
                         name: 'company_name',

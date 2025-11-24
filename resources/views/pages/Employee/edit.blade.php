@@ -967,13 +967,14 @@
                                                                     {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
                                                                     {{ $structure->submissionposition->positionRelation->name ?? '-' }}
                                                                     -
-                                                                    {{ $structure->submissionposition->submitter->company->name ?? '-' }}
+                                                                    {{ $structure->submissionposition->company->name ?? '-' }}
+                                                                    -
+                                                                    {{ $structure->submissionposition->department->department_name ?? '-' }}
                                                                     -
                                                                     {{ $structure->submissionposition->store->name ?? '-' }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
-
                                                         @error('structure_id')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
