@@ -568,7 +568,6 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <div class="form-check">
@@ -587,86 +586,37 @@
                                                     </div>
                                                 </div>
                                             </div>
-{{-- @if ($structure->is_manager)
-                                            <div class="col-md-6">
+                                            <div class="col-md-6"id="stores_field" style="display:none;">
                                                 <div class="form-group">
                                                     <label for="stores" class="form-control-label">
                                                         <i class="fas fa-user-friends"></i> Multi Locations
                                                     </label>
-                                                    @foreach ($allStores as $store)
-                                                   <input type="checkbox"
-                       name="store_ids[]"
-                       value="{{ $store->id }}"
-                       {{ in_array($store->id, $selectedStores) ? 'checked' : '' }}>
-                {{ $store->name }}        
-                @endforeach         
-                                                </div>
-                                            </div>
-@endif --}} 
-{{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="stores" class="form-control-label">
-                                                        <i class="fas fa-user-friends"></i> Multi Locations
-                                                    </label>
-                                                    <select name="[]"
-                                                        class="form-control select2 @error('') is-invalid @enderror"
+                                                    <select name="stores[]"
+                                                        class="form-control select2 @error('stores') is-invalid @enderror"
                                                         multiple>
-                                                        @foreach ($ as $id => $)
-                                                            <option value="{{ $id }}"
-                                                                @if (collect(old('', $structure->->pluck('id')->toArray()))->contains($id)) selected @endif>
-                                                                {{ $ }}
+                                                        @foreach ($allStores as $store)
+                                                            <option value="{{ $store->id }}"
+                                                                @if (collect(old('stores', $selectedStores))->contains($store->id)) selected @endif>
+                                                                {{ $store->name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    @error('')
+                                                    @error('stores')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
                                                         </span>
                                                     @enderror
                                                 </div>
-                                            </div> --}}
-                                            <div class="col-md-6">
-    <div class="form-group">
-        <label for="stores" class="form-control-label">
-            <i class="fas fa-user-friends"></i> Multi Locations
-        </label>
-
-        <select name="stores[]"
-            class="form-control select2 @error('stores') is-invalid @enderror"
-            multiple>
-
-            @foreach ($allStores as $store)
-    <option value="{{ $store->id }}"
-        @if (collect(old('stores', $selectedStores))->contains($store->id)) 
-            selected 
-        @endif>
-        {{ $store->name }}
-    </option>
-@endforeach
-
-
-        </select>
-
-        @error('stores')
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-        @enderror
-
-    </div>
-</div>
-
+                                            </div>
                                         </div>
-
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong><br>
                                                 - Superior can be empty.<br>
                                                 - Is Manager can be empty.<br>
-                                                - If is manager checked, then choose multi location if the manager is assigned to several locations.<br>
+                                                - If the manager is checked and the manager is placed in several locations, then use multi-location. If the manager only has 1 location, do not fill in multi-location.<br>
                                             </span>
                                         </div>
-
                                         <div class="d-flex justify-content-end mt-4">
                                             <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary me-2">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
@@ -695,6 +645,21 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2();
+           function toggleStoresField() {
+        const isChecked = $('#is_manager').prop('checked');
+
+        if (isChecked) {
+            $('#stores_field').show();
+        } else {
+            $('#stores_field').hide();
+        }
+    }
+
+    // Jalankan saat halaman load
+    toggleStoresField();
+
+    // Jalankan saat checkbox berubah
+    $('#is_manager').on('change', toggleStoresField);
         });
     </script>
     <script>
@@ -716,7 +681,6 @@
                 }
             });
         });
-          
     </script>
     <script>
         @if (session('success'))
@@ -736,7 +700,6 @@
                 confirmButtonText: 'OK'
             });
         @endif
-     
     </script>
 @endpush
 {{-- <div class="col-md-6">

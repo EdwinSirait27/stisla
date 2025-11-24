@@ -852,85 +852,154 @@ public function edit($hashedId)
     }
 
 
+    // public function update(Request $request, $hashedId)
+    // {
+    //     Log::info('Update Structure - Request received', [
+    //         'hashedId' => $hashedId,
+    //         'request_all' => $request->all()
+    //     ]);
+
+    //     $structure = Structuresnew::with('company', 'department', 'store', 'position')
+    //         ->get()
+    //         ->first(function ($u) use ($hashedId) {
+    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //             return $expectedHash === $hashedId;
+    //         });
+
+    //     Log::info('Structure matching result', [
+    //         'found' => $structure ? true : false,
+    //         'structure_id' => $structure->id ?? null
+    //     ]);
+
+    //     if (!$structure) {
+    //         Log::warning('Invalid hashed ID during update', ['hashedId' => $hashedId]);
+    //         return redirect()->route('pages.Structuresnew')->with('error', 'ID tidak valid.');
+    //     }
+
+    //     $validated = $request->validate([
+    //         'is_manager' => ['nullable', 'boolean'],
+    //         'parent_id' => ['nullable', 'string', 'max:255'],
+    //         'secondary_supervisors' => ['nullable', 'array'],
+    //         'secondary_supervisors.*' => ['string'],
+        
+    //     ]);
+    //     Log::info('Validated data', $validated);
+    //     DB::beginTransaction();
+    //     try {
+    //         Log::info('Updating structure', [
+    //             'structure_id' => $structure->id,
+    //             'update_data' => [
+    //                 'is_manager' => $validated['is_manager'] ?? 0,
+    //                 'parent_id' => $validated['parent_id'] ?? null,
+    //             ]
+    //         ]);
+    //         $structure->update([
+    //             'is_manager' => $validated['is_manager'] ?? 0,
+    //             'parent_id' => $validated['parent_id'] ?? null,
+    //         ]);
+    //         Log::info('Sync secondary supervisors', [
+    //             'structure_id' => $structure->id,
+    //             'secondary_supervisors' => $validated['secondary_supervisors'] ?? []
+    //         ]);
+    //         $structure->secondarySupervisors()->sync(
+    //             $validated['secondary_supervisors'] ?? []
+    //         );
+
+    //         DB::commit();
+
+    //         Log::info('Structure updated successfully', [
+    //             'structure_id' => $structure->id
+    //         ]);
+
+    //         return redirect()->route('pages.Structuresnew')
+    //             ->with('success', 'Structure Updated Successfully.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Update structure failed', [
+    //             'structure_id' => $structure->id ?? null,
+    //             'error_message' => $e->getMessage(),
+    //             'stack' => $e->getTraceAsString()
+    //         ]);
+
+    //         return redirect()->route('pages.Structuresnew')
+    //             ->with('error', 'Gagal update: ' . $e->getMessage());
+    //     }
+    // }
     public function update(Request $request, $hashedId)
-    {
-        Log::info('Update Structure - Request received', [
-            'hashedId' => $hashedId,
-            'request_all' => $request->all()
-        ]);
+{
+    Log::info('Update Structure - Request received', [
+        'hashedId' => $hashedId,
+        'request_all' => $request->all()
+    ]);
 
-        $structure = Structuresnew::with('company', 'department', 'store', 'position')
-            ->get()
-            ->first(function ($u) use ($hashedId) {
-                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-                return $expectedHash === $hashedId;
-            });
+    $structure = Structuresnew::with([
+        'submissionposition.stores',
+        'company',
+        'department',
+        'store',
+        'position'
+    ])
+    ->get()
+    ->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
 
-        Log::info('Structure matching result', [
-            'found' => $structure ? true : false,
-            'structure_id' => $structure->id ?? null
-        ]);
-
-        if (!$structure) {
-            Log::warning('Invalid hashed ID during update', ['hashedId' => $hashedId]);
-            return redirect()->route('pages.Structuresnew')->with('error', 'ID tidak valid.');
-        }
-
-        $validated = $request->validate([
-            'is_manager' => ['nullable', 'boolean'],
-            'parent_id' => ['nullable', 'string', 'max:255'],
-            'secondary_supervisors' => ['nullable', 'array'],
-            'secondary_supervisors.*' => ['string'],
-        ]);
-
-        Log::info('Validated data', $validated);
-
-        DB::beginTransaction();
-        try {
-
-            Log::info('Updating structure', [
-                'structure_id' => $structure->id,
-                'update_data' => [
-                    'is_manager' => $validated['is_manager'] ?? 0,
-                    'parent_id' => $validated['parent_id'] ?? null,
-                ]
-            ]);
-
-            $structure->update([
-                'is_manager' => $validated['is_manager'] ?? 0,
-                'parent_id' => $validated['parent_id'] ?? null,
-            ]);
-
-            Log::info('Sync secondary supervisors', [
-                'structure_id' => $structure->id,
-                'secondary_supervisors' => $validated['secondary_supervisors'] ?? []
-            ]);
-
-            $structure->secondarySupervisors()->sync(
-                $validated['secondary_supervisors'] ?? []
-            );
-
-            DB::commit();
-
-            Log::info('Structure updated successfully', [
-                'structure_id' => $structure->id
-            ]);
-
-            return redirect()->route('pages.Structuresnew')
-                ->with('success', 'Structure Updated Successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Update structure failed', [
-                'structure_id' => $structure->id ?? null,
-                'error_message' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-
-            return redirect()->route('pages.Structuresnew')
-                ->with('error', 'Gagal update: ' . $e->getMessage());
-        }
+    if (!$structure) {
+        return redirect()->route('pages.Structuresnew')
+            ->with('error', 'ID tidak valid.');
     }
+
+    $validated = $request->validate([
+        'is_manager' => ['nullable', 'boolean'],
+        'parent_id' => ['nullable', 'string'],
+        'secondary_supervisors' => ['nullable', 'array'],
+        'secondary_supervisors.*' => ['string'],
+        'stores' => ['nullable', 'array'],          // <--- tambahan
+        'stores.*' => ['string'],                   // <--- tambahan
+    ]);
+
+    DB::beginTransaction();
+    try {
+
+        // Update structure data
+        $structure->update([
+            'is_manager' => $validated['is_manager'] ?? 0,
+            'parent_id' => $validated['parent_id'] ?? null,
+        ]);
+
+        // Update secondary supervisors
+        $structure->secondarySupervisors()->sync(
+            $validated['secondary_supervisors'] ?? []
+        );
+
+        // 🚀 Update MULTI STORES (via submissionposition)
+        if ($structure->submissionposition) {
+
+            Log::info('Syncing multi-stores...', [
+                'submission_position_id' => $structure->submissionposition->id,
+                'selected' => $validated['stores'] ?? []
+            ]);
+
+            $structure->submissionposition->stores()->sync(
+                $validated['stores'] ?? []
+            );
+        }
+
+        DB::commit();
+
+        return redirect()->route('pages.Structuresnew')
+            ->with('success', 'Structure Updated Successfully.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return redirect()->route('pages.Structuresnew')
+            ->with('error', 'Gagal update: ' . $e->getMessage());
+    }
+}
+
 
 
     public function create()

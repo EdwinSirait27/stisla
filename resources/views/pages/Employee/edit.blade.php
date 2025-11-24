@@ -1153,7 +1153,6 @@ $(document).ready(function() {
             $('#end_date').val('');
         }
     }
-
     // Jalankan sekali saat halaman dimuat
     toggleReasonField();
 

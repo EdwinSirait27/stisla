@@ -84,7 +84,6 @@ class Submissionposition extends Model
     {
         return $this->belongsTo(Employee::class, 'approver_2', 'id');
     }
-    
     public function getActivitylogOptions(): LogOptions
 {
     return LogOptions::defaults()

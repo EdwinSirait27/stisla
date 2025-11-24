@@ -244,7 +244,7 @@
                                                 <th class="text-center">Ovt In</th>
                                                 <th class="text-center">Ovt Out</th>
                                                 <th class="text-center">Duration</th>
-                                                <th class="text-center">Status</th>
+                                                {{-- <th class="text-center">Status</th> --}}
                                                 {{-- <th class="text-center">Action</th> --}}
                                             </tr>
                                         </thead>
@@ -420,17 +420,18 @@
                         data: 'duration',
                         name: 'duration',
                         className: 'text-center'
-                    },
-                    {
-                        data: 'updated',
-                        name: 'updated',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return row.is_updated ?
-                                '<span class="badge badge-success">✔ Updated</span>' :
-                                '<span class="badge badge-secondary">Original</span>';
-                        }
                     }
+                    // ,
+                    // {
+                    //     data: 'updated',
+                    //     name: 'updated',
+                    //     className: 'text-center',
+                    //     render: function(data, type, row) {
+                    //         return row.is_updated ?
+                    //             '<span class="badge badge-success">✔ Updated</span>' :
+                    //             '<span class="badge badge-secondary">Original</span>';
+                    //     }
+                    // }
                 ],
                  rowCallback: function(row, data, index) {
                     if (data.is_edited == 1) {

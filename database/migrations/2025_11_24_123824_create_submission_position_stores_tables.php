@@ -12,17 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('submission_position_stores_tables', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-    $table->uuid('submission_position_id');
-    $table->uuid('store_id');
-
-    $table->foreign('submission_position_id')
-          ->references('id')->on('submission_position_tables')
-          ->onDelete('cascade');
-
-    $table->foreign('store_id')
-          ->references('id')->on('stores_tables')
-          ->onDelete('cascade');
+            $table->uuid('submission_position_id');
+            $table->uuid('store_id');
+            $table->primary(['submission_position_id', 'store_id']);
+            $table->foreign('submission_position_id')
+                ->references('id')->on('submission_position_tables')
+                ->onDelete('cascade');
+            $table->foreign('store_id')
+                ->references('id')->on('stores_tables')
+                ->onDelete('cascade');
+            $table->timestamps();
         });
     }
     /**
