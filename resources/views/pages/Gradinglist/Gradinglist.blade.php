@@ -185,9 +185,11 @@
                                             <tr>
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Employee Name</th>
-                                                <th class="text-center">Grading Code</th>
                                                 <th class="text-center">Grading Name</th>
-                                                <th class="text-center">Action</th>
+                                                <th class="text-center">Group Code</th>
+                                                <th class="text-center">Remark</th>
+                                                {{-- <th class="text-center">Grading Code</th> --}}
+                                                {{-- <th class="text-center">Action</th> --}}
                                             </tr>
                                         </thead>
                                     </table>
@@ -238,15 +240,27 @@
                         name: 'employee_name',
                         className: 'text-center'
                     },
+                    // {
+                    //     data: 'grading_code',
+                    //     name: 'grading_code',
+                    //     className: 'text-center',
+                    //     defaultContent: 'Empty'
+                    // },
                     {
-                        data: 'grading_code',
-                        name: 'grading_code',
+                        data: 'grading_name',
+                        name: 'grading_name',
                         className: 'text-center',
                         defaultContent: 'Empty'
                     },
                     {
-                        data: 'grading_name',
-                        name: 'grading_name',
+                        data: 'group_name',
+                        name: 'group_name',
+                        className: 'text-center',
+                        defaultContent: 'Empty'
+                    },
+                    {
+                        data: 'remark',
+                        name: 'remark',
                         className: 'text-center',
                         defaultContent: 'Empty'
                     },
@@ -262,13 +276,13 @@
                   
 
 
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: 'text-center'
+                    // }
                 ],
                 initComplete: function() {
                     // $('.dataTables_filter input').addClass('form-control');

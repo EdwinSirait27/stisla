@@ -21,26 +21,19 @@ class GradinglistController extends Controller
     public function getGradinglists()
     {
         $gradinglists = User::whereHas('Employee', function ($q) {
-            $q->whereIn('status', ['Active', 'Pending']);
+            $q->whereIn('status', ['Active', 'Pending','Mutation']);
         })
             ->with([
                 'Employee' => function ($q) {
-                    $q->whereIn('status', ['Active', 'Pending']);
+                    $q->whereIn('status', ['Active', 'Pending','Mutation']);
                 },
                 'Employee.employees',
                 'Employee.company',
                 'Employee.grading',
+                'Employee.grading.groups',
             ])
             ->select(['id', 'employee_id'])
-            ->get()
-            ->map(function ($gradinglist) {
-                $gradinglist->id_hashed = substr(hash('sha256', $gradinglist->id . env('APP_KEY')), 0, 8);
-                $gradinglist->action = '
-                    <a href="' . route('Gradinglist.edit', $gradinglist->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit gradinglist"title="Edit grading: ' . e($gradinglist->Employee->employee_name) . '">
-                        <i class="fas fa-user-edit text-secondary"></i>
-                    </a>';
-                return $gradinglist;
-            });
+            ->get();
         return DataTables::of($gradinglists)
             ->addColumn('employee_name', function ($gradinglist) {
                 return !empty($gradinglist->Employee) && !empty($gradinglist->Employee->employee_name)
@@ -53,13 +46,18 @@ class GradinglistController extends Controller
                     ? $gradinglist->Employee->grading->grading_name
                     : 'Empty';
             })
-            ->addColumn('grading_code', function ($gradinglist) {
-                return !empty($gradinglist->Employee->grading) && !empty($gradinglist->Employee->grading->grading_code)
-                    ? $gradinglist->Employee->grading->grading_code
+            ->addColumn('group_name', function ($gradinglist) {
+                return !empty($gradinglist->Employee->grading->groups) && !empty($gradinglist->Employee->grading->groups->grading_name)
+                    ? $gradinglist->Employee->grading->groups->grading_name
+                    : 'Empty';
+            })
+            ->addColumn('remark', function ($gradinglist) {
+                return !empty($gradinglist->Employee->grading->groups) && !empty($gradinglist->Employee->grading->groups->remark)
+                    ? $gradinglist->Employee->grading->groups->remark
                     : 'Empty';
             })
             
-            ->rawColumns(['action', 'employee_name', 'grading_name','grading_code'])
+            ->rawColumns(['employee_name', 'grading_name','group_name','remark'])
             ->make(true);
     }
     public function edit($hashedId)

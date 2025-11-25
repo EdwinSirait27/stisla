@@ -421,15 +421,15 @@ Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], fun
         ->name('pages.Teamfingerprint');
     Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
 });
-Route::group(['middleware' => ['permission:ManageGroups']], function () {
-        Route::get('/Group', [GroupController::class, 'index'])
-            ->name('pages.Group');
-        Route::get('Group/create', [GroupController::class, 'create'])->name('Group.create');
-        Route::post('/Group', [GroupController::class, 'store'])->name('Group.store');
-        Route::get('/Group/edit/{hashedId}', [GroupController::class, 'edit'])->name('Group.edit');
-        Route::put('/Group/{hashedId}', [GroupController::class, 'update'])->name('Group.update');
-        Route::get('/groups/groups', [GroupController::class, 'getGroups'])->name('groups.groups');
-    });
+// Route::group(['middleware' => ['permission:ManageGroups']], function () {
+//         Route::get('/Group', [GroupController::class, 'index'])
+//             ->name('pages.Group');
+//         Route::get('Group/create', [GroupController::class, 'create'])->name('Group.create');
+//         Route::post('/Group', [GroupController::class, 'store'])->name('Group.store');
+//         Route::get('/Group/edit/{hashedId}', [GroupController::class, 'edit'])->name('Group.edit');
+//         Route::put('/Group/{hashedId}', [GroupController::class, 'update'])->name('Group.update');
+//         Route::get('/groups/groups', [GroupController::class, 'getGroups'])->name('groups.groups');
+//     });
 
 
 
