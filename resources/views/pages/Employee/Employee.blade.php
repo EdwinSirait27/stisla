@@ -617,6 +617,7 @@
                                             <tr>
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">NIP</th>
                                                 <th class="text-center">Company</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Location</th>
@@ -899,6 +900,10 @@
 
                     {
                         data: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'nip',
                         className: 'text-center'
                     },
                     {

@@ -171,10 +171,11 @@ class EmployeeController extends Controller
             ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
+            ->addColumn('nip', fn($e) => optional($e->Employee)->employee_pengenal ?? 'Empty')
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['position_name','oldposition_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['nip','position_name','oldposition_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
     public function getEmployeesall()
