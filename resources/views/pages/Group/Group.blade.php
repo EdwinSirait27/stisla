@@ -1,11 +1,12 @@
 @extends('layouts.app')
-@section('title', 'Gradings')
+@section('title', 'Groups')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 @endpush
 <style>
+    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -40,6 +41,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -160,48 +162,43 @@
         }
     }
 </style>
-
-
 @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Gradings</h1>
+                <h1>Groups</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Gradings</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Groups</h6>
                             </div>
-
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                {{-- <th class="text-center">No.</th> --}}
-                                                {{-- <th class="text-center">Grading Code</th> --}}
-                                                <th class="text-center">Grading Name</th>
-                                                <th class="text-center">Group Code</th>
-                                                <th class="text-center">Group Remark</th>
+                                                <th class="text-center">Name</th>
+                                                <th class="text-center">Remark</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    {{-- <button type="button" onclick="window.location='{{ route('Grading.create') }}'"
+                                    <button type="button" onclick="window.location='{{ route('Group.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Grading
-                                    </button> --}}
+                                        <i class="fas fa-plus-circle"></i> Create Group
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+          
         </section>
     </div>
 @endsection
@@ -209,15 +206,13 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Wait for jQuery to be fully loaded
         jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
-                    url: '{{ route('gradings.gradings') }}',
+                    url: '{{ route('groups.groups') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -230,18 +225,6 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                   
-                  
-                    // {
-                    //     data: 'grading_code',
-                    //     name: 'grading_code',
-                    //     className: 'text-center'
-                    // },
-                    {
-                        data: 'grading_name',
-                        name: 'grading_name',
-                        className: 'text-center'
-                    },
                     {
                         data: 'group_name',
                         name: 'group_name',
@@ -267,13 +250,14 @@
             });
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+
         });
     </script>
+
 @endpush

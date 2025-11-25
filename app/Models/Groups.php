@@ -1,15 +1,16 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
-
-class Grading extends Model
+class Groups extends Model
 {
     use HasFactory;
+    protected $table = 'groups_tables';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
     protected static function boot()
     {
         parent::boot();
@@ -19,14 +20,8 @@ class Grading extends Model
             }
         });
     }
-    protected $table = 'grading';
     protected $fillable = [
-        'grading_code',
-        'grading_name',
-        'group_id',
+        'group_name',
+        'remark'
     ];
-     public function groups()
-    {
-        return $this->belongsTo(Groups::class, 'group_id', 'id');
-    }
 }

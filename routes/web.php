@@ -33,6 +33,7 @@ use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\DashboardHeadController;
 use App\Http\Controllers\PositionreqController;
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SalaryController;
@@ -317,6 +318,10 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
     Route::group(['middleware' => ['permission:ManageGrading']], function () {
         Route::get('/Grading', [GradingController::class, 'index'])
             ->name('pages.Grading');
+             Route::get('Grading/create', [GradingController::class, 'create'])->name('Grading.create');
+        Route::post('/Grading', [GradingController::class, 'store'])->name('Grading.store');
+        Route::get('/Grading/edit/{hashedId}', [GradingController::class, 'edit'])->name('Grading.edit');
+        Route::put('/Grading/{hashedId}', [GradingController::class, 'update'])->name('Grading.update');
         Route::get('/gradings/gradings', [GradingController::class, 'getGradings'])->name('gradings.gradings');
     });
     Route::group(['middleware' => ['permission:ManageStores']], function () {
@@ -416,19 +421,15 @@ Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], fun
         ->name('pages.Teamfingerprint');
     Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
+Route::group(['middleware' => ['permission:ManageGroups']], function () {
+        Route::get('/Group', [GroupController::class, 'index'])
+            ->name('pages.Group');
+        Route::get('Group/create', [GroupController::class, 'create'])->name('Group.create');
+        Route::post('/Group', [GroupController::class, 'store'])->name('Group.store');
+        Route::get('/Group/edit/{hashedId}', [GroupController::class, 'edit'])->name('Group.edit');
+        Route::put('/Group/{hashedId}', [GroupController::class, 'update'])->name('Group.update');
+        Route::get('/groups/groups', [GroupController::class, 'getGroups'])->name('groups.groups');
+    });
 
 
 

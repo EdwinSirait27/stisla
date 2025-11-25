@@ -475,14 +475,10 @@ class EmployeeController extends Controller
         'isManager' // ← Kirim ke Blade
     ));
 }
-
-
     public function create()
     {
         $employees = Employee::where('status', 'Active')
             ->pluck('employee_name', 'id');
-
-
         $stores = Stores::pluck('name', 'id')->all();
         $positions = Position::pluck('name', 'id')->all();
         $departments = Departments::pluck('department_name', 'id')->all();

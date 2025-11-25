@@ -1,31 +1,32 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
-use App\Models\Position;
+use App\Models\Groups;
 use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\DB;
 
-class PositionController extends Controller
+class GroupController extends Controller
 {
-    public function index()
+      public function index()
     {
-        return view('pages.Position.Position');
+        return view('pages.Group.Group');
     }
-    public function getPositions()
+    public function getGroups()
     {
-        $positions = Position::select(['id', 'name'])
+        $groups = Groups::select(['id', 'group_name','remark'])
             ->get()
-            ->map(function ($position) {
-                $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-                $position->action = '
-                    <a href="' . route('Position.edit', $position->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit Position: ' . e($position->name) . '">
+            ->map(function ($group) {
+                $group->id_hashed = substr(hash('sha256', $group->id . env('APP_KEY')), 0, 8);
+                $group->action = '
+                    <a href="' . route('Group.edit', $group->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit group: ' . e($group->group_name) . '">
                         <i class="fas fa-user-edit text-secondary"></i>
                     </a>';
-                return $position;
+                return $group;
             });
-        return DataTables::of($positions)
+        return DataTables::of($groups)
             ->rawColumns(['action'])
             ->make(true);
     }
@@ -47,31 +48,25 @@ class PositionController extends Controller
     // }
     public function edit($hashedId)
     {
-        $position = Position::get()->first(function ($u) use ($hashedId) {
+        $group = Groups::get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
 
-        if (!$position) {
-            abort(404, 'Position not found.');
+        if (!$group) {
+            abort(404, 'group not found.');
         }
-
-        $selectedName = old('name', $position->name ?? '');
-
-        // Dapatkan role pertama user (untuk selected value)
         
-        return view('pages.Position.edit', [
-            'position' => $position,
-            'hashedId' => $hashedId,
-            'selectedName' => $selectedName
-            
+        return view('pages.Group.edit', [
+            'group' => $group,
+            'hashedId' => $hashedId
         ]);
     }
- 
+
     public function create()
     {
         
-        return view('pages.Position.create');
+        return view('pages.Group.create');
     }
 
     public function store(Request $request)
@@ -79,20 +74,22 @@ class PositionController extends Controller
         // dd($request->all());
 
         $validatedData = $request->validate([
-            'name' => ['required', 'string','max:255', new NoXSSInput()],
+            'group_name' => ['required', 'string','max:255', new NoXSSInput()],
+            'remark' => ['required', 'string','max:255', new NoXSSInput()],
             
         ], [
-            'name.required' => 'name wajib diisi.',
-            'name.string' => 'name hanya boleh berupa teks.',
-            'name.max' => 'name maksimal terdiri dari 255 karakter.',
+            'group_name.required' => 'name wajib diisi.',
+            'group_name.string' => 'name hanya boleh berupa teks.',
+            'group_name.max' => 'group maksimal terdiri dari 255 karakter.',
         ]);
         try {
             DB::beginTransaction();
-            $position = Position::create([
-                'name' => $validatedData['name'], 
+            $group = Groups::create([
+                'group_name' => $validatedData['group_name'], 
+                'remark' => $validatedData['remark'], 
             ]);
             DB::commit();
-            return redirect()->route('pages.Position')->with('success', 'Position created Succesfully!');
+            return redirect()->route('pages.Group')->with('success', 'Group created Succesfully!');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -102,30 +99,31 @@ class PositionController extends Controller
     }
     public function update(Request $request, $hashedId)
     {
-        $position = Position::get()->first(function ($u) use ($hashedId) {
+        $group = Groups::get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
-        if (!$position) {
-            return redirect()->route('pages.Position')->with('error', 'ID tidak valid.');
+        if (!$group) {
+            return redirect()->route('pages.Group')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-            'name' => ['required', 'string', 'max:255', new NoXSSInput()],
-
+            'group_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'remark' => ['required', 'string', 'max:255', new NoXSSInput()],
         ], [
-            'name.required' => 'name wajib diisi.',
-            'name.string' => 'name hanya boleh berupa teks.',
-            'name.max' => 'name maksimal terdiri dari 255 karakter.',
+            'group_name.required' => 'name wajib diisi.',
+            'group_name.string' => 'name hanya boleh berupa teks.',
+            'group_name.max' => 'name maksimal terdiri dari 255 karakter.',
         ]);
 
-        $positionData = [
-            'name' => $validatedData['name'],
+        $groupData = [
+            'group_name' => $validatedData['group_name'],
+            'remark' => $validatedData['remark'],
             
         ];
         DB::beginTransaction();
-        $position->update($positionData);
+        $group->update($groupData);
         DB::commit();
 
-        return redirect()->route('pages.Position')->with('success', 'Position updated successfully.');
+        return redirect()->route('pages.Group')->with('success', 'Group updated successfully.');
     }
 }

@@ -1,10 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Update Grading')
-@push('styles')
+@section('title', 'Update Groups')
+@push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
@@ -167,11 +165,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Grading {{ $grading->grading_name }}</h1>
+                <h1>Update Group {{ $group->group_name }}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Grading') }}">Grading</a></div>
-                    <div class="breadcrumb-item">Update Grading {{ $grading->grading_name }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Group') }}">Group</a></div>
+                    <div class="breadcrumb-item">Update Group {{ $group->group_name }}</div>
                 </div>
             </div>
 
@@ -181,7 +179,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Update Grading') }} {{ $grading->grading_name }}</h6>
+                                    <h6 class="mb-0">{{ __('Update Group') }} {{ $group->group_name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -206,73 +204,21 @@
                                             </button>
                                         </div>
                                     @endif
-
-                                    <form id="departments-edit" action="{{ route('Grading.update', $hashedId) }}"
-                                        method="POST">
+                                    <form id="position-edit" action="{{ route('Group.update', $hashedId) }}" method="POST">
                                         @csrf
                                         @method('PUT')
 
                                         <div class="row">
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="grading_code" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Grading Code') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="text"
-                                                            class="form-control @error('grading_code') is-invalid @enderror"
-                                                            id="grading_code" name="grading_code"
-                                                            value="{{ old('grading_code', $grading->grading_code) }}"
-                                                            placeholder="A1" required>
-                                                        @error('grading_code')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div> --}}
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="grading_name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Grading Name') }}
+                                                    <label for="group_name" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Group Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text"
-                                                            class="form-control @error('grading_name') is-invalid @enderror"
-                                                            id="grading_name" name="grading_name"
-                                                            value="{{ old('grading_name', $grading->grading_name) }}"
-                                                            placeholder="Manager" required>
-                                                        @error('grading_name')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                        </select>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="group_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Groups') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="group_id" id="group_id"
-                                                            class="form-control select2 @error('group_id') is-invalid @enderror" required>
-                                                            <option value="">-- Choose group --</option>
-                                                           @foreach ($groups as $group)
-    <option value="{{ $group->id }}"
-        {{ old('group_id', $grading->group_id) == $group->id ? 'selected' : '' }}>
-        {{ $group->group_name }} - {{ $group->remark }}
-    </option>
-@endforeach
-
-                                                        </select>
-
-                                                        @error('group_id')
+                                                        <input type="text" class="form-control @error('group_name') is-invalid @enderror" id="group_name"
+                                                            name="group_name" value="{{ old('group_name', $group->group_name) }}"
+                                                            placeholder="1A" required>
+                                                        @error('group_name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -281,24 +227,24 @@
                                                 </div>
                                             </div>
                                         </div>
-
-
-
-                                        <div class="alert alert-secondary mt-4" role="alert">
+                                        {{-- <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Grading name  is already registered, you cannot register it
-                                                again.<br>
-                                                - please use English to get used to it.<br>
-                                                - Before updating data, please check first whether there is already similar
-                                                or identical data to avoid double input.
-
-
+                                                - If a name is already registered, you cannot register it again.<br>
+                                                
+                                            </span>
+                                        </div> --}}
+                                         <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Important Note:</strong> <br>
+                                                - If a Group  name is already registered, you cannot register it again.
+                                                <br> - please use English to get used to it.
+                                                <br> - Before updating data, please check first whether there is already similar or identical data to avoid double input. 
                                             </span>
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Grading') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Group') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
                                             <button type="submit" id="edit-btn" class="btn bg-primary">
@@ -318,34 +264,27 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
-        });
-    </script>
-    <script>
-        document.getElementById('edit-btn').addEventListener('click', function(e) {
-            e.preventDefault(); // Mencegah pengiriman form langsung
-            Swal.fire({
-                title: 'Are You Sure?',
-                text: "Make sure the data you entered is correct!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, Assign!',
-                cancelButtonText: 'Abort'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Jika pengguna mengkonfirmasi, submit form
-                    document.getElementById('departments-edit').submit();
-                }
-            });
-        });
-    </script>
+<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+<script>
+     document.getElementById('edit-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
+              Swal.fire({
+                  title: 'Are You Sure?',
+                  text: "Make sure the data you entered is correct!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Yes, Assign!',
+                  cancelButtonText: 'Abort'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('position-edit').submit();
+                  }
+              });
+          });
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -365,4 +304,4 @@
             });
         @endif
     </script>
-@endpush
+  @endpush
