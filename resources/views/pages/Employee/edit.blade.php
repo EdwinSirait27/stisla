@@ -983,46 +983,7 @@
                                                     </div>
                                             </div>
                                         </div>
-
-                                            <div class="col-md-6" id="end_date_field" style="display:none;">
-                                                <div class="form-group">
-                                                    <label for="end_date" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('End Date') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="date" id="end_date" name="end_date"
-                                                            value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
-                                                            class="form-control @error('end_date') is-invalid @enderror">
-                                                        @error('end_date')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            </div>
-                                        <div class="row mt-3" id="notes_field" style="display:none;">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="notes" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
-                                                    </label>
-                                                    <div>
-                                                        <input class="form-control @error('notes') is-invalid @enderror"
-                                                            value="{{ old('notes', $employee->Employee->notes ?? '') }}"
-                                                            type="text" id="notes" name="notes"
-                                                            value="{{ old('notes') }}" aria-describedby="info-notes"
-                                                            placeholder="filled in if the employee resigns or is inactive">
-                                                        @error('notes')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-    <div class="col-md-6">
+                                        <div class="col-md-6">
         <div class="form-group">
             <label for="photos" class="form-control-label">
                 <i class="fas fa-id-card"></i> {{ __('Images') }}
@@ -1066,6 +1027,48 @@
         </div>
     </div>
     </div>
+                                        
+
+                                            <div class="row mt-3" id="end_date_field" style="display:none;">
+                                            <div class="col-md-6">
+
+                                                <div class="form-group">
+                                                    <label for="end_date" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('End Date') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="date" id="end_date" name="end_date"
+                                                            value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
+                                                            class="form-control @error('end_date') is-invalid @enderror">
+                                                        @error('end_date')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <div class="col-md-6" id="notes_field" style="display:none;">
+                                                <div class="form-group">
+                                                    <label for="notes" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('notes') is-invalid @enderror"
+                                                            value="{{ old('notes', $employee->Employee->notes ?? '') }}"
+                                                            type="text" id="notes" name="notes"
+                                                            value="{{ old('notes') }}" aria-describedby="info-notes"
+                                                            placeholder="filled in if the employee resigns or is inactive">
+                                                        @error('notes')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+    
                                         {{-- <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"

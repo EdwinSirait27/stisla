@@ -866,6 +866,15 @@ class EmployeeController extends Controller
             ->with('error', 'Update failed: ' . $th->getMessage());
     }
 }
+public function getPhoto($path)
+{
+    $file = storage_path('app/private/employeesphotos/' . $path);
+
+    if (!file_exists($file)) abort(404);
+
+    return response()->file($file);
+}
+
 
     // with locking
 //     public function update(Request $request, $hashedId)

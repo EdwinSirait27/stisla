@@ -1048,7 +1048,8 @@
                         </div>
 
                         <div class="col-lg-3 col-md-6 col-12 mb-4">
-                            <div class="stat-card">
+                            <div onclick="window.location='{{ route('pages.Fingerprints') }}';" class="stat-card" role="button"
+                                title="show attendance" aria-label="View all fingerprints">
                                 <div class="stat-card-header">
                                     <div class="stat-icon success">
                                         <i class="fas fa-user-check"></i>
@@ -1091,8 +1092,7 @@
                                         </span>
                                     @else
                                         <span class="stat-trend up">
-                                            <i class="fas fa-check-circle me-1"> </i>All Clear
-                                        </span>
+                                            <i class="fas fa-check-circle me-1"> </i> All Clear </span>
                                     @endif
                                 </div>
                             </div>

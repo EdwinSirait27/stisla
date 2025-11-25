@@ -342,7 +342,9 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Join Date</th>
-                                                    <td>{{ $employee->Employee->join_date ?? 'empty' }}
+                                                    {{-- <td>{{ $employee->Employee->join_date ?? 'empty' }} --}}
+                                                        <td>{{ optional($employee->Employee)->join_date ? \Carbon\Carbon::parse($employee->Employee->join_date)->format('d-m-Y') : 'empty' }}</td>
+
                                                     </td>
                                                 </tr>
 
