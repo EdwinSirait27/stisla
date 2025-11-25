@@ -204,6 +204,11 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
+                                                    <th>NIP</th>
+                                                    <td>{{ $employee->Employee->employee_pengenal ?? 'empty' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
                                                     <th>NIK</th>
                                                     <td>{{ $employee->Employee->nik ?? 'empty' }}
                                                     </td>
