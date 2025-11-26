@@ -328,10 +328,13 @@
                                                 <th class="text-center">Employee Name</th>
                                                 <th class="text-center">NIP</th>
                                                 <th class="text-center">Attendance</th>
+                                                <th class="text-center">Basic Salary</th>
                                                 <th class="text-center">Daily Allowance</th>
                                                 <th class="text-center">House Allowance</th>
                                                 <th class="text-center">Meal Allowance</th>
                                                 <th class="text-center">Transport Allowance</th>
+                                                <th class="text-center">Allowance</th>
+                                                <th class="text-center">Reamburse</th>
                                                 <th class="text-center">Bonus</th>
                                                 <th class="text-center">Overtime</th>
                                                 <th class="text-center">Late Fine</th>
@@ -544,6 +547,17 @@
                         }
                     },
                     {
+                        data: 'basic_salary',
+                        name: 'basic_salary',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
+                        }
+                    },
+                    {
                         data: 'daily_allowance',
                         name: 'daily_allowance',
                         className: 'text-center',
@@ -580,6 +594,28 @@
                     {
                         data: 'transport_allowance',
                         name: 'transport_allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
+                        }
+                    },
+                    {
+                        data: 'allowance',
+                        name: 'allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
+                        }
+                    },
+                    {
+                        data: 'reamburse',
+                        name: 'reamburse',
                         className: 'text-center',
                         render: function(data) {
                             if (data) {

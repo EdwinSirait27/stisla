@@ -430,10 +430,6 @@ Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], fun
 //         Route::put('/Group/{hashedId}', [GroupController::class, 'update'])->name('Group.update');
 //         Route::get('/groups/groups', [GroupController::class, 'getGroups'])->name('groups.groups');
 //     });
-
-
-
-
 });
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
@@ -447,37 +443,9 @@ Route::group(['middleware' => 'guest'], function () {
     Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
     Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Route::get('/portofolio', function () {
+// Route::get('/portofolio', function () {
         //     return view('pages.portofolio');
         // });
-
 // uoms
     // Route::group(['middleware' => ['permission:ManageUoms']], function () {
 
@@ -546,24 +514,18 @@ Route::group(['middleware' => 'guest'], function () {
     //     Route::put('/Masterproducts/{hashedId}', [MasterproductController::class, 'update'])->name('Masterproducts.update');
     //     Route::get('/masterproducts/masterproducts', [MasterproductController::class, 'getMasterproducts'])->name('masterproducts.masterproducts');
     // });
-
 // Dashboard
-
 // Route::get('/dashboard-ecommerce-dashboard', function () {
 //     return view('pages.dashboard-ecommerce-dashboard', ['type_menu' => 'dashboard']);
 // });
-
-
 // // Layout
 // Route::get('/layout-default-layout', function () {
 //     return view('pages.layout-default-layout', ['type_menu' => 'layout']);
 // });
-
 // // Blank Page
 // Route::get('/blank-page', function () {
 //     return view('pages.blank-page', ['type_menu' => '']);
 // });
-
 // // Bootstrap
 // Route::get('/bootstrap-alert', function () {
 //     return view('pages.bootstrap-alert', ['type_menu' => 'bootstrap']);

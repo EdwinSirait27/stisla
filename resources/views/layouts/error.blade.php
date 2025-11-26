@@ -6,7 +6,6 @@
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
         name="viewport">
     <title>@yield('title') &mdash; Asian Bay Developmemnt</title>
-
     <!-- General CSS Files -->
     <link rel="stylesheet"
         href="{{ asset('library/bootstrap/dist/css/bootstrap.min.css') }}">
@@ -16,7 +15,7 @@
         crossorigin="anonymous"
         referrerpolicy="no-referrer" />
         <link rel="icon" type="image/png"
-        href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
+        href="{{ asset('img/abd.ico') }}">
     @stack('style')
 
     <!-- Template CSS -->

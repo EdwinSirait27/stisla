@@ -42,6 +42,9 @@ class PayrollsController extends Controller
                 Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 $carbonMonthYear = now(); // fallback jika gagal
             }
+            $allowance = $payroll->allowance ? ($payroll->allowance) : 0;
+            $basic_salary = $payroll->basic_salary ? ($payroll->basic_salary) : null;
+            $reamburse = $payroll->reamburse ? ($payroll->reamburse) : 0;
             $bonus = $payroll->bonus ? ($payroll->bonus) : 0;
             $tax = $payroll->tax ? ($payroll->tax) : 0;
             $house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : 0;
@@ -54,7 +57,7 @@ class PayrollsController extends Controller
             $bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : 0;
             $bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : 0;
             $debt = $payroll->debt ? ($payroll->debt) : 0;
-            $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : 0;
+            $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
             $punishment = $payroll->punishment ? ($payroll->punishment) : 0;
             $period = $payroll->period ?? '-';
             // $created_at = $payroll->created_at ?? '-';
@@ -69,6 +72,9 @@ class PayrollsController extends Controller
             $data = [
                 'payroll' => $payroll,
                 'attendance' => $attendance,
+                'allowance' => $allowance,
+                'basic_salary' => $basic_salary,
+                'reamburse' => $reamburse,
                 'overtime' => $overtime,
                 'period' => $period,
                 'month_year' => $month_year,
@@ -130,6 +136,9 @@ class PayrollsController extends Controller
             'id',
             'employee_id',
             'daily_allowance',
+            'basic_salary',
+            'allowance',
+            'reamburse',
             'bonus',
             'house_allowance',
             'meal_allowance',
@@ -231,127 +240,130 @@ class PayrollsController extends Controller
     //         ->rawColumns(['checkbox', 'employee_name'])
     //         ->make(true);
     // }
-    public function generate($hashedId)
-    {
-        Log::info('Payroll PDF generation started.', ['hashedId' => $hashedId]);
+    // public function generate($hashedId)
+    // {
+    //     Log::info('Payroll PDF generation started.', ['hashedId' => $hashedId]);
 
-        $payrolls = Payrolls::with(['employee.department', 'employee.bank', 'employee.position', 'employee.company'])->get();
-        Log::debug('Total payrolls fetched: ' . $payrolls->count());
+    //     $payrolls = Payrolls::with(['employee.department', 'employee.bank', 'employee.position', 'employee.company'])->get();
+    //     Log::debug('Total payrolls fetched: ' . $payrolls->count());
 
-        $payroll = $payrolls->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+    //     $payroll = $payrolls->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
 
-        if (!$payroll) {
-            Log::warning('Payroll not found.', ['hashedId' => $hashedId]);
-            abort(404, 'Payroll not found.');
-        }
+    //     if (!$payroll) {
+    //         Log::warning('Payroll not found.', ['hashedId' => $hashedId]);
+    //         abort(404, 'Payroll not found.');
+    //     }
 
-        Log::info('Payroll matched.', ['payroll_id' => $payroll->id]);
+    //     Log::info('Payroll matched.', ['payroll_id' => $payroll->id]);
 
-        // Log employee data
-        if (!$payroll->employee) {
-            Log::error('Employee is null for payroll ID: ' . $payroll->id);
-            abort(500, 'Employee data is missing.');
-        }
+    //     // Log employee data
+    //     if (!$payroll->employee) {
+    //         Log::error('Employee is null for payroll ID: ' . $payroll->id);
+    //         abort(500, 'Employee data is missing.');
+    //     }
 
-        Log::debug('Employee details', [
-            'name' => $payroll->employee->name ?? 'N/A',
-            'dob' => $payroll->employee->date_of_birth ?? 'N/A'
-        ]);
+    //     Log::debug('Employee details', [
+    //         'name' => $payroll->employee->name ?? 'N/A',
+    //         'dob' => $payroll->employee->date_of_birth ?? 'N/A'
+    //     ]);
 
-        try {
-            $attendance = $payroll->attendance;
-            $month_year = $payroll->month_year;
-            $period = $payroll->period;
-            $bonus = ($payroll->bonus);
-            $house_allowance = ($payroll->house_allowance);
-            $meal_allowance = ($payroll->meal_allowance);
-            $transport_allowance = ($payroll->transport_allowance);
-            $tax = ($payroll->tax);
-            $deductions = ($payroll->deductions);
-            $salary = ($payroll->salary);
-            $overtime = ($payroll->overtime);
-            $late_fine = ($payroll->late_fine);
-            $bpjs_ket = ($payroll->bpjs_ket);
-            $bpjs_kes = ($payroll->bpjs_kes);
-            $debt = ($payroll->debt);
-            $daily_allowance = ($payroll->daily_allowance);
-            $punishment = ($payroll->punishment);
-        } catch (\Exception $e) {
-            Log::error('Decryption failed: ' . $e->getMessage());
-            abort(500, 'Failed to decrypt payroll data.');
-        }
+    //     try {
+    //         $attendance = $payroll->attendance;
+    //         $month_year = $payroll->month_year;
+    //         $period = $payroll->period;
+    //         $bonus = ($payroll->bonus);
+    //         $allowance = ($payroll->allowance);
+    //         $basic_salary = ($payroll->basic_salary);
+    //         $reamburse = ($payroll->reamburse);
+    //         $house_allowance = ($payroll->house_allowance);
+    //         $meal_allowance = ($payroll->meal_allowance);
+    //         $transport_allowance = ($payroll->transport_allowance);
+    //         $tax = ($payroll->tax);
+    //         $deductions = ($payroll->deductions);
+    //         $salary = ($payroll->salary);
+    //         $overtime = ($payroll->overtime);
+    //         $late_fine = ($payroll->late_fine);
+    //         $bpjs_ket = ($payroll->bpjs_ket);
+    //         $bpjs_kes = ($payroll->bpjs_kes);
+    //         $debt = ($payroll->debt);
+    //         $daily_allowance = ($payroll->daily_allowance);
+    //         $punishment = ($payroll->punishment);
+    //     } catch (\Exception $e) {
+    //         Log::error('Decryption failed: ' . $e->getMessage());
+    //         abort(500, 'Failed to decrypt payroll data.');
+    //     }
 
-        $salaryincome = intval($attendance) * intval($daily_allowance)
-            + intval($overtime) + intval($bonus) + intval($house_allowance)
-            + intval($meal_allowance) + intval($transport_allowance);
+    //     $salaryincome = intval($attendance) * intval($daily_allowance)
+    //         + intval($overtime) + intval($bonus) + intval($house_allowance)
+    //         + intval($meal_allowance) + intval($transport_allowance);
 
-        // $salaryoutcome = intval($punishment) + intval($tax) + intval($late_fine)
-        //     + intval($bpjs_ket) + intval($bpjs_kes);
-        $salaryoutcome = $salaryincome - intval($deductions);
+    //     // $salaryoutcome = intval($punishment) + intval($tax) + intval($late_fine)
+    //     //     + intval($bpjs_ket) + intval($bpjs_kes);
+    //     $salaryoutcome = $salaryincome - intval($deductions);
 
-        $carbonMonthYear = $payroll->month_year instanceof Carbon
-            ? $payroll->month_year
-            : Carbon::parse($payroll->month_year);
+    //     $carbonMonthYear = $payroll->month_year instanceof Carbon
+    //         ? $payroll->month_year
+    //         : Carbon::parse($payroll->month_year);
 
-        $data = [
-            'payroll' => $payroll,
-            'overtime' => $overtime,
-            'month_year' => $month_year,
-            'bonus' => $bonus,
-            'period' => $period,
-            'house_allowance' => $house_allowance,
-            'daily_allowance' => $daily_allowance,
-            'meal_allowance' => $meal_allowance,
-            'transport_allowance' => $transport_allowance,
-            'late_fine' => $late_fine,
-            'tax' => $tax,
-            'punishment' => $punishment,
-            'deductions' => $deductions,
-            'salary' => $salary,
-            'bpjs_ket' => $bpjs_ket,
-            'bpjs_kes' => $bpjs_kes,
-            'salaryincome' => $salaryincome,
-            'salaryoutcome' => $salaryoutcome,
-            'hashedId' => $hashedId,
-            'monthYearHuman' => $carbonMonthYear->diffForHumans(),
-            'formattedMonthYear' => $carbonMonthYear->format('M Y'),
-        ];
-        try {
-            $htmlView = view('pages.Payrolls.show', $data)->render();
-            Log::debug('HTML view rendered successfully.');
-            // Optionally save HTML for offline debug
-            file_put_contents(storage_path('app/pdf_debug.html'), $htmlView);
-        } catch (\Throwable $e) {
-            Log::error('Error rendering view: ' . $e->getMessage());
-            abort(500, 'Error rendering PDF view.');
-        }
+    //     $data = [
+    //         'payroll' => $payroll,
+    //         'overtime' => $overtime,
+    //         'month_year' => $month_year,
+    //         'bonus' => $bonus,
+    //         'period' => $period,
+    //         'house_allowance' => $house_allowance,
+    //         'daily_allowance' => $daily_allowance,
+    //         'meal_allowance' => $meal_allowance,
+    //         'transport_allowance' => $transport_allowance,
+    //         'late_fine' => $late_fine,
+    //         'tax' => $tax,
+    //         'punishment' => $punishment,
+    //         'deductions' => $deductions,
+    //         'salary' => $salary,
+    //         'bpjs_ket' => $bpjs_ket,
+    //         'bpjs_kes' => $bpjs_kes,
+    //         'salaryincome' => $salaryincome,
+    //         'salaryoutcome' => $salaryoutcome,
+    //         'hashedId' => $hashedId,
+    //         'monthYearHuman' => $carbonMonthYear->diffForHumans(),
+    //         'formattedMonthYear' => $carbonMonthYear->format('M Y'),
+    //     ];
+    //     try {
+    //         $htmlView = view('pages.Payrolls.show', $data)->render();
+    //         Log::debug('HTML view rendered successfully.');
+    //         // Optionally save HTML for offline debug
+    //         file_put_contents(storage_path('app/pdf_debug.html'), $htmlView);
+    //     } catch (\Throwable $e) {
+    //         Log::error('Error rendering view: ' . $e->getMessage());
+    //         abort(500, 'Error rendering PDF view.');
+    //     }
 
-        try {
-            $pdf = Pdf::loadHtml($htmlView)->setPaper('A4', 'portrait');
-        } catch (\Throwable $e) {
-            Log::error('PDF loadHtml failed: ' . $e->getMessage());
-            abort(500, 'PDF generation failed.');
-        }
+    //     try {
+    //         $pdf = Pdf::loadHtml($htmlView)->setPaper('A4', 'portrait');
+    //     } catch (\Throwable $e) {
+    //         Log::error('PDF loadHtml failed: ' . $e->getMessage());
+    //         abort(500, 'PDF generation failed.');
+    //     }
 
-        if ($payroll->employee && $payroll->employee->date_of_birth) {
-            try {
-                $dob = $payroll->employee->date_of_birth instanceof Carbon
-                    ? $payroll->employee->date_of_birth
-                    : Carbon::parse($payroll->employee->date_of_birth);
-                $pdf->setEncryption($dob->format('Ymd'));
-            } catch (\Exception $e) {
-                Log::warning('PDF encryption failed: ' . $e->getMessage());
-            }
-        }
+    //     if ($payroll->employee && $payroll->employee->date_of_birth) {
+    //         try {
+    //             $dob = $payroll->employee->date_of_birth instanceof Carbon
+    //                 ? $payroll->employee->date_of_birth
+    //                 : Carbon::parse($payroll->employee->date_of_birth);
+    //             $pdf->setEncryption($dob->format('Ymd'));
+    //         } catch (\Exception $e) {
+    //             Log::warning('PDF encryption failed: ' . $e->getMessage());
+    //         }
+    //     }
 
-        $filename = 'Payroll_' . ($payroll->employee->name ?? 'Unknown') . '_' . $carbonMonthYear->format('Y_m') . '.pdf';
-        Log::info('PDF generated successfully.', ['filename' => $filename]);
+    //     $filename = 'Payroll_' . ($payroll->employee->name ?? 'Unknown') . '_' . $carbonMonthYear->format('Y_m') . '.pdf';
+    //     Log::info('PDF generated successfully.', ['filename' => $filename]);
 
-        return $pdf->download($filename);
-    }  
+    //     return $pdf->download($filename);
+    // }  
     // public function bulkDelete(Request $request)
     // {
     //     $idsRaw = $request->input('payroll_ids', '');

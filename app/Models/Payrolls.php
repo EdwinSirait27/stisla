@@ -27,6 +27,9 @@ class Payrolls extends Model
         'id',
         'employee_id',
         'attendance',
+        'allowance',
+        'reamburse',
+        'basic_salary',
         'bonus',
         'overtime',
         'house_allowance',
@@ -53,6 +56,18 @@ class Payrolls extends Model
         return $this->belongsTo(Employee::class, 'employee_id','id');
     }
     public function getDailyAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+    public function getReamburseAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+    public function getAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+    public function getBasicSalaryAttribute($value)
     {
         return $value ? (float) Crypt::decryptString($value) : null;
     }

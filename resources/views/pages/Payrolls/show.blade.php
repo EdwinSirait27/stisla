@@ -332,16 +332,25 @@
                         <td class="text-align: left;">
                             Attendances: {{ $payroll->attendance }} days<br>
                             {{-- Daily Allowance: IDR {{ number_format($payroll->employee->daily_allowance, 0, ',', '.') }}<br> --}}
-                            Daily Allowance: IDR {{ number_format($daily_allowance, 0, ',', '.') }}<br>
+                            {{-- Daily Allowance: IDR {{ number_format($daily_allowance, 0, ',', '.') }}<br>
+                            Basic Salary: IDR {{ number_format($basic_salary, 0, ',', '.') }}<br> --}}
+@if(!is_null($daily_allowance))
+    Daily Allowance: IDR {{ number_format($daily_allowance, 0, ',', '.') }}<br>
+@endif
+
+@if(!is_null($basic_salary))
+    Basic Salary: IDR {{ number_format($basic_salary, 0, ',', '.') }}<br>
+@endif
 
                             Overtime: IDR {{ number_format($overtime, 0, ',', '.') }}<br>
                             Bonuses: IDR {{ number_format($bonus, 0, ',', '.') }}<br>
                             House Allowance: IDR {{ number_format($house_allowance, 0, ',', '.') }}<br>
                             Meal Allowance: IDR {{ number_format($meal_allowance, 0, ',', '.') }}<br>
-                            Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}
+                            Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}<br>
+                            Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}<br>
+                            Reamburse: IDR {{ number_format($reamburse, 0, ',', '.') }}
                         </td>
                         <td>
-
                             Late Fine: IDR {{ number_format($late_fine, 0, ',', '.') }}<br>
                             Punishment: IDR {{ number_format($punishment, 0, ',', '.') }}<br>
                             BPJS Ketenagakerjaan: IDR {{ number_format($bpjs_ket, 0, ',', '.') }}<br>

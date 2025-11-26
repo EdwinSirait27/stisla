@@ -1,9 +1,7 @@
 <?php
 
 namespace App\Console\Commands;
-
 use Illuminate\Console\Command;
-
 use App\Models\Employee;
 use App\Models\Leavebalance;
 
@@ -11,11 +9,9 @@ class GiveAnnualLeave extends Command
 {
   protected $signature = 'leave:anniversary';
     protected $description = 'Give annual leave on employee join date anniversary';
-
     // public function handle()
     // {
     //     $today = now();
-
     //     // Cari employee yang join_date nya hari ini
     //     $employees = Employee::whereMonth('join_date', $today->month)
     //         ->whereDay('join_date', $today->day)
