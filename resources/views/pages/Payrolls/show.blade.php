@@ -347,7 +347,9 @@
                             House Allowance: IDR {{ number_format($house_allowance, 0, ',', '.') }}<br>
                             Meal Allowance: IDR {{ number_format($meal_allowance, 0, ',', '.') }}<br>
                             Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}<br>
-                            Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}<br>
+@if(!is_null($allowance))
+                            Positional Allowance: IDR {{ number_format($allowance, 0, ',', '.') }}<br>
+@endif
                             Reamburse: IDR {{ number_format($reamburse, 0, ',', '.') }}
                         </td>
                         <td>

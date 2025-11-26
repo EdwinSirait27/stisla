@@ -90,7 +90,7 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
         $mealAllowance      = (float)($row['meal_allowance'] ?? 0);
         $transportAllowance = (float)($row['transport_allowance'] ?? 0);
         $bonus              = (float)($row['bonus'] ?? 0);
-        $allowance           = (float)($row['allowance'] ?? 0);
+        $allowance           = (float)($row['allowance']);
         $reamburse           = (float)($row['reamburse'] ?? 0);
         $overtime           = (float)($row['overtime'] ?? 0);
         $lateFine           = (float)($row['late_fine'] ?? 0);

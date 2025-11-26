@@ -42,7 +42,7 @@ class PayrollsController extends Controller
                 Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 $carbonMonthYear = now(); // fallback jika gagal
             }
-            $allowance = $payroll->allowance ? ($payroll->allowance) : 0;
+            $allowance = $payroll->allowance ? ($payroll->allowance) : null;
             $basic_salary = $payroll->basic_salary ? ($payroll->basic_salary) : null;
             $reamburse = $payroll->reamburse ? ($payroll->reamburse) : 0;
             $bonus = $payroll->bonus ? ($payroll->bonus) : 0;
@@ -60,7 +60,6 @@ class PayrollsController extends Controller
             $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
             $punishment = $payroll->punishment ? ($payroll->punishment) : 0;
             $period = $payroll->period ?? '-';
-            // $created_at = $payroll->created_at ?? '-';
             $created_at = $payroll->created_at ? $payroll->created_at->format('Y-m-d') : '-';
 
             $attendance = $payroll->attendance ?? 0;
