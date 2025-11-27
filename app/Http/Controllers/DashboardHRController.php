@@ -282,8 +282,15 @@ public function index(Request $request)
     $statussubmissions = ['Cash', 'TOIL'];
 
     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending','Mutation'])->count();
-    $totalEmployeespending = Employee::whereIn('status', ['Pending'])->count();
-    $totalEmployeesinactive = Employee::whereIn('status', ['Inactive', 'Resign'])->count();
+    // $totalEmployeespending = Employee::whereIn('status', ['Pending'])->count();
+    $totalEmployeespending = Employee::where('status', 'Pending')
+    ->where('join_date', '>=', now()->subWeek())
+    ->count();
+
+    // $totalEmployeesinactive = Employee::whereIn('status', ['Inactive', 'Resign'])->count();
+$totalEmployeesinactive = Employee::whereIn('status', ['Inactive', 'Resign'])
+    ->where('end_date', '>=', now()->subWeek())
+    ->count();
 
     // 🔹 Data kehadiran (fingerprint)
     $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
