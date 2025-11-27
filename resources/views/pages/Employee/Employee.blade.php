@@ -996,8 +996,7 @@
                     },
                     {
                         data: 'description',
-                        name: 'description',
-                        className: 'text-center'
+                        name: 'description'
                     },
                     {
                         data: 'causer',

@@ -119,7 +119,7 @@ class Employee extends Model
     }
     public function group()
     {
-        return $this->belongsTo(Groups::class, 'grading_id');
+        return $this->belongsTo(Groups::class, 'group_id');
     }
     public function bank()
     {

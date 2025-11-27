@@ -326,6 +326,16 @@
                                                     <td>{{ $employee->Employee->grading->grading_name ?? 'empty' }}
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <th>Group</th>
+                                                    <td>{{ $employee->Employee->group->group_name ?? 'empty' }} - {{ $employee->Employee->group->remark ?? 'empty' }}
+                                                    </td>
+                                                </tr>
+                                                {{-- <tr>
+                                                    <th>Group Name</th>
+                                                    <td>{{ $employee->Employee->group->group_name ?? 'empty' }} - {{ $employee->Employee->group->remark ?? 'empty' }}
+                                                    </td>
+                                                </tr> --}}
                                               
                                                 @if (!is_null($isManager))
                                                     <tr>
