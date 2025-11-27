@@ -44,21 +44,21 @@ class PayrollsController extends Controller
             }
             $allowance = $payroll->allowance ? ($payroll->allowance) : null;
             $basic_salary = $payroll->basic_salary ? ($payroll->basic_salary) : null;
-            $reamburse = $payroll->reamburse ? ($payroll->reamburse) : 0;
-            $bonus = $payroll->bonus ? ($payroll->bonus) : 0;
-            $tax = $payroll->tax ? ($payroll->tax) : 0;
-            $house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : 0;
-            $meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : 0;
-            $transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : 0;
-            $deductions = $payroll->deductions ? ($payroll->deductions) : 0;
-            $salary = $payroll->salary ? ($payroll->salary) : 0;
-            $overtime = $payroll->overtime ? ($payroll->overtime) : 0;
-            $late_fine = $payroll->late_fine ? ($payroll->late_fine) : 0;
-            $bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : 0;
-            $bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : 0;
-            $debt = $payroll->debt ? ($payroll->debt) : 0;
+            $reamburse = $payroll->reamburse ? ($payroll->reamburse) : null;
+            $bonus = $payroll->bonus ? ($payroll->bonus) : null;
+            $tax = $payroll->tax ? ($payroll->tax) : null;
+            $house_allowance = $payroll->house_allowance ? ($payroll->house_allowance) : null;
+            $meal_allowance = $payroll->meal_allowance ? ($payroll->meal_allowance) : null;
+            $transport_allowance = $payroll->transport_allowance ? ($payroll->transport_allowance) : null;
+            $deductions = $payroll->deductions ? ($payroll->deductions) : null;
+            $salary = $payroll->salary ? ($payroll->salary) : null;
+            $overtime = $payroll->overtime ? ($payroll->overtime) : null;
+            $late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
+            $bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
+            $bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
+            $debt = $payroll->debt ? ($payroll->debt) : null;
             $daily_allowance = $payroll->daily_allowance ? ($payroll->daily_allowance) : null;
-            $punishment = $payroll->punishment ? ($payroll->punishment) : 0;
+            $punishment = $payroll->punishment ? ($payroll->punishment) : null;
             $period = $payroll->period ?? '-';
             $created_at = $payroll->created_at ? $payroll->created_at->format('Y-m-d') : '-';
 
