@@ -1,4 +1,3 @@
-
 @section('title', 'Show Employees')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
@@ -221,11 +220,34 @@
                                                     <th>Gender</th>
                                                     <td>{{ $employee->Employee->gender ?? 'empty' }}</td>
                                                 </tr>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>Date of Birth</th>
                                                     <td>{{ $employee->Employee->date_of_birth ?? 'empty' }}
                                                     </td>
+                                                </tr> --}}
+                                                {{-- <tr>
+    <th>Date of Birth</th>
+    <td>
+        {{ $employee->Employee->date_of_birth 
+            ? \Carbon\Carbon::parse($employee->Employee->date_of_birth)->format('d-m-Y') 
+            : 'empty' 
+        }}
+    </td>
+</tr> --}}
+                                                <tr>
+                                                    <th>Date of Birth</th>
+
+                                                    <td>
+                                                        @if (!empty($employee->Employee->date_of_birth))
+                                                            {{ \Carbon\Carbon::createFromFormat('Y-m-d', $employee->Employee->date_of_birth)->format('d-m-Y') }}
+                                                        @else
+                                                            empty
+                                                        @endif
+                                                    </td>
+
                                                 </tr>
+
+
                                                 <tr>
                                                     <th>Biological Mother's Name</th>
                                                     <td>{{ $employee->Employee->biological_mother_name ?? 'empty' }}
@@ -328,7 +350,8 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Grouping Class</th>
-                                                    <td>{{ $employee->Employee->group->group_name ?? 'empty' }} - {{ $employee->Employee->group->remark ?? 'empty' }}
+                                                    <td>{{ $employee->Employee->group->group_name ?? 'empty' }} -
+                                                        {{ $employee->Employee->group->remark ?? 'empty' }}
                                                     </td>
                                                 </tr>
                                                 {{-- <tr>
@@ -336,7 +359,7 @@
                                                     <td>{{ $employee->Employee->group->group_name ?? 'empty' }} - {{ $employee->Employee->group->remark ?? 'empty' }}
                                                     </td>
                                                 </tr> --}}
-                                              
+
                                                 @if (!is_null($isManager))
                                                     <tr>
                                                         <th>Is Manager</th>
@@ -358,7 +381,8 @@
                                                 <tr>
                                                     <th>Join Date</th>
                                                     {{-- <td>{{ $employee->Employee->join_date ?? 'empty' }} --}}
-                                                        <td>{{ optional($employee->Employee)->join_date ? \Carbon\Carbon::parse($employee->Employee->join_date)->format('d-m-Y') : 'empty' }}</td>
+                                                    <td>{{ optional($employee->Employee)->join_date ? \Carbon\Carbon::parse($employee->Employee->join_date)->format('d-m-Y') : 'empty' }}
+                                                    </td>
 
                                                     </td>
                                                 </tr>
@@ -392,7 +416,7 @@
                                                         <td>{{ $employee->Employee->notes }}</td>
                                                     </tr>
                                                 @endif
-                                            
+
                                                 {{-- @if (!empty($employee->Employee->photos))
     <tr>
         <th>Images</th>
@@ -403,17 +427,16 @@
         </td>
     </tr>
 @endif --}}
-@if (!empty($employee->Employee->photos))
-    <tr>
-        <th>Images</th>
-        <td>
-            <img src="{{ asset('storage/' . $employee->Employee->photos) }}"
-                alt="images"
-                id="previewImage"
-                style="max-width: 150px; cursor:pointer; border-radius: 8px;">
-        </td>
-    </tr>
-@endif
+                                                @if (!empty($employee->Employee->photos))
+                                                    <tr>
+                                                        <th>Images</th>
+                                                        <td>
+                                                            <img src="{{ asset('storage/' . $employee->Employee->photos) }}"
+                                                                alt="images" id="previewImage"
+                                                                style="max-width: 150px; cursor:pointer; border-radius: 8px;">
+                                                        </td>
+                                                    </tr>
+                                                @endif
 
 
                                                 <th>Created on date</th>
@@ -443,21 +466,20 @@
 
 @endsection
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-document.getElementById('previewImage')?.addEventListener('click', function () {
+    <script>
+        document.getElementById('previewImage')?.addEventListener('click', function() {
 
-    Swal.fire({
-        title: 'Employee Photo',
-        html:
-            `<img src="{{ asset('storage/' . $employee->Employee->photos) }}" 
+            Swal.fire({
+                title: 'Employee Photo',
+                html: `<img src="{{ asset('storage/' . $employee->Employee->photos) }}" 
                   style="width:100%; border-radius:8px;">`,
-        width: '40%',
-        showCloseButton: true,
-        showConfirmButton: false,
-    });
+                width: '40%',
+                showCloseButton: true,
+                showConfirmButton: false,
+            });
 
-});
-</script>
+        });
+    </script>
 @endpush

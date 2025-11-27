@@ -5,9 +5,9 @@
             <li><a href="#"
                     data-toggle="sidebar"
                     class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
-            <li><a href="#"
+            {{-- <li><a href="#"
                     data-toggle="search"
-                    class="nav-link nav-link-lg d-sm-none"><i class="fas fa-search"></i></a></li>
+                    class="nav-link nav-link-lg d-sm-none"><i class="fas fa-search"></i></a></li> --}}
         </ul>
         {{-- <div class="search-element">
             <input class="form-control"
@@ -247,10 +247,6 @@
                                     ? asset('storage/' . Auth::user()->employee->photos)
                                     : asset('img/avatar/avatar-1.png') }}"
                     class="rounded-circle mr-1">
-                {{-- <img alt="image"
-                    src="{{ asset('img/avatar/avatar-1.png') }}"
-                    class="rounded-circle mr-1"> --}}
-                    
                 <div class="d-sm-none d-lg-inline-block">Hi, 
                     @auth
                     {{ auth()->user()->employee->employee_name }}
@@ -258,8 +254,6 @@
                 </div>
             </a>
             <div class="dropdown-menu dropdown-menu-right">
-               
-                
                <a href="{{ route('pages.feature-profile') }}" class="dropdown-item has-icon">
     <i class="far fa-user"></i> Profile
 </a>

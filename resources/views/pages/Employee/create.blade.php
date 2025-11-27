@@ -206,7 +206,8 @@
                                         </div>
                                     @endif
 
-                                    <form id="employee-create" action="{{ route('Employee.store') }}" method="POST" enctype="multipart/form-data">
+                                    <form id="employee-create" action="{{ route('Employee.store') }}" method="POST"
+                                        enctype="multipart/form-data">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-6">
@@ -879,30 +880,27 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                        </div>
-                                </div>
+                                            </div>
                                 <div class="row mt-3">
-
-
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="foto" class="form-control-label">
                                                 <i class="fas fa-id-card"></i> {{ __('Images') }}
                                             </label>
 
-                                                {{-- Preview Image --}}
-                                                <div class="mb-2">
-                                                    @if (!empty($employee->Employee?->foto))
-                                                        <img id="preview-image"
-                                                            src="{{ asset('storage/employeephotos/' . $employee->Employee->photos) }}"
-                                                            alt="Preview" class="img-thumbnail" width="150"
-                                                            style="cursor:pointer" onclick="showImageSwal(this.src)">
-                                                    @else
-                                                        <img id="preview-image" src="https://via.placeholder.com/150"
-                                                            alt="Preview" class="img-thumbnail" width="150"
-                                                            style="cursor:pointer" onclick="showImageSwal(this.src)">
-                                                    @endif
-                                             
+                                            {{-- Preview Image --}}
+                                            <div class="mb-2">
+                                                @if (!empty($employee->Employee?->foto))
+                                                    <img id="preview-image"
+                                                        src="{{ asset('storage/employeephotos/' . $employee->Employee->photos) }}"
+                                                        alt="Preview" class="img-thumbnail" width="150"
+                                                        style="cursor:pointer" onclick="showImageSwal(this.src)">
+                                                @else
+                                                    <img id="preview-image" src="https://via.placeholder.com/150"
+                                                        alt="Preview" class="img-thumbnail" width="150"
+                                                        style="cursor:pointer" onclick="showImageSwal(this.src)">
+                                                @endif
+
                                                 {{-- File Input --}}
                                                 <input type="file" name="photos" id="photos"
                                                     class="form-control @error('photos') is-invalid @enderror"

@@ -1060,7 +1060,7 @@
                                                     <div>
                                                         <input type="date" id="end_date" name="end_date"
                                                             value="{{ $employee->Employee->end_date ? \Carbon\Carbon::parse($employee->Employee->end_date)->format('Y-m-d') : '' }}"
-                                                            class="form-control @error('end_date') is-invalid @enderror">
+                                                            class="form-control @error('end_date') is-invalid @enderror" required>
                                                         @error('end_date')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>

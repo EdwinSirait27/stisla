@@ -1034,14 +1034,14 @@
                                 </div>
                                 <div class="stat-content">
                                     <h3>{{ $totalEmployees ?? 0 }}</h3>
-                                    <p>Team Members</p>
-                                    <span class="stat-trend up">
+                                    <p>Employees</p>
+                                    <span class="stat-trend up" title="employees who are still pending from last week">
                                         <i class="fas fa-arrow-up me-1"></i>
                                         {{ $totalEmployeespending }} Pending
                                     </span>
-                                    <span class="stat-trend down" style="margin-left: 8px;">
+                                    <span class="stat-trend down" style="margin-left: 8px;"title="employees who resigned last week">
                                         <i class="fas fa-arrow-down me-1"></i>
-                                        {{ $totalEmployeesinactive }} Inactive
+                                        {{ $totalEmployeesinactive }} Resigned
                                     </span>
                                 </div>
                             </div>
