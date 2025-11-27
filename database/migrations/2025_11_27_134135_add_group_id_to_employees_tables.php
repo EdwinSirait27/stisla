@@ -11,19 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('grading', function (Blueprint $table) {
-            $table->uuid('group_id')->nullable();
+        Schema::table('employees_tables', function (Blueprint $table) {
+        $table->uuid('group_id')->nullable();
+              
             $table->foreign('group_id')
-                ->references('id')->on('groups_tables')
-                ->onDelete('cascade');
+                ->references('id')
+                ->on('groups_tables')->onDelete('cascade');
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('grading', function (Blueprint $table) {
+        Schema::table('employees_tables', function (Blueprint $table) {
             //
         });
     }

@@ -25,7 +25,7 @@ class GradingController extends Controller
                 $grading->action = '
                     <a href="' . route('Grading.edit', $grading->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit grading: ' . e($grading->grading_name) . '">
                         <i class="fas fa-user-edit text-secondary"></i>
-                    </a>';
+                    </a>'; 
                 return $grading;
             });
         return DataTables::of($gradings)

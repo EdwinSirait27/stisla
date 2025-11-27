@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Collection;
+use Svg\Tag\Group;
 
 class Employee extends Model
 {
@@ -44,6 +45,7 @@ class Employee extends Model
         'department_id',
         'fingerprint_id',
         'grading_id',
+        'group_id',
         'submissions_id',
         'status_employee',
         'join_date',
@@ -114,6 +116,10 @@ class Employee extends Model
     public function grading()
     {
         return $this->belongsTo(Grading::class, 'grading_id');
+    }
+    public function group()
+    {
+        return $this->belongsTo(Groups::class, 'grading_id');
     }
     public function bank()
     {
@@ -302,6 +308,7 @@ class Employee extends Model
                     )->name,
                     'department_id' => fn($id) => optional(Departments::find($id))->department_name,
                     'grading_id' => fn($id) => optional(Grading::find($id))->grading_name,
+                    'group_id' => fn($id) => optional(Groups::find($id))->group_name,
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
                 ];
                 $fieldLabels = [
@@ -314,6 +321,7 @@ class Employee extends Model
                     'banks_id'=> 'Bank',
                     'department_id'=> 'Department',
                     'grading_id'=> 'Grading',
+                    'group_name'=> 'Group',
                     'status_employee'=> 'Employee Status',
                     'join_date'=> 'Join',
                     'marriage'=> 'Status Marriage',

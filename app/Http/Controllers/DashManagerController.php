@@ -27,6 +27,8 @@ class DashManagerController extends Controller
 $announcements = Announcement::with('user')
             ->orderBy('publish_date', 'desc')
             ->paginate(10);
+    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
+
 
         return view('pages.dashboardTeam.dashboardTeam',compact('announcements'));
     }

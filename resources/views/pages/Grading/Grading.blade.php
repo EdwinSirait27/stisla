@@ -175,7 +175,6 @@
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Gradings</h6>
                             </div>
-
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
@@ -184,9 +183,9 @@
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 {{-- <th class="text-center">Grading Code</th> --}}
                                                 <th class="text-center">Grading Name</th>
-                                                <th class="text-center">Group Code</th>
+                                                {{-- <th class="text-center">Group Code</th>
                                                 <th class="text-center">Group Remark</th>
-                                                <th class="text-center">Action</th>
+                                                <th class="text-center">Action</th> --}}
                                             </tr>
                                         </thead>
                                     </table>
@@ -241,24 +240,25 @@
                         data: 'grading_name',
                         name: 'grading_name',
                         className: 'text-center'
-                    },
-                    {
-                        data: 'group_name',
-                        name: 'group_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'remark',
-                        name: 'remark',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
                     }
+                    // ,
+                    // {
+                    //     data: 'group_name',
+                    //     name: 'group_name',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'remark',
+                    //     name: 'remark',
+                    //     className: 'text-center'
+                    // },
+                    // {
+                    //     data: 'action',
+                    //     name: 'action',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: 'text-center'
+                    // }
                 ],
                 initComplete: function() {
                     // $('.dataTables_filter input').addClass('form-control');

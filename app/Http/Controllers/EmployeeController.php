@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeEmployeeMail;
+use App\Models\Groups;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
@@ -141,6 +142,7 @@ class EmployeeController extends Controller
             'Employee.structuresnew.position',
             'Employee.department',
             'Employee.grading',
+            'Employee.group',
             'Employee.employees',
             'Employee.structuresnew.company',
             'Employee.structuresnew'
@@ -165,6 +167,7 @@ class EmployeeController extends Controller
         return DataTables::of($employees)
             ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
             ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->grading)->grading_name ?? 'Empty')
+            ->addColumn('group_name', fn($e) => optional(optional($e->Employee)->group)->group_name ?? 'Empty')
             ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
             ->addColumn('oldposition_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
             ->addColumn('position_name', fn($e) => optional(optional($e->Employee->structuresnew)->position)->name ?? 'Empty')
@@ -175,7 +178,7 @@ class EmployeeController extends Controller
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['nip','position_name','oldposition_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['nip','group_name','position_name','oldposition_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
     public function getEmployeesall()
@@ -189,7 +192,8 @@ class EmployeeController extends Controller
             'Employee.position',
             'Employee.department',
             'Employee.bank',
-            'Employee.grading'
+            'Employee.grading',
+            'Employee.group'
         ])->select(['id', 'username', 'employee_id']);
 
         if (!empty($storeFilter)) {
@@ -312,7 +316,7 @@ class EmployeeController extends Controller
     // }
     public function edit($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading','Employee.group', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -322,6 +326,7 @@ class EmployeeController extends Controller
         $positions = Position::get();
         $companys = Company::get();
         $gradings = Grading::get();
+        $groups = Groups::get();
         $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
         $departments = Departments::with('user.Employee')->get();
         $stores = Stores::with('user.Employee')->get();
@@ -351,6 +356,7 @@ class EmployeeController extends Controller
             'status' => $status,
             'gender' => $gender,
             'gradings' => $gradings,
+            'groups' => $groups,
             'banks' => $banks,
             'religion' => $religion,
             'last_education' => $last_education,
@@ -413,6 +419,7 @@ class EmployeeController extends Controller
         'Employee',
         'Employee.store',
         'Employee.grading',
+        'Employee.group',
         'Employee.department',
         'Employee.position',
         'Employee.bank',
@@ -452,6 +459,7 @@ class EmployeeController extends Controller
     $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
     $banks = Banks::get();
     $gradings = Grading::get();
+    $groups = Groups::get();
     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
 
@@ -465,6 +473,7 @@ class EmployeeController extends Controller
         'marriage',
         'gender',
         'gradings',
+        'groups',
         'status',
         'banks',
         'religion',
@@ -726,6 +735,7 @@ class EmployeeController extends Controller
 
         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
         'grading_id' => ['nullable', 'exists:grading,id', new NoXSSInput()],
+        'group_id' => ['nullable', 'exists:groups_tables,id', new NoXSSInput()],
         'bpjs_kes' => ['required', 'string', 'max:255'],
         'bpjs_ket' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'max:255'],

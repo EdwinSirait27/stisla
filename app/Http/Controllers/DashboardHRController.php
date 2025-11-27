@@ -380,14 +380,14 @@ public function index(Request $request)
 $employeePins = Employee::pluck('pin')->toArray();
 
 $presentToday = Fingerprints::whereDate('scan_date', $today)
-    ->whereIn('inoutmode', [1, 2])
+    ->whereIn('inoutmode', [1])
     ->whereIn('pin', $employeePins)
     ->distinct('pin')  // 1 orang dihitung 1 kali
     ->count('pin');
 $yesterday = now()->subDay()->toDateString();
 
 $presentYesterday = Fingerprints::whereDate('scan_date', $yesterday)
-    ->whereIn('inoutmode', [1, 2])
+    ->whereIn('inoutmode', [1])
     ->whereIn('pin', $employeePins)
     ->distinct('pin')
     ->count('pin');
