@@ -941,7 +941,6 @@
                         render: function(data) {
                             const badges = {
                                 'Active': 'success',
-                                'Inactive': 'danger',
                                 'On leave': 'warning',
                                 'Mutation': 'info',
                                 'Pending': 'secondary',

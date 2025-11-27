@@ -327,7 +327,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Group</th>
+                                                    <th>Grouping Class</th>
                                                     <td>{{ $employee->Employee->group->group_name ?? 'empty' }} - {{ $employee->Employee->group->remark ?? 'empty' }}
                                                     </td>
                                                 </tr>

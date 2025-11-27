@@ -957,7 +957,7 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label for="group_id" class="form-control-label">
-                                                            <i class="fas fa-id-card"></i> {{ __('Groups Name') }}
+                                                            <i class="fas fa-id-card"></i> {{ __('Grouping Class') }}
                                                         </label>
                                                         <div>
                                                             <select name="group_id" id="group_id"
@@ -1169,7 +1169,7 @@
 
             function toggleReasonField() {
                 const statusVal = $('#status').val();
-                const inactiveStatuses = ['Inactive', 'Resign', 'On Leave'];
+                const inactiveStatuses = ['Resign', 'On Leave'];
 
                 if (inactiveStatuses.includes(statusVal)) {
                     $('#end_date_field').show();
