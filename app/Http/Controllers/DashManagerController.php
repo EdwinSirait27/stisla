@@ -505,9 +505,10 @@ public function getTeamfingerprints(Request $request)
     // Query employee dasar
     $employeesQuery = Employee::with([
             'position:id,name',
-            'store:id,name'
+            'store:id,name',
+            'department:id,department_name'
         ])
-        ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee')
+        ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'department_id','store_id', 'status_employee')
         ->whereNotNull('pin'); // penting!
 
     // Filter: manager multi store
@@ -578,6 +579,7 @@ $employeesQuery->where('department_id', $employeeLogin->department_id);
             'status_employee' => $employee->status_employee ?? '-',
             'name' => $employee->store->name ?? '-',
             'position_name' => $employee->position->name ?? '-',
+            'department_name' => $employee->department->department_name ?? '-',
             'device_name' => $first->devicefingerprints->device_name ?? '-',
             'scan_date' => $scanDate,
             'total_hari' => $totalHariPerPin[$pin] ?? 0,

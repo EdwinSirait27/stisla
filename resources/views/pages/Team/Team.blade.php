@@ -193,6 +193,7 @@
                                             <tr>
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">NIP</th>
+                                                <th class="text-center">Grading</th>
                                                 <th class="text-center">Departments</th>
                                                 <th class="text-center">Location</th>
                                                 <th class="text-center">Position</th>
@@ -529,6 +530,10 @@
                     },
                     {
                         data: 'employee_pengenal',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_name',
                         className: 'text-center'
                     },
                     {

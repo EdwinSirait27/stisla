@@ -698,7 +698,7 @@ public function store(Request $request)
         ]);
 
         return redirect()->route('pages.dashboardHR')
-            ->with('success', "Announcement dibuat & email di-antrikan untuk {$employees->count()} karyawan.");
+            ->with('success', "Announcement created & emails are queued for {$employees->count()} employees.");
 
     } catch (\Throwable $e) {
 

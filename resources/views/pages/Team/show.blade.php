@@ -214,6 +214,10 @@
                                                     <th>Gender</th>
                                                     <td>{{ $employee->Employee->gender ?? 'empty' }}</td>
                                                 </tr>
+                                                <tr>
+                                                    <th>Date of Birth</th>
+                                                    <td>{{ $employee->Employee->date_of_birth ?? 'empty' }}</td>
+                                                </tr>
                                                 {{-- <tr>
                                                     <th>Date of Birth</th>
                                                     <td>{{ $employee->Employee->date_of_birth ?? 'empty' }}
