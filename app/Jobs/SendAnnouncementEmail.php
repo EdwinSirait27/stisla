@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Log;
 class SendAnnouncementEmail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Batchable;
-   public $queue = 'emailannouncement';
     public $announcement;
     public $employee;
 
