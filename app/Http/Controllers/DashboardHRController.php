@@ -526,10 +526,73 @@ $trend = $presentToday - $presentYesterday;
 //             ->with('error', 'Failed to create announcement. Please try again.');
 //     }
 // }
+// public function store(Request $request)
+// {
+//     ini_set('max_execution_time', 360);
+//     try {
+//         $request->validate([
+//             'title' => 'required|string|max:255',
+//             'content' => 'required|string',
+//             'publish_date' => 'required|date',
+//             'end_date' => 'nullable|date',
+//         ]);
+
+//         // Simpan announcement
+//         $announcement = Announcement::create([
+//             'title'        => $request->title,
+//             'content'      => $request->content,
+//             'publish_date' => $request->publish_date,
+//             'end_date'     => $request->end_date,
+//             'user_id'      => auth()->id(),
+//         ]);
+
+//         Log::info('Announcement created successfully', [
+//             'announcement_id' => $announcement->id,
+//             'title'           => $announcement->title,
+//             'created_by'      => auth()->id(),
+//         ]);
+
+//         // Ambil employee dengan status tertentu
+//         $employees = Employee::whereNotNull('email')
+//             ->whereIn('status', ['Active', 'Pending', 'Mutation'])
+//             ->get();
+
+//         // Buat batch jobs
+//         $jobs = [];
+//         foreach ($employees as $employee) {
+//             $jobs[] = (new SendAnnouncementEmail($announcement, $employee))
+//                         ->onQueue('emailannouncement');
+//         }
+//         Bus::batch($jobs)
+//             ->name('Send Announcement: ' . $announcement->id)
+//             ->onQueue('emailannouncement')
+//             ->dispatch();
+
+//         Log::info('Email jobs dispatched successfully', [
+//             'announcement_id'   => $announcement->id,
+//             'total_recipients'  => $employees->count(),
+//         ]);
+
+//         return redirect()->route('pages.dashboardHR')
+//             ->with('success', "Announcement created successfully. Emails queued for {$employees->count()} employees.");
+
+//     } catch (\Exception $e) {
+
+//         Log::error('Failed to create announcement', [
+//             'error'   => $e->getMessage(),
+//             'trace'   => $e->getTraceAsString(),
+//             'user_id' => auth()->id(),
+//         ]);
+
+//         return redirect()->back()
+//             ->withInput()
+//             ->with('error', 'Failed to create announcement. Please try again.');
+//     }
+// }
 public function store(Request $request)
 {
-    ini_set('max_execution_time', 360);
     try {
+        // Validasi
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -546,48 +609,49 @@ public function store(Request $request)
             'user_id'      => auth()->id(),
         ]);
 
-        Log::info('Announcement created successfully', [
+        Log::info('Announcement created', [
             'announcement_id' => $announcement->id,
-            'title'           => $announcement->title,
-            'created_by'      => auth()->id(),
+            'total_recipients' => 0,
         ]);
 
-        // Ambil employee dengan status tertentu
+        // Ambil employee penerima
         $employees = Employee::whereNotNull('email')
             ->whereIn('status', ['Active', 'Pending', 'Mutation'])
+            ->select('id', 'email', 'full_name')
             ->get();
 
-        // Buat batch jobs
-        $jobs = [];
-        foreach ($employees as $employee) {
-            $jobs[] = (new SendAnnouncementEmail($announcement, $employee))
-                        ->onQueue('emailannouncement');
-        }
-        Bus::batch($jobs)
-            ->name('Send Announcement: ' . $announcement->id)
+        // Pastikan queue bekerja optimal
+        $jobs = $employees->map(function ($employee) use ($announcement) {
+            return (new SendAnnouncementEmail($announcement, $employee))
+                ->onQueue('emailannouncement');
+        });
+
+        // Gunakan chunking untuk menghindari batch terlalu besar
+        Bus::batch($jobs->toArray())
+            ->name("Send Announcement {$announcement->id}")
+            ->onQueue('emailannouncement')
+            ->allowFailures()
             ->dispatch();
 
-        Log::info('Email jobs dispatched successfully', [
-            'announcement_id'   => $announcement->id,
-            'total_recipients'  => $employees->count(),
+        Log::info('Email batch dispatched', [
+            'announcement_id' => $announcement->id,
+            'total_recipients' => $employees->count(),
         ]);
 
         return redirect()->route('pages.dashboardHR')
-            ->with('success', "Announcement created successfully. Emails queued for {$employees->count()} employees.");
+            ->with('success', "Announcement dibuat & email antrian untuk {$employees->count()} karyawan.");
 
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
 
-        Log::error('Failed to create announcement', [
-            'error'   => $e->getMessage(),
-            'trace'   => $e->getTraceAsString(),
+        Log::error('Announcement creation failed', [
+            'error' => $e->getMessage(),
             'user_id' => auth()->id(),
         ]);
 
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Failed to create announcement. Please try again.');
+        return back()->withInput()->with('error', 'Failed to create announcement.');
     }
 }
+
 
     public function getAnnouncements()
     {
