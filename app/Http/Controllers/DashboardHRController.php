@@ -615,9 +615,12 @@ public function store(Request $request)
         ]);
 
         // Ambil employee penerima
+        // $employees = Employee::whereNotNull('email')
+        //     ->whereIn('status', ['Active', 'Pending', 'Mutation'])
+        //     ->select('id', 'email', 'full_name')
+        //     ->get();
         $employees = Employee::whereNotNull('email')
             ->whereIn('status', ['Active', 'Pending', 'Mutation'])
-            ->select('id', 'email', 'full_name')
             ->get();
 
         // Pastikan queue bekerja optimal
