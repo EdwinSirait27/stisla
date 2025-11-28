@@ -342,7 +342,7 @@ class EmployeeController extends Controller
         ->whereNotIn('id', $usedStructureIds)
         ->orWhere('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
         ->get();
-        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.edit', [
             'employee' => $employee,
@@ -460,7 +460,7 @@ class EmployeeController extends Controller
     $banks = Banks::get();
     $gradings = Grading::get();
     $groups = Groups::get();
-    $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+    $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
 
     return view('pages.Employee.show', compact(
@@ -500,7 +500,7 @@ class EmployeeController extends Controller
         $status_gender = ['Male', 'Female', 'MD'];
         $status = ['Active', 'Pending', 'On Leave', 'Mutation', 'Resign'];
 
-        $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+        $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.create', compact('employees', 'companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
@@ -626,8 +626,6 @@ class EmployeeController extends Controller
 
         // Storage::putFileAs('public/' . $folderPath, $file, $fileName);
         Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-
-
         $filePath = $folderPath . '/' . $fileName;
     }
         try {
@@ -783,22 +781,42 @@ class EmployeeController extends Controller
             /** --------------------------
              *  Handle Upload Photo
              * -------------------------*/
+            // if ($request->hasFile('photos')) {
+            //     $file = $request->file('photos');
+            //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+            //         $file->getClientOriginalExtension();
+
+            //     $folderPath = 'employeesphotos/' . date('Y/m');
+
+            //     Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+            //     $newFilePath = $folderPath . '/' . $fileName;
+
+            //     if ($filePath && Storage::exists('public/' . $filePath)) {
+            //         Storage::delete('public/' . $filePath);
+            //     }
+
+            //     $filePath = $validatedData['photos'] = $newFilePath;
+            // }
             if ($request->hasFile('photos')) {
-                $file = $request->file('photos');
-                $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-                    $file->getClientOriginalExtension();
+    $file = $request->file('photos');
+    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+        $file->getClientOriginalExtension();
 
-                $folderPath = 'employeesphotos/' . date('Y/m');
+    $folderPath = 'employeesphotos/' . date('Y/m');
 
-                Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-                $newFilePath = $folderPath . '/' . $fileName;
+    // simpan ke storage/app (PRIVATE)
+    Storage::putFileAs($folderPath, $file, $fileName);
 
-                if ($filePath && Storage::exists('public/' . $filePath)) {
-                    Storage::delete('public/' . $filePath);
-                }
+    $newFilePath = $folderPath . '/' . $fileName;
 
-                $filePath = $validatedData['photos'] = $newFilePath;
-            }
+    // hapus file lama jika ada
+    if ($filePath && Storage::exists($filePath)) {
+        Storage::delete($filePath);
+    }
+
+    $filePath = $validatedData['photos'] = $newFilePath;
+}
+
 
             /** --------------------------
              *  Lock employee row
@@ -875,11 +893,13 @@ class EmployeeController extends Controller
 }
 public function getPhoto($path)
 {
-    $file = storage_path('app/private/employeesphotos/' . $path);
+    $full = storage_path('app/' . $path);
 
-    if (!file_exists($file)) abort(404);
+    if (!file_exists($full)) {
+        abort(404);
+    }
 
-    return response()->file($file);
+    return response()->file($full);
 }
 
 

@@ -8,7 +8,7 @@ use Ramsey\Uuid\Uuid;
 
 class Leaverequest extends Model
 {
-   use HasFactory;
+    use HasFactory;
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -30,10 +30,9 @@ class Leaverequest extends Model
         'total_hours',
         'reason',
         'status',
-        'approver_id',
-        'approved_at',
+
     ];
-     public function employees()
+    public function employees()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
@@ -41,9 +40,8 @@ class Leaverequest extends Model
     {
         return $this->belongsTo(Leavetypes::class, 'leave_type_id', 'id');
     }
-    public function approver()
+    public function approvals()
     {
-        return $this->belongsTo(Employee::class, 'approver_id', 'id');
+        return $this->hasMany(LeaveRequestApproval::class, 'leave_request_id', 'id');
     }
-
 }

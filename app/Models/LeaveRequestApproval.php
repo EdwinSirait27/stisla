@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class Leavebalance extends Model
+class LeaveRequestApproval extends Model
 {
-      use HasFactory;
+     use HasFactory;
     public $incrementing = false;
     protected $keyType = 'string';
     protected static function boot()
@@ -20,14 +20,14 @@ class Leavebalance extends Model
             }
         });
     }
-    protected $table = 'leave_balances_tables';
+    protected $table = 'leave_request_approvals_tables';
     protected $fillable = [
-        'employee_id',
-        'leave_type_id',
-        'balance_days',
-        'balance_hours',
-        'type',
-        'year',
+        'supervisor_id',
+        'leave_request_id',
+        'sequence',
+        'status',
+        'approved_at',
+        'note',
     ];
    public function employees()
 {
@@ -41,4 +41,3 @@ class Leavebalance extends Model
     }
     
 }
-  

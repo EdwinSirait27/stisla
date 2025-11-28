@@ -265,24 +265,7 @@ class Employee extends Model
         // Pisahkan mereka yang bukan dirinya sendiri
         return $all->where('id', '!=', $this->id);
     }
-    //    public function getActivitylogOptions(): LogOptions
-    //     {
-    //         return LogOptions::defaults()
-    //             ->logFillable()
-    //             ->useLogName('employee')
-    //             ->setDescriptionForEvent(function (string $eventName) {
-    //                 $actor = auth()->user()->employee->employee_name;
-    //                 $target = $this->employee_name ?? 'Unknown Employee';
-
-    //                 // ambil field yang berubah
-    //                 $changes = collect($this->getChanges())->keys()->implode(', ');
-    //                 $fieldInfo = $eventName === 'updated' && $changes
-    //                     ? "Field diubah: {$changes}"
-    //                     : '';
-
-    //                 return "Employee Data {$target} has been {$eventName} by {$actor}. {$fieldInfo}";
-    //             });
-    //     }
+    
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -377,29 +360,68 @@ class Employee extends Model
     {
         return $this->belongsTo(Structuresnew::class, 'structure_id', 'id');
     }
+
+
+  public function getSupervisorFromStructure()
+    {
+        $structure = $this->structuresnew;
+
+        if (!$structure || !$structure->parent) {
+            return null;
+        }
+
+        $parentStructure = $structure->parent;
+
+        $supervisor = $parentStructure->employees()
+            ->where('status', 'Active')
+            ->where('is_manager', 1)
+            ->first();
+
+        return $supervisor;
+    }
+
+ public function getSecondarySupervisors(): Collection
+    {
+        $structure = $this->structuresnew;
+
+        $result = collect();
+
+        if (!$structure) {
+            return $result;
+        }
+
+        // secondarySupervisors adalah relation ke Structuresnew (pivot structure_supervisors)
+        $secStructures = $structure->secondarySupervisors ?? collect();
+
+        foreach ($secStructures as $secStructure) {
+            $manager = $secStructure->employees()
+                ->where('status', 'Active')
+                ->where('is_manager', 1)
+                ->first();
+
+            if ($manager && !$result->contains('id', $manager->id)) {
+                $result->push($manager);
+            }
+        }
+
+        return $result;
+    }
+ public function getAllSupervisors(): Collection
+    {
+        $supervisors = collect();
+
+        $primary = $this->getSupervisorFromStructure();
+        if ($primary) {
+            $supervisors->push($primary);
+        }
+
+        $secondary = $this->getSecondarySupervisors();
+        if ($secondary->isNotEmpty()) {
+            $supervisors = $supervisors->merge($secondary);
+        }
+
+        // pastikan unique & reset index
+        return $supervisors->unique('id')->values();
+    }
+
 }
-
-// /**
-//  * Ambil semua bawahan (rekursif)
-//  */
-// public function subordinatesRecursive()
-// {
-//     return $this->subordinates()->with('subordinatesRecursive');
-// }
-
-// /**
-//  * Ambil semua employee dalam 1 departemen (manajer + bawahannya)
-//  */
-// public function departmentMembers()
-// {
-//     return Employee::where('department_id', $this->department_id)->get();
-// }
-// public function getAllSubordinateIds(): array
-// {
-//     $ids = $this->subordinates->pluck('id')->toArray();
-//     foreach ($this->subordinates as $sub) {
-//         $ids = array_merge($ids, $sub->getAllSubordinateIds());
-//     }
-//     return $ids;
-// }
-// }

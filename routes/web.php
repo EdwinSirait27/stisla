@@ -169,7 +169,12 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
             ->name('pages.Importuser');
         Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
-        Route::get('/employee/photo/{path}', [EmployeeController::class, 'getPhoto']);
+        // Route::get('/employee/photo/{path}', [EmployeeController::class, 'getPhoto']);
+        Route::get('/employee/photo/{path}', [EmployeeController::class, 'getPhoto'])
+    ->where('path', '.*')
+    ->middleware('auth')
+    ->name('employee.photo');
+
 
     });
     Route::group(['middleware' => ['permission:ManagePayrolls']], function () {

@@ -222,9 +222,9 @@
                         <li class="{{ Request::is('Grading') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
                         </li>
-                        <li class="{{ Request::is('Salary') ? 'active' : '' }}">
+                        {{-- <li class="{{ Request::is('Salary') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Salary') }}">Salaries</a>
-                        </li>
+                        </li> --}}
 
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
@@ -328,9 +328,9 @@
                         <li class="{{ Request::is('Grading') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
                         </li>
-                        <li class="{{ Request::is('Salary') ? 'active' : '' }}">
+                        {{-- <li class="{{ Request::is('Salary') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Salary') }}">Salaries</a>
-                        </li>
+                        </li> --}}
 
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>

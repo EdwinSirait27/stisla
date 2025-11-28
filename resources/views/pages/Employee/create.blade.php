@@ -4,7 +4,6 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
@@ -173,7 +172,6 @@
                     <div class="breadcrumb-item">Create Employees</div>
                 </div>
             </div>
-
             <div class="section-body">
                 <div class="container-fluid">
                     <div class="row">
@@ -192,7 +190,6 @@
                                             </ul>
                                         </div>
                                     @endif
-
                                     @if (session('success'))
                                         <div class="alert alert-success alert-dismissible fade show" id="alert-success"
                                             role="alert">
@@ -205,7 +202,6 @@
                                             </button>
                                         </div>
                                     @endif
-
                                     <form id="employee-create" action="{{ route('Employee.store') }}" method="POST"
                                         enctype="multipart/form-data">
                                         @csrf
@@ -229,8 +225,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="nik" class="form-control-label">
@@ -302,7 +296,6 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="date_of_birth" class="form-control-label">
@@ -346,7 +339,6 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="biological_mother_name" class="form-control-label">
@@ -534,7 +526,6 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="email" class="form-control-label">
@@ -571,13 +562,11 @@
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
                                                         @enderror
-
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="bpjs_kes" class="form-control-label">
@@ -599,7 +588,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="bpjs_ket" class="form-control-label">
@@ -623,7 +611,6 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="banks_id" class="form-control-label">
@@ -647,7 +634,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="bank_account_number" class="form-control-label">
@@ -672,7 +658,6 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="company_id" class="form-control-label">
@@ -702,7 +687,6 @@
                                                         <i class="fas fa-id-card"></i> {{ __('Department') }}
                                                     </label>
                                                     <div>
-
                                                         <select name="department_id"
                                                             class="form-control select2 @error('department_id') is-invalid @enderror"
                                                             required>
@@ -723,14 +707,12 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="position_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Position') }}
                                                     </label>
                                                     <div>
-
                                                         <select name="position_id"
                                                             class="form-control select2 @error('position_id') is-invalid @enderror"
                                                             required>
@@ -746,12 +728,9 @@
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
                                                         @enderror
-
                                                     </div>
                                                 </div>
                                             </div>
-
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
@@ -777,7 +756,6 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="status_employee" class="form-control-label">
@@ -822,23 +800,7 @@
                                                 </div>
                                             </div>
                                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                         <div class="row mt-3">
-
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="npwp" class="form-control-label">
@@ -858,18 +820,12 @@
                                                     </div>
                                                 </div>
                                             </div>
-
-
-
-
-
                                             <div class="col-md-6">
                                                 <div class="form-check mt-2">
                                                     <input type="checkbox" name="is_manager" id="is_manager"
                                                         value="1"
                                                         class="form-check-input @error('is_manager') is-invalid @enderror"
                                                         {{ old('is_manager') ? 'checked' : '' }}>
-
                                                     <label for="is_manager" class="form-check-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Is Manager') }}
                                                     </label>
@@ -880,84 +836,72 @@
                                                     @enderror
                                                 </div>
                                             </div>
-                                            </div>
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="foto" class="form-control-label">
-                                                <i class="fas fa-id-card"></i> {{ __('Images') }}
-                                            </label>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="photos" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Images') }}
+                                                    </label>
+                                                    <div class="mb-2">
+                                                        @if (!empty($employee->Employee?->photos))
+                                                            <img id="preview-image"
+                                                                src="{{ asset('storage/employeephotos/' . $employee->Employee->photos) }}"
+                                                                alt="Preview" class="img-thumbnail" width="150"
+                                                                style="cursor:pointer" onclick="showImageSwal(this.src)">
+                                                        @else
+                                                            <img id="preview-image" src="https://via.placeholder.com/150"
+                                                                alt="Preview" class="img-thumbnail" width="150"
+                                                                style="cursor:pointer" onclick="showImageSwal(this.src)">
+                                                        @endif
+                                                        <input type="file" name="photos" id="photos"
+                                                            class="form-control @error('photos') is-invalid @enderror"
+                                                            accept="image/*" onchange="previewImage(event)">
 
-                                            {{-- Preview Image --}}
-                                            <div class="mb-2">
-                                                @if (!empty($employee->Employee?->foto))
-                                                    <img id="preview-image"
-                                                        src="{{ asset('storage/employeephotos/' . $employee->Employee->photos) }}"
-                                                        alt="Preview" class="img-thumbnail" width="150"
-                                                        style="cursor:pointer" onclick="showImageSwal(this.src)">
-                                                @else
-                                                    <img id="preview-image" src="https://via.placeholder.com/150"
-                                                        alt="Preview" class="img-thumbnail" width="150"
-                                                        style="cursor:pointer" onclick="showImageSwal(this.src)">
-                                                @endif
-
-                                                {{-- File Input --}}
-                                                <input type="file" name="photos" id="photos"
-                                                    class="form-control @error('photos') is-invalid @enderror"
-                                                    accept="image/*" onchange="previewImage(event)">
-
-                                                @error('photos')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
+                                                        @error('photos')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                        <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Important Note:</strong> <br>
+                                                - please use English to get used to it.<br>
+                                                - Before creating data, please check first whether there is already similar
+                                                or
+                                                identical data to avoid double input.<br>
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
+                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                            </a>
+                                            <button type="submit" id="create-btn" class="btn bg-primary">
+                                                <i class="fas fa-save"></i> {{ __('Create') }}
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-
-
-
-
-                                <div class="alert alert-secondary mt-4" role="alert">
-                                    <span class="text-dark">
-                                        <strong>Important Note:</strong> <br>
-                                        {{-- - Fill all the input okay except notes:).<br> --}}
-                                        - please use English to get used to it.<br>
-                                        - Before creating data, please check first whether there is already similar or
-                                        identical data to avoid double input.<br>
-                                    </span>
-                                </div>
-
-                                <div class="d-flex justify-content-end mt-4">
-                                    <a href="{{ route('pages.Employee') }}" class="btn btn-secondary">
-                                        <i class="fas fa-times"></i> {{ __('Cancel') }}
-                                    </a>
-                                    <button type="submit" id="create-btn" class="btn bg-primary">
-                                        <i class="fas fa-save"></i> {{ __('Create') }}
-                                    </button>
-                                </div>
-                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-    </div>
-    </section>
+        </section>
     </div>
 @endsection
-
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script>
         $(document).ready(function() {
             $('.select2').select2();
         });
-
         function previewImage(event) {
             const input = event.target;
             const reader = new FileReader();
@@ -971,7 +915,7 @@
     </script>
     <script>
         document.getElementById('create-btn').addEventListener('click', function(e) {
-            e.preventDefault(); // Mencegah pengiriman form langsung
+            e.preventDefault();
             Swal.fire({
                 title: 'Are You Sure?',
                 text: "Make sure the data you entered is correct!",
@@ -983,7 +927,6 @@
                 cancelButtonText: 'Abort'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Jika pengguna mengkonfirmasi, submit form
                     document.getElementById('employee-create').submit();
                 }
             });
@@ -998,7 +941,6 @@
                 confirmButtonText: 'OK'
             });
         @endif
-
         @if (session('error'))
             Swal.fire({
                 title: 'Gagal!',

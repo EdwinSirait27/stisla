@@ -30,10 +30,8 @@ class Leavetypes extends Model
     {
         return $this->hasMany(Leavebalance::class);
     }
-
     public function leaverequests()
     {
         return $this->hasMany(Leaverequest::class);
     }
-
 }
