@@ -868,14 +868,23 @@ class EmployeeController extends Controller
              * -------------------------*/
             $employee->update($validatedData);
 
-            /** --------------------------
-             *  Jika struktur dikosongkan
-             * -------------------------*/
-            if (empty($validatedData['structure_id']) && $oldStructureId) {
-                Structuresnew::where('id', $oldStructureId)
-                    ->lockForUpdate()
-                    ->update(['status' => 'vacant']);
-            }
+            // /** --------------------------
+            //  *  Jika struktur dikosongkan
+            //  * -------------------------*/
+            // if (empty($validatedData['structure_id']) && $oldStructureId) {
+            //     Structuresnew::where('id', $oldStructureId)
+            //         ->lockForUpdate()
+            //         ->update(['status' => 'vacant']);
+            // }
+            /** ---------------------------------------------------
+ * Jika struktur dikosongkan ATAU struktur diganti
+ * --------------------------------------------------*/
+if ($oldStructureId && $oldStructureId != ($validatedData['structure_id'] ?? null)) {
+    Structuresnew::where('id', $oldStructureId)
+        ->lockForUpdate()
+        ->update(['status' => 'vacant']);
+}
+
         });
 
         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');

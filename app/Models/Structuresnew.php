@@ -28,45 +28,11 @@ class Structuresnew extends Model
         'structure_code',
         'is_manager',
         'status',
-        'approval_1',
-        'approval_2',
         'submission_position_id',
     ];
     protected $casts = [
         'is_manager' => 'boolean',
     ];
-    public function company()
-    {
-        return $this->belongsTo(Company::class, 'company_id', 'id');
-    }
-    public function salary()
-    {
-        return $this->belongsTo(Salary::class, 'salary_id', 'id');
-    }
-    public function submitter()
-    {
-        return $this->belongsTo(Employee::class, 'submitter', 'id');
-    }
-    public function approval1()
-    {
-        return $this->belongsTo(Employee::class, 'approval_1', 'id');
-    }
-    public function approval2()
-    {
-        return $this->belongsTo(Employee::class, 'approval_2', 'id');
-    }
-    public function department()
-    {
-        return $this->belongsTo(Departments::class, 'department_id', 'id');
-    }
-    public function store()
-    {
-        return $this->belongsTo(Stores::class, 'store_id', 'id');
-    }
-    public function position()
-    {
-        return $this->belongsTo(Position::class, 'position_id', 'id');
-    }
     public function submissionposition()
     {
         return $this->belongsTo(Submissionposition::class, 'submission_position_id', 'id');
@@ -85,7 +51,7 @@ class Structuresnew extends Model
     }
     public function allChildren()
     {
-        return $this->children()->with('allChildren', 'position');
+        return $this->children()->with('allChildren', 'submissionposition.positionRelation');
     }
     public function parent()
     {
@@ -149,15 +115,3 @@ class Structuresnew extends Model
             });
     }
 }
-
-// public function parent()
-    // {
-    //     // penting: load submissionposition + positionRelation untuk bisa munculkan nama parent
-    //     return $this->belongsTo(self::class, 'parent_id')
-    //         ->with(['submissionposition.positionRelation']);
-    // }
-    
-//     public function allChildren()
-// {
-//     return $this->children()->with('allChildren');
-// }

@@ -183,10 +183,10 @@
                                         <thead>
                                             <tr>
                                                 {{-- <th class="text-center">No.</th> --}}
-                                                <th class="text-center">Company</th>
+                                                {{-- <th class="text-center">Company</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">Nickname</th>
-                                                <th class="text-center">Manager Name</th>
+                                                {{-- <th class="text-center">Manager Name</th> --}}
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -240,11 +240,11 @@
                     //     }
                     // },
                   
-                    {
-                        data: 'company_name',
-                        name: 'company_name',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'company_name',
+                    //     name: 'company_name',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'department_name',
                         name: 'department_name',
@@ -255,11 +255,11 @@
                         name: 'nickname',
                         className: 'text-center'
                     },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'employee_name',
+                    //     name: 'employee_name',
+                    //     className: 'text-center'
+                    // },
                     {
                         data: 'action',
                         name: 'action',

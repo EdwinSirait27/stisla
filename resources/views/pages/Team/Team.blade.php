@@ -473,7 +473,7 @@
                         text: '<i class="fas fa-file-csv"></i> CSV',
                         className: 'btn btn-sm btn-primary ms-2 me-2',
                         exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
                         }
                     },
                     {
@@ -481,7 +481,7 @@
                         text: '<i class="fas fa-file-excel"></i> Excel',
                         className: 'btn btn-sm btn-success',
                         exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
                         }
                     }
                 ],

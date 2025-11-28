@@ -5,7 +5,6 @@
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
 @endpush
 <style>
     /* Card Styles */
@@ -164,8 +163,6 @@
         }
     }
 </style>
-
-
 @section('main')
     <div class="main-content">
         <section class="section">
@@ -186,34 +183,27 @@
                                         <select id="store_name" name="store_name" class="form-control select2">
                                             <option value="">All Stores</option>
                                             @foreach ($stores as $store)
-                                                <option value="{{ $store }}">{{ $store }}</option>
+                                              <option value="{{ $store }}">{{ $store }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-
                                     <div class="col-md-2">
                                         <label for="startDate">Start Date</label>
                                         <input type="date" id="startDate"
                                             value="{{ request('start_date') ?? now()->startOfMonth()->toDateString() }}"
                                             class="form-control">
                                     </div>
-
                                     <div class="col-md-2">
                                         <label for="endDate">End Date</label>
                                         <input type="date" id="endDate"
                                             value="{{ request('end_date') ?? now()->toDateString() }}" class="form-control">
                                     </div>
-
                                     <div class="col-md-1">
-                                        {{-- <label>Show Entries</label> --}}
                                         <div id="custom-length"></div> {{-- Di sini nanti elemen .dataTables_length akan dipindahkan --}}
                                     </div>
-
                                     <div class="col-md-2">
-                                        {{-- <label>Search</label> --}}
                                         <div id="custom-search"></div> {{-- Di sini nanti elemen .dataTables_filter akan dipindahkan --}}
                                     </div>
-
                                     <div class="col-md-1">
                                         <button id="filterBtn" class="btn btn-primary">Filter</button>
                                         <button id="resetBtn" class="btn btn-secondary">Reset</button>
@@ -222,9 +212,7 @@
                                     <br>
                                     <br>
                                     <div class="col-md-2" id="custom-buttons">
-                                    
-        <!-- Buttons DataTables akan dipindahkan ke sini -->
-    </div>
+                                    </div>
                                 </div>
                                 <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                                     <table class="table table-hover" id="users-table">
@@ -257,7 +245,6 @@
                 </div>
             </div>
     </div>
-
     </section>
     </div>
 @endsection
@@ -272,13 +259,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
- {{-- <script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const year = today.getFullYear();
-            const month = today.getMonth(); 
-            const startDate = new Date(year, month, 1);
-            const endDate = new Date(year, month + 1, 0);
+            const month = today.getMonth();
+            const startDate = new Date(year, month - 1, 26);
+            const endDate = new Date(year, month, 25);
             const formatDate = (date) => {
                 const y = date.getFullYear();
                 const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -288,87 +275,41 @@
             document.getElementById('startDate').value = formatDate(startDate);
             document.getElementById('endDate').value = formatDate(endDate);
         });
-    </script> --}}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth(); // bulan sekarang (0-11)
-
-        // Start date: 26 bulan lalu
-        const startDate = new Date(year, month - 1, 26);
-
-        // End date: 25 bulan ini
-        const endDate = new Date(year, month, 25);
-
-        const formatDate = (date) => {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        };
-
-        document.getElementById('startDate').value = formatDate(startDate);
-        document.getElementById('endDate').value = formatDate(endDate);
-    });
-</script>
-
+    </script>
     <script>
         $(document).ready(function() {
-             $('.select2').select2();
+            $('.select2').select2();
             var table = $('#users-table').DataTable({
-                // scrollY: "500px",
-                paging: true, 
+                paging: true,
                 processing: true,
                 autoWidth: false,
                 serverSide: true,
-                // scrollCollapse: true,
                 responsive: true,
                 dom: "<'d-none'lf>" + // ini akan menyembunyikan tapi tetap membuat elemen length & filter
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-12'B>>" +
                     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            //    buttons : [
-
-            //         {
-            //             extend: 'csv',
-            //             className: 'btn btn-sm btn-success',
-            //             text: '<i class="fas fa-file-csv"></i> CSV',
-            //             exportOptions: {
-            //                 columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-            //             }
-            //         },
-            //         {
-            //             extend: 'excel',
-            //             className: 'btn btn-sm btn-info',
-            //             text: '<i class="fas fa-file-excel"></i> Excel',
-            //             exportOptions: {
-            //                 columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-            //             }
-            //         }
-            //     ],
-            buttons: [
-            {
-                extend: 'csv',
-                className: 'btn btn-sm btn-success',
-                text: '<i class="fas fa-file-csv"></i> CSV',
-                exportOptions: {
-                    columns: ':not(:last-child):not(.no-export)'
-                }
-            },
-            {
-                extend: 'excel',
-                className: 'btn btn-sm btn-info',
-                text: '<i class="fas fa-file-excel"></i> Excel',
-                exportOptions: {
-                    columns: ':not(:last-child):not(.no-export)'
-                }
-            }
-        ],
+                buttons: [{
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV',
+                        exportOptions: {
+                            columns: ':not(:last-child):not(.no-export)'
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        exportOptions: {
+                            columns: ':not(:last-child):not(.no-export)'
+                        }
+                    }
+                ],
                 ajax: {
                     url: '{{ route('teamfingerprints.teamfingerprints') }}',
                     type: 'POST',
-                headers: {
+                    headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     data: function(d) {
@@ -377,7 +318,6 @@
                         d.store_name = $('#store_name').val();
                     }
                 },
-                
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -386,18 +326,17 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [
-                    {
-                    data: 'name',
-                    name: 'name',
-                    className: 'text-center'
+                columns: [{
+                        data: 'name',
+                        name: 'name',
+                        className: 'text-center'
                     },
                     {
-                    data: 'department_name',
-                    name: 'department_name',
-                    className: 'text-center'
+                        data: 'department_name',
+                        name: 'department_name',
+                        className: 'text-center'
                     },
-                     {
+                    {
                         data: 'pin',
                         name: 'pin',
                         className: 'text-center'
@@ -428,7 +367,6 @@
                         name: 'scan_date',
                         className: 'text-center'
                     },
-
                     @for ($i = 1; $i <= 6; $i++)
                         {
                             data: 'combine_{{ $i }}',
@@ -445,49 +383,33 @@
                         name: 'duration',
                         className: 'text-center'
                     }
-                    // ,
-                    // {
-                    //     data: 'updated',
-                    //     name: 'updated',
-                    //     className: 'text-center',
-                    //     render: function(data, type, row) {
-                    //         return row.is_updated ?
-                    //             '<span class="badge badge-success">✔ Updated</span>' :
-                    //             '<span class="badge badge-secondary">Original</span>';
-                    //     }
-                    // }
                 ],
-                 rowCallback: function(row, data, index) {
+                rowCallback: function(row, data, index) {
                     if (data.is_edited == 1) {
                         $(row).css('background-color', '#cce5ff');
                     }
                 },
-
                 initComplete: function() {
-                    // Pindahkan length (show entries) dan search ke lokasi custom
                     $('#custom-length').html($('.dataTables_length'));
                     $('#custom-search').html($('.dataTables_filter'));
-                     table.buttons().container().appendTo('#custom-buttons');
+                    table.buttons().container().appendTo('#custom-buttons');
                 }
             });
             $('#filterBtn').on('click', function() {
                 table.ajax.reload();
             });
-
             $('#resetBtn').on('click', function() {
                 $('#startDate').val('');
                 $('#endDate').val('');
                 $('#store_name').val('');
                 table.ajax.reload();
             });
-
             setInterval(function() {
                 var isSearching = $('.dataTables_filter input').val().trim().length > 0;
                 if (!isSearching) {
                     table.ajax.reload(null, false);
                 }
             }, 100000);
-
             @if (session('success'))
                 Swal.fire({
                     icon: 'success',
@@ -495,8 +417,6 @@
                     text: '{{ session('success') }}',
                 });
             @endif
-
         });
     </script>
-    
 @endpush

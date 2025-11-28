@@ -867,11 +867,8 @@ public function edit($hashedId)
     ]);
 
     $structure = Structuresnew::with([
-        'submissionposition.stores',
-        'company',
-        'department',
-        'store',
-        'position'
+        'submissionposition.stores'
+        
     ])
     ->get()
     ->first(function ($u) use ($hashedId) {
@@ -935,35 +932,7 @@ public function edit($hashedId)
 
 
 
-    public function create()
-    {
-        $companys = Company::pluck('nickname', 'id', 'name');
-        $stores = Stores::pluck('nickname', 'id', 'name');
-
-        $salaries = Salary::all()->mapWithKeys(function ($item) {
-            return [
-                $item->id => "{$item->salary_start} - {$item->salary_end}"
-            ];
-        });
-
-        $departments = Departments::pluck('nickname', 'id', 'department_name');
-        $positions = Position::pluck('name', 'id', 'name');
-        $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
-
-        $parents = Structuresnew::with('position')->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->id => $item->position->name ?? '-'];
-            });
-        return view('pages.Structuresnew.create', compact(
-            'departments',
-            'stores',
-            'salaries',
-            'companys',
-            'positions',
-            'types',
-            'parents'
-        ));
-    }
+  
     // public function update(Request $request, $hashedId)
     // {
     //     $structure = Structuresnew::with('company', 'department', 'store', 'position')->get()->first(function ($u) use ($hashedId) {

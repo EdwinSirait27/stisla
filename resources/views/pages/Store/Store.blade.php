@@ -184,7 +184,7 @@
                                         <thead>
                                             <tr>
                                                 {{-- <th class="text-center">No.</th> --}}
-                                                <th class="text-center">Manager Name</th>
+                                                {{-- <th class="text-center">Manager Name</th> --}}
                                                <th class="text-center">Location Name</th>
                                                <th class="text-center">Nickname</th>
                                                 <th class="text-center">Address</th>
@@ -241,11 +241,11 @@
                     //         return meta.row + meta.settings._iDisplayStart + 1;
                     //     }
                     // },
-                     {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
+                    //  {
+                    //     data: 'employee_name',
+                    //     name: 'employee_name',
+                    //     className: 'text-center'
+                    // },
                    
                     {
                         data: 'name',

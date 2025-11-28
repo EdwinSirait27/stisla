@@ -271,36 +271,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
- {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth(); // 0-based (Juli = 6)
-
-            // Awal bulan
-            const startDate = new Date(year, month, 1);
-
-            // Akhir bulan
-            const endDate = new Date(year, month + 1, 0);
-
-            const formatDate = (date) => {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0'); // Bulan 1-12
-                const d = String(date.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            };
-
-            document.getElementById('startDate').value = formatDate(startDate);
-            document.getElementById('endDate').value = formatDate(endDate);
-        });
-    </script> --}}
+ 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         const year = today.getFullYear();
         const month = today.getMonth(); // bulan sekarang (0-11)
 
-        // Start date: 26 bulan lalu
         const startDate = new Date(year, month - 1, 26);
 
         // End date: 25 bulan ini
