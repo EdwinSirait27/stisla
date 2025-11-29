@@ -26,6 +26,7 @@ use App\Models\Groups;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
+
 class EmployeeController extends Controller
 {
     public function indexall()
@@ -133,18 +134,15 @@ class EmployeeController extends Controller
     public function getEmployees(Request $request, DataTables $dataTables)
     {
         // $isHeadHR = auth()->user()->hasRole('HeadHR');
-        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR','Admin']);
+        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
         $employees = User::with([
-            'Employee.company',
-            'Employee.store',
             'Employee.position',
-            'Employee.structuresnew.position',
             'Employee.department',
             'Employee.grading',
             'Employee.group',
             'Employee.employees',
-            'Employee.structuresnew.company',
+            'Employee.company',
             'Employee.structuresnew'
         ])
             ->select(['id', 'employee_id'])
@@ -178,7 +176,7 @@ class EmployeeController extends Controller
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['nip','group_name','position_name','oldposition_name', 'status', 'department_name', 'company_name','created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->rawColumns(['nip', 'group_name', 'position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
     public function getEmployeesall()
@@ -316,7 +314,7 @@ class EmployeeController extends Controller
     // }
     public function edit($hashedId)
     {
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading','Employee.group', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees', 'Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -334,14 +332,14 @@ class EmployeeController extends Controller
         $child = ['0', '1', '2', '3', '4', '5'];
         $marriage = ['Yes', 'No'];
         $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending','On Leave', 'Mutation', 'Active', 'Resign'];
+        $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
         $banks = Banks::get();
-      $usedStructureIds = Employee::whereNotNull('structure_id')->pluck('structure_id')->toArray();
+        $usedStructureIds = Employee::whereNotNull('structure_id')->pluck('structure_id')->toArray();
 
-    $structures = Structuresnew::with('company', 'department', 'store', 'position','submissionposition')
-        ->whereNotIn('id', $usedStructureIds)
-        ->orWhere('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
-        ->get();
+        $structures = Structuresnew::with('company', 'department', 'store', 'position', 'submissionposition')
+            ->whereNotIn('id', $usedStructureIds)
+            ->orWhere('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
+            ->get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.edit', [
@@ -414,77 +412,77 @@ class EmployeeController extends Controller
     //     ]);
     // }
     public function show($hashedId)
-{
-    $employee = User::with(
-        'Employee',
-        'Employee.store',
-        'Employee.grading',
-        'Employee.group',
-        'Employee.department',
-        'Employee.position',
-        'Employee.bank',
-        'Employee.employees',
-        'Employee.structuresnew',
-        'Employee.structuresnew.submissionposition'
-    )->get()->first(function ($u) use ($hashedId) {
-        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-        return $expectedHash === $hashedId;
-    });
+    {
+        $employee = User::with(
+            'Employee',
+            'Employee.store',
+            'Employee.grading',
+            'Employee.group',
+            'Employee.department',
+            'Employee.position',
+            'Employee.bank',
+            'Employee.employees',
+            'Employee.structuresnew',
+            'Employee.structuresnew.submissionposition'
+        )->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
 
-    if (!$employee) {
-        abort(404, 'Employee not found.');
+        if (!$employee) {
+            abort(404, 'Employee not found.');
+        }
+
+        // ---------------------------
+        // Tambahkan logic aman disini
+        // ---------------------------
+
+        $isManager = optional(optional($employee->Employee)->structuresnew)->is_manager;
+
+        // Ambil structure
+        $structures = Structuresnew::with('company', 'department', 'store', 'position', 'submissionposition')
+            ->where('id', optional($employee->Employee)->structure_id)
+            ->get();
+
+        // Data lain
+        $positions = Position::get();
+        $companys = Company::get();
+        $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+        $departments = Departments::with('user.Employee')->get();
+        $stores = Stores::with('user.Employee')->get();
+        $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+        $child = ['0', '1', '2', '3', '4', '5'];
+        $marriage = ['Yes', 'No'];
+        $gender = ['Male', 'Female', 'MD'];
+        $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
+        $banks = Banks::get();
+        $gradings = Grading::get();
+        $groups = Groups::get();
+        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
+        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+
+        return view('pages.Employee.show', compact(
+            'employee',
+            'employees',
+            'status_employee',
+            'child',
+            'companys',
+            'stores',
+            'marriage',
+            'gender',
+            'gradings',
+            'groups',
+            'status',
+            'banks',
+            'religion',
+            'structures',
+            'last_education',
+            'positions',
+            'departments',
+            'hashedId',
+            'isManager'
+        ));
     }
-
-    // ---------------------------
-    // Tambahkan logic aman disini
-    // ---------------------------
-
-    $isManager = optional(optional($employee->Employee)->structuresnew)->is_manager;
-
-    // Ambil structure
-    $structures = Structuresnew::with('company', 'department', 'store', 'position', 'submissionposition')
-        ->where('id', optional($employee->Employee)->structure_id)
-        ->get();
-
-    // Data lain
-    $positions = Position::get();
-    $companys = Company::get();
-    $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
-    $departments = Departments::with('user.Employee')->get();
-    $stores = Stores::with('user.Employee')->get();
-    $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-    $child = ['0', '1', '2', '3', '4', '5'];
-    $marriage = ['Yes', 'No'];
-    $gender = ['Male', 'Female', 'MD'];
-    $status = ['Pending','On Leave', 'Mutation', 'Active', 'Resign'];
-    $banks = Banks::get();
-    $gradings = Grading::get();
-    $groups = Groups::get();
-    $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
-    $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-
-    return view('pages.Employee.show', compact(
-        'employee',
-        'employees',
-        'status_employee',
-        'child',
-        'companys',
-        'stores',
-        'marriage',
-        'gender',
-        'gradings',
-        'groups',
-        'status',
-        'banks',
-        'religion',
-        'structures',
-        'last_education',
-        'positions',
-        'departments',
-        'hashedId',
-        'isManager' // ← Kirim ke Blade
-    ));
-}
     public function create()
     {
         $employees = Employee::where('status', 'Active')
@@ -517,11 +515,13 @@ class EmployeeController extends Controller
                 'unique:users,username',
                 new NoXSSInput()
             ],
-             'photos' => [
-            'nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'
+            'photos' => [
+                'nullable',
+                'mimes:jpg,jpeg,png,webp',
+                'max:512'
 
-        ],
-             'is_manager' => [
+            ],
+            'is_manager' => [
                 'nullable',
                 'boolean',
                 new NoXSSInput()
@@ -608,26 +608,31 @@ class EmployeeController extends Controller
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
             'foto' => [
-                'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:512'
             ],
             'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
             'photos.max' => 'photos must under 512 kb.',
-   
+
         ]);
-         $filePath = null;
+        $filePath = null;
 
-    if ($request->hasFile('photos')) {
-        $file = $request->file('photos');
+        if ($request->hasFile('photos')) {
+            $file = $request->file('photos');
 
-        if ($file->getSize() > 512 * 1024) { return back()->withErrors(['photos' => 'Photos must be under 512 KB']); }
+            if ($file->getSize() > 512 * 1024) {
+                return back()->withErrors(['photos' => 'Photos must be under 512 KB']);
+            }
 
-        $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
-        $folderPath = 'employeesphotos/' . date('Y/m'); // rapi per tahun/bulan
+            $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+            $folderPath = 'employeesphotos/' . date('Y/m'); // rapi per tahun/bulan
 
-        // Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-        Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-        $filePath = $folderPath . '/' . $fileName;
-    }
+            // Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+            Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+            $filePath = $folderPath . '/' . $fileName;
+        }
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -642,11 +647,11 @@ class EmployeeController extends Controller
                     $sequence = $lastSequence + 1;
                 }
             } else {
-                $sequence = 1; 
+                $sequence = 1;
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
-            'photos' => $filePath,
+                'photos' => $filePath,
 
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
@@ -693,180 +698,185 @@ class EmployeeController extends Controller
             return redirect()->route('pages.Employee')->with('success', 'Done!');
         } catch (\Exception $e) {
             DB::rollBack();
-         
-            
+
+
             if ($filePath && Storage::disk('public')->exists($filePath)) {
-    Storage::disk('public')->delete($filePath);
-}
+                Storage::disk('public')->delete($filePath);
+            }
+        }
+        return redirect()->back()
+            ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
+            ->withInput();
+    }
 
-        }
-            return redirect()->back()
-                ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
-                ->withInput();
-        }
-    
     public function update(Request $request, $hashedId)
-{
-    $user = User::with('Employee')
-        ->get()
-        ->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+    {
+        $user = User::with('Employee')
+            ->get()
+            ->first(function ($u) use ($hashedId) {
+                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+                return $expectedHash === $hashedId;
+            });
 
-    if (!$user) {
-        return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
-    }
+        if (!$user) {
+            return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
+        }
 
-    $validatedData = $request->validate([
-        'photos' => ['nullable','mimes:jpg,jpeg,png,webp', 'max:512'],
+        $validatedData = $request->validate([
+            'photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
 
-        'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-        'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
-        'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+            'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+            'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
+            'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
 
-        'employee_name' => [
-            'required', 'string', 'max:255',
-            Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
-            new NoXSSInput()
-        ],
+            'employee_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+                new NoXSSInput()
+            ],
 
-        'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
-        'grading_id' => ['nullable', 'exists:grading,id', new NoXSSInput()],
-        'group_id' => ['nullable', 'exists:groups_tables,id', new NoXSSInput()],
-        'bpjs_kes' => ['required', 'string', 'max:255'],
-        'bpjs_ket' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'max:255'],
-        'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-        'child' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'telp_number' => [
-            'required', 'numeric', 'digits_between:10,13',
-            Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
-            new NoXSSInput()
-        ],
-        'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'nik' => [
-            'required', 'max:20',
-            Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
-            new NoXSSInput()
-        ],
-        'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
-        'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'religion' => ['required', 'string', new NoXSSInput()],
-        'status' => ['required', 'string', new NoXSSInput()],
-        'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
-        'npwp' => ['required', 'string', 'max:50'],
-        'is_manager' => ['nullable'],
-        'pin' => [
-            'required', 'string', 'max:50',
-            Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
-            new NoXSSInput()
-        ],
-        'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
-        'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
-        'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
-        'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
-        'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-    ]);
-    $filePath = $user->Employee->photos;
-    try {
-        DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
-            /** --------------------------
-             *  Handle Upload Photo
-             * -------------------------*/
-            // if ($request->hasFile('photos')) {
-            //     $file = $request->file('photos');
-            //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-            //         $file->getClientOriginalExtension();
+            'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
+            'grading_id' => ['nullable', 'exists:grading,id', new NoXSSInput()],
+            'group_id' => ['nullable', 'exists:groups_tables,id', new NoXSSInput()],
+            'bpjs_kes' => ['required', 'string', 'max:255'],
+            'bpjs_ket' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'max:255'],
+            'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'child' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'telp_number' => [
+                'required',
+                'numeric',
+                'digits_between:10,13',
+                Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
+                new NoXSSInput()
+            ],
+            'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'nik' => [
+                'required',
+                'max:20',
+                Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
+                new NoXSSInput()
+            ],
+            'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
+            'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'religion' => ['required', 'string', new NoXSSInput()],
+            'status' => ['required', 'string', new NoXSSInput()],
+            'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'npwp' => ['required', 'string', 'max:50'],
+            'is_manager' => ['nullable'],
+            'pin' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
+                new NoXSSInput()
+            ],
+            'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
+            'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
+            'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
+            'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
+            'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
+        ]);
+        $filePath = $user->Employee->photos;
+        try {
+            DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
+                /** --------------------------
+                 *  Handle Upload Photo
+                 * -------------------------*/
+                // if ($request->hasFile('photos')) {
+                //     $file = $request->file('photos');
+                //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+                //         $file->getClientOriginalExtension();
 
-            //     $folderPath = 'employeesphotos/' . date('Y/m');
+                //     $folderPath = 'employeesphotos/' . date('Y/m');
 
-            //     Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-            //     $newFilePath = $folderPath . '/' . $fileName;
+                //     Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+                //     $newFilePath = $folderPath . '/' . $fileName;
 
-            //     if ($filePath && Storage::exists('public/' . $filePath)) {
-            //         Storage::delete('public/' . $filePath);
-            //     }
+                //     if ($filePath && Storage::exists('public/' . $filePath)) {
+                //         Storage::delete('public/' . $filePath);
+                //     }
 
-            //     $filePath = $validatedData['photos'] = $newFilePath;
-            // }
-            if ($request->hasFile('photos')) {
-    $file = $request->file('photos');
-    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-        $file->getClientOriginalExtension();
+                //     $filePath = $validatedData['photos'] = $newFilePath;
+                // }
+                if ($request->hasFile('photos')) {
+                    $file = $request->file('photos');
+                    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+                        $file->getClientOriginalExtension();
 
-    $folderPath = 'employeesphotos/' . date('Y/m');
+                    $folderPath = 'employeesphotos/' . date('Y/m');
 
-    // simpan ke storage/app (PRIVATE)
-    Storage::putFileAs($folderPath, $file, $fileName);
+                    // simpan ke storage/app (PRIVATE)
+                    Storage::putFileAs($folderPath, $file, $fileName);
 
-    $newFilePath = $folderPath . '/' . $fileName;
+                    $newFilePath = $folderPath . '/' . $fileName;
 
-    // hapus file lama jika ada
-    if ($filePath && Storage::exists($filePath)) {
-        Storage::delete($filePath);
-    }
+                    // hapus file lama jika ada
+                    if ($filePath && Storage::exists($filePath)) {
+                        Storage::delete($filePath);
+                    }
 
-    $filePath = $validatedData['photos'] = $newFilePath;
-}
+                    $filePath = $validatedData['photos'] = $newFilePath;
+                }
 
 
-            /** --------------------------
-             *  Lock employee row
-             * -------------------------*/
-            $employee = $user->Employee()->lockForUpdate()->first();
-            $oldStructureId = $employee->structure_id;
+                /** --------------------------
+                 *  Lock employee row
+                 * -------------------------*/
+                $employee = $user->Employee()->lockForUpdate()->first();
+                $oldStructureId = $employee->structure_id;
 
-            $statusEmployee = $validatedData['status'];
-            $inactiveStatus = ['Resign','On Leave'];
+                $statusEmployee = $validatedData['status'];
+                $inactiveStatus = ['Resign', 'On Leave'];
 
-            /** --------------------------
-             *  Handle Status Non-Aktif
-             * -------------------------*/
-            if (in_array($statusEmployee, $inactiveStatus)) {
-                $validatedData['structure_id'] = null;
+                /** --------------------------
+                 *  Handle Status Non-Aktif
+                 * -------------------------*/
+                if (in_array($statusEmployee, $inactiveStatus)) {
+                    $validatedData['structure_id'] = null;
 
-                if ($oldStructureId) {
-                    Structuresnew::where('id', $oldStructureId)
+                    if ($oldStructureId) {
+                        Structuresnew::where('id', $oldStructureId)
+                            ->lockForUpdate()
+                            ->update(['status' => 'vacant']);
+                    }
+                }
+
+                /** --------------------------
+                 *  Handle Structure Baru
+                 * -------------------------*/
+                if (!empty($validatedData['structure_id'])) {
+                    $newStructure = Structuresnew::with('submissionposition')
+                        ->where('id', $validatedData['structure_id'])
                         ->lockForUpdate()
-                        ->update(['status' => 'vacant']);
-                }
-            }
+                        ->first();
 
-            /** --------------------------
-             *  Handle Structure Baru
-             * -------------------------*/
-            if (!empty($validatedData['structure_id'])) {
-                $newStructure = Structuresnew::with('submissionposition')
-                    ->where('id', $validatedData['structure_id'])
-                    ->lockForUpdate()
-                    ->first();
+                    if ($newStructure && $newStructure->submissionposition) {
+                        $submission = $newStructure->submissionposition;
 
-                if ($newStructure && $newStructure->submissionposition) {
-                    $submission = $newStructure->submissionposition;
+                        $validatedData['company_id'] = $submission->company_id;
+                        $validatedData['department_id'] = $submission->department_id;
+                        $validatedData['store_id'] = $submission->store_id;
+                        $validatedData['position_id'] = $submission->position_id;
+                        $validatedData['is_manager'] = $submission->is_manager;
+                    }
 
-                    $validatedData['company_id'] = $submission->company_id;
-                    $validatedData['department_id'] = $submission->department_id;
-                    $validatedData['store_id'] = $submission->store_id;
-                    $validatedData['position_id'] = $submission->position_id;
-                    $validatedData['is_manager'] = $submission->is_manager;
-
+                    $newStructure->update(['status' => 'active']);
                 }
 
-                $newStructure->update(['status' => 'active']);
-            }
-
-            /** --------------------------
-             *  Update Employee
-             * -------------------------*/
-            $employee->update($validatedData);
+                /** --------------------------
+                 *  Update Employee
+                 * -------------------------*/
+                $employee->update($validatedData);
 
             // /** --------------------------
             //  *  Jika struktur dikosongkan
@@ -876,611 +886,42 @@ class EmployeeController extends Controller
             //         ->lockForUpdate()
             //         ->update(['status' => 'vacant']);
             // }
-            /** ---------------------------------------------------
- * Jika struktur dikosongkan ATAU struktur diganti
- * --------------------------------------------------*/
-if ($oldStructureId && $oldStructureId != ($validatedData['structure_id'] ?? null)) {
-    Structuresnew::where('id', $oldStructureId)
-        ->lockForUpdate()
-        ->update(['status' => 'vacant']);
-}
+                /** ---------------------------------------------------
+                 * Jika struktur dikosongkan ATAU struktur diganti
+                 * --------------------------------------------------*/
+                if ($oldStructureId && $oldStructureId != ($validatedData['structure_id'] ?? null)) {
+                    Structuresnew::where('id', $oldStructureId)
+                        ->lockForUpdate()
+                        ->update(['status' => 'vacant']);
+                }
+            });
 
-        });
+            return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+        } catch (\Throwable $th) {
 
-        return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+            Log::error('Employee update failed', [
+                'error' => $th->getMessage(),
+                'employee_id' => $user->Employee->id ?? null,
+            ]);
 
-    } catch (\Throwable $th) {
-
-        Log::error('Employee update failed', [
-            'error' => $th->getMessage(),
-            'employee_id' => $user->Employee->id ?? null,
-        ]);
-
-        return redirect()->route('pages.Employee')
-            ->with('error', 'Update failed: ' . $th->getMessage());
+            return redirect()->route('pages.Employee')
+                ->with('error', 'Update failed: ' . $th->getMessage());
+        }
     }
-}
-public function getPhoto($path)
-{
-    $full = storage_path('app/' . $path);
+    public function getPhoto($path)
+    {
+        $full = storage_path('app/' . $path);
 
-    if (!file_exists($full)) {
-        abort(404);
+        if (!file_exists($full)) {
+            abort(404);
+        }
+
+        return response()->file($full);
     }
-
-    return response()->file($full);
-}
-
-
-    // with locking
-//     public function update(Request $request, $hashedId)
-// {
-//     // Ambil user secara efisien tanpa get semua record
-//     $user = User::with('Employee')
-//         ->get()
-//         ->first(function ($u) use ($hashedId) {
-//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//             return $expectedHash === $hashedId;
-//         });
-
-//     if (!$user) {
-//         return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
-//     }
-
-//     $validatedData = $request->validate([
-//           'photos' => [
-//             'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
-//         ],
-//         'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-//         'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
-//         'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-//         'employee_name' => [
-//             'required', 'string', 'max:255',
-//             Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
-//         'bpjs_kes' => ['required', 'string', 'max:255'],
-//         'bpjs_ket' => ['required', 'string', 'max:255'],
-//         'email' => ['required', 'string', 'max:255'],
-//         'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-//         'child' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'telp_number' => [
-//             'required', 'numeric', 'digits_between:10,13',
-//             Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'nik' => [
-//             'required', 'max:20',
-//             Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
-//         'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'religion' => ['required', 'string', new NoXSSInput()],
-//         'status' => ['required', 'string', new NoXSSInput()],
-//         'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'npwp' => ['required', 'string', 'max:50'],
-//         'is_manager' => ['nullable'],
-//         'pin' => [
-//             'required', 'string', 'max:50',
-//             Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
-//         'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
-//         'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
-//         'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
-//         'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-        
-//     ]
-// );
-// $filePath = $user->employee->photos;
-
-//     try {
-//         DB::transaction(function () use ($user, $validatedData) {
-// if ($request->hasFile('photos')) {
-//             $file = $request->file('photos');
-//             $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
-//             $folderPath = 'employeesphotos/' . date('Y/m');
-
-//             // Simpan file baru
-//             Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-//             $newFilePath = $folderPath . '/' . $fileName;
-
-//             // Hapus file lama kalau ada
-//             if ($filePath && Storage::exists('public/' . $filePath)) {
-//                 Storage::delete('public/' . $filePath);
-//             }
-
-//             $filePath = $newFilePath;
-//         }
-//             // Ambil employee dengan kunci baris agar aman dari race
-//             $employee = $user->Employee()->lockForUpdate()->first();
-//             $oldStructureId = $employee->structure_id;
-
-//             $statusEmployee = $validatedData['status'];
-//             $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
-
-//             // Jika status berubah ke non-aktif
-//             if (in_array($statusEmployee, $statusChangeTriggers)) {
-//                 $validatedData['structure_id'] = null;
-
-//                 if ($oldStructureId) {
-//                     $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
-//                     if ($oldStructure) {
-//                         $oldStructure->update(['status' => 'vacant']);
-//                     }
-//                 }
-//             }
-
-    
-
-//             // Update structure baru jika ada
-//             if (!empty($validatedData['structure_id'])) {
-//                 $newStructure = Structuresnew::with('submissionposition')
-//                     ->where('id', $validatedData['structure_id'])
-//                     ->lockForUpdate()
-//                     ->first();
-
-//                 if ($newStructure) {
-//                     if ($newStructure->submissionposition) {
-//                         $submission = $newStructure->submissionposition;
-
-//                         $validatedData['company_id'] = $submission->company_id;
-//                         $validatedData['department_id'] = $submission->department_id;
-//                         $validatedData['store_id'] = $submission->store_id;
-//                         $validatedData['position_id'] = $submission->position_id;
-//                         $validatedData['is_manager'] = $submission->is_manager;
-
-//                         Log::info('Structure fields updated from submissionposition relation', [
-//                             'structure_id' => $newStructure->id,
-//                             'company_id' => $submission->company_id,
-//                             'department_id' => $submission->department_id,
-//                             'store_id' => $submission->store_id,
-//                             'is_manager' => $submission->is_manager,
-//                             'position_id' => $submission->position_id,
-//                         ]);
-//                     } else {
-//                         Log::warning('No submissionposition found for structure', [
-//                             'structure_id' => $newStructure->id,
-//                         ]);
-//                     }
-
-//                     $newStructure->update(['status' => 'active']);
-//                 }
-//             }
-
-//             // Update data employee
-//             $employee->update($validatedData);
-
-//             // Jika structure dikosongkan, pastikan status structure lama jadi 'vacant'
-//             if (empty($validatedData['structure_id']) && $oldStructureId) {
-//                 $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
-//                 if ($oldStructure) {
-//                     $oldStructure->update(['status' => 'vacant']);
-//                 }
-//             }
-
-//             Log::info('Employee update successful', [
-//                 'employee_id' => $employee->id,
-//                 'final_structure_id' => $employee->structure_id,
-//             ]);
-//         });
-
-//         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
-
-//     } catch (\Throwable $th) {
-//         Log::error('Employee update failed', [
-//             'error' => $th->getMessage(),
-//             'employee_id' => $user->Employee->id ?? null,
-//         ]);
-//         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
-//     }
-// }
-
-// tanpa locking 
-// public function update(Request $request, $hashedId)
-// {
-//     $user = User::with('Employee')->get()->first(function ($u) use ($hashedId) {
-//         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//         return $expectedHash === $hashedId;
-//     });
-
-//     if (!$user) {
-//         return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
-//     }
-
-//     $validatedData = $request->validate([
-//         'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-//         'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
-//         'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-//         'employee_name' => [
-//             'required', 'string', 'max:255',
-//             Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
-//         'bpjs_kes' => ['required', 'string', 'max:255'],
-//         'bpjs_ket' => ['required', 'string', 'max:255'],
-//         'email' => ['required', 'string', 'max:255'],
-//         'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-//         'child' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'telp_number' => [
-//             'required', 'numeric', 'digits_between:10,13',
-//             Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'nik' => [
-//             'required', 'max:20',
-//             Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
-//         'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'religion' => ['required', 'string', new NoXSSInput()],
-//         'status' => ['required', 'string', new NoXSSInput()],
-//         'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
-//         'npwp' => ['required', 'string', 'max:50'],
-//         'pin' => [
-//             'required', 'string', 'max:50',
-//             Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
-//             new NoXSSInput()
-//         ],
-//         'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
-//         'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
-//         'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
-//         'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
-//         'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-//     ]);
-
-//     DB::beginTransaction();
-
-//     try {
-//         $employee = $user->Employee;
-//         $oldStructureId = $employee->structure_id;
-//         $statusEmployee = $validatedData['status'];
-//         $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
-
-//         if (in_array($statusEmployee, $statusChangeTriggers)) {
-//             $validatedData['structure_id'] = null;
-
-//             if (!empty($oldStructureId)) {
-//                 $oldStructure = Structuresnew::find($oldStructureId);
-//                 if ($oldStructure) {
-//                     $oldStructure->update(['status' => 'vacant']);
-//                 }
-//             }
-//         }
-
-//         Log::info('Employee update initiated', [
-//             'employee_id' => $employee->id,
-//             'old_structure_id' => $oldStructureId,
-//             'new_structure_id' => $validatedData['structure_id'] ?? null,
-//             'performed_by' => auth()->user()->name ?? 'system',
-//         ]);
-
-//         // Ambil data dari relasi submissionposition
-//         if (!empty($validatedData['structure_id'])) {
-//             $newStructure = Structuresnew::with('submissionposition')->find($validatedData['structure_id']);
-//             if ($newStructure) {
-//                 if ($newStructure->submissionposition) {
-//                     $submission = $newStructure->submissionposition;
-
-//                     $validatedData['company_id'] = $submission->company_id;
-//                     $validatedData['department_id'] = $submission->department_id;
-//                     $validatedData['store_id'] = $submission->store_id;
-//                     $validatedData['position_id'] = $submission->position_id;
-
-//                     Log::info('Structure fields updated from submissionposition relation', [
-//                         'structure_id' => $newStructure->id,
-//                         'company_id' => $submission->company_id,
-//                         'department_id' => $submission->department_id,
-//                         'store_id' => $submission->store_id,
-//                         'position_id' => $submission->position_id,
-//                     ]);
-//                 } else {
-//                     Log::warning('No submissionposition found for structure', [
-//                         'structure_id' => $newStructure->id,
-//                     ]);
-//                 }
-
-//                 $newStructure->update(['status' => 'active']);
-//             }
-//         }
-
-//         // Update data employee
-//         $employee->update([
-//             'employee_name' => $validatedData['employee_name'],
-//             'nik' => $validatedData['nik'],
-//             'bank_account_number' => $validatedData['bank_account_number'],
-//             'position_id' => $validatedData['position_id'] ?? null,
-//             'company_id' => $validatedData['company_id'] ?? null,
-//             'store_id' => $validatedData['store_id'] ?? null,
-//             'structure_id' => $validatedData['structure_id'] ?? null,
-//             'department_id' => $validatedData['department_id'] ?? null,
-//             'banks_id' => $validatedData['banks_id'],
-//             'status_employee' => $validatedData['status_employee'],
-//             'join_date' => $validatedData['join_date'],
-//             'end_date' => $validatedData['end_date'] ?? null,
-//             'marriage' => $validatedData['marriage'],
-//             'child' => $validatedData['child'],
-//             'telp_number' => $validatedData['telp_number'],
-//             'gender' => $validatedData['gender'],
-//             'date_of_birth' => $validatedData['date_of_birth'],
-//             'bpjs_kes' => $validatedData['bpjs_kes'],
-//             'bpjs_ket' => $validatedData['bpjs_ket'],
-//             'email' => $validatedData['email'],
-//             'emergency_contact_name' => $validatedData['emergency_contact_name'],
-//             'notes' => $validatedData['notes'] ?? '',
-//             'status' => $validatedData['status'],
-//             'religion' => $validatedData['religion'],
-//             'last_education' => $validatedData['last_education'],
-//             'place_of_birth' => $validatedData['place_of_birth'],
-//             'biological_mother_name' => $validatedData['biological_mother_name'],
-//             'current_address' => $validatedData['current_address'],
-//             'id_card_address' => $validatedData['id_card_address'],
-//             'institution' => $validatedData['institution'],
-//             'npwp' => $validatedData['npwp'],
-//             'pin' => $validatedData['pin'],
-//         ]);
-
-//         if (empty($validatedData['structure_id']) && !empty($oldStructureId)) {
-//             $oldStructure = Structuresnew::find($oldStructureId);
-//             if ($oldStructure) {
-//                 $oldStructure->update(['status' => 'vacant']);
-//             }
-//         }
-
-//         DB::commit();
-
-//         Log::info('Employee update successful', [
-//             'employee_id' => $employee->id,
-//             'final_structure_id' => $employee->structure_id,
-//         ]);
-
-//         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
-//     } catch (\Throwable $th) {
-//         DB::rollBack();
-//         Log::error('Employee update failed', [
-//             'error' => $th->getMessage(),
-//             'employee_id' => $user->Employee->id ?? null,
-//         ]);
-//         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
-//     }
-// }
-
-
-//     public function update(Request $request, $hashedId)
-//     {
-//         $user = User::with('Employee')->get()->first(function ($u) use ($hashedId) {
-//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//             return $expectedHash === $hashedId;
-//         });
-//         if (!$user) {
-//             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
-//         }
-//         $validatedData = $request->validate([
-
-//             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-//             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
-//             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
-
-//             'employee_name' => [
-//                 'required',
-//                 'string',
-//                 'max:255',
-//                 Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
-//                 new NoXSSInput()
-//             ],
-//             'level_id' => [
-//                 'nullable',
-//                 'exists:employees_tables,id',
-//                 new NoXSSInput()
-//             ],
-//             'structure_id' => [
-//                 'nullable',
-//                 'exists:structures_tables,id',
-//                 new NoXSSInput()
-//             ],
-//             'is_manager' => [
-//                 'nullable',
-//                 'boolean',
-//                 new NoXSSInput()
-//             ],
-//             'is_manager_store' => [
-//                 'nullable',
-//                 'boolean',
-//                 new NoXSSInput()
-//             ],
-//             'bpjs_kes' => ['required', 'string', 'max:255'],
-//             'bpjs_ket' => ['required', 'string', 'max:255'],
-//             'email' => ['required', 'string', 'max:255',],
-//             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-//             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'telp_number' => ['required', 'numeric', 'digits_between:10,13', Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id), new NoXSSInput()],
-//             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'nik' => ['required', 'max:20', Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id), new NoXSSInput()],
-//             'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
-//             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'religion' => ['required', 'string', new NoXSSInput()],
-//             'status' => ['required', 'string', new NoXSSInput()],
-//             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
-//             'npwp' => ['required', 'string', 'max:50'],
-//             'pin' => ['required', 'string', 'max:50', Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id), new NoXSSInput()],
-//             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
-//             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
-//             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
-//             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
-//             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
-//         ], [
-           
-//             'join_date.required' => 'The join date is required.',
-//             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
-//             'date_of_birth.required' => 'The date of birth is required.',
-//             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
-//             'employee_name.required' => 'The employee name is required.',
-//             'employee_name.max' => 'The employee name may not be greater than 255 characters.',
-//             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
-//             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
-//             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
-//             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
-//             'email.required' => 'The email is required.',
-//             'email.max' => 'The email may not be greater than 255 characters.',
-//             'emergency_contact_name.required' => 'The emergency contact name is required.',
-//             'marriage.required' => 'The marriage status is required.',
-//             'notes.max' => 'The notes may not be greater than 255 characters.',
-//             'child.required' => 'The child information is required.',
-//             'gender.required' => 'The gender is required.',
-//             'telp_number.required' => 'The phone number is required.',
-//             'telp_number.numeric' => 'The phone number must be numeric.',
-//             'telp_number.max' => 'The phone number may not be greater than 13 digits.',
-//             'status_employee.required' => 'The employee status is required.',
-//             'nik.required' => 'The NIK is required.',
-//             'nik.max' => 'The NIK may not be greater than 20 characters.',
-//             'bank_account_number.required' => 'The bank account number is required.',
-//             'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
-//             'last_education.required' => 'The last education field is required.',
-//             'last_education.max' => 'The last education may not be greater than 255 characters.',
-//             'religion.required' => 'The religion field is required.',
-//             'place_of_birth.required' => 'The place of birth is required.',
-//             'biological_mother_name.required' => 'The biological mother\'s name is required.',
-//             'current_address.required' => 'The current address is required.',
-//             'id_card_address.required' => 'The ID card address is required.',
-//             'institution.required' => 'The institution is required.',
-//             'npwp.required' => 'The NPWP is required.',
-//             'npwp.max' => 'The NPWP may not be greater than 50 characters.',
-//             'position_id.exists' => 'The selected position is invalid.',
-//             'store_id.exists' => 'The selected store is invalid.',
-//             'company_id.exists' => 'The selected company is invalid.',
-//             'department_id.exists' => 'The selected department is invalid.',
-//             'position_id.required' => 'The Position is required.',
-//             'store_id.required' => 'The Store is required.',
-//             'company_id.required' => 'The Company is required.',
-//             'department_id.required' => 'The Department is required.',
-//             'banks_id.exists' => 'The selected banks is invalid.',
-//             'banks_id.required' => 'The banks is required.',
-//         ]);
-        
-        
-//            DB::beginTransaction();
-//     try {
-//         $employee = $user->Employee;
-//         $oldStructureId = $employee->structure_id;
-//         $statusEmployee = $validatedData['status'];
-//         $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
-
-//         if (in_array($statusEmployee, $statusChangeTriggers)) {
-//             $validatedData['structure_id'] = null;
-
-//             if (!empty($oldStructureId)) {
-//                 $oldStructure = Structuresnew::find($oldStructureId);
-//                 if ($oldStructure) {
-//                     $oldStructure->update(['status' => 'vacant']);
-//                 }
-//             }
-//         }
-//         $user->Employee->update([
-//             'employee_name' => $validatedData['employee_name'] ?? '',
-//             'nik' => $validatedData['nik'] ?? '',
-//             'bank_account_number' => $validatedData['bank_account_number'] ?? '',
-//             'position_id' => $validatedData['position_id'] ?? '',
-//             'company_id' => $validatedData['company_id'] ?? '',
-//             'store_id' => $validatedData['store_id'] ?? '',
-//             'structure_id' => $validatedData['structure_id'] ?? null,
-//             'department_id' => $validatedData['department_id'] ?? '',
-//             'banks_id' => $validatedData['banks_id'] ?? '',
-//             'status_employee' => $validatedData['status_employee'] ?? '',
-//             'join_date' => $validatedData['join_date'] ?? '',
-//             'end_date' => $validatedData['end_date'] ?? null,
-//             'marriage' => $validatedData['marriage'] ?? '',
-//             'child' => $validatedData['child'] ?? '',
-//             'telp_number' => $validatedData['telp_number'] ?? '',
-//             'gender' => $validatedData['gender'] ?? '',
-//             'date_of_birth' => $validatedData['date_of_birth'] ?? '',
-//             'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
-//             'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
-//             'email' => $validatedData['email'] ?? '',
-//             'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
-//             'notes' => $validatedData['notes'] ?? '',
-//             'status' => $validatedData['status'],
-//             'religion' => $validatedData['religion'] ?? '',
-//             'last_education' => $validatedData['last_education'] ?? '',
-//             'place_of_birth' => $validatedData['place_of_birth'] ?? '',
-//             'biological_mother_name' => $validatedData['biological_mother_name'] ?? '',
-//             'current_address' => $validatedData['current_address'] ?? '',
-//             'id_card_address' => $validatedData['id_card_address'] ?? '',
-//             'institution' => $validatedData['institution'] ?? '',
-//             'npwp' => $validatedData['npwp'] ?? '',
-//             'pin' => $validatedData['pin'] ?? '',
-//             'level_id' => $validatedData['level_id'],
-//             'is_manager'  => $validatedData['is_manager'] ?? 0,
-//             'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
-//         ]);
-       
-//      if (empty($validatedData['structure_id']) && !empty($oldStructureId)) {
-//         $oldStructure = Structuresnew::find($oldStructureId);
-//         if ($oldStructure) {
-//             $oldStructure->update(['status' => 'vacant']);
-//         }
-//     }
-//      if (!empty($validatedData['structure_id'])) {
-//             $newStructure = Structuresnew::find($validatedData['structure_id']);
-//             if ($newStructure) {
-//                 $newStructure->update(['status' => 'active']);
-//             }
-//         }
-//        DB::commit();
-//         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
-//     } catch (\Throwable $th) {
-//         DB::rollBack();
-//         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
-//     }
-// }
-            // 'foto' => ['nullable', 'image', 'max:512'],
-
-     // 'foto.max' => 'under 512 kb.',
-            // 'foto.image' => 'must be jpg jpeg or png .',
-    // $filePath = $user->employee->foto;
-        // if ($request->hasFile('foto')) {
-        //     $file = $request->file('foto');
-        //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-        //     $file->storeAs('public/employeefoto', $fileName);
-        //     $filePath = $fileName;
-        //     if ($user->employee && $user->employee->foto && Storage::exists('public/employeefoto/' . $user->employee->foto)) {
-        //         Storage::delete('public/company/' . $user->employee->foto);
-        //     }
-        // }
-        // if ($request->hasFile('foto')) {
-        //     $companyData['foto'] = $filePath;
-        // }
-    public function transferAllToPayroll(Request $request)
+public function transferAllToPayroll(Request $request)
     {
         try {
-            $month_year = $request->input('month_year', date('Y-m-d')); 
+            $month_year = $request->input('month_year', date('Y-m-d'));
 
             $month = date('m', strtotime($month_year));
             $year = date('Y', strtotime($month_year));
@@ -1527,4 +968,571 @@ public function getPhoto($path)
             return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
         }
     }
+
+    // with locking
+    //     public function update(Request $request, $hashedId)
+    // {
+    //     // Ambil user secara efisien tanpa get semua record
+    //     $user = User::with('Employee')
+    //         ->get()
+    //         ->first(function ($u) use ($hashedId) {
+    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //             return $expectedHash === $hashedId;
+    //         });
+
+    //     if (!$user) {
+    //         return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
+    //     }
+
+    //     $validatedData = $request->validate([
+    //           'photos' => [
+    //             'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:512'
+    //         ],
+    //         'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+    //         'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
+    //         'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+    //         'employee_name' => [
+    //             'required', 'string', 'max:255',
+    //             Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
+    //         'bpjs_kes' => ['required', 'string', 'max:255'],
+    //         'bpjs_ket' => ['required', 'string', 'max:255'],
+    //         'email' => ['required', 'string', 'max:255'],
+    //         'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    //         'child' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'telp_number' => [
+    //             'required', 'numeric', 'digits_between:10,13',
+    //             Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'nik' => [
+    //             'required', 'max:20',
+    //             Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
+    //         'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'religion' => ['required', 'string', new NoXSSInput()],
+    //         'status' => ['required', 'string', new NoXSSInput()],
+    //         'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'npwp' => ['required', 'string', 'max:50'],
+    //         'is_manager' => ['nullable'],
+    //         'pin' => [
+    //             'required', 'string', 'max:50',
+    //             Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
+    //         'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
+    //         'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
+    //         'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
+    //         'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
+
+    //     ]
+    // );
+    // $filePath = $user->employee->photos;
+
+    //     try {
+    //         DB::transaction(function () use ($user, $validatedData) {
+    // if ($request->hasFile('photos')) {
+    //             $file = $request->file('photos');
+    //             $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
+    //             $folderPath = 'employeesphotos/' . date('Y/m');
+
+    //             // Simpan file baru
+    //             Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+    //             $newFilePath = $folderPath . '/' . $fileName;
+
+    //             // Hapus file lama kalau ada
+    //             if ($filePath && Storage::exists('public/' . $filePath)) {
+    //                 Storage::delete('public/' . $filePath);
+    //             }
+
+    //             $filePath = $newFilePath;
+    //         }
+    //             // Ambil employee dengan kunci baris agar aman dari race
+    //             $employee = $user->Employee()->lockForUpdate()->first();
+    //             $oldStructureId = $employee->structure_id;
+
+    //             $statusEmployee = $validatedData['status'];
+    //             $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+
+    //             // Jika status berubah ke non-aktif
+    //             if (in_array($statusEmployee, $statusChangeTriggers)) {
+    //                 $validatedData['structure_id'] = null;
+
+    //                 if ($oldStructureId) {
+    //                     $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
+    //                     if ($oldStructure) {
+    //                         $oldStructure->update(['status' => 'vacant']);
+    //                     }
+    //                 }
+    //             }
+
+
+
+    //             // Update structure baru jika ada
+    //             if (!empty($validatedData['structure_id'])) {
+    //                 $newStructure = Structuresnew::with('submissionposition')
+    //                     ->where('id', $validatedData['structure_id'])
+    //                     ->lockForUpdate()
+    //                     ->first();
+
+    //                 if ($newStructure) {
+    //                     if ($newStructure->submissionposition) {
+    //                         $submission = $newStructure->submissionposition;
+
+    //                         $validatedData['company_id'] = $submission->company_id;
+    //                         $validatedData['department_id'] = $submission->department_id;
+    //                         $validatedData['store_id'] = $submission->store_id;
+    //                         $validatedData['position_id'] = $submission->position_id;
+    //                         $validatedData['is_manager'] = $submission->is_manager;
+
+    //                         Log::info('Structure fields updated from submissionposition relation', [
+    //                             'structure_id' => $newStructure->id,
+    //                             'company_id' => $submission->company_id,
+    //                             'department_id' => $submission->department_id,
+    //                             'store_id' => $submission->store_id,
+    //                             'is_manager' => $submission->is_manager,
+    //                             'position_id' => $submission->position_id,
+    //                         ]);
+    //                     } else {
+    //                         Log::warning('No submissionposition found for structure', [
+    //                             'structure_id' => $newStructure->id,
+    //                         ]);
+    //                     }
+
+    //                     $newStructure->update(['status' => 'active']);
+    //                 }
+    //             }
+
+    //             // Update data employee
+    //             $employee->update($validatedData);
+
+    //             // Jika structure dikosongkan, pastikan status structure lama jadi 'vacant'
+    //             if (empty($validatedData['structure_id']) && $oldStructureId) {
+    //                 $oldStructure = Structuresnew::where('id', $oldStructureId)->lockForUpdate()->first();
+    //                 if ($oldStructure) {
+    //                     $oldStructure->update(['status' => 'vacant']);
+    //                 }
+    //             }
+
+    //             Log::info('Employee update successful', [
+    //                 'employee_id' => $employee->id,
+    //                 'final_structure_id' => $employee->structure_id,
+    //             ]);
+    //         });
+
+    //         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+
+    //     } catch (\Throwable $th) {
+    //         Log::error('Employee update failed', [
+    //             'error' => $th->getMessage(),
+    //             'employee_id' => $user->Employee->id ?? null,
+    //         ]);
+    //         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
+    //     }
+    // }
+
+    // tanpa locking 
+    // public function update(Request $request, $hashedId)
+    // {
+    //     $user = User::with('Employee')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+
+    //     if (!$user) {
+    //         return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
+    //     }
+
+    //     $validatedData = $request->validate([
+    //         'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+    //         'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
+    //         'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+    //         'employee_name' => [
+    //             'required', 'string', 'max:255',
+    //             Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'structure_id' => ['nullable', 'exists:structures_tables,id', new NoXSSInput()],
+    //         'bpjs_kes' => ['required', 'string', 'max:255'],
+    //         'bpjs_ket' => ['required', 'string', 'max:255'],
+    //         'email' => ['required', 'string', 'max:255'],
+    //         'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    //         'child' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'telp_number' => [
+    //             'required', 'numeric', 'digits_between:10,13',
+    //             Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'nik' => [
+    //             'required', 'max:20',
+    //             Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
+    //         'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'religion' => ['required', 'string', new NoXSSInput()],
+    //         'status' => ['required', 'string', new NoXSSInput()],
+    //         'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //         'npwp' => ['required', 'string', 'max:50'],
+    //         'pin' => [
+    //             'required', 'string', 'max:50',
+    //             Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'position_id' => ['nullable', 'exists:position_tables,id', new NoXSSInput()],
+    //         'store_id' => ['nullable', 'exists:stores_tables,id', new NoXSSInput()],
+    //         'company_id' => ['nullable', 'exists:company_tables,id', new NoXSSInput()],
+    //         'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
+    //         'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
+    //     ]);
+
+    //     DB::beginTransaction();
+
+    //     try {
+    //         $employee = $user->Employee;
+    //         $oldStructureId = $employee->structure_id;
+    //         $statusEmployee = $validatedData['status'];
+    //         $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+
+    //         if (in_array($statusEmployee, $statusChangeTriggers)) {
+    //             $validatedData['structure_id'] = null;
+
+    //             if (!empty($oldStructureId)) {
+    //                 $oldStructure = Structuresnew::find($oldStructureId);
+    //                 if ($oldStructure) {
+    //                     $oldStructure->update(['status' => 'vacant']);
+    //                 }
+    //             }
+    //         }
+
+    //         Log::info('Employee update initiated', [
+    //             'employee_id' => $employee->id,
+    //             'old_structure_id' => $oldStructureId,
+    //             'new_structure_id' => $validatedData['structure_id'] ?? null,
+    //             'performed_by' => auth()->user()->name ?? 'system',
+    //         ]);
+
+    //         // Ambil data dari relasi submissionposition
+    //         if (!empty($validatedData['structure_id'])) {
+    //             $newStructure = Structuresnew::with('submissionposition')->find($validatedData['structure_id']);
+    //             if ($newStructure) {
+    //                 if ($newStructure->submissionposition) {
+    //                     $submission = $newStructure->submissionposition;
+
+    //                     $validatedData['company_id'] = $submission->company_id;
+    //                     $validatedData['department_id'] = $submission->department_id;
+    //                     $validatedData['store_id'] = $submission->store_id;
+    //                     $validatedData['position_id'] = $submission->position_id;
+
+    //                     Log::info('Structure fields updated from submissionposition relation', [
+    //                         'structure_id' => $newStructure->id,
+    //                         'company_id' => $submission->company_id,
+    //                         'department_id' => $submission->department_id,
+    //                         'store_id' => $submission->store_id,
+    //                         'position_id' => $submission->position_id,
+    //                     ]);
+    //                 } else {
+    //                     Log::warning('No submissionposition found for structure', [
+    //                         'structure_id' => $newStructure->id,
+    //                     ]);
+    //                 }
+
+    //                 $newStructure->update(['status' => 'active']);
+    //             }
+    //         }
+
+    //         // Update data employee
+    //         $employee->update([
+    //             'employee_name' => $validatedData['employee_name'],
+    //             'nik' => $validatedData['nik'],
+    //             'bank_account_number' => $validatedData['bank_account_number'],
+    //             'position_id' => $validatedData['position_id'] ?? null,
+    //             'company_id' => $validatedData['company_id'] ?? null,
+    //             'store_id' => $validatedData['store_id'] ?? null,
+    //             'structure_id' => $validatedData['structure_id'] ?? null,
+    //             'department_id' => $validatedData['department_id'] ?? null,
+    //             'banks_id' => $validatedData['banks_id'],
+    //             'status_employee' => $validatedData['status_employee'],
+    //             'join_date' => $validatedData['join_date'],
+    //             'end_date' => $validatedData['end_date'] ?? null,
+    //             'marriage' => $validatedData['marriage'],
+    //             'child' => $validatedData['child'],
+    //             'telp_number' => $validatedData['telp_number'],
+    //             'gender' => $validatedData['gender'],
+    //             'date_of_birth' => $validatedData['date_of_birth'],
+    //             'bpjs_kes' => $validatedData['bpjs_kes'],
+    //             'bpjs_ket' => $validatedData['bpjs_ket'],
+    //             'email' => $validatedData['email'],
+    //             'emergency_contact_name' => $validatedData['emergency_contact_name'],
+    //             'notes' => $validatedData['notes'] ?? '',
+    //             'status' => $validatedData['status'],
+    //             'religion' => $validatedData['religion'],
+    //             'last_education' => $validatedData['last_education'],
+    //             'place_of_birth' => $validatedData['place_of_birth'],
+    //             'biological_mother_name' => $validatedData['biological_mother_name'],
+    //             'current_address' => $validatedData['current_address'],
+    //             'id_card_address' => $validatedData['id_card_address'],
+    //             'institution' => $validatedData['institution'],
+    //             'npwp' => $validatedData['npwp'],
+    //             'pin' => $validatedData['pin'],
+    //         ]);
+
+    //         if (empty($validatedData['structure_id']) && !empty($oldStructureId)) {
+    //             $oldStructure = Structuresnew::find($oldStructureId);
+    //             if ($oldStructure) {
+    //                 $oldStructure->update(['status' => 'vacant']);
+    //             }
+    //         }
+
+    //         DB::commit();
+
+    //         Log::info('Employee update successful', [
+    //             'employee_id' => $employee->id,
+    //             'final_structure_id' => $employee->structure_id,
+    //         ]);
+
+    //         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+    //     } catch (\Throwable $th) {
+    //         DB::rollBack();
+    //         Log::error('Employee update failed', [
+    //             'error' => $th->getMessage(),
+    //             'employee_id' => $user->Employee->id ?? null,
+    //         ]);
+    //         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
+    //     }
+    // }
+
+
+    //     public function update(Request $request, $hashedId)
+    //     {
+    //         $user = User::with('Employee')->get()->first(function ($u) use ($hashedId) {
+    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //             return $expectedHash === $hashedId;
+    //         });
+    //         if (!$user) {
+    //             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
+    //         }
+    //         $validatedData = $request->validate([
+
+    //             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+    //             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
+    //             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
+
+    //             'employee_name' => [
+    //                 'required',
+    //                 'string',
+    //                 'max:255',
+    //                 Rule::unique('employees_tables', 'employee_name')->ignore($user->Employee->id),
+    //                 new NoXSSInput()
+    //             ],
+    //             'level_id' => [
+    //                 'nullable',
+    //                 'exists:employees_tables,id',
+    //                 new NoXSSInput()
+    //             ],
+    //             'structure_id' => [
+    //                 'nullable',
+    //                 'exists:structures_tables,id',
+    //                 new NoXSSInput()
+    //             ],
+    //             'is_manager' => [
+    //                 'nullable',
+    //                 'boolean',
+    //                 new NoXSSInput()
+    //             ],
+    //             'is_manager_store' => [
+    //                 'nullable',
+    //                 'boolean',
+    //                 new NoXSSInput()
+    //             ],
+    //             'bpjs_kes' => ['required', 'string', 'max:255'],
+    //             'bpjs_ket' => ['required', 'string', 'max:255'],
+    //             'email' => ['required', 'string', 'max:255',],
+    //             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    //             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'telp_number' => ['required', 'numeric', 'digits_between:10,13', Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id), new NoXSSInput()],
+    //             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'nik' => ['required', 'max:20', Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id), new NoXSSInput()],
+    //             'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
+    //             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'religion' => ['required', 'string', new NoXSSInput()],
+    //             'status' => ['required', 'string', new NoXSSInput()],
+    //             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'biological_mother_name' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'current_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
+    //             'npwp' => ['required', 'string', 'max:50'],
+    //             'pin' => ['required', 'string', 'max:50', Rule::unique('employees_tables', 'pin')->ignore($user->Employee->id), new NoXSSInput()],
+    //             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
+    //             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
+    //             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
+    //             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
+    //             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
+    //         ], [
+
+    //             'join_date.required' => 'The join date is required.',
+    //             'join_date.date_format' => 'The join date must be in the format YYYY-MM-DD.',
+    //             'date_of_birth.required' => 'The date of birth is required.',
+    //             'date_of_birth.date_format' => 'The date of birth must be in the format YYYY-MM-DD.',
+    //             'employee_name.required' => 'The employee name is required.',
+    //             'employee_name.max' => 'The employee name may not be greater than 255 characters.',
+    //             'bpjs_kes.required' => 'The BPJS Kesehatan field is required.',
+    //             'bpjs_kes.max' => 'The BPJS Kesehatan may not be greater than 255 characters.',
+    //             'bpjs_ket.required' => 'The BPJS Ketenagakerjaan field is required.',
+    //             'bpjs_ket.max' => 'The BPJS Ketenagakerjaan may not be greater than 255 characters.',
+    //             'email.required' => 'The email is required.',
+    //             'email.max' => 'The email may not be greater than 255 characters.',
+    //             'emergency_contact_name.required' => 'The emergency contact name is required.',
+    //             'marriage.required' => 'The marriage status is required.',
+    //             'notes.max' => 'The notes may not be greater than 255 characters.',
+    //             'child.required' => 'The child information is required.',
+    //             'gender.required' => 'The gender is required.',
+    //             'telp_number.required' => 'The phone number is required.',
+    //             'telp_number.numeric' => 'The phone number must be numeric.',
+    //             'telp_number.max' => 'The phone number may not be greater than 13 digits.',
+    //             'status_employee.required' => 'The employee status is required.',
+    //             'nik.required' => 'The NIK is required.',
+    //             'nik.max' => 'The NIK may not be greater than 20 characters.',
+    //             'bank_account_number.required' => 'The bank account number is required.',
+    //             'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
+    //             'last_education.required' => 'The last education field is required.',
+    //             'last_education.max' => 'The last education may not be greater than 255 characters.',
+    //             'religion.required' => 'The religion field is required.',
+    //             'place_of_birth.required' => 'The place of birth is required.',
+    //             'biological_mother_name.required' => 'The biological mother\'s name is required.',
+    //             'current_address.required' => 'The current address is required.',
+    //             'id_card_address.required' => 'The ID card address is required.',
+    //             'institution.required' => 'The institution is required.',
+    //             'npwp.required' => 'The NPWP is required.',
+    //             'npwp.max' => 'The NPWP may not be greater than 50 characters.',
+    //             'position_id.exists' => 'The selected position is invalid.',
+    //             'store_id.exists' => 'The selected store is invalid.',
+    //             'company_id.exists' => 'The selected company is invalid.',
+    //             'department_id.exists' => 'The selected department is invalid.',
+    //             'position_id.required' => 'The Position is required.',
+    //             'store_id.required' => 'The Store is required.',
+    //             'company_id.required' => 'The Company is required.',
+    //             'department_id.required' => 'The Department is required.',
+    //             'banks_id.exists' => 'The selected banks is invalid.',
+    //             'banks_id.required' => 'The banks is required.',
+    //         ]);
+
+
+    //            DB::beginTransaction();
+    //     try {
+    //         $employee = $user->Employee;
+    //         $oldStructureId = $employee->structure_id;
+    //         $statusEmployee = $validatedData['status'];
+    //         $statusChangeTriggers = ['Resign', 'Inactive', 'On Leave'];
+
+    //         if (in_array($statusEmployee, $statusChangeTriggers)) {
+    //             $validatedData['structure_id'] = null;
+
+    //             if (!empty($oldStructureId)) {
+    //                 $oldStructure = Structuresnew::find($oldStructureId);
+    //                 if ($oldStructure) {
+    //                     $oldStructure->update(['status' => 'vacant']);
+    //                 }
+    //             }
+    //         }
+    //         $user->Employee->update([
+    //             'employee_name' => $validatedData['employee_name'] ?? '',
+    //             'nik' => $validatedData['nik'] ?? '',
+    //             'bank_account_number' => $validatedData['bank_account_number'] ?? '',
+    //             'position_id' => $validatedData['position_id'] ?? '',
+    //             'company_id' => $validatedData['company_id'] ?? '',
+    //             'store_id' => $validatedData['store_id'] ?? '',
+    //             'structure_id' => $validatedData['structure_id'] ?? null,
+    //             'department_id' => $validatedData['department_id'] ?? '',
+    //             'banks_id' => $validatedData['banks_id'] ?? '',
+    //             'status_employee' => $validatedData['status_employee'] ?? '',
+    //             'join_date' => $validatedData['join_date'] ?? '',
+    //             'end_date' => $validatedData['end_date'] ?? null,
+    //             'marriage' => $validatedData['marriage'] ?? '',
+    //             'child' => $validatedData['child'] ?? '',
+    //             'telp_number' => $validatedData['telp_number'] ?? '',
+    //             'gender' => $validatedData['gender'] ?? '',
+    //             'date_of_birth' => $validatedData['date_of_birth'] ?? '',
+    //             'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
+    //             'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
+    //             'email' => $validatedData['email'] ?? '',
+    //             'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
+    //             'notes' => $validatedData['notes'] ?? '',
+    //             'status' => $validatedData['status'],
+    //             'religion' => $validatedData['religion'] ?? '',
+    //             'last_education' => $validatedData['last_education'] ?? '',
+    //             'place_of_birth' => $validatedData['place_of_birth'] ?? '',
+    //             'biological_mother_name' => $validatedData['biological_mother_name'] ?? '',
+    //             'current_address' => $validatedData['current_address'] ?? '',
+    //             'id_card_address' => $validatedData['id_card_address'] ?? '',
+    //             'institution' => $validatedData['institution'] ?? '',
+    //             'npwp' => $validatedData['npwp'] ?? '',
+    //             'pin' => $validatedData['pin'] ?? '',
+    //             'level_id' => $validatedData['level_id'],
+    //             'is_manager'  => $validatedData['is_manager'] ?? 0,
+    //             'is_manager_store'  => $validatedData['is_manager_store'] ?? 0,
+    //         ]);
+
+    //      if (empty($validatedData['structure_id']) && !empty($oldStructureId)) {
+    //         $oldStructure = Structuresnew::find($oldStructureId);
+    //         if ($oldStructure) {
+    //             $oldStructure->update(['status' => 'vacant']);
+    //         }
+    //     }
+    //      if (!empty($validatedData['structure_id'])) {
+    //             $newStructure = Structuresnew::find($validatedData['structure_id']);
+    //             if ($newStructure) {
+    //                 $newStructure->update(['status' => 'active']);
+    //             }
+    //         }
+    //        DB::commit();
+    //         return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
+    //     } catch (\Throwable $th) {
+    //         DB::rollBack();
+    //         return redirect()->route('pages.Employee')->with('error', 'Update failed: ' . $th->getMessage());
+    //     }
+    // }
+    // 'foto' => ['nullable', 'image', 'max:512'],
+
+    // 'foto.max' => 'under 512 kb.',
+    // 'foto.image' => 'must be jpg jpeg or png .',
+    // $filePath = $user->employee->foto;
+    // if ($request->hasFile('foto')) {
+    //     $file = $request->file('foto');
+    //     $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+    //     $file->storeAs('public/employeefoto', $fileName);
+    //     $filePath = $fileName;
+    //     if ($user->employee && $user->employee->foto && Storage::exists('public/employeefoto/' . $user->employee->foto)) {
+    //         Storage::delete('public/company/' . $user->employee->foto);
+    //     }
+    // }
+    // if ($request->hasFile('foto')) {
+    //     $companyData['foto'] = $filePath;
+    // }
+    
 }

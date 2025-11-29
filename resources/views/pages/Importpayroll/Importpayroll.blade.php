@@ -123,16 +123,16 @@
                     </ul>
                 </div>
             @endif
-            @if(session('error_custom'))
-    <div class="alert alert-danger">
-        <strong>Gagal Import (Excel Validation):</strong>
-        <ul class="mt-2 mb-0">
-            @foreach(session('error_custom') as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+            @if (session('error_custom'))
+                <div class="alert alert-danger">
+                    <strong>Gagal Import (Excel Validation):</strong>
+                    <ul class="mt-2 mb-0">
+                        @foreach (session('error_custom') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="section-body">
                 <div class="form-container">
                     <h2>The moment we've been waiting for</h2>
