@@ -302,21 +302,47 @@ public function getOrgChartDataTeam()
 
     return response()->json($sortedData);
 }
+// public function indexteamfingerprint()
+// {
+//     $user = auth()->user();
+
+//     $submission = $user->employee->structuresnew->submissionposition ?? null;
+
+//     $multiStores = $submission?->stores ?? collect();
+
+//     if ($multiStores->isNotEmpty()) {
+//         $stores = $multiStores->pluck('name', 'id');
+//     } else {
+//         $stores = Stores::orderBy('name')->pluck('name', 'id');
+//     }
+//     return view('pages.Teamfingerprint.Teamfingerprint', compact('stores'));
+// }
 public function indexteamfingerprint()
 {
-    $user = auth()->user();
+    $user = auth()->user()->load([
+        'employee.structuresnew.submissionposition.stores',
+        'employee.structuresnew.submissionposition.store'
+    ]);
+    $structure = $user->employee->structuresnew ?? null;
+    $submission = $structure?->submissionposition;
+    // 1) Cek multistore
+    $multi = $submission?->stores;
 
-    $submission = $user->employee->structuresnew->submissionposition ?? null;
-
-    $multiStores = $submission?->stores ?? collect();
-
-    if ($multiStores->isNotEmpty()) {
-        $stores = $multiStores->pluck('name', 'id');
-    } else {
+    if ($multi && $multi->isNotEmpty()) {
+        $stores = $multi->pluck('name', 'id');
+    } 
+    // 2) Kalau multistore kosong → pakai single store dari structuresnew
+    else if ($structure?->submissionposition->store) {
+        $stores = collect([$structure->submissionposition->store->id => $structure->submissionposition->store->name]);
+    } 
+    // 3) Fallback terakhir → semua store
+    else {
         $stores = Stores::orderBy('name')->pluck('name', 'id');
     }
+
     return view('pages.Teamfingerprint.Teamfingerprint', compact('stores'));
 }
+
 // public function getTeamfingerprints(Request $request)
 // {
 //     ini_set('memory_limit', '1024M');
@@ -511,9 +537,9 @@ $employeesQuery->where('department_id', $employeeLogin->department_id);
         );
 
     // Group berdasarkan PIN + tanggal
-    $grouped = $fingerprints->groupBy(fn($f) =>
-        $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString()
-    );
+     $grouped = $fingerprints
+    ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
+
 
     // Bentuk hasil akhir
     $result = $grouped->map(function ($group) use ($employees, $totalHariPerPin) {
@@ -541,48 +567,68 @@ $employeesQuery->where('department_id', $employeeLogin->department_id);
 
         // Init in_x, device_x, combine_x
         for ($i = 1; $i <= 10; $i++) {
-            $row["in_$i"] = null;
-            $row["device_$i"] = null;
-            $row["combine_$i"] = null;
+            $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
         }
 
-        // Isi fingerprint per mode
-        $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row, $scanDate) {
-            if ($mode >= 1 && $mode <= 10) {
-                $firstItem = $items->sortBy('scan_date')->first();
-                $time = Carbon::parse($firstItem->scan_date)->format('H:i:s');
+        // ===============================
+        //   MAPPING IN/OUT MODE
+        //   (MENAMPILKAN SEMUA JAM)
+        // ===============================
+        $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
+            if ($mode < 1 || $mode > 10) return;
 
-                $row["in_$mode"] = $time;
-                $row["device_$mode"] = $firstItem->devicefingerprints->device_name ?? '';
-                $row["combine_$mode"] = trim("$time {$row["device_$mode"]}");
-            }
+            $sorted = $items->sortBy('scan_date');
+
+            $times = $sorted->pluck('scan_date')
+                ->map(fn($d) => Carbon::parse($d)->format('H:i:s'))
+                ->implode(', ');
+
+            $devices = $sorted
+                ->map(fn($i) => optional($i->devicefingerprints)->device_name ?? '')
+                ->implode(', ');
+
+            $row["in_$mode"]      = $times;
+            $row["device_$mode"]  = $devices;
+            $row["combine_$mode"] = trim($times . ' ' . $devices);
         });
 
-        // Hitung durasi
+        // ===============================
+        //         HITUNG DURATION
+        // ===============================
         $times = collect(range(1, 10))
-            ->map(fn($i) => $row["in_$i"] ? $scanDate . ' ' . $row["in_$i"] : null)
-            ->filter()
+            ->flatMap(function ($i) use ($row) {
+                if (!$row["in_$i"]) return [];
+                return explode(', ', $row["in_$i"]);
+            })
+            ->map(fn($t) => Carbon::parse($t))
             ->sort()
             ->values();
 
         if ($times->count() >= 2) {
-            $start = Carbon::parse($times->first());
-            $end   = Carbon::parse($times->last());
+            $start = $times->first();
+            $end   = $times->last();
             $minutes = $start->diffInMinutes($end);
 
             $row['duration'] = sprintf(
                 '%d hour%s %d minute%s',
-                floor($minutes / 60), floor($minutes / 60) !== 1 ? 's' : '',
-                $minutes % 60, ($minutes % 60) !== 1 ? 's' : ''
+                intdiv($minutes, 60),
+                intdiv($minutes, 60) !== 1 ? 's' : '',
+                $minutes % 60,
+                $minutes % 60 !== 1 ? 's' : ''
             );
         } else {
             $row['duration'] = 'invalid';
         }
 
+        // Update status edited
+     
         return $row;
     })->filter()->values();
 
-    return DataTables::of($result)->make(true);
+    // Return Datatables
+    return DataTables::of($result)
+     
+        ->make(true);
 }
 // public function getTeamfingerprints(Request $request)
 // {
