@@ -16,19 +16,7 @@ class LeavebalancesController extends Controller
     {
         return view('pages.Leavesbalance.Leavesbalance');
     }
-    // public function getLeavesbalances()
-    // {
-    //     $balances = Leavebalance::with('employees','leaves')->select(['id', 'employee_id','leave_type_id','balance_days','balance_hours','year'])
-    //         ->get();
-    //   return DataTables::of($balances)
-    //     ->addColumn('employee_name', function ($row) {
-    //         return $row->employees?->employee_name;
-    //     })
-    //     ->addColumn('leaves_type', function ($row) {
-    //         return $row->leaves?->name ?? '-';
-    //     })
-    //     ->make(true);
-    // }
+   
     public function getLeavesbalances()
 {
     $balances = Leavebalance::with(['employees', 'leaves'])

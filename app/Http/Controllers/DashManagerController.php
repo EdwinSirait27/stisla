@@ -11,10 +11,11 @@ use App\Models\Announcement;
 use App\Models\Employee;
 use App\Models\Departments;
 use App\Models\Stores;
+use App\Models\Leavebalance;
 use App\Models\Fingerprints;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\Banks;
 use App\Models\Grading;
 use Yajra\DataTables\DataTables;
@@ -26,12 +27,105 @@ class DashManagerController extends Controller
         $announcements = Announcement::with('user')
             ->orderBy('publish_date', 'desc')
             ->paginate(10);
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])->count();
-        return view('pages.dashboardTeam.dashboardTeam', compact('announcements'));
+
+        $employee = Auth::user()->employee;
+        $companyId = $employee->company_id;
+        $departmentId = $employee->department_id;
+
+        // Ambil multi store user
+        $multiStores = $employee->structureNew?->stores?->pluck('id')->toArray();
+        $storeIds = !empty($multiStores) ? $multiStores : [$employee->store_id];
+
+        // Hitung total karyawan
+        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+            ->where('company_id', $companyId)
+            ->where('department_id', $departmentId)
+            ->whereIn('store_id', $storeIds)
+            ->count();
+
+        $totalEmployeespending = Employee::where('status', 'Pending')
+            ->where('company_id', $companyId)
+            ->where('department_id', $departmentId)
+            ->whereIn('store_id', $storeIds)
+            ->count();
+
+        // Ambil PIN seluruh karyawan tim
+        $employeesPins = Employee::where('company_id', $companyId)
+            ->where('department_id', $departmentId)
+            ->whereIn('store_id', $storeIds)
+            ->pluck('pin')
+            ->toArray();
+
+        $today = now()->format('Y-m-d');
+
+        // Hanya filter dengan PIN (karena att_log tidak punya company_id / dept_id / store_id)
+        $presentToday = Fingerprints::whereDate('scan_date', $today)
+            ->whereIn('inoutmode', [1])
+            ->whereIn('pin', $employeesPins)
+            ->distinct('pin')
+            ->count('pin');
+        $absentToday = count($employeesPins) - $presentToday;
+        return view('pages.dashboardTeam.dashboardTeam', compact(
+            'absentToday',
+            'presentToday',
+            'announcements',
+            'totalEmployees',
+            'totalEmployeespending'
+        ));
     }
+
     public function index()
     {
-        return view('pages.dashboardManager.dashboardManager');
+        $announcements = Announcement::with('user')
+            ->orderBy('publish_date', 'desc')
+            ->paginate(10);
+
+        $employee = Auth::user()->employee;
+        $companyId = $employee->company_id;
+        $departmentId = $employee->department_id;
+
+        // Ambil multi store user
+        $multiStores = $employee->structureNew?->stores?->pluck('id')->toArray();
+        $storeIds = !empty($multiStores) ? $multiStores : [$employee->store_id];
+
+        // Hitung total karyawan
+        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+            ->where('company_id', $companyId)
+            ->where('department_id', $departmentId)
+            ->whereIn('store_id', $storeIds)
+            ->count();
+
+        $totalEmployeespending = Employee::where('status', 'Pending')
+            ->where('company_id', $companyId)
+            ->where('department_id', $departmentId)
+            ->whereIn('store_id', $storeIds)
+            ->count();
+
+        $employeeLogin = auth()->user()->employee;
+        $pin = $employeeLogin->pin;
+        $today = now()->format('Y-m-d');
+        $lastWeek = now()->subDays(7)->format('Y-m-d');
+
+        $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
+            ->where('inoutmode', 1)
+            ->where('pin', $pin)
+            ->distinct('scan_date')
+            ->count();
+
+$employeelogin = $employee->id;
+ $leavebalance = Leavebalance::with(['employees', 'leaves'])
+        ->where('employee_id', $employeelogin)
+        ->get();
+
+
+
+        return view('pages.dashboardManager.dashboardManager', compact(
+            'presentCount',
+            'announcements',
+            'totalEmployees',
+            'leavebalance',
+            'totalEmployeespending'
+        ));
     }
     public function team()
     {
@@ -40,27 +134,20 @@ class DashManagerController extends Controller
     public function getTeams(Request $request, DataTables $dataTables)
     {
         $loggedEmployee = auth()->user()->Employee;
-
-        // ambil multi-store
         $submission = $loggedEmployee->structuresnew->submissionposition ?? null;
         $multiStores = $submission?->stores->pluck('id') ?? collect();
-
         $employees = User::with([
             'Employee.company',
             'Employee.store',
             'Employee.position',
-            'Employee.structuresnew.position',
             'Employee.department',
             'Employee.grading',
             'Employee.employees',
-            'Employee.structuresnew.company',
             'Employee.structuresnew'
         ])
             ->whereHas('Employee', function ($q) use ($loggedEmployee, $multiStores) {
                 $q->whereIn('status', ['Active', 'Pending']);
-                // FILTER COMPANY (boleh tetap)
                 $q->where('company_id', $loggedEmployee->company_id);
-
                 if ($multiStores->isNotEmpty()) {
                     $q->whereIn('store_id', $multiStores);
                 } else {
@@ -71,42 +158,34 @@ class DashManagerController extends Controller
             ->select(['id', 'employee_id'])
             ->get()
             ->map(function ($employee) {
-
                 $employee->id_hashed = substr(
                     hash('sha256', $employee->id . env('APP_KEY')),
                     0,
                     8
                 );
-
                 $employeeName = optional($employee->Employee)->employee_name;
-
                 $employee->action = '
             <a href="' . route('Team.show', $employee->id_hashed) . '" class="mx-3" 
                data-bs-toggle="tooltip" title="Show Employee: ' . e($employeeName) . '">
                <i class="fas fa-eye text-secondary"></i>
             </a>';
-
                 return $employee;
             });
-
         return DataTables::of($employees)
             ->addColumn('name_company', fn($e) => $e->Employee->company->name ?? 'Empty')
             ->addColumn('grading_name', fn($e) => $e->Employee->grading->grading_name ?? 'Empty')
             ->addColumn('name', fn($e) => $e->Employee->store->name ?? 'Empty')
             ->addColumn('oldposition_name', fn($e) => $e->Employee->position->name ?? 'Empty')
-            ->addColumn('position_name', fn($e) => $e->Employee->structuresnew->position->name ?? 'Empty')
+            ->addColumn('position_name', fn($e) => $e->Employee->position->name ?? 'Empty')
             ->addColumn('department_name', fn($e) => $e->Employee->department->department_name ?? 'Empty')
             ->addColumn('status_employee', fn($e) => $e->Employee->status_employee ?? 'Empty')
             ->addColumn('employee_name', fn($e) => $e->Employee->employee_name ?? 'Empty')
             ->addColumn('employee_pengenal', fn($e) => $e->Employee->employee_pengenal ?? 'Empty')
             ->addColumn('created_at', fn($e) => $e->Employee->created_at ?? 'Empty')
-            ->addColumn('length_of_service', fn($e) => $e->Employee->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => $e->Employee->status ?? 'Empty')
             ->rawColumns(['action'])
             ->make(true);
     }
-
-
     public function show($hashedId)
     {
         $employee = User::with(
@@ -145,9 +224,8 @@ class DashManagerController extends Controller
         $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
         $banks = Banks::get();
         $gradings = Grading::get();
-        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-
         return view('pages.Team.show', compact(
             'employee',
             'employees',

@@ -244,225 +244,380 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://balkan.app/js/OrgChart.js"></script>
 
-    <script>
-        OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
-        OrgChart.templates.myTemplate.size = [250, 150];
+        {{-- <script>
+            OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+            OrgChart.templates.myTemplate.size = [250, 150];
 
-        OrgChart.templates.myTemplate.node =
-            `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
-        stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+            OrgChart.templates.myTemplate.node =
+                `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+            stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
 
-        OrgChart.templates.myTemplate.field_ =
-            `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+            OrgChart.templates.myTemplate.field_ =
+                `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
 
-        OrgChart.templates.myTemplate.fieldgrading =
-            `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+            OrgChart.templates.myTemplate.fieldgrading =
+                `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
 
-        OrgChart.templates.myTemplate.field_0 =
-            `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+            OrgChart.templates.myTemplate.field_0 =
+                `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
 
-        OrgChart.templates.myTemplate.field_1 =
-            `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+            OrgChart.templates.myTemplate.field_1 =
+                `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
 
-        OrgChart.templates.myTemplate.field_2 =
-            `<g transform="translate(60,105)">
-        <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
-    </g>`;
+            OrgChart.templates.myTemplate.field_2 =
+                `<g transform="translate(60,105)">
+            <rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+        </g>`;
 
-        OrgChart.templates.myTemplate.field_3 =
-            `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
-
-
-        const statusColors = {
-            active: '#4CAF50',
-            inactive: '#F44336',
-            vacant: '#9E9E9E',
-        };
+            OrgChart.templates.myTemplate.field_3 =
+                `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
 
 
-        // === INIT CHART ===
-        const chart = new OrgChart(document.getElementById("tree"), {
-            template: "myTemplate",
-            enableSearch: true,
-            mouseScrool: OrgChart.action.zoom,
-            scaleInitial: OrgChart.match.boundary,
-
-            nodeBinding: {
-                field_: "Employee",
-                fieldgrading: "Grading",
-                field_0: "Position",
-                field_1: "Location",
-                field_2: "statusColor",
-                field_3: "status"
-            },
-
-            toolbar: {
-                zoom: true,
-                fit: true,
-                expandAll: true
-            },
-
-            // ⬇️ TAMBAHKAN INI: Nonaktifkan panel detail
-            nodeMenu: null, // Hilangkan menu node
-            nodeMouseClick: OrgChart.action.none // Tidak ada aksi saat klik node
-        });
+            const statusColors = {
+                active: '#4CAF50',
+                inactive: '#F44336',
+                vacant: '#9E9E9E',
+            };
 
 
-        // === FUNGSI GAMBAR GARIS SECONDARY ===
-        function drawSecondaryLinks() {
-            // console.log('🔵 === drawSecondaryLinks DIPANGGIL ===');
+            // === INIT CHART ===
+            const chart = new OrgChart(document.getElementById("tree"), {
+                template: "myTemplate",
+                enableSearch: true,
+                mouseScrool: OrgChart.action.zoom,
+                scaleInitial: OrgChart.match.boundary,
 
-            // Akses SVG langsung dari DOM
-            const treeElement = document.getElementById("tree");
-            if (!treeElement) {
-                // console.log('❌ Element tree tidak ditemukan');
-                return;
-            }
+                nodeBinding: {
+                    field_: "Employee",
+                    fieldgrading: "Grading",
+                    field_0: "Position",
+                    field_1: "Location",
+                    field_2: "statusColor",
+                    field_3: "status"
+                },
 
-            const SVG = treeElement.querySelector('svg');
-            if (!SVG) {
-                // console.log('❌ SVG belum siap');
-                return;
-            }
-            // console.log('✅ SVG siap');
+                toolbar: {
+                    zoom: true,
+                    fit: true,
+                    expandAll: true
+                },
 
-            // Hapus garis lama
-            const existingLinks = SVG.querySelectorAll('.secondary-link');
-            // console.log('🗑️ Menghapus', existingLinks.length, 'garis lama');
-            existingLinks.forEach(link => link.remove());
+                nodeMenu: null, // Hilangkan menu node
+                nodeMouseClick: OrgChart.action.none // Tidak ada aksi saat klik node
+            });
 
-            if (!window.orgData) {
-                // console.log('❌ window.orgData tidak ada');
-                return;
-            }
-            // console.log('✅ window.orgData ada, jumlah nodes:', window.orgData.length);
 
-            let totalLinksCreated = 0;
+            function drawSecondaryLinks() {
+                const treeElement = document.getElementById("tree");
+                if (!treeElement) {
+                    return;
+                }
+                const SVG = treeElement.querySelector('svg');
+                if (!SVG) {
+                    return;
+                }
+                const existingLinks = SVG.querySelectorAll('.secondary-link');
+                existingLinks.forEach(link => link.remove());
 
-            window.orgData.forEach(node => {
-                if (!node.secondary || node.secondary.length === 0) return;
+                if (!window.orgData) {
+                    return;
+                }
+                let totalLinksCreated = 0;
 
-                // console.log('👤 Node dengan secondary:', {
-                //     employee: node.Employee,
-                //     nodeId: node.id,
-                //     secondaryData: node.secondary
-                // });
+                window.orgData.forEach(node => {
+                    if (!node.secondary || node.secondary.length === 0) return;
+                    node.secondary.forEach(secData => {
+                        const secId = typeof secData === 'object' ? secData.id : secData;
 
-                node.secondary.forEach(secData => {
-                    // ⬇️ PERUBAHAN: Ambil ID dari objek, bukan langsung value
-                    const secId = typeof secData === 'object' ? secData.id : secData;
+                    
+                        const fromNode = chart.getNode(secId);
+                        const toNode = chart.getNode(node.id);
 
-                    // console.log('   🔍 Mencari nodes - FROM ID:', secId, 'TO ID:', node.id);
+                    
+                        if (!fromNode || !toNode) {
+                            return;
+                        }
 
-                    const fromNode = chart.getNode(secId);
-                    const toNode = chart.getNode(node.id);
+                        // Koordinat
+                        const fx = fromNode.x + fromNode.w / 2;
+                        const fy = fromNode.y + fromNode.h;
+                        const tx = toNode.x + toNode.w / 2;
+                        const ty = toNode.y;
 
-                    // console.log('   📍 fromNode:', fromNode ? 'FOUND ✅' : 'NOT FOUND ❌');
-                    // console.log('   📍 toNode:', toNode ? 'FOUND ✅' : 'NOT FOUND ❌');
+                    
+                        const midY = (fy + ty) / 2;
+                        const pathData =
+                            `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
 
-                    if (!fromNode || !toNode) {
-                        // console.log('   ⚠️ SKIP: Node tidak lengkap');
-                        return;
-                    }
+                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        path.setAttribute("d", pathData);
+                        path.setAttribute("stroke", "#FF5722");
+                        path.setAttribute("stroke-width", "5");
+                        path.setAttribute("stroke-dasharray", "15,8");
+                        path.setAttribute("fill", "none");
+                        path.setAttribute("class", "secondary-link");
+                        path.setAttribute("stroke-linecap", "round");
 
-                    // Koordinat
-                    const fx = fromNode.x + fromNode.w / 2;
-                    const fy = fromNode.y + fromNode.h;
-                    const tx = toNode.x + toNode.w / 2;
-                    const ty = toNode.y;
+                        SVG.appendChild(path);
 
-                    // console.log('   📐 Koordinat FROM: (', fx, ',', fy, ')');
-                    // console.log('   📐 Koordinat TO: (', tx, ',', ty, ')');
-
-                    // Buat PATH dengan curve
-                    const midY = (fy + ty) / 2;
-                    const pathData =
-                        `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
-
-                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    path.setAttribute("d", pathData);
-                    path.setAttribute("stroke", "#FF5722");
-                    path.setAttribute("stroke-width", "5");
-                    path.setAttribute("stroke-dasharray", "15,8");
-                    path.setAttribute("fill", "none");
-                    path.setAttribute("class", "secondary-link");
-                    path.setAttribute("stroke-linecap", "round");
-
-                    SVG.appendChild(path);
-
-                    totalLinksCreated++;
-                    // console.log('   ✅ GARIS BERHASIL DIBUAT!');
+                        totalLinksCreated++;
+                        // console.log('   ✅ GARIS BERHASIL DIBUAT!');
+                    });
                 });
+
+                // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
+            }
+
+
+            // === FETCH DATA ===
+            fetch("{{ route('orgchartteam.orgchartteam') }}")
+                .then(res => res.json())
+                .then(data => {
+                    // console.log('Raw data:', data);
+
+                    const processed = data.map(n => ({
+                        ...n,
+                        statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
+                    }));
+
+                    // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
+
+                    window.orgData = processed;
+                    chart.load(processed);
+
+                    // Panggil manual dengan delay lebih lama
+                    setTimeout(() => {
+                        // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
+                        drawSecondaryLinks();
+                    }, 2000); // ⬅ 2 detik
+                });
+
+
+            // === EVENT LISTENERS ===
+            chart.on("init", function() {
+                // console.log('🎬 EVENT: init');
+                setTimeout(drawSecondaryLinks, 500);
             });
-
-            // console.log('🎯 === TOTAL GARIS DIBUAT:', totalLinksCreated, '===');
-        }
-
-
-        // === FETCH DATA ===
-        fetch("{{ route('orgchartteam.orgchartteam') }}")
-            .then(res => res.json())
-            .then(data => {
-                // console.log('Raw data:', data);
-
-                const processed = data.map(n => ({
-                    ...n,
-                    statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
-                }));
-
-                // console.log('Nodes with secondary:', processed.filter(n => n.secondary && n.secondary.length > 0));
-
-                window.orgData = processed;
-                chart.load(processed);
-
-                // Panggil manual dengan delay lebih lama
-                setTimeout(() => {
-                    // console.log('⏰ Timeout: Panggil drawSecondaryLinks manual');
-                    drawSecondaryLinks();
-                }, 2000); // ⬅ 2 detik
+            chart.on("redraw", function() {
+                setTimeout(drawSecondaryLinks, 300);
             });
+            let secondaryLinksVisible = true;
+            document.getElementById('toggleSecondaryLinks').addEventListener('click', function() {
+                const treeElement = document.getElementById("tree");
+                const SVG = treeElement.querySelector('svg');
+                const toggleText = document.getElementById('toggleText');
+                const icon = this.querySelector('i');
+
+                if (!SVG) return;
+
+                const secondaryLinks = SVG.querySelectorAll('.secondary-link');
+
+                if (secondaryLinksVisible) {
+                    secondaryLinks.forEach(link => {
+                        link.style.display = 'none';
+                    });
+                    toggleText.textContent = 'Show Secondary Links';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-outline-secondary');
+                } else {
+                    secondaryLinks.forEach(link => {
+                        link.style.display = 'block';
+                    });
+                    toggleText.textContent = 'Hide Secondary Links';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                    this.classList.remove('btn-outline-secondary');
+                    this.classList.add('btn-outline-primary');
+                }
+                secondaryLinksVisible = !secondaryLinksVisible;
+            }); --}}
+            <script>
+            OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+OrgChart.templates.myTemplate.size = [250, 150];
+
+OrgChart.templates.myTemplate.node =
+    `<rect x="0" y="0" width="250" height="150" fill="#ffffff"
+stroke="#cccccc" stroke-width="5" rx="10" ry="10"></rect>`;
+
+OrgChart.templates.myTemplate.field_ =
+    `<text style="font-size:14px;font-weight:700;" fill="#212121" x="125" y="40" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.fieldgrading =
+    `<text style="font-size:13px;font-weight:600;" fill="#616161" x="125" y="60" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.field_0 =
+    `<text style="font-size:12px;font-weight:500;" fill="#424242" x="125" y="80" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.field_1 =
+    `<text style="font-size:11px;font-weight:500;" fill="#757575" x="125" y="95" text-anchor="middle">{val}</text>`;
+
+OrgChart.templates.myTemplate.field_2 =
+    `<g transform="translate(60,105)">
+<rect width="130" height="25" rx="12" ry="12" fill="{val}"></rect>
+</g>`;
+
+OrgChart.templates.myTemplate.field_3 =
+    `<text style="font-size:12px;font-weight:600;" fill="#ffffff" x="125" y="122" text-anchor="middle">{val}</text>`;
 
 
-        // === EVENT LISTENERS ===
-        chart.on("init", function() {
-            // console.log('🎬 EVENT: init');
-            setTimeout(drawSecondaryLinks, 500);
+const statusColors = {
+    active: '#4CAF50',
+    inactive: '#F44336',
+    vacant: '#9E9E9E',
+};
+
+// ⭐ TAMBAHKAN VARIABLE GLOBAL UNTUK TRACK STATUS
+let secondaryLinksVisible = true;
+
+// === INIT CHART ===
+const chart = new OrgChart(document.getElementById("tree"), {
+    template: "myTemplate",
+    enableSearch: true,
+    mouseScrool: OrgChart.action.zoom,
+    scaleInitial: OrgChart.match.boundary,
+
+    nodeBinding: {
+        field_: "Employee",
+        fieldgrading: "Grading",
+        field_0: "Position",
+        field_1: "Location",
+        field_2: "statusColor",
+        field_3: "status"
+    },
+
+    toolbar: {
+        zoom: true,
+        fit: true,
+        expandAll: true
+    },
+
+    nodeMenu: null,
+    nodeMouseClick: OrgChart.action.none
+});
+
+
+function drawSecondaryLinks() {
+    const treeElement = document.getElementById("tree");
+    if (!treeElement) {
+        return;
+    }
+    const SVG = treeElement.querySelector('svg');
+    if (!SVG) {
+        return;
+    }
+    const existingLinks = SVG.querySelectorAll('.secondary-link');
+    existingLinks.forEach(link => link.remove());
+
+    if (!window.orgData) {
+        return;
+    }
+
+    // ⭐ CEK STATUS VISIBILITY - JIKA HIDDEN, JANGAN GAMBAR GARIS
+    if (!secondaryLinksVisible) {
+        return;
+    }
+
+    let totalLinksCreated = 0;
+
+    window.orgData.forEach(node => {
+        if (!node.secondary || node.secondary.length === 0) return;
+        node.secondary.forEach(secData => {
+            const secId = typeof secData === 'object' ? secData.id : secData;
+
+            const fromNode = chart.getNode(secId);
+            const toNode = chart.getNode(node.id);
+
+            if (!fromNode || !toNode) {
+                return;
+            }
+
+            // Koordinat
+            const fx = fromNode.x + fromNode.w / 2;
+            const fy = fromNode.y + fromNode.h;
+            const tx = toNode.x + toNode.w / 2;
+            const ty = toNode.y;
+
+            const midY = (fy + ty) / 2;
+            const pathData =
+                `M ${fx} ${fy} C ${fx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("stroke", "#FF5722");
+            path.setAttribute("stroke-width", "5");
+            path.setAttribute("stroke-dasharray", "15,8");
+            path.setAttribute("fill", "none");
+            path.setAttribute("class", "secondary-link");
+            path.setAttribute("stroke-linecap", "round");
+
+            SVG.appendChild(path);
+
+            totalLinksCreated++;
         });
-        chart.on("redraw", function() {
-            setTimeout(drawSecondaryLinks, 300);
-        });
-        let secondaryLinksVisible = true;
-        document.getElementById('toggleSecondaryLinks').addEventListener('click', function() {
-            const treeElement = document.getElementById("tree");
-            const SVG = treeElement.querySelector('svg');
-            const toggleText = document.getElementById('toggleText');
-            const icon = this.querySelector('i');
+    });
+}
 
-            if (!SVG) return;
 
+// === FETCH DATA ===
+fetch("{{ route('orgchartteam.orgchartteam') }}")
+    .then(res => res.json())
+    .then(data => {
+        const processed = data.map(n => ({
+            ...n,
+            statusColor: statusColors[(n.status || '').toLowerCase()] || '#9E9E9E'
+        }));
+
+        window.orgData = processed;
+        chart.load(processed);
+
+        setTimeout(() => {
+            drawSecondaryLinks();
+        }, 2000);
+    });
+
+
+// === EVENT LISTENERS ===
+chart.on("init", function() {
+    setTimeout(drawSecondaryLinks, 500);
+});
+chart.on("redraw", function() {
+    // ⭐ REDRAW AKAN TETAP RESPEK TERHADAP STATUS VISIBILITY
+    setTimeout(drawSecondaryLinks, 300);
+});
+
+// ⭐ PINDAHKAN VARIABLE KE ATAS (SUDAH DIPINDAH)
+document.getElementById('toggleSecondaryLinks').addEventListener('click', function() {
+    const toggleText = document.getElementById('toggleText');
+    const icon = this.querySelector('i');
+
+    // ⭐ TOGGLE STATUS
+    secondaryLinksVisible = !secondaryLinksVisible;
+
+    if (secondaryLinksVisible) {
+        // SHOW
+        toggleText.textContent = 'Hide Secondary Links';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        this.classList.remove('btn-outline-secondary');
+        this.classList.add('btn-outline-primary');
+        drawSecondaryLinks(); // ⭐ GAMBAR ULANG
+    } else {
+        // HIDE
+        const treeElement = document.getElementById("tree");
+        const SVG = treeElement.querySelector('svg');
+        if (SVG) {
             const secondaryLinks = SVG.querySelectorAll('.secondary-link');
-
-            if (secondaryLinksVisible) {
-                secondaryLinks.forEach(link => {
-                    link.style.display = 'none';
-                });
-                toggleText.textContent = 'Show Secondary Links';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-                this.classList.remove('btn-outline-primary');
-                this.classList.add('btn-outline-secondary');
-            } else {
-                secondaryLinks.forEach(link => {
-                    link.style.display = 'block';
-                });
-                toggleText.textContent = 'Hide Secondary Links';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-                this.classList.remove('btn-outline-secondary');
-                this.classList.add('btn-outline-primary');
-            }
-            secondaryLinksVisible = !secondaryLinksVisible;
-        });
+            secondaryLinks.forEach(link => link.remove()); // ⭐ HAPUS SEMUA GARIS
+        }
+        toggleText.textContent = 'Show Secondary Links';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+        this.classList.remove('btn-outline-primary');
+        this.classList.add('btn-outline-secondary');
+    }
+});
     </script>
     <script>
         $(document).ready(function() {

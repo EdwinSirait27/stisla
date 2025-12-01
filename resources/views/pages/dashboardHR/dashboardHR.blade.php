@@ -1066,7 +1066,7 @@
                                     @else
                                         <span class="stat-trend down" title="Employees who were present yesterday">
                                             <i class="fas fa-arrow-down me-1"></i>
-                                            {{ $trend }} Employees
+                                            {{ $presentYesterday }} Employees
                                         </span>
                                     @endif
 

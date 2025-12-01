@@ -1118,13 +1118,13 @@
 
     <style>
         /* :root {
-                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                } */
+                            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                        } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -2022,17 +2022,16 @@
                                     <i class="fas fa-users"></i>
                                 </div>
                             </div>
-                            <div class="stat-content">
-                                <h3>{{ $teamCount ?? 0 }}</h3>
+                            <div class="stat-content" title="Employee Team's total">
+                                <h3>{{ $totalEmployees ?? 0 }}</h3>
                                 <p>Team Members</p>
-                                <span class="stat-trend up">
+                                <span class="stat-trend up"title="Employees who were pending, please contact HR Department">
                                     <i class="fas fa-arrow-up me-1"></i>
-                                    Active
+                                    {{ $totalEmployeespending }} Pending
                                 </span>
                             </div>
                         </div>
                     </div>
-
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
                         <div class="stat-card">
                             <div class="stat-card-header">
@@ -2040,12 +2039,12 @@
                                     <i class="fas fa-user-check"></i>
                                 </div>
                             </div>
-                            <div class="stat-content">
+                            <div class="stat-content" title="Employee who are present today">
                                 <h3>{{ $presentToday ?? 0 }}</h3>
                                 <p>Present Today</p>
-                                <span class="stat-trend up">
-                                    <i class="fas fa-arrow-up me-1"></i>
-                                    {{ $attendanceRate ?? 0 }}%
+                                <span class="stat-trend down" title="Employee who are absent today">
+                                    <i class="fas fa-arrow-down me-1"></i>
+                                    {{ $absentToday ?? 0 }} Absent
                                 </span>
                             </div>
                         </div>
@@ -2094,105 +2093,7 @@
                     </div>
                 </div>
             </div>
-            {{-- <div class="col-lg-12 col-12 mb-4">
-                <div class="announcements-card">
-                    <div class="announcements-header">
-                        <h5>
-                            <i class="fas fa-bullhorn me-2"></i>
-                            Company Announcements
-                        </h5>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        <!-- Announcement 1 -->
-                        <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
-                            <div class="announcement-title">
-                                <i class="fas fa-star text-warning"></i>
-                                Holiday Schedule for December
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                Dear Team, Please note the following holiday schedule for December 2024. The office will
-                                be closed from December 24-26 and December 31 - January 1...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 day ago
-                            </div>
-                        </div>
 
-                        <!-- Announcement 2 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-gift text-danger"></i>
-                                Year-End Bonus Announcement
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                We're pleased to announce that year-end bonuses will be distributed on December 15,
-                                2024. The amount will be based on individual performance...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 2 days ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 3 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-laptop-code text-primary"></i>
-                                New HR System Implementation
-                            </div>
-                            <div class="announcement-excerpt">
-                                Starting January 2025, we will be implementing a new HR management system. All employees
-                                are required to attend training sessions...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 5 days ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 4 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-heartbeat text-success"></i>
-                                Health Insurance Update
-                            </div>
-                            <div class="announcement-excerpt">
-                                Our company health insurance coverage has been upgraded to include dental and vision
-                                care for all employees and their families...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 5 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-users text-info"></i>
-                                Team Building Event - December
-                            </div>
-                            <div class="announcement-excerpt">
-                                Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
-                                Resort. Activities include team games, BBQ dinner...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-light text-center">
-                        <a href="#" class="text-decoration-none">
-                            View All Announcements
-                            <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    </div>
-                </div>
-            </div> --}}
             <div class="col-lg-12 col-12 mb-4">
                 <div class="announcements-card">
                     <div class="announcements-header">
@@ -2203,11 +2104,13 @@
                     </div>
 
                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-
                         @forelse($announcements as $a)
-                            <div class="announcement-item" data-toggle="modal"
-                                data-target="#announcementModal-{{ $a->id }}">
-
+                            <div class="announcement-item" data-toggle="modal" data-target="#previewModal"
+                                data-title="{{ $a->title }}" {{-- data-content="{{ ($a->content) }}" --}}
+                                data-content="{{ str_replace('&nbsp;', ' ', $a->content) }}"
+                                data-publish="{{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}"
+                                data-end="{{ \Carbon\Carbon::parse($a->end_date)->format('d M Y') }}"
+                                data-employee="{{ $a->user->Employee->department->department_name ?? 'Unknown' }}">
                                 <div class="announcement-title">
                                     <i class="fas fa-star text-warning"></i>
                                     {{ $a->title }}
@@ -2226,18 +2129,15 @@
                                     Posted {{ \Carbon\Carbon::parse($a->publish_date)->diffForHumans() }}
                                 </div>
                             </div>
-
-                            
-
                         @empty
                             <div class="p-3 text-center text-muted">
                                 No announcements found.
                             </div>
                         @endforelse
-
                     </div>
+
                     {{-- Modal --}}
-                            {{-- <div class="modal fade" id="announcementModal-{{ $a->id }}">
+                    {{-- <div class="modal fade" id="announcementModal-{{ $a->id }}">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
@@ -2466,79 +2366,7 @@
                 </div>
             </div>
 
-            <!-- Announcements Section -->
-            {{-- <div class="row">
-                <div class="col-12">
-                    <div class="team-overview-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">
-                                <i class="fas fa-bullhorn me-2"></i>
-                                Company Announcements
-                            </h4>
-                            <span class="badge-primary-soft">
-                                {{ count($announcements ?? []) }} Active
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="announcements-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Title</th>
-                                            <th class="text-center">Published</th>
-                                            <th class="text-center">Expires</th>
-                                            <th class="text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($announcements ?? [] as $announcement)
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <i class="fas fa-file-alt text-primary"></i>
-                                                        <strong>{{ $announcement->title ?? 'Untitled' }}</strong>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    {{ \Carbon\Carbon::parse($announcement->publish_date ?? now())->format('M d, Y') }}
-                                                </td>
-                                                <td class="text-center">
-                                                    @if ($announcement->end_date)
-                                                        {{ \Carbon\Carbon::parse($announcement->end_date)->format('M d, Y') }}
-                                                    @else
-                                                        <span class="badge badge-info">Ongoing</span>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">
-                                                    <button class="btn btn-sm btn-primary preview-announcement-btn"
-                                                        data-id="{{ $announcement->id }}"
-                                                        data-title="{{ $announcement->title }}"
-                                                        data-content="{{ $announcement->content }}"
-                                                        data-date="{{ $announcement->publish_date }}"
-                                                        data-enddate="{{ $announcement->end_date }}">
-                                                        <i class="fas fa-eye me-1"></i>
-                                                        View
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="4">
-                                                    <div class="empty-state py-3">
-                                                        <i class="fas fa-inbox"></i>
-                                                        <h6>No Announcements</h6>
-                                                        <p>There are no active announcements at the moment</p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
+
         </section>
     </div>
 
@@ -2669,44 +2497,7 @@
     </div>
 
     <!-- Announcement Preview Modal -->
-    {{-- <div class="modal fade" id="announcementPreviewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="previewTitle">
-                        <i class="fas fa-bullhorn me-2"></i>
-                        Announcement
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-4 pb-3 border-bottom">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <small class="text-muted">Published</small>
-                                <p class="mb-0 font-weight-bold" id="previewPublishDate">-</p>
-                            </div>
-                            <div class="col-md-6">
-                                <small class="text-muted">Expires</small>
-                                <p class="mb-0 font-weight-bold" id="previewEndDate">-</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
-                        <!-- Content will be loaded here -->
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <small class="text-muted text-center w-100">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        Official announcement from HR Department
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div> --}}
+
 
     <!-- Approval Action Modal -->
     <div class="modal fade" id="approvalActionModal" tabindex="-1" aria-hidden="true">
@@ -2748,4 +2539,248 @@
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">
+                        <i class="fas fa-eye me-2"></i>
+                        Announcement Preview
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <table class="table table-sm preview-table mb-4">
+                        <tbody>
+                            <tr>
+                                <th style="width: 150px;">Publish Date</th>
+                                <td><span id="previewDate" class="fw-semibold"></span></td>
+                            </tr>
+                            <tr>
+                                <th>End Date</th>
+                                <td><span id="previewEndDate" class="fw-semibold"></span></td>
+                            </tr>
+                            <tr>
+                                <th>Created By</th>
+                                <td><span id="previewEmployee" class="fw-semibold"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h5 id="previewTitle" class="fw-bold mb-3 text-center"></h5>
+
+                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <small class="text-muted text-center w-100">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Official announcement from HR Department •
+                        <a href="https://wa.me/6281138310552" target="_blank" class="text-success">
+                            Contact HR
+                        </a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+@push('scripts')
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        $('.announcement-item').on('click', function() {
+
+            $('#previewTitle').text($(this).data('title'));
+            $('#previewContent').html($(this).data('content'));
+
+            $('#previewDate').text($(this).data('publish'));
+            $('#previewEndDate').text($(this).data('end'));
+            $('#previewEmployee').text($(this).data('employee'));
+        });
+
+    });
+</script>
+@endpush
+
+
+{{-- <div class="col-lg-12 col-12 mb-4">
+                <div class="announcements-card">
+                    <div class="announcements-header">
+                        <h5>
+                            <i class="fas fa-bullhorn me-2"></i>
+                            Company Announcements
+                        </h5>
+                    </div>
+                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                        <!-- Announcement 1 -->
+                        <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
+                            <div class="announcement-title">
+                                <i class="fas fa-star text-warning"></i>
+                                Holiday Schedule for December
+                                <span class="announcement-badge-new">New</span>
+                            </div>
+                            <div class="announcement-excerpt">
+                                Dear Team, Please note the following holiday schedule for December 2024. The office will
+                                be closed from December 24-26 and December 31 - January 1...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 1 day ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 2 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-gift text-danger"></i>
+                                Year-End Bonus Announcement
+                                <span class="announcement-badge-new">New</span>
+                            </div>
+                            <div class="announcement-excerpt">
+                                We're pleased to announce that year-end bonuses will be distributed on December 15,
+                                2024. The amount will be based on individual performance...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 2 days ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 3 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-laptop-code text-primary"></i>
+                                New HR System Implementation
+                            </div>
+                            <div class="announcement-excerpt">
+                                Starting January 2025, we will be implementing a new HR management system. All employees
+                                are required to attend training sessions...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 5 days ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 4 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-heartbeat text-success"></i>
+                                Health Insurance Update
+                            </div>
+                            <div class="announcement-excerpt">
+                                Our company health insurance coverage has been upgraded to include dental and vision
+                                care for all employees and their families...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 1 week ago
+                            </div>
+                        </div>
+
+                        <!-- Announcement 5 -->
+                        <div class="announcement-item">
+                            <div class="announcement-title">
+                                <i class="fas fa-users text-info"></i>
+                                Team Building Event - December
+                            </div>
+                            <div class="announcement-excerpt">
+                                Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
+                                Resort. Activities include team games, BBQ dinner...
+                            </div>
+                            <div class="announcement-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Posted 1 week ago
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light text-center">
+                        <a href="#" class="text-decoration-none">
+                            View All Announcements
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div> --}}
+<!-- Announcements Section -->
+{{-- <div class="row">
+                <div class="col-12">
+                    <div class="team-overview-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-bullhorn me-2"></i>
+                                Company Announcements
+                            </h4>
+                            <span class="badge-primary-soft">
+                                {{ count($announcements ?? []) }} Active
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="announcements-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th class="text-center">Published</th>
+                                            <th class="text-center">Expires</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($announcements ?? [] as $announcement)
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="fas fa-file-alt text-primary"></i>
+                                                        <strong>{{ $announcement->title ?? 'Untitled' }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ \Carbon\Carbon::parse($announcement->publish_date ?? now())->format('M d, Y') }}
+                                                </td>
+                                                <td class="text-center">
+                                                    @if ($announcement->end_date)
+                                                        {{ \Carbon\Carbon::parse($announcement->end_date)->format('M d, Y') }}
+                                                    @else
+                                                        <span class="badge badge-info">Ongoing</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-primary preview-announcement-btn"
+                                                        data-id="{{ $announcement->id }}"
+                                                        data-title="{{ $announcement->title }}"
+                                                        data-content="{{ $announcement->content }}"
+                                                        data-date="{{ $announcement->publish_date }}"
+                                                        data-enddate="{{ $announcement->end_date }}">
+                                                        <i class="fas fa-eye me-1"></i>
+                                                        View
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4">
+                                                    <div class="empty-state py-3">
+                                                        <i class="fas fa-inbox"></i>
+                                                        <h6>No Announcements</h6>
+                                                        <p>There are no active announcements at the moment</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}

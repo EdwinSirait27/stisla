@@ -490,7 +490,7 @@
         .announcements-header h4 {
             margin: 0;
             font-weight: 600;
-            color: white;
+            color: rgb(0, 0, 0);
         }
 
         .announcement-item {
@@ -871,7 +871,7 @@
                         <div class="mini-stat-icon primary">
                             <i class="fas fa-calendar-check"></i>
                         </div>
-                        <div class="mini-stat-value">22</div>
+                        <div class="mini-stat-value">{{$presentCount ?? 0}}</div>
                         {{-- <div class="mini-stat-value">{{ $attendanceData->present ?? 22 }}</div> --}}
                         <div class="mini-stat-label">Days Present</div>
                     </div>
@@ -915,94 +915,37 @@
                             Company Announcements
                         </h4>
                     </div>
-                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        <!-- Announcement 1 -->
-                        <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
-                            <div class="announcement-title">
-                                <i class="fas fa-star text-warning"></i>
-                                Holiday Schedule for December
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                Dear Team, Please note the following holiday schedule for December 2024. The office will
-                                be closed from December 24-26 and December 31 - January 1...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 day ago
-                            </div>
-                        </div>
+                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                        @forelse($announcements as $a)
+                            <div class="announcement-item" data-toggle="modal" data-target="#previewModal"
+                                data-title="{{ $a->title }}" {{-- data-content="{{ ($a->content) }}" --}}
+                                data-content="{{ str_replace('&nbsp;', ' ', $a->content) }}"
+                                data-publish="{{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}"
+                                data-end="{{ \Carbon\Carbon::parse($a->end_date)->format('d M Y') }}"
+                                data-employee="{{ $a->user->Employee->department->department_name ?? 'Unknown' }}">
+                                <div class="announcement-title">
+                                    <i class="fas fa-star text-warning"></i>
+                                    {{ $a->title }}
 
-                        <!-- Announcement 2 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-gift text-danger"></i>
-                                Year-End Bonus Announcement
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                We're pleased to announce that year-end bonuses will be distributed on December 15,
-                                2024. The amount will be based on individual performance...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 2 days ago
-                            </div>
-                        </div>
+                                    @if (\Carbon\Carbon::parse($a->publish_date)->greaterThan(now()->subDays(3)))
+                                        <span class="announcement-badge-new">New</span>
+                                    @endif
+                                </div>
 
-                        <!-- Announcement 3 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-laptop-code text-primary"></i>
-                                New HR System Implementation
-                            </div>
-                            <div class="announcement-excerpt">
-                                Starting January 2025, we will be implementing a new HR management system. All employees
-                                are required to attend training sessions...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 5 days ago
-                            </div>
-                        </div>
+                                <div class="announcement-excerpt">
+                                    {{ Str::limit(strip_tags($a->content), 120, '...') }}
+                                </div>
 
-                        <!-- Announcement 4 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-heartbeat text-success"></i>
-                                Health Insurance Update
+                                <div class="announcement-date">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Posted {{ \Carbon\Carbon::parse($a->publish_date)->diffForHumans() }}
+                                </div>
                             </div>
-                            <div class="announcement-excerpt">
-                                Our company health insurance coverage has been upgraded to include dental and vision
-                                care for all employees and their families...
+                        @empty
+                            <div class="p-3 text-center text-muted">
+                                No announcements found.
                             </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 5 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-users text-info"></i>
-                                Team Building Event - December
-                            </div>
-                            <div class="announcement-excerpt">
-                                Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
-                                Resort. Activities include team games, BBQ dinner...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-light text-center">
-                        <a href="#" class="text-decoration-none">
-                            View All Announcements
-                            <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -1010,50 +953,105 @@
             <!-- Main Content Grid -->
             <div class="row">
                 <!-- Clock In/Out Section -->
-                <div class="col-lg-4 col-12 mb-4">
-                    <div class="clock-card">
-                        <h4 class="mb-3">
-                            <i class="fas fa-clock me-2"></i>
-                            Attendance Clock
-                        </h4>
-                        <div class="clock-display" id="currentTime">00:00:00</div>
-                        <div class="clock-date" id="currentDate">Monday, January 01, 2024</div>
-
-                        @if (true)
-                            {{-- @if (!$hasCheckedIn ?? true) --}}
-                            <button class="btn clock-in-btn pulse-animation" id="clockInBtn">
-                                <i class="fas fa-sign-in-alt me-2"></i>
-                                Clock In
-                            </button>
-                        @else
-                            <button class="btn clock-out-btn" id="clockOutBtn">
-                                <i class="fas fa-sign-out-alt me-2"></i>
-                                Clock Out
-                            </button>
-                            <div class="clock-status">
-                                <strong>Clocked in at:</strong>08:00 AM
-                                {{-- <strong>Clocked in at:</strong> {{ $clockInTime ?? '08:00 AM' }} --}}
-                            </div>
-                        @endif
-                    </div>
+                <div class="col-lg-4 col-12">
 
                     <!-- Leave Balance -->
-                    <div class="leave-balance-card mt-4">
+                    <div class="leave-balance-card">
                         <div class="leave-balance-header">
                             <h4>
                                 <i class="fas fa-umbrella-beach me-2"></i>
                                 Leave Balance
                             </h4>
                         </div>
+                        @forelse ($leavebalance as $lb)
                         <div class="leave-balance-body">
                             <div class="leave-item">
                                 <div class="leave-type">
                                     <div class="leave-type-icon annual">
                                         <i class="fas fa-calendar"></i>
                                     </div>
+
                                     <div>
                                         <div class="leave-type-name">Annual Leave</div>
+                                        <div class="leave-type-period">{{$lb->year}}</div>
+                                    </div>
+                                </div>
+                                <div class="leave-days">
+                                    <div class="leave-days-value">ini sisa cuti</div>
+                                    {{-- <div class="leave-days-value">{{ $leaveBalance->annual->remaining ?? 12 }}</div> --}}
+                                    <div class="leave-days-label">of {{$lb->balance_days}} days</div>
+                                    {{-- <div class="leave-days-label">of {{ $leaveBalance->annual->total ?? 14 }} days</div> --}}
+                                </div>
+                            </div>
+                            <div class="leave-progress">
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
+                                        {{-- style="width: {{ $leaveBalance->annual->percentage ?? 85 }}%" --}} aria-valuenow= "85" {{-- aria-valuenow="{{ $leaveBalance->annual->percentage ?? 85 }}"  --}}
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <div class="leave-item mt-3">
+                                <div class="leave-type">
+                                    <div class="leave-type-icon sick">
+                                        <i class="fas fa-hospital"></i>
+                                    </div>
+                                    <div>
+                                        <div class="leave-type-name">Sick Leave</div>
                                         <div class="leave-type-period">2024</div>
+                                    </div>
+                                </div>
+                                <div class="leave-days">
+                                    {{-- <div class="leave-days-value">{{ $leaveBalance->sick->remaining ?? 5 }}</div> --}}
+                                    <div class="leave-days-value">5</div>
+                                    <div class="leave-days-label">of 7 days</div>
+                                    {{-- <div class="leave-days-label">of {{ $leaveBalance->sick->total ?? 7 }} days</div> --}}
+                                </div>
+                            </div>
+                            <div class="leave-progress">
+                                <div class="progress">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
+                                        {{-- style="width: {{ $leaveBalance->sick->percentage ?? 71 }}%" --}} aria-valuenow="71" {{-- aria-valuenow="{{ $leaveBalance->sick->percentage ?? 71 }}"  --}} aria-valuemin="0"
+                                        aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <div class="leave-item mt-3">
+                                <div class="leave-type">
+                                    <div class="leave-type-icon casual">
+                                        <i class="fas fa-coffee"></i>
+                                    </div>
+                                    <div>
+                                        <div class="leave-type-name">Casual Leave</div>
+                                        <div class="leave-type-period">2024</div>
+                                    </div>
+                                </div>
+                                <div class="leave-days">
+                                    <div class="leave-days-value">3</div>
+                                    {{-- <div class="leave-days-value">{{ $leaveBalance->casual->remaining ?? 3 }}</div> --}}
+                                    <div class="leave-days-label">of 5 days</div>
+                                    {{-- <div class="leave-days-label">of {{ $leaveBalance->casual->total ?? 5 }} days</div> --}}
+                                </div>
+                            </div>
+                            <div class="leave-progress">
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
+                                        {{-- style="width: {{ $leaveBalance->casual->percentage ?? 60 }}%" --}} aria-valuenow="60" {{-- aria-valuenow="{{ $leaveBalance->casual->percentage ?? 60 }}"  --}} aria-valuemin="0"
+                                        aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="leave-balance-body">
+                            <div class="leave-item">
+                                <div class="leave-type">
+                                    <div class="leave-type-icon annual">
+                                        <i class="fas fa-calendar"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="leave-type-name">Your leave is fake data because you have not been with the company for 1 year.</div>
+                                        <div class="leave-type-period"></div>
                                     </div>
                                 </div>
                                 <div class="leave-days">
@@ -1121,6 +1119,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endforelse
                     </div>
                 </div>
 
@@ -1531,24 +1530,94 @@
             </div>
         </div>
     </div>
+
+
+
+
+    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">
+                        <i class="fas fa-eye me-2"></i>
+                        Announcement Preview
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <table class="table table-sm preview-table mb-4">
+                        <tbody>
+                            <tr>
+                                <th style="width: 150px;">Publish Date</th>
+                                <td><span id="previewDate" class="fw-semibold"></span></td>
+                            </tr>
+                            <tr>
+                                <th>End Date</th>
+                                <td><span id="previewEndDate" class="fw-semibold"></span></td>
+                            </tr>
+                            <tr>
+                                <th>Created By</th>
+                                <td><span id="previewEmployee" class="fw-semibold"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h5 id="previewTitle" class="fw-bold mb-3 text-center"></h5>
+
+                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <small class="text-muted text-center w-100">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Official announcement from HR Department •
+                        <a href="https://wa.me/6281138310552" target="_blank" class="text-success">
+                            Contact HR
+                        </a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-        @if (session('error'))
-            Swal.fire({
+    
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        $('.announcement-item').on('click', function() {
+
+            $('#previewTitle').text($(this).data('title'));
+            $('#previewContent').html($(this).data('content'));
+
+            $('#previewDate').text($(this).data('publish'));
+            $('#previewEndDate').text($(this).data('end'));
+            $('#previewEmployee').text($(this).data('employee'));
+        });
+
+    });
+</script>
+<script>
+    @if (session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: '{{ session('success') }}',
+    });
+    @endif
+    @if (session('error'))
+    Swal.fire({
                 title: 'Gagal!',
                 text: "{{ session('error') }}",
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
-        @endif
-    </script>
+            @endif
+            </script>
 @endpush
