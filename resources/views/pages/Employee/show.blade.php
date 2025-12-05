@@ -160,6 +160,10 @@
         select.form-control {
             height: 42px;
         }
+           img.no-drag {
+        -webkit-user-drag: none;
+        user-select: none;
+           }
     </style>
 @endpush
 @extends('layouts.app')
@@ -432,7 +436,7 @@
                                                         <th>Images</th>
                                                         <td>
                                                             <img src="{{ asset('storage/' . $employee->Employee->photos) }}"
-                                                                alt="images" id="previewImage"
+                                                                alt="images" id="previewImage" class="no-drag"
                                                                 style="max-width: 150px; cursor:pointer; border-radius: 8px;">
                                                         </td>
                                                     </tr>

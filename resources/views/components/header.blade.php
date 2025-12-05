@@ -1,3 +1,9 @@
+<style>
+       img.no-drag {
+        -webkit-user-drag: none;
+        user-select: none;
+    }
+</style>
 <div class="navbar-bg bg-dark"></div>
 <nav class="navbar navbar-expand-lg main-navbar">
     <form class="form-inline mr-auto">
@@ -246,7 +252,7 @@
                     src="{{ Auth::user()->employee->photos
                                     ? asset('storage/' . Auth::user()->employee->photos)
                                     : asset('img/avatar/avatar-1.png') }}"
-                    class="rounded-circle mr-1">
+                    class="rounded-circle mr-1 no-drag">
                 <div class="d-sm-none d-lg-inline-block">Hi, 
                     @auth
                     {{ auth()->user()->employee->employee_name }}

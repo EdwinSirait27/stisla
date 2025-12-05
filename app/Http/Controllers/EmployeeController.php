@@ -440,7 +440,7 @@ class EmployeeController extends Controller
         $isManager = optional(optional($employee->Employee)->structuresnew)->is_manager;
 
         // Ambil structure
-        $structures = Structuresnew::with('company', 'department', 'store', 'position', 'submissionposition')
+        $structures = Structuresnew::with('submissionposition')
             ->where('id', optional($employee->Employee)->structure_id)
             ->get();
 

@@ -11,7 +11,6 @@
             position: relative;
             overflow: hidden;
             padding-top: 56.25%;
-            /* Aspect ratio 16:9 */
         }
 
         .iframe-container iframe {
@@ -23,7 +22,6 @@
             border: 0;
         }
 
-        /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
             padding: 10px 15px;
@@ -189,11 +187,13 @@
                                         </div>
                                     @endif
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
@@ -207,9 +207,10 @@
                                                         <i class="fas fa-user"></i> {{ __('Leave Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
-                                                            value="{{ old('name') }}" required
-                                                            placeholder="Fill Leave Name">
+                                                        <input type="text"
+                                                            class="form-control @error('name') is-invalid @enderror"
+                                                            id="name" name="name" value="{{ old('name') }}"
+                                                            required placeholder="Fill Leave Name">
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -218,26 +219,31 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                               <div class="form-check mt-2">
-                                                <input type="checkbox" name="is_paid" id="is_paid" value="1"
-                                                    class="form-check-input @error('is_paid') is-invalid @enderror"
-                                                    {{ old('is_paid') ? 'checked' : '' }}>
-                                                <label for="is_paid" class="form-check-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Is Paid?') }}
-                                                </label>
-                                                @error('is_paid')
-                                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                                                @enderror
-                                            </div>
+                                        
+                                        
                                         </div>
-                                        </div>
+                                            {{-- <div class="col-md-6">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" name="is_paid" id="is_paid" value="1"
+                                                        class="form-check-input @error('is_paid') is-invalid @enderror"
+                                                        {{ old('is_paid') ? 'checked' : '' }}>
+                                                    <label for="is_paid" class="form-check-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Is Paid?') }}
+                                                    </label>
+                                                    @error('is_paid')
+                                                        <span class="invalid-feedback d-block"
+                                                            role="alert"><strong>{{ $message }}</strong></span>
+                                                    @enderror
+                                                </div>
+                                            </div> --}}
+                                        {{-- </div> --}}
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a Leave Type name is already registered, you cannot register it again.
                                                 <br> - please use English to get used to it.
-                                                <br> - Before creating data, please check first whether there is already similar or identical data to avoid double input. 
+                                                <br> - Before creating data, please check first whether there is already
+                                                similar or identical data to avoid double input.
                                             </span>
                                         </div>
                                         <div class="d-flex justify-content-end mt-4">
@@ -260,27 +266,26 @@
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script>
         document.getElementById('create-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
-              Swal.fire({
-                  title: 'Are You Sure?',
-                  text: "Make sure the data you entered is correct!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
-                  cancelButtonText: 'Abort'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('position-create').submit();
-                  }
-              });
-          });
-           
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('position-create').submit();
+                }
+            });
+        });
     </script>
     <script>
         @if (session('success'))

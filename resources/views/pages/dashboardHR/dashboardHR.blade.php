@@ -974,6 +974,10 @@
             background: rgba(245, 87, 108, 0.15);
             color: #f5576c;
         }
+           img.no-drag {
+        -webkit-user-drag: none;
+        user-select: none;
+    }
     </style>
 @endpush
 
@@ -990,7 +994,7 @@
                                 <img src="{{ Auth::user()->employee->photos
                                     ? asset('storage/' . Auth::user()->employee->photos)
                                     : asset('img/avatar/avatar-1.png') }}"
-                                    alt="Profile" class="profile-avatar-large">
+                                    alt="Profile" class="profile-avatar-large no-drag">
 
 
                                 <div class="profile-info">
@@ -1242,8 +1246,8 @@
                                     @forelse($pendingSubmissions as $submission)
                                         <div class="submission-list-item">
                                             <div class="d-flex align-items-center">
-                                                <img class="rounded-circle me-3" width="48" height="48"
-                                                    src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
+                                                <img class="rounded-circle me-3 no-drag" width="48" height="48"
+                                                    src="{{ asset('img/avatar/avatar-' . rand(1, 5) . '.png') }}"
                                                     alt="{{ $submission->employee->employee_name }}">
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex justify-content-between align-items-start mb-1">

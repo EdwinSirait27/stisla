@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Update Leave Type')
+@section('title', 'Update Submission Type')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -165,11 +165,11 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Update Leave Type {{ $type->name }}</h1>
+                <h1>Update Submission Type {{ $type->name }}</h1>
                 <div class="section-header-breadcrumb">
                     {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Leavestype') }}">Leave Type</a></div>
-                    <div class="breadcrumb-item">Update Leave Type {{ $type->name }}</div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Leavestype') }}">Submission Type</a></div>
+                    <div class="breadcrumb-item">Submission Leave Type {{ $type->name }}</div>
                 </div>
             </div>
 
@@ -179,7 +179,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Update Leave Type') }} {{ $type->name }}</h6>
+                                    <h6 class="mb-0">{{ __('Update Submission Type') }} {{ $type->name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
@@ -226,7 +226,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            </div>
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <div class="form-check">
 
@@ -245,18 +246,12 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        {{-- <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a name is already registered, you cannot register it again.<br>
-                                                
-                                            </span>
                                         </div> --}}
+                                      
                                          <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
-                                                - If a Leave name is already registered, you cannot register it again.
+                                                - If a Submission name is already registered, you cannot register it again.
                                                 <br> - please use English to get used to it.
                                                 <br> - Before updating data, please check first whether there is already similar or identical data to avoid double input. 
                                             </span>

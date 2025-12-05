@@ -673,6 +673,10 @@
             font-size: 18px;
             opacity: 0.85;
         }
+         img.no-drag {
+        -webkit-user-drag: none;
+        user-select: none;
+    }
 
         @media (max-width: 991px) {
             .bg-image {
@@ -685,6 +689,7 @@
                 box-shadow: none;
             }
         }
+        
     </style>
 </head>
 <body>
@@ -692,7 +697,7 @@
         <!-- FORM SECTION -->
         <div class="d-flex align-items-center justify-content-center flex-column" style="flex: 1;">
             <div class="login-card">
-                <img src="{{ asset('img/abd.jpg') }}" alt="logo" width="150">
+                <img src="{{ asset('img/abd.jpg') }}" alt="logo" width="150"  class="no-drag">
                 <h4>Welcome to HRX</h4>
                 <p>Please sign in to continue</p>
 

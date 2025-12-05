@@ -56,11 +56,9 @@ class LeavetypesController extends Controller
         
         return view('pages.Leavestype.create');
     }
-
     public function store(Request $request)
     {
         // dd($request->all());
-
         $validatedData = $request->validate([
             'name' => ['required', 'string','max:255', 'unique:leave_types_tables,name', new NoXSSInput()],
             'is_paid' => ['nullable','max:255', new NoXSSInput()],
@@ -98,8 +96,8 @@ class LeavetypesController extends Controller
         }
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'is_paid' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'default_balance' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'is_paid' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'default_balance' => ['nullable', 'string', 'max:255', new NoXSSInput()],
 
         ], [
             'name.required' => 'name wajib diisi.',

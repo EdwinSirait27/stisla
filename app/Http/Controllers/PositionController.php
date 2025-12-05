@@ -29,22 +29,7 @@ class PositionController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    // public function getManagersubmissions()
-    // {
-    //     $submissions = Submissionposition::select(['id', 'employee_id','position_name','status'])
-    //         ->get()
-    //         ->map(function ($submission) {
-    //             $submission->id_hashed = substr(hash('sha256', $submission->id . env('APP_KEY')), 0, 8);
-    //             $position->action = '
-    //                 <a href="' . route('Position.edit', $position->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit Position: ' . e($position->name) . '">
-    //                     <i class="fas fa-user-edit text-secondary"></i>
-    //                 </a>';
-    //             return $position;
-    //         });
-    //     return DataTables::of($positions)
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
+  
     public function edit($hashedId)
     {
         $position = Position::get()->first(function ($u) use ($hashedId) {
@@ -58,7 +43,6 @@ class PositionController extends Controller
 
         $selectedName = old('name', $position->name ?? '');
 
-        // Dapatkan role pertama user (untuk selected value)
         
         return view('pages.Position.edit', [
             'position' => $position,

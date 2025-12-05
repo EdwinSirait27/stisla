@@ -66,6 +66,9 @@
                         <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionrequest') }}">Position Request</a>
                         </li>
+                        <li class="{{ Request::is('Teamfingerprint') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Teamfingerprint') }}">Fingerprints</a>
+                        </li>
                         {{-- <li class="{{ Request::is('Yoursubmissions') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Yoursubmissions') }}">Submissions</a>
                         </li> --}}
