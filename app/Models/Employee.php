@@ -304,7 +304,7 @@ class Employee extends Model
                     'banks_id'=> 'Bank',
                     'department_id'=> 'Department',
                     'grading_id'=> 'Grading',
-                    'group_name'=> 'Group',
+                    'group_id'=> 'Group',
                     'status_employee'=> 'Employee Status',
                     'join_date'=> 'Join',
                     'marriage'=> 'Status Marriage',

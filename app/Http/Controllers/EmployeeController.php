@@ -223,6 +223,7 @@ class EmployeeController extends Controller
             'name_company' => 'company.name',
             'grading_name' => 'grading.grading_name',
             'grading_code' => 'grading.grading_code',
+            'group_name' => 'group.group_name',
             'position_name' => 'position.name',
             'employee_pengenal',
             'department_name' => 'department.department_name',
@@ -267,6 +268,14 @@ class EmployeeController extends Controller
             ->addColumn('action', function ($employee) {
                 return $employee->action;
             })
+             ->editColumn('join_date', function ($row) {
+        return \Carbon\Carbon::parse($row->join_date)
+            ->translatedFormat('d F Y'); // contoh: 12 Desember 2000
+    })
+             ->editColumn('date_of_birth', function ($row) {
+        return \Carbon\Carbon::parse($row->join_date)
+            ->translatedFormat('d F Y'); // contoh: 12 Desember 2000
+    })
             ->rawColumns(['action'])
             ->make(true);
     }

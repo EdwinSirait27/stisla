@@ -238,7 +238,7 @@
         }}
     </td>
 </tr> --}}
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>Date of Birth</th>
 
                                                     <td>
@@ -249,7 +249,38 @@
                                                         @endif
                                                     </td>
 
-                                                </tr>
+                                                </tr> --}}
+                                                {{-- <tr>
+    <th>Date of Birth</th>
+    <td>
+        @if (!empty($employee->Employee->date_of_birth))
+            {{ \Carbon\Carbon::parse($employee->Employee->date_of_birth)->diffForHumans() }}
+        @else
+            empty
+        @endif
+    </td>
+</tr> --}}
+{{-- @if (!empty($employee->Employee->date_of_birth))
+    @php
+        $dob = \Carbon\Carbon::createFromFormat('Y-m-d', $employee->Employee->date_of_birth);
+        $age = $dob->age; // selisih tahun
+    @endphp
+
+    {{ $age . ' ' . $dob->format('F Y') }}
+@else
+    empty
+@endif --}}
+@if (!empty($employee->Employee->date_of_birth))
+<tr>
+    <th>Date of Birth</th>
+    <td>
+            {{ \Carbon\Carbon::parse($employee->Employee->date_of_birth)->format('d F Y') }}
+        </td>
+    </tr>
+    @endif
+
+
+
 
 
                                                 <tr>
@@ -382,14 +413,22 @@
                                                     <td>{{ $employee->Employee->status_employee ?? 'empty' }}
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th>Join Date</th>
-                                                    {{-- <td>{{ $employee->Employee->join_date ?? 'empty' }} --}}
                                                     <td>{{ optional($employee->Employee)->join_date ? \Carbon\Carbon::parse($employee->Employee->join_date)->format('d-m-Y') : 'empty' }}
                                                     </td>
 
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
+                                                @if (!empty($employee->Employee->join_date))
+                                                <tr>
+    <th>Join Date</th>
+    <td>
+            {{ \Carbon\Carbon::parse($employee->Employee->join_date)->format('d F Y') }}
+        </td>
+    </tr>
+    @endif
+
 
                                                 <tr>
                                                     <th>NPWP</th>
@@ -407,13 +446,23 @@
                                                     <td>{{ $employee->Employee->pin ?? 'empty' }}
                                                     </td>
                                                 </tr>
-                                                @if (!empty($employee->Employee->end_date))
+                                                {{-- @if (!empty($employee->Employee->end_date))
                                                     <tr>
                                                         <th>End Date</th>
                                                         <td>{{ $employee->Employee->end_date ?? 'empty' }}
                                                         </td>
                                                     </tr>
-                                                @endif
+                                                @endif --}}
+                                                @if (!empty($employee->Employee->end_date))
+                                                  <tr>
+    <th>Resign Date</th>
+    <td>
+            {{ \Carbon\Carbon::parse($employee->Employee->end_date)->format('d F Y') }}
+       
+        </td>
+    </tr>
+    @endif
+
                                                 @if (!empty($employee->Employee->notes))
                                                     <tr>
                                                         <th>Notes Resign</th>
