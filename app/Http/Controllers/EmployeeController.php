@@ -257,25 +257,76 @@ class EmployeeController extends Controller
             'status'
         ];
         $dataTable = DataTables::of($employees);
-        foreach ($columns as $key => $relationPath) {
-            $column = is_string($key) ? $key : $relationPath;
-            $dataTable->addColumn($column, function ($employee) use ($relationPath) {
-                $value = data_get($employee->Employee, $relationPath);
-                return $value ?: 'Empty';
-            });
+//         foreach ($columns as $key => $relationPath) {
+//             $column = is_string($key) ? $key : $relationPath;
+//             $dataTable->addColumn($column, function ($employee) use ($relationPath) {
+//                 // $value = data_get($employee->Employee, $relationPath);
+//                 // return $value ?: 'Empty';
+// if ($relationPath === 'join_date') {
+//     $rawDate = data_get($employee->Employee, 'join_date');
+
+//     if (empty($rawDate)) {
+//         return '-';
+//     }
+
+//     try {
+//         return \Carbon\Carbon::createFromFormat('y-m-d', $rawDate)
+//             ->translatedFormat('d F Y');
+//     } catch (\Exception $e) {
+//         return '-';
+//     }
+// }
+
+// $value = data_get($employee->Employee, $relationPath);
+// return $value ?: 'Empty';
+
+
+//             });
+//         }
+foreach ($columns as $key => $relationPath) {
+    $column = is_string($key) ? $key : $relationPath;
+
+    $dataTable->addColumn($column, function ($employee) use ($relationPath) {
+
+        // JOIN DATE (format y-m-d)
+        if ($relationPath === 'join_date') {
+            $rawDate = data_get($employee->Employee, 'join_date');
+
+            if (empty($rawDate)) return '-';
+
+            try {
+                return \Carbon\Carbon::createFromFormat('y-m-d', $rawDate)
+                    ->translatedFormat('d F Y');
+            } catch (\Exception $e) {
+                return '-';
+            }
         }
+
+        // DATE OF BIRTH (format Y-m-d)
+        if ($relationPath === 'date_of_birth') {
+            $rawDate = data_get($employee->Employee, 'date_of_birth');
+
+            if (empty($rawDate)) return '-';
+
+            try {
+                return \Carbon\Carbon::createFromFormat('Y-m-d', $rawDate)
+                    ->translatedFormat('d F Y');
+            } catch (\Exception $e) {
+                return '-';
+            }
+        }
+
+        // default
+        $value = data_get($employee->Employee, $relationPath);
+        return $value ?: 'Empty';
+    });
+}
+
         return $dataTable
             ->addColumn('action', function ($employee) {
                 return $employee->action;
             })
-             ->editColumn('join_date', function ($row) {
-        return \Carbon\Carbon::parse($row->join_date)
-            ->translatedFormat('d F Y'); // contoh: 12 Desember 2000
-    })
-             ->editColumn('date_of_birth', function ($row) {
-        return \Carbon\Carbon::parse($row->join_date)
-            ->translatedFormat('d F Y'); // contoh: 12 Desember 2000
-    })
+          
             ->rawColumns(['action'])
             ->make(true);
     }

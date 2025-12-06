@@ -30,8 +30,9 @@ class Employee extends Model
         });
     }
     protected $casts = [
-        'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-        'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+        // 'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+        // 'date_of_birth' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+        // 'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
     ];
     protected $fillable = [
         'employee_name',
@@ -423,5 +424,6 @@ class Employee extends Model
         // pastikan unique & reset index
         return $supervisors->unique('id')->values();
     }
+    
 
 }
