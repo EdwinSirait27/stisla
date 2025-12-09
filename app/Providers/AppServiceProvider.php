@@ -24,3 +24,5 @@ class AppServiceProvider extends ServiceProvider
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }
+// terprorate
+// tambah dulu baru bagi untuk allowance

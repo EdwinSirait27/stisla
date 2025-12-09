@@ -11,7 +11,6 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Validators\Failure;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
-
 class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure, WithChunkReading
 {
     use \Maatwebsite\Excel\Concerns\SkipsFailures;
@@ -20,17 +19,13 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
 
     public function model(array $row)
     {
-        // 1️⃣ Skip baris kosong
         if (collect($row)->filter(fn($v) => trim((string)$v) !== '')->isEmpty()) {
             return null;
         }
-
         $employeePengenal = trim((string)($row['employee_pengenal'] ?? ''));
         if ($employeePengenal === '') {
             return null;
         }
-
-        // 2️⃣ Cegah duplikat antar baris di file Excel
         if (in_array($employeePengenal, $this->importedIds)) {
             $this->onFailure(new Failure(
                 $row['__row'] ?? 0,
@@ -41,10 +36,7 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             return null;
         }
         $this->importedIds[] = $employeePengenal;
-
-        // 3️⃣ Cari employee di database berdasarkan employee_pengenal
         $employee = Employee::where('employee_pengenal', $employeePengenal)->first();
-
         if (!$employee) {
             $this->onFailure(new Failure(
                 $row['__row'] ?? 0,
@@ -54,18 +46,13 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             ));
             return null;
         }
-
-        // 4️⃣ Parsing month_year
         $monthYear = $this->parseExcelDate($row['month_year'] ?? null, 'Y-m-d', 'month_year', $employeePengenal);
         if ($monthYear === false) {
             return null;
         }
-
-        // 5️⃣ Cegah duplikat di database (employee_id + month_year)
         $exists = Payrolls::where('employee_id', $employee->id)
             ->when($monthYear, fn($q) => $q->where('month_year', $monthYear))
             ->exists();
-
         if ($exists) {
             $this->onFailure(new Failure(
                 $row['__row'] ?? 0,
@@ -75,54 +62,103 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             ));
             return null;
         }
-
-        // 6️⃣ Parsing created_at opsional
         $createdAt = $this->parseExcelDate($row['created_at'] ?? null, 'Y-m-d H:i:s', 'created_at', $employeePengenal);
         if ($createdAt === false) {
             return null;
         }
 
-        // 7️⃣ Komponen payroll
-        $attendance         = $row['attendance'] ?? 0;
-        $basicSalary     = (float)($row['basic_salary']);
-        $dailyAllowance     = (float)($row['daily_allowance']);
-        $houseAllowance     = (float)($row['house_allowance']);
-        $mealAllowance      = (float)($row['meal_allowance']);
-        $transportAllowance = (float)($row['transport_allowance']);
-        $bonus              = (float)($row['bonus']);
-        $allowance           = (float)($row['allowance']);
-        $reamburse           = (float)($row['reamburse']);
-        $overtime           = (float)($row['overtime']);
-        $lateFine           = (float)($row['late_fine']);
-        $punishment         = (float)($row['punishment']);
-        $bpjsKes            = (float)($row['bpjs_kes']);
-        $bpjsKet            = (float)($row['bpjs_ket']);
-        $tax                = (float)($row['tax']);
-        $debt               = (float)($row['debt']);
+$attendance         = $row['attendance'] ?? 0;
+$basicSalary        = (float)($row['basic_salary']);
+$dailyAllowance     = (float)($row['daily_allowance']);
+$houseAllowance     = (float)($row['house_allowance']);
+$mealAllowance      = (float)($row['meal_allowance']);
+$transportAllowance = (float)($row['transport_allowance']);
+$bonus              = (float)($row['bonus']);
+$allowance          = (float)($row['allowance']);
+$reamburse          = (float)($row['reamburse']);
+$overtime           = (float)($row['overtime']);
 
-        $deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt;
-        // $salary = ($basicSalary + $dailyAllowance) * $attendance  
-        //     + $houseAllowance
-        //     + $allowance
-        //     + $reamburse
-        //     + $mealAllowance
-        //     + $transportAllowance
-        //     + $bonus
-        //     + $overtime;
-        // $takeHome = $salary - $deductions;
-        $salary = 
-    $basicSalary
-    + ($dailyAllowance * $attendance)
-    + $houseAllowance
-    + $allowance
-    + $reamburse
-    + $mealAllowance
-    + $transportAllowance
-    + $bonus
-    + $overtime;
+$lateFine           = (float)($row['late_fine']);
+$punishment         = (float)($row['punishment']);
+$bpjsKes            = (float)($row['bpjs_kes']);
+$bpjsKet            = (float)($row['bpjs_ket']);
+$tax                = (float)($row['tax']);
+$debt               = (float)($row['debt']);
+
+$deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt;
+
+// status employee (PKWT atau DW)
+// $status = $row['status_employee'];
+
+// // Default: DW
+// if ($status === 'PKWT') {
+
+//     // PKWT: (basic + allowance) dibagi 26 hari kerja lalu dikali hadir
+//     $totalHariKerja = 26;
+
+//     $prorata = ($basicSalary + $allowance) / $totalHariKerja;
+//     $salary = 
+//         ($prorata * $attendance)
+//         + $houseAllowance
+//         + $mealAllowance
+//         + $transportAllowance
+//         + $bonus
+//         + $overtime
+//         + $reamburse;
+
+// } else {
+
+//     // DW (daily worker)
+//     $salary = 
+//         $basicSalary
+//         + ($dailyAllowance * $attendance)
+//         + $houseAllowance
+//         + $allowance
+//         + $mealAllowance
+//         + $transportAllowance
+//         + $bonus
+//         + $overtime
+//         + $reamburse;
+// }
+
+// $takeHome = $salary - $deductions;
+// status employee (PKWT atau DW diambil dari database)
+$status = $employee->status_employee ?? 'DW';
+
+// Default rumus: DW
+if ($status === 'PKWT') {
+
+    // PKWT: (basic + allowance) dibagi 26 hari kerja lalu dikali hadir
+    $totalHariKerja = 26;
+
+    $prorata = ($basicSalary + $allowance) / $totalHariKerja;
+
+    $salary =
+        ($prorata * $attendance)
+        + $houseAllowance
+        + $mealAllowance
+        + $transportAllowance
+        + $bonus
+        + $overtime
+        + $reamburse;
+
+} else {
+
+    // DW (daily worker)
+    $salary =
+        $basicSalary
+        + ($dailyAllowance * $attendance)
+        + $houseAllowance
+        + $allowance
+        + $mealAllowance
+        + $transportAllowance
+        + $bonus
+        + $overtime
+        + $reamburse;
+}
 $takeHome = $salary - $deductions;
 
-        // 8️⃣ Simpan data baru
+
         return new Payrolls([
             'employee_id'         => $employee->id,
             'attendance'          => $attendance,
@@ -198,3 +234,42 @@ $takeHome = $salary - $deductions;
         return 500;
     }
 }
+//         $attendance         = $row['attendance'] ?? 0;
+//         $basicSalary     = (float)($row['basic_salary']);
+//         $dailyAllowance     = (float)($row['daily_allowance']);
+//         $houseAllowance     = (float)($row['house_allowance']);
+//         $mealAllowance      = (float)($row['meal_allowance']);
+//         $transportAllowance = (float)($row['transport_allowance']);
+//         $bonus              = (float)($row['bonus']);
+//         $allowance           = (float)($row['allowance']);
+//         $reamburse           = (float)($row['reamburse']);
+//         $overtime           = (float)($row['overtime']);
+//         $lateFine           = (float)($row['late_fine']);
+//         $punishment         = (float)($row['punishment']);
+//         $bpjsKes            = (float)($row['bpjs_kes']);
+//         $bpjsKet            = (float)($row['bpjs_ket']);
+//         $tax                = (float)($row['tax']);
+//         $debt               = (float)($row['debt']);
+
+//         $deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt;
+       
+//         $salary = 
+//     $basicSalary
+//     + ($dailyAllowance * $attendance)
+//     + $houseAllowance
+//     + $allowance
+//     + $reamburse
+//     + $mealAllowance
+//     + $transportAllowance
+//     + $bonus
+//     + $overtime;
+// $takeHome = $salary - $deductions;
+ // $salary = ($basicSalary + $dailyAllowance) * $attendance  
+        //     + $houseAllowance
+        //     + $allowance
+        //     + $reamburse
+        //     + $mealAllowance
+        //     + $transportAllowance
+        //     + $bonus
+        //     + $overtime;
+        // $takeHome = $salary - $deductions;
