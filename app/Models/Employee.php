@@ -29,11 +29,11 @@ class Employee extends Model
             }
         });
     }
-    protected $casts = [
-        // 'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-        // 'date_of_birth' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-        // 'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-    ];
+    // protected $casts = [
+    //     // 'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+    //     // 'date_of_birth' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+    //     // 'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
+    // ];
     protected $fillable = [
         'employee_name',
         'photos',
@@ -266,7 +266,7 @@ class Employee extends Model
         // Pisahkan mereka yang bukan dirinya sendiri
         return $all->where('id', '!=', $this->id);
     }
-    
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -283,7 +283,7 @@ class Employee extends Model
                     'company_id' => fn($id) => optional(Company::find($id))->name,
                     'store_id' => fn($id) => optional(Stores::find($id))->name,
                     'position_id' => fn($id) => optional(Position::find($id))->name,
-                        'banks_id' => fn($id) => optional(Banks::find($id))->name,
+                    'banks_id' => fn($id) => optional(Banks::find($id))->name,
                     'structure_id' => fn($id) => optional(
                         optional(
                             optional(Structuresnew::with('submissionposition.positionRelation')->find($id))
@@ -296,53 +296,53 @@ class Employee extends Model
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
                 ];
                 $fieldLabels = [
-                    'employee_name'=> 'Employee Name',
-                    'foto'=> 'Photo',
-                    'position_id'=> 'Position',
-                    'company_id'=> 'Company',
-                    'store_id'=> 'Location',
-                    'bank_account_number'=> 'Bank Account Number',
-                    'banks_id'=> 'Bank',
-                    'department_id'=> 'Department',
-                    'grading_id'=> 'Grading',
-                    'group_id'=> 'Group',
-                    'status_employee'=> 'Employee Status',
-                    'join_date'=> 'Join',
-                    'marriage'=> 'Status Marriage',
-                    'child'=> 'Child',
-                    'telp_number'=> 'Telephone Number',
-                    'nik'=> 'ID Card',
-                    'gender'=> 'Gender',
-                    'date_of_birth'=> 'Date of Birth',
-                    'place_of_birth'=> 'Place of Birth',
-                    'biological_mother_name'=> 'Mothers Name',
-                    'religion'=> 'Religion',
-                    'current_address'=> 'Current Address',
-                    'id_card_address'=> 'ID Card Address',
-                    'last_education'=> 'Last Education',
-                    'institution'=> 'Institution',
-                    'npwp'=> 'NPWP',
-                    'bpjs_kes'=> 'BPJS Kesehatan',
-                    'bpjs_ket'=> 'BPJS Ketenagakerjaan',
-                    'email'=> 'email',
-                    'emergency_contact_name'=> 'Emergency Contact',
-                    'status'=> 'status',
-                    'notes'=> 'Resign notes',
-                    'pin'=> 'Employee Fingerprints',
-                    'end_date'=> 'Leave',
-                    'structure_id'=> 'Structures',
+                    'employee_name' => 'Employee Name',
+                    'foto' => 'Photo',
+                    'position_id' => 'Position',
+                    'company_id' => 'Company',
+                    'store_id' => 'Location',
+                    'bank_account_number' => 'Bank Account Number',
+                    'banks_id' => 'Bank',
+                    'department_id' => 'Department',
+                    'grading_id' => 'Grading',
+                    'group_id' => 'Group',
+                    'status_employee' => 'Employee Status',
+                    'join_date' => 'Join',
+                    'marriage' => 'Status Marriage',
+                    'child' => 'Child',
+                    'telp_number' => 'Telephone Number',
+                    'nik' => 'ID Card',
+                    'gender' => 'Gender',
+                    'date_of_birth' => 'Date of Birth',
+                    'place_of_birth' => 'Place of Birth',
+                    'biological_mother_name' => 'Mothers Name',
+                    'religion' => 'Religion',
+                    'current_address' => 'Current Address',
+                    'id_card_address' => 'ID Card Address',
+                    'last_education' => 'Last Education',
+                    'institution' => 'Institution',
+                    'npwp' => 'NPWP',
+                    'bpjs_kes' => 'BPJS Kesehatan',
+                    'bpjs_ket' => 'BPJS Ketenagakerjaan',
+                    'email' => 'email',
+                    'emergency_contact_name' => 'Emergency Contact',
+                    'status' => 'status',
+                    'notes' => 'Resign notes',
+                    'pin' => 'Employee Fingerprints',
+                    'end_date' => 'Leave',
+                    'structure_id' => 'Structures',
                 ];
                 $changesInfo = '';
                 if ($eventName === 'updated' && !empty($changes)) {
                     $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
                         $old = $original[$field] ?? 'null';
-                    $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
+                        $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
                         if (isset($relationNames[$field])) {
-    $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
-    $oldLabel = $relationNames[$field]($old) ?? $old;
-    $newLabel = $relationNames[$field]($new) ?? $new;
-    return "{$label}: {$oldLabel} → {$newLabel}";
-}
+                            $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
+                            $oldLabel = $relationNames[$field]($old) ?? $old;
+                            $newLabel = $relationNames[$field]($new) ?? $new;
+                            return "{$label}: {$oldLabel} → {$newLabel}";
+                        }
                         // Selain relasi, tampilkan nilai langsung
                         if ($old == $new) return null;
                         return "{$label}: {$old} → {$new}";
@@ -361,9 +361,7 @@ class Employee extends Model
     {
         return $this->belongsTo(Structuresnew::class, 'structure_id', 'id');
     }
-
-
-  public function getSupervisorFromStructure()
+    public function getSupervisorFromStructure()
     {
         $structure = $this->structuresnew;
 
@@ -381,7 +379,7 @@ class Employee extends Model
         return $supervisor;
     }
 
- public function getSecondarySupervisors(): Collection
+    public function getSecondarySupervisors(): Collection
     {
         $structure = $this->structuresnew;
 
@@ -407,7 +405,7 @@ class Employee extends Model
 
         return $result;
     }
- public function getAllSupervisors(): Collection
+    public function getAllSupervisors(): Collection
     {
         $supervisors = collect();
 
@@ -424,6 +422,4 @@ class Employee extends Model
         // pastikan unique & reset index
         return $supervisors->unique('id')->values();
     }
-    
-
 }

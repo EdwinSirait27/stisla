@@ -101,15 +101,27 @@ class PayrollsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
         $debt               = (float)($row['debt']);
 
         $deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt;
-        $salary = ($basicSalary + $dailyAllowance) * $attendance  
-            + $houseAllowance
-            + $allowance
-            + $reamburse
-            + $mealAllowance
-            + $transportAllowance
-            + $bonus
-            + $overtime;
-        $takeHome = $salary - $deductions;
+        // $salary = ($basicSalary + $dailyAllowance) * $attendance  
+        //     + $houseAllowance
+        //     + $allowance
+        //     + $reamburse
+        //     + $mealAllowance
+        //     + $transportAllowance
+        //     + $bonus
+        //     + $overtime;
+        // $takeHome = $salary - $deductions;
+        $salary = 
+    $basicSalary
+    + ($dailyAllowance * $attendance)
+    + $houseAllowance
+    + $allowance
+    + $reamburse
+    + $mealAllowance
+    + $transportAllowance
+    + $bonus
+    + $overtime;
+$takeHome = $salary - $deductions;
+
         // 8️⃣ Simpan data baru
         return new Payrolls([
             'employee_id'         => $employee->id,

@@ -20,28 +20,63 @@ class Leaverequest extends Model
             }
         });
     }
-    protected $table = 'leave_requests_tables';
-    protected $fillable = [
-        'employee_id',
-        'leave_type_id',
+    protected $table = 'leave_requests';
+   protected $fillable = [
+        'leave_balance_id',
         'start_date',
         'end_date',
-        'total_days',
-        'total_hours',
-        'reason',
+        'employee_reason',
+        'approver_reason',
         'status',
-
+        'approved_by',
     ];
-    public function employees()
+
+    // relasi utama
+    public function leavebalance()
     {
-        return $this->belongsTo(Employee::class, 'employee_id', 'id');
+        return $this->belongsTo(Leavebalance::class, 'leave_balance_id', 'id');
     }
-    public function leavetypes()
+
+    // employee yang mengajukan
+    public function employee()
     {
-        return $this->belongsTo(Leavetypes::class, 'leave_type_id', 'id');
+        return $this->leavebalance->employees;
     }
-    public function approvals()
+
+    // tipe cuti
+    public function leaveType()
     {
-        return $this->hasMany(LeaveRequestApproval::class, 'leave_request_id', 'id');
+        return $this->leaveBalance->leaves;
+    }
+
+    // approver (employee)
+    public function approver()
+    {
+        return $this->belongsTo(Employee::class, 'approved_by', 'id');
+    }
+    /**
+     * Ambil semua approver berdasarkan struktur organisasi:
+     * - Primary manager
+     * - Secondary supervisor
+     */
+    public function approvers()
+    {
+        $employee = $this->leavebalance->employees;
+
+        $structure = $employee->structuresnew; // relasi ke model Structuresnew
+
+        // manager utama
+        $primary = $structure->employees()->where('is_manager', 1)->get();
+
+        // secondary supervisor
+        $secondary = $structure->secondarySupervisors;
+
+        return $primary->merge($secondary);
+    }
+
+    // cek apakah employee tertentu boleh approve
+    public function canBeApprovedBy($employeeId)
+    {
+        return $this->approvers()->pluck('id')->contains($employeeId);
     }
 }

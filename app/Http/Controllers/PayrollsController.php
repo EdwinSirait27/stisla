@@ -27,7 +27,7 @@ class PayrollsController extends Controller
     }
     public function generateAll()
     {
-        ini_set('max_execution_time', 360);
+        ini_set('max_execution_time', 420);
         $currentCarbon = Carbon::now();
 
         $payrolls = Payrolls::with('employee')

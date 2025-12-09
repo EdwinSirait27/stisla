@@ -31,6 +31,7 @@ use App\Http\Controllers\GradinglistController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\Editedfingerprints;
+use App\Http\Controllers\LeaverequestController;
 use App\Http\Controllers\DashboardHeadController;
 use App\Http\Controllers\PositionreqController;
 use App\Http\Controllers\GroupController;
@@ -257,6 +258,18 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/Leavesbalance', [LeavebalancesController::class, 'index'])
             ->name('pages.Leavesbalance');
         Route::get('/leavesbalances/leavesbalances', [LeavebalancesController::class, 'getLeavesbalances'])->name('leavesbalances.leavesbalances');
+        Route::get('/Leavesbalance/edit/{hashedId}', [LeavebalancesController::class, 'edit'])->name('Leavesbalance.edit');
+        Route::put('/Leavesbalance/{hashedId}', [LeavebalancesController::class, 'update'])->name('Leavesbalance.update');
+
+    });
+     Route::group(['middleware' => ['permission:ManageLeaverequest']], function () {
+        Route::get('/Leaverequest', [LeaverequestController::class, 'index'])
+            ->name('pages.Leaverequest');
+        Route::get('Leaverequest/create', [LeaverequestController::class, 'create'])->name('Leaverequest.create');
+        Route::post('/Leaverequest', [LeaverequestController::class, 'store'])->name('Leaverequest.store');
+        Route::get('/Leaverequest/edit/{hashedId}', [LeaverequestController::class, 'edit'])->name('Leaverequest.edit');
+        Route::put('/Leaverequest/{hashedId}', [LeaverequestController::class, 'update'])->name('Leaverequest.update');
+        Route::get('/leaverequests/leaverequests', [LeaverequestController::class, 'getLeaverequests'])->name('leaverequests.leaverequests');
     });
     // Department    
     Route::group(['middleware' => ['permission:ManageDepartments']], function () {

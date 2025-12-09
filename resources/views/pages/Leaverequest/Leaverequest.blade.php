@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Leaves Balance')
+@section('title', 'Leave request')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -166,36 +166,36 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Leaves Balance</h1>
+                <h1>Leave Request {{$employee}}  </h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Leaves Balance</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Your Leave Request</h6>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">Employee Name</th>
-                                                <th class="text-center">Type</th>
-                                                <th class="text-center">Balance Days</th>
-                                                <th class="text-center">Balance Hours</th>
-                                                <th class="text-center">Years</th>
+                                                <th class="text-center">Start Date</th>
+                                                <th class="text-center">End Date</th>
+                                                <th class="text-center">Reason</th>
+                                                <th class="text-center">Approved By</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
-                                {{-- <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Leavestype.create') }}'"
+                                <div class="action-buttons">
+                                    <button type="button" onclick="window.location='{{ route('Leaverequest.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Leave Type
+                                        <i class="fas fa-plus-circle"></i> Create Leave Request
                                     </button>
-                                </div> --}}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -215,7 +215,7 @@
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
-                    url: '{{ route('leavesbalances.leavesbalances') }}',
+                    url: '{{ route('leaverequests.leaverequests') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -229,28 +229,32 @@
                 },
                 columns: [
                     {
-                        data: 'employees.employee_name',
-                        name: 'employee_name',
+                        data: 'start_date',
+                        name: 'start_date',
                         className: 'text-center'
                     },
                     {
-                        data: 'leaves_type',
-                        name: 'leaves_type',
+                        data: 'end_date',
+                        name: 'end_date',
                         className: 'text-center'
                     },
                     {
-                        data: 'balance_days',
-                        name: 'employee_name',
-                        className: 'text-center'
+                        data: 'status',
+                        className: 'text-center',
+                        render: function(data) {
+                            const badges = {
+                                'Approved': 'success',
+                                'Rejected': 'warning',
+                                'Pending': 'info',
+                                'Sent': 'secondary',
+                                'Accepted': 'warning text-dark'
+                            };
+                            return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
+                        }
                     },
                     {
-                        data: 'balance_hours',
-                        name: 'balance_hours',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'year',
-                        name: 'year',
+                        data: 'approver',
+                        name: 'approver',
                         className: 'text-center'
                     },
                     {
@@ -261,10 +265,10 @@
                         className: 'text-center'
                     }
                 ],
-                // initComplete: function() {
-                //     $('.dataTables_filter input').addClass('form-control');
-                //     $('.dataTables_length select').addClass('form-control');
-                // }
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                }
             });
 
             @if (session('success'))
