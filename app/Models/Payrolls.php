@@ -42,6 +42,7 @@ class Payrolls extends Model
         'punishment',
         'late_fine',
         'deductions',
+        'gross_salary',
         'salary',
         'take_home',
         'tax',
@@ -56,6 +57,10 @@ class Payrolls extends Model
         return $this->belongsTo(Employee::class, 'employee_id','id');
     }
     public function getDailyAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+    public function getGrossSalaryAttribute($value)
     {
         return $value ? (float) Crypt::decryptString($value) : null;
     }

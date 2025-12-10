@@ -329,11 +329,11 @@
                                                 <th class="text-center">NIP</th>
                                                 <th class="text-center">Attendance</th>
                                                 <th class="text-center">Basic Salary</th>
+                                                <th class="text-center">Allowance</th>
                                                 <th class="text-center">Daily Allowance</th>
                                                 <th class="text-center">House Allowance</th>
                                                 <th class="text-center">Meal Allowance</th>
                                                 <th class="text-center">Transport Allowance</th>
-                                                <th class="text-center">Allowance</th>
                                                 <th class="text-center">Reamburse</th>
                                                 <th class="text-center">Bonus</th>
                                                 <th class="text-center">Overtime</th>
@@ -343,6 +343,7 @@
                                                 <th class="text-center">BPJS Ketenagakerjaan</th>
                                                 <th class="text-center">Tax</th>
                                                 <th class="text-center">Debt</th>
+                                                <th class="text-center">Gross Salary</th>
                                                 <th class="text-center">Total Outcome</th>
                                                 <th class="text-center">Total Income</th>
                                                 <th class="text-center">Take Home</th>
@@ -557,6 +558,17 @@
                             return '-';
                         }
                     },
+                     {
+                        data: 'allowance',
+                        name: 'allowance',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
+                        }
+                    },
                     {
                         data: 'daily_allowance',
                         name: 'daily_allowance',
@@ -602,17 +614,7 @@
                             return '-';
                         }
                     },
-                    {
-                        data: 'allowance',
-                        name: 'allowance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
+                   
                     {
                         data: 'reamburse',
                         name: 'reamburse',
@@ -709,6 +711,17 @@
                     {
                         data: 'debt',
                         name: 'debt',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
+                        }
+                    },
+                    {
+                        data: 'gross_salary',
+                        name: 'gross_salary',
                         className: 'text-center',
                         render: function(data) {
                             if (data) {

@@ -67,12 +67,14 @@ class PayrollsController extends Controller
             $month_year = $payroll->month_year ?? '-';
             $deductions = $payroll->deductions ?? '-';
             $salary = $payroll->salary ?? '-';
+            $gross_salary = $payroll->gross_salary ?? '-';
             $take_home = $payroll->take_home ?? '-';
             $data = [
                 'payroll' => $payroll,
                 'attendance' => $attendance,
                 'allowance' => $allowance,
                 'basic_salary' => $basic_salary,
+                'gross_salary' => $gross_salary,
                 'reamburse' => $reamburse,
                 'overtime' => $overtime,
                 'period' => $period,
@@ -138,6 +140,7 @@ class PayrollsController extends Controller
             'basic_salary',
             'allowance',
             'reamburse',
+            'gross_salary',
             'bonus',
             'house_allowance',
             'meal_allowance',

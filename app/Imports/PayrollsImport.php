@@ -74,7 +74,7 @@ $houseAllowance     = (float)($row['house_allowance']);
 $mealAllowance      = (float)($row['meal_allowance']);
 $transportAllowance = (float)($row['transport_allowance']);
 $bonus              = (float)($row['bonus']);
-$allowance          = (float)($row['allowance']);
+$positionalAllowance= (float)($row['allowance']);
 $reamburse          = (float)($row['reamburse']);
 $overtime           = (float)($row['overtime']);
 
@@ -86,70 +86,73 @@ $tax                = (float)($row['tax']);
 $debt               = (float)($row['debt']);
 
 $deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt;
-
-// status employee (PKWT atau DW)
-// $status = $row['status_employee'];
-
-// // Default: DW
-// if ($status === 'PKWT') {
-
-//     // PKWT: (basic + allowance) dibagi 26 hari kerja lalu dikali hadir
-//     $totalHariKerja = 26;
-
-//     $prorata = ($basicSalary + $allowance) / $totalHariKerja;
-//     $salary = 
-//         ($prorata * $attendance)
-//         + $houseAllowance
-//         + $mealAllowance
-//         + $transportAllowance
-//         + $bonus
-//         + $overtime
-//         + $reamburse;
-
-// } else {
-
-//     // DW (daily worker)
-//     $salary = 
-//         $basicSalary
-//         + ($dailyAllowance * $attendance)
-//         + $houseAllowance
-//         + $allowance
-//         + $mealAllowance
-//         + $transportAllowance
-//         + $bonus
-//         + $overtime
-//         + $reamburse;
-// }
-
-// $takeHome = $salary - $deductions;
-// status employee (PKWT atau DW diambil dari database)
 $status = $employee->status_employee ?? 'DW';
 
 // Default rumus: DW
 if ($status === 'PKWT') {
 
-    // PKWT: (basic + allowance) dibagi 26 hari kerja lalu dikali hadir
-    $totalHariKerja = 26;
+    // $totalHariKerja = 26;
+    
+    // $prorata = ($basicSalary + $positionalAllowance) / $totalHariKerja;
+    // $grossSalary        = $basicSalary + $positionalAllowance;
 
-    $prorata = ($basicSalary + $allowance) / $totalHariKerja;
+    // $salary =
+    //     ($prorata * $attendance)
+    //     + $houseAllowance
+    //     + $mealAllowance
+    //     + $transportAllowance
+    //     + $bonus
+    //     + $overtime
+    //     + $reamburse;
+//     $totalHariKerja = 26;
 
-    $salary =
-        ($prorata * $attendance)
-        + $houseAllowance
-        + $mealAllowance
-        + $transportAllowance
-        + $bonus
-        + $overtime
-        + $reamburse;
+// // prorata gaji tetap
+// $prorata = round(($basicSalary + $positionalAllowance) / $totalHariKerja, 2);
+
+// // total salary sebelum potongan
+// $salary =
+//     round($prorata * $attendance, 2)
+//     + $houseAllowance
+//     + $mealAllowance
+//     + $transportAllowance
+//     + $bonus
+//     + $overtime
+//     + $reamburse;
+
+// // gross = salary sebelum potongan
+// $grossSalary = $salary;
+$totalHariKerja = 26;
+
+// JANGAN round di sini
+$prorata = ($basicSalary + $positionalAllowance) / $totalHariKerja;
+
+// hitung salary full dulu
+$salary =
+    ($prorata * $attendance)
+    + $houseAllowance
+    + $mealAllowance
+    + $transportAllowance
+    + $bonus
+    + $overtime
+    + $reamburse;
+
+// ROUND DI AKHIR SAJA
+$salary = round($salary, 0);
+$grossSalary = $salary;
+
+
 
 } else {
+    $totalHariKerja = 26;
 
     // DW (daily worker)
+$grossSalary        =  $dailyAllowance * $attendance;
+
     $salary =
         $basicSalary
         + ($dailyAllowance * $attendance)
         + $houseAllowance
-        + $allowance
+        + $positionalAllowance
         + $mealAllowance
         + $transportAllowance
         + $bonus
@@ -157,7 +160,6 @@ if ($status === 'PKWT') {
         + $reamburse;
 }
 $takeHome = $salary - $deductions;
-
 
         return new Payrolls([
             'employee_id'         => $employee->id,
@@ -168,7 +170,7 @@ $takeHome = $salary - $deductions;
             'meal_allowance'      => Crypt::encryptString($mealAllowance),
             'transport_allowance' => Crypt::encryptString($transportAllowance),
             'bonus'               => Crypt::encryptString($bonus),
-            'allowance'            => Crypt::encryptString($allowance),
+            'allowance'            => Crypt::encryptString($positionalAllowance),
             'reamburse'            => Crypt::encryptString($reamburse),
             'overtime'            => Crypt::encryptString($overtime),
             'late_fine'           => Crypt::encryptString($lateFine),
@@ -177,6 +179,7 @@ $takeHome = $salary - $deductions;
             'bpjs_ket'            => Crypt::encryptString($bpjsKet),
             'tax'                 => Crypt::encryptString($tax),
             'debt'                => Crypt::encryptString($debt),
+            'gross_salary'                => Crypt::encryptString($grossSalary),
             'deductions'          => Crypt::encryptString($deductions),
             'salary'              => Crypt::encryptString($salary),
             'take_home'           => Crypt::encryptString($takeHome),
@@ -273,3 +276,76 @@ $takeHome = $salary - $deductions;
         //     + $bonus
         //     + $overtime;
         // $takeHome = $salary - $deductions;
+
+
+        
+// status employee (PKWT atau DW)
+// $status = $row['status_employee'];
+
+// // Default: DW
+// if ($status === 'PKWT') {
+
+//     // PKWT: (basic + allowance) dibagi 26 hari kerja lalu dikali hadir
+//     $totalHariKerja = 26;
+
+//     $prorata = ($basicSalary + $allowance) / $totalHariKerja;
+//     $salary = 
+//         ($prorata * $attendance)
+//         + $houseAllowance
+//         + $mealAllowance
+//         + $transportAllowance
+//         + $bonus
+//         + $overtime
+//         + $reamburse;
+
+// } else {
+
+//     // DW (daily worker)
+//     $salary = 
+//         $basicSalary
+//         + ($dailyAllowance * $attendance)
+//         + $houseAllowance
+//         + $allowance
+//         + $mealAllowance
+//         + $transportAllowance
+//         + $bonus
+//         + $overtime
+//         + $reamburse;
+// }
+
+// $takeHome = $salary - $deductions;
+// status employee (PKWT atau DW diambil dari database)
+// $status = $employee->status_employee ?? 'DW';
+
+// // Default rumus: DW
+// if ($status === 'PKWT') {
+
+//     // PKWT: (basic + allowance) dibagi 26 hari kerja lalu dikali hadir
+//     $totalHariKerja = 26;
+
+//     $prorata = ($basicSalary + $allowance) / $totalHariKerja;
+
+//     $salary =
+//         ($prorata * $attendance)
+//         + $houseAllowance
+//         + $mealAllowance
+//         + $transportAllowance
+//         + $bonus
+//         + $overtime
+//         + $reamburse;
+
+// } else {
+
+//     // DW (daily worker)
+//     $salary =
+//         $basicSalary
+//         + ($dailyAllowance * $attendance)
+//         + $houseAllowance
+//         + $allowance
+//         + $mealAllowance
+//         + $transportAllowance
+//         + $bonus
+//         + $overtime
+//         + $reamburse;
+// }
+// $takeHome = $salary - $deductions;
