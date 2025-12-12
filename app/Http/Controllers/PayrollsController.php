@@ -159,7 +159,6 @@ class PayrollsController extends Controller
             'debt',
             'punishment'
         ]);
-
     if ($request->filled('month_year')) {
         $payrollsQuery->whereRaw("DATE_FORMAT(month_year, '%Y-%m') = ?", [$request->month_year]);
     }

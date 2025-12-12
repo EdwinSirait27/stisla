@@ -150,10 +150,30 @@ class Employee extends Model
     {
         return $this->hasOne(User::class, 'employee_id');
     }
+    // public function getLengthOfServiceAttribute()
+    // {
+    //     return $this->created_at->diffInDays(now()) . ' days';
+    // }
     public function getLengthOfServiceAttribute()
-    {
-        return $this->created_at->diffInDays(now()) . ' days';
+{
+    // Jika status bukan Active atau Pending → kosong
+    if (!in_array($this->status_employee, ['Active', 'Pending'])) {
+        return 'Empty';
     }
+
+    // Jika tidak ada join_date → kosong
+    if (!$this->join_date) {
+        return 'Empty';
+    }
+
+    $joinDate = Carbon::parse($this->join_date);
+    $now = Carbon::now();
+
+    $years  = $joinDate->diffInYears($now);
+    $months = $joinDate->copy()->addYears($years)->diffInMonths($now);
+
+    return "{$years} Years, {$months} Months";
+}
     public function getJoinDateAttribute($value)
     {
         return Carbon::parse($value)->format('y-m-d');
@@ -422,4 +442,6 @@ class Employee extends Model
         // pastikan unique & reset index
         return $supervisors->unique('id')->values();
     }
+
+
 }

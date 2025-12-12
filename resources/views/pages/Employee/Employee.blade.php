@@ -191,6 +191,7 @@
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Grd Name</th>
                                                 <th class="text-center">Status Employee</th>
+                                                <th class="text-center">LOS</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>

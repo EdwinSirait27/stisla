@@ -89,38 +89,9 @@ $deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt;
 $status = $employee->status_employee ?? 'DW';
 
 // Default rumus: DW
-if ($status === 'PKWT') {
+// if ($status === 'PKWT') {
+if (in_array($status, ['PKWT', 'On Job Training'])) {
 
-    // $totalHariKerja = 26;
-    
-    // $prorata = ($basicSalary + $positionalAllowance) / $totalHariKerja;
-    // $grossSalary        = $basicSalary + $positionalAllowance;
-
-    // $salary =
-    //     ($prorata * $attendance)
-    //     + $houseAllowance
-    //     + $mealAllowance
-    //     + $transportAllowance
-    //     + $bonus
-    //     + $overtime
-    //     + $reamburse;
-//     $totalHariKerja = 26;
-
-// // prorata gaji tetap
-// $prorata = round(($basicSalary + $positionalAllowance) / $totalHariKerja, 2);
-
-// // total salary sebelum potongan
-// $salary =
-//     round($prorata * $attendance, 2)
-//     + $houseAllowance
-//     + $mealAllowance
-//     + $transportAllowance
-//     + $bonus
-//     + $overtime
-//     + $reamburse;
-
-// // gross = salary sebelum potongan
-// $grossSalary = $salary;
 $totalHariKerja = 26;
 
 // JANGAN round di sini
@@ -349,3 +320,34 @@ $takeHome = $salary - $deductions;
 //         + $reamburse;
 // }
 // $takeHome = $salary - $deductions;
+
+    // $totalHariKerja = 26;
+    
+    // $prorata = ($basicSalary + $positionalAllowance) / $totalHariKerja;
+    // $grossSalary        = $basicSalary + $positionalAllowance;
+
+    // $salary =
+    //     ($prorata * $attendance)
+    //     + $houseAllowance
+    //     + $mealAllowance
+    //     + $transportAllowance
+    //     + $bonus
+    //     + $overtime
+    //     + $reamburse;
+//     $totalHariKerja = 26;
+
+// // prorata gaji tetap
+// $prorata = round(($basicSalary + $positionalAllowance) / $totalHariKerja, 2);
+
+// // total salary sebelum potongan
+// $salary =
+//     round($prorata * $attendance, 2)
+//     + $houseAllowance
+//     + $mealAllowance
+//     + $transportAllowance
+//     + $bonus
+//     + $overtime
+//     + $reamburse;
+
+// // gross = salary sebelum potongan
+// $grossSalary = $salary;

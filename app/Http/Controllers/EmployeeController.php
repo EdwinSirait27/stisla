@@ -176,7 +176,9 @@ class EmployeeController extends Controller
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
             ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->rawColumns(['nip', 'group_name', 'position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
+            ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
+
+            ->rawColumns(['nip', 'group_name', 'length_of_service','position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
     public function getEmployeesall()
@@ -330,48 +332,7 @@ foreach ($columns as $key => $relationPath) {
             ->rawColumns(['action'])
             ->make(true);
     }
-    // public function edit($hashedId)
-    // {
-    //     $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-    //     if (!$employee) {
-    //         abort(404, 'Employee not found.');
-    //     }
-    //     $positions = Position::get();
-    //     $companys = Company::get();
-    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
-    //     $departments = Departments::with('user.Employee')->get();
-    //     $stores = Stores::with('user.Employee')->get();
-    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-    //     $child = ['0', '1', '2', '3', '4', '5'];
-    //     $marriage = ['Yes', 'No'];
-    //     $gender = ['Male', 'Female', 'MD'];
-    //     $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
-    //     $banks = Banks::get();
-    //     $structures = Structuresnew::with('company','department','store','position')->get();
-    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
-    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-    //     return view('pages.Employee.edit', [
-    //         'employee' => $employee,
-    //         'status_employee' => $status_employee,
-    //         'child' => $child,
-    //         'structures' => $structures,
-    //         'employees' => $employees,
-    //         'companys' => $companys,
-    //         'stores' => $stores,
-    //         'marriage' => $marriage,
-    //         'gender' => $gender,
-    //         'status' => $status,
-    //         'banks' => $banks,
-    //         'religion' => $religion,
-    //         'last_education' => $last_education,
-    //         'positions' => $positions,
-    //         'departments' => $departments,
-    //         'hashedId' => $hashedId,
-    //     ]);
-    // }
+    
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees', 'Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
@@ -423,54 +384,7 @@ foreach ($columns as $key => $relationPath) {
             'hashedId' => $hashedId,
         ]);
     }
-    // public function show($hashedId)
-    // {
-    //     $employee = User::with('Employee', 'Employee.store', 'Employee.grading', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-    //     if (!$employee) {
-    //         abort(404, 'Employee not found.');
-    //     }
-    //        $structures = Structuresnew::with('company', 'department', 'store', 'position','submissionposition')->Where('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
-    //     ->get();
-    //     $positions = Position::get();
-    //     $companys = Company::get();
-    //     $employees = Employee::where('status', 'Active')
-    //         ->pluck('employee_name', 'id');
-    //     $departments = Departments::with('user.Employee')->get();
-    //     $stores = Stores::with('user.Employee')->get();
-    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-    //     $child = ['0', '1', '2', '3', '4', '5'];
-    //     $marriage = ['Yes', 'No'];
-    //     $gender = ['Male', 'Female', 'MD'];
-    //     $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
-    //     $banks = Banks::get();
-    //     $gradings = Grading::get();
-    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
-    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-    //     return view('pages.Employee.show', [
-    //         'employee' => $employee,
-    //         'employees' => $employees,
-    //         'status_employee' => $status_employee,
-    //         'child' => $child,
-    //         'employees' => $employees,
-    //         'companys' => $companys,
-    //         'stores' => $stores,
-    //         'marriage' => $marriage,
-    //         'gender' => $gender,
-    //         'gradings' => $gradings,
-    //         'status' => $status,
-    //         'banks' => $banks,
-    //         'gradings' => $gradings,
-    //         'religion' => $religion,
-    //         'structures' => $structures,
-    //         'last_education' => $last_education,
-    //         'positions' => $positions,
-    //         'departments' => $departments,
-    //         'hashedId' => $hashedId,
-    //     ]);
-    // }
+   
     public function show($hashedId)
     {
         $employee = User::with(
@@ -1028,7 +942,96 @@ public function transferAllToPayroll(Request $request)
             return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
         }
     }
-
+ // public function edit($hashedId)
+    // {
+    //     $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //     $positions = Position::get();
+    //     $companys = Company::get();
+    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+    //     $departments = Departments::with('user.Employee')->get();
+    //     $stores = Stores::with('user.Employee')->get();
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $structures = Structuresnew::with('company','department','store','position')->get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+    //     return view('pages.Employee.edit', [
+    //         'employee' => $employee,
+    //         'status_employee' => $status_employee,
+    //         'child' => $child,
+    //         'structures' => $structures,
+    //         'employees' => $employees,
+    //         'companys' => $companys,
+    //         'stores' => $stores,
+    //         'marriage' => $marriage,
+    //         'gender' => $gender,
+    //         'status' => $status,
+    //         'banks' => $banks,
+    //         'religion' => $religion,
+    //         'last_education' => $last_education,
+    //         'positions' => $positions,
+    //         'departments' => $departments,
+    //         'hashedId' => $hashedId,
+    //     ]);
+    // }
+    // public function show($hashedId)
+    // {
+    //     $employee = User::with('Employee', 'Employee.store', 'Employee.grading', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.employees','Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //        $structures = Structuresnew::with('company', 'department', 'store', 'position','submissionposition')->Where('id', optional($employee->Employee)->structure_id) // biar structure miliknya sendiri tetap muncul
+    //     ->get();
+    //     $positions = Position::get();
+    //     $companys = Company::get();
+    //     $employees = Employee::where('status', 'Active')
+    //         ->pluck('employee_name', 'id');
+    //     $departments = Departments::with('user.Employee')->get();
+    //     $stores = Stores::with('user.Employee')->get();
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $status = ['Pending', 'Inactive', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $gradings = Grading::get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confusian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+    //     return view('pages.Employee.show', [
+    //         'employee' => $employee,
+    //         'employees' => $employees,
+    //         'status_employee' => $status_employee,
+    //         'child' => $child,
+    //         'employees' => $employees,
+    //         'companys' => $companys,
+    //         'stores' => $stores,
+    //         'marriage' => $marriage,
+    //         'gender' => $gender,
+    //         'gradings' => $gradings,
+    //         'status' => $status,
+    //         'banks' => $banks,
+    //         'gradings' => $gradings,
+    //         'religion' => $religion,
+    //         'structures' => $structures,
+    //         'last_education' => $last_education,
+    //         'positions' => $positions,
+    //         'departments' => $departments,
+    //         'hashedId' => $hashedId,
+    //     ]);
+    // }
     // with locking
     //     public function update(Request $request, $hashedId)
     // {
