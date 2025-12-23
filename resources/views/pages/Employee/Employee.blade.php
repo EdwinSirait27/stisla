@@ -504,6 +504,10 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'length_of_service',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'status',
                         className: 'text-center',
                         render: function(data) {

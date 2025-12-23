@@ -174,9 +174,62 @@ class EmployeeController extends Controller
             ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
             ->addColumn('nip', fn($e) => optional($e->Employee)->employee_pengenal ?? 'Empty')
             ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
-            ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
+            // ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
             ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
+            // ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
+//             ->addColumn('length_of_service', function ($e) {
+//     return optional($e->Employee?->join_date)
+//         ? Carbon::parse($e->Employee->join_date)->diffForHumans(null, true)
+//         : 'Empty';
+// })
+->addColumn('length_of_service', function ($e) {
+    $joinDate = $e->Employee?->join_date;
+
+    if (!$joinDate) {
+        return 'Empty';
+    }
+
+    $start = Carbon::parse($joinDate);
+    $now   = Carbon::now();
+
+    $diff = $start->diff($now);
+
+    return sprintf(
+        '%d year %d month %d days',
+        $diff->y,
+        $diff->m,
+        $diff->d
+    );
+})
+// ->addColumn('length_of_service', function ($e) {
+
+//     $allowedStatus = ['Active', 'Pending', 'Mutation'];
+
+//     // cek status employee
+//     if (!in_array($e->Employee?->status, $allowedStatus)) {
+//         return 'Empty';
+//     }
+
+//     $joinDate = $e->Employee?->join_date;
+
+//     if (!$joinDate) {
+//         return 'Empty';
+//     }
+
+//     $start = Carbon::parse($joinDate);
+//     $now   = Carbon::now();
+
+//     $diff = $start->diff($now);
+
+//     return sprintf(
+//         '%d year %d month %d days',
+//         $diff->y,
+//         $diff->m,
+//         $diff->d
+//     );
+// })
+
+
 
             ->rawColumns(['nip', 'group_name', 'length_of_service','position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
