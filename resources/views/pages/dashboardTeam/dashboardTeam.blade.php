@@ -2593,7 +2593,7 @@
     </div>
 @endsection
 @push('scripts')
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -2609,6 +2609,24 @@
 
     });
 </script>
+<script>
+
+ @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        @endif
+    </script>
 @endpush
 
 
