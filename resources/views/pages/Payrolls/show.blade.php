@@ -294,6 +294,8 @@
                 <td>{{ $payroll->employee->employee_name }}</td>
                 <td><strong>Status :</strong></td>
                 <td>{{ $payroll->employee->status_employee }}</td>
+                 <td><strong>NIP :</strong></td>
+                <td>{{ $payroll->employee->employee_pengenal }}</td>
             </tr>
 
             <tr>
