@@ -337,6 +337,7 @@
                                                 <th class="text-center">Reamburse</th>
                                                 <th class="text-center">Bonus</th>
                                                 <th class="text-center">Overtime</th>
+                                                <th class="text-center">Overtime Deducion</th>
                                                 <th class="text-center">Late Fine</th>
                                                 <th class="text-center">Punishment</th>
                                                 <th class="text-center">BPJS Kesehatan</th>
@@ -640,6 +641,17 @@
                     {
                         data: 'overtime',
                         name: 'overtime',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (data) {
+                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
+                            }
+                            return '-';
+                        }
+                    },
+                    {
+                        data: 'overtime_deduction',
+                        name: 'overtime_deduction',
                         className: 'text-center',
                         render: function(data) {
                             if (data) {

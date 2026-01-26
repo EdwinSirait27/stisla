@@ -32,6 +32,7 @@ class Payrolls extends Model
         'basic_salary',
         'bonus',
         'overtime',
+        'overtime_deduction',
         'house_allowance',
         'daily_allowance',
         'meal_allowance',
@@ -78,6 +79,10 @@ class Payrolls extends Model
     }
 
     public function getHouseAllowanceAttribute($value)
+    {
+        return $value ? (float) Crypt::decryptString($value) : null;
+    }
+    public function getOvertimeDeductionAttribute($value)
     {
         return $value ? (float) Crypt::decryptString($value) : null;
     }

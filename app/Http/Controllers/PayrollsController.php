@@ -53,6 +53,7 @@ class PayrollsController extends Controller
             $deductions = $payroll->deductions ? ($payroll->deductions) : null;
             $salary = $payroll->salary ? ($payroll->salary) : null;
             $overtime = $payroll->overtime ? ($payroll->overtime) : null;
+            $overtime_deduction = $payroll->overtime_deduction ? ($payroll->overtime_deduction) : null;
             $late_fine = $payroll->late_fine ? ($payroll->late_fine) : null;
             $bpjs_ket = $payroll->bpjs_ket ? ($payroll->bpjs_ket) : null;
             $bpjs_kes = $payroll->bpjs_kes ? ($payroll->bpjs_kes) : null;
@@ -61,7 +62,6 @@ class PayrollsController extends Controller
             $punishment = $payroll->punishment ? ($payroll->punishment) : null;
             $period = $payroll->period ?? '-';
             $created_at = $payroll->created_at ? $payroll->created_at->format('Y-m-d') : '-';
-
             $attendance = $payroll->attendance ?? 0;
             $period = $payroll->period ?? '-';
             $month_year = $payroll->month_year ?? '-';
@@ -77,6 +77,7 @@ class PayrollsController extends Controller
                 'gross_salary' => $gross_salary,
                 'reamburse' => $reamburse,
                 'overtime' => $overtime,
+                'overtime_deduction' => $overtime_deduction,
                 'period' => $period,
                 'month_year' => $month_year,
                 'bonus' => $bonus,
@@ -152,6 +153,7 @@ class PayrollsController extends Controller
             'take_home',
             'month_year',
             'overtime',
+            'overtime_deduction',
             'attendance',
             'late_fine',
             'bpjs_ket',

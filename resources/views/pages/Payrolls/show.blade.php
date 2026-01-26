@@ -359,6 +359,7 @@
                             BPJS Kesehatan: IDR {{ number_format($bpjs_kes, 0, ',', '.') }}<br>
                             Tax: IDR {{ number_format($tax, 0, ',', '.') }}<br>
                             Debt: IDR {{ number_format($debt, 0, ',', '.') }}<br>
+                            Overtime Deduction: IDR {{ number_format($overtime_deduction, 0, ',', '.') }}<br>
                         </td>
                     </tr>
                 </tbody>
