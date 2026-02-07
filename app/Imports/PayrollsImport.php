@@ -260,13 +260,13 @@ use \Maatwebsite\Excel\Concerns\SkipsFailures;
             return null;
         }
 $attendance         = $row['attendance'] ?? 0;
-$basicSalary        = (float)($row['basic_salary']);
+// $basicSalary        = (float)($row['basic_salary']);
 $dailyAllowance     = (float)($row['daily_allowance']);
 $houseAllowance     = (float)($row['house_allowance']);
 $mealAllowance      = (float)($row['meal_allowance']);
 $transportAllowance = (float)($row['transport_allowance']);
 $bonus              = (float)($row['bonus']);
-$positionalAllowance= (float)($row['allowance']);
+// $positionalAllowance= (float)($row['allowance']);
 $reamburse          = (float)($row['reamburse']);
 $overtime           = (float)($row['overtime']);
 $overtimeDeduction           = (float)($row['overtime_deduction']);
@@ -279,21 +279,19 @@ $tax                = (float)($row['tax']);
 $debt               = (float)($row['debt']);
 
 $deductions = $lateFine + $punishment + $bpjsKes + $bpjsKet + $tax + $debt +$overtimeDeduction;
-$status = $employee->status_employee ?? 'DW';
-
+$status = $employee->status_employee;
 // Logika berdasarkan status karyawan
-if (in_array($status, ['PKWT', 'On Job Training'])) {
-    $totalHariKerja = 26;
-
+if (in_array($status, ['PKWT', 'On Job Training','DW'])) {
+//  $totalHariKerja = 26;
     // Gross Salary untuk PKWT/OJT: basic_salary + allowance
-    $grossSalary = $basicSalary + $positionalAllowance;
+    // $grossSalary = $basicSalary + $positionalAllowance;
 
     // JANGAN round di sini
-    $prorata = ($basicSalary + $positionalAllowance) / $totalHariKerja;
+    // $prorata = ($basicSalary + $positionalAllowance) / $totalHariKerja;
 
     // hitung salary full dulu
     $salary =
-        ($prorata * $attendance)
+        ($dailyAllowance * $attendance)
         + $houseAllowance
         + $mealAllowance
         + $transportAllowance
@@ -305,22 +303,22 @@ if (in_array($status, ['PKWT', 'On Job Training'])) {
     $salary = round($salary, 0);
 
 } else {
-    // DW (daily worker)
-    $totalHariKerja = 26;
+    // // DW (daily worker)
+    // $totalHariKerja = 26;
 
-    // Gross Salary untuk DW: daily_allowance * attendance
-    $grossSalary = $dailyAllowance * $attendance;
+    // // Gross Salary untuk DW: daily_allowance * attendance
+    // $grossSalary = $dailyAllowance * $attendance;
 
-    $salary =
-        $basicSalary
-        + ($dailyAllowance * $attendance)
-        + $houseAllowance
-        + $positionalAllowance
-        + $mealAllowance
-        + $transportAllowance
-        + $bonus
-        + $overtime
-        + $reamburse;
+    // $salary =
+    //     $basicSalary
+    //     + ($dailyAllowance * $attendance)
+    //     + $houseAllowance
+    //     + $positionalAllowance
+    //     + $mealAllowance
+    //     + $transportAllowance
+    //     + $bonus
+    //     + $overtime
+    //     + $reamburse;
 }
 
 $takeHome = $salary - $deductions;
@@ -328,13 +326,13 @@ $takeHome = $salary - $deductions;
         return new Payrolls([
             'employee_id'         => $employee->id,
             'attendance'          => $attendance,
-            'basic_salary'        => Crypt::encryptString($basicSalary),
+            // 'basic_salary'        => Crypt::encryptString($basicSalary),
             'daily_allowance'     => Crypt::encryptString($dailyAllowance),
             'house_allowance'     => Crypt::encryptString($houseAllowance),
             'meal_allowance'      => Crypt::encryptString($mealAllowance),
             'transport_allowance' => Crypt::encryptString($transportAllowance),
             'bonus'               => Crypt::encryptString($bonus),
-            'allowance'           => Crypt::encryptString($positionalAllowance),
+            // 'allowance'           => Crypt::encryptString($positionalAllowance),
             'reamburse'           => Crypt::encryptString($reamburse),
             'overtime'            => Crypt::encryptString($overtime),
             'overtime_deduction'            => Crypt::encryptString($overtimeDeduction),
@@ -344,7 +342,7 @@ $takeHome = $salary - $deductions;
             'bpjs_ket'            => Crypt::encryptString($bpjsKet),
             'tax'                 => Crypt::encryptString($tax),
             'debt'                => Crypt::encryptString($debt),
-            'gross_salary'        => Crypt::encryptString($grossSalary),
+            // 'gross_salary'        => Crypt::encryptString($grossSalary),
             'deductions'          => Crypt::encryptString($deductions),
             'salary'              => Crypt::encryptString($salary),
             'take_home'           => Crypt::encryptString($takeHome),

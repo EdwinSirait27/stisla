@@ -340,18 +340,18 @@
                                 Daily Allowance: IDR {{ number_format($daily_allowance, 0, ',', '.') }}<br>
                             @endif
 
-                            @if (!is_null($basic_salary))
+                            {{-- @if (!is_null($basic_salary))
                                 Basic Salary: IDR {{ number_format($basic_salary, 0, ',', '.') }}<br>
-                            @endif
+                            @endif --}}
 
                             Overtime: IDR {{ number_format($overtime, 0, ',', '.') }}<br>
                             Bonuses: IDR {{ number_format($bonus, 0, ',', '.') }}<br>
                             House Allowance: IDR {{ number_format($house_allowance, 0, ',', '.') }}<br>
                             Meal Allowance: IDR {{ number_format($meal_allowance, 0, ',', '.') }}<br>
                             Transport Allowance: IDR {{ number_format($transport_allowance, 0, ',', '.') }}<br>
-                            @if (!is_null($allowance))
+                            {{-- @if (!is_null($allowance))
                                 Positional Allowance: IDR {{ number_format($allowance, 0, ',', '.') }}<br>
-                            @endif
+                            @endif --}}
                             Reamburse: IDR {{ number_format($reamburse, 0, ',', '.') }}
                         </td>
                         <td>

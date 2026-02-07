@@ -42,8 +42,8 @@ class PayrollsController extends Controller
                 Log::warning("Gagal parse month_year untuk payroll ID {$payroll->id}: " . $e->getMessage());
                 $carbonMonthYear = now(); // fallback jika gagal
             }
-            $allowance = $payroll->allowance ? ($payroll->allowance) : null;
-            $basic_salary = $payroll->basic_salary ? ($payroll->basic_salary) : null;
+            // $allowance = $payroll->allowance ? ($payroll->allowance) : null;
+            // $basic_salary = $payroll->basic_salary ? ($payroll->basic_salary) : null;
             $reamburse = $payroll->reamburse ? ($payroll->reamburse) : null;
             $bonus = $payroll->bonus ? ($payroll->bonus) : null;
             $tax = $payroll->tax ? ($payroll->tax) : null;
@@ -67,14 +67,14 @@ class PayrollsController extends Controller
             $month_year = $payroll->month_year ?? '-';
             $deductions = $payroll->deductions ?? '-';
             $salary = $payroll->salary ?? '-';
-            $gross_salary = $payroll->gross_salary ?? '-';
+            // $gross_salary = $payroll->gross_salary ?? '-';
             $take_home = $payroll->take_home ?? '-';
             $data = [
                 'payroll' => $payroll,
                 'attendance' => $attendance,
-                'allowance' => $allowance,
-                'basic_salary' => $basic_salary,
-                'gross_salary' => $gross_salary,
+                // 'allowance' => $allowance,
+                // 'basic_salary' => $basic_salary,
+                // 'gross_salary' => $gross_salary,
                 'reamburse' => $reamburse,
                 'overtime' => $overtime,
                 'overtime_deduction' => $overtime_deduction,
