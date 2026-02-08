@@ -195,6 +195,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
         Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
         Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
+        Route::get('/payroll/export', [PayrollsController::class, 'export'])
+    ->name('payroll.export');
     });
     Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
         Route::get('/Fingerspot', [FingerspotController::class, 'index'])

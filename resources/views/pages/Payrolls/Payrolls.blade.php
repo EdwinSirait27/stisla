@@ -308,6 +308,11 @@
                                         <i class="fas fa-undo"></i> Reset
                                     </button>
                                 </div>
+                                <a href="{{ route('payroll.export', ['month_year' => request('month_year')]) }}"
+   class="btn btn-success">
+   Export Excel
+</a>
+
                             </div>
 
                             {{-- Form utama untuk bulk delete --}}
@@ -798,25 +803,21 @@
                             return data ? data : '-';
                         }
                     }
-
-
-
-
                 ],
                 order: [
                     [9, 'desc']
                 ],
-                dom: 'lBfrtip',
-                buttons: [{
-                    extend: 'excelHtml5',
-                    text: 'Excel',
-                    className: 'btn btn-success',
-                    exportOptions: {
-                        columns: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                            20, 21, 22, 23, 24, 25, 26
-                        ]
-                    }
-                }],
+                // dom: 'lBfrtip',
+                // buttons: [{
+                //     extend: 'excelHtml5',
+                //     text: 'Excel',
+                //     className: 'btn btn-success',
+                //     exportOptions: {
+                //         columns: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                //             20, 21, 22, 23, 24, 25, 26
+                //         ]
+                //     }
+                // }],
                 lengthMenu: [
                     [10, 25, 50, -1],
                     [10, 25, 50, "All"]

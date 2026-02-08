@@ -1,6 +1,5 @@
 <?php
 namespace App\Providers;
-use App\Models\Categories;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 class AppServiceProvider extends ServiceProvider
@@ -24,5 +23,3 @@ class AppServiceProvider extends ServiceProvider
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }
-// terprorate
-// tambah dulu baru bagi untuk allowance

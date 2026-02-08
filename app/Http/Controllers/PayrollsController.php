@@ -14,13 +14,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\File;
 use App\Imports\PayrollsImport;
-
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-
+use App\Exports\PayrollExport;
 class PayrollsController extends Controller
 {
+     public function export(Request $request)
+    {
+        $monthYear = $request->month_year; // contoh: 2025-01
+
+        return Excel::download(
+            new PayrollExport($monthYear),
+            'payroll_' . ($monthYear ?? 'all') . '.xlsx'
+        );
+    }
     public function index()
     {
         return view('pages.Payrolls.Payrolls');
