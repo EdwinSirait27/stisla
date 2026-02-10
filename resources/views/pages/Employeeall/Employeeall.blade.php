@@ -7,8 +7,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
-
-
 @endpush
 <style>
     /* Card Styles */
@@ -166,36 +164,36 @@
             font-size: 0.8rem;
         }
     }
-  
-.DTFC_LeftBodyLiner, 
-.DTFC_LeftHeadWrapper, 
-.DTFC_RightBodyLiner, 
-.DTFC_RightHeadWrapper {
-    background-color: #fff !important;  
-    z-index: 999 !important;
-}
 
-table.dataTable thead th,
-table.dataTable thead td {
-    background-color: #f8f9fa !important;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
+    .DTFC_LeftBodyLiner,
+    .DTFC_LeftHeadWrapper,
+    .DTFC_RightBodyLiner,
+    .DTFC_RightHeadWrapper {
+        background-color: #fff !important;
+        z-index: 999 !important;
+    }
 
-.dataTables_scrollBody {
-    overflow-x: auto !important;
-}
+    table.dataTable thead th,
+    table.dataTable thead td {
+        background-color: #f8f9fa !important;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
 
-table.dataTable, 
-table.dataTable th, 
-table.dataTable td {
-    border-color: #dee2e6 !important;
-} .DTFC_LeftBodyLiner {
-    border-right: none !important;
-}
+    .dataTables_scrollBody {
+        overflow-x: auto !important;
+    }
 
+    table.dataTable,
+    table.dataTable th,
+    table.dataTable td {
+        border-color: #dee2e6 !important;
+    }
 
+    .DTFC_LeftBodyLiner {
+        border-right: none !important;
+    }
 </style>
 @section('main')
     <div class="main-content">
@@ -210,7 +208,7 @@ table.dataTable td {
                             <div class="card-header">
                                 <h6><i class="fas fa-user-shield"></i> List Employee Details</h6>
                             </div>
-                             <div class="col-md-2">
+                            <div class="col-md-2">
                                 <label for="filter-store" class="form-label">Filter</label>
                                 <select id="filter-store" class="form-select select2">
                                     <option value="">All</option>
@@ -240,46 +238,47 @@ table.dataTable td {
                             <div class="card-body">
                                 <div class="table-responsive">
                                     {{-- <table class="table table-hover" id="users-table"> --}}
-                                        <table id="users-table" class="table table-bordered table-striped table-hover" style="width:100%">
+                                    <table id="users-table" class="table table-bordered table-striped table-hover"
+                                        style="width:100%">
                                         {{-- <thead> --}}
-                                                <thead class="table-light">
+                                        <thead class="table-light">
                                             <tr>
                                                 {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Action</th>
-                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Employee Name</th>
-                                                <th class="text-center">NIP</th>
-                                                <th class="text-center">Company</th>
-                                                <th class="text-center">Position</th>
-                                                <th class="text-center">Department</th>
-                                                <th class="text-center">Store</th>
-                                                <th class="text-center">Grd Name</th>
-                                                <th class="text-center">Grouping</th>
-                                                <th class="text-center">Status Employee</th>
-                                                <th class="text-center">Join Date</th>
-                                                <th class="text-center">Marriage</th>
-                                                <th class="text-center">Child</th>
-                                                <th class="text-center">Telephone Number</th>
+                                                <th class="text-center">Nomor Induk</th>
+                                                <th class="text-center">Pin Finger</th>
                                                 <th class="text-center">NIK</th>
+                                                <th class="text-center">Religion</th>
                                                 <th class="text-center">Gender</th>
                                                 <th class="text-center">Date of Birth</th>
                                                 <th class="text-center">Place of Birth</th>
                                                 <th class="text-center">Mother's Name</th>
-                                                <th class="text-center">Religion</th>
                                                 <th class="text-center">Current Address</th>
                                                 <th class="text-center">ID Card Address</th>
                                                 <th class="text-center">Last Education</th>
                                                 <th class="text-center">Institution</th>
-                                                <th class="text-center">NPWP</th>
+                                                <th class="text-center">Marriage</th>
+                                                <th class="text-center">Child</th>
+                                                <th class="text-center">Emergency Contact Name</th>
+                                                <th class="text-center">Email</th>
+                                                <th class="text-center">Phone Number</th>
                                                 <th class="text-center">BPJS Kesehatan</th>
                                                 <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                <th class="text-center">Email</th>
-                                                <th class="text-center">Emergency Contact Name</th>
-                                                <th class="text-center">Notes</th>
+                                                <th class="text-center">NPWP</th>
                                                 <th class="text-center">Bank Account</th>
                                                 <th class="text-center">Bank Account Number</th>
-                                                <th class="text-center">Pin Finger</th>
+                                                <th class="text-center">Company</th>
+                                                <th class="text-center">Department</th>
+                                                <th class="text-center">Location</th>
+                                                <th class="text-center">Position</th>
+                                                <th class="text-center">Grd Name</th>
+                                                <th class="text-center">Grouping</th>
+                                                <th class="text-center">Status Employee</th>
+                                                <th class="text-center">Join Date</th>
                                                 <th class="text-center">Account Creation</th>
+                                                <th class="text-center">Status</th>
+                                                <th class="text-center">Notes</th>
                                             </tr>
                                         </thead>
                                     </table>
@@ -314,116 +313,251 @@ table.dataTable td {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
-   <script>
-$(document).ready(function() {
-    $('.select2').select2();
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
 
-    var table = $('#users-table').DataTable({
-        dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-        buttons: [
-            {
-                extend: 'csv',
-                text: '<i class="fas fa-file-csv"></i> CSV',
-                className: 'btn btn-sm btn-primary ms-2 me-2',
-                exportOptions: {
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
-                }
-            },
-            {
-                extend: 'excel',
-                text: '<i class="fas fa-file-excel"></i> Excel',
-                className: 'btn btn-sm btn-success',
-                exportOptions: {
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
-                }
-            }
-        ],
-        processing: true,
-        serverSide: true,
-        scrollY: "700px",
-        scrollX: true,
-        autoWidth: false,
-        fixedColumns: {
-            leftColumns: 3  // kalau tidak mau kolom kiri dikunci
-            // rightColumns: 2  // Action dan Status dikunci di kanan
-        },
-        ajax: {
-            url: '{{ route('employeesall.employeesall') }}',
-            type: 'POST',
-            data: function(d) {
-                d._token = '{{ csrf_token() }}';
-                d.name = $('#filter-store').val();
-                d.status = [];
-                $('#filter-status input[type="checkbox"]:checked').each(function() {
-                    d.status.push($(this).val());
-                });
-            }
-        },
-        responsive: true,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        pageLength: 10,
-        language: {
-            lengthMenu: "Show _MENU_ entries",
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            },
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)"
-        },
-        columns: [
-            {
-                data: 'action',
-                name: 'action',
-                orderable: false,
-                searchable: false,
-                className: 'text-center'
-            },
-            {
-                data: 'status',
-                name: 'status',
-                className: 'text-center',
-                render: function(data, type, row) {
-                    if (data === 'Active') {
-                        return '<span class="badge bg-success">Active</span>';
-                    } else if (data === 'Inactive') {
-                        return '<span class="badge bg-danger">Inactive</span>';
-                    } else if (data === 'On leave') {
-                        return '<span class="badge bg-warning">On Leave</span>';
-                    } else if (data === 'Mutation') {
-                        return '<span class="badge bg-info">Mutation</span>';
-                    } else if (data === 'Pending') {
-                        return '<span class="badge bg-secondary">Pending</span>';
-                    }
-                    return '<span class="badge bg-warning">Resign</span>';
-                }
-            },
-            {
-                data: 'employee_name',
-                name: 'employee_name',
-                className: 'text-center'
-            },
-            {
-                data: 'employee_pengenal',
-                name: 'employee_pengenal',
-                className: 'text-center'
-            },
+            var table = $('#users-table').DataTable({
+                dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
+                buttons: [
+                    // {
+                    //     extend: 'csv',
+                    //     text: '<i class="fas fa-file-csv"></i> CSV',
+                    //     className: 'btn btn-sm btn-primary ms-2 me-2',
+                    //     exportOptions: {
+                    //         columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
+                    //     }
+                    // },
+                    // {
+                    //     extend: 'excel',
+                    //     text: '<i class="fas fa-file-excel"></i> Excel',
+                    //     className: 'btn btn-sm btn-success',
+                    //     exportOptions: {
+                    //         columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
+                    //     }
+                    // }
+                    //             {
+                    //     extend: 'excel',
+                    //     text: '<i class="fas fa-file-excel"></i> Excel',
+                    //     className: 'btn btn-sm btn-success',
+                    //     exportOptions: {
+                    //         columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34],
+                    //         format: {
+                    //             body: function (data, row, column, node) {
+                    //                 // kolom NIK (sesuaikan index)
+                    //                 if (column === 15) {
+                    //                     return '\u200C' + data;
+                    //                 }
+                    //                 return data;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                     {
-                        data: 'name_company',
-                        name: 'name_company',
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        className: 'btn btn-sm btn-success',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34
+                            ],
+                            format: {
+                                body: function(data, row, column, node) {
+                                    // 🔥 AUTO: semua angka >= 16 digit dipaksa TEXT
+                                    if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
+                                        return '\u200C' + data;
+                                    }
+                                    return data;
+                                }
+                            }
+                        }
+                    }
+                ],
+                processing: true,
+                serverSide: true,
+                scrollY: "700px",
+                scrollX: true,
+                autoWidth: false,
+                fixedColumns: {
+                    leftColumns: 3 // kalau tidak mau kolom kiri dikunci
+                    // rightColumns: 2  // Action dan Status dikunci di kanan
+                },
+                ajax: {
+                    url: '{{ route('employeesall.employeesall') }}',
+                    type: 'POST',
+                    data: function(d) {
+                        d._token = '{{ csrf_token() }}';
+                        d.name = $('#filter-store').val();
+                        d.status = [];
+                        $('#filter-status input[type="checkbox"]:checked').each(function() {
+                            d.status.push($(this).val());
+                        });
+                    }
+                },
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    },
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                columns: [{
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    // {
+                    //     data: 'status',
+                    //     name: 'status',
+                    //     className: 'text-center',
+                    //     render: function(data, type, row) {
+                    //         if (data === 'Active') {
+                    //             return '<span class="badge bg-success">Active</span>';
+                    //         } else if (data === 'Inactive') {
+                    //             return '<span class="badge bg-danger">Inactive</span>';
+                    //         } else if (data === 'On leave') {
+                    //             return '<span class="badge bg-warning">On Leave</span>';
+                    //         } else if (data === 'Mutation') {
+                    //             return '<span class="badge bg-info">Mutation</span>';
+                    //         } else if (data === 'Pending') {
+                    //             return '<span class="badge bg-secondary">Pending</span>';
+                    //         }
+                    //         return '<span class="badge bg-warning">Resign</span>';
+                    //     }
+                    // },
+                    {
+                        data: 'employee_name',
+                        name: 'employee_name',
                         className: 'text-center'
                     },
                     {
-                        data: 'position_name',
-                        name: 'position_name',
+                        data: 'employee_pengenal',
+                        name: 'employee_pengenal',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'pin',
+                        name: 'pin',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'nik',
+                        name: 'nik',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'religion',
+                        name: 'religion',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'gender',
+                        name: 'gender',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'date_of_birth',
+                        name: 'date_of_birth',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'place_of_birth',
+                        name: 'place_of_birth',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'biological_mother_name',
+                        name: 'biological_mother_name',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'current_address',
+                        name: 'current_address',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'id_card_address',
+                        name: 'id_card_address',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'last_education',
+                        name: 'last_education',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'institution',
+                        name: 'institution',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'marriage',
+                        name: 'marriage',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'child',
+                        name: 'child',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'emergency_contact_name',
+                        name: 'emergency_contact_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'email',
+                        name: 'email',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'telp_number',
+                        name: 'telp_number',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'bpjs_kes',
+                        name: 'bpjs_kes',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bpjs_ket',
+                        name: 'bpjs_ket',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'npwp',
+                        name: 'npwp',
+                        className: 'text-center'
+                    },
+                     {
+                        data: 'bank_name',
+                        name: 'bank_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'bank_account_number',
+                        name: 'bank_account_number',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'name_company',
+                        name: 'name_company',
                         className: 'text-center'
                     },
                     {
@@ -434,6 +568,11 @@ $(document).ready(function() {
                     {
                         data: 'name',
                         name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'position_name',
+                        name: 'position_name',
                         className: 'text-center'
                     },
                     // {
@@ -462,123 +601,51 @@ $(document).ready(function() {
                         name: 'join_date',
                         className: 'text-center'
                     },
-                    {
-                        data: 'marriage',
-                        name: 'marriage',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'child',
-                        name: 'child',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'telp_number',
-                        name: 'telp_number',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'nik',
-                        name: 'nik',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'gender',
-                        name: 'gender',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'date_of_birth',
-                        name: 'date_of_birth',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'place_of_birth',
-                        name: 'place_of_birth',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'biological_mother_name',
-                        name: 'biological_mother_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'religion',
-                        name: 'religion',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'current_address',
-                        name: 'current_address',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'id_card_address',
-                        name: 'id_card_address',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'last_education',
-                        name: 'last_education',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'institution',
-                        name: 'institution',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'npwp',
-                        name: 'npwp',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bpjs_kes',
-                        name: 'bpjs_kes',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bpjs_ket',
-                        name: 'bpjs_ket',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'emergency_contact_name',
-                        name: 'emergency_contact_name',
-                        className: 'text-center'
-                    },
+                   
+                    
+                   
+                    //                    {
+                    //     data: 'nik',
+                    //     name: 'nik',
+                    //     className: 'text-center',
+                    // render: function (data, type) {
+                    //     if (type === 'export') {
+                    //         return '="' + data + '"';
+                    //     }
+                    //     return data;
+                    // }
 
-                    {
-                        data: 'notes',
-                        name: 'notes',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bank_name',
-                        name: 'bank_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bank_account_number',
-                        name: 'bank_account_number',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'pin',
-                        name: 'pin',
-                        className: 'text-center'
-                    },
+                    // },
+
+
+                   
+                    
+                   
+                   
+                   
+                   
+                   
+                   
+                    
+
+                    
+                    
                     {
                         data: 'created_at',
                         name: 'created_at',
                         className: 'text-center'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'notes',
+                        name: 'notes',
+                        className: 'text-center'
                     }
-                    
+
 
                 ],
                 initComplete: function() {
@@ -587,10 +654,10 @@ $(document).ready(function() {
                 }
             });
 
-             $('#filter-store').on('change', function() {
+            $('#filter-store').on('change', function() {
                 table.ajax.reload();
             });
- $('#filter-status input[type="checkbox"]').on('change', function() {
+            $('#filter-status input[type="checkbox"]').on('change', function() {
                 table.ajax.reload();
             });
             @if (session('success'))

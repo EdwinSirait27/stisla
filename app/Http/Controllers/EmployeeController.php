@@ -254,13 +254,11 @@ class EmployeeController extends Controller
                 $q->where('name', $storeFilter);
             });
         }
-
         if (!empty($statusFilter)) {
             $query->whereHas('Employee', function ($q) use ($statusFilter) {
                 $q->whereIn('status', $statusFilter);
             });
         }
-
         $employees = $query->get()->map(function ($employee) {
             $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
             if (auth()->user()->hasAnyRole(['HeadHR', 'HR'])) {
@@ -312,32 +310,7 @@ class EmployeeController extends Controller
             'status'
         ];
         $dataTable = DataTables::of($employees);
-//         foreach ($columns as $key => $relationPath) {
-//             $column = is_string($key) ? $key : $relationPath;
-//             $dataTable->addColumn($column, function ($employee) use ($relationPath) {
-//                 // $value = data_get($employee->Employee, $relationPath);
-//                 // return $value ?: 'Empty';
-// if ($relationPath === 'join_date') {
-//     $rawDate = data_get($employee->Employee, 'join_date');
 
-//     if (empty($rawDate)) {
-//         return '-';
-//     }
-
-//     try {
-//         return \Carbon\Carbon::createFromFormat('y-m-d', $rawDate)
-//             ->translatedFormat('d F Y');
-//     } catch (\Exception $e) {
-//         return '-';
-//     }
-// }
-
-// $value = data_get($employee->Employee, $relationPath);
-// return $value ?: 'Empty';
-
-
-//             });
-//         }
 foreach ($columns as $key => $relationPath) {
     $column = is_string($key) ? $key : $relationPath;
 
@@ -356,7 +329,6 @@ foreach ($columns as $key => $relationPath) {
                 return '-';
             }
         }
-
         // DATE OF BIRTH (format Y-m-d)
         if ($relationPath === 'date_of_birth') {
             $rawDate = data_get($employee->Employee, 'date_of_birth');
@@ -370,7 +342,6 @@ foreach ($columns as $key => $relationPath) {
                 return '-';
             }
         }
-
         // default
         $value = data_get($employee->Employee, $relationPath);
         return $value ?: 'Empty';
