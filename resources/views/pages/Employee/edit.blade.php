@@ -727,7 +727,7 @@
                                                 </div>
                                             </div>
                                         </div> --}}
-                                        {{-- <div class="row mt-3">
+                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="position_id" class="form-control-label">
@@ -752,8 +752,8 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div> --}}
-                                        {{-- <div class="col-md-6">
+                                            </div>
+                                        <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="store_id" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Location Name') }}
@@ -780,7 +780,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div> --}}
+                                        </div>
                                         <div class="row mt-3">
 
                                             <div class="col-md-6">

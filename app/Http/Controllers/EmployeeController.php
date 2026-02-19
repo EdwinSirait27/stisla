@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use App\Models\Banks;
 use App\Models\Company;
 use App\Models\Departments;
@@ -12,7 +10,6 @@ use App\Models\Payrolls;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Crypt;
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
 use App\Models\Structuresnew;
@@ -26,7 +23,6 @@ use App\Models\Groups;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
-
 class EmployeeController extends Controller
 {
     public function indexall()
@@ -228,9 +224,6 @@ class EmployeeController extends Controller
 //         $diff->d
 //     );
 // })
-
-
-
             ->rawColumns(['nip', 'group_name', 'length_of_service','position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
             ->make(true);
     }
@@ -342,12 +335,10 @@ foreach ($columns as $key => $relationPath) {
                 return '-';
             }
         }
-        // default
         $value = data_get($employee->Employee, $relationPath);
         return $value ?: 'Empty';
     });
 }
-
         return $dataTable
             ->addColumn('action', function ($employee) {
                 return $employee->action;
@@ -355,8 +346,7 @@ foreach ($columns as $key => $relationPath) {
           
             ->rawColumns(['action'])
             ->make(true);
-    }
-    
+    }   
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees', 'Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
@@ -650,7 +640,6 @@ foreach ($columns as $key => $relationPath) {
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
                 'photos' => $filePath,
-
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -719,7 +708,6 @@ foreach ($columns as $key => $relationPath) {
         if (!$user) {
             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
         }
-
         $validatedData = $request->validate([
             'photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
 
@@ -787,68 +775,36 @@ foreach ($columns as $key => $relationPath) {
         $filePath = $user->Employee->photos;
         try {
             DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
-                /** --------------------------
-                 *  Handle Upload Photo
-                 * -------------------------*/
-                // if ($request->hasFile('photos')) {
-                //     $file = $request->file('photos');
-                //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-                //         $file->getClientOriginalExtension();
-
-                //     $folderPath = 'employeesphotos/' . date('Y/m');
-
-                //     Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-                //     $newFilePath = $folderPath . '/' . $fileName;
-
-                //     if ($filePath && Storage::exists('public/' . $filePath)) {
-                //         Storage::delete('public/' . $filePath);
-                //     }
-
-                //     $filePath = $validatedData['photos'] = $newFilePath;
-                // }
                 if ($request->hasFile('photos')) {
                     $file = $request->file('photos');
                     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
                         $file->getClientOriginalExtension();
-
                     $folderPath = 'employeesphotos/' . date('Y/m');
-
-                    // simpan ke storage/app (PRIVATE)
                     Storage::putFileAs($folderPath, $file, $fileName);
-
                     $newFilePath = $folderPath . '/' . $fileName;
-
-                    // hapus file lama jika ada
                     if ($filePath && Storage::exists($filePath)) {
                         Storage::delete($filePath);
                     }
-
                     $filePath = $validatedData['photos'] = $newFilePath;
                 }
-
-
                 /** --------------------------
                  *  Lock employee row
                  * -------------------------*/
                 $employee = $user->Employee()->lockForUpdate()->first();
                 $oldStructureId = $employee->structure_id;
-
                 $statusEmployee = $validatedData['status'];
                 $inactiveStatus = ['Resign', 'On Leave'];
-
                 /** --------------------------
                  *  Handle Status Non-Aktif
                  * -------------------------*/
                 if (in_array($statusEmployee, $inactiveStatus)) {
                     $validatedData['structure_id'] = null;
-
                     if ($oldStructureId) {
                         Structuresnew::where('id', $oldStructureId)
                             ->lockForUpdate()
                             ->update(['status' => 'vacant']);
                     }
                 }
-
                 /** --------------------------
                  *  Handle Structure Baru
                  * -------------------------*/
@@ -857,36 +813,25 @@ foreach ($columns as $key => $relationPath) {
                         ->where('id', $validatedData['structure_id'])
                         ->lockForUpdate()
                         ->first();
-
                     if ($newStructure && $newStructure->submissionposition) {
                         $submission = $newStructure->submissionposition;
-
                         $validatedData['company_id'] = $submission->company_id;
                         $validatedData['department_id'] = $submission->department_id;
-                        $validatedData['store_id'] = $submission->store_id;
-                        $validatedData['position_id'] = $submission->position_id;
+                        // $validatedData['store_id'] = $submission->store_id;
+                        if (empty($validatedData['store_id'])) {
+    $validatedData['store_id'] = $submission->store_id;
+}
+
+                        // $validatedData['position_id'] = $submission->position_id;
+                        if (empty($validatedData['position_id'])) {
+    $validatedData['position_id'] = $submission->position_id;
+}
+
                         $validatedData['is_manager'] = $submission->is_manager;
                     }
-
                     $newStructure->update(['status' => 'active']);
                 }
-
-                /** --------------------------
-                 *  Update Employee
-                 * -------------------------*/
                 $employee->update($validatedData);
-
-            // /** --------------------------
-            //  *  Jika struktur dikosongkan
-            //  * -------------------------*/
-            // if (empty($validatedData['structure_id']) && $oldStructureId) {
-            //     Structuresnew::where('id', $oldStructureId)
-            //         ->lockForUpdate()
-            //         ->update(['status' => 'vacant']);
-            // }
-                /** ---------------------------------------------------
-                 * Jika struktur dikosongkan ATAU struktur diganti
-                 * --------------------------------------------------*/
                 if ($oldStructureId && $oldStructureId != ($validatedData['structure_id'] ?? null)) {
                     Structuresnew::where('id', $oldStructureId)
                         ->lockForUpdate()
