@@ -321,7 +321,7 @@
 
             var table = $('#users-table').DataTable({
                 dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-                buttons:
+                // buttons:
                     // [
                     //     {
                     //         extend: 'excel',
