@@ -7,19 +7,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Ramsey\Uuid\Uuid;
-
 use Spatie\Permission\Traits\HasRoles;
-
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
     public $incrementing = false;
     protected $keyType = 'string';
-
     protected static function boot()
     {
         parent::boot();
-
         static::creating(function ($model) {
             if (!$model->getKey()) {
                 $model->{$model->getKeyName()} = Uuid::uuid7()->toString();
@@ -39,7 +35,6 @@ class User extends Authenticatable
         'username',
         'password',
     ];
-    
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -64,10 +59,7 @@ protected $casts = [
     {
         return $this->where('username', $username)->first();
     }
-    public function Sales()
-    {
-        return $this->hasMany(Sale::class);
-    }
+   
     public function Terms()
     {
         return $this->belongsTo(Terms::class,'terms_id');
@@ -78,37 +70,25 @@ protected $casts = [
     }
 
     // Relasi ke tabel StockAdjustment
-    public function StockAdjustments()
-    {
-        return $this->hasMany(StockAdjustment::class);
-    }
-
+   
     // Relasi ke tabel Purchase
-    public function Purchases()
-    {
-        return $this->hasMany(Purchase::class);
-    }
+   
     public function Activity()
     {
         return $this->hasMany(Activity::class, 'user_id', 'id');
     }
-
     public function sessions()
     {
         return $this->hasMany(UserSession::class, 'user_id', 'id');
     }
-
     // Method untuk mendapatkan sesi aktif
     public function getActiveSessionsAttribute()
     {
         return $this->sessions()->where('last_activity', '>', now()->subHours(2))->get();
     }
-
     // Method untuk mendapatkan jumlah sesi aktif
     public function getActiveSessioCountAttribute()
     {
         return $this->sessions()->where('last_activity', '>', now()->subHours(2))->count();
     }
 }
-
-

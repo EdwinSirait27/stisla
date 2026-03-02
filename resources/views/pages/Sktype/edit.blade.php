@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Create Position')
+@section('title', 'Update SK Type')
 @push('style')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -7,12 +7,14 @@
         .avatar {
             position: relative;
         }
+
         .iframe-container {
             position: relative;
             overflow: hidden;
             padding-top: 56.25%;
             /* Aspect ratio 16:9 */
         }
+
         .iframe-container iframe {
             position: absolute;
             top: 0;
@@ -21,16 +23,20 @@
             height: 100%;
             border: 0;
         }
+
+        /* Additional CSS for improved styling */
         .form-control {
             border-radius: 8px;
             padding: 10px 15px;
             transition: all 0.3s ease;
             border: 1px solid #d1d1d1;
         }
+
         .form-control:focus {
             border-color: #6777ef;
             box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.25);
         }
+
         .form-control-label {
             font-weight: 600;
             margin-bottom: 8px;
@@ -39,6 +45,7 @@
             align-items: center;
             gap: 8px;
         }
+
         .form-control-label i {
             color: #6777ef;
         }
@@ -158,53 +165,60 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Create Positon</h1>
+                <h1>Update SK Type {{ $sktype->sk_name }}</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Position') }}">Position</a></div>
-                    <div class="breadcrumb-item">Create Position</div>
+                    {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Sktype') }}">SK Types</a></div>
+                    <div class="breadcrumb-item">Update SK Types {{ $sktype->sk_name }}</div>
                 </div>
             </div>
+
             <div class="section-body">
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Create Position') }}</h6>
+                                    <h6 class="mb-0">{{ __('Update SK Type') }} {{ $sktype->sk_name }}</h6>
                                 </div>
                                 <div class="card-body pt-4 p-3">
                                     @if ($errors->any())
                                         <div class="alert alert-danger">
-                                            <ul>
+                                            <ul class="mb-0">
                                                 @foreach ($errors->all() as $error)
                                                     <li>{{ $error }}</li>
                                                 @endforeach
                                             </ul>
                                         </div>
                                     @endif
+
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     @endif
-                                    <form id="position-create" action="{{ route('Position.store') }}" method="POST">
+                                    <form id="position-edit" action="{{ route('Sktype.update', $hashedId) }}" method="POST">
                                         @csrf
+                                        @method('PUT')
+
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Position Name') }}
+                                                    <label for="sk_name" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('SK Type Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" 
-                                                            value="{{ old('name') }}" required
-                                                            placeholder="Fill Position Name">
-                                                        @error('name')
+                                                        <input type="text" class="form-control @error('sk_name') is-invalid @enderror" id="sk_name"
+                                                            name="sk_name" value="{{ old('sk_name', $sktype->sk_name) }}"
+                                                            placeholder="Demosi" required>
+                                                        @error('sk_name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
                                                             </span>
@@ -212,21 +226,23 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
-                                        <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a position name is already registered, you cannot register it again.
+                                        </div>
+                                       
+                                         <div class="alert alert-secondary mt-4" role="alert">
+                                             <span class="text-dark">
+                                             <strong>Important Note:</strong> <br>
+                                                - If a sk type name is already registered, you cannot register it again.
                                                 <br> - please use English to get used to it.
-                                                <br> - Before creating data, please check first whether there is already similar or identical data to avoid double input. 
+                                                <br> - Before updating data, please check first whether there is already similar or identical data to avoid double input. 
                                             </span>
                                         </div>
+
                                         <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Position') }}" class="btn btn-secondary">
+                                            <a href="{{ route('pages.Sktype') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
-                                            <button type="submit" id="create-btn" class="btn bg-primary">
-                                                <i class="fas fa-save"></i> {{ __('Create') }}
+                                            <button type="submit" id="edit-btn" class="btn bg-primary">
+                                                <i class="fas fa-save"></i> {{ __('Update') }}
                                             </button>
                                         </div>
                                     </form>
@@ -239,12 +255,13 @@
         </section>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-    <script>
-        document.getElementById('create-btn').addEventListener('click', function(e) {
-              e.preventDefault();
+<script>
+     document.getElementById('edit-btn').addEventListener('click', function(e) {
+              e.preventDefault(); // Mencegah pengiriman form langsung
               Swal.fire({
                   title: 'Are You Sure?',
                   text: "Make sure the data you entered is correct!",
@@ -256,11 +273,12 @@
                   cancelButtonText: 'Abort'
               }).then((result) => {
                   if (result.isConfirmed) {
-                      document.getElementById('position-create').submit();
+                      // Jika pengguna mengkonfirmasi, submit form
+                      document.getElementById('position-edit').submit();
                   }
               });
           });
-    </script>
+</script>
     <script>
         @if (session('success'))
             Swal.fire({
@@ -270,6 +288,7 @@
                 confirmButtonText: 'OK'
             });
         @endif
+
         @if (session('error'))
             Swal.fire({
                 title: 'Gagal!',
@@ -279,4 +298,4 @@
             });
         @endif
     </script>
-@endpush
+  @endpush

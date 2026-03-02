@@ -276,6 +276,8 @@
                                                 <th class="text-center">Grouping</th>
                                                 <th class="text-center">Status Employee</th>
                                                 <th class="text-center">Join Date</th>
+                                                <th class="text-center">LOS</th>
+
                                                 <th class="text-center">Account Creation</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Notes</th>
@@ -319,60 +321,67 @@
 
             var table = $('#users-table').DataTable({
                 dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-                buttons: [
-                    // {
-                    //     extend: 'csv',
-                    //     text: '<i class="fas fa-file-csv"></i> CSV',
-                    //     className: 'btn btn-sm btn-primary ms-2 me-2',
-                    //     exportOptions: {
-                    //         columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
-                    //     }
-                    // },
-                    // {
-                    //     extend: 'excel',
-                    //     text: '<i class="fas fa-file-excel"></i> Excel',
-                    //     className: 'btn btn-sm btn-success',
-                    //     exportOptions: {
-                    //         columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
-                    //     }
-                    // }
-                    //             {
-                    //     extend: 'excel',
-                    //     text: '<i class="fas fa-file-excel"></i> Excel',
-                    //     className: 'btn btn-sm btn-success',
-                    //     exportOptions: {
-                    //         columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34],
-                    //         format: {
-                    //             body: function (data, row, column, node) {
-                    //                 // kolom NIK (sesuaikan index)
-                    //                 if (column === 15) {
-                    //                     return '\u200C' + data;
+                buttons:
+                    // [
+                    //     {
+                    //         extend: 'excel',
+                    //         text: '<i class="fas fa-file-excel"></i> Excel',
+                    //         className: 'btn btn-sm btn-success',
+                    //         exportOptions: {
+                    //             columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                    //                 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34
+                    //             ],
+                    //             format: {
+                    //                 body: function(data, row, column, node) {
+                    //                     // 🔥 AUTO: semua angka >= 16 digit dipaksa TEXT
+                    //                     if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
+                    //                         return '\u200C' + data;
+                    //                     }
+                    //                     return data;
                     //                 }
-                    //                 return data;
                     //             }
                     //         }
                     //     }
-                    // }
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34
-                            ],
-                            format: {
-                                body: function(data, row, column, node) {
-                                    // 🔥 AUTO: semua angka >= 16 digit dipaksa TEXT
-                                    if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
-                                        return '\u200C' + data;
+                    // ]
+                    buttons: [{
+                            extend: 'excel',
+                            text: '<i class="fas fa-file-excel"></i> Excel',
+                            className: 'btn btn-sm btn-success',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34
+                                ],
+                                format: {
+                                    body: function(data, row, column, node) {
+                                        // 🔥 AUTO: semua angka >= 16 digit dipaksa TEXT
+                                        if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
+                                            return '\u200C' + data;
+                                        }
+                                        return data;
                                     }
-                                    return data;
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csv',
+                            text: '<i class="fas fa-file-csv"></i> CSV',
+                            className: 'btn btn-sm btn-primary',
+                            exportOptions: {
+                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34
+                                ],
+                                format: {
+                                    body: function(data, row, column, node) {
+                                        // 🔥 Supaya angka panjang tidak jadi scientific notation di Excel
+                                        if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
+                                            return '\u200C' + data;
+                                        }
+                                        return data;
+                                    }
                                 }
                             }
                         }
-                    }
-                ],
+                    ],
                 processing: true,
                 serverSide: true,
                 scrollY: "700px",
@@ -450,22 +459,22 @@
                         name: 'employee_pengenal',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'pin',
                         name: 'pin',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'nik',
                         name: 'nik',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'religion',
                         name: 'religion',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'gender',
                         name: 'gender',
                         className: 'text-center'
@@ -480,12 +489,12 @@
                         name: 'place_of_birth',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'biological_mother_name',
                         name: 'biological_mother_name',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'current_address',
                         name: 'current_address',
                         className: 'text-center'
@@ -495,7 +504,7 @@
                         name: 'id_card_address',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'last_education',
                         name: 'last_education',
                         className: 'text-center'
@@ -505,7 +514,7 @@
                         name: 'institution',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'marriage',
                         name: 'marriage',
                         className: 'text-center'
@@ -530,7 +539,7 @@
                         name: 'telp_number',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'bpjs_kes',
                         name: 'bpjs_kes',
                         className: 'text-center'
@@ -540,12 +549,12 @@
                         name: 'bpjs_ket',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'npwp',
                         name: 'npwp',
                         className: 'text-center'
                     },
-                     {
+                    {
                         data: 'bank_name',
                         name: 'bank_name',
                         className: 'text-center'
@@ -601,9 +610,13 @@
                         name: 'join_date',
                         className: 'text-center'
                     },
-                   
-                    
-                   
+                    {
+                        data: 'length_of_service',
+                        className: 'text-center'
+                    },
+
+
+
                     //                    {
                     //     data: 'nik',
                     //     name: 'nik',
@@ -618,18 +631,18 @@
                     // },
 
 
-                   
-                    
-                   
-                   
-                   
-                   
-                   
-                   
-                    
 
-                    
-                    
+
+
+
+
+
+
+
+
+
+
+
                     {
                         data: 'created_at',
                         name: 'created_at',

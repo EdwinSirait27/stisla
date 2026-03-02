@@ -777,24 +777,14 @@
                 <button type="submit" class="btn-login">Continue</button>
             </form>
         </div>
-
         <!-- Footer -->
         <div class="form-footer">
             &copy; {{ date('Y') }} HRX · Developed by Edwin Sirait
         </div>
     </div>
-
     <!-- Visual Side -->
     <div class="visual-side">
         <div class="bg-img"></div>
-
-        <!-- Dot grid decoration -->
-        {{-- <div class="dot-grid">
-            @for ($i = 0; $i < 30; $i++)
-                <span></span>
-            @endfor
-        </div> --}}
-
         <div class="visual-content">
             <span class="greeting-label" id="greeting">Good Day</span>
             <div class="visual-heading">
@@ -803,7 +793,6 @@
             <p class="visual-sub">Bali, Indonesia · {{ date('l, d F Y') }}</p>
         </div>
     </div>
-
     {{-- SweetAlert Force Login --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @if (session('confirm_force_login'))

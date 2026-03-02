@@ -157,8 +157,7 @@ class DashboardHRController extends Controller
             'leaveData'          => $leaveData,
         ]);
     }
-
-
+  
 
     public function getMonthlyData(Request $request)
     {

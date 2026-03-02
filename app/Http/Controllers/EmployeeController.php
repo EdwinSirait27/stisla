@@ -343,8 +343,27 @@ foreach ($columns as $key => $relationPath) {
             ->addColumn('action', function ($employee) {
                 return $employee->action;
             })
+            ->addColumn('length_of_service', function ($e) {
+    $joinDate = $e->Employee?->join_date;
+
+    if (!$joinDate) {
+        return 'Empty';
+    }
+
+    $start = Carbon::parse($joinDate);
+    $now   = Carbon::now();
+
+    $diff = $start->diff($now);
+
+    return sprintf(
+        '%d year %d month %d days',
+        $diff->y,
+        $diff->m,
+        $diff->d
+    );
+})
           
-            ->rawColumns(['action'])
+            ->rawColumns(['action','length_of_service'])
             ->make(true);
     }   
     public function edit($hashedId)

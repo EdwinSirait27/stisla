@@ -42,6 +42,8 @@ use App\Http\Controllers\LeavesController;
 use App\Http\Controllers\LeavebalancesController;
 use App\Http\Controllers\MasterSubmissionController;
 use App\Http\Controllers\PositionapprovalController;
+use App\Http\Controllers\SKController;
+use App\Http\Controllers\SktemplateController;
 use App\Http\Controllers\LeavetypesController;
 use App\Http\Controllers\StructuresnewController;
 /*
@@ -237,6 +239,24 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/Position/edit/{hashedId}', [PositionController::class, 'edit'])->name('Position.edit');
         Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
         Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
+    });
+    Route::group(['middleware' => ['permission:ManageSktypes']], function () {
+        Route::get('/Sktype', [SKController::class, 'sktype'])
+            ->name('pages.Sktype');
+        Route::get('Sktype/create', [SKController::class, 'create'])->name('Sktype.create');
+        Route::post('/Sktype', [SKController::class, 'store'])->name('Sktype.store');
+        Route::get('/Sktype/edit/{hashedId}', [SKController::class, 'edit'])->name('Sktype.edit');
+        Route::put('/Sktype/{hashedId}', [SKController::class, 'update'])->name('Sktype.update');
+        Route::get('/sktypes/sktypes', [SKController::class, 'getSktypes'])->name('sktypes.sktypes');
+    });
+    Route::group(['middleware' => ['permission:ManageSktemplates']], function () {
+        Route::get('/Sktemplate', [SktemplateController::class, 'sktemplate'])
+            ->name('pages.Sktemplate');
+        Route::get('Sktemplate/create', [SktemplateController::class, 'create'])->name('Sktemplate.create');
+        Route::post('/Sktemplate', [SktemplateController::class, 'store'])->name('Sktemplate.store');
+        Route::get('/Sktemplate/edit/{hashedId}', [SktemplateController::class, 'edit'])->name('Sktemplate.edit');
+        Route::put('/Sktemplate/{hashedId}', [SktemplateController::class, 'update'])->name('Sktemplate.update');
+        Route::get('/sktemplates/sktemplates', [SktemplateController::class, 'getSktemplates'])->name('sktemplates.sktemplates');
     });
     Route::group(['middleware' => ['permission:ManageMasterSubmissions']], function () {
         Route::get('/MasterSubmission', [MasterSubmissionController::class, 'index'])

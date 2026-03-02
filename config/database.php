@@ -1,10 +1,7 @@
 <?php
-
 use Illuminate\Support\Str;
 // use Pdo\Mysql;
-
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Database Connection Name
@@ -15,9 +12,7 @@ return [
     | you may use many connections at once using the Database library.
     |
     */
-
     'default' => env('DB_CONNECTION', 'mysql'),
-
     /*
     |--------------------------------------------------------------------------
     | Database Connections
@@ -33,9 +28,7 @@ return [
     | choice installed on your machine before you begin development.
     |
     */
-
     'connections' => [
-
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DATABASE_URL'),
@@ -43,7 +36,6 @@ return [
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
-
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
@@ -62,18 +54,14 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-//             'options' => extension_loaded('pdo_mysql') ? array_filter([
-//     Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-// ]) : [],
-
-        'dump' => [
-    'dump_binary_path' => env('DB_DUMP_PATH', '/usr/bin/'),
-    'use_single_transaction',
-    'timeout' => 60 * 5,
-],
-
-
-
+            //             'options' => extension_loaded('pdo_mysql') ? array_filter([
+            //     Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            // ]) : [],
+            'dump' => [
+                'dump_binary_path' => env('DB_DUMP_PATH', '/usr/bin/'),
+                'use_single_transaction',
+                'timeout' => 60 * 5,
+            ],
         ],
         'mysql_second' => [
             'driver' => 'mysql',
@@ -88,7 +76,6 @@ return [
             'strict' => false, // Sesuaikan untuk MySQL 5
             'engine' => null,
         ],
-
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),
@@ -128,9 +115,7 @@ return [
     | the migrations on disk haven't actually been run in the database.
     |
     */
-
     'migrations' => 'migrations',
-
     /*
     |--------------------------------------------------------------------------
     | Redis Databases
@@ -141,16 +126,12 @@ return [
     | such as APC or Memcached. Laravel makes it easy to dig right in.
     |
     */
-
     'redis' => [
-
         'client' => env('REDIS_CLIENT', 'phpredis'),
-
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
             'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
-
         'default' => [
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
@@ -159,7 +140,6 @@ return [
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_DB', '0'),
         ],
-
         'cache' => [
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
@@ -168,7 +148,5 @@ return [
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
-
     ],
-
 ];
