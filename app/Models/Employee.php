@@ -37,6 +37,7 @@ class Employee extends Model
     protected $fillable = [
         'employee_name',
         'photos',
+        'signature',
         'employee_pengenal',
         'position_id',
         'company_id',

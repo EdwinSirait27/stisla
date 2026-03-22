@@ -7,7 +7,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 @endpush
 <style>
-    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
@@ -16,18 +15,15 @@
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         background-color: #fff;
     }
-
     .card:hover {
         transform: translateY(-3px);
         box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
     }
-
     .card-header {
         background-color: #f8fafc;
         border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         padding: 1.25rem 1.5rem;
     }
-
     .card-header h6 {
         margin: 0;
         font-weight: 600;
@@ -36,25 +32,20 @@
         align-items: center;
         font-size: 0.95rem;
     }
-
     .card-header h6 i {
         margin-right: 0.75rem;
         color: #5e72e4;
         transition: color 0.3s ease;
     }
-
-    /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
         overflow: hidden;
     }
-
     .table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
     }
-
     .table thead th {
         background-color: #f8fafc;
         color: #4a5568;
@@ -69,12 +60,10 @@
         z-index: 10;
         transition: all 0.3s ease;
     }
-
     .table tbody tr {
         transition: all 0.25s ease;
         position: relative;
     }
-
     .table tbody tr:not(:last-child)::after {
         content: '';
         position: absolute;
@@ -84,12 +73,10 @@
         height: 1px;
         background: rgba(0, 0, 0, 0.05);
     }
-
     .table tbody tr:hover {
         background-color: rgba(94, 114, 228, 0.03);
         transform: scale(1.002);
     }
-
     .table tbody td {
         padding: 1.1rem 0.75rem;
         vertical-align: middle;
@@ -99,64 +86,48 @@
         border: none;
         background: #fff;
     }
-
     .table tbody tr:hover td {
         color: #2d3748;
     }
-
-    /* Text alignment for specific columns */
     .text-center {
         text-align: center;
     }
-
-    /* Action Buttons */
     .action-buttons {
         padding: 1.25rem 1.5rem;
         display: flex;
         justify-content: flex-end;
     }
-
     .btn-primary {
         background-color: #5e72e4;
         border-color: #5e72e4;
         transition: all 0.3s ease;
     }
-
     .btn-primary:hover {
         background-color: #4a5bd1;
         border-color: #4a5bd1;
         transform: translateY(-1px);
     }
-
-    /* Section Header */
     .section-header h1 {
         font-weight: 600;
         color: #2d3748;
         font-size: 1.5rem;
     }
-
-    /* Smooth scroll for table */
     .table-responsive {
         -webkit-overflow-scrolling: touch;
     }
-
-    /* Responsive Adjustments */
     @media (max-width: 768px) {
         .table-responsive {
             padding: 0 0.75rem;
             border-radius: 0.5rem;
             border: 1px solid rgba(0, 0, 0, 0.05);
         }
-
         .card-header {
             padding: 1rem;
         }
-
         .table thead th {
             font-size: 0.65rem;
             padding: 0.75rem 0.5rem;
         }
-
         .table tbody td {
             padding: 0.85rem 0.5rem;
             font-size: 0.8rem;
@@ -182,7 +153,6 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                {{-- <th class="text-center">No.</th> --}}
                                                 <th class="text-center">Name</th>
                                                 <th class="text-center">NIP</th>
                                                 <th class="text-center">Company</th>
@@ -203,8 +173,6 @@
                                         class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Create Employee
                                     </button>
-
-                                    <!-- New button added here -->
                                     <button type="button" onclick="window.location='{{ route('pages.Employeeall') }}'"
                                         class="btn btn-success btn-sm ml-2">
                                         <i class="fas fa-users"></i> All Employees
@@ -242,9 +210,7 @@
                             </thead>
 
                         </table>
-                        {{-- <div class="d-flex justify-content-center">
-        {{ $activities->links() }}
-    </div> --}}
+                        
                     </div>
                 </div>
             </div>
@@ -259,153 +225,7 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    {{-- <script>
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-12"B>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
-                buttons: [{
-                        extend: 'csv',
-                        text: '<i class="fas fa-file-csv"></i> CSV',
-                        className: 'btn btn-sm btn-primary',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                        }
-                    },
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                        }
-                    }
-                ],
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('employees.employees') }}',
-                    data: function(d) {
-                        d.activity_type = $('#activity-type-filter').val();
-                    },
-                    error: function(xhr, error, thrown) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Failed to load data!'
-                        });
-                        console.error(xhr.responseText);
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                pageLength: 10,
-                language: {
-                    lengthMenu: "Show _MENU_ entries",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    },
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
-                },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name_company',
-                        name: 'name_company',
-                        className: 'text-center'
-                    },
-                     {
-                        data: 'grading_name',
-                        name: 'grading_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status_employee',
-                        name: 'status_employee',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data === 'Active') {
-                                return '<span class="badge bg-success">Active</span>';
-                            } else if (data === 'Inactive') {
-                                return '<span class="badge bg-danger">Inactive</span>';
-                            } else if (data === 'On leave') {
-                                return '<span class="badge bg-warning">On Leave</span>';
-                            } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Mutation</span>';
-                            } else if (data === 'Pending') {
-                                return '<span class="badge bg-secondary">Pending</span>';
-                            }
-                            return '<span class="badge bg-warning text-dark">Resign</span>';
-                        }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-            $('#activity-type-filter').change(function() {
-                table.ajax.reload();
-            });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000
-                });
-            @endif
-        });
-    </script> --}}
+  
     <script>
         $(document).ready(function() {
             var table = $('#users-table').DataTable({
@@ -494,11 +314,6 @@
                         data: 'grading_name',
                         className: 'text-center'
                     },
-
-                    // {
-                    //     data: 'position_name',
-                    //     className: 'text-center'
-                    // },
                     {
                         data: 'status_employee',
                         className: 'text-center'
@@ -521,10 +336,6 @@
                             return `<span class="badge bg-${badges[data] || 'light'}">${data}</span>`;
                         }
                     },
-                    // {
-                    //     data: 'company_name',
-                    //     className: 'text-center'
-                    // },
                     {
                         data: 'action',
                         orderable: false,
@@ -597,150 +408,3 @@
         });
     </script>
 @endpush
-{{-- <script>
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                dom: '<"top"<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>><"row"<"col-sm-12 col-md-12"B>>>rt<"bottom"<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>',
-                buttons: [{
-                        extend: 'csv',
-                        text: '<i class="fas fa-file-csv"></i> CSV',
-                        className: 'btn btn-sm btn-primary',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                        }
-                    },
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8]
-                        }
-                    }
-                ],
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('employees.employees') }}',
-                    data: function(d) {
-                        d.activity_type = $('#activity-type-filter').val();
-                    },
-                    error: function(xhr, error, thrown) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Failed to load data!'
-                        });
-                        console.error(xhr.responseText);
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                pageLength: 10,
-                language: {
-                    lengthMenu: "Show _MENU_ entries",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    },
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
-                },
-                columns: [{
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name_company',
-                        name: 'name_company',
-                        className: 'text-center'
-                    },
-                     {
-                        data: 'grading_name',
-                        name: 'grading_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status_employee',
-                        name: 'status_employee',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data === 'Active') {
-                                return '<span class="badge bg-success">Active</span>';
-                            } else if (data === 'Inactive') {
-                                return '<span class="badge bg-danger">Inactive</span>';
-                            } else if (data === 'On leave') {
-                                return '<span class="badge bg-warning">On Leave</span>';
-                            } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Mutation</span>';
-                            } else if (data === 'Pending') {
-                                return '<span class="badge bg-secondary">Pending</span>';
-                            }
-                            return '<span class="badge bg-warning text-dark">Resign</span>';
-                        }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control');
-                    $('.dataTables_length select').addClass('form-control');
-                }
-            });
-
-            $('#activity-type-filter').change(function() {
-                table.ajax.reload();
-            });
-
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000
-                });
-            @endif
-        });
-    </script> --}}

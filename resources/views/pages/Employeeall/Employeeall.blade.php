@@ -321,28 +321,6 @@
 
             var table = $('#users-table').DataTable({
                 dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-                // buttons:
-                    // [
-                    //     {
-                    //         extend: 'excel',
-                    //         text: '<i class="fas fa-file-excel"></i> Excel',
-                    //         className: 'btn btn-sm btn-success',
-                    //         exportOptions: {
-                    //             columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                    //                 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34
-                    //             ],
-                    //             format: {
-                    //                 body: function(data, row, column, node) {
-                    //                     // 🔥 AUTO: semua angka >= 16 digit dipaksa TEXT
-                    //                     if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
-                    //                         return '\u200C' + data;
-                    //                     }
-                    //                     return data;
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    // ]
                     buttons: [{
                             extend: 'excel',
                             text: '<i class="fas fa-file-excel"></i> Excel',
@@ -353,7 +331,6 @@
                                 ],
                                 format: {
                                     body: function(data, row, column, node) {
-                                        // 🔥 AUTO: semua angka >= 16 digit dipaksa TEXT
                                         if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
                                             return '\u200C' + data;
                                         }
@@ -372,7 +349,6 @@
                                 ],
                                 format: {
                                     body: function(data, row, column, node) {
-                                        // 🔥 Supaya angka panjang tidak jadi scientific notation di Excel
                                         if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
                                             return '\u200C' + data;
                                         }
@@ -388,9 +364,7 @@
                 scrollX: true,
                 autoWidth: false,
                 fixedColumns: {
-                    leftColumns: 3 // kalau tidak mau kolom kiri dikunci
-                    // rightColumns: 2  // Action dan Status dikunci di kanan
-                },
+                    leftColumns: 3 },
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
                     type: 'POST',
@@ -430,25 +404,6 @@
                         searchable: false,
                         className: 'text-center'
                     },
-                    // {
-                    //     data: 'status',
-                    //     name: 'status',
-                    //     className: 'text-center',
-                    //     render: function(data, type, row) {
-                    //         if (data === 'Active') {
-                    //             return '<span class="badge bg-success">Active</span>';
-                    //         } else if (data === 'Inactive') {
-                    //             return '<span class="badge bg-danger">Inactive</span>';
-                    //         } else if (data === 'On leave') {
-                    //             return '<span class="badge bg-warning">On Leave</span>';
-                    //         } else if (data === 'Mutation') {
-                    //             return '<span class="badge bg-info">Mutation</span>';
-                    //         } else if (data === 'Pending') {
-                    //             return '<span class="badge bg-secondary">Pending</span>';
-                    //         }
-                    //         return '<span class="badge bg-warning">Resign</span>';
-                    //     }
-                    // },
                     {
                         data: 'employee_name',
                         name: 'employee_name',
@@ -584,11 +539,6 @@
                         name: 'position_name',
                         className: 'text-center'
                     },
-                    // {
-                    //     data: 'grading_code',
-                    //     name: 'grading_code',
-                    //     className: 'text-center'
-                    // },
                     {
                         data: 'grading_name',
                         name: 'grading_name',
@@ -614,35 +564,6 @@
                         data: 'length_of_service',
                         className: 'text-center'
                     },
-
-
-
-                    //                    {
-                    //     data: 'nik',
-                    //     name: 'nik',
-                    //     className: 'text-center',
-                    // render: function (data, type) {
-                    //     if (type === 'export') {
-                    //         return '="' + data + '"';
-                    //     }
-                    //     return data;
-                    // }
-
-                    // },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     {
                         data: 'created_at',
                         name: 'created_at',
@@ -658,15 +579,12 @@
                         name: 'notes',
                         className: 'text-center'
                     }
-
-
                 ],
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control form-control-sm');
                     $('.dataTables_length select').addClass('form-select form-select-sm');
                 }
             });
-
             $('#filter-store').on('change', function() {
                 table.ajax.reload();
             });
@@ -684,297 +602,3 @@
         });
     </script>
 @endpush
-{{-- @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-                buttons: [{
-                        extend: 'csv',
-                        text: '<i class="fas fa-file-csv"></i> CSV',
-                        className: 'btn btn-sm btn-primary ms-2 me-2',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
-                        }
-                    },
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        className: 'btn btn-sm btn-success',
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
-                        }
-                    }
-                ],
-                processing: true,
-                serverSide: true,
-                scrollY: "700px",
-                scrollX: true,
-                autoWidth: false,
-                 fixedColumns: {
-                    leftColumns: 2
-                },
-                ajax: {
-                    url: '{{ route('employeesall.employeesall') }}',
-                      type: 'POST',
-                    data: function(d) {
-                        d._token = '{{ csrf_token() }}';
-                        d.name = $('#filter-store').val();
-                        d.status = [];
-                        $('#filter-status input[type="checkbox"]:checked').each(function() {
-                            d.status.push($(this).val());
-                        });
-                    }
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                pageLength: 10,
-                language: {
-                    lengthMenu: "Show _MENU_ entries",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    },
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
-                },
-                columns: [
-
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (data === 'Active') {
-                                return '<span class="badge bg-success">Active</span>';
-                            } else if (data === 'Inactive') {
-                                return '<span class="badge bg-danger">Inactive</span>';
-                            } else if (data === 'On leave') {
-                                return '<span class="badge bg-warning">On Leave</span>';
-                            } else if (data === 'Mutation') {
-                                return '<span class="badge bg-info">Mutation</span>';
-                            } else if (data === 'Pending') {
-                                return '<span class="badge bg-secondary">Pending</span>';
-                            }
-                            return '<span class="badge bg-warning">Resign</span>';
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'employee_pengenal',
-                        name: 'employee_pengenal',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name_company',
-                        name: 'name_company',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'grading_code',
-                        name: 'grading_code',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'grading_name',
-                        name: 'grading_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status_employee',
-                        name: 'status_employee',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'join_date',
-                        name: 'join_date',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'marriage',
-                        name: 'marriage',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'child',
-                        name: 'child',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'telp_number',
-                        name: 'telp_number',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'nik',
-                        name: 'nik',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'gender',
-                        name: 'gender',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'date_of_birth',
-                        name: 'date_of_birth',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'place_of_birth',
-                        name: 'place_of_birth',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'biological_mother_name',
-                        name: 'biological_mother_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'religion',
-                        name: 'religion',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'current_address',
-                        name: 'current_address',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'id_card_address',
-                        name: 'id_card_address',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'last_education',
-                        name: 'last_education',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'institution',
-                        name: 'institution',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'npwp',
-                        name: 'npwp',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bpjs_kes',
-                        name: 'bpjs_kes',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bpjs_ket',
-                        name: 'bpjs_ket',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'emergency_contact_name',
-                        name: 'emergency_contact_name',
-                        className: 'text-center'
-                    },
-
-                    {
-                        data: 'notes',
-                        name: 'notes',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bank_name',
-                        name: 'bank_name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'bank_account_number',
-                        name: 'bank_account_number',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'pin',
-                        name: 'pin',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at',
-                        className: 'text-center'
-                    }
-                    
-
-                ],
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control form-control-sm');
-                    $('.dataTables_length select').addClass('form-select form-select-sm');
-                }
-            });
-
-             $('#filter-store').on('change', function() {
-                table.ajax.reload();
-            });
- $('#filter-status input[type="checkbox"]').on('change', function() {
-                table.ajax.reload();
-            });
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    timer: 3000
-                });
-            @endif
-        });
-    </script>
-@endpush --}}

@@ -126,7 +126,6 @@ class CompanyController extends Controller
 // }
 public function store(Request $request)
 {
-    // ✅ Validasi input
     $validatedData = $request->validate([
         'name' => [
             'required', 'string', 'max:255', 'unique:company_tables,name', new NoXSSInput()
@@ -207,88 +206,6 @@ public function store(Request $request)
     }
 }
 
-
-    // public function update(Request $request, $hashedId)
-    // {
-    //     $company = Company::get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-    //     if (!$company) {
-    //         return redirect()->route('pages.Company')->with('error', 'ID tidak valid.');
-    //     }
-    //     $validatedData = $request->validate([
-    //         'name' => [
-    //             'required',
-    //             'string',
-    //             'max:255',
-    //             Rule::unique('company_tables')->ignore($company->id),
-    //             new NoXSSInput()
-    //         ],
-    //         'address' => [
-    //             'required',
-    //             'max:255',
-    //             new NoXSSInput()
-    //         ],
-    //         'remark' => [
-    //             'required',
-    //             new NoXSSInput()
-    //         ],
-    //         'nickname' => [
-    //             'required',
-    //             'max:255',
-    //             new NoXSSInput()
-    //         ],
-    //         'npwp' => [
-    //             'required',
-    //             'max:255',
-    //             new NoXSSInput()
-    //         ],
-    //         'foto' => ['nullable', 'image', 'max:512'],
-    //     ], [
-    //         'name.required' => 'name wajib diisi.',
-    //         'remark.required' => 'remark wajib diisi.',
-    //         'name.string' => 'name hanya boleh berupa teks.',
-    //         'name.max' => 'name maksimal terdiri dari 255 karakter.',
-    //         'name.unique' => 'name sudah ada.',
-    //         'address.required' => 'address wajib diisi.',
-    //         'npwp.required' => 'npwp wajib diisi.',
-    //         'npwp.max' => 'npwp max 255 karakter.',
-    //         'foto.required' => 'harus diisi.',
-           
-    //         'foto.max' => 'kurang dari 512 kb.',
-    //     ]);
-    //     $filePath = $company->foto; // Default: tetap pakai foto lama
-
-    //     if ($request->hasFile('foto')) {
-    //         $file = $request->file('foto');
-    //         $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
-    //         $file->storeAs('public/company', $fileName);
-    //         $filePath = $fileName;
-        
-    //         // Hapus file lama jika ada
-    //         if ($company && $company->foto && Storage::exists('public/company/' . $company->foto)) {
-    //             Storage::delete('public/company/' . $company->foto);
-    //         }
-    //     }
-        
-    //     // Siapkan dta yang akan diupdate
-    //     $companyData = [
-    //         'name' => $validatedData['name'],
-    //         'nickname' => $validatedData['nickname'],
-    //         'remark' => $validatedData['remark'],
-    //         'address' => $validatedData['address'],
-    //         'npwp' => $validatedData['npwp'],
-    //     ];
-    //     // Hanya masukkan foto kalau ada file baru
-    //     if ($request->hasFile('foto')) {
-    //         $companyData['foto'] = $filePath;
-    //     }
-    //     DB::beginTransaction();
-    //     $company->update($companyData);
-    //     DB::commit();
-    //     return redirect()->route('pages.Company')->with('success', 'Company updated Successfully.');
-    // }
     public function update(Request $request, $hashedId)
 {
     // Cari record berdasarkan hashed ID
@@ -383,6 +300,17 @@ public function store(Request $request)
                      ->withInput();
     }
 }
+  public function show($id)
+    {
+        $company = Company::findOrFail($id);
+
+        return response()->json([
+            'id' => $company->id,
+            'name' => $company->name,
+            'foto' => $company->foto,
+            'logo_url' => asset('storage/' . $company->foto),
+        ]);
+    }
 
 
 }

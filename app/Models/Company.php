@@ -24,8 +24,14 @@ class Company extends Model
         'address',
         'npwp',  
         'remark',  
-        'nickname',  
-    ];
+        'nickname',
+        ];
+        public function getFotoUrlAttribute()
+{
+    if (!$this->foto) return null;
+
+    return asset('storage/' . $this->foto);
+}
    
     public function user()
     {

@@ -8,7 +8,6 @@ use Yajra\DataTables\DataTables;
 use App\Models\Terms;
 use App\Models\Stores;
 use Spatie\Permission\Models\Role;
-
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\NoXSSInput;
@@ -17,9 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class dashboardAdminController extends Controller
-{
-
-    
+{   
     public function index()
     {
         $storeList = Stores::select('name')->distinct()->get();

@@ -635,14 +635,7 @@
             display: block;
         }
 
-        /* .visual-heading {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(2.4rem, 3.5vw, 3.4rem);
-            font-weight: 600;
-            color: var(--text-hi);
-            line-height: 1.1;
-            letter-spacing: 0.01em;
-        } */
+       
         .visual-heading {
             /* font-family: 'Cormorant Garamond', serif; */
             font-size: clamp(2.4rem, 3.5vw, 3.4rem);
@@ -701,19 +694,15 @@
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
         .field-group {
             animation: fadeUp 0.55s ease both;
         }
-
         .field-group:nth-child(1) { animation-delay: 0.25s; }
         .field-group:nth-child(2) { animation-delay: 0.35s; }
     </style>
 </head>
-
 <body>
     <div class="form-side">
-        <!-- Brand -->
         <div class="brand">
             <img src="{{ asset('img/AsianBay.png') }}" alt="HRX Logo" class="brand-logo">
             <div>
@@ -721,8 +710,6 @@
                 <div class="brand-tag">Human Resource System</div>
             </div>
         </div>
-
-        <!-- Form Body -->
         <div class="form-body">
             <div class="form-heading">
                 <h2>Sign In</h2>

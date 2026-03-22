@@ -33,6 +33,10 @@ class Structuresnew extends Model
     protected $casts = [
         'is_manager' => 'boolean',
     ];
+     public function parent()
+    {
+        return $this->belongsTo(Structuresnew::class, 'parent_id', 'id');
+    }
     public function submissionposition()
     {
         return $this->belongsTo(Submissionposition::class, 'submission_position_id', 'id');
@@ -53,10 +57,7 @@ class Structuresnew extends Model
     {
         return $this->children()->with('allChildren', 'submissionposition.positionRelation');
     }
-    public function parent()
-    {
-        return $this->belongsTo(Structuresnew::class, 'parent_id', 'id');
-    }
+   
     public function secondarySupervisors()
     {
         return $this->belongsToMany(

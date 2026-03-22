@@ -417,53 +417,7 @@ public function storeToStructure($hashedId)
 
         return back()->with('success', "$deleted data berhasil dihapus.");
     }
-    // public function getOrgChartData()
-    // {
-    //     $gradingPriority = [
-    //         'Director' => 1,
-    //         'Head' => 2,
-    //         'Senior Manager' => 3,
-    //         'Manager' => 4,
-    //         'Assistant Manager' => 5,
-    //         'Supervisor' => 6,
-    //         'Staff' => 7,
-    //         'Daily Worker' => 8,
-    //     ];
-
-    //     $data = Structuresnew::with([
-    //         'parent',
-    //         'employee',
-    //         'employee.store',
-    //         'submissionposition',
-    //         'employee.grading',
-    //         'submissionposition.positionRelation',
-    //         'submissionposition.store',
-    //         'secondarySupervisors',
-    //     ])->get()->map(function ($s) use ($gradingPriority) {
-
-    //         $gradingName = collect($s->employee)->pluck('grading.grading_name')->first() ?? 'Empty';
-    //         $level = $gradingPriority[$gradingName] ?? 999;
-    //         $secondaryIds = $s->secondarySupervisors->pluck('id')->toArray();
-    //         return [
-    //             'id'         => $s->id,
-    //             'pid'        => $s->parent_id,
-    //             'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
-    //             'Employee'   => collect($s->employee)->pluck('employee_name')->join(', ') ?: 'Empty',
-    //             'Grading'    => $gradingName,
-    //             'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
-    //             'status'     => $s->status,
-    //             'photo'      => collect($s->employee)->pluck('photo')->first() ?? '/default-avatar.png',
-    //             'secondary'  => $secondaryIds 
-    //         ];
-    //     });
-
-    //     $sortedData = $data->sortBy('level')->values();
-
-    //     return response()->json($sortedData);
-    // }
-    // 'employee.grading',
-    // 'employee',
-        // 'employee.store',
+   
     public function getOrgChartData()
 {
     $gradingPriority = [
@@ -487,7 +441,6 @@ public function storeToStructure($hashedId)
         'secondarySupervisors.submissionposition.positionRelation',
     ])->get()->map(function ($s) use ($gradingPriority) {
 
-        // $gradingName = optional($s->employees->grading)->grading_name ?? 'Empty';
         $gradingName = optional(optional($s->employees)->grading)->grading_name ?? 'Empty';
 
         $level = $gradingPriority[$gradingName] ?? 999;
@@ -505,6 +458,7 @@ public function storeToStructure($hashedId)
             'pid'        => $s->parent_id,
             'Position'   => optional(optional($s->submissionposition)->positionRelation)->name ?? 'Unknown',
             'Employee' => optional($s->employees)->employee_name ?? 'Empty',
+            'Company' => optional($s->employees)->company->name ?? 'Empty',
             'Grading'    => $gradingName,
             'Location'   => optional(optional($s->submissionposition)->store)->name ?? 'Empty',
             'status'     => $s->status,
@@ -517,57 +471,6 @@ public function storeToStructure($hashedId)
     return response()->json($sortedData);
 }
 
-
-
-
-//     public function edit($hashedId)
-//     {
-//         $structure = Structuresnew::with([
-//             'parent',
-//             'submissionposition',
-//             'submissionposition.stores',
-//             'secondarySupervisors', // <-- tambahkan ini supaya data kebaca
-//         ])->get()->first(function ($u) use ($hashedId) {
-//             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//             return $expectedHash === $hashedId;
-//         });
-
-//         if (!$structure) {
-//             abort(404, 'Structure not found.');
-//         }
-
-//         // LIST UNTUK DROPDOWN PARENT DAN SECONDARY SUPERVISOR
-//         $parents = Structuresnew::with('submissionposition', 'submissionposition.positionRelation')
-//             ->get()
-//             ->pluck('submissionposition.positionRelation.name', 'id');
-
-//         $statuses = ['active' => 'active', 'inactive' => 'inactive', 'vacant' => 'vacant'];
-//         $types = ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote', 'Urgent'];
-
-//         $salaries = Salary::all()->mapWithKeys(function ($item) {
-//             return [
-//                 $item->id => "{$item->salary_start} - {$item->salary_end}"
-//             ];
-//         });
-// $allStores = Stores::select('id', 'name')->orderBy('name')->get();
-
-//     // Ambil store yg sudah dipilih di pivot
-//     $selectedStores = $structure->submissionposition->stores->pluck('id')->toArray();
-
-//         return view('pages.Structuresnew.edit', [
-//             'structure' => $structure,
-//             'parents' => $parents,
-//             'types' => $types,
-//             'salaries' => $salaries,
-//             'statuses' => $statuses,
-//             'hashedId' => $hashedId,
-
-//             // Kirim data tambahan ini
-//             'selectedSecondarySupervisors' => $structure->secondarySupervisors->pluck('id')->toArray(),
-//              'allStores' => $allStores,
-//         'selectedStores' => $selectedStores,
-//         ]);
-//     }
 public function edit($hashedId) 
 {
     $structure = Structuresnew::with([
@@ -747,14 +650,12 @@ public function edit($hashedId)
                 ->where('structure_code', 'like', $prefix . '%')
                 ->orderBy('structure_code', 'desc')
                 ->first();
-
             $nextNumber = 1;
             if ($lastStructure) {
                 $lastNumber = (int) preg_replace('/\D/', '', $lastStructure->structure_code);
                 $nextNumber = $lastNumber + 1;
             }
             $structureCode = $prefix . $nextNumber;
-            // Simpan ke database
             $structure = Structuresnew::create([
                 'company_id' => $validatedData['company_id'],
                 'department_id' => $validatedData['department_id'],
@@ -783,82 +684,6 @@ public function edit($hashedId)
                 ->withInput();
         }
     }
-
-
-    // public function update(Request $request, $hashedId)
-    // {
-    //     Log::info('Update Structure - Request received', [
-    //         'hashedId' => $hashedId,
-    //         'request_all' => $request->all()
-    //     ]);
-
-    //     $structure = Structuresnew::with('company', 'department', 'store', 'position')
-    //         ->get()
-    //         ->first(function ($u) use ($hashedId) {
-    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //             return $expectedHash === $hashedId;
-    //         });
-
-    //     Log::info('Structure matching result', [
-    //         'found' => $structure ? true : false,
-    //         'structure_id' => $structure->id ?? null
-    //     ]);
-
-    //     if (!$structure) {
-    //         Log::warning('Invalid hashed ID during update', ['hashedId' => $hashedId]);
-    //         return redirect()->route('pages.Structuresnew')->with('error', 'ID tidak valid.');
-    //     }
-
-    //     $validated = $request->validate([
-    //         'is_manager' => ['nullable', 'boolean'],
-    //         'parent_id' => ['nullable', 'string', 'max:255'],
-    //         'secondary_supervisors' => ['nullable', 'array'],
-    //         'secondary_supervisors.*' => ['string'],
-        
-    //     ]);
-    //     Log::info('Validated data', $validated);
-    //     DB::beginTransaction();
-    //     try {
-    //         Log::info('Updating structure', [
-    //             'structure_id' => $structure->id,
-    //             'update_data' => [
-    //                 'is_manager' => $validated['is_manager'] ?? 0,
-    //                 'parent_id' => $validated['parent_id'] ?? null,
-    //             ]
-    //         ]);
-    //         $structure->update([
-    //             'is_manager' => $validated['is_manager'] ?? 0,
-    //             'parent_id' => $validated['parent_id'] ?? null,
-    //         ]);
-    //         Log::info('Sync secondary supervisors', [
-    //             'structure_id' => $structure->id,
-    //             'secondary_supervisors' => $validated['secondary_supervisors'] ?? []
-    //         ]);
-    //         $structure->secondarySupervisors()->sync(
-    //             $validated['secondary_supervisors'] ?? []
-    //         );
-
-    //         DB::commit();
-
-    //         Log::info('Structure updated successfully', [
-    //             'structure_id' => $structure->id
-    //         ]);
-
-    //         return redirect()->route('pages.Structuresnew')
-    //             ->with('success', 'Structure Updated Successfully.');
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Update structure failed', [
-    //             'structure_id' => $structure->id ?? null,
-    //             'error_message' => $e->getMessage(),
-    //             'stack' => $e->getTraceAsString()
-    //         ]);
-
-    //         return redirect()->route('pages.Structuresnew')
-    //             ->with('error', 'Gagal update: ' . $e->getMessage());
-    //     }
-    // }
     public function update(Request $request, $hashedId)
 {
     Log::info('Update Structure - Request received', [
