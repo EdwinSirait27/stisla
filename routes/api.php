@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\StructuresnewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,3 +21,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/company/{id}', [CompanyController::class, 'show']);
+Route::get('/employee/{employeeId}/manager', [StructuresnewController::class, 'getManagerByEmployee']);
