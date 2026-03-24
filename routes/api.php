@@ -22,3 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/company/{id}', [CompanyController::class, 'show']);
 Route::get('/employee/{employeeId}/manager', [StructuresnewController::class, 'getManagerByEmployee']);
+Route::get('/employee/{employeeId}/manager', [StructuresnewController::class, 'getManagerByEmployee']);
+// Route::get('/employee/{employeeId}', [StructuresnewController::class, 'getEmployeeByPosition']);
+// Route::get('/employee/position/{positionName}', [StructuresnewController::class, 'getEmployeeByPosition']);
+Route::get('/employee/{employeeId}', [StructuresnewController::class, 'getEmployeeById']);

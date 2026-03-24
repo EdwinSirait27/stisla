@@ -756,6 +756,54 @@ public function edit($hashedId)
     }
 }
 
+// public function getEmployeeByPosition($positionName)
+// {
+//     $position = Position::where('name', $positionName)->first();
+//     if (!$position) {
+//         return response()->json(['employee' => null], 404);
+//     }
+//     $submissionPosition = Submissionposition::where('position_id', $position->id)->first();
+//     if (!$submissionPosition) {
+//         return response()->json(['employee' => null], 404);
+//     }
+//     $structure = Structuresnew::where('submission_position_id', $submissionPosition->id)->first();
+//     if (!$structure) {
+//         return response()->json(['employee' => null], 404);
+//     }
+//     $employee = Employee::with([
+//         'structuresnew.submissionposition.positionRelation'
+//     ])->where('structure_id', $structure->id)->first();
+//     if (!$employee) {
+//         return response()->json(['employee' => null], 404);
+//     }
+//     return response()->json([
+//         'employee' => [
+//             'id'            => $employee->id,
+//             'employee_name' => $employee->employee_name,
+//             'position'      => $positionName,
+//             'signature_url' => $employee->signature
+//                                 ? url('storage/' . $employee->signature)
+//                                 : null,
+//         ]
+//     ]);
+// }
+public function getEmployeeById($employeeId)
+{
+    $employee = Employee::with('structuresnew.submissionposition.positionRelation')
+        ->find($employeeId);
+
+    if (!$employee) {
+        return response()->json(['employee' => null], 404);
+    }
+
+    return response()->json([
+        'employee' => [
+            'id' => $employee->id,
+            'employee_name' => $employee->employee_name,
+            'position' => $employee->structuresnew->submissionposition->positionRelation->name ?? null,
+        ]
+    ]);
+}
 public function getManagerByEmployee($employeeId)
 {
     $employee = Employee::with([
