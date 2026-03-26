@@ -89,19 +89,30 @@ public function getPositionByEmployee($employeeId)
         return response()->json(['manager' => null], 404);
     }
 
+    // return response()->json([
+    //     'manager' => [
+    //         'id'            => $managerEmployee->id,
+    //         'employee_name' => $managerEmployee->employee_name,
+    //         'position'      => optional(
+    //                                optional($managerEmployee->structuresnew?->submissionposition)
+    //                                ->positionRelation
+    //                            )->name ?? null,
+    //         'signature' => $managerEmployee->signature
+    //                                ? url('storage/' . $managerEmployee->signature)
+    //                                : null,
+    //     ]
+    // ]);
     return response()->json([
-        'manager' => [
-            'id'            => $managerEmployee->id,
-            'employee_name' => $managerEmployee->employee_name,
-            'position'      => optional(
-                                   optional($managerEmployee->structuresnew?->submissionposition)
-                                   ->positionRelation
-                               )->name ?? null,
-            'signature' => $managerEmployee->signature
-                                   ? url('storage/' . $managerEmployee->signature)
-                                   : null,
-        ]
-    ]);
+    'manager' => [
+        'id'            => $managerEmployee->id,
+        'employee_name' => $managerEmployee->employee_name,
+        'position'      => optional(
+                               optional($managerEmployee->structuresnew?->submissionposition)
+                               ->positionRelation
+                           )->name ?? null,
+        'signature'     => $managerEmployee->signature, // ✅ langsung value DB: "signatures/69c4a4aea50c3.png"
+    ]
+]);
 }
 public function show($id)
 {
