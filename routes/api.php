@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\StructuresnewController;
+// use App\Http\Controllers\StructuresnewController;
+use App\Http\Controllers\ApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,9 +21,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Route::middleware(['auth'])->group(function () {
+
 Route::get('/company/{id}', [CompanyController::class, 'show']);
-Route::get('/employee/{employeeId}/manager', [StructuresnewController::class, 'getManagerByEmployee']);
-Route::get('/employee/{employeeId}/manager', [StructuresnewController::class, 'getManagerByEmployee']);
-// Route::get('/employee/{employeeId}', [StructuresnewController::class, 'getEmployeeByPosition']);
-// Route::get('/employee/position/{positionName}', [StructuresnewController::class, 'getEmployeeByPosition']);
-Route::get('/employee/{employeeId}', [StructuresnewController::class, 'getEmployeeById']);
+Route::get('/finance/{id}', [ApiController::class, 'show']);
+// Route::get('/employee/{employeeId}/manager', [ApiController::class, 'getManagerByEmployee']);
+Route::get('/manager/{employeeId}', [ApiController::class, 'getManagerByEmployee']);
+Route::get('/employee/{employeeId}', [ApiController::class, 'getEmployeeById']);
+// });
