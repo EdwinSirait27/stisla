@@ -25,7 +25,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/company/{id}', [CompanyController::class, 'show']);
 Route::get('/finance/{id}', [ApiController::class, 'show']);
-// Route::get('/employee/{employeeId}/manager', [ApiController::class, 'getManagerByEmployee']);
 Route::get('/manager/{employeeId}', [ApiController::class, 'getManagerByEmployee']);
 Route::get('/employee/{employeeId}', [ApiController::class, 'getEmployeeById']);
-// });

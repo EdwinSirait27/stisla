@@ -12,14 +12,13 @@ class ApiController extends Controller
     public function getManagerByEmployee($employeeId)
 {
     $employee = Employee::with([
-        'structuresnew.parent' // load satu level parent dulu
+        'structuresnew.parent' 
     ])->find($employeeId);
 
     if (!$employee || !$employee->structuresnew) {
         return response()->json(['manager' => null], 404);
     }
 
-    // Naik ke atas sampai ketemu is_manager = true
     $current = $employee->structuresnew->parent;
     $managerStructure = null;
 
@@ -28,23 +27,18 @@ class ApiController extends Controller
             $managerStructure = $current;
             break;
         }
-        // Load parent berikutnya secara eksplisit
         $current->load('parent');
         $current = $current->parent;
     }
-
     if (!$managerStructure) {
         return response()->json(['manager' => null], 404);
     }
-
     $managerEmployee = Employee::with([
         'structuresnew.submissionposition.positionRelation'
     ])->where('structure_id', $managerStructure->id)->first();
-
     if (!$managerEmployee) {
         return response()->json(['manager' => null], 404);
     }
-
     return response()->json([
         'manager' => [
             'id'            => $managerEmployee->id,
@@ -53,7 +47,7 @@ class ApiController extends Controller
                                    optional($managerEmployee->structuresnew?->submissionposition)
                                    ->positionRelation
                                )->name ?? null,
-            'signature_url' => $managerEmployee->signature
+            'signature' => $managerEmployee->signature
                                    ? url('storage/' . $managerEmployee->signature)
                                    : null,
         ]
@@ -103,7 +97,7 @@ public function getPositionByEmployee($employeeId)
                                    optional($managerEmployee->structuresnew?->submissionposition)
                                    ->positionRelation
                                )->name ?? null,
-            'signature_url' => $managerEmployee->signature
+            'signature' => $managerEmployee->signature
                                    ? url('storage/' . $managerEmployee->signature)
                                    : null,
         ]
@@ -121,7 +115,7 @@ public function show($id)
                         ->where('name', 'finance')
                         ->pluck('name')
                         ->first(),
-        'signature_url' => $financestaff->employee->signature
+        'signature' => $financestaff->employee->signature
                                ? url('storage/' . $financestaff->employee->signature)
                                : null,
     ]);
