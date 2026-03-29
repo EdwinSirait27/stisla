@@ -43,6 +43,7 @@ class ApiController extends Controller
         'manager' => [
             'id'            => $managerEmployee->id,
             'employee_name' => $managerEmployee->employee_name,
+            'company_email' => $managerEmployee->company_email,
             'position'      => optional(
                                    optional($managerEmployee->structuresnew?->submissionposition)
                                    ->positionRelation
@@ -88,20 +89,6 @@ public function getPositionByEmployee($employeeId)
     if (!$managerEmployee) {
         return response()->json(['manager' => null], 404);
     }
-
-    // return response()->json([
-    //     'manager' => [
-    //         'id'            => $managerEmployee->id,
-    //         'employee_name' => $managerEmployee->employee_name,
-    //         'position'      => optional(
-    //                                optional($managerEmployee->structuresnew?->submissionposition)
-    //                                ->positionRelation
-    //                            )->name ?? null,
-    //         'signature' => $managerEmployee->signature
-    //                                ? url('storage/' . $managerEmployee->signature)
-    //                                : null,
-    //     ]
-    // ]);
     return response()->json([
     'manager' => [
         'id'            => $managerEmployee->id,

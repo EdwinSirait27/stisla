@@ -68,6 +68,7 @@ class Employee extends Model
         'bpjs_kes',
         'bpjs_ket',
         'email',
+        'company_email', 
         'emergency_contact_name',
         'status',
         'notes',

@@ -294,6 +294,7 @@ class EmployeeController extends Controller
             'bpjs_kes',
             'bpjs_ket',
             'email',
+            'company_email',
             'emergency_contact_name',
             'notes',
             'created_at',
@@ -539,6 +540,7 @@ foreach ($columns as $key => $relationPath) {
             'bpjs_kes' => ['required', 'string', 'max:255', new NoXSSInput()],
             'bpjs_ket' => ['required', 'string', 'max:255', new NoXSSInput()],
             'email' => ['required', 'string', 'max:255', new NoXSSInput()],
+            'company_email' => ['nullable', 'string', 'max:255', new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -680,6 +682,7 @@ foreach ($columns as $key => $relationPath) {
                 'bpjs_kes' => $validatedData['bpjs_kes'] ?? '',
                 'bpjs_ket' => $validatedData['bpjs_ket'] ?? '',
                 'email' => $validatedData['email'] ?? '',
+                'company_email' => $validatedData['company_email'] ?? '',
                 'emergency_contact_name' => $validatedData['emergency_contact_name'] ?? '',
                 'status' => $validatedData['status'] ?? 'Pending',
                 'religion' => $validatedData['religion'] ?? '',
@@ -728,8 +731,13 @@ foreach ($columns as $key => $relationPath) {
             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-            'photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
-
+             'photos' => [
+                'nullable',
+                'mimes:jpg,jpeg,png,webp',
+                'max:512'
+            ],
+             'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
+            'photos.max' => 'photos must under 512 kb.',
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
@@ -748,6 +756,7 @@ foreach ($columns as $key => $relationPath) {
             'bpjs_kes' => ['required', 'string', 'max:255'],
             'bpjs_ket' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'max:255'],
+            'company_email' => ['nullable', 'string', 'max:255'],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
@@ -791,21 +800,40 @@ foreach ($columns as $key => $relationPath) {
             'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ]);
-        $filePath = $user->Employee->photos;
+        // $filePath = $user->Employee->photos;
+        $filePath = optional($user->Employee)->photos;
         try {
             DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
+                // if ($request->hasFile('photos')) {
+                //     $file = $request->file('photos');
+                //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+                //         $file->getClientOriginalExtension();
+                //     $folderPath = 'employeesphotos/' . date('Y/m');
+                //     Storage::putFileAs($folderPath, $file, $fileName);
+                //     $newFilePath = $folderPath . '/' . $fileName;
+                //     if ($filePath && Storage::exists($filePath)) {
+                //         Storage::delete($filePath);
+                //     }
+                //     $filePath = $validatedData['photos'] = $newFilePath;
+                // }
                 if ($request->hasFile('photos')) {
-                    $file = $request->file('photos');
-                    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-                        $file->getClientOriginalExtension();
-                    $folderPath = 'employeesphotos/' . date('Y/m');
-                    Storage::putFileAs($folderPath, $file, $fileName);
-                    $newFilePath = $folderPath . '/' . $fileName;
-                    if ($filePath && Storage::exists($filePath)) {
-                        Storage::delete($filePath);
-                    }
-                    $filePath = $validatedData['photos'] = $newFilePath;
-                }
+    $file = $request->file('photos');
+
+    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+        $file->getClientOriginalExtension();
+
+    $folderPath = 'employeesphotos/' . date('Y/m');
+
+    Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+
+    $newFilePath = $folderPath . '/' . $fileName;
+
+    if ($filePath && Storage::disk('public')->exists($filePath)) {
+        Storage::disk('public')->delete($filePath);
+    }
+
+    $filePath = $validatedData['photos'] = $newFilePath;
+}
                 /** --------------------------
                  *  Lock employee row
                  * -------------------------*/

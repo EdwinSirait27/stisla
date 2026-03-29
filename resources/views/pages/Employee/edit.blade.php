@@ -1049,6 +1049,47 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                              {{-- <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="company_email" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Email') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('company_email') is-invalid @enderror"
+                                                            value="{{ old('company_email', $employee->Employee->company_email ?? '') }}"
+                                                            type="email" id="company_email" name="company_email"
+                                                            value="{{ old('company_email') }}" aria-describedby="info-company_email"
+                                                            placeholder="Insert Company Email">
+                                                        @error('company_email')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="company_email" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Email') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('company_email') is-invalid @enderror"
+                                                            value="{{ old('company_email', $employee->Employee->company_email ?? '') }}"
+                                                            type="email" id="company_email" name="company_email"
+                                                            value="{{ old('company_email') }}" aria-describedby="info-email"
+                                                            placeholder="Insert Company Email" required>
+                                                        @error('company_email')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="row mt-3">
 
 
                                             <div class="col-md-6"id="end_date_field" style="display:none;">
@@ -1069,10 +1110,8 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
-                                            <div class="row mt-3"id="notes_field" style="display:none;">
-
-                                            <div class="col-md-6">
+                                            
+                                            <div class="col-md-6"id="notes_field" style="display:none;">
                                                 <div class="form-group">
                                                     <label for="notes" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Reason Status') }}
