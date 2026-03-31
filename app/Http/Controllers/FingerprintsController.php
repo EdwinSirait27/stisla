@@ -21,304 +21,7 @@ class FingerprintsController extends Controller
             ->pluck('name');
         return view('pages.Fingerprints.Fingerprints', compact('stores'));
     }
-// public function getFingerprints(Request $request)
-// {
-//     ini_set('memory_limit', '1024M');
 
-//     $storeName = $request->input('store_name');
-//     $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()))->startOfDay();
-//     $endDate   = Carbon::parse($request->input('end_date', now()))->endOfDay();
-
-//     // Edited key detector
-//     $editedKeys = EditedFingerprint::pluck('scan_date', 'pin')
-//         ->map(fn($date, $pin) => $pin . '_' . Carbon::parse($date)->toDateString())
-//         ->values()
-//         ->toArray();
-
-//     // Ambil employee lengkap
-//     $employees = Employee::with(['position:id,name', 'store:id,name'])
-//         ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee')
-//         ->when($storeName, fn($q) =>
-//             $q->whereHas('store', fn($s) => $s->where('name', $storeName))
-//         )
-//         ->get()
-//         ->keyBy('pin');
-
-//     // Fingerprint raw data
-//     $fingerprints = Fingerprints::with('devicefingerprints:device_name,sn')
-//         ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
-//         ->whereBetween('scan_date', [$startDate, $endDate])
-//         ->orderBy('scan_date')
-//         ->get();
-
-//     // Hitung total hari aktif
-//     $totalHariPerPin = $fingerprints->groupBy('pin')
-//         ->map(fn($items) =>
-//             $items->pluck('scan_date')
-//                 ->map(fn($d) => Carbon::parse($d)->toDateString())
-//                 ->unique()
-//                 ->count()
-//         );
-
-//     // Grouping + filter duplicate inout 1/2
-//     $grouped = $fingerprints
-//         ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString())
-//         ->filter(function ($g) {
-//             return $g->where('inoutmode', 1)->count() > 1
-//                 || $g->where('inoutmode', 2)->count() > 1;
-//         });
-
-//     $result = $grouped->map(function ($group, $key) use ($employees, $totalHariPerPin, $editedKeys) {
-
-//         $first = $group->sortBy('scan_date')->first();
-//         $pin   = $first->pin;
-//         $date  = Carbon::parse($first->scan_date)->toDateString();
-
-//         $employee = $employees->get($pin);
-
-//         // ==== FIX: employee tidak ditemukan ====
-//         $row = [
-//             'pin'               => $pin,
-//             'employee_name'     => $employee->employee_name ?? '(Unknown Employee)',
-//             'status_employee'   => $employee->status_employee ?? '-',
-//             'employee_pengenal' => $employee->employee_pengenal ?? '-',
-//             'name'              => $employee->store->name ?? '-',
-//             'position_name'     => optional($employee->position)->name ?? '-',
-//             'device_name'       => optional($first->devicefingerprints)->device_name ?? '-',
-//             'scan_date'         => $date,
-//             'total_hari'        => $totalHariPerPin[$pin] ?? 0,
-//         ];
-
-//         // Init kolom
-//         for ($i = 1; $i <= 10; $i++) {
-//             $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
-//         }
-
-//         // ==== Map jam mode 1..10 (support multiple) ====
-//         $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
-//             if ($mode < 1 || $mode > 10) return;
-
-//             $times = $items->sortBy('scan_date')
-//                 ->pluck('scan_date')
-//                 ->map(fn($t) => Carbon::parse($t)->format('H:i:s'))
-//                 ->implode(', ');
-
-//             $devices = $items->sortBy('scan_date')
-//                 ->map(fn($i) => optional($i->devicefingerprints)->device_name ?? '')
-//                 ->implode(', ');
-
-//             $row["in_$mode"] = $times;
-//             $row["device_$mode"] = $devices;
-//             $row["combine_$mode"] = trim("$times $devices");
-//         });
-
-//         // ==== Durasi fix (parse multiple times) ====
-//         $allTimes = collect(range(1, 10))
-//             ->flatMap(function ($i) use ($row) {
-//                 return $row["in_$i"]
-//                     ? explode(', ', $row["in_$i"])
-//                     : [];
-//             })
-//             ->map(fn($t) => Carbon::parse($t))
-//             ->sort()
-//             ->values();
-
-//         if ($allTimes->count() >= 2) {
-//             $start = $allTimes->first();
-//             $end   = $allTimes->last();
-//             $min   = $start->diffInMinutes($end);
-
-//             $row['duration'] = sprintf(
-//                 '%d hour%s %d minute%s',
-//                 floor($min / 60),
-//                 floor($min / 60) !== 1 ? 's' : '',
-//                 $min % 60,
-//                 ($min % 60) !== 1 ? 's' : ''
-//             );
-//         } else {
-//             $row['duration'] = 'invalid';
-//         }
-
-//         // Marker updated
-//         $row['is_updated']    = in_array($key, $editedKeys);
-//         $row['updated_status'] = $row['is_updated']
-//             ? '✔️ Updated'
-//             : '❌ Original';
-
-//         return $row;
-//     })->values();
-
-//     return DataTables::of($result)
-//         ->addColumn('action', function ($row) {
-//             if ($row['is_updated']) {
-//                 return '<button class="btn btn-sm btn-secondary" disabled>
-//                             <i class="fas fa-edit"></i>
-//                         </button>';
-//             }
-
-//             $editUrl = route('pages.Fingerprints.edit', [
-//                 'pin'       => $row['pin'],
-//                 'scan_date' => $row['scan_date'],
-//             ]);
-
-//             return '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">
-//                         <i class="fas fa-edit"></i>
-//                     </a>';
-//         })
-//         ->rawColumns(['action'])
-//         ->make(true);
-// }
-
-//     public function getFingerprints(Request $request)
-//     {
-//         ini_set('memory_limit', '1024M');
-
-//         $storeName = $request->input('store_name');
-//         $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()))
-//             ->startOfDay();
-//         $endDate = Carbon::parse($request->input('end_date', now()))
-//             ->endOfDay();
-
-//         $editedKeys = EditedFingerprint::pluck('scan_date', 'pin')
-//             ->map(fn($date, $pin) => $pin . '_' . Carbon::parse($date)->toDateString())
-//             ->values()
-//             ->toArray();
-
-
-//         // Ambil data karyawan + relasinya
-//         $employeesQuery = Employee::with(['position:id,name', 'store:id,name'])
-//             ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee');
-
-//         if ($storeName) {
-//             $employeesQuery->whereHas('store', fn($q) => $q->where('name', $storeName));
-//         }
-
-//         $employees = $employeesQuery->get()->keyBy('pin');
-
-//         // Ambil data fingerprint sesuai periode
-//         $fingerprints = Fingerprints::with('devicefingerprints:device_name,sn')
-//             ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
-//             ->whereBetween('scan_date', [$startDate, $endDate])
-//             ->orderBy('scan_date')
-//             ->get();
-
-//         // Hitung total hari aktif per PIN
-//         $totalHariPerPin = $fingerprints->groupBy(fn($f) => $f->pin)
-//             ->map(fn($items) => $items->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->toDateString())->unique()->count());
-
-//         // Group fingerprint berdasarkan pin + tanggal
-//         // $grouped = $fingerprints->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
-// $grouped = $fingerprints
-//     ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString())
-//     ->filter(function ($g) {
-//         $countMode1 = $g->where('inoutmode', 1)->count();
-//         $countMode2 = $g->where('inoutmode', 2)->count();
-
-//         // tampilkan jika mode 1 > 1 ATAU mode 2 > 1
-//         return $countMode1 > 1 || $countMode2 > 1;
-//     });
-
-
-//         $result = $grouped->map(function ($group, $key) use ($employees, $totalHariPerPin, $editedKeys) {
-//             $first = $group->first();
-//             $pin = $first->pin;
-//             $scanDate = Carbon::parse($first->scan_date)->toDateString();
-
-//             $employee = $employees->get($pin);
-//             if (!$employee) return null;
-
-//             $row = [
-//                 'pin' => $pin,
-//                 'employee_name' => $employee->employee_name ?? '-',
-//                 'status_employee' => $employee->status_employee ?? '-',
-//                 'employee_pengenal' => $employee->employee_pengenal ?? '-',
-//                 'name' => $employee->store->name ?? '-',
-//                 'position_name' => optional($employee->position)->name ?? '-',
-//                 'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
-//                 'scan_date' => $scanDate,
-//                 'total_hari' => $totalHariPerPin[$pin] ?? 0,
-//             ];
-
-//             // Inisialisasi kolom in_1..10 dan combine_1..10
-//             for ($i = 1; $i <= 10; $i++) {
-//                 $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
-//             }
-
-//             // Mapping in/out mode
-//             // $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
-//             //     if ($mode >= 1 && $mode <= 10) {
-//             //         $firstItem = $items->sortBy('scan_date')->first();
-//             //         $row["in_$mode"] = Carbon::parse($firstItem->scan_date)->format('H:i:s');
-//             //         $row["device_$mode"] = optional($firstItem->devicefingerprints)->device_name ?? '';
-//             //         $row["combine_$mode"] = "{$row["in_$mode"]} {$row["device_$mode"]}";
-//             //     }
-//             // });
-//             $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
-//     if ($mode >= 1 && $mode <= 10) {
-
-//         // Ambil SEMUA scan untuk mode tersebut
-//         $times = $items->sortBy('scan_date')
-//                        ->pluck('scan_date')
-//                        ->map(fn($d) => Carbon::parse($d)->format('H:i:s'))
-//                        ->implode(', ');   // jadikan string list
-
-//         $devices = $items->sortBy('scan_date')
-//                          ->map(fn($i) => optional($i->devicefingerprints)->device_name ?? '')
-//                          ->implode(', ');
-
-//         $row["in_$mode"] = $times;
-//         $row["device_$mode"] = $devices;
-//         $row["combine_$mode"] = trim($times . ' ' . $devices);
-//     }
-// });
-
-
-//             // Hitung durasi antar scan pertama dan terakhir
-//             $times = collect(range(1, 10))
-//                 ->map(fn($i) => $row["in_$i"])
-//                 ->filter()
-//                 ->sort()
-//                 ->values();
-
-//             if ($times->count() >= 2) {
-//                 $start = Carbon::parse($times->first());
-//                 $end = Carbon::parse($times->last());
-//                 $minutes = $start->diffInMinutes($end);
-//                 $row['duration'] = sprintf(
-//                     '%d hour%s %d minute%s',
-//                     floor($minutes / 60),
-//                     floor($minutes / 60) !== 1 ? 's' : '',
-//                     $minutes % 60,
-//                     $minutes % 60 !== 1 ? 's' : ''
-//                 );
-//             } else {
-//                 $row['duration'] = 'invalid';
-//             }
-
-//             // Penanda apakah sudah di-edit
-//             $row['is_updated'] = in_array($key, $editedKeys);
-//             $row['updated_status'] = $row['is_updated'] ? '✔️ Updated' : '❌ Original';
-
-//             return $row;
-//         })->filter()->values();
-
-//         // Return DataTables
-//         return DataTables::of($result)
-//             ->addColumn('action', function ($row) {
-//                 if ($row['is_updated']) {
-//                     return '<button class="btn btn-sm btn-secondary" disabled><i class="fas fa-edit"></i></button>';
-//                 }
-//                 $editUrl = route('pages.Fingerprints.edit', [
-//                     'pin' => $row['pin'],
-//                     'scan_date' => $row['scan_date'],
-//                 ]);
-//                 return '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1">
-//                         <i class="fas fa-edit"></i>
-//                     </a>';
-//             })
-//             ->rawColumns(['action'])
-//             ->make(true);
-//     }
 public function getFingerprints(Request $request)
 {
     ini_set('memory_limit', '1024M');
@@ -360,20 +63,10 @@ public function getFingerprints(Request $request)
                 ->count()
         );
 
-    // Group per PIN + hari, dan filter mode > 1
-    // $grouped = $fingerprints
-    //     ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString())
-    //     ->filter(function ($g) {
-    //         return $g->where('inoutmode', 1)->count() > 1 ||
-    //                $g->where('inoutmode', 2)->count() > 1;
-    //     });
     $grouped = $fingerprints
     ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
 
 
-    // ========================
-    //  BUILD RESULT
-    // ========================
     $result = $grouped->map(function ($group, $key) use ($employees, $totalHariPerPin, $editedKeys) {
 
         $first = $group->first();
@@ -383,7 +76,6 @@ public function getFingerprints(Request $request)
 
         if (!$employee) return null;
 
-        // Base row
         $row = [
             'pin'               => $pin,
             'employee_name'     => $employee->employee_name ?? '-',
@@ -396,15 +88,10 @@ public function getFingerprints(Request $request)
             'total_hari'        => $totalHariPerPin[$pin] ?? 0,
         ];
 
-        // Init kolom
         for ($i = 1; $i <= 10; $i++) {
             $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
         }
 
-        // ===============================
-        //   MAPPING IN/OUT MODE
-        //   (MENAMPILKAN SEMUA JAM)
-        // ===============================
         $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
             if ($mode < 1 || $mode > 10) return;
 
@@ -423,9 +110,6 @@ public function getFingerprints(Request $request)
             $row["combine_$mode"] = trim($times . ' ' . $devices);
         });
 
-        // ===============================
-        //         HITUNG DURATION
-        // ===============================
         $times = collect(range(1, 10))
             ->flatMap(function ($i) use ($row) {
                 if (!$row["in_$i"]) return [];
@@ -451,9 +135,8 @@ public function getFingerprints(Request $request)
             $row['duration'] = 'invalid';
         }
 
-        // Update status edited
         $row['is_updated']     = in_array($key, $editedKeys);
-        $row['updated_status'] = $row['is_updated'] ? '✔️ Updated' : '❌ Original';
+        $row['updated_status'] = $row['is_updated'] ? 'Updated' : ' Original';
 
         return $row;
     })->filter()->values();

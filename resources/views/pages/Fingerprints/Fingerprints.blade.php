@@ -223,7 +223,6 @@
                                     <br>
                                     <div class="col-md-2" id="custom-buttons">
                                     
-        <!-- Buttons DataTables akan dipindahkan ke sini -->
     </div>
                                 </div>
                                 <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
@@ -310,25 +309,6 @@
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-12'B>>" +
                     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            //    buttons : [
-
-            //         {
-            //             extend: 'csv',
-            //             className: 'btn btn-sm btn-success',
-            //             text: '<i class="fas fa-file-csv"></i> CSV',
-            //             exportOptions: {
-            //                 columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-            //             }
-            //         },
-            //         {
-            //             extend: 'excel',
-            //             className: 'btn btn-sm btn-info',
-            //             text: '<i class="fas fa-file-excel"></i> Excel',
-            //             exportOptions: {
-            //                 columns: ':not(:last-child):not(.no-export)' // kolom terakhir dan kelas 'no-export' tidak ikut
-            //             }
-            //         }
-            //     ],
             buttons: [
             {
                 extend: 'csv',

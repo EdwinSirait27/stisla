@@ -379,6 +379,7 @@ class Employee extends Model
                 return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
             });
     }
+    
     public function structuresnew()
     {
         return $this->belongsTo(Structuresnew::class, 'structure_id', 'id');
