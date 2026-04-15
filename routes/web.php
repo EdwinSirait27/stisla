@@ -46,6 +46,9 @@ use App\Http\Controllers\SKController;
 use App\Http\Controllers\SktemplateController;
 use App\Http\Controllers\LeavetypesController;
 use App\Http\Controllers\StructuresnewController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\RosterController;           
+use App\Http\Controllers\FingerprintRecapController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -223,7 +226,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
             ->name('pages.Fingerprints');
         Route::match(['GET', 'POST'], '/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
-        Route::get('/Fingerprints/edit/{pin}}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
+        Route::get('/Fingerprints/edit/{pin}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
         Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
         Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
@@ -471,6 +474,39 @@ Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], fun
 //         Route::get('/groups/groups', [GroupController::class, 'getGroups'])->name('groups.groups');
 //     });
 });
+
+
+// ============================================================
+// GANTI bagian ini di web.php Anda:
+// (hapus 3 blok route lama: schedule, roster, fingerprint-recap)
+// Letakkan SEBELUM Route::group(['middleware' => 'guest'])
+// ============================================================
+
+// ── Roster (master shift Pagi/Siang/Malam) ──
+Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function () {
+    Route::get('/',             [RosterController::class, 'index'])      ->name('index');
+    Route::post('/store',       [RosterController::class, 'store'])      ->name('store');
+    Route::post('/destroy',     [RosterController::class, 'destroy'])    ->name('destroy');
+    Route::post('/bulk-assign', [RosterController::class, 'bulkAssign']) ->name('bulkAssign');
+    Route::post('/copy',        [RosterController::class, 'copyRoster']) ->name('copyRoster');
+});
+
+// ── Schedule (jadwal harian karyawan) ──
+Route::prefix('schedule')->name('schedule.')->middleware(['auth'])->group(function () {
+    Route::get('/',             [ScheduleController::class, 'index'])        ->name('index');
+    Route::post('/store',       [ScheduleController::class, 'store'])        ->name('store');
+    Route::post('/destroy',     [ScheduleController::class, 'destroy'])      ->name('destroy');
+    Route::post('/bulk-assign', [ScheduleController::class, 'bulkAssign'])   ->name('bulkAssign');
+    Route::post('/copy',        [ScheduleController::class, 'copySchedule']) ->name('copySchedule');
+});
+
+// ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
+Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
+    Route::get('/',       [FingerprintRecapController::class, 'index'])   ->name('index');
+    Route::post('/data',  [FingerprintRecapController::class, 'getData']) ->name('data');
+    Route::post('/recap', [FingerprintRecapController::class, 'recap'])   ->name('recap');
+});
+
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');

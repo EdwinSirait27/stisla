@@ -211,7 +211,9 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item dropdown ">
+                {{-- ── Attendance (HeadHR) ── --}}
+                <li
+                    class="nav-item dropdown {{ Request::is('Fingerprints', 'Editedfinger', 'roster*', 'schedule*', 'fingerprint-recap*') ? 'active' : '' }}">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Attendance</span></a>
                     <ul class="dropdown-menu">
@@ -219,9 +221,18 @@
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerspot Data</a>
                         </li>
                         <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited fingerprints</a>
+                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited Fingerprints</a>
                         </li>
-
+                        {{-- ── TAMBAHAN ── --}}
+                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('roster.index') }}">Roster</a>
+                        </li>
+                        <li class="{{ Request::is('schedule*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('schedule.index') }}">Schedule</a>
+                        </li>
+                        <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown ">
@@ -243,7 +254,6 @@
                         <li class="{{ Request::is('Store') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Store') }}">Locations</a>
                         </li>
-
                     </ul>
                 </li>
             @endrole
@@ -309,7 +319,9 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item dropdown ">
+                {{-- ── Attendance (HR) ── --}}
+                <li
+                    class="nav-item dropdown {{ Request::is('Fingerprints', 'Editedfinger', 'roster*', 'schedule*', 'fingerprint-recap*') ? 'active' : '' }}">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                         <span>Attendance</span></a>
                     <ul class="dropdown-menu">
@@ -317,7 +329,17 @@
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerspot Data</a>
                         </li>
                         <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited fingerprints</a>
+                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited Fingerprints</a>
+                        </li>
+                        {{-- ── TAMBAHAN ── --}}
+                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('roster.index') }}">Roster</a>
+                        </li>
+                        <li class="{{ Request::is('schedule*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('schedule.index') }}">Schedule</a>
+                        </li>
+                        <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
                         </li>
                     </ul>
                 </li>

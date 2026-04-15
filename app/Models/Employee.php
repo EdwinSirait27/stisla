@@ -13,6 +13,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Collection;
 use Svg\Tag\Group;
+use App\Models\Roster;
+use App\Models\Schedule;
 
 class Employee extends Model
 {
@@ -380,6 +382,16 @@ class Employee extends Model
             });
     }
     
+    public function rosters()
+    {
+    return $this->hasMany(Roster::class, 'employee_id', 'id');
+    }
+
+    public function schedules()
+    {
+    return $this->hasMany(Schedule::class, 'employee_id', 'id');
+    }
+
     public function structuresnew()
     {
         return $this->belongsTo(Structuresnew::class, 'structure_id', 'id');

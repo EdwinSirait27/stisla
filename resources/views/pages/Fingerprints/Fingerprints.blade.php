@@ -163,6 +163,28 @@
             font-size: 0.8rem;
         }
     }
+
+    /* ── Roster Badge (TAMBAHAN) ── */
+    .roster-badge {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        border-radius: 5px;
+        padding: 3px 8px;
+        min-width: 72px;
+        border: 1px solid transparent;
+    }
+    .roster-badge .r-name { font-weight: 700; font-size: 11px; white-space: nowrap; }
+    .roster-badge .r-time { font-size: 10px; white-space: nowrap; opacity: .85; }
+    .r-work    { background: #dbeafe; border-color: #93c5fd; }
+    .r-work    .r-name { color: #1d4ed8; }
+    .r-work    .r-time { color: #3b82f6; }
+    .r-off     { background: #f1f5f9; border-color: #cbd5e1; }
+    .r-off     .r-name { color: #64748b; }
+    .r-holiday { background: #fef9c3; border-color: #fde047; }
+    .r-holiday .r-name { color: #854d0e; }
+    .r-leave   { background: #f3e8ff; border-color: #d8b4fe; }
+    .r-leave   .r-name { color: #7e22ce; }
 </style>
 
 
@@ -205,13 +227,11 @@
                                     </div>
 
                                     <div class="col-md-1">
-                                        {{-- <label>Show Entries</label> --}}
-                                        <div id="custom-length"></div> {{-- Di sini nanti elemen .dataTables_length akan dipindahkan --}}
+                                        <div id="custom-length"></div>
                                     </div>
 
                                     <div class="col-md-2">
-                                        {{-- <label>Search</label> --}}
-                                        <div id="custom-search"></div> {{-- Di sini nanti elemen .dataTables_filter akan dipindahkan --}}
+                                        <div id="custom-search"></div>
                                     </div>
 
                                     <div class="col-md-1">
@@ -222,8 +242,7 @@
                                     <br>
                                     <br>
                                     <div class="col-md-2" id="custom-buttons">
-                                    
-    </div>
+                                    </div>
                                 </div>
                                 <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                                     <table class="table table-hover" id="users-table">
@@ -233,6 +252,7 @@
                                                 <th class="text-center">PIN</th>
                                                 <th class="text-center th-name">Name</th>
                                                 <th class="text-center">NIP</th>
+                                                <th class="text-center">Roster</th> {{-- TAMBAHAN --}}
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Scan Date</th>
@@ -270,16 +290,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
- 
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         const year = today.getFullYear();
-        const month = today.getMonth(); // bulan sekarang (0-11)
+        const month = today.getMonth();
 
         const startDate = new Date(year, month - 1, 26);
-
-        // End date: 25 bulan ini
         const endDate = new Date(year, month, 25);
 
         const formatDate = (date) => {
@@ -298,40 +316,38 @@
         $(document).ready(function() {
              $('.select2').select2();
             var table = $('#users-table').DataTable({
-                // scrollY: "500px",
-                paging: true, 
+                paging: true,
                 processing: true,
                 autoWidth: false,
                 serverSide: true,
-                // scrollCollapse: true,
                 responsive: true,
-                dom: "<'d-none'lf>" + // ini akan menyembunyikan tapi tetap membuat elemen length & filter
+                dom: "<'d-none'lf>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-12'B>>" +
                     "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [
-            {
-                extend: 'csv',
-                className: 'btn btn-sm btn-success',
-                text: '<i class="fas fa-file-csv"></i> CSV',
-                exportOptions: {
-                    columns: ':not(:last-child):not(.no-export)'
-                }
-            },
-            {
-                extend: 'excel',
-                className: 'btn btn-sm btn-info',
-                text: '<i class="fas fa-file-excel"></i> Excel',
-                exportOptions: {
-                    columns: ':not(:last-child):not(.no-export)'
-                }
-            }
-        ],
+                buttons: [
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-success',
+                        text: '<i class="fas fa-file-csv"></i> CSV',
+                        exportOptions: {
+                            columns: ':not(:last-child):not(.no-export)'
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm btn-info',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        exportOptions: {
+                            columns: ':not(:last-child):not(.no-export)'
+                        }
+                    }
+                ],
 
                 ajax: {
                     url: '{{ route('fingerprints.fingerprints') }}',
                     type: 'POST',
-                headers: {
+                    headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     data: function(d) {
@@ -340,7 +356,7 @@
                         d.store_name = $('#store_name').val();
                     }
                 },
-                
+
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -349,12 +365,13 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [{
-                    data: 'name',
-                    name: 'name',
-                    className: 'text-center'
+                columns: [
+                    {
+                        data: 'name',
+                        name: 'name',
+                        className: 'text-center'
                     },
-                     {
+                    {
                         data: 'pin',
                         name: 'pin',
                         className: 'text-center'
@@ -370,6 +387,33 @@
                         name: 'employee_pengenal',
                         className: 'text-center'
                     },
+                    // ── TAMBAHAN: Kolom Roster sebelah NIP ──
+                    {
+                        data: 'roster_name',
+                        name: 'roster_name',
+                        className: 'text-center',
+                        defaultContent: '-',
+                        render: function(data, type, row) {
+                            if (type !== 'display') return data || '';
+                            if (!data || data === '-') {
+                                return '<span class="text-muted" style="font-size:11px">-</span>';
+                            }
+                            var cls = 'r-work';
+                            if (data === 'Off')     cls = 'r-off';
+                            if (data === 'Holiday') cls = 'r-holiday';
+                            if (data === 'Leave')   cls = 'r-leave';
+
+                            var time = (row.roster_time && row.roster_time !== '')
+                                ? '<span class="r-time">' + row.roster_time + '</span>'
+                                : '';
+
+                            return '<span class="roster-badge ' + cls + '">' +
+                                       '<span class="r-name">' + data + '</span>' +
+                                       time +
+                                   '</span>';
+                        }
+                    },
+                    // ── END TAMBAHAN ──
                     {
                         data: 'position_name',
                         name: 'position_name',
@@ -415,24 +459,23 @@
                     {
                         data: 'action',
                         name: 'action',
-                        // orderable: false,
                         searchable: false,
                         className: 'no-export'
                     }
                 ],
-                 rowCallback: function(row, data, index) {
+                rowCallback: function(row, data, index) {
                     if (data.is_edited == 1) {
                         $(row).css('background-color', '#cce5ff');
                     }
                 },
 
                 initComplete: function() {
-                    // Pindahkan length (show entries) dan search ke lokasi custom
                     $('#custom-length').html($('.dataTables_length'));
                     $('#custom-search').html($('.dataTables_filter'));
-                     table.buttons().container().appendTo('#custom-buttons');
+                    table.buttons().container().appendTo('#custom-buttons');
                 }
             });
+
             $('#filterBtn').on('click', function() {
                 table.ajax.reload();
             });
@@ -461,5 +504,5 @@
 
         });
     </script>
-    
+
 @endpush
