@@ -39,6 +39,6 @@ class FingerprintRecap extends Model
     public function schedule()
     {
         return $this->hasOne(Schedule::class, 'employee_id', 'employee_id')
-            ->where('date', $this->date ?? now()->toDateString());
+            ->whereColumn('schedules.date', 'fingerprints_recap.date');
     }
 }
