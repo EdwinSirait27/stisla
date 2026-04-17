@@ -9,7 +9,7 @@ use Ramsey\Uuid\Uuid;
 class EmployeeShifts extends Model
 {
     use HasFactory;
-    protected $table = 'employee_shifts_tables';
+    protected $table = 'shifts_tables';
     public $incrementing = false;
     protected $keyType = 'string';
 

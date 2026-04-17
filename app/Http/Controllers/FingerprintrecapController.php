@@ -30,12 +30,12 @@ class FingerprintRecapController extends Controller
     /**
      * ═══════════════════════════════════════════════════════
      * TOMBOL: Fingerprint Recap Otomatis
-     * 1. Ambil semua PIN dari employees_tables (mysql utama)
-     * 2. Cari di att_log (mysql_second) WHERE pin IN [...] AND scan_date BETWEEN
-     * 3. Group per PIN per hari → IN pertama (inoutmode=1), OUT terakhir (inoutmode=2)
-     * 4. Simpan ke fingerprint_recaps (mysql utama)
-     * 5. Auto update status di schedules (Attended/Late/Absent)
-     * PIN = jembatan antara mysql_second dan mysql utama
+     * Alur:
+     * 1. Ambil PIN dari employees_tables (DB: db / mysql utama)
+     * 2. Cari raw scan di att_log (DB: absensi / mysql_second)
+     * 3. Group per PIN per hari → IN pertama, OUT terakhir
+     * 4. Simpan ke fingerprints_recap (DB: db / mysql utama)
+     * 5. Auto update status di schedules (DB: db / mysql utama)
      * ═══════════════════════════════════════════════════════
      */
     public function recap(Request $request)
@@ -49,7 +49,7 @@ class FingerprintRecapController extends Controller
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate   = Carbon::parse($request->end_date)->endOfDay();
 
-        // ── 1. Ambil semua karyawan aktif yang punya PIN dari DB utama ──
+        // ── 1. Ambil karyawan aktif yang punya PIN dari DB utama ──
         $employeesQuery = Employee::select('id', 'pin', 'store_id')
             ->whereNotNull('pin')
             ->whereNull('deleted_at');
@@ -58,7 +58,6 @@ class FingerprintRecapController extends Controller
             $employeesQuery->whereHas('store', fn($q) => $q->where('name', $request->store_name));
         }
 
-        // Key by PIN (string) untuk lookup cepat
         $employees = $employeesQuery->get()->keyBy(fn($e) => (string) $e->pin);
 
         if ($employees->isEmpty()) {
@@ -70,8 +69,7 @@ class FingerprintRecapController extends Controller
 
         $pins = $employees->keys()->toArray();
 
-        // ── 2. Ambil raw scan dari mysql_second berdasarkan PIN ──
-        // PIN adalah jembatan antara att_log dan employees_tables
+        // ── 2. Ambil raw scan dari DB absensi (mysql_second) ──
         $rawScans = DB::connection('mysql_second')
             ->table('att_log')
             ->select('pin', 'scan_date', 'inoutmode', 'sn')
@@ -117,14 +115,13 @@ class FingerprintRecapController extends Controller
             }
         }
 
-        // ── 4. Simpan ke fingerprint_recaps & update schedules ──
+        // ── 4. Simpan ke fingerprints_recap & update schedules (DB utama) ──
         $synced  = 0;
         $skipped = 0;
         $errors  = [];
 
         foreach ($grouped as $pin => $dates) {
 
-            // Lookup employee berdasarkan PIN ← jembatan utama
             $employee = $employees->get($pin);
 
             if (!$employee) {
@@ -147,7 +144,8 @@ class FingerprintRecapController extends Controller
                     $duration = (int) $dtIn->diffInMinutes($dtOut);
                 }
 
-                // Simpan ke fingerprint_recaps (DB utama)
+                // Simpan ke fingerprints_recap di DB utama via Model
+                // Model FingerprintRecap tidak set $connection → otomatis pakai mysql (DB: db)
                 FingerprintRecap::updateOrCreate(
                     [
                         'employee_id' => $employee->id,
@@ -164,7 +162,7 @@ class FingerprintRecapController extends Controller
                     ]
                 );
 
-                // ── 5. Auto update status di schedules ──
+                // ── 5. Auto update status di schedules (DB utama) ──
                 $schedule = Schedule::with('roster.shift')
                     ->where('employee_id', $employee->id)
                     ->where('date', $date)
@@ -179,7 +177,7 @@ class FingerprintRecapController extends Controller
                             $shiftStart = Carbon::parse($date . ' ' . $shift->start_time);
                             $actualIn   = Carbon::parse($date . ' ' . $timeIn);
                             // Toleransi 15 menit
-                            $newStatus  = $actualIn->gt($shiftStart->copy()->addMinutes(15))
+                            $newStatus = $actualIn->gt($shiftStart->copy()->addMinutes(10))
                                 ? 'Late'
                                 : 'Attended';
                         } else {
@@ -204,10 +202,11 @@ class FingerprintRecapController extends Controller
     }
 
     /**
-     * DataTables — tampilkan data fingerprint_recaps
-     * Menggunakan prefix DB name untuk cross-database JOIN
-     * fingerprints_recap ada di mysql_second (absensi)
-     * employees_tables, stores, dll ada di mysql utama
+     * ═══════════════════════════════════════════════════════
+     * DataTables — tampilkan data fingerprints_recap
+     * Semua tabel ada di DB utama (db) → tidak perlu cross-DB JOIN
+     * fingerprints_recap → JOIN employees_tables, stores, positions, schedules, shifts
+     * ═══════════════════════════════════════════════════════
      */
     public function getData(Request $request)
     {
@@ -215,71 +214,34 @@ class FingerprintRecapController extends Controller
         $endDate   = $request->input('end_date', Carbon::now()->toDateString());
         $storeName = $request->input('store_name');
 
-        // Ambil nama database dari config
-        $mainDb   = config('database.connections.mysql.database');        // DB utama (employees, stores, dll)
-        $secondDb = config('database.connections.mysql_second.database'); // DB absensi (fingerprints_recap)
-
-        $query = DB::connection('mysql_second')
-            ->table("{$secondDb}.fingerprints_recap")
-            ->select([
-                "{$secondDb}.fingerprints_recap.*",
-                "{$mainDb}.employees_tables.employee_name",
-                "{$mainDb}.employees_tables.employee_pengenal",
-                "{$mainDb}.employees_tables.pin as employee_pin",
-                "{$mainDb}.employees_tables.status_employee",
-                "{$mainDb}.stores.name as store_name",
-                "{$mainDb}.positions.name as position_name",
-                "{$mainDb}.schedules.status as attendance_status",
-                "{$mainDb}.schedules.day_type",
-                "{$mainDb}.shifts.shift_name",
-            ])
-            ->join(
-                "{$mainDb}.employees_tables",
-                "{$mainDb}.employees_tables.id",
-                '=',
-                "{$secondDb}.fingerprints_recap.employee_id"
-            )
-            ->join(
-                "{$mainDb}.stores",
-                "{$mainDb}.stores.id",
-                '=',
-                "{$mainDb}.employees_tables.store_id"
-            )
-            ->leftJoin(
-                "{$mainDb}.positions",
-                "{$mainDb}.positions.id",
-                '=',
-                "{$mainDb}.employees_tables.position_id"
-            )
-            ->leftJoin("{$mainDb}.schedules", function ($join) use ($mainDb, $secondDb) {
-                $join->on(
-                    "{$mainDb}.schedules.employee_id",
-                    '=',
-                    "{$secondDb}.fingerprints_recap.employee_id"
-                )
-                ->on(
-                    "{$mainDb}.schedules.date",
-                    '=',
-                    "{$secondDb}.fingerprints_recap.date"
-                );
+        // Semua tabel ada di DB utama → pakai DB::table() biasa tanpa prefix
+        $query = DB::table('fingerprints_recap as fr')
+            ->join('employees_tables as e', 'e.id', '=', 'fr.employee_id')
+            ->join('stores_tables as s', 's.id', '=', 'e.store_id')
+            ->leftJoin('position_tables as p', 'p.id', '=', 'e.position_id')
+            ->leftJoin('schedules as sch', function ($join) {
+                $join->on('sch.employee_id', '=', 'fr.employee_id')
+                     ->on('sch.date', '=', 'fr.date');
             })
-            ->leftJoin(
-                "{$mainDb}.rosters",
-                "{$mainDb}.rosters.id",
-                '=',
-                "{$mainDb}.schedules.roster_id"
-            )
-            ->leftJoin(
-                "{$mainDb}.shifts",
-                "{$mainDb}.shifts.id",
-                '=',
-                "{$mainDb}.rosters.shift_id"
-            )
-            ->whereBetween("{$secondDb}.fingerprints_recap.date", [$startDate, $endDate])
-            ->whereNull("{$mainDb}.employees_tables.deleted_at");
+            ->leftJoin('roster as r', 'r.id', '=', 'sch.roster_id')
+            ->leftJoin('shifts_tables as sh', 'sh.id', '=', 'r.shift_id')
+            ->select([
+                'fr.*',
+                'e.employee_name',
+                'e.employee_pengenal',
+                'e.pin as employee_pin',
+                'e.status_employee',
+                's.name as store_name',
+                'p.name as position_name',
+                'sch.status as attendance_status',
+                'sch.day_type',
+                'sh.shift_name',
+            ])
+            ->whereBetween('fr.date', [$startDate, $endDate])
+            ->whereNull('e.deleted_at');
 
         if ($storeName) {
-            $query->where("{$mainDb}.stores.name", $storeName);
+            $query->where('s.name', $storeName);
         }
 
         return DataTables::of($query)
@@ -289,24 +251,20 @@ class FingerprintRecapController extends Controller
             ->addColumn('position', fn($r) => $r->position_name ?? '-')
             ->addColumn('status_employee', fn($r) => $r->status_employee ?? '-')
 
-            // Format tanggal
             ->addColumn('date', fn($r) =>
                 $r->date ? Carbon::parse($r->date)->format('d-m-Y') : '-'
             )
 
-            // Format synced_at
             ->addColumn('synced_at', fn($r) =>
                 $r->synced_at ? Carbon::parse($r->synced_at)->format('d-m-Y H:i:s') : '-'
             )
 
-            // Nama shift (Pagi/Siang/Malam/Off/Holiday)
             ->addColumn('roster', function ($r) {
                 if (!$r->day_type) return '-';
                 if ($r->day_type !== 'Work') return $r->day_type;
                 return $r->shift_name ?? 'Work';
             })
 
-            // Status kehadiran dengan badge warna
             ->addColumn('attendance_status', function ($r) {
                 $status = $r->attendance_status ?? '-';
                 $colors = [
@@ -319,7 +277,6 @@ class FingerprintRecapController extends Controller
                 return "<span class='badge badge-{$color}'>{$status}</span>";
             })
 
-            // Durasi kerja
             ->addColumn('duration_format', function ($r) {
                 if (!$r->duration_minutes) return '-';
                 $h = intdiv($r->duration_minutes, 60);
