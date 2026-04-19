@@ -10,10 +10,7 @@ class RolePermissionSeeder extends Seeder
 {
     public function run()
     {
-        // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // Create permissions
         $permissions = [
             'dashboardAdmin',
             'ManageRolesPermissions',
@@ -22,29 +19,21 @@ class RolePermissionSeeder extends Seeder
             'dashboardHR',
             'ManagePayrolls',
         ];
-
         foreach ($permissions as $permission) {
             Permission::create(['name' => $permission]);
         }
-
         // Create roles and assign permissions
         $role = Role::create(['name' => 'Admin']);
         $role->givePermissionTo([
             'ManageActivity',
             'ManageRolesPermissions',
-            'dashboardAdmin',
-            
+            'dashboardAdmin',   
         ]);
-
         $role = Role::create(['name' => 'HeadHR']);
         $role->givePermissionTo([
             'ManageEmployee',
             'dashboardHR',
-            'ManagePayrolls',
-            
+            'ManagePayrolls', 
         ]);
-
-        
     }
-    
 }

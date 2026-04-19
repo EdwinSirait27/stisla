@@ -158,29 +158,23 @@ public function getFingerprints(Request $request)
         ->rawColumns(['action'])
         ->make(true);
 }
-
-
     public function editFingerprint($pin, Request $request)
     {
         $scanDate = $request->input('scan_date');
         if (!$scanDate) {
             return response()->json(['message' => 'scan_date is required'], 400);
         }
-
         $scanDateCarbon = Carbon::parse($scanDate)->toDateString();
-
         Log::info('=== [EDIT FINGERPRINT] Akses halaman edit ===', [
             'pin' => $pin,
             'scan_date_input' => $scanDate,
             'scan_date_parsed' => $scanDateCarbon,
         ]);
-
         // 1️⃣ Coba cari di EditedFingerprint dulu
         $data = EditedFingerprint::with('devicefingerprints')
             ->where('pin', $pin)
             ->whereDate('scan_date', $scanDateCarbon)
             ->first();
-
         if ($data) {
             Log::info('Data ditemukan di EditedFingerprint', [
                 'pin' => $pin,
@@ -192,7 +186,6 @@ public function getFingerprints(Request $request)
             ]);
             return view('pages.Fingerprints.edit', ['data' => $data, 'isEdited' => true]);
         }
-
         // 2️⃣ Kalau tidak ada, ambil semua fingerprint mentah untuk tanggal itu
         $fingerprints = Fingerprints::with('devicefingerprints')
             ->where('pin', $pin)

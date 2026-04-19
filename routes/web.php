@@ -46,50 +46,18 @@ use App\Http\Controllers\SKController;
 use App\Http\Controllers\SktemplateController;
 use App\Http\Controllers\LeavetypesController;
 use App\Http\Controllers\StructuresnewController;
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
 Route::view('/test-wireui', 'test-wireui');
-// Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
-//     Route::get('/feature-profile', [UserprofileController::class, 'index'])
-//         ->name('pages.feature-profile');
-//     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
-//         ->name('pages.change-password');
-//     Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])->name('feature-profile.updateemailtelp');
-//     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])->name('change-password.updatepassword');
-//     Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
-//     Route::put('/change-password', [UserprofileController::class, 'indexpassword'])->name('change-password');
-//     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
-//         ->name('logout');
-// Route::get('/feature-profile', [UserprofileController::class, 'index'])
-//     ->name('pages.feature-profile');
-// Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])->name('feature-profile.update');
-// Route::put('/feature-profile', [UserprofileController::class, 'index'])->name('feature-profile');
-// Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
-//     ->name('logout');
-// FEATURE PROFILE (GET)
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
         ->name('pages.change-password');
-    // FEATURE PROFILE UPDATE (PUT)
     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
         ->name('change-password.update');
     Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])
         ->name('feature-profile.update');
-    // LOGOUT
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         ->name('logout');
-
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
         Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
             ->name('pages.dashboardAdmin');
@@ -99,7 +67,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
         Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
     });
-
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         ->name('logout');
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
@@ -461,15 +428,7 @@ Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], fun
         ->name('pages.Teamfingerprint');
     Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
 });
-// Route::group(['middleware' => ['permission:ManageGroups']], function () {
-//         Route::get('/Group', [GroupController::class, 'index'])
-//             ->name('pages.Group');
-//         Route::get('Group/create', [GroupController::class, 'create'])->name('Group.create');
-//         Route::post('/Group', [GroupController::class, 'store'])->name('Group.store');
-//         Route::get('/Group/edit/{hashedId}', [GroupController::class, 'edit'])->name('Group.edit');
-//         Route::put('/Group/{hashedId}', [GroupController::class, 'update'])->name('Group.update');
-//         Route::get('/groups/groups', [GroupController::class, 'getGroups'])->name('groups.groups');
-//     });
+
 });
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
