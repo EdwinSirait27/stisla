@@ -325,6 +325,7 @@ class FingerprintsController extends Controller
                 }
             }
 
+
             // Total hari kerja per karyawan dari fingerprints_recap
             $totalHari = $totalHariPerEmployee->get($employee->id, 0);
 
@@ -413,20 +414,19 @@ class FingerprintsController extends Controller
             ->make(true);
     }
 
+
     public function editFingerprint($pin, Request $request)
     {
         $scanDate = $request->input('scan_date');
         if (!$scanDate) {
             return response()->json(['message' => 'scan_date is required'], 400);
         }
-
         $scanDateCarbon = Carbon::parse($scanDate)->toDateString();
 
         $data = EditedFingerprint::with('devicefingerprints')
             ->where('pin', $pin)
             ->whereDate('scan_date', $scanDateCarbon)
             ->first();
-
         if ($data) {
             return view('pages.Fingerprints.edit', ['data' => $data, 'isEdited' => true]);
         }

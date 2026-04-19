@@ -31,11 +31,7 @@ class Employee extends Model
             }
         });
     }
-    // protected $casts = [
-    //     // 'join_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-    //     // 'date_of_birth' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-    //     // 'end_date' => 'date:Y-m-d', // Otomatis format Y-m-d saat diambil
-    // ];
+   
     protected $fillable = [
         'employee_name',
         'photos',

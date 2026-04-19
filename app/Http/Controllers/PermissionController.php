@@ -14,7 +14,6 @@ class PermissionController extends Controller
 {
     public function index()
     {
-
         return view('permissions.index');
     }
     public function getPermissions()
@@ -81,7 +80,6 @@ class PermissionController extends Controller
 
     public function edit($hashedId)
     {
-        // Cari role berdasarkan hashed ID
         $permission = Permission::get()->first(function ($permission) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $permission->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
@@ -91,23 +89,14 @@ class PermissionController extends Controller
         }
         // Ambil semua permissions
         $permissions = Permission::all();
-
         return view('permissions.edit', compact('permission', 'permissions', 'hashedId'));
-    }
-
-
-
-    
+    }    
     public function update(Request $request, $hashedId)
     {
-        // Cari permission dengan hash yang lebih aman
         $permission = Permission::get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
-        });
-        
-        
-
+        });   
         if (!$permission) {
             return redirect()->route('permissions.index')->with('error', 'ID tidak valid atau data tidak ditemukan.');
         }
