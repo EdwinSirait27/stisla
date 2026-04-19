@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Shifts;
 
 class Roster extends Model
 {
@@ -31,7 +32,7 @@ class Roster extends Model
 
     public function shift()
     {
-        return $this->belongsTo(Shift::class, 'shift_id');
+        return $this->belongsTo(Shifts::class, 'shift_id');
     }
 
     public function fingerprintRecap()

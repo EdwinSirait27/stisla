@@ -47,7 +47,8 @@ use App\Http\Controllers\SktemplateController;
 use App\Http\Controllers\LeavetypesController;
 use App\Http\Controllers\StructuresnewController;
 use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\RosterController;           
+use App\Http\Controllers\RosterController;
+use App\Http\Controllers\ShiftsController;           
 use App\Http\Controllers\FingerprintRecapController;
 /*
 |--------------------------------------------------------------------------
@@ -181,7 +182,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
     ->middleware('auth')
     ->name('employee.photo');
 
-
     });
     Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
         Route::get('/Payrolls', [PayrollsController::class, 'index'])
@@ -203,6 +203,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/payroll/export', [PayrollsController::class, 'export'])
     ->name('payroll.export');
     });
+
     Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
         Route::get('/Fingerspot', [FingerspotController::class, 'index'])
             ->name('pages.Fingerspot');
@@ -229,10 +230,21 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/Fingerprints/edit/{pin}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
         Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
         Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
+        Route::post('/fingerprints/recap', [FingerprintsController::class, 'recap'])->name('fingerprints.recap');
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
             ->name('pages.Editedfinger');
         Route::match(['GET', 'POST'], '/editedfinger/editedfinger', [Editedfingerprints::class, 'getEditedfingerprints'])->name('editedfinger.editedfinger');
     });
+
+    //Shifts
+    Route::group(['middleware' => ['auth']], function () {
+        Route::get('/Shifts', [ShiftsController::class, 'index'])->name('pages.Shifts');
+        Route::post('/shifts/data', [ShiftsController::class, 'getData'])->name('shifts.data');
+        Route::post('/shifts', [ShiftsController::class, 'store'])->name('shifts.store');
+        Route::put('/shifts/{id}', [ShiftsController::class, 'update'])->name('shifts.update');
+        Route::delete('/shifts/{id}', [ShiftsController::class, 'destroy'])->name('shifts.destroy');
+});
+
     // Position    
     Route::group(['middleware' => ['permission:ManagePositions']], function () {
         Route::get('/Position', [PositionController::class, 'index'])
@@ -475,12 +487,6 @@ Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], fun
 //     });
 });
 
-
-// ============================================================
-// GANTI bagian ini di web.php Anda:
-// (hapus 3 blok route lama: schedule, roster, fingerprint-recap)
-// Letakkan SEBELUM Route::group(['middleware' => 'guest'])
-// ============================================================
 
 // ── Roster (master shift Pagi/Siang/Malam) ──
 Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function () {

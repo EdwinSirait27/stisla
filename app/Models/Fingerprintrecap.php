@@ -18,6 +18,7 @@ class FingerprintRecap extends Model
         'time_in',
         'time_out',
         'duration_minutes',
+        'is_counted',
         'device_sn',
         'sync_status',
         'synced_at',

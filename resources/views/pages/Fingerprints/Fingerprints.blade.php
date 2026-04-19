@@ -198,8 +198,11 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-item-center">
                                 <h6><i class="fas fa-user-shield"></i> List Fingerprints</h6>
+                                <button id="recapBtn" class="btn btn-sm" style="background-color:#10b981;color:#fff;font-weight:600;">
+                                    <i class="fas fa-sync-alt mr-1"></i> Recap Absensi
+                                </button>
                             </div>
                             <div class="card-body">
                                 <div class="row mb-2 align-items-end">
@@ -252,7 +255,7 @@
                                                 <th class="text-center">PIN</th>
                                                 <th class="text-center th-name">Name</th>
                                                 <th class="text-center">NIP</th>
-                                                <th class="text-center">Roster</th> {{-- TAMBAHAN --}}
+                                                <th class="text-center">Roster</th> 
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Status</th>
                                                 <th class="text-center">Scan Date</th>
@@ -446,16 +449,18 @@
                         name: 'duration',
                         className: 'text-center'
                     },
+
                     {
                         data: 'updated',
                         name: 'updated',
                         className: 'text-center',
                         render: function(data, type, row) {
                             return row.is_updated ?
-                                '<span class="badge badge-success">✔ Updated</span>' :
+                                '<span class="badge badge-success">✔ Updated</span>':
                                 '<span class="badge badge-secondary">Original</span>';
                         }
                     },
+
                     {
                         data: 'action',
                         name: 'action',
@@ -478,6 +483,50 @@
 
             $('#filterBtn').on('click', function() {
                 table.ajax.reload();
+            });
+
+            // Recap Otomatis//
+            $('#recapBtn').on('click', function() {
+                var startDate = $('#startDate').val();
+                var endDate   = $('#endDate').val();
+                var storeName = $('#store_name').val();
+
+                if (!startDate || !endDate) {
+                    Swal.fire({icon: 'warning', title: 'perhatian', text: 'Pilih Start Date dan End Date terlebih dahulu.'});
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Recap Absensi',
+                    html: 'Sistem akan merekap absensi dari <b>' + startDate + '</b> hingga <b>' + endDate + '</b>.<br>Proses ini mungkin memakan waktu beberapa saat.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Recap!',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#10b981',
+                
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $('#recapBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+
+                    $.ajax({
+                        url: '{{ route('fingerprints.recap') }}',
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': '{{csrf_token()}}' },
+                        data: { start_date: startDate, end_date: endDate, store_name: storeName},
+                        success: function(response) {
+                            $('#recapBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-1"></i> Recap Absensi');
+                            Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message})
+                                .then(() => {table.ajax.reload(); });
+                        },
+                        error: function(xhr) {
+                            $('#recapBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-1"></i> Recap Absensi');
+                            var msg = xhr.responseJSON?.message ?? 'Terjadi kesalahan saat memproses recap.';
+                            Swal.fire({ icon: 'error', title: 'Gagal!', text: msg});
+                        }
+                    });
+                });
             });
 
             $('#resetBtn').on('click', function() {

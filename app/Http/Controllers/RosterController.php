@@ -58,7 +58,7 @@ class RosterController extends Controller
             'employee_id' => 'required|exists:employees_tables,id',
             'shift_id'    => 'nullable|exists:shifts_tables,id',
             'date'        => 'required|date',
-            'day_type'    => 'required|in:Work,Off,Holiday,Leave',
+            'day_type'    => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan'
         ]);
 
         $roster = Roster::updateOrCreate(
@@ -102,7 +102,7 @@ class RosterController extends Controller
             'shift_id'       => 'nullable|exists:shifts_tables,id',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date|after_or_equal:start_date',
-            'day_type'       => 'required|in:Work,Off,Holiday,Leave',
+            'day_type'       => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
             'skip_weekend'   => 'boolean',
         ]);
 

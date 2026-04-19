@@ -25,7 +25,7 @@ return new class extends Migration
             $table->enum('sync_status', ['Synced', 'Pending', 'Error'])->default('Synced');
             $table->timestamp('synced_at')->nullable();
             $table->timestamps();
-
+            
             $table->foreign('employee_id')
                 ->references('id')
                 ->on('employees_tables')

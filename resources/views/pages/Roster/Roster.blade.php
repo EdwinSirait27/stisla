@@ -224,8 +224,10 @@
                                             if ($roster) {
                                                 if ($roster->day_type === 'Off') {
                                                     $badgeClass = 'r-badge r-off'; $badgeName = 'Off';
-                                                } elseif ($roster->day_type === 'Holiday') {
-                                                    $badgeClass = 'r-badge r-holiday'; $badgeName = 'Holiday';
+                                                } elseif ($roster->day_type === 'Public Holiday') {
+                                                    $badgeClass = 'r-badge r-holiday'; $badgeName = 'Public Holiday';
+                                                } elseif ($roster->day_type === 'Cuti Melahirkan') {
+                                                    $badgeClass = 'r-badge r-holiday'; $badgeName = 'Cuti Melahirkan';
                                                 } elseif ($roster->day_type === 'Leave') {
                                                     $badgeClass = 'r-badge r-leave'; $badgeName = 'Leave';
                                                 } elseif ($roster->shift) {
@@ -294,8 +296,9 @@
             <select id="mDayType" class="f-control mb-3" onchange="toggleShift()">
                 <option value="Work">Work (Kerja)</option>
                 <option value="Off">Off (Libur)</option>
-                <option value="Holiday">Holiday</option>
+                <option value="Public Holiday"> Public Holiday</option>
                 <option value="Leave">Leave (Cuti)</option>
+                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
             </select>
 
             <div id="shiftWrap">
@@ -351,8 +354,9 @@
             <select id="bulkDayType" class="f-control mb-3" onchange="toggleBulkShift()">
                 <option value="Work">Work</option>
                 <option value="Off">Off</option>
-                <option value="Holiday">Holiday</option>
+                <option value="Public Holiday">Public Holiday</option>
                 <option value="Leave">Leave</option>
+                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
             </select>
 
             <div id="bulkShiftWrap">

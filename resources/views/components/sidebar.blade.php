@@ -194,6 +194,9 @@
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
+                        <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
+                             <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown ">
@@ -220,9 +223,6 @@
                         <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerspot Data</a>
                         </li>
-                        <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited Fingerprints</a>
-                        </li>
                         {{-- ── TAMBAHAN ── --}}
                         <li class="{{ Request::is('roster*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('roster.index') }}">Roster</a>
@@ -231,7 +231,7 @@
                             <a class="nav-link" href="{{ route('schedule.index') }}">Schedule</a>
                         </li>
                         <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
+                             <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
                         </li>
                     </ul>
                 </li>
@@ -327,9 +327,6 @@
                     <ul class="dropdown-menu">
                         <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerspot Data</a>
-                        </li>
-                        <li class="{{ Request::is('{Editedfinger}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Editedfinger') }}">Edited Fingerprints</a>
                         </li>
                         {{-- ── TAMBAHAN ── --}}
                         <li class="{{ Request::is('roster*') ? 'active' : '' }}">

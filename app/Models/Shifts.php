@@ -29,7 +29,7 @@ class Shifts extends Model
         'start_time',
         'end_time',
         'last_sync',
-        'is_holiday'
+        'is_holiday',
         
     ];
     public function store()
