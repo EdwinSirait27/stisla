@@ -180,21 +180,13 @@
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                {{-- <th class="text-center">No.</th> --}}
-                                                {{-- <th class="text-center">Grading Code</th> --}}
                                                 <th class="text-center">Grading Name</th>
-                                                {{-- <th class="text-center">Group Code</th>
-                                                <th class="text-center">Group Remark</th>
-                                                <th class="text-center">Action</th> --}}
-                                            </tr>
+                                               </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    {{-- <button type="button" onclick="window.location='{{ route('Grading.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Grading
-                                    </button> --}}
+                                    
                                 </div>
                             </div>
                         </div>
@@ -231,39 +223,16 @@
                 columns: [
                    
                   
-                    // {
-                    //     data: 'grading_code',
-                    //     name: 'grading_code',
-                    //     className: 'text-center'
-                    // },
+                    
                     {
                         data: 'grading_name',
                         name: 'grading_name',
                         className: 'text-center'
                     }
-                    // ,
-                    // {
-                    //     data: 'group_name',
-                    //     name: 'group_name',
-                    //     className: 'text-center'
-                    // },
-                    // {
-                    //     data: 'remark',
-                    //     name: 'remark',
-                    //     className: 'text-center'
-                    // },
-                    // {
-                    //     data: 'action',
-                    //     name: 'action',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     className: 'text-center'
-                    // }
+                    
                 ],
                 initComplete: function() {
-                    // $('.dataTables_filter input').addClass('form-control');
-                    // $('.dataTables_length select').addClass('form-control');
-                }
+                    }
             });
 
             @if (session('success'))

@@ -213,25 +213,7 @@
                                         @method('PUT')
 
                                         <div class="row">
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="grading_code" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Grading Code') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="text"
-                                                            class="form-control @error('grading_code') is-invalid @enderror"
-                                                            id="grading_code" name="grading_code"
-                                                            value="{{ old('grading_code', $grading->grading_code) }}"
-                                                            placeholder="A1" required>
-                                                        @error('grading_code')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div> --}}
+                                           
 
                                             <div class="col-md-6">
                                                 <div class="form-group">

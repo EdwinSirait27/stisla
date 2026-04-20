@@ -76,11 +76,7 @@
         }
 
         .email-footer {
-            /* border-top: 1px solid #e0e6eb;
-            margin-top: 25px;
-            padding-top: 15px;
-            font-size: 12px;
-            color: #777777; */
+          
             margin-top: 30px;
             font-size: 13px;
             color: #888888;
@@ -109,7 +105,7 @@
         </div>
 
         <div class="email-body">
-            <p>To <strong>HR Department of PT. Mahendradata Jaya Mandiri</strong>,</p>
+            <p>To <strong>HR Department of PT. Asian Bay Developement</strong>,</p>
 
             <p>
                 Employee named <strong>{{ $user->employee->employee_name }}</strong>
@@ -147,19 +143,19 @@
             <p>Thank you for your attention and cooperation.</p>
             <br>
             <p>Best regards,<br>
-                <strong>HRX PT. Mahendradata Jaya Mandiri</strong>
+                <strong>HRX PT. Asian Bay Developement</strong>
             </p>
             <div class="note">
                 This email was sent automatically. Please do not reply.<br>
                 For further information, please contact our HR Department via WhatsApp:
                 <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
-                    HR Department Mahendradata Jaya Mandiri
+                    HR Department Asian Bay Developement
                 </a>
             </div>
         </div>
 
         <div class="email-footer">
-            © {{ date('Y') }} HRX. PT Mahendradata Jaya Mandiri Created by Edwin Sirait.
+            © {{ date('Y') }} HRX. PT Asian Bay Developement Created by Edwin Sirait.
         </div>
     </div>
 </body>

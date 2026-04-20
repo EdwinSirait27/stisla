@@ -18,11 +18,7 @@
             <div class="section-body">
                 <div class="card">
                     <div class="card-body">
-                        {{-- <form action="{{ route('Fingerprints.update', [$data->pin, $data->scan_date]) }}" method="POST">
-                        @csrf --}}
-                        {{-- @method('POST') --}}
-                        {{-- <pre>{{ json_encode($data, JSON_PRETTY_PRINT) }}</pre> --}}
-{{-- @dd($data->in_1, $data->in_2) --}}
+                      
 
                         <form
                             action="{{ route('Fingerprints.update', ['pin' => $data->pin, 'scan_date' => $data->scan_date]) }}"
@@ -159,63 +155,9 @@
                                         <input type="text" name="device_6" class="form-control"
                                             value="{{ $data->device_6 ?? '' }}">
                                     </div>
-                                    {{-- <div class="form-group col-md-6">
-                                        <label for="in_7">Scan 7</label>
-                                        <input type="time" name="in_7" class="form-control"
-                                            value="{{ $data->in_7 ?? '' }}">
-                                    </div> --}}
+                                   
                                 </div>
-                                {{-- <div class="row">
-                                    <div class="form-group col-md-6">
-                                        <label for="device_7">Location 7</label>
-                                        <input type="text" name="device_7" class="form-control"
-                                            value="{{ $data->device_7 ?? '' }}">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="in_8">Scan 8</label>
-                                        <input type="time" name="in_8" class="form-control"
-                                            value="{{ $data->in_8 ?? '' }}">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-md-6">
-                                        <label for="device_8">Location 8</label>
-                                        <input type="text" name="device_8" class="form-control"
-                                            value="{{ $data->device_8 ?? '' }}">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="in_9">Scan 9</label>
-                                        <input type="time" name="in_9" class="form-control"
-                                            value="{{ $data->in_9 ?? '' }}">
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-md-6">
-                                        <label for="device_9">Location 9</label>
-                                        <input type="text" name="device_9" class="form-control"
-                                            value="{{ $data->device_9 ?? '' }}">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="in_10">Scan 10</label>
-                                        <input type="time" name="in_10" class="form-control"
-                                            value="{{ $data->in_10 ?? '' }}">
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="form-group col-md-6">
-                                        <label for="device_10">Location 10</label>
-                                        <input type="text" name="device_10" class="form-control"
-                                            value="{{ $data->device_10 ?? '' }}">
-                                    </div>
-
-                                </div> --}}
-
-
-
-
-
-
+                             
                             <div class="form-group">
 
                             </div>

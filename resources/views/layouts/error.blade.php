@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
-        name="viewport">
+    name="viewport">
     <title>@yield('title') &mdash; Asian Bay Developmemnt</title>
     <!-- General CSS Files -->
     <link rel="stylesheet"

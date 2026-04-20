@@ -284,12 +284,7 @@
                                         <a href="{{ route('pages.Structuresnew') }}" class="btn btn-secondary">
                                             <i class="fas fa-arrow-left"></i> {{ __('Back') }}
                                         </a>
-                                        {{-- <a href="{{ route('Structuresnew.edit', $hashedId) }}"
-                                            class="btn btn-primary ms-2">
-                                            <i class="fas fa-edit"></i> {{ __('Edit') }}
-                                        </a> --}}
-
-
+                                      
                                     </div>
                                 </div>
                             </div>

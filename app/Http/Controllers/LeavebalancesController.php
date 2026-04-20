@@ -19,20 +19,7 @@ class LeavebalancesController extends Controller
 
     public function getLeavesbalances()
     {
-        // $balances = Leavebalance::with(['employees', 'leaves'])
-        //     ->whereHas('employees', function ($q) {
-        //         $q->where('status', 'Active');
-        //     })
-        //     ->select(['id', 'employee_id', 'leave_type_id', 'balance_days', 'balance_hours', 'year'])
-        //     ->get()
-        //      ->map(function ($balance) {
-        //         $balance->id_hashed = substr(hash('sha256', $balance->id . env('APP_KEY')), 0, 8);
-        //         $balance->action = '
-        //             <a href="' . route('Leavesbalance.edit', $balance->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user"title="Edit balance: ' . e($balance->balance_days) . '">
-        //                 <i class="fas fa-user-edit text-secondary"></i>
-        //             </a>';
-        //         return $balance;
-        //     });
+       
         $balances = Leavebalance::with(['employees', 'leaves'])
     ->whereHas('employees', function ($q) {
         $q->where('status', 'Active');

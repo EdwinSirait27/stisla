@@ -266,11 +266,7 @@
                         className: 'text-center',
                         render: function(data) {
                             const badges = {
-                                // 'Accepted': 'success',
-                                // 'On review': 'warning',
-                                // 'Pending': 'secondary',
-                                // 'Draft': 'info',
-                                // 'Reject': 'danger'
+                                
                                   'Accepted'   : 'success',
         'On Review HR'   : 'info',
         'On Review DIR'   : 'info',

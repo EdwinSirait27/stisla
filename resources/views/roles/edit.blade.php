@@ -187,27 +187,7 @@
                                                 <div class="text-danger mb-2">{{ $message }}</div>
                                             @enderror
                                         
-                                        {{-- <div class="row">
-                                            @foreach($permissions as $permission)
-                                                <div class="col-md-3 mb-3">
-                                                    <div class="permission-group">
-                                                        <div class="custom-control custom-checkbox">
-                                                            <input type="checkbox" 
-                                                                   class="custom-control-input" 
-                                                                   id="permission-{{ $permission->id }}" 
-                                                                   name="permissions[]" 
-                                                                   value="{{ $permission->id }}"
-                                                                   {{ in_array($permission->id, $rolePermissions) ? 'checked' : '' }}>
-                                                            <label class="custom-control-label" for="permission-{{ $permission->id }}">
-                                                                {{ $permission->name }}
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div> --}}
+                                        
                                 <div class="row">
                                     @foreach($permissions as $permission)
                                         <div class="col-md-3 mb-2">

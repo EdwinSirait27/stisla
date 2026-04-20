@@ -195,12 +195,7 @@
                                         </thead>
                                     </table>
                                 </div>
-                                {{-- <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Structures.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Structure
-                                    </button>
-                                </div> --}}
+                               
                             </div>
                         </div>
                     </div>
@@ -234,14 +229,7 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    // {
-                    //     data: null,
-                    //     name: 'id',
-                    //     className: 'text-center align-middle',
-                    //     render: function(data, type, row, meta) {
-                    //         return meta.row + meta.settings._iDisplayStart + 1;
-                    //     }
-                    // },
+                   
                     {
                         data: 'company_name',
                         name: 'company_name',
@@ -269,14 +257,7 @@
                         defaultContent: 'Empty'
                     },
 
-                    // {
-                    //     data: 'is_manager',
-                    //     name: 'is_manager',
-                    //     className: 'text-center',
-                    //     render: function(data, type, row) {
-                    //         return data == 1 ? 'Yes' : 'No';
-                    //     }
-                    // },
+                    
                     {
     data: 'is_manager',
     name: 'is_manager',

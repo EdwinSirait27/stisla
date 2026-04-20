@@ -22,29 +22,7 @@ class SendAnnouncementEmail implements ShouldQueue
         $this->announcement = $announcement;
         $this->employee = $employee;
     }
-    // public function handle()
-    // {
-    //     try {
-    //         Mail::to($this->employee->email)
-    //             ->send(new AnnouncementMail($this->announcement, $this->employee));
-
-    //         Log::info('Email sent successfully', [
-    //             'announcement_id' => $this->announcement->id,
-    //             'employee_id' => $this->employee->id,
-    //             'email' => $this->employee->email,
-    //         ]);
-    //     } catch (\Exception $e) {
-
-    //         Log::error('Failed to send email', [
-    //             'announcement_id' => $this->announcement->id,
-    //             'employee_id' => $this->employee->id,
-    //             'email' => $this->employee->email,
-    //             'error' => $e->getMessage(),
-    //         ]);
-
-    //         throw $e;
-    //     }
-    // }
+   
     public function handle()
     {
         try {

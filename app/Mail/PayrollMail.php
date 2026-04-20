@@ -24,7 +24,7 @@ class PayrollMail extends Mailable
     {
         $this->payroll = $payroll;
         $this->employee = $payroll->employee;
-        $this->subject = $subject ?? 'Slip Gaji Periode ' . $payroll->month_year->format('F Y');
+        $this->subject = $subject ?? 'Payroll Slip Period ' . $payroll->month_year->format('F Y');
     }
 
     /**
@@ -46,7 +46,7 @@ class PayrollMail extends Mailable
         // Cek apakah attachment file ada
         if ($this->payroll->attachment_path && Storage::disk('public')->exists($this->payroll->attachment_path)) {
             $mail->attach(Storage::disk('public')->path($this->payroll->attachment_path), [
-                'as' => 'Slip_Gaji_' . $this->payroll->month_year->format('F_Y') . '.pdf',
+                'as' => 'Payroll_Slip_' . $this->payroll->month_year->format('F_Y') . '.pdf',
                 'mime' => 'application/pdf',
             ]);
         }

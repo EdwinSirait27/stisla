@@ -237,20 +237,14 @@
                                                     <td>{!! $submission->qualifications ?? '<em>Empty</em>' !!}</td>
                                                 </tr>
                                              
-                                                {{-- <tr>
-                                                    <th>Reason Reject by DIR</th>
-                                                    <td>{{$submission->reason_reject_dir ?? 'Empty' }}</td>
-                                                </tr> --}}
+                                                
                                                 @if(!is_null($submission->notes))
                                                 <tr>
                                                     <th>Your Notes</th>
                                                     <td>{{$submission->notes ?? 'Empty' }}</td>
                                                 </tr>
                                                 @endif
-                                                {{-- <tr>
-                                                    <th>Status</th>
-                                                    <td>{{$submission->status ?? 'Empty' }}</td>
-                                                </tr> --}}
+                                               
                                                   <tr>
                                                     <th>Status</th>
                                                     <td>

@@ -201,56 +201,7 @@ class PositionreqController extends Controller
             'changes' => $changes,
         ]);
     }
-    // public function getPositionreqlists()
-    // {
-
-    //     $positions = Submissionposition::with(['submitter', 'approver1', 'approver2', 'positionRelation', 'store'])
-    //         ->select(['id', 'employee_id', 'approver_1', 'approver_2', 'status', 'position_id', 'store_id'])
-    //         ->get()
-    //         ->map(function ($position) {
-    //             $position->id_hashed = substr(hash('sha256', $position->id . env('APP_KEY')), 0, 8);
-    //             $lockedStatuses = ['On review', 'Accepted'];
-    //             $showButton = '
-    //             <a href="' . route('Positionreqlist.show', $position->id_hashed) . '" 
-    //                class="mx-2" 
-    //                data-bs-toggle="tooltip" 
-    //                data-bs-original-title="View details" 
-    //                title="Show Position Request: ' . e($position->positionRelation->name) . '">
-    //                 <i class="fas fa-eye "></i>
-    //             </a>';
-    //             if (in_array($position->status, $lockedStatuses)) {
-    //                 $editButton = '
-    //                 <i class="fas fa-lock text-muted mx-2" 
-    //                    data-bs-toggle="tooltip" 
-    //                    title="Edit locked because status: ' . e($position->status) . '"></i>';
-    //             } else {
-    //                 $editButton = '
-    //                 <a href="' . route('Positionreqlist.edit', $position->id_hashed) . '" 
-    //                    class="mx-2" 
-    //                    data-bs-toggle="tooltip" 
-    //                    data-bs-original-title="Edit request" 
-    //                    title="Edit Positionrequest: ' . e($position->positionRelation->name) . '">
-    //                     <i class="fas fa-user-edit text-secondary"></i>
-    //                 </a>';
-    //             }
-    //             $position->action = $showButton . $editButton;
-    //             return $position;
-    //         });
-    //     return DataTables::of($positions)
-    //         ->addColumn('sub', fn($e) => optional($e->submitter)->employee_name ?? 'Empty')
-    //         ->addColumn('position_name', fn($e) => optional($e->positionRelation)->name ?? 'Pending Approval')
-    //         ->addColumn('store_name', fn($e) => optional($e->store)->name ?? 'Pending Approval')
-    //         ->addColumn('approver1', fn($e) => optional($e->approver1)->employee_name ?? 'Pending Approval')
-    //         ->addColumn('approver2', fn($e) => optional($e->approver2)->employee_name ?? 'Pending Approval')
-    //         ->addColumn('remark', function ($e) {
-    //             return match ($e->status) {
-    //                 'Draft' => ' Please check this application',
-    //                 default => '-',
-    //             };
-    //         })
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
+    
 
     public function edit($hashedId)
     {
@@ -368,75 +319,6 @@ public function update(Request $request, $hashedId)
         return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
     }
 }
-// public function update(Request $request, $hashedId)
-// {
-//     $position = Submissionposition::all()->first(function ($u) use ($hashedId) {
-//         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-//         return $expectedHash === $hashedId;
-//     });
-
-//     if (!$position) {
-//         return redirect()->route('pages.Position')->with('error', 'ID tidak valid.');
-//     }
-
-//     // 🔒 CEK STATUS SUDAH TIDAK BOLEH DIUPDATE
-//     $lockedStatuses = ['On Review HR', 'Approved HR', 'Reject', 'Accepted', 'Done'];
-
-//     if (in_array($position->status, $lockedStatuses)) {
-//         return redirect()
-//             ->route('pages.Positionreqlist')
-//             ->with('error', 'Data tidak dapat diupdate karena status sudah ' . $position->status);
-//     }
-
-//     // VALIDASI
-//     $validatedData = $request->validate([
-//         'status'        => ['required', 'string', 'max:255'],
-//         'notes_hr'      => ['required', 'string'],
-//         'type'          => ['required'],
-//         'salary_hr'     => ['required', 'regex:/^[0-9]+$/'],
-//         'salary_hr_end' => ['required', 'regex:/^[0-9]+$/'],
-//         'reason_reject' => ['nullable', 'string', 'max:255'],
-//         'reason_reject_dir' => ['nullable', 'string'],
-//     ]);
-
-//     // UPDATE DATA
-//     $position->status = $validatedData['status'];
-//     $position->salary_hr = $validatedData['salary_hr'];
-//     $position->salary_hr_end = $validatedData['salary_hr_end'];
-//     $position->type = is_array($validatedData['type'])
-//         ? implode(',', $validatedData['type'])
-//         : $validatedData['type'];
-//     $position->notes_hr = $validatedData['notes_hr'] ?? null;
-//     $position->reason_reject = $validatedData['reason_reject'] ?? null;
-
-//     if (in_array($validatedData['status'], ['On Review HR','Reject','Approved HR'])) {
-//         $position->approver_1 = auth()->user()->employee_id;
-//     }
-
-//     DB::beginTransaction();
-//     try {
-//         $position->save();
-//         DB::commit();
-
-//         if ($validatedData['status'] === 'Approved HR') {
-//             $directorUsers = User::role('Director')
-//                 ->whereHas('employee', fn($q) => $q->where('status', 'Active'))
-//                 ->with('employee')
-//                 ->get();
-
-//             foreach ($directorUsers as $director) {
-//                 if ($director->employee && $director->employee->email) {
-//                     Mail::to($director->employee->email)->send(new Sendpositionrequesttodir($position));
-//                 }
-//             }
-//         }
-
-//         return redirect()->route('pages.Positionreqlist')->with('success', 'Position Request updated successfully.');
-//     } catch (\Exception $e) {
-//         DB::rollBack();
-//         return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
-//     }
-// }
 
 
 }

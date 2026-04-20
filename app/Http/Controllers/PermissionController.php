@@ -1,14 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-
-
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\DataTables;
 use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class PermissionController extends Controller
 {
@@ -70,7 +69,7 @@ class PermissionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Permission creation failed: ' . $e->getMessage());
+            Log::error('Permission creation failed: ' . $e->getMessage());
 
             return redirect()->back()
                 ->withInput()

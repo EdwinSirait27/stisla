@@ -144,13 +144,7 @@
                 <strong>HRX PT. Asian Bay Development</strong>
             </p>
 
-            {{-- <div class="note">
-                This email was sent automatically. Please do not reply.<br>
-                For further information, please contact our HR Department via WhatsApp:
-                <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
-                    HR Department PT Asian Bay Development
-                </a>
-            </div> --}}
+         
             <div class="note">
                 This email was sent automatically. Please do not reply.<br>
                 For further information, please contact our HR Department via WhatsApp:

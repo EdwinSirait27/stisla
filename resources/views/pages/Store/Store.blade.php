@@ -233,19 +233,7 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    // {
-                    //     data: null,
-                    //     name: 'id',
-                    //     className: 'text-center align-middle',
-                    //     render: function(data, type, row, meta) {
-                    //         return meta.row + meta.settings._iDisplayStart + 1;
-                    //     }
-                    // },
-                    //  {
-                    //     data: 'employee_name',
-                    //     name: 'employee_name',
-                    //     className: 'text-center'
-                    // },
+                  
                    
                     {
                         data: 'name',
@@ -267,11 +255,7 @@
                         name: 'phone_num',
                         className: 'text-center'
                     },
-                    // {
-                    //     data: 'employee_name',
-                    //     name: 'employee_name',
-                    //     className: 'text-center'
-                    // },
+                   
                     {
                         data: 'action',
                         name: 'action',

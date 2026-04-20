@@ -249,58 +249,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                          {{-- <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="store_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Location Name') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="store_id" class="form-control select2">
-                                                            <option value="">Choose Location</option>
-
-                                                            @foreach ($stores as $key => $value)
-                                                                <option value="{{ $key }}"
-                                                                    {{ old('store_id') == $key ? 'selected' : '' }}>
-                                                                    {{ $value }}
-                                                                </option>
-                                                            @endforeach
-
-                                                        </select>
-                                                        @error('store_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="sk_type_id" class="form-control-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('SK Type Name') }}
-                                                    </label>
-                                                    <div>
-                                                        <select name="sk_type_id" class="form-control select2">
-                                                            <option value="">Choose SK Type Name</option>
-
-                                                            @foreach ($sktypes as $key => $value)
-                                                                <option value="{{ $key }}"
-                                                                    {{ old('sk_type_id') == $key ? 'selected' : '' }}>
-                                                                    {{ $value }}
-                                                                </option>
-                                                            @endforeach
-
-                                                        </select>
-                                                        @error('store_id')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            </div> --}}
+                                         
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

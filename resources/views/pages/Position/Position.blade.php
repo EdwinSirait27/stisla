@@ -253,48 +253,5 @@
 
         });
     </script>
-    {{-- <script>
-        jQuery(document).ready(function($) {
-            var table = $('#submissions-table').DataTable({
-                processing: true,
-                serverSide: true,
-                autoWidth: false,
-                ajax: {
-                    url: '{{ route('managersubmissions.managersubmissions') }}',
-                    type: 'GET'
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ],
-            });
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                });
-            @endif
-
-        });
-    </script> --}}
+   
 @endpush

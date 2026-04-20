@@ -22,40 +22,6 @@ class dashboardAdminController extends Controller
         $storeList = Stores::select('name')->distinct()->get();
         return view('pages.dashboardAdmin.dashboardAdmin', compact('storeList'));
     }
-        // public function getUsers(Request $request)
-        // {
-        //     $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position'])
-        //         ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
-            
-        //         ->get()
-        //         ->map(function ($user) {
-        //             $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
-        //             $user->action = '
-        //             <a href="' . route('dashboardAdmin.edit', $user->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit User: ' . e($user->username) . '">
-        //                 <i class="fas fa-user-edit text-secondary"></i>
-        //             </a>';
-        //             return $user;
-        //         });
-
-        //     return DataTables::of($users)
-        //         ->addColumn('roles', function ($user) {
-        //             if (is_array($user->roles)) {
-        //                 return implode(', ', $user->roles);
-        //             } elseif ($user->roles instanceof \Illuminate\Support\Collection) {
-        //                 return $user->roles->pluck('name')->implode(', ');
-        //             }
-        //             return 'Empty';
-        //         })
-        //         ->addColumn('device_lan_mac', fn($user) => optional($user->Terms)->device_lan_mac ?? 'Empty')
-        //         ->addColumn('employee_name', fn($user) => optional($user->Employee)->employee_name ?? 'Empty')
-        //         ->addColumn('store_name', fn($user) => optional(optional($user->Employee)->store)->name ?? 'Empty')
-        //         ->addColumn('position_name', fn($user) => optional(optional($user->Employee)->position)->name ?? 'Empty')
-        //         ->addColumn('pin', fn($user) => optional($user->Employee)->pin ?? 'Empty')
-        //         ->addColumn('device_wifi_mac', fn($user) => optional($user->Terms)->device_wifi_mac ?? 'Empty')
-        //         ->addColumn('status', fn($user) => optional($user->Employee)->status ?? 'Empty')
-        //         ->rawColumns(['device_lan_mac', 'device_wifi_mac', 'action'])
-        //         ->make(true);
-        // }
         public function getUsers(Request $request)
 {
     $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position'])

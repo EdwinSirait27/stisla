@@ -21,11 +21,11 @@ class GradinglistController extends Controller
     public function getGradinglists()
     {
         $gradinglists = User::whereHas('Employee', function ($q) {
-            $q->whereIn('status', ['Active', 'Pending','Mutation']);
+            $q->whereIn('status', ['Active', 'Pending', 'Mutation']);
         })
             ->with([
                 'Employee' => function ($q) {
-                    $q->whereIn('status', ['Active', 'Pending','Mutation']);
+                    $q->whereIn('status', ['Active', 'Pending', 'Mutation']);
                 },
                 'Employee.employees',
                 'Employee.company',
@@ -56,13 +56,13 @@ class GradinglistController extends Controller
                     ? $gradinglist->Employee->grading->groups->remark
                     : 'Empty';
             })
-            
-            ->rawColumns(['employee_name', 'grading_name','group_name','remark'])
+
+            ->rawColumns(['employee_name', 'grading_name', 'group_name', 'remark'])
             ->make(true);
     }
     public function edit($hashedId)
     {
-        $gradinglist = User::with('Employee.employees', 'Employee.company', 'Employee','Employee.grading')->get()->first(function ($u) use ($hashedId) {
+        $gradinglist = User::with('Employee.employees', 'Employee.company', 'Employee', 'Employee.grading')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -72,7 +72,7 @@ class GradinglistController extends Controller
         }
 
         // $employees = Employee::where('status', ['Active','Pending'])->pluck('employee_name', 'id');
-$gradings = Grading::pluck('grading_name', 'id');
+        $gradings = Grading::pluck('grading_name', 'id');
         return view('pages.Gradinglist.edit', [
             'gradinglist' => $gradinglist,
             'hashedId' => $hashedId,
@@ -81,7 +81,7 @@ $gradings = Grading::pluck('grading_name', 'id');
     }
     public function update(Request $request, $hashedId)
     {
-        $gradinglist = User::with('Employee.employees', 'Employee.company','Employee.grading')->get()->first(function ($u) use ($hashedId) {
+        $gradinglist = User::with('Employee.employees', 'Employee.company', 'Employee.grading')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });

@@ -222,21 +222,7 @@
                                         
                                         
                                         </div>
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-check mt-2">
-                                                    <input type="checkbox" name="is_paid" id="is_paid" value="1"
-                                                        class="form-check-input @error('is_paid') is-invalid @enderror"
-                                                        {{ old('is_paid') ? 'checked' : '' }}>
-                                                    <label for="is_paid" class="form-check-label">
-                                                        <i class="fas fa-id-card"></i> {{ __('Is Paid?') }}
-                                                    </label>
-                                                    @error('is_paid')
-                                                        <span class="invalid-feedback d-block"
-                                                            role="alert"><strong>{{ $message }}</strong></span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
-                                        {{-- </div> --}}
+                                           
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>

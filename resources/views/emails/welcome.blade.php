@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Welcome Email</title>
+    <title>Welcome Email Employee</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -60,7 +60,7 @@
 <body>
     <div class="container">
         <h2>Dear {{ $employee->employee_name }},</h2>
-        <p>We are pleased to welcome you to <span class="highlight">PT. Mahendradata Jaya Mandiri</span>.</p>
+        <p>We are pleased to welcome you to <span class="highlight">{{ $employee->company->name ?? '-' }}</span>.</p>
         <p>Your Employee Identification Number is: <span class="highlight">{{ $employee->employee_pengenal }}</span>.</p>
         <p>We are confident that your skills and experience will contribute greatly to our company’s success.</p>
         <p>Here is your employment details below:</p>
@@ -72,18 +72,18 @@
             <p><strong>Daily Allowance:</strong> {{ $employee->daily_allowance ?? 'To be informed' }}</p>
         </div>
         <p>Best Regards,<br>
-            <strong>HR Department<br>PT. Mahendradata Jaya Mandiri</strong>
+            <strong>HR Department<br>PT. Asian Bay Development</strong>
         </p>
         <div class="note">
             This email was sent automatically. Please do not reply.<br>
             For further information, please contact our HR Department via WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
-                HR Department Mahendradata Jaya Mandiri
+                HR Department Asian Bay Development
             </a>
         </div>
         <hr style="margin:30px 0; border:0; border-top:1px solid #ddd;">
         <h2>Kepada Yth. {{ $employee->employee_name }},</h2>
-        <p>Dengan senang hati kami menyambut anda di <span class="highlight">PT. Mahendradata Jaya Mandiri</span>.</p>
+        <p>Dengan senang hati kami menyambut anda di <span class="highlight">{{ $employee->company->name ?? '-' }}</span>.</p>
         <p>Nomor Induk Pegawai (NIP) anda adalah: <span class="highlight">{{ $employee->employee_pengenal }}</span>.</p>
         <p>Kami yakin keterampilan dan pengalaman anda akan memberikan kontribusi besar bagi kesuksesan perusahaan kami.
         </p>
@@ -96,17 +96,17 @@
             <p><strong>Tunjangan Harian:</strong> {{ $employee->daily_allowance ?? 'Akan diinformasikan' }}</p>
         </div>
         <p>Hormat kami,<br>
-            <strong>Departemen HR<br>PT. Mahendradata Jaya Mandiri</strong>
+            <strong>Departemen HR<br>PT. Asian Bay Development</strong>
         </p>
         <div class="note">
             Email ini dikirim secara otomatis. Mohon untuk tidak membalas.<br>
             Untuk bantuan lebih lanjut, silakan menghubungi HR Departemen melalui WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
-                Departemen HR Mahendradata Jaya Mandiri
+                Departemen HR Asian Bay Development
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} HRX. PT Mahendradata Jaya Mandiri Created by Edwin Sirait.
+            © {{ date('Y') }} HRX. PT Asian Bay Development Created by Edwin Sirait.
         </div>
     </div>
 </body>

@@ -26,7 +26,7 @@ class WelcomeEmployeeMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Welcome to PT Mahendradata Jaya Mandiri')
+        return $this->subject('Welcome to our Company')
                     ->view('emails.welcome', [
                         'employee' => $this->employee,
                         'department' => $this->employee->department,

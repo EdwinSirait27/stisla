@@ -8,39 +8,37 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up()
-    {
-        // Update data lama Holiday → Public Holiday
-        DB::table('roster')
-            ->where('day_type', 'Holiday')
-            ->update(['day_type' => 'Public Holiday']);
+{
+    DB::table('roster')
+        ->where('day_type', 'Holiday')
+        ->update(['day_type' => 'Public Holiday']);
 
-        // Ubah enum menggunakan change()
-        Schema::table('roster', function (Blueprint $table) {
-            $table->enum('day_type', [
-                'Work',
-                'Off', 
-                'Public Holiday',
-                'Leave',
-                'Cuti Melahirkan'
-            ])->default('Work')->change();
-        });
-    }
+    DB::statement("
+        ALTER TABLE roster 
+        MODIFY day_type ENUM(
+            'Work',
+            'Off', 
+            'Public Holiday',
+            'Leave',
+            'Cuti Melahirkan'
+        ) DEFAULT 'Work'
+    ");
+}
 
-    public function down()
-    {
-        // Rollback data
-        DB::table('roster')
-            ->where('day_type', 'Public Holiday')
-            ->update(['day_type' => 'Holiday']);
+public function down()
+{
+    DB::table('roster')
+        ->where('day_type', 'Public Holiday')
+        ->update(['day_type' => 'Holiday']);
 
-        // Rollback enum
-        Schema::table('roster', function (Blueprint $table) {
-            $table->enum('day_type', [
-                'Work',
-                'Off',
-                'Holiday',
-                'Leave'
-            ])->default('Work')->change();
-        });
-    }
+    DB::statement("
+        ALTER TABLE roster 
+        MODIFY day_type ENUM(
+            'Work',
+            'Off',
+            'Holiday',
+            'Leave'
+        ) DEFAULT 'Work'
+    ");
+}
 };

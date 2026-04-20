@@ -233,12 +233,7 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    {{-- @foreach ($leaveBalances as $balance)
-                                                        <option value="{{ $balance->id }}">
-                                                            {{ $balance->leavetype->name ?? 'Unknown' }}
-                                                            (Sisa: {{ $balance->balance_days }} hari)
-                                                        </option>
-                                                    @endforeach --}}
+                                                    
                                                     @error('position_id')
                                                         <span class="invalid-feedback" role="alert">
                                                             <strong>{{ $message }}</strong>
@@ -248,59 +243,7 @@
                                             </div>
 
 
-                                            {{-- Work Location --}}
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="store_id" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Location') }}
-                                                    </label>
-                                                    <select name="store_id"
-                                                        class="form-control select2 @error('store_id') is-invalid @enderror"
-                                                        required>
-                                                        <option value="" selected disabled>Select Location</option>
-                                                        @foreach ($stores as $id => $name)
-                                                            <option value="{{ $id }}"
-                                                                {{ old('store_id') == $id ? 'selected' : '' }}>
-                                                                {{ $name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('store_id')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div> --}}
-
-                                            {{-- Type --}}
-                                            {{-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="type" class="form-control-label">
-                                                    <i class="fas fa-list"></i> {{ __('Type') }}
-                                                </label>
-                                                <div>
-                                                    @foreach ($types as $type)
-                                                        <div class="form-check">
-                                                            <input
-                                                                class="form-check-input @error('type') is-invalid @enderror"
-                                                                type="checkbox" name="type[]" id="type_{{ $type }}"
-                                                                value="{{ $type }}"
-                                                                {{ is_array(old('type')) && in_array($type, old('type')) ? 'checked' : '' }}
-                                                                required>
-                                                            <label class="form-check-label" for="type_{{ $type }}">
-                                                                {{ ucfirst($type) }}
-                                                            </label>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                                @error('type')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div> --}}
+                                           
 
                                             {{-- Role Summary --}}
                                             <div class="col-md-6">

@@ -94,46 +94,7 @@ class PositionapprovalController extends Controller
             'hashedId' => $hashedId
         ]);
     }
-    // public function update(Request $request, $hashedId)
-    // {
-    //     $position = Submissionposition::with('submitter', 'approver1', 'approver2')
-    //         ->get()
-    //         ->first(function ($u) use ($hashedId) {
-    //             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //             return $expectedHash === $hashedId;
-    //         });
-
-    //     if (!$position) {
-    //         return redirect()->route('pages.PositionApproval')->with('error', 'ID tidak valid.');
-    //     }
-
-    //     $validatedData = $request->validate([
-    //         'status'        => ['required', 'string', 'max:255'],
-    //         'salary_counter'        => ['required', 'regex:/^[0-9]+$/'],
-    //         'salary_counter_end'        => ['required', 'regex:/^[0-9]+$/'],
-    //         'notes_dir' => ['nullable', 'string', 'max:255'],
-    //     ], [
-    //         'status.required' => 'Status must be filled.',
-    //     ]);
-    //     $positionData = [
-    //         'status'        => $validatedData['status'],
-    //         'salary_counter'        => $validatedData['salary_counter'],
-    //         'salary_counter_end'        => $validatedData['salary_counter_end'],
-    //         'notes_dir' => $validatedData['notes_dir'] ?? null,
-    //     ];
-    //     if (in_array($validatedData['status'], ['On Review HR', 'Accepted', 'Reject'])) {
-    //         $positionData['approver_2'] = auth()->user()->employee_id;
-    //     }
-    //     DB::beginTransaction();
-    //     try {
-    //         $position->update($positionData);
-    //         DB::commit();
-    //         return redirect()->route('pages.PositionApproval')->with('success', 'Position Request updated successfully.');
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         return redirect()->back()->with('error', 'Failed to update Position Request: ' . $e->getMessage());
-    //     }
-    // }
+   
     public function update(Request $request, $hashedId)
 {
     $position = Submissionposition::with('submitter', 'approver1', 'approver2')

@@ -1,3 +1,3 @@
   <div class="simple-footer">
-      Copyright &copy; Edwin Sirait
+      Copyright HRX &copy; Edwin Sirait
   </div>

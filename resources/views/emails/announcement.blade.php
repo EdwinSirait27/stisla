@@ -87,9 +87,6 @@
             </p>
             <p><strong>Effective Date:</strong>
                 {{ \Carbon\Carbon::parse($announcement->publish_date)->format('d M Y') }}</p>
-            {{-- @if ($announcement->end_date)
-            <p><strong>Valid Until:</strong> {{ \Carbon\Carbon::parse($announcement->end_date)->format('d M Y') }}</p>
-            @endif --}}
             <p><strong>Valid Until:</strong>
                 @if ($announcement->end_date)
                     {{ \Carbon\Carbon::parse($announcement->end_date)->format('d M Y') }}
@@ -103,13 +100,13 @@
         </p>
         <p>
             Sincerely,<br>
-            <strong>Human Resources Department<br>PT. Mahendradata Jaya Mandiri</strong>
+            <strong>Human Resources Department<br>PT. Asian Bay Developement</strong>
         </p>
         <div class="note">
             This email is generated automatically. Please do not reply.<br>
             For assistance, contact HR via WhatsApp:<br>
             <a href="https://wa.me/6281138310552" style="color:#25D366; font-weight:bold;">
-                HR Department - PT Mahendradata Jaya Mandiri
+                HR Department - PT Asian Bay Developement
             </a>
         </div>
         <hr style="margin:30px 0; border:0; border-top:1px solid #dcdcdc;">
@@ -136,17 +133,17 @@
         </p>
         <p>
             Hormat kami,<br>
-            <strong>Departemen Human Resources<br>PT. Mahendradata Jaya Mandiri</strong>
+            <strong>Departemen Human Resources<br>PT. Asian Bay Developement</strong>
         </p>
         <div class="note">
             Email ini dikirim secara otomatis. Mohon untuk tidak membalas email ini.<br>
             Untuk bantuan, hubungi HR melalui WhatsApp:<br>
             <a href="https://wa.me/6281138310552" style="color:#25D366; font-weight:bold;">
-                Departemen HR - PT Mahendradata Jaya Mandiri
+                Departemen HR - PT Asian Bay Developement
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} HRX — PT Mahendradata Jaya Mandiri.
+            © {{ date('Y') }} HRX — PT Asian Bay Developement.
         </div>
     </div>
 </body>

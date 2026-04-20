@@ -111,18 +111,7 @@
                     </ul>
                 </div>
             @endif
-            {{-- @if (session('errors'))
-                <div class="alert alert-warning">
-                    <strong>Error Custom:</strong>
-                    <ul>
-                        @foreach (session('errors') as $err)
-                            <li>
-                                Row {{ $err['row'] ?? '-' }} – Message: {{ $err['error'] ?? 'Unknown error' }}
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif --}}
+           
             @if (session('import_errors'))
     <div class="alert alert-warning">
         <strong>Error Custom:</strong>

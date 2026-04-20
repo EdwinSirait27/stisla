@@ -55,7 +55,6 @@ class GradingController extends Controller
     }
     public function create()
     {
-        // $managers = User::with('Employee')->pluck('employee_name');
         $groups = Groups::get();
         
         return view('pages.Grading.create', compact('groups'));
@@ -64,12 +63,7 @@ class GradingController extends Controller
     {
         // dd($request->all());
         $validatedData = $request->validate([
-            // 'grading_code' => [
-            //     'required',
-            //     'string',
-            //     'max:255',
-            //     new NoXSSInput()
-            // ],
+           
             'grading_name' => [
                 'required',
                 'string',
@@ -87,10 +81,7 @@ class GradingController extends Controller
             'grading_name.required' => 'Grading name is required.',
             'grading_name.string' => 'Grading name must be a string.',
             'grading_name.max' => 'grading name may not be greater than 255 characters.',
-            // 'grading_code.required' => 'Grading code is required.',
-            // 'grading_code.string' => 'Grading code must be a string.',
-            // 'grading_code.max' => 'grading code may not be greater than 255 characters.',
-            
+           
         ]);
         try {
             DB::beginTransaction();
@@ -124,12 +115,7 @@ class GradingController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
-            // 'grading_code' => [
-            //     'required',
-            //     'string',
-            //     'max:255',
-            //     new NoXSSInput()
-            // ],
+           
             'group_id' => [
                 'required',
                 'string',
@@ -138,13 +124,11 @@ class GradingController extends Controller
             ],
         ], [
             'grading_name.required' => 'name must be filled.',
-            // 'grading_code.required' => 'code wajib diisi.',
             'group_id.required' => 'grading diisi.',
             
         ]);
         $gradingData = [
             'grading_name' => $validatedData['grading_name'],
-            // 'grading_code' => $validatedData['grading_code'],
             'group_id' => $validatedData['group_id'],
         ];
         DB::beginTransaction();

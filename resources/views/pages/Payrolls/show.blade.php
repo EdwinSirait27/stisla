@@ -122,24 +122,7 @@
             font-family: monospace;
         }
 
-        /* .totals-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-top: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-
-     .total-section {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    align-items: center;
-    padding: 8px 12px;
-    font-weight: bold;
-}
-
-        .total-section:first-child {
-            border-right: 1px solid #ddd;
-        } */
+      
         .totals-row {
             display: flex;
             gap: 24px;
@@ -221,28 +204,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <table style="width: 100%; margin-bottom: 20px;">
                 <tr>
-                    {{-- <td style="text-align: left;">
-                        @php
-                            $foto = 'company/' . ($payroll->employee->company->foto ?? '');
-                            $imageData = '';
-
-                            $fotoPath = public_path('storage/' . $foto);
-
-                            if (!empty($foto) && file_exists($fotoPath) && is_file($fotoPath)) {
-                                $type = pathinfo($fotoPath, PATHINFO_EXTENSION);
-                                $imageData =
-                                    'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($fotoPath));
-                            }
-                        @endphp
-
-                        @if (!empty($imageData))
-                            <div style="background-color: #000000; display: inline-block; padding: 5px;">
-                                <img src="{{ $imageData }}" alt="Foto Perusahaan" width="70">
-                            </div>
-                        @else
-                            <span>Foto tidak tersedia</span>
-                        @endif
-                    </td> --}}
+                   
                     <td style="text-align: left;">
                         @php
                             $imageData = null;

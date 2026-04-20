@@ -199,16 +199,7 @@
                         name: 'name',
                         className: 'text-center'
                     },
-                //    {
-                //         data: 'is_paid',
-                //         className: 'text-center',
-                //         render: function(data) {
-                //             if (data == 1) {
-                //                 return `<span class="badge bg-success">Yes</span>`;
-                //             }
-                //             return `<span class="badge bg-danger">No</span>`;
-                //         }
-                //     },
+              
                     {
                         data: 'action',
                         name: 'action',
@@ -217,10 +208,7 @@
                         className: 'text-center'
                     }
                 ],
-                // initComplete: function() {
-                //     $('.dataTables_filter input').addClass('form-control');
-                //     $('.dataTables_length select').addClass('form-control');
-                // }
+              
             });
 
             @if (session('success'))

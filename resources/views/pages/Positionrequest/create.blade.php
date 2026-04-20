@@ -215,24 +215,7 @@
                                 <form id="position-create" action="{{ route('Positionrequest.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
-                                        {{-- Position Name --}}
-                                        {{-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="position_name" class="form-control-label">
-                                                    <i class="fas fa-user"></i> {{ __('Position Name') }}
-                                                </label>
-                                                <input type="text"
-                                                    class="form-control @error('position_name') is-invalid @enderror"
-                                                    id="position_name" name="position_name"
-                                                    value="{{ old('position_name') }}" required
-                                                    placeholder="Fill Position Name">
-                                                @error('position_name')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div> --}}
+                                   
                                         <div class="col-md-6">
     <div class="form-group">
         <label for="position_id" class="form-control-label">
@@ -279,36 +262,7 @@
     </div>
 </div>
 
-                                        {{-- Type --}}
-                                        {{-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="type" class="form-control-label">
-                                                    <i class="fas fa-list"></i> {{ __('Type') }}
-                                                </label>
-                                                <div>
-                                                    @foreach ($types as $type)
-                                                        <div class="form-check">
-                                                            <input
-                                                                class="form-check-input @error('type') is-invalid @enderror"
-                                                                type="checkbox" name="type[]" id="type_{{ $type }}"
-                                                                value="{{ $type }}"
-                                                                {{ is_array(old('type')) && in_array($type, old('type')) ? 'checked' : '' }}
-                                                                required>
-                                                            <label class="form-check-label" for="type_{{ $type }}">
-                                                                {{ ucfirst($type) }}
-                                                            </label>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                                @error('type')
-                                                    <span class="invalid-feedback" role="alert">
-                                                        <strong>{{ $message }}</strong>
-                                                    </span>
-                                                @enderror
-                                            </div>
-                                        </div> --}}
-
-                                        {{-- Role Summary --}}
+                                       
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="role_summary" class="form-control-label">

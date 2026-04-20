@@ -230,14 +230,7 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    // {
-                    //     data: null,
-                    //     name: 'id',
-                    //     className: 'text-center align-middle',
-                    //     render: function(data, type, row, meta) {
-                    //         return meta.row + meta.settings._iDisplayStart + 1;
-                    //     }
-                    // },
+                   
                   
                     {
                         data: 'date',
@@ -256,9 +249,7 @@
                     }
                 ],
                 initComplete: function() {
-                    // $('.dataTables_filter input').addClass('form-control');
-                    // $('.dataTables_length select').addClass('form-control');
-                }
+                  }
             });
 
             @if (session('success'))

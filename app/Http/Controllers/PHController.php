@@ -46,30 +46,7 @@ class PHController extends Controller
         }
         abort(404);
     }
-    // public function Importphs(Request $request)
-    // {
-    //     $request->validate([
-    //         'file' => 'required|mimes:xlsx,csv,xls'],
-    //         [
-    // 'file.required' => 'Silakan pilih file Excel untuk diimport.',
-    //     ]);
-
-    //     $errors = [];
-    //     $import = new PHImport($errors);
-    //     $import->import($request->file('file'));
-
-    //     if ($import->failures()->isNotEmpty()) {
-    //         return back()->with([
-    //             'failures' => $import->failures(),
-    //             'errors' => $errors, 
-    //         ]);
-    //     }
-    //     if (!empty($errors)) {
-    //         return back()->with('failures', $errors);
-    //     }
-
-    //     return back()->with('success', 'Public Holidays import successfully!');
-    // }
+   
     public function Importphs(Request $request)
 {
     $request->validate([

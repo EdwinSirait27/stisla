@@ -229,25 +229,7 @@
                                                     </tr>
                                                 @endif
 
-                                                {{-- <tr>
-                                                    <th>Salary set By HR</th>
-                                                    <td>
-                                                        {{ $submission->salary_hr ? number_format($submission->salary_hr, 0, ',', '.') : 'Empty' }}
-                                                    </td>
-                                                </tr> --}}
-
-                                                {{-- <tr>
-                                                    <th>Salary set By HR</th>
-                                                    <td>{{ number_format($submission->salary_hr, 0, ',', '.') }}</td>
-                                                </tr>
-
-
-                                                <tr>
-                                                    <th>To</th>
-                                                    <td>
-                                                        {{ $submission->salary_hr_end ? number_format($submission->salary_hr_end, 0, ',', '.') : 'Empty' }}
-                                                    </td>
-                                                </tr> --}}
+                                              
                                                   @if (optional($submission)->salary_hr)
     <tr>
         <th>Salary set By HR</th>
@@ -259,19 +241,7 @@
         </td>
     </tr>
 @endif
-                                                {{-- <tr>
-                                                    <th>Salary set By HR</th>
-                                                    <td>
-                                                        @if ($submission->salary_hr)
-                                                            {{ number_format($submission->salary_hr, 0, ',', '.') }}
-                                                            @if ($submission->salary_hr_end)
-                                                                &nbsp;–&nbsp;{{ number_format($submission->salary_hr_end, 0, ',', '.') }}
-                                                            @endif
-                                                        @else
-                                                            Empty
-                                                        @endif
-                                                    </td>
-                                                </tr> --}}
+                                               
                                                  @if (!is_null($submission->approver_2))
                                                     <tr>
                                                         <th>DIR Verifier</th>
@@ -279,31 +249,7 @@
                                                     </tr>
                                                 @endif
 
-                                                {{-- <tr>
-
-                                                    <th>Approved Salary by DIR</th>
-                                                    <td>
-                                                        {{ $submission->salary_counter ? number_format($submission->salary_counter, 0, ',', '.') : 'Empty' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th>To</th>
-                                                    <td>{{ $submission->salary_counter_end ? number_format($submission->salary_counter_end, 0, ',', '.') : 'Empty' }}
-                                                    </td>
-                                                </tr> --}}
-                                                {{-- <tr>
-                                                    <th>Approved Salary by DIR</th>
-                                                    <td>
-                                                        @if ($submission->salary_counter)
-                                                            {{ number_format($submission->salary_counter, 0, ',', '.') }}
-                                                            @if ($submission->salary_counter_end)
-                                                                &nbsp;–&nbsp;{{ number_format($submission->salary_counter_end, 0, ',', '.') }}
-                                                            @endif
-                                                        @else
-                                                            Empty
-                                                        @endif
-                                                    </td>
-                                                </tr> --}}
+                                               
                                                   @if (optional($submission)->salary_counter)
     <tr>
         <th>Approved Salary by DIR</th>

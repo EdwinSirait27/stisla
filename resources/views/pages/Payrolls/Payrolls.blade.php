@@ -1,680 +1,681 @@
 @extends('layouts.app')
 @section('title', 'Payrolls')
+
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-@endpush
-<style>
-    .card {
-        border: none;
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
-        border-radius: 0.5rem;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        background-color: #fff;
-    }
-    .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
-    }
-    .card-header {
-        background-color: #f8fafc;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-        padding: 1.25rem 1.5rem;
-    }
-    .card-header h6 {
-        margin: 0;
-        font-weight: 600;
-        color: #4a5568;
-        display: flex;
-        align-items: center;
-        font-size: 0.95rem;
-    }
-    .card-header h6 i {
-        margin-right: 0.75rem;
-        color: #5e72e4;
-        transition: color 0.3s ease;
-    }
-    .table-responsive {
-        padding: 0 1.5rem;
-        overflow: hidden;
-    }
-    .table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-    .table thead th {
-        background-color: #f8fafc;
-        color: #4a5568;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
-        border: none;
-        padding: 1rem 0.75rem;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        transition: all 0.3s ease;
-    }
-    .table tbody tr {
-        transition: all 0.25s ease;
-        position: relative;
-    }
-    .table tbody tr:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: rgba(0, 0, 0, 0.05);
-    }
-    .table tbody tr:hover {
-        background-color: rgba(94, 114, 228, 0.03);
-        transform: scale(1.002);
-    }
-    .table tbody td {
-        padding: 1.1rem 0.75rem;
-        vertical-align: middle;
-        color: #4a5568;
-        font-size: 0.85rem;
-        transition: all 0.2s ease;
-        border: none;
-        background: #fff;
-    }
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* ─── Layout ─────────────────────────────────────────── */
+        .section-header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
 
-    .table tbody tr:hover td {
-        color: #2d3748;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    .action-buttons {
-        padding: 1.25rem 1.5rem;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .btn-primary {
-        background-color: #5e72e4;
-        border-color: #5e72e4;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: #4a5bd1;
-        border-color: #4a5bd1;
-        transform: translateY(-1px);
-    }
-
-    .section-header h1 {
-        font-weight: 600;
-        color: #2d3748;
-        font-size: 1.5rem;
-    }
-
-    .table-responsive {
-        -webkit-overflow-scrolling: touch;
-    }
-
-    @media (max-width: 768px) {
-        .table-responsive {
-            padding: 0 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+        /* ─── Card ───────────────────────────────────────────── */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+            background: #fff;
+            overflow: hidden;
         }
 
         .card-header {
-            padding: 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
         }
 
-        .table thead th {
-            font-size: 0.65rem;
-            padding: 0.75rem 0.5rem;
+        .card-header-icon {
+            width: 30px;
+            height: 30px;
+            background: #eff6ff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: .85rem;
+            flex-shrink: 0;
         }
 
-        .table tbody td {
-            padding: 0.85rem 0.5rem;
-            font-size: 0.8rem;
+        .card-header h4 {
+            margin: 0;
+            font-size: .925rem;
+            font-weight: 600;
+            color: #334155;
         }
-    }
 
-    .d-flex.gap-3>* {
-        margin-right: 0.75rem !important;
-    }
+        /* ─── Filter bar ─────────────────────────────────────── */
+        .filter-bar {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fafafa;
+            display: flex;
+            align-items: flex-end;
+            gap: .6rem;
+            flex-wrap: wrap;
+        }
 
-    .d-flex.gap-3>*:last-child {
-        margin-right: 1 !important;
-    }
+        .filter-bar .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+            margin: 0;
+        }
 
-    .payroll-buttons form,
-    .payroll-buttons a {
-        display: flex;
-        align-items: center;
-    }
+        .filter-bar .form-label {
+            font-size: .7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #64748b;
+            margin: 0;
+        }
 
-    .payroll-buttons .btn {
-        min-width: 100px;
-        height: 52px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-</style>
+        .filter-bar .form-control {
+            height: 36px;
+            font-size: .825rem;
+            border-color: #e2e8f0;
+            border-radius: .4rem;
+            min-width: 180px;
+        }
+
+        .filter-bar .btn {
+            height: 36px;
+            font-size: .825rem;
+            padding: 0 .9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        /* ─── Action bar ─────────────────────────────────────── */
+        .action-bar {
+            padding: .65rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            flex-wrap: wrap;
+            min-height: 50px;
+        }
+
+        .action-bar .selection-info {
+            font-size: .775rem;
+            color: #64748b;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: .15rem .7rem;
+            display: none;
+        }
+
+        .action-bar .selection-info.visible {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+        }
+
+        .action-bar .selection-info strong {
+            color: #2563eb;
+        }
+
+        .action-bar .btn {
+            height: 34px;
+            font-size: .8rem;
+            padding: 0 .8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .action-bar .ms-auto {
+            margin-left: auto;
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* ─── Table ──────────────────────────────────────────── */
+        .table-responsive {
+            padding: 0;
+        }
+
+        #payrolls-table {
+            width: 100% !important;
+            font-size: .8rem;
+            border-collapse: collapse;
+        }
+
+        #payrolls-table thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: .685rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: .75rem .9rem;
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #payrolls-table tbody td {
+            padding: .75rem .9rem;
+            vertical-align: middle;
+            text-align: center;
+            border: none;
+            border-bottom: 1px solid #f8fafc;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        #payrolls-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        #payrolls-table tbody tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* employee cell */
+        .employee-cell {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            text-align: left;
+            justify-content: flex-start;
+        }
+
+        .emp-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: .65rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .emp-name {
+            font-weight: 500;
+            font-size: .8rem;
+            line-height: 1.2;
+        }
+
+        .emp-nip {
+            font-size: .7rem;
+            color: #94a3b8;
+        }
+
+        /* numeric cells */
+        .num-cell {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .num-negative {
+            color: #dc2626;
+        }
+
+        .take-home-cell {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        /* period badge */
+        .badge-period {
+            display: inline-flex;
+            padding: .15rem .6rem;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 500;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .badge-period.p2 {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        /* ─── DataTables overrides ───────────────────────────── */
+        div.dataTables_wrapper div.dataTables_length select,
+        div.dataTables_wrapper div.dataTables_filter input {
+            height: 32px;
+            font-size: .8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: .375rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_info {
+            font-size: .78rem;
+            color: #64748b;
+            padding-top: .65rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_paginate {
+            padding-top: .4rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_paginate .paginate_button {
+            font-size: .78rem;
+            border-radius: .375rem !important;
+            padding: .2rem .55rem;
+        }
+
+        .dt-buttons {
+            display: none; /* hidden — we use our own Export button */
+        }
+
+        .dataTables_wrapper {
+            padding: 1rem 1.25rem 1.25rem;
+        }
+
+        /* ─── Responsive ─────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .filter-bar,
+            .action-bar {
+                padding: .75rem;
+            }
+
+            .action-bar .ms-auto {
+                margin-left: 0;
+            }
+        }
+    </style>
+@endpush
+
 @section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Payrolls</h1>
-            </div>
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4><i class="fas fa-user-shield"></i> List Payrolls</h4>
+<div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Payrolls</h1>
+        </div>
+
+        <div class="section-body">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+
+                        {{-- Card Header --}}
+                        <div class="card-header">
+                            <div class="card-header-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
                             </div>
-                            <div class="card-body">
-                                <div class="row mb-4 align-items-end">
-                                    <div class="col-md-3">
-                                        <label for="filter_month_year" class="form-label">Filter Month - Year</label>
-                                        <input type="text" id="filter_month_year" class="form-control"
-                                            placeholder="Choose Month - Year">
-                                    </div>
-                                    <div class="col-md-auto">
-                                        <button id="btn_filter" class="btn btn-primary">
-                                            <i class="fas fa-filter"></i> Filter
-                                        </button>
-                                    </div>
-                                    <div class="col-md-auto">
-                                        <button id="btn_reset" class="btn btn-secondary">
-                                            <i class="fas fa-undo"></i> Reset
-                                        </button>
-                                    </div>
-                                </div>
-                                <form id="bulk-delete-form" method="POST" action="{{ route('payrolls.bulkDelete') }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-bordered" id="users-table">
-                                            <thead class="thead-light">
-                                                <tr>
-                                                    <th class="text-center">
-                                                        <button type="button" id="select-all"
-                                                            class="btn btn-primary btn-sm">
-                                                            Select All
-                                                        </button>
-                                                    </th>
-                                                    <th class="text-center">No.</th>
-                                                    <th class="text-center">Employee Name</th>
-                                                    <th class="text-center">NIP</th>
-                                                    <th class="text-center">Attendance</th>
-                                                    <th class="text-center">Basic Salary</th>
-                                                    <th class="text-center">Allowance</th>
-                                                    <th class="text-center">Daily Allowance</th>
-                                                    <th class="text-center">House Allowance</th>
-                                                    <th class="text-center">Meal Allowance</th>
-                                                    <th class="text-center">Transport Allowance</th>
-                                                    <th class="text-center">Reamburse</th>
-                                                    <th class="text-center">Bonus</th>
-                                                    <th class="text-center">Overtime</th>
-                                                    <th class="text-center">Overtime Deducion</th>
-                                                    <th class="text-center">Late Fine</th>
-                                                    <th class="text-center">Punishment</th>
-                                                    <th class="text-center">BPJS Kesehatan</th>
-                                                    <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                    <th class="text-center">Tax</th>
-                                                    <th class="text-center">Debt</th>
-                                                    <th class="text-center">Gross Salary</th>
-                                                    <th class="text-center">Total Outcome</th>
-                                                    <th class="text-center">Total Income</th>
-                                                    <th class="text-center">Take Home</th>
-                                                    <th class="text-center">Month</th>
-                                                    <th class="text-center">Period</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
-                                    </div>
-                                    <form id="bulk-delete-form" action="{{ route('payrolls.bulkDelete') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="payroll_ids" id="bulk-delete-hidden">
-                                        <div class="d-flex flex-wrap align-items-stretch mt-3 gap-3 payroll-buttons">
-                                            <button type="submit" class="btn btn-danger">
-                                                <i class="fas fa-trash me-1"></i> Delete Payroll
-                                            </button>
-                                    </form>
-
-                                    {{-- Generate All --}}
-                                    <form action="{{ route('Payrolls.generateAll') }}" method="POST"
-                                        onsubmit="return confirm('Generate Payrolls?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-book me-1"></i> Generate All
-                                        </button>
-                                    </form>
-
-                                    <a href="{{ route('pages.Importpayroll') }}" class="btn btn-dark">
-                                        <i class="fas fa-users me-1"></i> Import Payrolls
-                                    </a>
-                            </div>
-
+                            <h4>List payrolls</h4>
                         </div>
-                    </div>
+
+                        {{-- Filter Bar --}}
+                        <div class="filter-bar">
+                            <div class="form-group">
+                                <label class="form-label" for="filter_month_year">Month – year</label>
+                                <input type="text" id="filter_month_year" class="form-control"
+                                    placeholder="Choose month – year">
+                            </div>
+                            <button id="btn_filter" type="button" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <button id="btn_reset" type="button" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+
+                            <div class="ms-auto d-flex gap-2 flex-wrap align-items-center">
+                                {{-- Generate All --}}
+                                <form action="{{ route('Payrolls.generateAll') }}" method="POST"
+                                    onsubmit="return confirm('Generate payrolls for all employees?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success" style="height:36px;font-size:.825rem">
+                                        <i class="fas fa-cogs"></i> Generate all
+                                    </button>
+                                </form>
+
+                                {{-- Import --}}
+                                <a href="{{ route('pages.Importpayroll') }}"
+                                    class="btn btn-dark" style="height:36px;font-size:.825rem;display:inline-flex;align-items:center;gap:.4rem">
+                                    <i class="fas fa-file-import"></i> Import payrolls
+                                </a>
+
+                                {{-- Export Excel (triggers DataTables button) --}}
+                                <button id="btn_export" type="button"
+                                    class="btn btn-outline-success" style="height:36px;font-size:.825rem">
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Action Bar (bulk actions + select-all) --}}
+                        <div class="action-bar">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="checkbox" id="select-all"
+                                    style="width:15px;height:15px;cursor:pointer;accent-color:#2563eb">
+                                <label for="select-all"
+                                    style="font-size:.8rem;color:#64748b;cursor:pointer;user-select:none;margin:0">
+                                    Select all
+                                </label>
+                                <span class="selection-info" id="selection-info">
+                                    <strong id="selection-count">0</strong> selected
+                                </span>
+                            </div>
+
+                            {{-- Bulk Delete --}}
+                            <form id="bulk-delete-form"
+                                action="{{ route('payrolls.bulkDelete') }}" method="POST"
+                                class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="payroll_ids" id="bulk-delete-ids">
+                                <button type="submit" class="btn btn-danger" id="btn-bulk-delete"
+                                    style="opacity:.5;pointer-events:none">
+                                    <i class="fas fa-trash"></i> Delete selected
+                                </button>
+                            </form>
+                        </div>
+
+                        {{-- Table --}}
+                        <div class="table-responsive">
+                            <table id="payrolls-table" class="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>{{-- checkbox --}}
+                                        <th>No.</th>
+                                        <th style="text-align:left;min-width:170px">Employee</th>
+                                        <th>Attendance</th>
+                                        <th>Basic salary</th>
+                                        <th>Allowance</th>
+                                        <th>Daily allow.</th>
+                                        <th>House allow.</th>
+                                        <th>Meal allow.</th>
+                                        <th>Transport</th>
+                                        <th>Reimburse</th>
+                                        <th>Bonus</th>
+                                        <th>Overtime</th>
+                                        <th>OT deduction</th>
+                                        <th>Late fine</th>
+                                        <th>Punishment</th>
+                                        <th>BPJS Kes.</th>
+                                        <th>BPJS Ket.</th>
+                                        <th>Tax</th>
+                                        <th>Debt</th>
+                                        <th>Gross salary</th>
+                                        <th>Total outcome</th>
+                                        <th>Total income</th>
+                                        <th>Take home</th>
+                                        <th>Month</th>
+                                        <th>Period</th>
+                                    </tr>
+                                </thead>
+                                {{-- tbody filled by DataTables --}}
+                            </table>
+                        </div>
+
+                    </div>{{-- /.card --}}
                 </div>
             </div>
-    </div>
+        </div>
     </section>
-    </div>
+</div>
 @endsection
 
 @push('scripts')
+    {{-- DataTables --}}
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    {{-- SweetAlert2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- Flatpickr --}}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+
     <script>
-        document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
-            const checked = document.querySelectorAll('input.payroll-checkbox:checked');
+    $(function () {
+
+        /* ── Flatpickr month picker ── */
+        flatpickr('#filter_month_year', {
+            dateFormat: 'Y-m',
+            plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: 'Y-m', altFormat: 'F Y' })]
+        });
+
+        /* ── Helper: format rupiah ── */
+        function rupiah(val) {
+            if (!val || val == 0) return '-';
+            return 'Rp ' + parseInt(val).toLocaleString('id-ID');
+        }
+
+        /* ── Helper: rupiah with negative color ── */
+        function rupiahNeg(val) {
+            if (!val || val == 0) return '-';
+            return '<span class="num-negative">Rp ' + parseInt(val).toLocaleString('id-ID') + '</span>';
+        }
+
+        /* ── Helper: employee initials ── */
+        function initials(name) {
+            if (!name) return '?';
+            return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+        }
+
+        /* ── DataTable ── */
+        var table = $('#payrolls-table').DataTable({
+            processing: true,
+            serverSide: true,
+            scrollX: true,
+            autoWidth: false,
+            ajax: {
+                url: '{{ route('payrolls.payrolls') }}',
+                data: function (d) {
+                    d.month_year = $('#filter_month_year').val();
+                }
+            },
+            columns: [
+                /* 0 — checkbox */
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function (data) {
+                        return '<input type="checkbox" class="payroll-checkbox" '
+                            + 'value="' + data.id + '" '
+                            + 'style="width:15px;height:15px;cursor:pointer;accent-color:#2563eb">';
+                    }
+                },
+                /* 1 — row number */
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                /* 2 — employee (name + nip merged) */
+                {
+                    data: 'employee_name',
+                    name: 'employee_name',
+                    render: function (data, type, row) {
+                        var name = data || '-';
+                        var nip  = row.employee_pengenal || '-';
+                        return '<div class="employee-cell">'
+                            + '<div class="emp-avatar">' + initials(name) + '</div>'
+                            + '<div><div class="emp-name">' + name + '</div>'
+                            + '<div class="emp-nip">' + nip + '</div></div>'
+                            + '</div>';
+                    }
+                },
+                /* 3 — attendance */
+                {
+                    data: 'attendance',
+                    name: 'attendance',
+                    className: 'text-center',
+                    render: function (data) { return data ? data + ' days' : '-'; }
+                },
+                /* 4–13 — income columns */
+                { data: 'basic_salary',        name: 'basic_salary',        className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'allowance',            name: 'allowance',           className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'daily_allowance',      name: 'daily_allowance',     className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'house_allowance',      name: 'house_allowance',     className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'meal_allowance',       name: 'meal_allowance',      className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'transport_allowance',  name: 'transport_allowance', className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'reamburse',            name: 'reamburse',           className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'bonus',                name: 'bonus',               className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'overtime',             name: 'overtime',            className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                /* 13–18 — deduction columns (merah) */
+                { data: 'overtime_deduction', name: 'overtime_deduction', className: 'text-center num-cell', render: function(d){ return rupiahNeg(d); } },
+                { data: 'late_fine',          name: 'late_fine',          className: 'text-center num-cell', render: function(d){ return rupiahNeg(d); } },
+                { data: 'punishment',         name: 'punishment',         className: 'text-center num-cell', render: function(d){ return rupiahNeg(d); } },
+                { data: 'bpjs_kes',           name: 'bpjs_kes',           className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'bpjs_ket',           name: 'bpjs_ket',           className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'tax',                name: 'tax',                className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                { data: 'debt',               name: 'debt',               className: 'text-center num-cell', render: function(d){ return rupiahNeg(d); } },
+                /* 20–23 — summary columns */
+                { data: 'gross_salary', name: 'gross_salary', className: 'text-center num-cell', render: function(d){ return '<strong>' + rupiah(d) + '</strong>'; } },
+                { data: 'deductions',   name: 'deductions',   className: 'text-center num-cell', render: function(d){ return '<span class="num-negative"><strong>' + (d ? 'Rp ' + parseInt(d).toLocaleString('id-ID') : '-') + '</strong></span>'; } },
+                { data: 'salary',       name: 'salary',       className: 'text-center num-cell', render: function(d){ return rupiah(d); } },
+                {
+                    data: 'take_home',
+                    name: 'take_home',
+                    className: 'text-center num-cell take-home-cell',
+                    render: function(d){ return d ? '<strong>Rp ' + parseInt(d).toLocaleString('id-ID') + '</strong>' : '-'; }
+                },
+                /* 24–25 — month / period */
+                {
+                    data: 'month_year',
+                    name: 'month_year',
+                    className: 'text-center',
+                    render: function (data) {
+                        if (!data) return '-';
+                        var d = new Date(data);
+                        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                    }
+                },
+                {
+                    data: 'period',
+                    name: 'period',
+                    className: 'text-center',
+                    render: function (data) {
+                        if (!data) return '-';
+                        var cls = data == 2 ? 'p2' : '';
+                        return '<span class="badge-period ' + cls + '">Period ' + data + '</span>';
+                    }
+                }
+            ],
+            order: [[24, 'desc']],
+            dom: 'lBfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: 'Excel',
+                    className: 'btn btn-success btn-sm d-none', /* hidden — triggered via #btn_export */
+                    exportOptions: {
+                        columns: [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+                    }
+                }
+            ],
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+            language: {
+                search: '',
+                searchPlaceholder: 'Search...',
+                lengthMenu: 'Show _MENU_ entries',
+                info: 'Showing _START_–_END_ of _TOTAL_ entries',
+                infoEmpty: 'No entries found',
+                emptyTable: 'No payroll data available'
+            }
+        });
+
+        /* ── Filter / Reset buttons ── */
+        $('#btn_filter').on('click', function () { table.ajax.reload(); });
+        $('#btn_reset').on('click', function () {
+            $('#filter_month_year').val('');
+            table.ajax.reload();
+        });
+
+        /* ── Export Excel proxy button ── */
+        $('#btn_export').on('click', function () {
+            table.button('.buttons-excel').trigger();
+        });
+
+        /* ── Select-all toggle ── */
+        $('#select-all').on('change', function () {
+            var checked = $(this).is(':checked');
+            $('input.payroll-checkbox').prop('checked', checked);
+            updateSelectionUI();
+        });
+
+        /* ── Per-row checkbox change ── */
+        $('#payrolls-table').on('change', 'input.payroll-checkbox', function () {
+            var all   = $('input.payroll-checkbox').length;
+            var chkd  = $('input.payroll-checkbox:checked').length;
+            $('#select-all').prop('indeterminate', chkd > 0 && chkd < all);
+            $('#select-all').prop('checked', chkd === all && all > 0);
+            updateSelectionUI();
+        });
+
+        function updateSelectionUI() {
+            var count = $('input.payroll-checkbox:checked').length;
+            var $info = $('#selection-info');
+            var $btn  = $('#btn-bulk-delete');
+            $('#selection-count').text(count);
+            if (count > 0) {
+                $info.addClass('visible');
+                $btn.css({ opacity: 1, pointerEvents: 'auto' });
+            } else {
+                $info.removeClass('visible');
+                $btn.css({ opacity: .5, pointerEvents: 'none' });
+            }
+        }
+
+        /* ── Bulk delete form submit ── */
+        $('#bulk-delete-form').on('submit', function (e) {
+            e.preventDefault();
+            var checked = $('input.payroll-checkbox:checked');
             if (checked.length === 0) {
-                e.preventDefault();
-                Swal.fire("Failed", "Select data first.", "error");
+                Swal.fire('No selection', 'Please select at least one record.', 'warning');
                 return;
             }
-            e.preventDefault();
-
             Swal.fire({
-                title: 'Are you sure the selected data will be deleted?',
+                title: 'Delete ' + checked.length + ' record(s)?',
+                text: 'This action cannot be undone.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Abort!',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Yes, delete',
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
+            }).then(function (result) {
                 if (result.isConfirmed) {
-                    const ids = Array.from(checked).map(cb => cb.value);
-                    document.getElementById('bulk-delete-hidden').value = ids.join(',');
-                    e.target.submit();
+                    var ids = checked.map(function () { return this.value; }).get();
+                    $('#bulk-delete-ids').val(ids.join(','));
+                    $('#bulk-delete-form')[0].submit();
                 }
             });
         });
-        flatpickr("#filter_month_year", {
-            dateFormat: "Y-m",
-            plugins: [
-                new monthSelectPlugin({
-                    shorthand: true,
-                    dateFormat: "Y-m",
-                    altFormat: "F Y"
-                })
-            ]
-        });
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                scrollY: "700px",
-                scrollX: true,
-                autoWidth: false,
-                ajax: {
-                    url: '{{ route('payrolls.payrolls') }}',
-                    data: function(d) {
-                        d.month_year = $('#filter_month_year').val();
-                    }
-                },
-                columns: [{
-                        data: 'checkbox',
-                        name: 'checkbox',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center align-middle'
-                    },
-                    {
-                        data: null,
-                        name: 'id',
-                        className: 'text-center align-middle',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? data : '-';
-                        }
-                    },
-                    {
-                        data: 'employee_pengenal',
-                        name: 'employee_pengenal',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? data : '-';
-                        }
-                    },
-                    {
-                        data: 'attendance',
-                        name: 'attendance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return data + ' days';
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'basic_salary',
-                        name: 'basic_salary',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'allowance',
-                        name: 'allowance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'daily_allowance',
-                        name: 'daily_allowance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
 
-                    {
-                        data: 'house_allowance',
-                        name: 'house_allowance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'meal_allowance',
-                        name: 'meal_allowance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'transport_allowance',
-                        name: 'transport_allowance',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-
-                    {
-                        data: 'reamburse',
-                        name: 'reamburse',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'bonus',
-                        name: 'bonus',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'overtime',
-                        name: 'overtime',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'overtime_deduction',
-                        name: 'overtime_deduction',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'late_fine',
-                        name: 'late_fine',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'punishment',
-                        name: 'punishment',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-
-
-                    {
-                        data: 'bpjs_kes',
-                        name: 'bpjs_kes',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'bpjs_ket',
-                        name: 'bpjs_ket',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-
-
-
-                    {
-                        data: 'tax',
-                        name: 'tax',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'debt',
-                        name: 'debt',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'gross_salary',
-                        name: 'gross_salary',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'deductions',
-                        name: 'deductions',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'salary',
-                        name: 'salary',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'take_home',
-                        name: 'take_home',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                return 'Rp. ' + parseInt(data).toLocaleString('id-ID');
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'month_year',
-                        name: 'month_year',
-                        className: 'text-center',
-                        render: function(data) {
-                            if (data) {
-                                const date = new Date(data);
-                                const year = date.getFullYear();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                return `${year}-${month}`;
-                            }
-                            return '-';
-                        }
-                    },
-                    {
-                        data: 'period',
-                        name: 'period',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? data : '-';
-                        }
-                    }
-
-
-
-
-                ],
-                order: [
-                    [9, 'desc']
-                ],
-                dom: 'lBfrtip',
-                buttons: [{
-                    extend: 'excelHtml5',
-                    text: 'Excel',
-                    className: 'btn btn-success',
-                    exportOptions: {
-                        columns: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                            20, 21, 22
-                        ]
-                    }
-                }],
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, "All"]
-                ]
-            });
-
-            $('#btn_filter').click(function() {
-                table.ajax.reload();
-            });
-
-            $('#btn_reset').click(function() {
-                $('#filter_month_year').val('');
-                table.ajax.reload();
-            });
-        });
+        /* ── Session flash messages ── */
         @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
+            Swal.fire({ icon: 'success', title: 'Success', text: '{{ session('success') }}' });
         @endif
         @if (session('error'))
-            Swal.fire({
-                title: 'Error!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: '{{ session('error') }}' });
         @endif
-        $('#select-all').on('click', function() {
-            let isChecked = $(this).data('checked') || false;
-            $('input.payroll-checkbox').prop('checked', !isChecked);
-            $(this).data('checked', !isChecked);
-            $(this).text(!isChecked ? 'Deselect All' : 'Select All');
-        });
+
+    }); /* end document.ready */
     </script>
 @endpush

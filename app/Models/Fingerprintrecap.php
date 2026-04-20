@@ -8,9 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class FingerprintRecap extends Model
 {
     use HasUuids;
-
     protected $table = 'fingerprints_recap';
-
     protected $fillable = [
         'employee_id',
         'pin',

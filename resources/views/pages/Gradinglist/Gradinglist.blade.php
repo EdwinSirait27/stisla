@@ -227,25 +227,12 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
-                    // {
-                    //     data: null,
-                    //     name: 'id',
-                    //     className: 'text-center align-middle',
-                    //     render: function(data, type, row, meta) {
-                    //         return meta.row + meta.settings._iDisplayStart + 1;
-                    //     }
-                    // },
+                   
                     {
                         data: 'employee_name',
                         name: 'employee_name',
                         className: 'text-center'
                     },
-                    // {
-                    //     data: 'grading_code',
-                    //     name: 'grading_code',
-                    //     className: 'text-center',
-                    //     defaultContent: 'Empty'
-                    // },
                     {
                         data: 'grading_name',
                         name: 'grading_name',
@@ -265,29 +252,10 @@
                         defaultContent: 'Empty'
                     },
 
-                    // {
-                    //     data: 'is_manager',
-                    //     name: 'is_manager',
-                    //     className: 'text-center',
-                    //     render: function(data, type, row) {
-                    //         return data == 1 ? 'Yes' : 'No';
-                    //     }
-                    // },
-                  
-
-
-                    // {
-                    //     data: 'action',
-                    //     name: 'action',
-                    //     orderable: false,
-                    //     searchable: false,
-                    //     className: 'text-center'
-                    // }
+                   
                 ],
                 initComplete: function() {
-                    // $('.dataTables_filter input').addClass('form-control');
-                    // $('.dataTables_length select').addClass('form-control');
-                }
+                   }
             });
 
             @if (session('success'))

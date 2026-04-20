@@ -227,26 +227,7 @@
                                                 </div>
                                             </div>
                                             </div>
-                                            {{-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <div class="form-check">
-
-                                                     <input type="checkbox" name="is_paid" id="is_paid" value="1"
-                                                            value="1"
-                                                            class="form-check-input @error('is_paid') is-invalid @enderror"
-                                                            {{ old('is_paid', $type->is_paid) ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="is_paid">
-                                                            <i class="fas fa-id-card"></i> {{ __('Is Paid?') }}
-                                                        </label>
-                                                        @error('is_paid')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> --}}
+                                           
                                       
                                          <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

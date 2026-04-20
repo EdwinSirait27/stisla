@@ -633,30 +633,7 @@
     </script>
     <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
     <script>
-        // tinymce.init({
-        //     selector: '#role_summary',
-        //     plugins: 'lists link image table code',
-        //     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code preview',
-        //     menubar: false,
-        //     height: 300,
-        //     license_key: 'gpl'
-        // });
-        // tinymce.init({
-        //     selector: '#key_respon',
-        //     plugins: 'lists link image table code',
-        //     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code preview',
-        //     menubar: false,
-        //     height: 300,
-        //     license_key: 'gpl'
-        // });
-        // tinymce.init({
-        //     selector: '#qualifications',
-        //     plugins: 'lists link image table code',
-        //     toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | code preview',
-        //     menubar: false,
-        //     height: 300,
-        //     license_key: 'gpl'
-        // });
+       
     </script>
     <script>
         @if (session('success'))
