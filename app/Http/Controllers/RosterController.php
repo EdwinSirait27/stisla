@@ -18,7 +18,6 @@ class RosterController extends Controller
         $endDate   = $request->end_date   ?? Carbon::now()->endOfMonth()->toDateString();
         $storeId   = $request->store_id;
 
-        // ── Wajib pilih Store dulu ──
         $employees = collect();
         $shifts    = collect();
         $dates     = [];
@@ -172,6 +171,25 @@ class RosterController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Berhasil copy {$count} jadwal.",
+        ]);
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'employee_ids'   => 'required|array|min:1',
+            'employee_ids.*' => 'exists:employees_tables,id',
+            'start_date'     => 'required|date',
+            'end_date'       => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $count = Roster::whereIn('employee_id', $request->employee_ids)
+            ->whereBetween('date', [$request->start_date, $request->end_date])
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menghapus {$count} jadwal.",
         ]);
     }
 }

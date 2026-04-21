@@ -466,6 +466,7 @@ Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function (
     Route::post('/destroy',     [RosterController::class, 'destroy'])    ->name('destroy');
     Route::post('/bulk-assign', [RosterController::class, 'bulkAssign']) ->name('bulkAssign');
     Route::post('/copy',        [RosterController::class, 'copyRoster']) ->name('copyRoster');
+    Route::post('/bulk-delete', [RosterController::class, 'bulkDelete']) ->name('bulkDelete');
 });
 
 // ── Schedule (jadwal harian karyawan) ──

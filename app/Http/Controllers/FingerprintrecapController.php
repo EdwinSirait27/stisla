@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+
+
 use App\Models\Employee;
 use App\Models\FingerprintRecap;
+use App\Models\Roster;
 use App\Models\Stores;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -30,6 +33,8 @@ class FingerprintRecapController extends Controller
 
     public function getData(Request $request)
     {
+            
+
         Log::info('FingerprintRecap@getData dipanggil', [
             'start_date' => $request->input('start_date'),
             'end_date'   => $request->input('end_date'),
@@ -41,63 +46,74 @@ class FingerprintRecapController extends Controller
             $endDate   = $request->input('end_date', Carbon::now()->toDateString());
             $storeName = $request->input('store_name');
 
-            Log::info('Parameter query', [
-                'start_date' => $startDate,
-                'end_date'   => $endDate,
-                'store_name' => $storeName,
-            ]);
-
-            $query = DB::table('fingerprints_recap as fr')
-                ->join('employees_tables as e', 'e.id', '=', 'fr.employee_id')
-                ->join('stores_tables as s', 's.id', '=', 'e.store_id')
-                ->leftJoin('position_tables as p', 'p.id', '=', 'e.position_id')
-                ->select([
-                    'e.id as employee_id',
-                    'e.employee_name',
-                    'e.employee_pengenal',
-                    'e.status_employee',
-                    's.name as store_name',
-                    'p.name as position_name',
-                    DB::raw('SUM(fr.is_counted) as total_hari'),
-                    DB::raw("'{$startDate}' as start_date"),
-                    DB::raw("'{$endDate}' as end_date"),
-                ])
-                ->whereBetween('fr.date', [$startDate, $endDate])
-                ->whereNull('e.deleted_at')
-                ->groupBy(
-                    'e.id',
-                    'e.employee_name',
-                    'e.employee_pengenal',
-                    'e.status_employee',
-                    's.name',
-                    'p.name'
-                );
+            // Ambil semua employees
+            $employeesQuery = Employee::with('store:id,name')
+                ->select('id', 'employee_name', 'store_id')
+                ->whereNotNull('pin')
+                ->whereNull('deleted_at');
 
             if ($storeName) {
-                $query->where('s.name', $storeName);
-                Log::info('Filter store aktif', ['store_name' => $storeName]);
+                $employeesQuery->whereHas('store', fn($q) => $q->where('name', $storeName));
             }
 
-            // Log raw SQL untuk debug query
-            Log::debug('SQL Query', [
-                'sql'      => $query->toSql(),
-                'bindings' => $query->getBindings(),
-            ]);
+            $employees   = $employeesQuery->get();
+            $employeeIds = $employees->pluck('id')->toArray();
 
-            $result = DataTables::of($query)
-                ->addColumn('employee_name', fn($r) => $r->employee_name ?? '-')
-                ->addColumn('nip', fn($r) => $r->employee_pengenal ?? '-')
-                ->addColumn('store_name', fn($r) => $r->store_name ?? '-')
-                ->addColumn('position_name', fn($r) => $r->position_name ?? '-')
-                ->addColumn('status_employee', fn($r) => $r->status_employee ?? '-')
-                ->addColumn('total_hari', fn($r) => ($r->total_hari ?? 0) . ' Hari')
-                ->addColumn('start_date', fn($r) => Carbon::parse($r->start_date)->format('d-m-Y'))
-                ->addColumn('end_date', fn($r) => Carbon::parse($r->end_date)->format('d-m-Y'))
-                ->make(true);
+            // Ambil semua recap dalam periode
+            $recaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->get()
+                ->groupBy('employee_id');
+
+            // Ambil roster untuk hitung total hari kerja seharusnya
+            $rosters = Roster::whereIn('employee_id', $employeeIds)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->where('day_type', 'Work')
+                ->get()
+                ->groupBy('employee_id');
+
+            $result = $employees->map(function ($employee) use ($recaps, $rosters, $startDate, $endDate) {
+                $employeeRecaps  = $recaps->get($employee->id, collect());
+                $employeeRosters = $rosters->get($employee->id, collect());
+
+                // Total hari kerja (is_counted = 1)
+                $totalHariKerja = $employeeRecaps->where('is_counted', 1)->count();
+
+                // Total hari seharusnya masuk (dari roster day_type = Work)
+                $totalHariSeharusnya = $employeeRosters->count();
+
+                // Total hari telat = hari seharusnya - hari terhitung
+                $totalHariTelat = max(0, $totalHariSeharusnya - $totalHariKerja);
+
+                // Remarks — hari-hari yang is_counted = 0 tapi roster = Work
+                $rosterDates  = $employeeRosters->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+                $countedDates = $employeeRecaps->where('is_counted', 1)
+                    ->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+
+                $telatDates = array_diff($rosterDates, $countedDates);
+                $remarks = collect($telatDates)
+                    ->sort()
+                    ->map(fn($d) => Carbon::parse($d)->format('d/m/Y'))
+                    ->implode(', ');
+
+                return [
+                    'employee_name'    => $employee->employee_name ?? '-',
+                    'store_name'       => $employee->store->name ?? '-',
+                    'total_hari'       => $totalHariKerja . ' hari',
+                    'total_hari_telat' => $totalHariTelat . ' hari',
+                    'remarks'          => $remarks ?: '-',
+                    'period_in'        => Carbon::parse($startDate)->format('d-m-Y'),
+                    'period_out'       => Carbon::parse($endDate)->format('d-m-Y'),
+                ];
+            });
 
             Log::info('FingerprintRecap@getData berhasil');
 
-            return $result;
+            return DataTables::of($result)->make(true);
 
         } catch (\Exception $e) {
             Log::error('FingerprintRecap@getData ERROR', [

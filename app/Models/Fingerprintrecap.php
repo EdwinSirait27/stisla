@@ -13,6 +13,8 @@ class FingerprintRecap extends Model
         'employee_id',
         'pin',
         'date',
+        'period_in',
+        'period_out',
         'time_in',
         'time_out',
         'duration_minutes',

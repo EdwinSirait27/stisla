@@ -126,7 +126,10 @@
                                             <th class="text-center">Nama</th>
                                             <th class="text-center">Store</th>
                                             <th class="text-center">Total Hari Kerja</th>
-                                            <th class="text-center">Periode</th>
+                                            <th class="text-center">Total Hari Telat</th>
+                                            <th class="text-center">Remarks</th>
+                                            <th class="text-center">Periode In</th>
+                                            <th class="text-center">Periode Out</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -208,18 +211,36 @@
                     name: 'total_hari',
                     className: 'text-center',
                     render: function(data) {
-                        if (!data || data === '0 Hari') return '<span class="text-muted">-</span>';
-                        return '<span class="badge-hari">' + data + '</span>';
+                        return '<span class="badge-hari">' + (data ?? '0 hari') + '</span>';
                     }
                 },
                 {
-                    data: 'start_date',
-                    name: 'start_date',
+                    data: 'total_hari_telat',
+                    name: 'total_hari_telat',
                     className: 'text-center',
-                    render: function(data, type, row) {
-                        return row.start_date + ' s/d ' + row.end_date;
+                    render: function(data) {
+                        return '<span style="color:#991b1b;font-weight:700">' + (data ?? '0 hari') + '</span>';
                     }
                 },
+
+                {
+                    data: 'remarks',   
+                    name:'remarks',   
+                    className:'text-center',
+                    render: function(data) {
+                        if (!data || data === '-') return '<span class="text-muted">-</span>';
+                        return '<span style="color:#991b1b;font-weight:600">' + data + '</span>';
+                    }},
+                    
+                {data: 'period_in',   name:'period_in',  className:'text-center'},
+                {
+                    data: 'period_out',
+                    name: 'period_out',
+                    className: 'text-center',
+                    render: function (data) {
+                        return data || '-'
+                    }
+                }, 
             ],
             initComplete: function() {
                 $('#custom-length').html($('.dataTables_length'));

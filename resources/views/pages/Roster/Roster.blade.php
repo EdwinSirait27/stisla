@@ -110,12 +110,15 @@
     <div class="section-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h1>📅 Roster</h1>
         @if($storeId)
-        <div class="d-flex gap-2">
-            <button class="btn-primary-r" onclick="openModal('modalBulk')">
+        <div class="d-flex gap-16px">
+            <button class="btn-primary-r" onclick="openModal('modalBulk')" style="padding:8px 24px">
                 <i class="fas fa-calendar-plus"></i> Bulk Assign
             </button>
-            <button class="btn-secondary-r" onclick="openModal('modalCopy')">
+            <button class="btn-secondary-r" onclick="openModal('modalCopy')" style="padding:8px 24px">
                 <i class="fas fa-copy"></i> Copy Roster
+            </button>
+            <button class="btn-danger-r" onclick="openModal('modalBulkDelete')" style="padding:8px 24px;font-size:13px">
+                <i class="fas fa-trash"></i> Bulk Delete
             </button>
         </div>
         @endif
@@ -404,6 +407,46 @@
     </div>
 </div>
 
+{{-- ── Modal: Bulk Delete ── --}}
+<div class="m-overlay" id="modalBulkDelete">
+    <div class="m-box" style="width:400px">
+        <div class="m-head">
+            <span>🗑️ Bulk Delete Roster</span>
+            <button onclick="closeModal('modalBulkDelete')">×</button>
+        </div>
+        <div class="m-body">
+            <label class="f-label">Pilih Karyawan</label>
+            <select id="deleteEmps" class="f-control mb-1" multiple style="height:100px">
+                @foreach($employees as $emp)
+                    <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted d-block mb-3">Tahan <kbd>Ctrl</kbd> untuk pilih lebih dari satu</small>
+
+            <div class="d-flex gap-2 mb-3">
+                <div style="flex:1">
+                    <label class="f-label">Start Date</label>
+                    <input type="date" id="deleteStart" class="f-control" value="{{ $startDate }}">
+                </div>
+                <div style="flex:1">
+                    <label class="f-label">End Date</label>
+                    <input type="date" id="deleteEnd" class="f-control" value="{{ $endDate }}">
+                </div>
+            </div>
+
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px;font-size:12px;color:#991b1b;">
+                ⚠️ Semua jadwal karyawan yang dipilih dalam rentang tanggal ini akan dihapus permanen!
+            </div>
+        </div>
+        <div class="m-foot">
+            <button class="btn-secondary-r" onclick="closeModal('modalBulkDelete')">Batal</button>
+            <button class="btn-danger-r" onclick="saveBulkDelete()">
+                <i class="fas fa-trash"></i> Hapus
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="rosterToast"></div>
 @endsection
 
@@ -501,6 +544,10 @@ function saveBulk() {
     const selected = [...document.getElementById('bulkEmps').selectedOptions].map(o => o.value);
     if (!selected.length) { toast('⚠️ Pilih minimal 1 karyawan.', false); return; }
 
+    const btn = document.querySelector('#modalBulk .btn-primary-r');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
     fetch('{{ route('roster.bulkAssign') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
@@ -516,15 +563,29 @@ function saveBulk() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Berhasil!';
             toast('✅ ' + data.message);
             closeModal('modalBulk');
             setTimeout(() => location.reload(), 700);
+        } else {
+            toast('❌ Gagal memproses.', false);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-calendar-check"></i> Assign';
         }
+    })
+    .catch(() => {
+        toast('❌ Terjadi kesalahan.', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-calendar-check"></i> Assign';
     });
 }
 
 // ── Copy roster ──
 function saveCopy() {
+    const btn = document.querySelector('#modalCopy .btn-primary-r');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
     fetch('{{ route('roster.copyRoster') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
@@ -538,10 +599,59 @@ function saveCopy() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Berhasil!';
             toast('✅ ' + data.message);
             closeModal('modalCopy');
             setTimeout(() => location.reload(), 700);
+        } else {
+            toast('❌ Gagal memproses.', false);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
         }
+    })
+    .catch(() => {
+        toast('❌ Terjadi kesalahan.', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+    });
+}
+
+// ── Bulk delete ──
+function saveBulkDelete() {
+    const selected = [...document.getElementById('deleteEmps').selectedOptions].map(o => o.value);
+    if (!selected.length) { toast('⚠️ Pilih minimal 1 karyawan.', false); return; }
+    if (!confirm('Yakin ingin menghapus semua jadwal yang dipilih?')) return;
+
+    const btn = document.querySelector('#modalBulkDelete .btn-danger-r');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+    fetch('{{ route('roster.bulkDelete') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+        body: JSON.stringify({
+            employee_ids: selected,
+            start_date:   document.getElementById('deleteStart').value,
+            end_date:     document.getElementById('deleteEnd').value,
+        }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Berhasil!';
+            toast('🗑️ ' + data.message);
+            closeModal('modalBulkDelete');
+            setTimeout(() => location.reload(), 700);
+        } else {
+            toast('❌ Gagal menghapus.', false);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash"></i> Hapus';
+        }
+    })
+    .catch(() => {
+        toast('❌ Terjadi kesalahan.', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash"></i> Hapus';
     });
 }
 
