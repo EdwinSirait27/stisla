@@ -23,20 +23,14 @@ class FingerprintRecap extends Model
         'sync_status',
         'synced_at',
     ];
-
     protected $casts = [
         'date'      => 'date',
         'synced_at' => 'datetime',
     ];
-
-    // Relasi ke Employee
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
     }
-
-    // Relasi ke Schedule (jadwal harian)
-    // Schedule → roster_id → Roster (shift Pagi/Siang/Malam)
     public function schedule()
     {
         return $this->hasOne(Schedule::class, 'employee_id', 'employee_id')

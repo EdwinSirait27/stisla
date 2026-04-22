@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Roster')
+@section('title', 'Roster & Schedule')
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
@@ -108,7 +108,7 @@
 <section class="section">
 
     <div class="section-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h1>📅 Roster</h1>
+        <h1>Roster & Schedule</h1>
         @if($storeId)
         <div class="d-flex gap-16px">
             <button class="btn-primary-r" onclick="openModal('modalBulk')" style="padding:8px 24px">
@@ -131,12 +131,12 @@
             <form method="GET" action="{{ route('roster.index') }}" class="d-flex flex-wrap align-items-end" style="gap: 20px;">
                 <div class="filter-item">
                     <label class="f-label">
-                        Store / Lokasi
+                        Location
                         <span style="color:#ef4444">*</span>
-                        <small style="color:#94a3b8;font-weight:400">(wajib dipilih)</small>
+                        <small style="color:#94a3b8;font-weight:400">(Required)</small>
                     </label>
                     <select name="store_id" class="f-control select2" style="min-width:180px">
-                        <option value="">-- Pilih Store --</option>
+                        <option value="">-- Choose Location --</option>
                         @foreach($stores as $store)
                             <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
                                 {{ $store->name }}
@@ -165,8 +165,8 @@
                 <div class="card-body">
                     <div class="empty-state">
                         <i class="fas fa-store"></i>
-                        <h5>Pilih Store terlebih dahulu</h5>
-                        <p>Silakan pilih Store/Lokasi di filter atas lalu klik <strong>Filter</strong> untuk menampilkan data roster.</p>
+                        <h5>Choose Location First</h5>
+                        <p>Please select location in the top filter then click <strong>Filter</strong> untuk menampilkan data roster.</p>
                     </div>
                 </div>
             </div>
@@ -174,12 +174,12 @@
 
         {{-- ── Legend ── --}}
         <div class="legend">
-            <span><span class="legend-dot" style="background:#dbeafe;border:1px solid #93c5fd"></span><small>Shift Kerja</small></span>
+            <span><span class="legend-dot" style="background:#dbeafe;border:1px solid #93c5fd"></span><small>Work Shift</small></span>
             <span><span class="legend-dot" style="background:#f1f5f9;border:1px solid #cbd5e1"></span><small>Off</small></span>
             <span><span class="legend-dot" style="background:#fef9c3;border:1px solid #fde047"></span><small>Holiday</small></span>
             <span><span class="legend-dot" style="background:#f3e8ff;border:1px solid #d8b4fe"></span><small>Leave</small></span>
             <span><span class="legend-dot" style="background:#fff1f2;border:1px solid #fecaca"></span><small>Weekend</small></span>
-            <span><span class="legend-dot" style="background:#fefce8;border:2px solid #eab308"></span><small>Hari Ini</small></span>
+            <span><span class="legend-dot" style="background:#fefce8;border:2px solid #eab308"></span><small>Today</small></span>
         </div>
 
         {{-- ── Grid Roster ── --}}
@@ -189,7 +189,7 @@
                     <table class="roster-table">
                         <thead>
                             <tr>
-                                <th class="col-emp">Karyawan</th>
+                                <th class="col-emp">Employee</th>
                                 @foreach($dates as $carbon)
                                     @php
                                         $isWeekend = $carbon->isWeekend();
@@ -267,7 +267,7 @@
                             @empty
                                 <tr>
                                     <td colspan="{{ count($dates) + 1 }}" class="text-center py-5 text-muted">
-                                        Tidak ada karyawan ditemukan di store ini.
+                                        No employees were found in this location.
                                     </td>
                                 </tr>
                             @endforelse
@@ -295,19 +295,19 @@
             <div style="font-size:12px;color:#64748b;margin-bottom:14px" id="mDate"></div>
             <input type="hidden" id="mEmpId">
 
-            <label class="f-label">Tipe Hari</label>
+            <label class="f-label">Day Type</label>
             <select id="mDayType" class="f-control mb-3" onchange="toggleShift()">
-                <option value="Work">Work (Kerja)</option>
-                <option value="Off">Off (Libur)</option>
+                <option value="Work">Work</option>
+                <option value="Off">Off</option>
                 <option value="Public Holiday"> Public Holiday</option>
-                <option value="Leave">Leave (Cuti)</option>
-                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
+                <option value="Leave">Leave</option>
+                <option value="Cuti Melahirkan">Cuti Melahirkan / Maternity leave</option>
             </select>
 
             <div id="shiftWrap">
                 <label class="f-label">Shift</label>
                 <select id="mShiftId" class="f-control mb-3">
-                    <option value="">-- Pilih Shift --</option>
+                    <option value="">-- Choose Shift --</option>
                     @foreach($shifts as $shift)
                         <option value="{{ $shift->id }}">
                             {{ $shift->shift_name }}
@@ -317,16 +317,16 @@
                 </select>
             </div>
 
-            <label class="f-label">Catatan (opsional)</label>
-            <input type="text" id="mNotes" class="f-control" placeholder="Tambah catatan...">
+            <label class="f-label">Notes</label>
+            <input type="text" id="mNotes" class="f-control" placeholder="optional note...">
         </div>
         <div class="m-foot">
             <button class="btn-danger-r" id="mDeleteBtn" style="display:none" onclick="deleteRoster()">
-                <i class="fas fa-trash"></i> Hapus
+                <i class="fas fa-trash"></i> Delete
             </button>
-            <button class="btn-secondary-r" onclick="closeModal('modalCell')">Batal</button>
+            <button class="btn-secondary-r" onclick="closeModal('modalCell')">Cancel</button>
             <button class="btn-primary-r" onclick="saveRoster()">
-                <i class="fas fa-save"></i> Simpan
+                <i class="fas fa-save"></i> Save
             </button>
         </div>
     </div>
@@ -340,32 +340,32 @@
             <button onclick="closeModal('modalBulk')">×</button>
         </div>
         <div class="m-body">
-            <label class="f-label">Pilih Karyawan</label>
+            <label class="f-label">Choose Employee</label>
             <select id="bulkEmps" class="f-control mb-1" multiple style="height:100px">
                 @foreach($employees as $emp)
                     <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}</option>
                 @endforeach
             </select>
-            <small class="text-muted d-block mb-3">Tahan <kbd>Ctrl</kbd> untuk pilih lebih dari satu</small>
+            <small class="text-muted d-block mb-3">Hold the button <kbd>Ctrl</kbd> to choose more than 1 employee</small>
 
             <div class="d-flex gap-2 mb-3">
                 <div style="flex:1"><label class="f-label">Start Date</label><input type="date" id="bulkStart" class="f-control" value="{{ $startDate }}"></div>
                 <div style="flex:1"><label class="f-label">End Date</label><input type="date" id="bulkEnd" class="f-control" value="{{ $endDate }}"></div>
             </div>
 
-            <label class="f-label">Tipe Hari</label>
+            <label class="f-label">Day Type</label>
             <select id="bulkDayType" class="f-control mb-3" onchange="toggleBulkShift()">
                 <option value="Work">Work</option>
                 <option value="Off">Off</option>
                 <option value="Public Holiday">Public Holiday</option>
                 <option value="Leave">Leave</option>
-                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
+                <option value="Cuti Melahirkan">Cuti Melahirkan / Maternity leave</option>
             </select>
 
             <div id="bulkShiftWrap">
                 <label class="f-label">Shift</label>
                 <select id="bulkShift" class="f-control mb-3">
-                    <option value="">-- Pilih Shift --</option>
+                    <option value="">-- Choose Shift --</option>
                     @foreach($shifts as $shift)
                         <option value="{{ $shift->id }}">{{ $shift->shift_name }} ({{ substr($shift->start_time,0,5) }}-{{ substr($shift->end_time,0,5) }})</option>
                     @endforeach
@@ -374,11 +374,11 @@
 
             <div class="d-flex align-items-center gap-2">
                 <input type="checkbox" id="bulkSkipWeekend" checked>
-                <label for="bulkSkipWeekend" class="f-label mb-0">Skip Sabtu & Minggu</label>
+                <label for="bulkSkipWeekend" class="f-label mb-0">Skip Saturday</label>
             </div>
         </div>
         <div class="m-foot">
-            <button class="btn-secondary-r" onclick="closeModal('modalBulk')">Batal</button>
+            <button class="btn-secondary-r" onclick="closeModal('modalBulk')">Cancel</button>
             <button class="btn-primary-r" onclick="saveBulk()"><i class="fas fa-calendar-check"></i> Assign</button>
         </div>
     </div>
@@ -392,16 +392,16 @@
             <button onclick="closeModal('modalCopy')">×</button>
         </div>
         <div class="m-body">
-            <p style="font-size:12px;color:#64748b;margin-bottom:14px">Copy jadwal dari periode sumber ke periode target.</p>
-            <label class="f-label">Sumber: Start Date</label>
+            <p style="font-size:12px;color:#64748b;margin-bottom:14px">Copy schedule from source period to target period.</p>
+            <label class="f-label">Resource: Start Date</label>
             <input type="date" id="copySourceStart" class="f-control mb-2" value="{{ $startDate }}">
-            <label class="f-label">Sumber: End Date</label>
+            <label class="f-label">Resource: End Date</label>
             <input type="date" id="copySourceEnd" class="f-control mb-3" value="{{ $endDate }}">
             <label class="f-label">Target: Start Date</label>
             <input type="date" id="copyTargetStart" class="f-control">
         </div>
         <div class="m-foot">
-            <button class="btn-secondary-r" onclick="closeModal('modalCopy')">Batal</button>
+            <button class="btn-secondary-r" onclick="closeModal('modalCopy')">Cancel</button>
             <button class="btn-primary-r" onclick="saveCopy()"><i class="fas fa-copy"></i> Copy</button>
         </div>
     </div>
@@ -509,18 +509,18 @@ function saveRoster() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            toast('✅ Jadwal disimpan!');
+            toast(' Schedule saved!');
             closeModal('modalCell');
             setTimeout(() => location.reload(), 700);
         } else {
-            toast('❌ Gagal menyimpan.', false);
+            toast('❌ Failed to save data.', false);
         }
     });
 }
 
 // ── Hapus roster ──
 function deleteRoster() {
-    if (!confirm('Hapus jadwal ini?')) return;
+    if (!confirm('Delete this schedule?')) return;
     fetch('{{ route('roster.destroy') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
@@ -532,7 +532,7 @@ function deleteRoster() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            toast('🗑️ Jadwal dihapus!');
+            toast('Schedule deleted!');
             closeModal('modalCell');
             setTimeout(() => location.reload(), 700);
         }
@@ -542,7 +542,7 @@ function deleteRoster() {
 // ── Bulk assign ──
 function saveBulk() {
     const selected = [...document.getElementById('bulkEmps').selectedOptions].map(o => o.value);
-    if (!selected.length) { toast('⚠️ Pilih minimal 1 karyawan.', false); return; }
+    if (!selected.length) { toast(' Choose at least 1 employee.', false); return; }
 
     const btn = document.querySelector('#modalBulk .btn-primary-r');
     btn.disabled = true;

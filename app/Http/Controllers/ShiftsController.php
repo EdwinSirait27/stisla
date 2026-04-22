@@ -45,7 +45,7 @@ class ShiftsController extends Controller
                         <i class="fas fa-edit"></i> Edit
                     </button>
                     <button class="btn btn-sm btn-danger btn-delete" data-id="' . $r->id . '">
-                        <i class="fas fa-trash"></i> Hapus
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 ';
             })
@@ -70,7 +70,7 @@ class ShiftsController extends Controller
             'is_holiday' => 0,
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Shift berhasil ditambahkan.']);
+        return response()->json(['success' => true, 'message' => 'Shift created successfully.']);
     }
 
     public function update(Request $request, $id)
@@ -90,12 +90,12 @@ class ShiftsController extends Controller
             'end_time'   => $request->end_time,
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Shift berhasil diupdate.']);
+        return response()->json(['success' => true, 'message' => 'Shift updated successfully.']);
     }
 
     public function destroy($id)
     {
         Shifts::findOrFail($id)->delete();
-        return response()->json(['success' => true, 'message' => 'Shift berhasil dihapus.']);
+        return response()->json(['success' => true, 'message' => 'Shift deleted successfully.']);
     }
 }

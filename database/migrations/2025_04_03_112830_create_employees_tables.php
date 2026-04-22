@@ -32,7 +32,7 @@ return new class extends Migration
             $table->enum('religion', ['Catholic Christian','Christian','Islam','Hindu','Confucian','Buddha'])->nullable();
             $table->text('current_address')->nullable();
             $table->string('id_card_address')->nullable();
-            $table->enum('last_education', ['Elementary School','Junior High School','Senior High School','Diploma','Bachelor Degree'])->nullable();
+            $table->enum('last_education', ['Elementary School','Junior High School','Senior High School','Diploma I','Diploma II','Diploma III','Diploma IV','Masters degree','Vocational School','Bachelor Degree'])->nullable();
             $table->string('institution')->nullable();
             $table->string('npwp')->nullable();
             $table->string('bpjs_kes')->nullable();
@@ -40,11 +40,6 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('emergency_contact_name')->nullable();
             $table->string('emergency_contact_number')->nullable();
-            $table->decimal('salary', 12, 2)->nullable();
-            $table->decimal('house_allowance', 12, 2)->nullable();
-            $table->decimal('meal_allowance', 12, 2)->nullable();
-            $table->decimal('transport_allowance', 12, 2)->nullable();
-            $table->decimal('total_salary', 12, 2)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

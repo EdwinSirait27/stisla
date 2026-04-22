@@ -33,7 +33,7 @@
         .stat-card-label {
             font-size: .67rem;
             font-weight: 700;
-            text-transform: uppercase;
+            /* text-transform: uppercase; */
             letter-spacing: .7px;
             color: #94a3b8;
             margin-bottom: 5px;
@@ -459,7 +459,7 @@
                     <span class="fp-card-header-title">List fingerprints</span>
                     <button id="recapBtn" class="btn btn-success btn-sm ms-auto"
                         style="height:32px;font-size:.775rem">
-                        <i class="fas fa-rotate-right"></i> Recap absensi
+                        <i class="fas fa-rotate-right"></i> Attendance Recap
                     </button>
                 </div>
 
@@ -560,8 +560,8 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script> --}}
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -648,12 +648,6 @@
                     className: 'btn btn-outline-info btn-sm',
                     text: '<i class="fas fa-file-excel me-1"></i> Excel',
                     exportOptions: { columns: ':not(.no-export)' }
-                },
-                {
-                    extend: 'pdf',
-                    className: 'btn btn-outline-danger btn-sm',
-                    text: '<i class="fas fa-file-pdf me-1"></i> PDF',
-                    exportOptions: { columns: ':not(.no-export)' }
                 }
             ],
             ajax: {
@@ -668,13 +662,19 @@
             },
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
             pageLength: 25,
-            language: {
-                search: '',
-                searchPlaceholder: 'Search...',
-                info: 'Showing _START_–_END_ of _TOTAL_ entries',
-                infoEmpty: 'No entries found',
-                paginate: { previous: '‹', next: '›' }
-            },
+          
+             language: {
+                    lengthMenu: 'Show _MENU_',
+                    search: '',
+                    searchPlaceholder: 'Search',
+                    info: 'Showing _START_–_END_ of _TOTAL_',
+                    infoEmpty: 'No entries found',
+                    infoFiltered: '(filtered from _MAX_ total)',
+                    paginate: {
+                        previous: '‹',
+                        next: '›'
+                    }
+                },
             columns: [
                 /* 0 — Employee (name + NIP merged) */
                 {
@@ -731,15 +731,28 @@
                 /* 7–12 — combine_1 … combine_6 (In / Out / Break In / Break Out / Ovt In / Ovt Out) */
                 @php $combineClasses = ['time-in','time-out','time-break','time-break','time-ovt','time-ovt']; @endphp
                 @for ($i = 1; $i <= 6; $i++)
+               
                 {
-                    data: 'combine_{{ $i }}',
-                    name: 'combine_{{ $i }}',
-                    className: 'text-center',
-                    render: function (d, type) {
-                        if (type !== 'display') return d || '';
-                        return timeCell(d, '{{ $combineClasses[$i - 1] }}');
-                    }
-                },
+    data: 'combine_{{ $i }}',
+    name: 'combine_{{ $i }}',
+    className: 'text-center',
+    render: function (d, type, row) {
+        if (type !== 'display') return d || '';
+
+        let html = timeCell(d, '{{ $combineClasses[$i - 1] }}');
+
+        // 🔴 khusus IN pertama (combine_1)
+        @if ($i === 1)
+            if (row.is_late) {
+                html = `<span class="text-danger fw-bold">${d ?? ''}</span>`;
+            } else {
+                html = `<span class="text-success">${d ?? ''}</span>`;
+            }
+        @endif
+
+        return html;
+    }
+},
                 @endfor
                 /* 13 — Duration */
                 {
@@ -776,21 +789,52 @@
                     $(row).addClass('row-edited');
                 }
             },
-            drawCallback: function (settings) {
-                /* update stat cards if backend returns summary data */
-                const json = settings.json;
-                if (!json) return;
-                if (json.recordsTotal !== undefined) {
-                    $('#stat-total').text(Number(json.recordsTotal).toLocaleString('id-ID'));
-                }
-                if (json.stats) {
-                    const s = json.stats;
-                    $('#stat-ontime').text(s.on_time  !== undefined ? Number(s.on_time).toLocaleString('id-ID')  : '–');
-                    $('#stat-late').text(s.late       !== undefined ? Number(s.late).toLocaleString('id-ID')     : '–');
-                    $('#stat-updated').text(s.updated !== undefined ? Number(s.updated).toLocaleString('id-ID')  : '–');
-                    $('#stat-missing').text(s.missing !== undefined ? Number(s.missing).toLocaleString('id-ID')  : '–');
-                }
-            },
+           
+//             drawCallback: function () {
+//     let api = this.api();
+//     let data = api.rows({ search: 'applied' }).data();
+
+//     let total = data.length;
+//     let ontime = 0;
+//     let late = 0;
+//     let updated = 0;
+//     let missing = 0;
+
+//     data.each(function (row) {
+//         if (row.is_late) {
+//             late++;
+//         } else {
+//             ontime++;
+//         }
+
+//         if (row.is_updated) {
+//             updated++;
+//         }
+
+//         // contoh missing (kalau tidak ada in_1)
+//         if (!row.in_1) {
+//             missing++;
+//         }
+//     });
+
+//     $('#stat-total').text(total.toLocaleString('id-ID'));
+//     $('#stat-ontime').text(ontime.toLocaleString('id-ID'));
+//     $('#stat-late').text(late.toLocaleString('id-ID'));
+//     $('#stat-updated').text(updated.toLocaleString('id-ID'));
+//     $('#stat-missing').text(missing.toLocaleString('id-ID'));
+// },
+drawCallback: function (settings) {
+    const json = settings.json;
+    if (!json || !json.stats) return;
+
+    const s = json.stats;
+
+    $('#stat-total').text(s.total.toLocaleString('id-ID'));
+    $('#stat-ontime').text(s.ontime.toLocaleString('id-ID'));
+    $('#stat-late').text(s.late.toLocaleString('id-ID'));
+    $('#stat-updated').text(s.updated.toLocaleString('id-ID'));
+    $('#stat-missing').text(s.missing.toLocaleString('id-ID'));
+},
             initComplete: function () {
                 /* move length and search controls into custom slots */
                 const $length = $('.dataTables_length').addClass('d-flex align-items-center gap-2');
@@ -838,26 +882,26 @@
             if (!startDate || !endDate) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Perhatian',
-                    text: 'Pilih Start Date dan End Date terlebih dahulu.'
+                    title: 'Caution',
+                    text: 'Select Start Date and End Date first.'
                 });
                 return;
             }
 
             Swal.fire({
-                title: 'Recap absensi',
-                html: `Sistem akan merekap absensi dari <strong>${startDate}</strong> hingga <strong>${endDate}</strong>.<br>
-                       <small style="color:#64748b">Proses ini mungkin memakan waktu beberapa saat.</small>`,
+                title: 'Attendance Recap',
+                html: `The system will summarize attendance from <strong>${startDate}</strong> to <strong>${endDate}</strong>.<br>
+                       <small style="color:#64748b">This process may take a few moments.</small>`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#1D9E75',
-                confirmButtonText: 'Ya, recap!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Yes!',
+                cancelButtonText: 'Cancel'
             }).then(result => {
                 if (!result.isConfirmed) return;
 
                 $('#recapBtn').prop('disabled', true)
-                    .html('<i class="fas fa-spinner fa-spin me-1"></i> Memproses...');
+                    .html('<i class="fas fa-spinner fa-spin me-1"></i> Proccess...');
 
                 $.ajax({
                     url: '{{ route('fingerprints.recap') }}',
@@ -867,7 +911,7 @@
                     success: function (response) {
                         $('#recapBtn').prop('disabled', false)
                             .html('<i class="fas fa-rotate-right me-1"></i> Recap absensi');
-                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message })
+                        Swal.fire({ icon: 'success', title: 'Success!', text: response.message })
                             .then(() => table.ajax.reload());
                     },
                     error: function (xhr) {

@@ -18,15 +18,15 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6><i class="fas fa-clock"></i> List Shifts</h6>
                             <button class="btn btn-primary btn-sm" onclick="openAdd()">
-                                <i class="fas fa-plus"></i> Tambah Shift
+                                <i class="fas fa-plus"></i> Add new shift
                             </button>
                         </div>
                         <div class="card-body">
                             <div class="row mb-3">
                                 <div class="col-md-3">
-                                    <label>Filter by Store</label>
+                                    <label>Filter by Location</label>
                                     <select id="filterStore" class="form-control select2">
-                                        <option value="">Semua Store</option>
+                                        <option value="">All Location</option>
                                         @foreach($stores as $store)
                                             <option value="{{ $store->id }}">{{ $store->name }}</option>
                                         @endforeach
@@ -40,11 +40,11 @@
                                 <table class="table table-hover" id="shifts-table">
                                     <thead>
                                         <tr>
-                                            <th>Store</th>
-                                            <th>Nama Shift</th>
-                                            <th>Jam Masuk</th>
-                                            <th>Jam Keluar</th>
-                                            <th>Action</th>
+                                            <th class="text-center">Location</th>
+                                            <th class="text-center">Shift Name</th>
+                                            <th class="text-center">Time In</th>
+                                            <th class="text-center">Time Out</th>
+                                            <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -62,43 +62,43 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Tambah Shift</h5>
+                <h5 class="modal-title" id="modalTitle">Add new shift</h5>
                 <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="shiftId">
                 <div class="form-group">
-                    <label>Store / Lokasi</label>
+                    <label>Location</label>
                     <select id="shiftStore" class="form-control select2">
-                        <option value="">-- Pilih Store --</option>
+                        <option value="">-- Choose Location --</option>
                         @foreach($stores as $store)
                             <option value="{{ $store->id }}">{{ $store->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Nama Shift</label>
+                    <label>Shift Name</label>
                     <input type="text" id="shiftName" class="form-control" placeholder="Contoh: Shift Pagi">
                 </div>
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group">
-                            <label>Jam Masuk</label>
+                            <label>Time In</label>
                             <input type="time" id="shiftStart" class="form-control">
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="form-group">
-                            <label>Jam Keluar</label>
+                            <label>Time Out</label>
                             <input type="time" id="shiftEnd" class="form-control">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="saveShift()">
-                    <i class="fas fa-save"></i> Simpan
+                    <i class="fas fa-save"></i> Save
                 </button>
             </div>
         </div>
@@ -125,18 +125,18 @@
             }
         },
         columns: [
-            { data: 'store_name',  name: 'store_name' },
-            { data: 'shift_name',  name: 'shift_name' },
-            { data: 'start_time',  name: 'start_time' },
-            { data: 'end_time',    name: 'end_time' },
-            { data: 'action',      name: 'action', orderable: false, searchable: false }
+            { data: 'store_name', className: 'text-center',  name: 'store_name' },
+            { data: 'shift_name', className: 'text-center', name: 'shift_name' },
+            { data: 'start_time', className: 'text-center', name: 'start_time' },
+            { data: 'end_time', className: 'text-center', name: 'end_time' },
+            { data: 'action', className: 'text-center', name: 'action', orderable: false, searchable: false }
         ]
     });
 
     $('#filterBtn').on('click', function() { table.ajax.reload(); });
 
     function openAdd() {
-        $('#modalTitle').text('Tambah Shift');
+        $('#modalTitle').text('Add Shift');
         $('#shiftId').val('');
         $('#shiftStore').val('').trigger('change');
         $('#shiftName').val('');
@@ -189,12 +189,12 @@
     $(document).on('click', '.btn-delete', function() {
         const id = $(this).data('id');
         Swal.fire({
-            title: 'Hapus Shift?',
-            text: 'Data shift ini akan dihapus permanen.',
+            title: 'Delete Shift?',
+            text: 'This shift data will be permanently deleted.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
+            confirmButtonText: 'Yes!',
+            cancelButtonText: 'Cancel',
             confirmButtonColor: '#ef4444',
         }).then((result) => {
             if (!result.isConfirmed) return;
@@ -205,7 +205,7 @@
                 success: function(res) {
                     if (res.success) {
                         table.ajax.reload();
-                        Swal.fire({ icon: 'success', title: 'Dihapus!', text: res.message, timer: 1500 });
+                        Swal.fire({ icon: 'success', title: 'Deleted!', text: res.message, timer: 1500 });
                     }
                 }
             });

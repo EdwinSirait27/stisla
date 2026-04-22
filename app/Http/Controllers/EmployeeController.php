@@ -10,6 +10,8 @@ use App\Models\Payrolls;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Exports\EmployeesExport;
+use App\Exports\EmployeesExportall;
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
 use App\Models\Structuresnew;
@@ -23,20 +25,43 @@ use App\Models\Groups;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 class EmployeeController extends Controller
 {
     public function indexall()
     {
-        $storeList = Stores::select('name')->distinct()->pluck('name');
-        $statusList = Employee::select('status')->distinct()->pluck('status');
-        return view('pages.Employeeall.Employeeall', compact('storeList', 'statusList'));
-    }
+      $countactives = Employee::where('status', 'Active')->count();
+        $countpendings = Employee::where('status', 'Pending')->count();
+        $countresigns = Employee::where('status', 'Resign')->count();
+        $departments = Departments::pluck('department_name', 'id');
+        $gradings = Grading::pluck('grading_name', 'id');
+        $groups = Groups::pluck('remark','id');
+        $companies = Company::pluck('name', 'id');
+        $locations = Stores::pluck('name', 'id');
+        $employeestatuses = Employee::getStatusEmployeeOptions();
+        $statuses = Employee::getStatusOptions();
+        $banks = Banks::pluck('name','id');
+        $genders = Employee::getGenderOptions();
+        $marriages = Employee::getMarriageOptions();
+        $religions = Employee::getReligionOptions();
+        $lasteducations = Employee::getLastEducationOptions();
+        return view('pages.Employeeall.Employeeall', compact('marriages','genders','lasteducations','religions','banks','departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns','groups','gradings'));
+   
+        }
     public function index()
     {
-        $countactives = Employee::where('status','Active')->count();
-        $countpendings = Employee::where('status','Pending')->count();
-        $countresigns = Employee::where('status','Resign')->count();
-        return view('pages.Employee.Employee',compact('countactives','countpendings','countresigns'));
+        $countactives = Employee::where('status', 'Active')->count();
+        $countpendings = Employee::where('status', 'Pending')->count();
+        $countresigns = Employee::where('status', 'Resign')->count();
+        $departments = Departments::pluck('department_name', 'id');
+        $gradings = Grading::pluck('grading_name', 'id');
+        $groups = Groups::pluck('remark','id');
+        // $groups = Groups::select('id', 'group_name', 'remark')->get();
+        $companies = Company::pluck('name', 'id');
+        $locations = Stores::pluck('name', 'id');
+        $employeestatuses = Employee::getStatusEmployeeOptions();
+        $statuses = Employee::getStatusOptions();
+        return view('pages.Employee.Employee', compact('departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns','groups','gradings'));
     }
     public function getActivities(Request $request)
     {
@@ -80,221 +105,387 @@ class EmployeeController extends Controller
                 ->make(true);
         }
     }
-    
-    public function getEmployees(Request $request, DataTables $dataTables)
+    public function getEmployeesall(Request $request)
     {
-        // $isHeadHR = auth()->user()->hasRole('HeadHR');
         $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
-        $employees = User::with([
-            'Employee.position',
-            'Employee.department',
-            'Employee.grading',
-            'Employee.group',
-            'Employee.employees',
-            'Employee.company',
-            'Employee.structuresnew'
-        ])
-            ->select(['id', 'employee_id'])
-            ->get()
-            ->map(function ($employee) use ($isHeadHR) {
-                $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-                $employeeName = optional($employee->Employee)->employee_name;
+        $query = User::query()
+            ->with([
+                'employee',
+                'employee.position',
+                'employee.department',
+                'employee.grading',
+                'employee.group',
+                'employee.store',
+                'employee.bank',
+                'employee.company'
+            ])
+            ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+            ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
+            ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employees_tables.store_id')
+            ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employees_tables.department_id')
+            ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+            ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+            ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+            ->leftJoin('banks_tables', 'banks_tables.id', '=', 'employees_tables.banks_id')
+            ->select([
+                             'users.*',
+                'employees_tables.employee_name',
+                'employees_tables.employee_pengenal',
+                'employees_tables.bank_account_number',
+                'employees_tables.join_date',
+                'employees_tables.end_date',
+                'employees_tables.created_at',
+                'employees_tables.marriage',
+                'employees_tables.child',
+                'employees_tables.telp_number',
+                'employees_tables.nik',
+                'employees_tables.gender',
+                'employees_tables.date_of_birth',
+                'employees_tables.place_of_birth',
+                'employees_tables.biological_mother_name',
+                'employees_tables.religion',
+                'employees_tables.current_address',
+                'employees_tables.id_card_address',
+                'employees_tables.last_education',
+                'employees_tables.institution',
+                'employees_tables.npwp',
+                'employees_tables.bpjs_kes',
+                'employees_tables.bpjs_ket',
+                'employees_tables.email',
+                'employees_tables.company_email',
+                'employees_tables.emergency_contact_name',
+                'employees_tables.pin',
+                'employees_tables.pending_email',
+                'employees_tables.pending_telp_number',
+                'employees_tables.status_employee',
+                'employees_tables.status',
+                'employees_tables.join_date',
+                'position_tables.name as position_name',
+                'groups_tables.remark as remark',
+                'stores_tables.name as name',
+                'banks_tables.name as bank_name',
+                'departments_tables.department_name',
+                'grading.grading_name',
+                'company_tables.name as name_company',
+            ]);
+        $query->when(
+            $request->filled('filter_company'),
+            fn($q) =>
+            $q->where('company_tables.name', $request->filter_company)
+        );
+        $query->when(
+            $request->filled('filter_department'),
+            fn($q) =>
+            $q->where('departments_tables.department_name', $request->filter_department)
+        );
+        $query->when(
+            $request->filled('filter_group'),
+            fn($q) =>
+            $q->where('groups_tables.remark', $request->filter_group)
+        );
+        $query->when(
+            $request->filled('filter_grading'),
+            fn($q) =>
+            $q->where('grading.grading_name', $request->filter_grading)
+        );
+        $query->when(
+            $request->filled('filter_store'),
+            fn($q) =>
+            $q->where('stores_tables.name', $request->filter_store)
+        );
+        $query->when(
+            $request->filled('filter_emp_status'),
+            fn($q) =>
+            $q->where('employees_tables.status_employee', $request->filter_emp_status)
+        );
+        $query->when(
+            $request->filled('filter_status'),
+            fn($q) =>
+            $q->where('employees_tables.status', $request->filter_status)
+        );
+        $query->when(
+            $request->filled('filter_religion'),
+            fn($q) =>
+            $q->where('employees_tables.religion', $request->filter_religion)
+        );
+        $query->when(
+            $request->filled('filter_marriage'),
+            fn($q) =>
+            $q->where('employees_tables.marriage', $request->filter_marriage)
+        );
+        $query->when(
+            $request->filled('filter_last_education'),
+            fn($q) =>
+            $q->where('employees_tables.last_education', $request->filter_last_education)
+        );
+        $query->when(
+            $request->filled('filter_gender'),
+            fn($q) =>
+            $q->where('employees_tables.gender', $request->filter_gender)
+        );
+        $query->when(
+            $request->filled('filter_bank'),
+            fn($q) =>
+            $q->where('banks_tables.name', $request->filter_bank)
+        );
+        $query->when($request->filled('filter_los'), function ($q) use ($request) {
+            $los = $request->filter_los;
 
-                $employee->action = $isHeadHR
-                    ? '<a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="Edit Employee: ' . e($employeeName) . '">
-                    <i class="fas fa-user-edit text-secondary"></i>
-               </a>
-               <a href="' . route('Employee.show', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" title="show Employee: ' . e($employeeName) . '">
-                    <i class="fas fa-eye text-secondary"></i>
-               </a>'
-                    : '';
-
-                return $employee;
-            });
-        return DataTables::of($employees)
-            ->addColumn('name_company', fn($e) => optional(optional($e->Employee)->company)->name ?? 'Empty')
-            ->addColumn('grading_name', fn($e) => optional(optional($e->Employee)->grading)->grading_name ?? 'Empty')
-            ->addColumn('group_name', fn($e) => optional(optional($e->Employee)->group)->group_name ?? 'Empty')
-            ->addColumn('name', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
-            ->addColumn('oldposition_name', fn($e) => optional(optional($e->Employee)->position)->name ?? 'Empty')
-            ->addColumn('position_name', fn($e) => optional(optional($e->Employee->structuresnew)->position)->name ?? 'Empty')
-            ->addColumn('department_name', fn($e) => optional(optional($e->Employee)->department)->department_name ?? 'Empty')
-            ->addColumn('status_employee', fn($e) => optional($e->Employee)->status_employee ?? 'Empty')
-            ->addColumn('employee_name', fn($e) => optional($e->Employee)->employee_name ?? 'Empty')
-            ->addColumn('nip', fn($e) => optional($e->Employee)->employee_pengenal ?? 'Empty')
-            ->addColumn('created_at', fn($e) => optional($e->Employee)->created_at ?? 'Empty')
-            // ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
-            ->addColumn('status', fn($e) => optional($e->Employee)->status ?? 'Empty')
-            // ->addColumn('length_of_service', fn($e) => optional($e->Employee)->length_of_service ?? 'Empty')
-//             ->addColumn('length_of_service', function ($e) {
-//     return optional($e->Employee?->join_date)
-//         ? Carbon::parse($e->Employee->join_date)->diffForHumans(null, true)
-//         : 'Empty';
-// })
-->addColumn('length_of_service', function ($e) {
-    $joinDate = $e->Employee?->join_date;
-
-    if (!$joinDate) {
-        return 'Empty';
-    }
-
-    $start = Carbon::parse($joinDate);
-    $now   = Carbon::now();
-
-    $diff = $start->diff($now);
-
-    return sprintf(
-        '%d year %d month %d days',
-        $diff->y,
-        $diff->m,
-        $diff->d
-    );
-})
-
-            ->rawColumns(['nip', 'group_name', 'length_of_service','position_name', 'oldposition_name', 'status', 'department_name', 'company_name', 'created_at', 'employee_name', 'name', 'status_employee', 'grading_name', 'action'])
-            ->make(true);
-    }
-    public function getEmployeesall()
-    {
-        $storeFilter = request()->get('name');
-        $statusFilter = request()->get('status');
-        $query = User::with([
-            'Employee',
-            'Employee.company',
-            'Employee.store',
-            'Employee.position',
-            'Employee.department',
-            'Employee.bank',
-            'Employee.grading',
-            'Employee.group'
-        ])->select(['id', 'username', 'employee_id']);
-
-        if (!empty($storeFilter)) {
-            $query->whereHas('Employee.store', function ($q) use ($storeFilter) {
-                $q->where('name', $storeFilter);
-            });
-        }
-        if (!empty($statusFilter)) {
-            $query->whereHas('Employee', function ($q) use ($statusFilter) {
-                $q->whereIn('status', $statusFilter);
-            });
-        }
-        $employees = $query->get()->map(function ($employee) {
-            $employee->id_hashed = substr(hash('sha256', $employee->id . env('APP_KEY')), 0, 8);
-            if (auth()->user()->hasAnyRole(['HeadHR', 'HR'])) {
-                $employee->action = '
-        <a href="' . route('Employee.edit', $employee->id_hashed) . '" class="mx-3" data-bs-toggle="tooltip" data-bs-original-title="Edit user" title="Edit Employee: ' . e(optional($employee->Employee)->employee_name) . '">
-            <i class="fas fa-user-edit text-secondary"></i>
-        </a>';
+            if ($los === 'under3months') {
+                // Khusus kurang dari 3 bulan, operator berbeda
+                $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
             } else {
-                $employee->action = '';
+                $date = match ($los) {
+                    '1year'  => Carbon::now()->subYear(),
+                    '3years' => Carbon::now()->subYears(3),
+                    '5years' => Carbon::now()->subYears(5),
+                    default  => null,
+                };
+                if ($date) {
+                    $q->where('employees_tables.join_date', '<=', $date);
+                }
             }
-            return $employee;
         });
-        $columns = [
-            'name' => 'store.name',
-            'name_company' => 'company.name',
-            'grading_name' => 'grading.grading_name',
-            'grading_code' => 'grading.grading_code',
-            'group_name' => 'group.group_name',
-            'position_name' => 'position.name',
-            'employee_pengenal',
-            'department_name' => 'department.department_name',
-            'employee_name',
-            'id' => 'id',
-            'status_employee',
-            'join_date',
-            'marriage',
-            'child',
-            'telp_number',
-            'nik',
-            'gender',
-            'date_of_birth',
-            'place_of_birth',
-            'biological_mother_name',
-            'religion',
-            'current_address',
-            'id_card_address',
-            'last_education',
-            'institution',
-            'npwp',
-            'bpjs_kes',
-            'bpjs_ket',
-            'email',
-            'company_email',
-            'emergency_contact_name',
-            'notes',
-            'created_at',
-            'bank_name' => 'bank.name',
-            'bank_account_number',
-            'pin',
-            'status'
-        ];
-        $dataTable = DataTables::of($employees);
-
-foreach ($columns as $key => $relationPath) {
-    $column = is_string($key) ? $key : $relationPath;
-
-    $dataTable->addColumn($column, function ($employee) use ($relationPath) {
-
-        // JOIN DATE (format y-m-d)
-        if ($relationPath === 'join_date') {
-            $rawDate = data_get($employee->Employee, 'join_date');
-
-            if (empty($rawDate)) return '-';
-
-            try {
-                return \Carbon\Carbon::createFromFormat('y-m-d', $rawDate)
-                    ->translatedFormat('d F Y');
-            } catch (\Exception $e) {
-                return '-';
-            }
-        }
-        // DATE OF BIRTH (format Y-m-d)
-        if ($relationPath === 'date_of_birth') {
-            $rawDate = data_get($employee->Employee, 'date_of_birth');
-
-            if (empty($rawDate)) return '-';
-
-            try {
-                return \Carbon\Carbon::createFromFormat('Y-m-d', $rawDate)
-                    ->translatedFormat('d F Y');
-            } catch (\Exception $e) {
-                return '-';
-            }
-        }
-        $value = data_get($employee->Employee, $relationPath);
-        return $value ?: 'Empty';
-    });
-}
-        return $dataTable
-            ->addColumn('action', function ($employee) {
-                return $employee->action;
-            })
+        return DataTables::of($query)
             ->addColumn('length_of_service', function ($e) {
-    $joinDate = $e->Employee?->join_date;
+                if (!$e->join_date) return 'Empty';
+                $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+                return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+            })
+            ->addColumn('action', function ($e) use ($isHeadHR) {
+                if (!$isHeadHR) return '';
+                $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+                return '
+                <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+                    <i class="fas fa-user-edit text-secondary"></i>
+                </a>
+                <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+                    <i class="fas fa-eye text-secondary"></i>
+                </a>';
+            })
+            // Daftarkan kolom yang bisa di-search
+            ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+            ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+            ->filterColumn('bank_account_number', fn($q, $k) => $q->where('employees_tables.bank_account_number', 'like', "%$k%"))
+            ->filterColumn('join_date', fn($q, $k) => $q->where('employees_tables.join_date', 'like', "%$k%"))
+            ->filterColumn('end_date', fn($q, $k) => $q->where('employees_tables.end_date', 'like', "%$k%"))
+            ->filterColumn('marriage', fn($q, $k) => $q->where('employees_tables.marriage', 'like', "%$k%"))
+            ->filterColumn('child', fn($q, $k) => $q->where('employees_tables.child', 'like', "%$k%"))
+            ->filterColumn('telp_number', fn($q, $k) => $q->where('employees_tables.telp_number', 'like', "%$k%"))
+            ->filterColumn('nik', fn($q, $k) => $q->where('employees_tables.nik', 'like', "%$k%"))
+            ->filterColumn('gender', fn($q, $k) => $q->where('employees_tables.gender', 'like', "%$k%"))
+            ->filterColumn('date_of_birth', fn($q, $k) => $q->where('employees_tables.date_of_birth', 'like', "%$k%"))
+            ->filterColumn('place_of_birth', fn($q, $k) => $q->where('employees_tables.place_of_birth', 'like', "%$k%"))
+            ->filterColumn('biological_mother_name', fn($q, $k) => $q->where('employees_tables.biological_mother_name', 'like', "%$k%"))
+            ->filterColumn('religion', fn($q, $k) => $q->where('employees_tables.religion', 'like', "%$k%"))
+            ->filterColumn('current_address', fn($q, $k) => $q->where('employees_tables.current_address', 'like', "%$k%"))
+            ->filterColumn('id_card_address', fn($q, $k) => $q->where('employees_tables.id_card_address', 'like', "%$k%"))
+            ->filterColumn('last_education', fn($q, $k) => $q->where('employees_tables.last_education', 'like', "%$k%"))
+            ->filterColumn('institution', fn($q, $k) => $q->where('employees_tables.institution', 'like', "%$k%"))
+            ->filterColumn('npwp', fn($q, $k) => $q->where('employees_tables.npwp', 'like', "%$k%"))
+            ->filterColumn('bpjs_kes', fn($q, $k) => $q->where('employees_tables.bpjs_kes', 'like', "%$k%"))
+            ->filterColumn('bpjs_ket', fn($q, $k) => $q->where('employees_tables.bpjs_ket', 'like', "%$k%"))
+            ->filterColumn('email', fn($q, $k) => $q->where('employees_tables.email', 'like', "%$k%"))
+            ->filterColumn('company_email', fn($q, $k) => $q->where('employees_tables.company_email', 'like', "%$k%"))
+            ->filterColumn('emergency_contact_name', fn($q, $k) => $q->where('employees_tables.emergency_contact_name', 'like', "%$k%"))
+            ->filterColumn('pin', fn($q, $k) => $q->where('employees_tables.pin', 'like', "%$k%"))
+            ->filterColumn('pending_email', fn($q, $k) => $q->where('employees_tables.pending_email', 'like', "%$k%"))
+            ->filterColumn('pending_telp_number', fn($q, $k) => $q->where('employees_tables.pending_telp_number', 'like', "%$k%"))
+            ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+            ->filterColumn('bank_name', fn($q, $k) => $q->where('banks_tables.name', 'like', "%$k%"))
+            ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+            ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+            ->filterColumn('name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+            ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+            ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+            ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+            ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+    public function exportEmployeesall(Request $request)
+{
+    // ❌ Masalah - only() kadang tidak baca query string
+    // $filters = $request->only([...]);
 
-    if (!$joinDate) {
-        return 'Empty';
+    // ✅ Ambil manual dari query string
+    $filters = [
+        'filter_company'    => $request->query('filter_company'),
+        'filter_department' => $request->query('filter_department'),
+        'filter_group'      => $request->query('filter_group'),
+        'filter_grading'    => $request->query('filter_grading'),
+        'filter_store'      => $request->query('filter_store'),
+        'filter_emp_status' => $request->query('filter_emp_status'),
+        'filter_status'     => $request->query('filter_status'),
+        'filter_los'        => $request->query('filter_los'),
+        'filter_bank'        => $request->query('filter_bank'),
+        'filter_gender'        => $request->query('filter_gender'),
+        'filter_marriage'        => $request->query('filter_marriage'),
+        'filter_religion'        => $request->query('filter_religion'),
+        'filter_last_education'        => $request->query('filter_last_education'),
+    ];
+    // dd($filters); // cek dulu, hapus setelah confirmed
+    
+    $fileName = 'employeesall_' . Carbon::now()->format('Ymd_His');
+
+    if ($request->query('type') === 'csv') {
+        return Excel::download(new EmployeesExportall($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 
-    $start = Carbon::parse($joinDate);
-    $now   = Carbon::now();
+    return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
+}
+    public function getEmployees(Request $request)
+    {
+        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
-    $diff = $start->diff($now);
+        $query = User::query()
+            ->with([
+                'employee',
+                'employee.position',
+                'employee.department',
+                'employee.grading',
+                'employee.group',
+                'employee.store',
+                'employee.company'
+            ])
+            ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+            ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
+            ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employees_tables.store_id')
+            ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employees_tables.department_id')
+            ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+            ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+            ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+            
+  ->select([
+                 'users.*',
+                'employees_tables.employee_name',
+                'employees_tables.employee_pengenal',
+                'employees_tables.status_employee',
+                'employees_tables.status',
+                'employees_tables.join_date',
+                'position_tables.name as position_name',
+                'groups_tables.remark as remark',
+                'stores_tables.name as name',
+                'departments_tables.department_name',
+                'grading.grading_name',
+                'company_tables.name as name_company',
+            ]);
+        // Filter tetap pakai whereHas atau bisa pakai where langsung karena sudah di-join
+        $query->when(
+            $request->filled('filter_company'),
+            fn($q) =>
+            $q->where('company_tables.name', $request->filter_company)
+        );
 
-    return sprintf(
-        '%d year %d month %d days',
-        $diff->y,
-        $diff->m,
-        $diff->d
-    );
-})
-          
-            ->rawColumns(['action','length_of_service'])
+        $query->when(
+            $request->filled('filter_department'),
+            fn($q) =>
+            $q->where('departments_tables.department_name', $request->filter_department)
+        );
+        $query->when(
+            $request->filled('filter_group'),
+            fn($q) =>
+            $q->where('groups_tables.remark', $request->filter_group)
+        );
+        $query->when(
+            $request->filled('filter_grading'),
+            fn($q) =>
+            $q->where('grading.grading_name', $request->filter_grading)
+        );
+        $query->when(
+            $request->filled('filter_store'),
+            fn($q) =>
+            $q->where('stores_tables.name', $request->filter_store)
+        );
+        $query->when(
+            $request->filled('filter_emp_status'),
+            fn($q) =>
+            $q->where('employees_tables.status_employee', $request->filter_emp_status)
+        );
+        $query->when(
+            $request->filled('filter_status'),
+            fn($q) =>
+            $q->where('employees_tables.status', $request->filter_status)
+        );
+        $query->when($request->filled('filter_los'), function ($q) use ($request) {
+            $los = $request->filter_los;
+
+            if ($los === 'under3months') {
+                // Khusus kurang dari 3 bulan, operator berbeda
+                $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+            } else {
+                $date = match ($los) {
+                    '1year'  => Carbon::now()->subYear(),
+                    '3years' => Carbon::now()->subYears(3),
+                    '5years' => Carbon::now()->subYears(5),
+                    default  => null,
+                };
+                if ($date) {
+                    $q->where('employees_tables.join_date', '<=', $date);
+                }
+            }
+        });
+        return DataTables::of($query)
+            ->addColumn('length_of_service', function ($e) {
+                if (!$e->join_date) return 'Empty';
+                $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+                return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+            })
+            ->addColumn('action', function ($e) use ($isHeadHR) {
+                if (!$isHeadHR) return '';
+                $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+                return '
+                <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+                    <i class="fas fa-user-edit text-secondary"></i>
+                </a>
+                <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+                    <i class="fas fa-eye text-secondary"></i>
+                </a>';
+            })
+            // Daftarkan kolom yang bisa di-search
+            ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+            ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+            ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+            ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+            ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+            ->filterColumn('name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+            ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+            ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+            ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+            ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+            ->rawColumns(['action'])
             ->make(true);
-    }   
+    }
+    
+public function exportEmployees(Request $request)
+{
+    // ❌ Masalah - only() kadang tidak baca query string
+    // $filters = $request->only([...]);
+
+    // ✅ Ambil manual dari query string
+    $filters = [
+        'filter_company'    => $request->query('filter_company'),
+        'filter_department' => $request->query('filter_department'),
+        'filter_group'      => $request->query('filter_group'),
+        'filter_grading'    => $request->query('filter_grading'),
+        'filter_store'      => $request->query('filter_store'),
+        'filter_emp_status' => $request->query('filter_emp_status'),
+        'filter_status'     => $request->query('filter_status'),
+        'filter_los'        => $request->query('filter_los'),
+    ];
+
+    // dd($filters); // cek dulu, hapus setelah confirmed
+    
+    $fileName = 'employees_' . Carbon::now()->format('Ymd_His');
+
+    if ($request->query('type') === 'csv') {
+        return Excel::download(new EmployeesExport($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    return Excel::download(new EmployeesExport($filters), $fileName . '.xlsx');
+}
+
     public function edit($hashedId)
     {
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees', 'Employee.structuresnew')->get()->first(function ($u) use ($hashedId) {
@@ -346,7 +537,7 @@ foreach ($columns as $key => $relationPath) {
             'hashedId' => $hashedId,
         ]);
     }
-   
+
     public function show($hashedId)
     {
         $employee = User::with(
@@ -368,7 +559,6 @@ foreach ($columns as $key => $relationPath) {
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
-
         // ---------------------------
         // Tambahkan logic aman disini
         // ---------------------------
@@ -659,12 +849,12 @@ foreach ($columns as $key => $relationPath) {
             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-             'photos' => [
+            'photos' => [
                 'nullable',
                 'mimes:jpg,jpeg,png,webp',
                 'max:512'
             ],
-             'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
+            'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
             'photos.max' => 'photos must under 512 kb.',
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
@@ -732,25 +922,25 @@ foreach ($columns as $key => $relationPath) {
         $filePath = optional($user->Employee)->photos;
         try {
             DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
-             
+
                 if ($request->hasFile('photos')) {
-    $file = $request->file('photos');
+                    $file = $request->file('photos');
 
-    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-        $file->getClientOriginalExtension();
+                    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+                        $file->getClientOriginalExtension();
 
-    $folderPath = 'employeesphotos/' . date('Y/m');
+                    $folderPath = 'employeesphotos/' . date('Y/m');
 
-    Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+                    Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
 
-    $newFilePath = $folderPath . '/' . $fileName;
+                    $newFilePath = $folderPath . '/' . $fileName;
 
-    if ($filePath && Storage::disk('public')->exists($filePath)) {
-        Storage::disk('public')->delete($filePath);
-    }
+                    if ($filePath && Storage::disk('public')->exists($filePath)) {
+                        Storage::disk('public')->delete($filePath);
+                    }
 
-    $filePath = $validatedData['photos'] = $newFilePath;
-}
+                    $filePath = $validatedData['photos'] = $newFilePath;
+                }
                 /** --------------------------
                  *  Lock employee row
                  * -------------------------*/
@@ -783,13 +973,13 @@ foreach ($columns as $key => $relationPath) {
                         $validatedData['department_id'] = $submission->department_id;
                         // $validatedData['store_id'] = $submission->store_id;
                         if (empty($validatedData['store_id'])) {
-    $validatedData['store_id'] = $submission->store_id;
-}
+                            $validatedData['store_id'] = $submission->store_id;
+                        }
 
                         // $validatedData['position_id'] = $submission->position_id;
                         if (empty($validatedData['position_id'])) {
-    $validatedData['position_id'] = $submission->position_id;
-}
+                            $validatedData['position_id'] = $submission->position_id;
+                        }
 
                         $validatedData['is_manager'] = $submission->is_manager;
                     }
@@ -825,7 +1015,7 @@ foreach ($columns as $key => $relationPath) {
 
         return response()->file($full);
     }
-public function transferAllToPayroll(Request $request)
+    public function transferAllToPayroll(Request $request)
     {
         try {
             $month_year = $request->input('month_year', date('Y-m-d'));

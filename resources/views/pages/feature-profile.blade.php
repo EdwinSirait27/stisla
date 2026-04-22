@@ -405,25 +405,25 @@
                                     {{ $user->employee->employee_name ?? $user->username ?? '-' }}
                                 </div>
                                 <div class="profile-hero-sub">
-                                    {{ $user->username ?? '' }}
+                                    NIP : {{ $user->username ?? '' }}
                                     @if(!empty($user->employee->email))
-                                        &nbsp;·&nbsp;{{ $user->employee->email }}
+                                        Email&nbsp;:&nbsp;{{ $user->employee->email }}
                                     @endif
                                 </div>
                                 <div class="profile-hero-tags">
                                     @if(!empty($user->employee->department->department_name))
                                         <span class="profile-tag profile-tag-dept">
-                                            {{ $user->employee->department->department_name }}
+                                            Department : {{ $user->employee->department->department_name }}
                                         </span>
                                     @endif
                                     @if(!empty($user->employee->status_employee))
                                         <span class="profile-tag profile-tag-status">
-                                            {{ $user->employee->status_employee }}
+                                            Status : {{ $user->employee->status_employee }}
                                         </span>
                                     @endif
                                     @if(!empty($user->employee->grading->grading_name))
                                         <span class="profile-tag profile-tag-grade">
-                                            {{ $user->employee->grading->grading_name }}
+                                            Grading : {{ $user->employee->grading->grading_name }}
                                         </span>
                                     @endif
                                 </div>
@@ -467,7 +467,7 @@
                                             </div>
                                         </div>
                                         <div class="field-group">
-                                            <label><i class="fas fa-user-tie"></i> Employee name</label>
+                                            <label><i class="fas fa-user-tie"></i> Employee Name</label>
                                             <div class="field-readonly">
                                                 {{ $user->employee->employee_name ?? '-' }}
                                             </div>
@@ -604,7 +604,7 @@
                                         <div class="photo-thumb" onclick="document.getElementById('photos').click()">
                                             @if (!empty($user->employee->photos))
                                                 <img id="preview-image"
-                                                     src="{{ asset('storage/employeephotos/' . $user->employee->photos) }}"
+                                                     src="{{ asset('storage/' . $user->employee->photos) }}"
                                                      alt="Profile photo">
                                             @else
                                                 <img id="preview-image"

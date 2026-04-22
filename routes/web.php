@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\dashboardAdminController;
 use App\Http\Controllers\DashboardManagerController;
 use Illuminate\Support\Facades\Route;
@@ -46,10 +45,10 @@ use App\Http\Controllers\SKController;
 use App\Http\Controllers\SktemplateController;
 use App\Http\Controllers\LeavetypesController;
 use App\Http\Controllers\StructuresnewController;
-
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\RosterController;
 use App\Http\Controllers\ShiftsController;           
+use App\Http\Controllers\PayrollcomponentsController;           
 use App\Http\Controllers\FingerprintRecapController;
 /*
 |--------------------------------------------------------------------------
@@ -61,7 +60,6 @@ use App\Http\Controllers\FingerprintRecapController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 Route::view('/test-wireui', 'test-wireui');
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
@@ -70,7 +68,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         ->name('pages.change-password');
     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
         ->name('change-password.update');
-    Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelp'])
+    Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelpphotos'])
         ->name('feature-profile.update');
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         ->name('logout');
@@ -145,10 +143,15 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
         Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
         Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
+        // Route::get('/employees/export', [EmployeeController::class, 'exportEmployees']);
+        Route::get('/employees/export', [EmployeeController::class, 'exportEmployees'])->name('Employee.export');
+
         Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
         Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
             ->name('pages.Employeeall');
         Route::match(['GET', 'POST'], '/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
+        Route::get('/employeesall/exportall', [EmployeeController::class, 'exportEmployeesall'])->name('Employeeall.exportall');
+
         Route::get('/Import', [EmployeeImportController::class, 'index'])
             ->name('pages.Import');
         Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Import.employee');
@@ -160,7 +163,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
     ->where('path', '.*')
     ->middleware('auth')
     ->name('employee.photo');
-
     });
     Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
         Route::get('/Payrolls', [PayrollsController::class, 'index'])
@@ -439,6 +441,15 @@ Route::group(['middleware' => ['auth', 'permission:Salary']], function () {
     Route::put('/SalarySalary/{hashedId}', [SalaryController::class, 'update'])->name('Salary.update');
     Route::get('/salaries/salaries', [SalaryController::class, 'getSalaries'])->name('salaries.salaries');
 });
+Route::group(['middleware' => ['auth', 'permission:PayrollComponents']], function () {
+    Route::get('/payrollcomponents', [PayrollcomponentsController::class, 'index'])
+        ->name('payrollcomponents');
+    Route::get('payrollcomponents/create', [PayrollcomponentsController::class, 'create'])->name('payrollcomponents.create');
+    Route::post('/payrollcomponents', [PayrollcomponentsController::class, 'store'])->name('payrollcomponents.store');
+    Route::get('/payrollcomponents/edit/{id}', [PayrollcomponentsController::class, 'edit'])->name('editpayrollcomponents');
+    Route::put('/payrollcomponents/{id}', [PayrollcomponentsController::class, 'update'])->name('updatepayrollcomponents');
+    Route::get('/payrollcomponents/payrollcomponents', [PayrollcomponentsController::class, 'getPayrollcomponents'])->name('payrollcomponents.payrollcomponents');
+});
 Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], function () {
     Route::get('/Positionreqlist', [PositionreqController::class, 'index'])
         ->name('pages.Positionreqlist');
@@ -448,17 +459,12 @@ Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], funct
     Route::get('/positionreqlists/positionreqlists', [PositionreqController::class, 'getPositionreqlists'])->name('positionreqlists.positionreqlists');
     Route::get('/datarequest/datarequest', [PositionreqController::class, 'getReqactivities'])->name('datarequest.datarequest');
 });
-
 Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], function () {
-
     Route::get('/Teamfingerprint', [DashManagerController::class, 'indexteamfingerprint'])
         ->name('pages.Teamfingerprint');
     Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
 });
-
 });
-
-
 // ── Roster (master shift Pagi/Siang/Malam) ──
 Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function () {
     Route::get('/',             [RosterController::class, 'index'])      ->name('index');
@@ -468,8 +474,6 @@ Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function (
     Route::post('/copy',        [RosterController::class, 'copyRoster']) ->name('copyRoster');
     Route::post('/bulk-delete', [RosterController::class, 'bulkDelete']) ->name('bulkDelete');
 });
-
-// ── Schedule (jadwal harian karyawan) ──
 Route::prefix('schedule')->name('schedule.')->middleware(['auth'])->group(function () {
     Route::get('/',             [ScheduleController::class, 'index'])        ->name('index');
     Route::post('/store',       [ScheduleController::class, 'store'])        ->name('store');
@@ -477,14 +481,11 @@ Route::prefix('schedule')->name('schedule.')->middleware(['auth'])->group(functi
     Route::post('/bulk-assign', [ScheduleController::class, 'bulkAssign'])   ->name('bulkAssign');
     Route::post('/copy',        [ScheduleController::class, 'copySchedule']) ->name('copySchedule');
 });
-
-// ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
 Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
     Route::get('/',       [FingerprintRecapController::class, 'index'])   ->name('index');
     Route::post('/data',  [FingerprintRecapController::class, 'getData']) ->name('data');
     Route::post('/recap', [FingerprintRecapController::class, 'recap'])   ->name('recap');
 });
-
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');

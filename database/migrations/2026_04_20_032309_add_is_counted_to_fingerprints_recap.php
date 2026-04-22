@@ -21,7 +21,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('fingerprints_recap', function (Blueprint $table) {
-            //
+            
         });
     }
 };

@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('employees_tables', function (Blueprint $table) {
-            $table->enum('status', ['Active','Pending', 'Inactive', 'On Leave','Mutation'])->nullable();;
+            $table->enum('status', ['Active','Pending', 'Inactive', 'On Leave','Mutation','Resign'])->nullable();;
             
         });
     }

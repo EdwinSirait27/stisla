@@ -109,14 +109,23 @@ class RosterController extends Controller
         $current = Carbon::parse($request->start_date);
         $end     = Carbon::parse($request->end_date);
 
+        // while ($current->lte($end)) {
+        //     if ($request->skip_weekend && $current->isWeekend()) {
+        //         $current->addDay();
+        //         continue;
+        //     }
+        //     $dates[] = $current->toDateString();
+        //     $current->addDay();
+        // }
         while ($current->lte($end)) {
-            if ($request->skip_weekend && $current->isWeekend()) {
-                $current->addDay();
-                continue;
-            }
-            $dates[] = $current->toDateString();
-            $current->addDay();
-        }
+    if ($request->skip_weekend && $current->isSunday()) {
+        $current->addDay();
+        continue;
+    }
+
+    $dates[] = $current->toDateString();
+    $current->addDay();
+}
 
         $count = 0;
         foreach ($request->employee_ids as $empId) {
@@ -134,7 +143,7 @@ class RosterController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Berhasil assign {$count} jadwal.",
+            'message' => "assign schedule {$count} success.",
         ]);
     }
 
@@ -167,10 +176,9 @@ class RosterController extends Controller
             );
             $count++;
         }
-
         return response()->json([
             'success' => true,
-            'message' => "Berhasil copy {$count} jadwal.",
+            'message' => "schedule copied {$count} successfully.",
         ]);
     }
 

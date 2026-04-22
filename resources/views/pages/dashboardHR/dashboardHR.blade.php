@@ -2194,7 +2194,7 @@
                         <div class="profile-info">
                             <h2>{{ Auth::user()->employee->employee_name ?? 'HR User' }}</h2>
                             <div style="font-size:.85rem;opacity:.85;font-weight:500;">
-                                Human Resources Department
+                                {{-- Human Resources Department --}}
                             </div>
                             <div class="profile-meta">
                                 <div class="profile-meta-item">
@@ -2239,7 +2239,7 @@
          QUICK ACTIONS BAR
     ========================================================= --}}
     <div class="quick-actions animate-in">
-        <a href="{{ route('pages.Employee') }}" class="qa-btn">
+        <a href="{{ route('Employee.create') }}" class="qa-btn">
             <i class="fas fa-user-plus icon-primary"></i> Add Employee
         </a>
         <a href="{{ route('pages.Fingerprints') }}" class="qa-btn">

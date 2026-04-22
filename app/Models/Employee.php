@@ -106,6 +106,59 @@ class Employee extends Model
     //         return $nextPin;
     //     });
     // }
+      public static function getReligionOptions()
+{
+    return [
+        'Catholic Christian' => 'Catholic Christian',
+        'Christian' => 'Christian',
+        'Islam' => 'Islam',
+        'Hindu' => 'Hindu',
+        'Confucian' => 'Confucian',
+        'Buddha' => 'Buddha'];
+}
+      public static function getMarriageOptions()
+{
+    return [
+        'Yes' => 'Yes',
+        'No' => 'No'];
+}
+      public static function getLastEducationOptions()
+{
+    return [
+        'Elementary School' => 'Elementary School',
+        'Junior High School' => 'Junior High School',
+        'Senior High School' => 'Senior High School',
+        'Vocational School' => 'Vocational School',
+        'Bachelor Degree' => 'Bachelor Degree',
+        'Masters degree' => 'Masters degree',
+        'Diploma I' => 'Diploma I',
+        'Diploma II' => 'Diploma II',
+        'Diploma III' => 'Diploma III',
+        'Diploma IV' => 'Diploma IV'];
+}
+      public static function getGenderOptions()
+{
+    return [
+        'Male' => 'Male',
+        'Female' => 'Female'];
+}
+      public static function getStatusEmployeeOptions()
+{
+    return [
+        'PKWT' => 'PKWT',
+        'DW' => 'DW',
+        'On Job Training' => 'On Job Training'];
+}
+      public static function getStatusOptions()
+{
+    return [
+        'Active' => 'Active',
+        'Inactive' => 'Inactive',
+        'Pending' => 'Pending',
+        'On Leave' => 'On Leave',
+        'Mutation' => 'Mutation',
+        'Resign' => 'Resign'];
+}
     public function department()
     {
         return $this->belongsTo(Departments::class, 'department_id', 'id');
@@ -124,7 +177,7 @@ class Employee extends Model
     }
     public function bank()
     {
-        return $this->belongsTo(Banks::class, 'banks_id');
+        return $this->belongsTo(Banks::class, 'banks_id','id');
     }
     public function store()
     {
@@ -136,7 +189,7 @@ class Employee extends Model
     }
     public function position()
     {
-        return $this->belongsTo(Position::class, 'position_id');
+        return $this->belongsTo(Position::class, 'position_id','id');
     }
     public function employees()
     {

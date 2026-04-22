@@ -1,301 +1,693 @@
-{{-- @extends('layouts.app')
-@section('title', 'Detail Employees')
+@extends('layouts.app')
+@section('title', 'Employee Details')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <!-- Tambahkan setelah datatables js yang sudah ada -->
+<link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
+
+    <style>
+        /* ─── Page header ────────────────────────────────────── */
+        .section-header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 1.25rem;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-actions .btn {
+            height: 36px;
+            font-size: .825rem;
+            padding: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            border-radius: .5rem;
+        }
+
+        /* ─── Stat cards row ─────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            border-radius: .625rem;
+            padding: 14px 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+        }
+
+        .stat-card-label {
+            font-size: .68rem;
+            font-weight: 700;
+            /* text-transform: uppercase; */
+            letter-spacing: .7px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        .stat-card-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1;
+            color: #1e293b;
+        }
+
+        .stat-card-value.green {
+            color: #166534;
+        }
+
+        .stat-card-value.amber {
+            color: #92400e;
+        }
+
+        .stat-card-value.red {
+            color: #991b1b;
+        }
+
+        .stat-card-sub {
+            font-size: .7rem;
+            color: #94a3b8;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        /* ─── Card shell ─────────────────────────────────────── */
+        .emp-card {
+            border: none;
+            border-radius: .625rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .07);
+            background: #fff;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+        }
+
+        .emp-card-header {
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+            padding: .875rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .emp-card-header-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .8rem;
+            flex-shrink: 0;
+        }
+
+        .emp-card-header-icon.blue {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .emp-card-header-icon.green {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .emp-card-header-title {
+            font-size: .9rem;
+            font-weight: 600;
+            color: #334155;
+            flex: 1;
+        }
+
+        .emp-card-header-count {
+            font-size: .72rem;
+            color: #64748b;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: .15rem .7rem;
+        }
+
+        /* ─── Toolbar ────────────────────────────────────────── */
+        .dt-toolbar {
+            padding: .75rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .dt-toolbar .btn {
+            height: 32px;
+            font-size: .775rem;
+            padding: 0 .75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border-radius: .4rem;
+        }
+
+        /* ─── Table ──────────────────────────────────────────── */
+        #employees-table,
+        #activityTable {
+            width: 100% !important;
+            font-size: .8rem;
+        }
+
+        #employees-table thead th,
+        #activityTable thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: .68rem;
+            font-weight: 700;
+            /* text-transform: uppercase; */
+            letter-spacing: .5px;
+            padding: .7rem .9rem;
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            white-space: nowrap;
+        }
+
+        #employees-table tbody td,
+        #activityTable tbody td {
+            padding: .75rem .9rem;
+            vertical-align: middle;
+            border: none;
+            border-bottom: 1px solid #f8fafc;
+            color: #334155;
+        }
+
+        #employees-table tbody tr:last-child td,
+        #activityTable tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        #employees-table tbody tr:hover td,
+        #activityTable tbody tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* employee name cell */
+        .emp-cell {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .emp-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: .65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .emp-avatar-name {
+            font-weight: 600;
+            font-size: .8rem;
+            line-height: 1.2;
+        }
+
+        .emp-avatar-nip {
+            font-size: .7rem;
+            color: #94a3b8;
+        }
+
+        /* status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: .18rem .6rem;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-active {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .badge-leave {
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .badge-resign {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .badge-mutation {
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .badge-pending {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .badge-permanent {
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .badge-contract {
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .badge-internship {
+            background: #fdf4ff;
+            color: #6b21a8;
+        }
+
+        /* action buttons */
+        .action-wrap {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #64748b;
+            font-size: .75rem;
+            text-decoration: none;
+            transition: all .15s;
+        }
+
+        .act-btn:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .act-btn.act-danger {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .act-btn.act-danger:hover {
+            background: #fee2e2;
+        }
+
+        /* ─── Hint bar ───────────────────────────────────────── */
+        .hint-bar {
+            padding: .65rem 1.25rem;
+            background: #fafafa;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: .72rem;
+            color: #94a3b8;
+        }
+
+        /* ─── DataTables overrides ───────────────────────────── */
+        div.dataTables_wrapper div.dataTables_filter input,
+        div.dataTables_wrapper div.dataTables_length select {
+            height: 32px;
+            font-size: .775rem;
+            border: 1px solid #e2e8f0;
+            border-radius: .4rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_info {
+            font-size: .75rem;
+            color: #64748b;
+            padding-top: .5rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_paginate {
+            padding-top: .3rem;
+        }
+
+        div.dataTables_wrapper div.dataTables_paginate .paginate_button {
+            font-size: .75rem;
+            border-radius: .375rem !important;
+            padding: .2rem .5rem;
+        }
+
+        .dataTables_wrapper {
+            padding: .75rem 1.25rem 1rem;
+        }
+
+        /* untuk fixedclolom */
+    /* Agar fixed columns menyatu dengan tema */
+    table.dataTable tbody tr.odd  > .dtfc-fixed-left { background: #fff; }
+    table.dataTable tbody tr.even > .dtfc-fixed-left { background: #f8fafc; }
+    table.dataTable tbody tr:hover > .dtfc-fixed-left { background: #f8fafc; }
+    .dtfc-fixed-left { 
+        box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); 
+        z-index: 3;
+    }
+    /* Pastikan wrapper tidak overflow hidden agar fixed columns kelihatan */
+    .dataTables_scrollBody { overflow-x: auto !important; }
+
+
+
+
+
+        .dt-buttons .btn {
+            height: 32px;
+            font-size: .775rem;
+            padding: 0 .75rem;
+        }
+
+        .dt-filter-bar .select2-container {
+            min-width: 140px;
+            flex: 1 1 140px;
+        }
+
+        .select2-container--default .select2-selection--single {
+            height: 32px !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection__rendered {
+            font-size: .775rem;
+        }
+
+        /* ─── Responsive ─────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
 @endpush
-<style>
-    /* Card Styles */
-    .card {
-        border: none;
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
-        border-radius: 0.5rem;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        background-color: #fff;
-    }
 
-    .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
-    }
-
-    .card-header {
-        background-color: #f8fafc;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-        padding: 1.25rem 1.5rem;
-    }
-
-    .card-header h6 {
-        margin: 0;
-        font-weight: 600;
-        color: #4a5568;
-        display: flex;
-        align-items: center;
-        font-size: 0.95rem;
-    }
-
-    .card-header h6 i {
-        margin-right: 0.75rem;
-        color: #5e72e4;
-        transition: color 0.3s ease;
-    }
-
-    /* Table Styles */
-    .table-responsive {
-        padding: 0 1.5rem;
-        overflow: hidden;
-    }
-
-    .table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .table thead th {
-        background-color: #f8fafc;
-        color: #4a5568;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
-        border: none;
-        padding: 1rem 0.75rem;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        transition: all 0.3s ease;
-    }
-
-    .table tbody tr {
-        transition: all 0.25s ease;
-        position: relative;
-    }
-
-    .table tbody tr:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: rgba(0, 0, 0, 0.05);
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(94, 114, 228, 0.03);
-        transform: scale(1.002);
-    }
-
-    .table tbody td {
-        padding: 1.1rem 0.75rem;
-        vertical-align: middle;
-        color: #4a5568;
-        font-size: 0.85rem;
-        transition: all 0.2s ease;
-        border: none;
-        background: #fff;
-    }
-
-    .table tbody tr:hover td {
-        color: #2d3748;
-    }
-
-    /* Text alignment for specific columns */
-    .text-center {
-        text-align: center;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        padding: 1.25rem 1.5rem;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .btn-primary {
-        background-color: #5e72e4;
-        border-color: #5e72e4;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: #4a5bd1;
-        border-color: #4a5bd1;
-        transform: translateY(-1px);
-    }
-
-    /* Section Header */
-    .section-header h1 {
-        font-weight: 600;
-        color: #2d3748;
-        font-size: 1.5rem;
-    }
-
-    /* Smooth scroll for table */
-    .table-responsive {
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-        .table-responsive {
-            padding: 0 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .card-header {
-            padding: 1rem;
-        }
-
-        .table thead th {
-            font-size: 0.65rem;
-            padding: 0.75rem 0.5rem;
-        }
-
-        .table tbody td {
-            padding: 0.85rem 0.5rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    .DTFC_LeftBodyLiner,
-    .DTFC_LeftHeadWrapper,
-    .DTFC_RightBodyLiner,
-    .DTFC_RightHeadWrapper {
-        background-color: #fff !important;
-        z-index: 999 !important;
-    }
-
-    table.dataTable thead th,
-    table.dataTable thead td {
-        background-color: #f8f9fa !important;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-    }
-
-    .dataTables_scrollBody {
-        overflow-x: auto !important;
-    }
-
-    table.dataTable,
-    table.dataTable th,
-    table.dataTable td {
-        border-color: #dee2e6 !important;
-    }
-
-    .DTFC_LeftBodyLiner {
-        border-right: none !important;
-    }
-</style>
 @section('main')
     <div class="main-content">
         <section class="section">
+
+            {{-- ── Page Header ── --}}
             <div class="section-header">
-                <h1>Employee Details Table</h1>
+                <div>
+                    <div style="font-size:.72rem;color:#94a3b8;margin-bottom:3px">
+                        Dashboard / <span style="color:#64748b">Employees</span>
+                    </div>
+                    <h1>Employee Details</h1>
+                </div>
+                <div class="page-actions">
+                   <a href="{{ route('pages.Employee') }}" class="btn btn-danger">
+                        <i class="fas fa-users"></i> Back to employees
+                    </a>
+                    <a href="{{ route('Employee.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create employee
+                    </a>
+                    
+                </div>
             </div>
+
             <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Employee Details</h6>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="filter-store" class="form-label">Filter</label>
-                                <select id="filter-store" class="form-select select2">
-                                    <option value="">All</option>
-                                    @foreach ($storeList as $name)
-                                        <option value="{{ $name }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <div id="filter-status">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="status-all" value=""
-                                            checked>
-                                    </div>
-                                    @foreach ($statusList as $status)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="status[]"
-                                                id="status-{{ $loop->index }}" value="{{ $status }}">
-                                            <label class="form-check-label"
-                                                for="status-{{ $loop->index }}">{{ $status }}</label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
 
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table id="users-table" class="table table-bordered table-striped table-hover"
-                                        style="width:100%">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="text-center">Action</th>
-                                                <th class="text-center">Employee Name</th>
-                                                <th class="text-center">Nomor Induk</th>
-                                                <th class="text-center">Pin Finger</th>
-                                                <th class="text-center">NIK</th>
-                                                <th class="text-center">Religion</th>
-                                                <th class="text-center">Gender</th>
-                                                <th class="text-center">Date of Birth</th>
-                                                <th class="text-center">Place of Birth</th>
-                                                <th class="text-center">Mother's Name</th>
-                                                <th class="text-center">Current Address</th>
-                                                <th class="text-center">ID Card Address</th>
-                                                <th class="text-center">Last Education</th>
-                                                <th class="text-center">Institution</th>
-                                                <th class="text-center">Marriage</th>
-                                                <th class="text-center">Child</th>
-                                                <th class="text-center">Emergency Contact Name</th>
-                                                <th class="text-center">Email</th>
-                                                <th class="text-center">Company Email</th>
-                                                <th class="text-center">Phone Number</th>
-                                                <th class="text-center">BPJS Kesehatan</th>
-                                                <th class="text-center">BPJS Ketenagakerjaan</th>
-                                                <th class="text-center">NPWP</th>
-                                                <th class="text-center">Bank Account</th>
-                                                <th class="text-center">Bank Account Number</th>
-                                                <th class="text-center">Company</th>
-                                                <th class="text-center">Department</th>
-                                                <th class="text-center">Location</th>
-                                                <th class="text-center">Position</th>
-                                                <th class="text-center">Grd Name</th>
-                                                <th class="text-center">Grouping</th>
-                                                <th class="text-center">Status Employee</th>
-                                                <th class="text-center">Join Date</th>
-                                                <th class="text-center">LOS</th>
+                {{-- ── Stat Cards ── --}}
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total employees</div>
+                        <div class="stat-card-value" id="stat-total">–</div>
+                        <div class="stat-card-sub">
+                            <span class="stat-dot" style="background:#1d4ed8"></span> All companies
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Active</div>
+                        <div class="stat-card-value green" id="stat-active">{{ $countactives }}</div>
+                        <div class="stat-card-sub">
+                            <span class="stat-dot" style="background:#16a34a"></span> Currently active
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Pending</div>
+                        <div class="stat-card-value amber" id="stat-leave">{{ $countpendings }}</div>
+                        <div class="stat-card-sub">
+                            <span class="stat-dot" style="background:#d97706"></span> Employee Pending
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Resigned</div>
+                        <div class="stat-card-value red" id="stat-resign">{{ $countresigns }}</div>
+                        <div class="stat-card-sub">
+                            <span class="stat-dot" style="background:#dc2626"></span> No longer active
+                        </div>
+                    </div>
+                </div>
 
-                                                <th class="text-center">Account Creation</th>
-                                                <th class="text-center">Status</th>
-                                                <th class="text-center">Notes</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('pages.Employee') }}'"
-                                        class="btn btn-warning btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Back to Employee
-                                    </button>
-                                </div>
-                                <div class="alert alert-secondary mt-4" role="alert">
-                                    <span class="text-dark">
-                                        <strong>Important Note:</strong> <br>
-                                        - <i class="fas fa-user"></i> - Import the employee's data first then import the
-                                        users aight. <br>
-                                    </span>
-                                </div>
-                            </div>
+                {{-- ── Employee Table Card ── --}}
+                <div class="emp-card">
+                    <div class="emp-card-header">
+                        <div class="emp-card-header-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="emp-card-header-title">List employees</span>
+                        <span class="emp-card-header-count" id="emp-count">Loading...</span>
+
+                    </div>
+                    {{-- ── Filter Bar ── --}}
+                    <div class="dt-filter-bar"
+                        style="
+    padding: .75rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+">
+                        <select id="filter-bank" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Banks</option>
+                            @foreach ($banks as $bank)
+                                <option value="{{ $bank }}">{{ $bank }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filter-gender" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Genders</option>
+                            @foreach ($genders as $gender)
+                                <option value="{{ $gender }}">{{ $gender }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filter-marriage" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">Is Marriage?</option>
+                            @foreach ($marriages as $marriage)
+                                <option value="{{ $marriage }}">{{ $marriage }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filter-religion" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Religions</option>
+                            @foreach ($religions as $religion)
+                                <option value="{{ $religion }}">{{ $religion }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filter-last-education" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Educations</option>
+                            @foreach ($lasteducations as $lasteducation)
+                                <option value="{{ $lasteducation }}">{{ $lasteducation }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filter-company" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Companies</option>
+                            @foreach ($companies as $company)
+                                <option value="{{ $company }}">{{ $company }}</option>
+                            @endforeach
+                        </select>
+
+                        <select id="filter-department" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Departments</option>
+                            @foreach ($departments as $department)
+                                <option value="{{ $department }}">{{ $department }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filter-store" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Locations</option>
+                            @foreach ($locations as $location)
+                                <option value="{{ $location }}">{{ $location }}</option>
+                            @endforeach
+                        </select>
+
+                        <select id="filter-emp-status" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Emp. Status</option>
+                            @foreach ($employeestatuses as $employeestatuse)
+                                <option value="{{ $employeestatuse }}">{{ $employeestatuse }}</option>
+                            @endforeach
+
+                        </select>
+                        <select id="filter-grading" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Grd</option>
+                            @foreach ($gradings as $grading)
+                                <option value="{{ $grading }}">{{ $grading }}</option>
+                            @endforeach
+
+                        </select>
+                        <select id="filter-group" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Groups</option>
+                            @foreach ($groups as $group)
+                                <option value="{{ $group }}">{{ $group }}</option>
+                            @endforeach
+
+                        </select>
+
+                        <select id="filter-los" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All LOS</option>
+                            <option value="under3months">Under 3 Months</option>
+                            <option value="1year">1+ Year</option>
+                            <option value="3years">3+ Years</option>
+                            <option value="5years">5+ Years</option>
+
+                        </select>
+
+                        <select id="filter-status" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Status</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status }}">{{ $status }}</option>
+                            @endforeach
+                        </select>
+
+                        <button id="btn-reset-filter" class="btn btn-sm btn-light"
+                            style="height:32px;font-size:.775rem;padding:0 .75rem;display:inline-flex;align-items:center;gap:.35rem;border-radius:.4rem;border:1px solid #e2e8f0">
+                            <i class="fas fa-rotate-left"></i> Reset
+                        </button>
+                        <!-- Tombol Export, filter ikut terbawa via URL -->
+                        <a id="btn-export-excel" href="{{ route('Employee.export') }}" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </a>
+                        <a id="btn-export-csv" href="{{ route('Employee.export') }}?type=csv" class="btn btn-info">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+
+                        <table id="employees-table" class="table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Action</th>         
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Employee</th>
+                                    <th class="text-center">NIP</th>
+                                    <th class="text-center">P.Finger</th>
+                                    <th class="text-center">NIK</th>
+                                    <th class="text-center">Religion</th>
+                                    <th class="text-center">Gender</th>
+                                    <th class="text-center">Date of Birth</th>
+                                    <th class="text-center">Plc. of Birth</th>
+                                    <th class="text-center">Moth. Name</th>
+                                    <th class="text-center">Crnt. Address</th>
+                                    <th class="text-center">ID Card Address</th>
+                                    <th class="text-center">Lst. Education</th>
+                                    <th class="text-center">Institution</th>
+                                    <th class="text-center">Marriage</th>
+                                    <th class="text-center">Child</th>
+                                    <th class="text-center">Emer. Contact</th>
+                                    <th class="text-center">Email</th>
+                                    <th class="text-center">Pend. Email</th>
+                                    <th class="text-center">Comp. Email</th>
+                                    <th class="text-center">Phone</th>
+                                    <th class="text-center">Pend. Phone</th>
+                                    <th class="text-center">BPJS Kes.</th>
+                                    <th class="text-center">BPJS Ket.</th>
+                                    <th class="text-center">NPWP</th>
+                                    <th class="text-center">Bank</th>
+                                    <th class="text-center">Bank Acc. Number</th>
+                                    <th class="text-center">Company</th>
+                                    <th class="text-center">Department</th>
+                                    <th class="text-center">Location</th>
+                                    <th class="text-center">Position</th>
+                                    <th class="text-center">Grade</th>
+                                    <th class="text-center">Group</th>
+                                    <th class="text-center">Emp. status</th>
+                                    <th class="text-center">LOS</th>
+                                    <th class="text-center">Join Date</th>
+                                    <th class="text-center">End Date</th>
+                                    <th class="text-center">Acc. Created</th>
+                                </tr>
+                            </thead>
+                          </table>
+                    </div>
+
+                    <div class="hint-bar">
+                        <div class="hint-item">
+                            <i class="fas fa-user-edit text-secondary"></i> Click edit to modify employee data
+                        </div>
+                        <div class="hint-item">
+                            <i class="fas fa-eye text-secondary"></i>Click edit to show employee data
                         </div>
                     </div>
                 </div>
@@ -303,6 +695,7 @@
         </section>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -311,779 +704,430 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
+<script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 
-            var table = $('#users-table').DataTable({
-                dom: '<"top row mb-2"<"col-sm-12 col-md-6 d-flex align-items-center"lB><"col-sm-12 col-md-6"f>>rt<"bottom"ip>',
-                    buttons: [{
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel"></i> Excel',
-                            className: 'btn btn-sm btn-success',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
-                                ],
-                                format: {
-                                    body: function(data, row, column, node) {
-                                        if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
-                                            return '\u200C' + data;
-                                        }
-                                        return data;
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            extend: 'csv',
-                            text: '<i class="fas fa-file-csv"></i> CSV',
-                            className: 'btn btn-sm btn-primary',
-                            exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
-                                ],
-                                format: {
-                                    body: function(data, row, column, node) {
-                                        if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
-                                            return '\u200C' + data;
-                                        }
-                                        return data;
-                                    }
-                                }
-                            }
-                        }
-                    ],
+    <script>
+        $('.select2').select2({
+            width: 'resolve' // atau bisa dihapus saja
+        });
+    </script>
+    <script>
+        /* ── Helpers ── */
+        const AVATAR_COLORS = [{
+                bg: '#eff6ff',
+                color: '#1e40af'
+            },
+            {
+                bg: '#f5f3ff',
+                color: '#5b21b6'
+            },
+            {
+                bg: '#f0fdf4',
+                color: '#166534'
+            },
+            {
+                bg: '#fffbeb',
+                color: '#92400e'
+            },
+            {
+                bg: '#fdf2f8',
+                color: '#9d174d'
+            },
+        ];
+
+        function avatarStyle(name, idx) {
+            const c = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+            return `background:${c.bg};color:${c.color}`;
+        }
+
+        function initials(name) {
+            if (!name) return '?';
+            return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+        }
+
+        const STATUS_BADGE = {
+            'Active': 'badge-active',
+            'On leave': 'badge-leave',
+            'Resign': 'badge-resign',
+            'Mutation': 'badge-mutation',
+            'Pending': 'badge-pending',
+        };
+
+        const EMP_STATUS_BADGE = {
+            'PKWT': 'badge-permanent',
+            'On Job Training': 'badge-contract',
+            'DW': 'badge-internship',
+        };
+
+        function statusBadge(val, map) {
+            if (!val) return '-';
+            const cls = map[val] || 'badge-pending';
+            return `<span class="status-badge ${cls}">${val}</span>`;
+        }
+
+        /* ── Employee DataTable ── */
+        $(function() {
+            var empTable = $('#employees-table').DataTable({
+
                 processing: true,
                 serverSide: true,
-                scrollY: "700px",
-                scrollX: true,
                 autoWidth: false,
-                fixedColumns: {
-                    leftColumns: 3 },
+                 scrollX: true,
+    scrollCollapse: true,
+    fixedColumns: {
+        left: 3  // freeze: Action, Status, Employee (kolom 0,1,2)
+    },
+
+    dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
+                // dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
+                //     "<'row'<'col-sm-12'tr>>" +
+                //     "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
-                    type: 'POST',
                     data: function(d) {
-                        d._token = '{{ csrf_token() }}';
-                        d.name = $('#filter-store').val();
-                        d.status = [];
-                        $('#filter-status input[type="checkbox"]:checked').each(function() {
-                            d.status.push($(this).val());
+                        d.filter_company = $('#filter-company').val();
+                        d.filter_department = $('#filter-department').val();
+                        d.filter_emp_status = $('#filter-emp-status').val();
+                        d.filter_status = $('#filter-status').val();
+                        d.filter_store = $('#filter-store').val();
+                        d.filter_los = $('#filter-los').val();
+                        d.filter_group = $('#filter-group').val();
+                        d.filter_grading = $('#filter-grading').val();
+                        d.filter_bank = $('#filter-bank').val();
+                        d.filter_gender = $('#filter-gender').val();
+                        d.filter_marriage = $('#filter-marriage').val();
+                        d.filter_religion = $('#filter-religion').val();
+                        d.filter_last_education = $('#filter-last-education').val();
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to load employee data.'
                         });
                     }
                 },
-                responsive: true,
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
+                    [10, 25, 50, 100, 'All']
                 ],
                 pageLength: 10,
                 language: {
-                    lengthMenu: "Show _MENU_ entries",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
+                    lengthMenu: 'Show _MENU_',
+                    search: '',
+                    searchPlaceholder: 'Search employee...',
+                    info: 'Showing _START_–_END_ of _TOTAL_',
+                    infoEmpty: 'No entries found',
+                    infoFiltered: '(filtered from _MAX_ total)',
                     paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    },
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)"
+                        previous: '‹',
+                        next: '›'
+                    }
                 },
-                columns: [{
+                columns: [
+                    {
                         data: 'action',
-                        name: 'action',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: function(data) {
+                            return `<div class="action-wrap">${data}</div>`;
+                        }
+                    }, 
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: d => statusBadge(d, STATUS_BADGE)
                     },
                     {
                         data: 'employee_name',
-                        name: 'employee_name',
-                        className: 'text-center'
+                        render: function(data, type, row, meta) {
+                            const ini = initials(data);
+                            const sty = avatarStyle(data, meta.row);
+                            return `<div class="emp-cell">
+                            <div class="emp-avatar" style="${sty}">${ini}</div>
+                            <div>
+                                <div class="emp-avatar-name">${data || '-'}</div>
+                                <div class="emp-avatar-nip">${row.nip || '-'}</div>
+                            </div>
+                        </div>`;
+                        }
                     },
                     {
                         data: 'employee_pengenal',
-                        name: 'employee_pengenal',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'pin',
-                        name: 'pin',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'nik',
-                        name: 'nik',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'religion',
-                        name: 'religion',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'gender',
-                        name: 'gender',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'date_of_birth',
-                        name: 'date_of_birth',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'place_of_birth',
-                        name: 'place_of_birth',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'biological_mother_name',
-                        name: 'biological_mother_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'current_address',
-                        name: 'current_address',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'id_card_address',
-                        name: 'id_card_address',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'last_education',
-                        name: 'last_education',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'institution',
-                        name: 'institution',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'marriage',
-                        name: 'marriage',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'child',
-                        name: 'child',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'emergency_contact_name',
-                        name: 'emergency_contact_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'email',
-                        name: 'email',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
+                    },
+                    {
+                        data: 'pending_email',
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'company_email',
-                        name: 'company_email',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'telp_number',
-                        name: 'telp_number',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
+                    },
+                    {
+                        data: 'pending_telp_number',
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'bpjs_kes',
-                        name: 'bpjs_kes',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'bpjs_ket',
-                        name: 'bpjs_ket',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'npwp',
-                        name: 'npwp',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'bank_name',
-                        name: 'bank_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'bank_account_number',
-                        name: 'bank_account_number',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
+                    
                     {
                         data: 'name_company',
-                        name: 'name_company',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'department_name',
-                        name: 'department_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'name',
-                        name: 'name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'grading_name',
-                        name: 'grading_name',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d ? `<strong>${d}</strong>` : '-'
                     },
                     {
-                        data: 'group_name',
-                        name: 'group_name',
-                        className: 'text-center'
+                        data: 'remark',
+                        className: 'text-center',
+                        render: d => d ? `<strong>${d}</strong>` : '-'
                     },
-
                     {
                         data: 'status_employee',
-                        name: 'status_employee',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'join_date',
-                        name: 'join_date',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => statusBadge(d, EMP_STATUS_BADGE)
                     },
                     {
                         data: 'length_of_service',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => d ? `<span style="color:#64748b;font-size:.775rem">${d}</span>` :
+                            '-'
                     },
-                    {
+                     {
+                        data: 'join_date',
+                        className: 'text-center',
+                        render: d => statusBadge(d, EMP_STATUS_BADGE)
+                    },
+                     {
+                        data: 'end_date',
+                        className: 'text-center',
+                        render: d => statusBadge(d, EMP_STATUS_BADGE)
+                    },
+                     {
                         data: 'created_at',
-                        name: 'created_at',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'notes',
-                        name: 'notes',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: d => statusBadge(d, EMP_STATUS_BADGE)
                     }
+
                 ],
+                drawCallback: function(settings) {
+                    const info = settings.json;
+                    if (info && info.recordsTotal !== undefined) {
+                        $('#emp-count').text(info.recordsTotal + ' records');
+                        $('#stat-total').text(info.recordsTotal);
+                    }
+                    if (info && info.stats) {
+                        $('#stat-active').text(info.stats.active ?? '–');
+                        $('#stat-leave').text(info.stats.on_leave ?? '–');
+                        $('#stat-resign').text(info.stats.resign ?? '–');
+                    }
+                },
+                // initComplete: function() {
+                //     $('.dataTables_filter input').addClass('form-control form-control-sm');
+                //     $('.dataTables_length select').addClass('form-select form-select-sm');
+                // }
                 initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control form-control-sm');
-                    $('.dataTables_length select').addClass('form-select form-select-sm');
-                }
+        $('.dataTables_filter input').addClass('form-control form-control-sm');
+        $('.dataTables_length select').addClass('form-select form-select-sm');
+    }
             });
-            $('#filter-store').on('change', function() {
-                table.ajax.reload();
+            $('#filter-company, #filter-department, #filter-emp-status, #filter-status, #filter-los, #filter-store, #filter-grading, #filter-group,#filter-bank,#filter-gender,#filter-marriage,#filter-religion,#filter-last-education')
+                .on('change', function() {
+                    empTable.ajax.reload();
+                    updateExportLinks(); // ← tambahkan di sini
+                });
+
+            /* ── Reset filter ── */
+            $('#btn-reset-filter').on('click', function() {
+
+                $('#filter-company').val('').trigger('change');
+                $('#filter-department').val('').trigger('change');
+                $('#filter-emp-status').val('').trigger('change');
+                $('#filter-status').val('').trigger('change');
+                $('#filter-store').val('').trigger('change');
+                $('#filter-los').val('').trigger('change');
+                $('#filter-group').val('').trigger('change');
+                $('#filter-grading').val('').trigger('change');
+                $('#filter-bank').val('').trigger('change');
+                $('#filter-gender').val('').trigger('change');
+                $('#filter-marriage').val('').trigger('change');
+                $('#filter-religion').val('').trigger('change');
+                $('#filter-last-education').val('').trigger('change');
+                empTable.ajax.reload();
             });
-            $('#filter-status input[type="checkbox"]').on('change', function() {
-                table.ajax.reload();
-            });
+            // Setiap kali filter berubah, update href tombol export
+            function updateExportLinks() {
+                const params = new URLSearchParams({
+                    filter_company: $('#filter-company').val(),
+                    filter_department: $('#filter-department').val(),
+                    filter_group: $('#filter-group').val(),
+                    filter_grading: $('#filter-grading').val(),
+                    filter_store: $('#filter-store').val(),
+                    filter_emp_status: $('#filter-emp-status').val(),
+                    filter_status: $('#filter-status').val(),
+                    filter_los: $('#filter-los').val(),
+                    filter_bank: $('#filter-bank').val(),
+                    filter_gender: $('#filter-gender').val(),
+                    filter_marriage: $('#filter-marriage').val(),
+                    filter_religion: $('#filter-religion').val(),
+                    filter_last_education: $('#filter-last-education').val(),
+                });
+
+                const baseUrl = "{{ route('Employeeall.exportall') }}";
+                $('#btn-export-excel').attr('href', `${baseUrl}?${params}`);
+                $('#btn-export-csv').attr('href', `${baseUrl}?${params}&type=csv`);
+            }
+            // Panggil setiap filter berubah
+            updateExportLinks();
+            /* ── Session flash ── */
             @if (session('success'))
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
                     text: '{{ session('success') }}',
-                    timer: 3000
+                    confirmButtonColor: '#1d4ed8',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#dc2626'
                 });
             @endif
         });
     </script>
-@endpush --}}
-@extends('layouts.app')
-@section('title', 'Detail Employees')
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
-@endpush
-
-<style>
-    /* ─── Card ─── */
-    .card {
-        border: none;
-        box-shadow: 0 0.15rem 0.5rem rgba(0,0,0,0.07);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        background-color: #fff;
-    }
-
-    .card-header {
-        background-color: #fff;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-        padding: 1rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .card-header h6 {
-        margin: 0;
-        font-weight: 600;
-        color: #2d3748;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .card-header h6 i {
-        color: #5e72e4;
-    }
-
-    /* ─── Filter Bar ─── */
-    .filter-bar {
-        padding: 0.9rem 1.5rem;
-        background: #f8fafc;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-        display: flex;
-        align-items: flex-end;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-    }
-
-    .filter-label {
-        font-size: 0.7rem;
-        font-weight: 600;
-        /* text-transform: uppercase; */
-        letter-spacing: 0.4px;
-        color: #718096;
-    }
-
-    .filter-group .form-select,
-    .filter-group .form-control {
-        height: 36px;
-        font-size: 0.82rem;
-        border-color: #e2e8f0;
-        border-radius: 0.4rem;
-    }
-
-    /* ─── Status Badges ─── */
-    .status-checkboxes {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.1rem;
-    }
-
-    .status-checkboxes .form-check {
-        margin: 0;
-        padding: 0;
-    }
-
-    .status-checkboxes .form-check-input {
-        display: none;
-    }
-
-    .status-checkboxes .form-check-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 4px 10px;
-        border-radius: 99px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        cursor: pointer;
-        border: 1.5px solid transparent;
-        transition: all 0.2s ease;
-        background: #edf2f7;
-        color: #4a5568;
-        user-select: none;
-    }
-
-    .status-checkboxes .form-check-input:checked + .form-check-label {
-        border-color: currentColor;
-    }
-
-    .status-checkboxes .check-all .form-check-label { color: #5e72e4; }
-    .status-checkboxes .check-all .form-check-input:checked + .form-check-label { background: #ebedfd; }
-
-    /* ─── Toolbar (above table) ─── */
-    .table-toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        padding: 1rem 1.5rem 0;
-    }
-
-    /* ─── Table ─── */
-    .card-body {
-        padding: 0.75rem 1.5rem 1.25rem;
-    }
-
-    .table-responsive {
-        overflow-x: auto;
-        border-radius: 0.5rem;
-        border: 1px solid #e2e8f0;
-        margin-top: 0.75rem;
-    }
-
-    table.dataTable thead th {
-        background-color: #f8fafc !important;
-        color: #718096;
-        font-weight: 600;
-        /* text-transform: uppercase; */
-        font-size: 0.68rem;
-        letter-spacing: 0.4px;
-        border-bottom: 1px solid #e2e8f0 !important;
-        padding: 0.75rem;
-        white-space: nowrap;
-    }
-
-    table.dataTable tbody td {
-        padding: 0.75rem;
-        vertical-align: middle;
-        font-size: 0.82rem;
-        color: #4a5568;
-        border-bottom: 1px solid #f1f5f9 !important;
-        white-space: nowrap;
-    }
-
-    table.dataTable tbody tr:hover td {
-        background: #f8fafc;
-    }
-
-    /* ─── Card Footer ─── */
-    .card-footer-custom {
-        padding: 0.9rem 1.5rem;
-        border-top: 1px solid rgba(0,0,0,0.06);
-        background: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .note-inline {
-        font-size: 0.78rem;
-        color: #718096;
-        border-left: 3px solid #5e72e4;
-        padding-left: 0.75rem;
-        line-height: 1.5;
-    }
-
-    /* ─── Fixed Columns ─── */
-    .DTFC_LeftBodyLiner,
-    .DTFC_LeftHeadWrapper {
-        background-color: #fff !important;
-        z-index: 999 !important;
-    }
-
-    .dataTables_scrollBody {
-        overflow-x: auto !important;
-    }
-
-    /* ─── Select2 ─── */
-    .select2-container .select2-selection--single {
-        height: 36px;
-        border-color: #e2e8f0;
-        border-radius: 0.4rem;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 34px;
-        font-size: 0.82rem;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 34px;
-    }
-
-    @media (max-width: 768px) {
-        .filter-bar { gap: 1rem; }
-        .card-header,
-        .card-body,
-        .filter-bar,
-        .card-footer-custom { padding-left: 1rem; padding-right: 1rem; }
-    }
-</style>
-
-@section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Employee Details Table</h1>
-        </div>
-
-        <div class="section-body">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-
-                        {{-- ─── Card Header ─── --}}
-                        <div class="card-header">
-                            <h6>
-                                <i class="fas fa-user-shield"></i>
-                                List Employee Details
-                            </h6>
-                            <span class="text-muted" style="font-size: 0.78rem;">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Import employee data first before importing users
-                            </span>
-                        </div>
-
-                        {{-- ─── Filter Bar ─── --}}
-                        <div class="filter-bar">
-                            <div class="filter-group">
-                                <span class="filter-label">Location / Store</span>
-                                <select id="filter-store" class="form-select select2" style="min-width: 200px;">
-                                    <option value="">All Locations</option>
-                                    @foreach ($storeList as $name)
-                                        <option value="{{ $name }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="filter-group">
-                                <span class="filter-label">Employment Status</span>
-                                <div class="status-checkboxes" id="filter-status">
-                                    <div class="form-check check-all">
-                                        <input class="form-check-input" type="checkbox" id="status-all" value="" checked>
-                                        <label class="form-check-label" for="status-all">
-                                            <i class="fas fa-layer-group" style="font-size:10px;"></i> All
-                                        </label>
-                                    </div>
-                                    @foreach ($statusList as $status)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   name="status[]"
-                                                   id="status-{{ $loop->index }}"
-                                                   value="{{ $status }}">
-                                            <label class="form-check-label" for="status-{{ $loop->index }}">
-                                                {{ $status }}
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ─── Table ─── --}}
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="users-table"
-                                       class="table table-bordered table-hover"
-                                       style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">Action</th>
-                                            <th class="text-center">Employee Name</th>
-                                            <th class="text-center">Nomor Induk</th>
-                                            <th class="text-center">Pin Finger</th>
-                                            <th class="text-center">NIK</th>
-                                            <th class="text-center">Religion</th>
-                                            <th class="text-center">Gender</th>
-                                            <th class="text-center">Date of Birth</th>
-                                            <th class="text-center">Place of Birth</th>
-                                            <th class="text-center">Mother's Name</th>
-                                            <th class="text-center">Current Address</th>
-                                            <th class="text-center">ID Card Address</th>
-                                            <th class="text-center">Last Education</th>
-                                            <th class="text-center">Institution</th>
-                                            <th class="text-center">Marriage</th>
-                                            <th class="text-center">Child</th>
-                                            <th class="text-center">Emergency Contact</th>
-                                            <th class="text-center">Email</th>
-                                            <th class="text-center">Company Email</th>
-                                            <th class="text-center">Phone</th>
-                                            <th class="text-center">BPJS Kesehatan</th>
-                                            <th class="text-center">BPJS Ketenagakerjaan</th>
-                                            <th class="text-center">NPWP</th>
-                                            <th class="text-center">Bank</th>
-                                            <th class="text-center">Account No.</th>
-                                            <th class="text-center">Company</th>
-                                            <th class="text-center">Department</th>
-                                            <th class="text-center">Location</th>
-                                            <th class="text-center">Position</th>
-                                            <th class="text-center">Grade</th>
-                                            <th class="text-center">Grouping</th>
-                                            <th class="text-center">Status Employee</th>
-                                            <th class="text-center">Join Date</th>
-                                            <th class="text-center">LOS</th>
-                                            <th class="text-center">Account Created</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center">Notes</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
-
-                        {{-- ─── Card Footer ─── --}}
-                        <div class="card-footer-custom">
-                            <button type="button"
-                                    onclick="window.location='{{ route('pages.Employee') }}'"
-                                    class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> Back to Employee
-                            </button>
-                            <div class="note-inline">
-                                <strong>Note:</strong> Import employee data first, then import users.
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
-@endsection
-
-@push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
-
-<script>
-$(document).ready(function () {
-    $('.select2').select2();
-
-    var table = $('#users-table').DataTable({
-        dom: '<"d-flex align-items-center justify-content-between mb-2"lB>rt<"d-flex align-items-center justify-content-between mt-2"ip>',
-        buttons: [
-            {
-                extend: 'excel',
-                text: '<i class="fas fa-file-excel me-1"></i> Excel',
-                className: 'btn btn-sm btn-success',
-                exportOptions: {
-                    columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35],
-                    format: {
-                        body: function (data, row, column, node) {
-                            if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
-                                return '\u200C' + data;
-                            }
-                            return data;
-                        }
-                    }
-                }
-            },
-            {
-                extend: 'csv',
-                text: '<i class="fas fa-file-csv me-1"></i> CSV',
-                className: 'btn btn-sm btn-primary',
-                exportOptions: {
-                    columns: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35],
-                    format: {
-                        body: function (data, row, column, node) {
-                            if (typeof data === 'string' && /^\d{16,}$/.test(data)) {
-                                return '\u200C' + data;
-                            }
-                            return data;
-                        }
-                    }
-                }
-            }
-        ],
-        processing: true,
-        serverSide: true,
-        scrollY: '600px',
-        scrollX: true,
-        autoWidth: false,
-        fixedColumns: { leftColumns: 3 },
-        ajax: {
-            url: '{{ route('employeesall.employeesall') }}',
-            type: 'POST',
-            data: function (d) {
-                d._token = '{{ csrf_token() }}';
-                d.name = $('#filter-store').val();
-                d.status = [];
-                $('#filter-status input[type="checkbox"]:checked').each(function () {
-                    d.status.push($(this).val());
-                });
-            }
-        },
-        responsive: true,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
-        pageLength: 10,
-        language: {
-            lengthMenu: 'Show _MENU_ entries',
-            search: '_INPUT_',
-            searchPlaceholder: 'Search...',
-            paginate: { first: 'First', last: 'Last', next: 'Next', previous: 'Prev' },
-            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-            infoEmpty: 'No entries found',
-            infoFiltered: '(filtered from _MAX_ total entries)',
-            processing: '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...'
-        },
-        columns: [
-            { data: 'action',                name: 'action',                orderable: false, searchable: false, className: 'text-center' },
-            { data: 'employee_name',          name: 'employee_name',          className: 'text-center' },
-            { data: 'employee_pengenal',      name: 'employee_pengenal',      className: 'text-center' },
-            { data: 'pin',                    name: 'pin',                    className: 'text-center' },
-            { data: 'nik',                    name: 'nik',                    className: 'text-center' },
-            { data: 'religion',               name: 'religion',               className: 'text-center' },
-            { data: 'gender',                 name: 'gender',                 className: 'text-center' },
-            { data: 'date_of_birth',          name: 'date_of_birth',          className: 'text-center' },
-            { data: 'place_of_birth',         name: 'place_of_birth',         className: 'text-center' },
-            { data: 'biological_mother_name', name: 'biological_mother_name', className: 'text-center' },
-            { data: 'current_address',        name: 'current_address',        className: 'text-center' },
-            { data: 'id_card_address',        name: 'id_card_address',        className: 'text-center' },
-            { data: 'last_education',         name: 'last_education',         className: 'text-center' },
-            { data: 'institution',            name: 'institution',            className: 'text-center' },
-            { data: 'marriage',               name: 'marriage',               className: 'text-center' },
-            { data: 'child',                  name: 'child',                  className: 'text-center' },
-            { data: 'emergency_contact_name', name: 'emergency_contact_name', className: 'text-center' },
-            { data: 'email',                  name: 'email',                  className: 'text-center' },
-            { data: 'company_email',          name: 'company_email',          className: 'text-center' },
-            { data: 'telp_number',            name: 'telp_number',            className: 'text-center' },
-            { data: 'bpjs_kes',               name: 'bpjs_kes',               className: 'text-center' },
-            { data: 'bpjs_ket',               name: 'bpjs_ket',               className: 'text-center' },
-            { data: 'npwp',                   name: 'npwp',                   className: 'text-center' },
-            { data: 'bank_name',              name: 'bank_name',              className: 'text-center' },
-            { data: 'bank_account_number',    name: 'bank_account_number',    className: 'text-center' },
-            { data: 'name_company',           name: 'name_company',           className: 'text-center' },
-            { data: 'department_name',        name: 'department_name',        className: 'text-center' },
-            { data: 'name',                   name: 'name',                   className: 'text-center' },
-            { data: 'position_name',          name: 'position_name',          className: 'text-center' },
-            { data: 'grading_name',           name: 'grading_name',           className: 'text-center' },
-            { data: 'group_name',             name: 'group_name',             className: 'text-center' },
-            { data: 'status_employee',        name: 'status_employee',        className: 'text-center' },
-            { data: 'join_date',              name: 'join_date',              className: 'text-center' },
-            { data: 'length_of_service',                                      className: 'text-center' },
-            { data: 'created_at',             name: 'created_at',             className: 'text-center' },
-            { data: 'status',                 name: 'status',                 className: 'text-center' },
-            { data: 'notes',                  name: 'notes',                  className: 'text-center' }
-        ],
-        initComplete: function () {
-            $('.dataTables_filter input').addClass('form-control form-control-sm');
-            $('.dataTables_length select').addClass('form-select form-select-sm');
-        }
-    });
-
-    $('#filter-store').on('change', function () { table.ajax.reload(); });
-    $('#filter-status input[type="checkbox"]').on('change', function () { table.ajax.reload(); });
-    @if (session('success'))
-        Swal.fire({ icon: 'success', title: 'Success', text: '{{ session('success') }}', timer: 3000 });
-    @endif
-});
-</script>
 @endpush
