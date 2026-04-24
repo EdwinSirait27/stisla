@@ -1,6 +1,5 @@
 @extends('layouts.app')
 @section('title', 'Fingerprints')
-
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -220,7 +219,6 @@
         #fingerprint-table tbody tr.row-edited td {
             background: #eff6ff;
         }
-
         /* ── employee cell ── */
         .emp-cell {
             display: flex;
