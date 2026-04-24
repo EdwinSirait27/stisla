@@ -8,7 +8,6 @@ use App\Models\Shifts;
 use App\Models\Stores;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-
 class RosterController extends Controller
 {
     public function index(Request $request)
@@ -17,11 +16,9 @@ class RosterController extends Controller
         $startDate = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
         $endDate   = $request->end_date   ?? Carbon::now()->endOfMonth()->toDateString();
         $storeId   = $request->store_id;
-
         $employees = collect();
         $shifts    = collect();
         $dates     = [];
-
         if ($storeId) {
             $employees = Employee::with([
                 'position:id,name',
@@ -35,7 +32,6 @@ class RosterController extends Controller
             ->where('store_id', $storeId)
             ->orderBy('employee_name')
             ->get();
-
             $shifts = Shifts::where('store_id', $storeId)
                 ->orderBy('shift_name')->get();
 

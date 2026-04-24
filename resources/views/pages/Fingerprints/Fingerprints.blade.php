@@ -125,7 +125,7 @@
         .filter-group .filter-label {
             font-size: .67rem;
             font-weight: 700;
-            text-transform: uppercase;
+            /* text-transform: uppercase; */
             letter-spacing: .5px;
             color: #94a3b8;
             margin: 0;
@@ -184,7 +184,7 @@
             color: #64748b;
             font-size: .67rem;
             font-weight: 700;
-            text-transform: uppercase;
+            /* text-transform: uppercase; */
             letter-spacing: .5px;
             padding: .7rem .85rem;
             border: none;
@@ -574,17 +574,14 @@
         { bg: '#fffbeb', color: '#92400e' },
         { bg: '#fdf2f8', color: '#9d174d' },
     ];
-
     function getAvatarStyle(name, index) {
         const c = AVATAR_COLORS[index % AVATAR_COLORS.length];
         return `background:${c.bg};color:${c.color}`;
     }
-
     function getInitials(name) {
         if (!name) return '?';
         return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
     }
-
     /* ── Roster badge renderer ── */
     function rosterBadge(data, row) {
         if (!data || data === '-') {

@@ -3,6 +3,8 @@
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <style>
 /* ── Wrapper ── */
 .roster-scroll { overflow-x: auto; border-radius: 8px; }
@@ -135,8 +137,8 @@
                         <span style="color:#ef4444">*</span>
                         <small style="color:#94a3b8;font-weight:400">(Required)</small>
                     </label>
-                    <select name="store_id" class="f-control select2" style="min-width:180px">
-                        <option value="">-- Choose Location --</option>
+                    <select name="store_id" class="f-control select2" style="min-width:180px" required>
+                        <option value="">Choose Location</option>
                         @foreach($stores as $store)
                             <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
                                 {{ $store->name }}
@@ -144,10 +146,16 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="filter-item-date">
+                {{-- <div class="filter-item-date">
                     <label class="f-label">Start Date</label>
                     <input type="date" name="start_date" class="f-control" value="{{ $startDate }}">
-                </div>
+                </div> --}}
+                <div class="filter-item-date">
+    <label class="f-label">Start Date</label>
+    <input type="text" id="start_date" name="start_date"
+        class="f-control"
+        value="{{ $startDate }}">
+</div>
                 <div class="filter-item-date">
                     <label class="f-label">End Date</label>
                     <input type="date" name="end_date" class="f-control" value="{{ $endDate }}">
@@ -209,9 +217,10 @@
                                 @endphp
                                 <tr>
                                     <td class="col-emp">
-                                        <div class="emp-name">{{ $employee->employee_name }}</div>
-                                        <div class="emp-meta">{{ $employee->position->name ?? '-' }} · PIN: {{ $employee->pin ?? '-' }}</div>
-                                        <div class="emp-meta">🏬 {{ $employee->store->name ?? '-' }}</div>
+                                        <div class="emp-name">Employee Name : {{ $employee->employee_name }}</div>
+                                        <div class="emp-meta">Department : {{ $employee->department->department_name ?? '-' }}</div>
+                                        <div class="emp-meta">Position : {{ $employee->position->name ?? '-' }}</div>
+                                        <div class="emp-meta">Location {{ $employee->store->name ?? '-' }}</div>
                                     </td>
                                     @foreach($dates as $carbon)
                                         @php
@@ -287,7 +296,7 @@
 <div class="m-overlay" id="modalCell">
     <div class="m-box">
         <div class="m-head">
-            <span>📅 Set Jadwal</span>
+            <span>📅 Set Schedule</span>
             <button onclick="closeModal('modalCell')">×</button>
         </div>
         <div class="m-body">
@@ -453,6 +462,28 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{{-- <script>
+    flatpickr("#start_date", {
+        dateFormat: "Y-m-d",   // format ke backend Laravel
+        altInput: true,
+        altFormat: "d F Y",    // tampilan: 23 April 2026
+        allowInput: true
+    });
+</script> --}}
+<script>
+    flatpickr("#start_date", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d F Y",
+        locale: "id",
+
+        defaultDate: (function () {
+            let now = new Date();
+            return new Date(now.getFullYear(), now.getMonth(), 26);
+        })()
+    });
+</script>
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 

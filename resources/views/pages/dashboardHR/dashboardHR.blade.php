@@ -2310,7 +2310,7 @@
                     </div>
                     <div class="stat-footer">
                         <span class="stat-badge up"><i class="fas fa-hourglass-half mr-1"></i> {{ $totalEmployeespending ?? 0 }} Pending</span>
-                        <span class="stat-badge down"><i class="fas fa-door-open mr-1"></i> {{ $totalEmployeesinactive ?? 0 }} Resigned</span>
+                        <span class="stat-badge down"><i class="fas fa-door-open mr-1"></i> {{ $totalEmployeesinactive ?? 0 }} Resigned this week</span>
                     </div>
                 </div>
             </div>

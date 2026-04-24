@@ -12,10 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('roster', function (Blueprint $table) {
-            Schema::table('roster', function (Blueprint $table) {
             $table->dropColumn('deleted_at');
         });
-    }
+        }
 
     /**
      * Reverse the migrations.

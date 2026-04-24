@@ -316,6 +316,25 @@
         gap: .4rem;
         border-radius: .5rem;
     }
+    .password-footer {
+        padding: 14px 24px;
+        border-top: 1px solid #f1f5f9;
+        background: #ffffff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .password-footer .btn {
+        height: 36px;
+        font-size: .825rem;
+        font-weight: 500;
+        padding: 0 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        border-radius: .5rem;
+    }
 
     .btn-back {
         background: #fff;
@@ -395,9 +414,11 @@
                                               ->take(2)->map(fn($w) => strtoupper($w[0]))->implode('') }}
                                     @endif
                                 </div>
+                                
                                 <div class="profile-avatar-verified">
                                     <i class="fas fa-check" style="font-size:.5rem"></i>
                                 </div>
+                                
                             </div>
 
                             <div class="profile-hero-info">
@@ -428,7 +449,13 @@
                                     @endif
                                 </div>
                             </div>
+                             <div class="password-footer">
+    <a href="{{ route('pages.change-password') }}" class="btn btn-lock">
+        <i class="fas fa-key"></i> Change Password
+    </a>
+</div>
                         </div>
+                        
                         {{-- ── /Hero ── --}}
 
                         <form action="{{ route('feature-profile.update') }}" method="POST"
@@ -466,6 +493,7 @@
                                                 {{ $user->username ?? '-' }}
                                             </div>
                                         </div>
+                                         
                                         <div class="field-group">
                                             <label><i class="fas fa-user-tie"></i> Employee Name</label>
                                             <div class="field-readonly">
@@ -630,7 +658,12 @@
                                 </div>
 
                             </div>{{-- /.profile-body --}}
-
+  <div class="hint-bar">
+                        <div class="hint-item">
+                            <i class="text-secondary"></i>Information : For email, telephone number and photo, they can be changed but for email and telephone number, it is a request so HR will replace it.
+                        </div>
+                      
+                    </div>
                             <div class="profile-footer">
                                 <a href="{{ url()->previous() }}" class="btn btn-back">
                                     <i class="fas fa-arrow-left"></i> Back
@@ -639,9 +672,11 @@
                                     <i class="fas fa-floppy-disk"></i> Save changes
                                 </button>
                             </div>
+                            
                         </form>
 
                     </div>{{-- /.profile-card --}}
+                    
 
                 </div>
             </div>
@@ -652,6 +687,20 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+                                            function togglePassword() {
+                                                let passwordInput = document.getElementById('password');
+                                                let eyeIcon = document.getElementById('eyeIcon');
+
+                                                if (passwordInput.type === "password") {
+                                                    passwordInput.type = "text";
+                                                    eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
+                                                } else {
+                                                    passwordInput.type = "password";
+                                                    eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
+                                                }
+                                            }
+                                        </script>
 <script>
     function previewProfilePhoto(event) {
         const file  = event.target.files[0];
