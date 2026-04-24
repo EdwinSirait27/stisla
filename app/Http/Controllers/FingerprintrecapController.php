@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 
 
 use App\Models\Employee;
-use App\Models\FingerprintRecap;
+use App\Models\Fingerprintrecap;
 use App\Models\Roster;
 use App\Models\Stores;
 use Carbon\Carbon;
@@ -60,7 +60,7 @@ class FingerprintRecapController extends Controller
             $employeeIds = $employees->pluck('id')->toArray();
 
             // Ambil semua recap dalam periode
-            $recaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+            $recaps = Fingerprintrecap::whereIn('employee_id', $employeeIds)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->get()
                 ->groupBy('employee_id');
