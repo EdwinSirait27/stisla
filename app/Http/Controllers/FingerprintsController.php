@@ -7,7 +7,7 @@ use App\Models\EditedFingerprint;
 use App\Models\Employee;
 use App\Models\Stores;
 use App\Models\Roster;
-use App\Models\FingerprintRecap;
+use App\Models\Fingerprintrecap;
 use App\Models\Devicefingerprint;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
@@ -196,7 +196,7 @@ class FingerprintsController extends Controller
                 }
 
                 // Simpan ke fingerprints_recap
-                FingerprintRecap::updateOrCreate(
+                Fingerprintrecap::updateOrCreate(
                     [
                         'employee_id' => $employee->id,
                         'date'        => $date,
@@ -268,7 +268,7 @@ class FingerprintsController extends Controller
             ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
 
         // ── 4. Ambil Total Hari Kerja ──
-        $totalHariPerEmployee = FingerprintRecap::select('employee_id', DB::raw('SUM(is_counted) as total_hari'))
+        $totalHariPerEmployee = Fingerprintrecap::select('employee_id', DB::raw('SUM(is_counted) as total_hari'))
             ->whereIn('employee_id', $employeeIds)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->groupBy('employee_id')
