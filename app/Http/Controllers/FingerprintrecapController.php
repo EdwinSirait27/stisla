@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 
-class FingerprintRecapController extends Controller
+class FingerprintrecapController extends Controller
 {
     public function index()
     {

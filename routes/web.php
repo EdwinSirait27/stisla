@@ -49,7 +49,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\RosterController;
 use App\Http\Controllers\ShiftsController;           
 use App\Http\Controllers\PayrollcomponentsController;           
-use App\Http\Controllers\FingerprintRecapController;
+use App\Http\Controllers\FingerprintrecapController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -482,9 +482,9 @@ Route::prefix('schedule')->name('schedule.')->middleware(['auth'])->group(functi
     Route::post('/copy',        [ScheduleController::class, 'copySchedule']) ->name('copySchedule');
 });
 Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
-    Route::get('/',       [FingerprintRecapController::class, 'index'])   ->name('index');
-    Route::post('/data',  [FingerprintRecapController::class, 'getData']) ->name('data');
-    Route::post('/recap', [FingerprintRecapController::class, 'recap'])   ->name('recap');
+    Route::get('/',       [FingerprintrecapController::class, 'index'])   ->name('index');
+    Route::post('/data',  [FingerprintrecapController::class, 'getData']) ->name('data');
+    Route::post('/recap', [FingerprintrecapController::class, 'recap'])   ->name('recap');
 });
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
