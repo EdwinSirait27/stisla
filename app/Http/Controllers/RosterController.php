@@ -92,13 +92,15 @@ class RosterController extends Controller
     public function bulkAssign(Request $request)
     {
         $request->validate([
-            'employee_ids'   => 'required|array|min:1',
-            'employee_ids.*' => 'exists:employees_tables,id',
-            'shift_id'       => 'nullable|exists:shifts_tables,id',
-            'start_date'     => 'required|date',
-            'end_date'       => 'required|date|after_or_equal:start_date',
-            'day_type'       => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
-            'skip_weekend'   => 'boolean',
+            'employee_ids'      => 'required|array|min:1',
+            'employee_ids.*'    => 'exists:employees_tables,id',
+            'shift_id'          => 'nullable|exists:shifts_tables,id',
+            'start_date'        => 'required|date',
+            'end_date'          => 'required|date|after_or_equal:start_date',
+            'day_type'          => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
+            'skip_weekend'      => 'boolean',
+            'saturday_shift'    => 'boolean',
+            'saturday_shift_id' => 'nullable|exists:shifts_tables,id',
         ]);
 
         $dates   = [];
@@ -114,20 +116,51 @@ class RosterController extends Controller
         //     $current->addDay();
         // }
         while ($current->lte($end)) {
-    if ($request->skip_weekend && $current->isSunday()) {
-        $current->addDay();
-        continue;
-    }
 
-    $dates[] = $current->toDateString();
-    $current->addDay();
-}
+            if ($request->skip_weekend && $current->isSunday()) {
+                $current->addDay();
+                continue;
+            }
+            $dates[] = $current->copy();
+            $current->addDay();
+        }
 
         $count = 0;
         foreach ($request->employee_ids as $empId) {
             foreach ($dates as $date) {
+
+                // Handle Sabtu
+                if ($date->isSaturday()) {
+                    if ($request->saturday_shift && $request->saturday_shift_id) {
+                        // Sabtu dengan shift khusus
+                        Roster::updateOrCreate(
+                            ['employee_id' => $empId, 'date' => $date->toDateString()],
+                            [
+                                'shift_id' => $request->saturday_shift_id,
+                                'day_type' => 'Work',
+                            ]
+                        );
+                        $count++;
+                    } elseif ($request->skip_weekend) {
+                        // Skip Sabtu jika skip_weekend aktif dan tidak ada shift sabtu khusus
+                        continue;
+                    } else {
+                        // Sabtu tanpa shift khusus, pakai shift biasa
+                        Roster::updateOrCreate(
+                            ['employee_id' => $empId, 'date' => $date->toDateString()],
+                            [
+                                'shift_id' => $request->day_type === 'Work' ? $request->shift_id : null,
+                                'day_type' => $request->day_type,
+                            ]
+                        );
+                        $count++;
+                    }
+                    continue;
+                }
+
+                // Hari biasa (Senin–Jumat)
                 Roster::updateOrCreate(
-                    ['employee_id' => $empId, 'date' => $date],
+                    ['employee_id' => $empId, 'date' => $date->toDateString()],
                     [
                         'shift_id' => $request->day_type === 'Work' ? $request->shift_id : null,
                         'day_type' => $request->day_type,
@@ -143,6 +176,17 @@ class RosterController extends Controller
         ]);
     }
 
+    /**
+     * Copy roster dari periode sumber ke periode target.
+     *
+     * Perubahan: sekarang mendukung target_end sehingga panjang periode
+     * target tidak harus sama dengan periode sumber. Roster sumber akan
+     * di-loop secara siklik (berulang) mengisi hari-hari di periode target,
+     * melewati tanggal yang sudah ada di target (tidak overwrite jika sudah ada).
+     *
+     * Jika target_end tidak dikirim, perilaku lama tetap berlaku:
+     * panjang target = panjang sumber (offset sederhana).
+     */
     public function copyRoster(Request $request)
     {
         $request->validate([
@@ -150,27 +194,84 @@ class RosterController extends Controller
             'source_start' => 'required|date',
             'source_end'   => 'required|date|after_or_equal:source_start',
             'target_start' => 'required|date',
+            'target_end'   => 'nullable|date|after_or_equal:target_start',
         ]);
 
-        $diffDays = Carbon::parse($request->source_start)
-            ->diffInDays(Carbon::parse($request->target_start));
+        $sourceStart = Carbon::parse($request->source_start);
+        $sourceEnd   = Carbon::parse($request->source_end);
+        $targetStart = Carbon::parse($request->target_start);
 
+        // Ambil semua roster sumber
         $sourceRosters = Roster::whereBetween('date', [
-            $request->source_start, $request->source_end
+            $sourceStart->toDateString(),
+            $sourceEnd->toDateString(),
         ])
         ->when($request->store_id, fn($q) =>
             $q->whereHas('employee', fn($eq) => $eq->where('store_id', $request->store_id))
         )
+        ->orderBy('date')
         ->get();
 
+        if ($sourceRosters->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada jadwal di periode sumber.',
+            ]);
+        }
+
         $count = 0;
-        foreach ($sourceRosters as $src) {
-            $newDate = Carbon::parse($src->date)->addDays($diffDays)->toDateString();
-            Roster::updateOrCreate(
-                ['employee_id' => $src->employee_id, 'date' => $newDate],
-                ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
-            );
-            $count++;
+
+        // ── Mode A: target_end diberikan → loop/siklik roster sumber ke target ──
+        if ($request->filled('target_end')) {
+            $targetEnd = Carbon::parse($request->target_end);
+
+            // Kelompokkan roster sumber per (employee_id, offset_hari_dari_source_start)
+            // Key: "{employee_id}_{offset}"
+            $sourceMap = [];
+            foreach ($sourceRosters as $src) {
+                $offset = $sourceStart->diffInDays(Carbon::parse($src->date));
+                $sourceMap[$src->employee_id][$offset] = $src;
+            }
+
+            $sourceLengthDays = $sourceStart->diffInDays($sourceEnd) + 1; // inklusif
+
+            // Kumpulkan semua employee_id yang ada di sumber
+            $employeeIds = array_keys($sourceMap);
+
+            foreach ($employeeIds as $empId) {
+                $current = $targetStart->copy();
+                $dayIndex = 0; // offset di target
+
+                while ($current->lte($targetEnd)) {
+                    // Offset sumber yang bersesuaian (siklik)
+                    $srcOffset = $dayIndex % $sourceLengthDays;
+
+                    if (isset($sourceMap[$empId][$srcOffset])) {
+                        $src = $sourceMap[$empId][$srcOffset];
+                        Roster::updateOrCreate(
+                            ['employee_id' => $empId, 'date' => $current->toDateString()],
+                            ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
+                        );
+                        $count++;
+                    }
+
+                    $current->addDay();
+                    $dayIndex++;
+                }
+            }
+
+        } else {
+            // ── Mode B: target_end tidak diberikan → offset sederhana (perilaku lama) ──
+            $diffDays = $sourceStart->diffInDays($targetStart);
+
+            foreach ($sourceRosters as $src) {
+                $newDate = Carbon::parse($src->date)->addDays($diffDays)->toDateString();
+                Roster::updateOrCreate(
+                    ['employee_id' => $src->employee_id, 'date' => $newDate],
+                    ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
+                );
+                $count++;
+            }
         }
         return response()->json([
             'success' => true,

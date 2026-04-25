@@ -26,6 +26,7 @@ class FingerprintRecap extends Model
     protected $casts = [
         'date'      => 'date',
         'synced_at' => 'datetime',
+        'is_counted' => 'integer',
     ];
     public function employee()
     {

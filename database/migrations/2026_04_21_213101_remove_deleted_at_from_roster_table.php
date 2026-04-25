@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::table('roster', function (Blueprint $table) {
             $table->dropColumn('deleted_at');
-        });
-        }
+
+        }); 
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-            Schema::table('roster', function (Blueprint $table) {
+        Schema::table('roster', function (Blueprint $table) {
             $table->softDeletes();
         });
     }

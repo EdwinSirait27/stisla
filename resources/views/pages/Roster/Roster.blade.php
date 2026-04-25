@@ -93,9 +93,23 @@
 /* ── Toast ── */
 #rosterToast { position:fixed; bottom:24px; right:24px; z-index:99999; background:#0f172a; color:#fff; border-radius:8px; padding:12px 20px; font-size:13px; font-weight:500; display:none; max-width:320px; }
 
-/* ── Legend ── */
-.legend { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
-.legend-dot { width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:4px; }
+/* ── Legend Checkbox ── */
+.legend { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; align-items:center; }
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+}
+.legend-item input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
 
 /* ── Empty state ── */
 .empty-state { text-align:center; padding: 60px 20px; color: #94a3b8; }
@@ -112,11 +126,12 @@
     <div class="section-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h1>Roster & Schedule</h1>
         @if($storeId)
-        <div class="d-flex gap-16px">
+        <div class="d-flex" style="gap:16px">
             <button class="btn-primary-r" onclick="openModal('modalBulk')" style="padding:8px 24px">
                 <i class="fas fa-calendar-plus"></i> Bulk Assign
             </button>
-            <button class="btn-secondary-r" onclick="openModal('modalCopy')" style="padding:8px 24px">
+            {{-- ↓ PERUBAHAN: onclick ke confirmCopyRoster(), bukan openModal --}}
+            <button class="btn-secondary-r" onclick="confirmCopyRoster()" style="padding:8px 24px">
                 <i class="fas fa-copy"></i> Copy Roster
             </button>
             <button class="btn-danger-r" onclick="openModal('modalBulkDelete')" style="padding:8px 24px;font-size:13px">
@@ -167,7 +182,6 @@
             </form>
         </div>
 
-        {{-- ── Belum pilih store ── --}}
         @if(!$storeId)
             <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
                 <div class="card-body">
@@ -180,14 +194,37 @@
             </div>
         @else
 
-        {{-- ── Legend ── --}}
+        {{-- ── Legend Checkbox Filter (radio behavior, tanpa kotak warna) ── --}}
         <div class="legend">
-            <span><span class="legend-dot" style="background:#dbeafe;border:1px solid #93c5fd"></span><small>Work Shift</small></span>
-            <span><span class="legend-dot" style="background:#f1f5f9;border:1px solid #cbd5e1"></span><small>Off</small></span>
-            <span><span class="legend-dot" style="background:#fef9c3;border:1px solid #fde047"></span><small>Holiday</small></span>
-            <span><span class="legend-dot" style="background:#f3e8ff;border:1px solid #d8b4fe"></span><small>Leave</small></span>
-            <span><span class="legend-dot" style="background:#fff1f2;border:1px solid #fecaca"></span><small>Weekend</small></span>
-            <span><span class="legend-dot" style="background:#fefce8;border:2px solid #eab308"></span><small>Today</small></span>
+
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="work" checked>
+                Shift Kerja
+            </label>
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="off">
+                Off
+            </label>
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="holiday">
+                Public Holiday
+            </label>
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="leave">
+                Leave
+            </label>
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="melahirkan">
+                Cuti Melahirkan
+            </label>
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="weekend">
+                Weekend
+            </label>
+            <label class="legend-item">
+                <input type="checkbox" class="legend-filter" data-type="today">
+                Hari Ini
+            </label>
         </div>
 
         {{-- ── Grid Roster ── --}}
@@ -232,25 +269,33 @@
                                             $badgeClass = '';
                                             $badgeName  = '+';
                                             $badgeTime  = '';
+                                            $cellType   = 'empty';
 
                                             if ($roster) {
                                                 if ($roster->day_type === 'Off') {
                                                     $badgeClass = 'r-badge r-off'; $badgeName = 'Off';
+                                                    $cellType = 'off';
                                                 } elseif ($roster->day_type === 'Public Holiday') {
                                                     $badgeClass = 'r-badge r-holiday'; $badgeName = 'Public Holiday';
+                                                    $cellType = 'holiday';
                                                 } elseif ($roster->day_type === 'Cuti Melahirkan') {
-                                                    $badgeClass = 'r-badge r-holiday'; $badgeName = 'Cuti Melahirkan';
+                                                    $badgeClass = 'r-badge r-leave'; $badgeName = 'Cuti Melahirkan';
+                                                    $cellType = 'melahirkan';
                                                 } elseif ($roster->day_type === 'Leave') {
                                                     $badgeClass = 'r-badge r-leave'; $badgeName = 'Leave';
+                                                    $cellType = 'leave';
                                                 } elseif ($roster->shift) {
                                                     $badgeClass = 'r-badge r-work';
                                                     $badgeName  = $roster->shift->shift_name;
                                                     $badgeTime  = substr($roster->shift->start_time,0,5).'-'.substr($roster->shift->end_time,0,5);
+                                                    $cellType = 'work';
                                                 } else {
                                                     $badgeClass = 'r-badge r-work'; $badgeName = 'Work';
+                                                    $cellType = 'work';
                                                 }
                                             } elseif ($isWeekend) {
                                                 $badgeClass = 'r-badge r-off'; $badgeName = 'Off';
+                                                $cellType = 'weekend';
                                             }
                                         @endphp
                                         <td class="day-cell {{ $isWeekend ? 'weekend' : '' }} {{ $isToday ? 'today' : '' }}"
@@ -260,6 +305,8 @@
                                             data-shift-id="{{ $roster?->shift_id ?? '' }}"
                                             data-day-type="{{ $roster?->day_type ?? 'Work' }}"
                                             data-has-roster="{{ $roster ? '1' : '0' }}"
+                                            data-cell-type="{{ $cellType }}"
+                                            data-is-today="{{ $isToday ? '1' : '0' }}"
                                             onclick="openCellModal(this)"
                                             title="{{ $employee->employee_name }} – {{ $dateStr }}">
                                             @if($badgeClass === '')
@@ -286,7 +333,7 @@
             </div>
         </div>
 
-        @endif {{-- end if $storeId --}}
+        @endif
 
     </div>
 </section>
@@ -306,11 +353,12 @@
 
             <label class="f-label">Day Type</label>
             <select id="mDayType" class="f-control mb-3" onchange="toggleShift()">
-                <option value="Work">Work</option>
-                <option value="Off">Off</option>
-                <option value="Public Holiday"> Public Holiday</option>
-                <option value="Leave">Leave</option>
-                <option value="Cuti Melahirkan">Cuti Melahirkan / Maternity leave</option>
+
+                <option value="Work">Work (Kerja)</option>
+                <option value="Off">Off (Libur)</option>
+                <option value="Public Holiday">Public Holiday</option>
+                <option value="Leave">Leave (Cuti)</option>
+                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
             </select>
 
             <div id="shiftWrap">
@@ -381,9 +429,27 @@
                 </select>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 mb-2">
                 <input type="checkbox" id="bulkSkipWeekend" checked>
-                <label for="bulkSkipWeekend" class="f-label mb-0">Skip Saturday</label>
+
+                <label for="bulkSkipWeekend" class="f-label mb-0">Skip Sunday</label>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-2" style="margin-top:8px">
+                <input type="checkbox" id="bulkSaturdayShift" onchange="toggleSaturdayShift()">
+                <label for="bulkSaturdayShift" class="f-label mb-0">Shift Sabtu</label>
+            </div>
+
+            <div id="saturdayShiftWrap" style="display:none;margin-top:8px">
+                <label class="f-label">Pilih Shift Sabtu</label>
+                <select id="bulkSaturdayShiftId" class="f-control mb-3">
+                    <option value="">-- Pilih Shift Sabtu --</option>
+                    @foreach($shifts as $shift)
+                        <option value="{{ $shift->id }}">
+                            {{ $shift->shift_name }} ({{ substr($shift->start_time,0,5) }}-{{ substr($shift->end_time,0,5) }})
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
         <div class="m-foot">
@@ -401,13 +467,28 @@
             <button onclick="closeModal('modalCopy')">×</button>
         </div>
         <div class="m-body">
-            <p style="font-size:12px;color:#64748b;margin-bottom:14px">Copy schedule from source period to target period.</p>
-            <label class="f-label">Resource: Start Date</label>
+
+            <p style="font-size:12px;color:#64748b;margin-bottom:14px">Copy jadwal dari periode sumber ke periode target.</p>
+
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;font-size:12px;color:#1e40af;margin-bottom:14px">
+                <i class="fas fa-info-circle"></i>
+                <strong>Sumber</strong> = periode yang ingin dicopy.
+                <strong>Target</strong> = periode tujuan yang akan diisi jadwal baru.
+            </div>
+
+            <label class="f-label">Sumber: Start Date <span style="color:#ef4444">*</span></label>
             <input type="date" id="copySourceStart" class="f-control mb-2" value="{{ $startDate }}">
-            <label class="f-label">Resource: End Date</label>
+
+            <label class="f-label">Sumber: End Date <span style="color:#ef4444">*</span></label>
             <input type="date" id="copySourceEnd" class="f-control mb-3" value="{{ $endDate }}">
-            <label class="f-label">Target: Start Date</label>
-            <input type="date" id="copyTargetStart" class="f-control">
+
+            <div style="border-top:1px dashed #e2e8f0;margin:14px 0"></div>
+
+            <label class="f-label">Target: Start Date <span style="color:#ef4444">*</span></label>
+            <input type="date" id="copyTargetStart" class="f-control mb-2">
+
+            <label class="f-label">Target: End Date <span style="color:#ef4444">*</span></label>
+            <input type="date" id="copyTargetEnd" class="f-control mb-2">
         </div>
         <div class="m-foot">
             <button class="btn-secondary-r" onclick="closeModal('modalCopy')">Cancel</button>
@@ -510,10 +591,59 @@ function toggleBulkShift() {
     document.getElementById('bulkShiftWrap').style.display =
         document.getElementById('bulkDayType').value === 'Work' ? 'block' : 'none';
 }
+function toggleSaturdayShift() {
+    document.getElementById('saturdayShiftWrap').style.display =
+        document.getElementById('bulkSaturdayShift').checked ? 'block' : 'none';
+}
+
+// ── Legend Checkbox Filter (radio behavior) ──
+document.querySelectorAll('.legend-filter').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            document.querySelectorAll('.legend-filter').forEach(function(cb) {
+                if (cb !== this) cb.checked = false;
+            }.bind(this));
+        }
+        applyLegendFilter();
+    });
+});
+
+function applyLegendFilter() {
+    const checkedTypes = [...document.querySelectorAll('.legend-filter:checked')].map(cb => cb.dataset.type);
+    const showAll = checkedTypes.length === 0;
+
+    document.querySelectorAll('.day-cell').forEach(function(cell) {
+        const type    = cell.dataset.cellType;
+        const isToday = cell.dataset.isToday === '1';
+
+        let show = false;
+
+        if (showAll || type === 'empty') {
+            show = true;
+        } else if (checkedTypes.includes('work') && type === 'work') {
+            show = true;
+        } else if (checkedTypes.includes('off') && type === 'off') {
+            show = true;
+        } else if (checkedTypes.includes('holiday') && type === 'holiday') {
+            show = true;
+        } else if (checkedTypes.includes('leave') && type === 'leave') {
+            show = true;
+        } else if (checkedTypes.includes('melahirkan') && type === 'melahirkan') {
+            show = true;
+        } else if (checkedTypes.includes('weekend') && type === 'weekend') {
+            show = true;
+        } else if (checkedTypes.includes('today') && isToday) {
+            show = true;
+        }
+
+        cell.style.visibility    = show ? 'visible' : 'hidden';
+        cell.style.pointerEvents = show ? 'auto' : 'none';
+    });
+}
 
 // ── Klik cell ──
 function openCellModal(cell) {
-    document.getElementById('mEmpId').value         = cell.dataset.empId;
+    document.getElementById('mEmpId').value          = cell.dataset.empId;
     document.getElementById('mEmpName').textContent  = cell.dataset.empName;
     document.getElementById('mDate').textContent     = cell.dataset.date;
     document.getElementById('mDayType').value        = cell.dataset.dayType || 'Work';
@@ -575,6 +705,14 @@ function saveBulk() {
     const selected = [...document.getElementById('bulkEmps').selectedOptions].map(o => o.value);
     if (!selected.length) { toast(' Choose at least 1 employee.', false); return; }
 
+    const saturdayShiftChecked = document.getElementById('bulkSaturdayShift').checked;
+    const saturdayShiftId      = document.getElementById('bulkSaturdayShiftId').value;
+
+    if (saturdayShiftChecked && !saturdayShiftId) {
+        toast('⚠️ Pilih shift untuk hari Sabtu.', false);
+        return;
+    }
+
     const btn = document.querySelector('#modalBulk .btn-primary-r');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
@@ -583,12 +721,14 @@ function saveBulk() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({
-            employee_ids:  selected,
-            shift_id:      document.getElementById('bulkShift').value || null,
-            start_date:    document.getElementById('bulkStart').value,
-            end_date:      document.getElementById('bulkEnd').value,
-            day_type:      document.getElementById('bulkDayType').value,
-            skip_weekend:  document.getElementById('bulkSkipWeekend').checked,
+            employee_ids:       selected,
+            shift_id:           document.getElementById('bulkShift').value || null,
+            start_date:         document.getElementById('bulkStart').value,
+            end_date:           document.getElementById('bulkEnd').value,
+            day_type:           document.getElementById('bulkDayType').value,
+            skip_weekend:       document.getElementById('bulkSkipWeekend').checked,
+            saturday_shift:     saturdayShiftChecked,
+            saturday_shift_id:  saturdayShiftId || null,
         }),
     })
     .then(r => r.json())
@@ -611,8 +751,51 @@ function saveBulk() {
     });
 }
 
-// ── Copy roster ──
+// ── STEP 1: Klik tombol Copy Roster → tampilkan alert dulu ──
+function confirmCopyRoster() {
+    Swal.fire({
+        icon: 'warning',
+        iconColor: '#f59e0b',
+        title: '⚠️ Perhatian!',
+        html: `
+            <div style="text-align:left;padding:8px 0;line-height:1.7;font-size:14px;color:#374151">
+                Mohon Dicek Kembali Setelah Mengcopy Roster Karena Mengikuti Roster Pada Bulan Ini, Agar Karyawan Yang Mengambil <strong>Cuti</strong>, <strong>Libur</strong>, Dan lain-lain Tidak Terinput Kembali Di Roster Yang Akan Di Gunakan Pada Bulan Berikutnya.
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#1d4ed8',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fas fa-copy"></i> Mengerti, Lanjutkan',
+        cancelButtonText: 'Batal',
+        focusCancel: true
+    }).then(result => {
+        if (result.isConfirmed) {
+            // STEP 2: Baru buka modal setelah user klik "Mengerti"
+            openModal('modalCopy');
+        }
+    });
+}
+
+// ── STEP 3: User klik Copy di dalam modal → proses copy ──
 function saveCopy() {
+    const sourceStart = document.getElementById('copySourceStart').value;
+    const sourceEnd   = document.getElementById('copySourceEnd').value;
+    const targetStart = document.getElementById('copyTargetStart').value;
+    const targetEnd   = document.getElementById('copyTargetEnd').value;
+
+    if (!sourceStart || !sourceEnd || !targetStart || !targetEnd) {
+        toast('⚠️ Semua tanggal wajib diisi.', false);
+        return;
+    }
+    if (sourceEnd < sourceStart) {
+        toast('⚠️ Sumber End Date tidak boleh sebelum Sumber Start Date.', false);
+        return;
+    }
+    if (targetEnd < targetStart) {
+        toast('⚠️ Target End Date tidak boleh sebelum Target Start Date.', false);
+        return;
+    }
+
     const btn = document.querySelector('#modalCopy .btn-primary-r');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
@@ -621,10 +804,11 @@ function saveCopy() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({
-            source_start:  document.getElementById('copySourceStart').value,
-            source_end:    document.getElementById('copySourceEnd').value,
-            target_start:  document.getElementById('copyTargetStart').value,
-            store_id:      '{{ $storeId ?? '' }}',
+            source_start: sourceStart,
+            source_end:   sourceEnd,
+            target_start: targetStart,
+            target_end:   targetEnd,
+            store_id:     '{{ $storeId ?? '' }}',
         }),
     })
     .then(r => r.json())

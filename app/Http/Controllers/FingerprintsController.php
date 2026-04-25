@@ -9,6 +9,7 @@ use App\Models\Stores;
 use App\Models\Roster;
 use App\Models\FingerprintRecap;
 use App\Models\Devicefingerprint;
+use App\Models\ManualRecapLog;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Carbon\Carbon;
@@ -17,6 +18,20 @@ use Illuminate\Support\Facades\Log;
 
 class FingerprintsController extends Controller
 {
+    /**
+     * Store yang dapat toleransi 10 menit (HO/Holding/DC).
+     * Selain ini → 5 menit.
+     */
+    private const TOLERANSI_TINGGI_STORES = [
+        'HO',
+        'Head Office',
+        'Holding',
+        'DC',
+        'Distribution Center',
+    ];
+    private const TOLERANSI_TINGGI_MENIT  = 10;
+    private const TOLERANSI_NORMAL_MENIT  = 5;
+
     public function index()
     {
         $stores = Stores::select('id', 'name')
@@ -38,8 +53,8 @@ class FingerprintsController extends Controller
         $endDate   = Carbon::parse($request->end_date)->endOfDay();
 
         // ── 1. Ambil karyawan aktif yang punya PIN ──
-        $employeesQuery = Employee::select('id', 'pin', 'store_id')
-            ->select('id','pin','store_id')
+        $employeesQuery = Employee::with('store:id,name')
+            ->select('id', 'pin', 'store_id')
             ->whereNotNull('pin')
             ->whereNull('deleted_at');
 
@@ -76,7 +91,7 @@ class FingerprintsController extends Controller
             ], 422);
         }
 
-        // ── 3. Group per PIN per tanggal → IN pertama, OUT terakhir ──
+        // ── 3. Group per PIN per tanggal ──
         $grouped = [];
         foreach ($rawScans as $scan) {
             $pin  = (string) $scan->pin;
@@ -93,27 +108,15 @@ class FingerprintsController extends Controller
                 ];
             }
 
-            // IN → ambil PERTAMA saja
             if ($mode === 1 && $grouped[$pin][$date]['time_in'] === null) {
                 $grouped[$pin][$date]['time_in'] = $time;
             }
-
-            // OUT → selalu update → dapat yang TERAKHIR
             if ($mode === 2) {
                 $grouped[$pin][$date]['time_out'] = $time;
             }
         }
 
-        // ── 4. Ambil semua roster dalam range tanggal ──
-        $employeeIds = $employees->pluck('id')->toArray();
-
-        $rosters = Roster::with('shift')
-            ->whereIn('employee_id', $employeeIds)
-            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->get()
-            ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
-
-        // ── 4b. Ambil data edited_fingerprint dari DB absensi ──
+        // ── 4. Ambil edited_fingerprint ──
         $editedFingerprints = DB::connection('mysql_second')
             ->table('edited_fingerprint')
             ->select('pin', 'scan_date', 'in_1', 'in_2')
@@ -122,13 +125,12 @@ class FingerprintsController extends Controller
             ->get()
             ->keyBy(fn($e) => (string)$e->pin . '_' . Carbon::parse($e->scan_date)->toDateString());
 
-        // ── 5. Simpan ke fingerprints_recap & hitung is_counted ──
+        // ── 5. Simpan ke fingerprints_recap ──
         $synced  = 0;
         $skipped = 0;
         $errors  = [];
 
         foreach ($grouped as $pin => $dates) {
-
             $employee = $employees->get($pin);
 
             if (!$employee) {
@@ -142,7 +144,6 @@ class FingerprintsController extends Controller
                 $timeOut  = $times['time_out'];
                 $deviceSn = $times['device_sn'];
 
-                // ── Cek edited_fingerprint ──
                 $editedKey = $pin . '_' . $date;
                 $edited    = $editedFingerprints->get($editedKey);
 
@@ -151,7 +152,6 @@ class FingerprintsController extends Controller
                     $timeOut = $edited->in_2 ?? $timeOut;
                 }
 
-                // Hitung durasi kerja dalam menit
                 $duration = null;
                 if ($timeIn && $timeOut) {
                     $dtIn  = Carbon::parse($date . ' ' . $timeIn);
@@ -160,42 +160,9 @@ class FingerprintsController extends Controller
                     $duration = (int) $dtIn->diffInMinutes($dtOut);
                 }
 
-                // ── Hitung is_counted ──
-                $isCounted = 0;
+                // is_counted sederhana: ada scan apapun → 1
+                $isCounted = ($timeIn || $timeOut) ? 1 : 0;
 
-                if ($timeIn || $timeOut) {
-                    // Jika hanya ada 1 scan (IN saja ATAU OUT saja)
-                    // → otomatis terhitung 1 hari
-                    if (!$timeIn || !$timeOut) {
-                        $isCounted = 1;
-                    } else {
-                        // Ada 2 scan → cek vs roster shift
-                        $rosterKey = $employee->id . '_' . $date;
-                        $roster    = $rosters->get($rosterKey);
-
-                        if ($roster && $roster->day_type === 'Work' && $roster->shift) {
-                            $shiftStart = Carbon::parse($date . ' ' . $roster->shift->start_time);
-                            $shiftEnd   = Carbon::parse($date . ' ' . $roster->shift->end_time);
-                            $actualIn   = Carbon::parse($date . ' ' . $timeIn);
-                            $actualOut  = Carbon::parse($date . ' ' . $timeOut);
-
-                            // Handle overnight shift
-                            if ($shiftEnd->lt($shiftStart)) $shiftEnd->addDay();
-
-                            // Tentukan toleransi berdasarkan store
-                            $employeeStoreName = optional($employee->store)->name?? '';
-                            $toleransi = in_array($employeeStoreName, ['Holding', 'Head Office']) ? 10 : 5;
-
-                            // Terhitung jika masuk tidak lebih dari toleransi dan pulang tepat/lebih lambat
-                            if ($actualIn->lte($shiftStart->copy()->addMinutes($toleransi)) && $actualOut->gte($shiftEnd)) {
-                                $isCounted = 1;
-                            }
-    
-                        }
-                    }
-                }
-
-                // Simpan ke fingerprints_recap
                 FingerprintRecap::updateOrCreate(
                     [
                         'employee_id' => $employee->id,
@@ -233,11 +200,23 @@ class FingerprintsController extends Controller
         ini_set('memory_limit', '1024M');
         set_time_limit(300);
 
+        // ── Validasi input (defensive coding) ──
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'store_name' => 'nullable|string|max:100',
+        ], [
+            'start_date.date'             => 'Format start_date tidak valid.',
+            'end_date.date'               => 'Format end_date tidak valid.',
+            'end_date.after_or_equal'     => 'End date harus setelah atau sama dengan start date.',
+            'store_name.max'              => 'Nama store terlalu panjang.',
+        ]);
+
         $storeName = $request->input('store_name');
         $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()))->startOfDay();
         $endDate   = Carbon::parse($request->input('end_date', now()))->endOfDay();
 
-        // ── 1. Edited fingerprint keys ──
+        // ── 1. Edited fingerprint keys (dari tombol Edit) ──
         $editedKeys = EditedFingerprint::whereBetween('scan_date', [$startDate, $endDate])
             ->pluck('scan_date', 'pin')
             ->map(fn($date, $pin) => $pin . '_' . Carbon::parse($date)->toDateString())
@@ -274,6 +253,16 @@ class FingerprintsController extends Controller
             ->groupBy('employee_id')
             ->pluck('total_hari', 'employee_id');
 
+        // ✅ ── 4b. Ambil Manual Recap keys (dari tabel manual_recap_logs) ──
+        // Format key: PIN_YYYY-MM-DD (sama format dengan editedKeys)
+        $manualRecapKeys = ManualRecapLog::whereIn('employee_id', $employeeIds)
+            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->get()
+            ->map(fn($log) => $log->pin . '_' . Carbon::parse($log->date)->toDateString())
+            ->unique()
+            ->values()
+            ->toArray();
+
         // ── 5. Ambil Fingerprints ──
         $pins = $employees->keys()->toArray();
         $fingerprints = Fingerprints::select(['sn', 'scan_date', 'pin', 'inoutmode'])
@@ -295,7 +284,7 @@ class FingerprintsController extends Controller
 
         // ── 8. Build result ──
         $result = $grouped->map(function ($group, $key) use (
-            $employees, $totalHariPerEmployee, $editedKeys, $rosters, $deviceNames
+            $employees, $totalHariPerEmployee, $editedKeys, $manualRecapKeys, $rosters, $deviceNames
         ) {
             $first    = $group->first();
             $pin      = $first->pin;
@@ -408,8 +397,31 @@ $row['late_minutes'] = $lateMinutes;
                 $row['duration'] = 'invalid';
             }
 
-            $row['is_updated']     = in_array($key, $editedKeys);
+            // ✅ ── Status Updated jika ada di edited_fingerprint ATAU manual_recap_logs ──
+            $row['is_updated']     = in_array($key, $editedKeys) || in_array($key, $manualRecapKeys);
             $row['updated_status'] = $row['is_updated'] ? 'Updated' : 'Original';
+
+            // ✅ ── Deteksi telat (untuk warna merah di kolom IN) ──
+            $row['is_late_in'] = false;
+            if ($roster && $roster->day_type === 'Work' && $roster->shift && $row['in_1']) {
+                // Ambil scan IN paling pertama (kalau ada banyak, dipisah koma)
+                $firstIn = explode(',', $row['in_1'])[0];
+                $firstIn = trim($firstIn);
+
+                if ($firstIn) {
+                    $shiftStart = Carbon::parse($scanDate . ' ' . $roster->shift->start_time);
+                    $actualIn   = Carbon::parse($scanDate . ' ' . $firstIn);
+
+                    $storeName = $employee->store->name ?? '';
+                    $toleransi = in_array($storeName, self::TOLERANSI_TINGGI_STORES)
+                        ? self::TOLERANSI_TINGGI_MENIT
+                        : self::TOLERANSI_NORMAL_MENIT;
+
+                    if ($actualIn->gt($shiftStart->copy()->addMinutes($toleransi))) {
+                        $row['is_late_in'] = true;
+                    }
+                }
+            }
 
             return $row;
         })->filter()->values();
@@ -632,11 +644,21 @@ $row['late_minutes'] = $lateMinutes;
 
     public function editFingerprint($pin, Request $request)
     {
-        $scanDate = $request->input('scan_date');
-        if (!$scanDate) {
-            return response()->json(['message' => 'scan_date is required'], 400);
-        }
+        // ── Validasi input (defensive coding) ──
+        // Pin di URL: harus string numeric/alphanumeric (sesuai format PIN fingerspot)
+        // Scan_date di query: harus date valid
+        $request->merge(['pin' => $pin]);
+        $request->validate([
+            'pin'       => 'required|string|max:20',
+            'scan_date' => 'required|date',
+        ], [
+            'pin.required'       => 'PIN karyawan wajib diisi.',
+            'pin.max'            => 'Format PIN tidak valid.',
+            'scan_date.required' => 'Tanggal scan wajib diisi.',
+            'scan_date.date'     => 'Format tanggal scan tidak valid.',
+        ]);
 
+        $scanDate = $request->input('scan_date');
         $scanDateCarbon = Carbon::parse($scanDate)->toDateString();
 
         $data = EditedFingerprint::with('devicefingerprints')

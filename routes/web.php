@@ -50,6 +50,7 @@ use App\Http\Controllers\RosterController;
 use App\Http\Controllers\ShiftsController;           
 use App\Http\Controllers\PayrollcomponentsController;           
 use App\Http\Controllers\FingerprintRecapController;
+use App\Http\Controllers\ManualRecapController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -212,6 +213,26 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
         Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
         Route::post('/fingerprints/recap', [FingerprintsController::class, 'recap'])->name('fingerprints.recap');
+        // Endpoint list employees untuk dropdown Add Recap
+        Route::get('/fingerprints/employee-list', function (\Illuminate\Http\Request $request) {
+        $query = \App\Models\Employee::with('store:id,name')
+            ->select('id', 'employee_name', 'pin', 'store_id')
+            ->whereNotNull('pin')
+            ->whereNull('deleted_at');
+
+        if ($request->store_name) {
+            $query->whereHas('store', fn($q) => $q->where('name', $request->store_name));
+        }
+
+        return response()->json([
+            'data' => $query->orderBy('employee_name')->get()->map(fn($e) => [
+                'id'    => $e->id,
+                'name'  => $e->employee_name,
+                'pin'   => $e->pin,
+                'store' => $e->store->name ?? '-',
+            ])
+        ]);
+    })->name('fingerprints.employee-list');
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
             ->name('pages.Editedfinger');
         Route::match(['GET', 'POST'], '/editedfinger/editedfinger', [Editedfingerprints::class, 'getEditedfingerprints'])->name('editedfinger.editedfinger');
@@ -481,6 +502,16 @@ Route::prefix('schedule')->name('schedule.')->middleware(['auth'])->group(functi
     Route::post('/bulk-assign', [ScheduleController::class, 'bulkAssign'])   ->name('bulkAssign');
     Route::post('/copy',        [ScheduleController::class, 'copySchedule']) ->name('copySchedule');
 });
+
+
+// ── Manual Recap (+Add Recap feature) ──
+Route::prefix('manual-recap')->name('manual-recap.')->middleware(['auth'])->group(function () {
+    Route::get('/hr-list', [ManualRecapController::class, 'hrList']) ->name('hr-list');
+    Route::get('/shift-list', [ManualRecapController::class, 'shiftList']) ->name('shift-list');
+    Route::post('/',       [ManualRecapController::class, 'store'])  ->name('store');
+});
+
+// ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
 Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
     Route::get('/',       [FingerprintRecapController::class, 'index'])   ->name('index');
     Route::post('/data',  [FingerprintRecapController::class, 'getData']) ->name('data');

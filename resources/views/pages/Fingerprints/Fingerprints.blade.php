@@ -279,6 +279,7 @@
         /* ── time cells ── */
         .time-in    { color: #166534; font-weight: 600; }
         .time-out   { color: #991b1b; font-weight: 600; }
+        .time-late  { color: #dc2626; font-weight: 700; background: #fef2f2; padding: 2px 6px; border-radius: 4px; }
         .time-break { color: #92400e; }
         .time-ovt   { color: #1e40af; }
         .time-null  { color: #cbd5e1; }
@@ -385,6 +386,131 @@
         @media (max-width: 576px) {
             .stats-row { grid-template-columns: repeat(2, 1fr); }
         }
+
+        /* ═════════════════════════════════════════════════════
+           ADD RECAP FEATURE — styles
+           ═════════════════════════════════════════════════════ */
+        .evidence-dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 30px 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .evidence-dropzone:hover,
+        .evidence-dropzone.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .evidence-dropzone i.upload-icon {
+            font-size: 32px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .evidence-dropzone.dragover i.upload-icon { color: #3b82f6; }
+        .evidence-dropzone p { margin: 0; color: #475569; font-size: 13px; }
+        .evidence-dropzone small { color: #94a3b8; }
+
+        .evidence-file-list {
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .evidence-file-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+        .evidence-file-icon {
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 5px;
+            flex-shrink: 0;
+        }
+        .evidence-file-icon.img { background: #dbeafe; color: #1d4ed8; }
+        .evidence-file-icon.pdf { background: #fee2e2; color: #b91c1c; }
+        .evidence-file-icon.doc { background: #dcfce7; color: #166534; }
+        .evidence-file-icon.xls { background: #fef9c3; color: #854d0e; }
+        .evidence-file-icon.other { background: #e2e8f0; color: #475569; }
+
+        .evidence-file-info { flex: 1; min-width: 0; }
+        .evidence-file-name {
+            font-size: 13px; font-weight: 600; color: #0f172a;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .evidence-file-size { font-size: 11px; color: #64748b; }
+        .evidence-file-remove {
+            background: transparent; border: none; color: #dc2626; cursor: pointer;
+            width: 28px; height: 28px; border-radius: 5px;
+        }
+        .evidence-file-remove:hover { background: #fee2e2; }
+
+        .evidence-badge {
+            display: inline-block; background:#fef3c7; color:#78350f;
+            padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* Add Recap button */
+        #addRecapBtn {
+            background-color: #f59e0b;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+        }
+        #addRecapBtn:hover {
+            background-color: #d97706;
+            color: #fff;
+        }
+
+        /* Disabled state untuk tombol header */
+        #addRecapBtn:disabled,
+        #recapBtn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        #addRecapBtn[disabled],
+        #recapBtn[disabled] {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        /* Wrapper untuk tooltip pada disabled button */
+        .btn-tooltip-wrap {
+            display: inline-block;
+            position: relative;
+        }
+        .btn-tooltip-wrap[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #1e293b;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: .72rem;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        }
+        .btn-tooltip-wrap[data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 18px;
+            margin-top: 1px;
+            border: 5px solid transparent;
+            border-bottom-color: #1e293b;
+            z-index: 1000;
+        }
     </style>
 @endpush
 
@@ -457,10 +583,23 @@
                         <i class="fas fa-fingerprint"></i>
                     </div>
                     <span class="fp-card-header-title">List fingerprints</span>
-                    <button id="recapBtn" class="btn btn-success btn-sm ms-auto"
-                        style="height:32px;font-size:.775rem">
-                        <i class="fas fa-rotate-right"></i> Attendance Recap
-                    </button>
+
+
+                    <span id="addRecapWrap" class="btn-tooltip-wrap ms-auto"
+                          data-tooltip="Klik Filter dulu untuk menampilkan data">
+                        <button id="addRecapBtn" class="btn btn-sm" disabled
+                            style="height:32px;font-size:.775rem">
+                            <i class="fas fa-plus-circle"></i> Add Recap
+                        </button>
+                    </span>
+
+                    <span id="recapWrap" class="btn-tooltip-wrap"
+                          data-tooltip="Klik Filter dulu untuk menampilkan data">
+                        <button id="recapBtn" class="btn btn-success btn-sm" disabled
+                            style="height:32px;font-size:.775rem">
+                            <i class="fas fa-rotate-right"></i> Recap absensi
+                        </button>
+                    </span>
                 </div>
 
                 {{-- Filter bar --}}
@@ -536,7 +675,6 @@
                                 <th class="no-export">Action</th>
                             </tr>
                         </thead>
-                        {{-- tbody filled by DataTables --}}
                     </table>
                 </div>
 
@@ -551,6 +689,105 @@
 
         </div>
     </section>
+</div>
+
+{{-- ═══════════════════════════════════════════════════════════
+     ADD RECAP — Modal Form
+═══════════════════════════════════════════════════════════ --}}
+<div class="modal fade" id="addRecapFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px;border:none;overflow:hidden">
+            <div class="modal-header" style="background:#1e293b;color:#fff">
+                <h5 class="modal-title" style="font-weight:700">
+                    <i class="fas fa-plus-circle"></i> Tambah Manual Recap
+                </h5>
+                <button type="button" class="close" style="color:#fff;opacity:.8" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding:25px;max-height:75vh;overflow-y:auto">
+
+                {{-- Pilih Karyawan --}}
+                <div class="form-group">
+                    <label style="font-weight:600;color:#374151">
+                        Pilih Karyawan <span style="color:#ef4444">*</span>
+                    </label>
+                    <select id="manualEmpIds" class="form-control select2-manual" multiple required style="width:100%">
+                    </select>
+                    <small class="text-muted">Bisa pilih lebih dari satu karyawan</small>
+                </div>
+
+                {{-- Scan Date & End Date --}}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#374151">
+                                Start Date <span style="color:#ef4444">*</span>
+                            </label>
+                            <input type="date" id="manualScanDate" class="form-control" required>
+                            <small class="text-muted">Tanggal mulai</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;color:#374151">
+                                End Date <span style="color:#ef4444">*</span>
+                            </label>
+                            <input type="date" id="manualEndDate" class="form-control" required>
+                            <small class="text-muted">Tanggal selesai (isi sama jika hanya 1 hari)</small>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Shift --}}
+                <div class="form-group">
+                    <label style="font-weight:600;color:#374151">
+                        <i class="fas fa-clock"></i> Shift
+                    </label>
+                    <select id="manualShiftId" class="form-control select2-manual-shift" style="width:100%">
+                        <option value="">-- Gunakan shift dari roster karyawan --</option>
+                    </select>
+                </div>
+
+                {{-- Bukti Pendukung --}}
+                <div class="form-group">
+                    <label style="font-weight:600;color:#374151">
+                        <i class="fas fa-paperclip"></i>
+                        Bukti Pendukung <span style="color:#ef4444">*</span>
+                        <span class="evidence-badge">WAJIB</span>
+                    </label>
+                    <div class="evidence-dropzone" id="evidenceDropzone">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <p><strong>Click</strong> atau <strong>Drag &amp; Drop</strong> file ke sini</p>
+                        <small>JPG, PNG, GIF, PDF, DOC, DOCX, XLS, XLSX · max 5 MB per file · bisa multiple</small>
+                        <input type="file" id="evidenceFiles" multiple
+                            accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx"
+                            style="display:none">
+                    </div>
+                    <div id="evidenceFileList" class="evidence-file-list"></div>
+                </div>
+
+                {{-- Alasan --}}
+                <div class="form-group">
+                    <label style="font-weight:600;color:#374151">
+                        Alasan <span style="color:#ef4444">*</span>
+                    </label>
+                    <textarea id="manualReason" class="form-control" rows="4" required
+                        placeholder="Contoh: Karyawan telah klarifikasi bahwa masuk kerja namun mesin fingerprint rusak..."
+                        minlength="10" maxlength="1000"></textarea>
+                    <small class="text-muted">Minimal 10 karakter.</small>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitManualRecap()"
+                    style="background:#1d4ed8;border:none;font-weight:600" id="submitManualBtn">
+                    <i class="fas fa-paper-plane"></i> Submit &amp; Kirim Notifikasi
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -620,6 +857,26 @@
         document.getElementById('endDate').value   = fmt(new Date(y, m, 25));
     })();
 
+    /* ── Toggle Header Buttons ── */
+    function toggleHeaderButtons(enable) {
+        const addBtn    = document.getElementById('addRecapBtn');
+        const recapBtn  = document.getElementById('recapBtn');
+        const addWrap   = document.getElementById('addRecapWrap');
+        const recapWrap = document.getElementById('recapWrap');
+
+        if (enable) {
+            addBtn.disabled   = false;
+            recapBtn.disabled = false;
+            addWrap.removeAttribute('data-tooltip');
+            recapWrap.removeAttribute('data-tooltip');
+        } else {
+            addBtn.disabled   = true;
+            recapBtn.disabled = true;
+            addWrap.setAttribute('data-tooltip', 'Klik Filter dulu untuk menampilkan data');
+            recapWrap.setAttribute('data-tooltip', 'Klik Filter dulu untuk menampilkan data');
+        }
+    }
+
     $(function () {
         /* ── Select2 ── */
         $('.select2').select2({ width: '100%' });
@@ -673,7 +930,7 @@
                     }
                 },
             columns: [
-                /* 0 — Employee (name + NIP merged) */
+                /* 0 — Employee */
                 {
                     data: 'employee_name',
                     className: 'col-employee',
@@ -691,7 +948,7 @@
                     }
                 },
                 /* 1 — Location */
-                { data: 'name',     className: 'text-center', render: d => d || '-' },
+                { data: 'name', className: 'text-center', render: d => d || '-' },
                 /* 2 — PIN */
                 {
                     data: 'pin',
@@ -708,7 +965,7 @@
                     }
                 },
                 /* 4 — Position */
-                { data: 'position_name',   className: 'text-center', render: d => d || '-' },
+                { data: 'position_name', className: 'text-center', render: d => d || '-' },
                 /* 5 — Emp. status */
                 {
                     data: 'status_employee',
@@ -725,31 +982,30 @@
                     className: 'text-center',
                     render: d => d ? `<span style="font-size:.75rem;color:#64748b">${d}</span>` : '-'
                 },
-                /* 7–12 — combine_1 … combine_6 (In / Out / Break In / Break Out / Ovt In / Ovt Out) */
-                @php $combineClasses = ['time-in','time-out','time-break','time-break','time-ovt','time-ovt']; @endphp
-                @for ($i = 1; $i <= 6; $i++)
-               
+
+                /* 7 — In (combine_1) */
                 {
-    data: 'combine_{{ $i }}',
-    name: 'combine_{{ $i }}',
-    className: 'text-center',
-    render: function (d, type, row) {
-        if (type !== 'display') return d || '';
-
-        let html = timeCell(d, '{{ $combineClasses[$i - 1] }}');
-
-        // 🔴 khusus IN pertama (combine_1)
-        @if ($i === 1)
-            if (row.is_late) {
-                html = `<span class="text-danger fw-bold">${d ?? ''}</span>`;
-            } else {
-                html = `<span class="text-success">${d ?? ''}</span>`;
-            }
-        @endif
-
-        return html;
-    }
-},
+                    data: 'combine_1',
+                    name: 'combine_1',
+                    className: 'text-center',
+                    render: function (d, type, row) {
+                        if (type !== 'display') return d || '';
+                        const cls = row.is_late_in ? 'time-late' : 'time-in';
+                        return timeCell(d, cls);
+                    }
+                },
+                /* 8–12 — combine_2 … combine_6 */
+                @php $combineClasses = ['time-out','time-break','time-break','time-ovt','time-ovt']; @endphp
+                @for ($i = 2; $i <= 6; $i++)
+                {
+                    data: 'combine_{{ $i }}',
+                    name: 'combine_{{ $i }}',
+                    className: 'text-center',
+                    render: function (d, type) {
+                        if (type !== 'display') return d || '';
+                        return timeCell(d, '{{ $combineClasses[$i - 2] }}');
+                    }
+                },
                 @endfor
                 /* 13 — Duration */
                 {
@@ -786,54 +1042,24 @@
                     $(row).addClass('row-edited');
                 }
             },
-           
-//             drawCallback: function () {
-//     let api = this.api();
-//     let data = api.rows({ search: 'applied' }).data();
 
-//     let total = data.length;
-//     let ontime = 0;
-//     let late = 0;
-//     let updated = 0;
-//     let missing = 0;
-
-//     data.each(function (row) {
-//         if (row.is_late) {
-//             late++;
-//         } else {
-//             ontime++;
-//         }
-
-//         if (row.is_updated) {
-//             updated++;
-//         }
-
-//         // contoh missing (kalau tidak ada in_1)
-//         if (!row.in_1) {
-//             missing++;
-//         }
-//     });
-
-//     $('#stat-total').text(total.toLocaleString('id-ID'));
-//     $('#stat-ontime').text(ontime.toLocaleString('id-ID'));
-//     $('#stat-late').text(late.toLocaleString('id-ID'));
-//     $('#stat-updated').text(updated.toLocaleString('id-ID'));
-//     $('#stat-missing').text(missing.toLocaleString('id-ID'));
-// },
-drawCallback: function (settings) {
-    const json = settings.json;
-    if (!json || !json.stats) return;
-
-    const s = json.stats;
-
-    $('#stat-total').text(s.total.toLocaleString('id-ID'));
-    $('#stat-ontime').text(s.ontime.toLocaleString('id-ID'));
-    $('#stat-late').text(s.late.toLocaleString('id-ID'));
-    $('#stat-updated').text(s.updated.toLocaleString('id-ID'));
-    $('#stat-missing').text(s.missing.toLocaleString('id-ID'));
-},
+            drawCallback: function (settings) {
+                const json = settings.json;
+                if (!json) return;
+                if (json.recordsTotal !== undefined) {
+                    $('#stat-total').text(Number(json.recordsTotal).toLocaleString('id-ID'));
+                }
+                if (json.stats) {
+                    const s = json.stats;
+                    $('#stat-ontime').text(s.on_time  !== undefined ? Number(s.on_time).toLocaleString('id-ID')  : '–');
+                    $('#stat-late').text(s.late       !== undefined ? Number(s.late).toLocaleString('id-ID')     : '–');
+                    $('#stat-updated').text(s.updated !== undefined ? Number(s.updated).toLocaleString('id-ID')  : '–');
+                    $('#stat-missing').text(s.missing !== undefined ? Number(s.missing).toLocaleString('id-ID')  : '–');
+                }
+                const hasData = (json.recordsDisplay ?? json.recordsTotal ?? 0) > 0;
+                toggleHeaderButtons(hasData);
+            },
             initComplete: function () {
-                /* move length and search controls into custom slots */
                 const $length = $('.dataTables_length').addClass('d-flex align-items-center gap-2');
                 $length.find('label').css({ fontSize: '.775rem', color: '#64748b', whiteSpace: 'nowrap' });
                 $length.find('select').addClass('form-select form-select-sm').css({ height: '30px', fontSize: '.775rem', width: '70px' });
@@ -852,6 +1078,7 @@ drawCallback: function (settings) {
 
         /* ── Filter ── */
         $('#filterBtn').on('click', function () {
+            toggleHeaderButtons(false);
             table.ajax.reload();
         });
 
@@ -867,6 +1094,7 @@ drawCallback: function (settings) {
             $('#startDate').val(fmt(new Date(y, m - 1, 26)));
             $('#endDate').val(fmt(new Date(y, m, 25)));
             $('#store_name').val('').trigger('change');
+            toggleHeaderButtons(false);
             table.ajax.reload();
         });
 
@@ -921,7 +1149,7 @@ drawCallback: function (settings) {
             });
         });
 
-        /* ── Auto-refresh (skip when user is searching) ── */
+        /* ── Auto-refresh ── */
         setInterval(function () {
             const isSearching = $('.dataTables_filter input').val().trim().length > 0;
             if (!isSearching) {
@@ -949,6 +1177,355 @@ drawCallback: function (settings) {
                 confirmButtonColor: '#dc2626'
             });
         @endif
+
+        /* ═══════════════════════════════════════════════════════════
+           ADD RECAP FEATURE — handlers
+           ═══════════════════════════════════════════════════════════ */
+
+        let evidenceFiles = [];
+
+        // Load semua karyawan
+        function loadEmployeeList() {
+            fetch('{{ route("fingerprints.employee-list") }}')
+                .then(r => r.json())
+                .then(data => {
+                    const select = $('#manualEmpIds');
+                    select.empty();
+                    (data.data || []).forEach(emp => {
+                        const text = `${emp.name} — ${emp.store} (PIN: ${emp.pin})`;
+                        select.append(new Option(text, emp.id));
+                    });
+                })
+                .catch(err => console.error('Gagal load employees:', err));
+        }
+
+        // Load shift list
+        function loadShiftList() {
+            fetch('{{ route("manual-recap.shift-list") }}')
+                .then(r => r.json())
+                .then(data => {
+                    const select = $('#manualShiftId');
+                    select.empty();
+                    select.append(new Option('-- Gunakan shift dari roster karyawan --', ''));
+                    (data.data || []).forEach(shift => {
+                        const text = `${shift.name} (${shift.time})`;
+                        select.append(new Option(text, shift.id));
+                    });
+                })
+                .catch(err => console.error('Gagal load shifts:', err));
+        }
+
+        // Init dropzone
+        function initEvidenceDropzone() {
+            const dropzone  = document.getElementById('evidenceDropzone');
+            const fileInput = document.getElementById('evidenceFiles');
+
+            dropzone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            ['dragenter', 'dragover'].forEach(ev =>
+                dropzone.addEventListener(ev, e => {
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                })
+            );
+            ['dragleave', 'drop'].forEach(ev =>
+                dropzone.addEventListener(ev, e => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                })
+            );
+            dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+        }
+
+        function handleFiles(fileList) {
+            const allowedTypes = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+            const maxSize = 5 * 1024 * 1024;
+
+            Array.from(fileList).forEach(file => {
+                if (!allowedTypes.includes(file.type)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Tipe file tidak diizinkan',
+                        html: `<strong>${file.name}</strong><br><small>Hanya JPG, PNG, GIF, WEBP, PDF, DOC, DOCX, XLS, XLSX.</small>`,
+                        confirmButtonColor: '#dc2626'
+                    });
+                    return;
+                }
+                if (file.size > maxSize) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File terlalu besar',
+                        html: `<strong>${file.name}</strong><br><small>Ukuran file maksimal 5 MB per file.</small>`,
+                        confirmButtonColor: '#dc2626'
+                    });
+                    return;
+                }
+                if (evidenceFiles.some(f => f.name === file.name && f.size === file.size)) return;
+                evidenceFiles.push(file);
+            });
+
+            renderFileList();
+            document.getElementById('evidenceFiles').value = '';
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('evidenceFileList');
+            list.innerHTML = '';
+
+            evidenceFiles.forEach((file, idx) => {
+                const iconClass = getFileIconClass(file.type);
+                const icon      = getFileIcon(file.type);
+                const sizeStr   = formatFileSize(file.size);
+
+                const item = document.createElement('div');
+                item.className = 'evidence-file-item';
+                item.innerHTML = `
+                    <div class="evidence-file-icon ${iconClass}"><i class="${icon}"></i></div>
+                    <div class="evidence-file-info">
+                        <div class="evidence-file-name">${file.name}</div>
+                        <div class="evidence-file-size">${sizeStr}</div>
+                    </div>
+                    <button type="button" class="evidence-file-remove" data-idx="${idx}" title="Hapus">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        $(document).on('click', '.evidence-file-remove', function () {
+            const idx = parseInt($(this).data('idx'));
+            evidenceFiles.splice(idx, 1);
+            renderFileList();
+        });
+
+        function getFileIconClass(mime) {
+            if (mime.startsWith('image/')) return 'img';
+            if (mime === 'application/pdf') return 'pdf';
+            if (mime.includes('word')) return 'doc';
+            if (mime.includes('sheet') || mime.includes('excel')) return 'xls';
+            return 'other';
+        }
+
+        function getFileIcon(mime) {
+            if (mime.startsWith('image/')) return 'fas fa-image';
+            if (mime === 'application/pdf') return 'fas fa-file-pdf';
+            if (mime.includes('word')) return 'fas fa-file-word';
+            if (mime.includes('sheet') || mime.includes('excel')) return 'fas fa-file-excel';
+            return 'fas fa-file';
+        }
+
+        function formatFileSize(bytes) {
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let i = 0;
+            while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+            return bytes.toFixed(2) + ' ' + units[i];
+        }
+
+        // Init Select2 di modal
+        let selectManualInitialized = false;
+        function initManualSelect2() {
+            if (selectManualInitialized) return;
+            $('#manualEmpIds').select2({
+                dropdownParent: $('#addRecapFormModal'),
+                placeholder: 'Pilih karyawan...',
+                allowClear: true
+            });
+            $('#manualShiftId').select2({
+                dropdownParent: $('#addRecapFormModal'),
+                placeholder: 'Gunakan shift dari roster...',
+                allowClear: true
+            });
+            selectManualInitialized = true;
+        }
+
+        // Step 1: Klik "+Add Recap"
+        $('#addRecapBtn').on('click', function () {
+            Swal.fire({
+                icon: 'warning',
+                iconColor: '#f59e0b',
+                title: '⚠️ Peringatan Pertanggungjawaban',
+                html: `
+                    <div style="text-align:left;padding:10px 0">
+                        <p style="color:#1f2937;font-size:15px;line-height:1.6;margin-bottom:10px">
+                            <strong>Data Ini Akan Dikirim Ke Email dan Whatsapp Head HR dan IT Sebagai Pertanggung Jawaban.</strong>
+                        </p>
+                        <p style="color:#6b7280;font-size:13px;margin:0">
+                            Pastikan data &amp; bukti yang Anda input sudah benar dan dapat dipertanggungjawabkan.
+                        </p>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fas fa-check"></i> Saya Mengerti, Lanjutkan',
+                cancelButtonText: 'Batal',
+                focusCancel: true
+            }).then(result => {
+                if (result.isConfirmed) openAddRecapForm();
+            });
+        });
+
+        // Step 2: Buka form
+        function openAddRecapForm() {
+            loadEmployeeList();
+            loadShiftList();
+            initManualSelect2();
+            initEvidenceDropzone();
+
+            // Reset form
+            $('#manualEmpIds').val(null).trigger('change');
+            $('#manualShiftId').val('').trigger('change');
+            document.getElementById('manualScanDate').value = '';
+            document.getElementById('manualEndDate').value  = '';
+            document.getElementById('manualReason').value   = '';
+            evidenceFiles = [];
+            renderFileList();
+
+            $('#addRecapFormModal').modal('show');
+        }
+
+        // Step 3: Submit
+        window.submitManualRecap = function () {
+            const empIds   = $('#manualEmpIds').val() || [];
+            const scanDate = document.getElementById('manualScanDate').value;
+            const endDate  = document.getElementById('manualEndDate').value;
+            const shiftId  = $('#manualShiftId').val();
+            const reason   = document.getElementById('manualReason').value.trim();
+
+            // Validasi
+            if (empIds.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Pilih minimal 1 karyawan.' });
+                return;
+            }
+            if (!scanDate) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Scan Date wajib diisi.' });
+                return;
+            }
+            if (!endDate) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'End Date wajib diisi.' });
+                return;
+            }
+            if (endDate < scanDate) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'End Date tidak boleh sebelum Scan Date.' });
+                return;
+            }
+            if (evidenceFiles.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Upload minimal 1 file bukti.' });
+                return;
+            }
+            if (reason.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Alasan wajib diisi.' });
+                return;
+            }
+            if (reason.length < 10) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Alasan minimal 10 karakter.' });
+                return;
+            }
+            if (reason.length > 1000) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Alasan maksimal 1000 karakter.' });
+                return;
+            }
+
+            const diffDays = Math.round((new Date(endDate) - new Date(scanDate)) / (1000*60*60*24)) + 1;
+
+            Swal.fire({
+                title: 'Konfirmasi',
+                html: `Akan menambah manual recap untuk <strong>${empIds.length} karyawan</strong><br>
+                       Periode: <strong>${scanDate}</strong> s/d <strong>${endDate}</strong> (<strong>${diffDays} hari</strong>)<br>
+                       Dengan <strong>${evidenceFiles.length} file bukti</strong>.<br>
+                       <small style="color:#64748b">Lanjutkan?</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1d4ed8',
+                confirmButtonText: 'Ya, submit',
+                cancelButtonText: 'Batal'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                const formData = new FormData();
+                empIds.forEach(id => formData.append('employee_ids[]', id));
+                formData.append('scan_date', scanDate);
+                formData.append('end_date',  endDate);
+                if (shiftId) formData.append('shift_id', shiftId);
+                formData.append('reason', reason);
+                evidenceFiles.forEach(file => formData.append('evidence_files[]', file));
+
+                const btn = document.getElementById('submitManualBtn');
+                btn.disabled  = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+                fetch('{{ route("manual-recap.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        const error = new Error(data.message || 'Terjadi kesalahan');
+                        error.status = response.status;
+                        error.errors = data.errors || null;
+                        error.data   = data;
+                        throw error;
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message,
+                            confirmButtonColor: '#1d4ed8'
+                        }).then(() => {
+                            $('#addRecapFormModal').modal('hide');
+                            evidenceFiles = [];
+                            renderFileList();
+                            table.ajax.reload();
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Gagal menambah recap.' });
+                    }
+                })
+                .catch(err => {
+                    if (err.status === 422 && err.errors) {
+                        const allMessages = Object.values(err.errors)
+                            .flat()
+                            .map(msg => `• ${msg}`)
+                            .join('<br>');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Validasi Gagal',
+                            html: `<div style="text-align:left;font-size:14px;line-height:1.6">${allMessages}</div>`,
+                            confirmButtonColor: '#f59e0b'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: err.message || 'Terjadi kesalahan, coba lagi.',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                })
+                .finally(() => {
+                    btn.disabled  = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit & Kirim Notifikasi';
+                });
+            });
+        };
     });
     </script>
 @endpush
