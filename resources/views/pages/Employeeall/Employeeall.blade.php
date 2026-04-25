@@ -775,7 +775,7 @@
                  scrollX: true,
     scrollCollapse: true,
     fixedColumns: {
-        left: 3  // freeze: Action, Status, Employee (kolom 0,1,2)
+        left: 4  // freeze: Action, Status, Employee (kolom 0,1,2)
     },
 
     dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
@@ -841,19 +841,24 @@
                         className: 'text-center',
                         render: d => statusBadge(d, STATUS_BADGE)
                     },
+                    // {
+                    //     data: 'employee_name',
+                    //     render: function(data, type, row, meta) {
+                    //         const ini = initials(data);
+                    //         const sty = avatarStyle(data, meta.row);
+                    //         return `<div class="emp-cell">
+                    //         <div class="emp-avatar" style="${sty}">${ini}</div>
+                    //         <div>
+                    //             <div class="emp-avatar-name">${data || '-'}</div>
+                    //             <div class="emp-avatar-nip">${row.nip || '-'}</div>
+                    //         </div>
+                    //     </div>`;
+                    //     }
+                    // },
                     {
                         data: 'employee_name',
-                        render: function(data, type, row, meta) {
-                            const ini = initials(data);
-                            const sty = avatarStyle(data, meta.row);
-                            return `<div class="emp-cell">
-                            <div class="emp-avatar" style="${sty}">${ini}</div>
-                            <div>
-                                <div class="emp-avatar-name">${data || '-'}</div>
-                                <div class="emp-avatar-nip">${row.nip || '-'}</div>
-                            </div>
-                        </div>`;
-                        }
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'employee_pengenal',

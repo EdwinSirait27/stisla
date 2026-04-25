@@ -517,6 +517,7 @@
                         <thead>
                             <tr>
                                 <th class="col-employee" style="min-width:170px">Employee</th>
+                                <th>NIP</th>
                                 <th>Location</th>
                                 <th>PIN</th>
                                 <th>Roster</th>
@@ -672,22 +673,25 @@
                 },
             columns: [
                 /* 0 — Employee (name + NIP merged) */
-                {
-                    data: 'employee_name',
-                    className: 'col-employee',
-                    render: function (data, type, row, meta) {
-                        if (type !== 'display') return data || '';
-                        const ini = getInitials(data);
-                        const sty = getAvatarStyle(data, meta.row);
-                        return `<div class="emp-cell">
-                            <div class="emp-avatar" style="${sty}">${ini}</div>
-                            <div>
-                                <div class="emp-name-text">${data || '-'}</div>
-                                <div class="emp-nip-text">${row.employee_pengenal || '-'}</div>
-                            </div>
-                        </div>`;
-                    }
-                },
+                // {
+                //     data: 'employee_name',
+                //     className: 'col-employee',
+                //     render: function (data, type, row, meta) {
+                //         if (type !== 'display') return data || '';
+                //         const ini = getInitials(data);
+                //         const sty = getAvatarStyle(data, meta.row);
+                //         return `<div class="emp-cell">
+                //             <div class="emp-avatar" style="${sty}">${ini}</div>
+                //             <div>
+                //                 <div class="emp-name-text">${data || '-'}</div>
+                //                 <div class="emp-nip-text">${row.employee_pengenal || '-'}</div>
+                //             </div>
+                //         </div>`;
+                //     }
+                // },
+                { data: 'employee_name',     className: 'text-center', render: d => d || '-' },
+                { data: 'employee_pengenal',     className: 'text-center', render: d => d || '-' },
+
                 /* 1 — Location */
                 { data: 'name',     className: 'text-center', render: d => d || '-' },
                 /* 2 — PIN */

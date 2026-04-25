@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Mail\AnnouncementMail;
 use App\Models\Employee;
+use App\Models\Departments;
+use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Fingerprints;
 use App\Models\Submissions;
@@ -157,6 +159,66 @@ class DashboardHRController extends Controller
             'leaveData'          => $leaveData,
         ]);
     }
+ public function employeeByDepartment()
+{
+    $statuses = ['Active', 'Pending', 'Mutation', 'On Leave'];
+
+    $data = Departments::query()
+        ->withCount(collect($statuses)->mapWithKeys(function ($status) {
+            $key = strtolower(str_replace(' ', '_', $status));
+            return [
+                "employees as {$key}_count" => fn($q) => $q->where('status', $status),
+            ];
+        })->toArray())
+        ->orderBy('department_name')
+        ->get()
+        ->map(function ($dept) use ($statuses) {
+            $counts = collect($statuses)->mapWithKeys(function ($status) use ($dept) {
+                $key = strtolower(str_replace(' ', '_', $status));
+                return [$key => (int) $dept->{"{$key}_count"}];
+            });
+
+            return [
+                'department' => $dept->department_name,
+                ...$counts->toArray(),
+                'total' => $counts->sum(),
+            ];
+        })
+        ->filter(fn($dept) => $dept['total'] > 0) // skip department kosong
+        ->values();
+
+    return response()->json($data);
+}
+ public function employeeByCompany()
+{
+    $statuses = ['Active', 'Pending', 'Mutation', 'On Leave'];
+
+    $data = Company::query()
+        ->withCount(collect($statuses)->mapWithKeys(function ($status) {
+            $key = strtolower(str_replace(' ', '_', $status));
+            return [
+                "employees as {$key}_count" => fn($q) => $q->where('status', $status),
+            ];
+        })->toArray())
+        ->orderBy('name')
+        ->get()
+        ->map(function ($comp) use ($statuses) {
+            $counts = collect($statuses)->mapWithKeys(function ($status) use ($comp) {
+                $key = strtolower(str_replace(' ', '_', $status));
+                return [$key => (int) $comp->{"{$key}_count"}];
+            });
+
+            return [
+                'company' => $comp->name,
+                ...$counts->toArray(),
+                'total' => $counts->sum(),
+            ];
+        })
+        ->filter(fn($comp) => $comp['total'] > 0) // skip department kosong
+        ->values();
+
+    return response()->json($data);
+}
   
 
     public function getMonthlyData(Request $request)

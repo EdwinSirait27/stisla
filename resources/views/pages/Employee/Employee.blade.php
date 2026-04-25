@@ -585,6 +585,7 @@
                             <thead>
                                 <tr>
                                     <th class="text-center">Employee</th>
+                                    <th class="text-center">NIP</th>
                                     <th class="text-center">Company</th>
                                     <th class="text-center">Department</th>
                                     <th class="text-center">Location</th>
@@ -758,19 +759,29 @@
                 },
                 columns: [
                     /* 0 — Employee (name + NIP merged) */
+                    // {
+                    //     data: 'employee_name',
+                    //     render: function(data, type, row, meta) {
+                    //         const ini = initials(data);
+                    //         const sty = avatarStyle(data, meta.row);
+                    //         return `<div class="emp-cell">
+                    //         <div class="emp-avatar" style="${sty}">${ini}</div>
+                    //         <div>
+                    //             <div class="emp-avatar-name">${data || '-'}</div>
+                    //             <div class="emp-avatar-nip">NIP : ${row.employee_pengenal || ''}</div>
+                    //         </div>
+                    //     </div>`;
+                    //     }
+                    // },
                     {
                         data: 'employee_name',
-                        render: function(data, type, row, meta) {
-                            const ini = initials(data);
-                            const sty = avatarStyle(data, meta.row);
-                            return `<div class="emp-cell">
-                            <div class="emp-avatar" style="${sty}">${ini}</div>
-                            <div>
-                                <div class="emp-avatar-name">${data || '-'}</div>
-                                <div class="emp-avatar-nip">NIP : ${row.employee_pengenal || ''}</div>
-                            </div>
-                        </div>`;
-                        }
+                        className: 'text-center',
+                        render: d => d || '-'
+                    },
+                    {
+                        data: 'employee_pengenal',
+                        className: 'text-center',
+                        render: d => d || '-'
                     },
                     {
                         data: 'name_company',

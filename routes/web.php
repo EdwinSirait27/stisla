@@ -132,6 +132,8 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/dashboardHR/data', [DashboardHRController::class, 'getMonthlyData'])->name('dashboardHR.data');
         Route::get('/announcements/announcements', [DashboardHRController::class, 'getAnnouncements'])->name('announcements.announcements');
         Route::post('/dashboardHR', [DashboardHRController::class, 'store'])->name('dashboardHR.store');
+        Route::get('/dashboard/employee-by-department', [DashboardHRController::class, 'employeeByDepartment']);
+        Route::get('/dashboard/employee-by-company', [DashboardHRController::class, 'employeeByCompany']);
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
         Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
