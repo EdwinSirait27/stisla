@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
-use App\Models\FingerprintRecap;
+use App\Models\Fingerprintrecap;
 use App\Models\Roster;
 use App\Models\Stores;
 use Carbon\Carbon;
@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 
-class FingerprintRecapController extends Controller
+class FingerprintrecapController extends Controller
 {
     /**
      * Store yang dapat toleransi 10 menit (HO/Holding/DC).
@@ -80,8 +80,9 @@ class FingerprintRecapController extends Controller
             $employees   = $employeesQuery->get();
             $employeeIds = $employees->pluck('id')->toArray();
 
-            // ── 2. Ambil recap dalam periode ──
-            $recaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+
+            // Ambil semua recap dalam periode
+            $recaps = Fingerprintrecap::whereIn('employee_id', $employeeIds)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->get()
                 ->groupBy('employee_id');

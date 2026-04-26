@@ -62,7 +62,7 @@ use App\Http\Controllers\ManualRecapController;
 |
 */
 Route::view('/test-wireui', 'test-wireui');
-Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
+Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor'])->group(function () {
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
@@ -133,6 +133,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::get('/dashboardHR/data', [DashboardHRController::class, 'getMonthlyData'])->name('dashboardHR.data');
         Route::get('/announcements/announcements', [DashboardHRController::class, 'getAnnouncements'])->name('announcements.announcements');
         Route::post('/dashboardHR', [DashboardHRController::class, 'store'])->name('dashboardHR.store');
+        Route::get('/dashboard/employee-by-department', [DashboardHRController::class, 'employeeByDepartment']);
+        Route::get('/dashboard/employee-by-company', [DashboardHRController::class, 'employeeByCompany']);
+        Route::get('/dashboard/employee-by-los', [DashboardHRController::class, 'employeeByLengthOfService']);
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
         Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
@@ -513,9 +516,9 @@ Route::prefix('manual-recap')->name('manual-recap.')->middleware(['auth'])->grou
 
 // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
 Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
-    Route::get('/',       [FingerprintRecapController::class, 'index'])   ->name('index');
-    Route::post('/data',  [FingerprintRecapController::class, 'getData']) ->name('data');
-    Route::post('/recap', [FingerprintRecapController::class, 'recap'])   ->name('recap');
+    Route::get('/',       [FingerprintrecapController::class, 'index'])   ->name('index');
+    Route::post('/data',  [FingerprintrecapController::class, 'getData']) ->name('data');
+    Route::post('/recap', [FingerprintrecapController::class, 'recap'])   ->name('recap');
 });
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {

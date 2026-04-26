@@ -29,13 +29,14 @@ class Company extends Model
         public function getFotoUrlAttribute()
 {
     if (!$this->foto) return null;
-
     return asset('storage/' . $this->foto);
 }
-   
     public function user()
     {
-        return $this->belongsTo(User::class, 'manager_id', 'id');
-    
+        return $this->belongsTo(User::class, 'manager_id', 'id');   
+}
+    public function employees()
+{
+    return $this->hasMany(Employee::class, 'company_id', 'id');
 }
 }
