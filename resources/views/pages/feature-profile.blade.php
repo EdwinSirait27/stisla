@@ -4,12 +4,56 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
     /* ─── Page ───────────────────────────────────────────── */
-    .section-header h1 {
+    /* .section-header h1 {
         font-size: 1.4rem;
         font-weight: 600;
         color: #1e293b;
         margin: 0;
-    }
+    } */
+     .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    gap: 16px;
+}
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.section-header-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+}
+.section-header h1 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #1e293b;
+    margin: 0 0 2px;
+    letter-spacing: -0.2px;
+}
+.section-header-subtitle {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 0;
+}
+.section-header-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.breadcrumb-item { font-size: 0.75rem; color: #94a3b8; }
+.breadcrumb-item a { color: #3b82f6; text-decoration: none; }
+.breadcrumb-item.active { color: #1e293b; font-weight: 500; }
+.breadcrumb-sep { font-size: 0.7rem; color: #cbd5e1; }
 
     /* ─── Card shell ─────────────────────────────────────── */
     .profile-card {
@@ -379,19 +423,85 @@
             grid-template-columns: 1fr;
         }
     }
+    .request-box {
+    background: linear-gradient(to right, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.request-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.request-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon-svg {
+    width: 20px;
+    height: 20px;
+    color: #fbbf24;
+}
+
+.request-text h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fbbf24;
+    margin-bottom: 4px;
+}
+
+.request-text p {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin: 0 0 4px 0;
+}
 </style>
 @endpush
 
 @section('main')
 <div class="main-content">
     <section class="section">
-        <div class="section-header">
+        {{-- <div class="section-header">
             <h1>Profile</h1>
             <div class="section-header-breadcrumb">
                 <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
                 <div class="breadcrumb-item">Profile</div>
             </div>
+        </div> --}}
+        <div class="section-header">
+    <div class="section-header-left">
+        <div class="section-header-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
         </div>
+        <div>
+            <h1>Profile</h1>
+            <p class="section-header-subtitle">Kelola informasi akun Anda</p>
+        </div>
+    </div>
+    <nav class="section-header-breadcrumb">
+        {{-- <div class="breadcrumb-item"><a href="#">Dashboard</a></div> --}}
+        <div class="breadcrumb-item">
+    <a href="{{ route(getDashboardRoute()) }}">Dashboard</a>
+</div>
+        <span class="breadcrumb-sep">›</span>
+        <div class="breadcrumb-item active">Profile</div>
+    </nav>
+</div>
 
         <div class="section-body">
             <div class="row justify-content-center">
@@ -426,10 +536,8 @@
                                     {{ $user->employee->employee_name ?? $user->username ?? '-' }}
                                 </div>
                                 <div class="profile-hero-sub">
-                                    NIP : {{ $user->username ?? '' }}
-                                    @if(!empty($user->employee->email))
-                                        Email&nbsp;:&nbsp;{{ $user->employee->email }}
-                                    @endif
+                                    NIP : {{ $user->employee_pengenal ?? '' }}
+                                    
                                 </div>
                                 <div class="profile-hero-tags">
                                     @if(!empty($user->employee->department->department_name))
@@ -445,6 +553,11 @@
                                     @if(!empty($user->employee->grading->grading_name))
                                         <span class="profile-tag profile-tag-grade">
                                             Grading : {{ $user->employee->grading->grading_name }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($user->employee->group->group_name))
+                                        <span class="profile-tag profile-tag-grade">
+                                            Grouping : {{ $user->employee->group->group_name }}
                                         </span>
                                     @endif
                                 </div>
@@ -658,12 +771,14 @@
                                 </div>
 
                             </div>{{-- /.profile-body --}}
-  <div class="hint-bar">
+  {{-- <div class="hint-bar">
                         <div class="hint-item">
                             <i class="text-secondary"></i>Information : For email, telephone number and photo, they can be changed but for email and telephone number, it is a request so HR will replace it.
                         </div>
                       
-                    </div>
+                    </div> --}}
+                  
+                    
                             <div class="profile-footer">
                                 <a href="{{ url()->previous() }}" class="btn btn-back">
                                     <i class="fas fa-arrow-left"></i> Back
@@ -676,7 +791,23 @@
                         </form>
 
                     </div>{{-- /.profile-card --}}
-                    
+<br>
+  <div class="request-box">
+    <div class="request-content">
+        <div class="request-icon">
+            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+        </div>
+        <div class="request-text">
+            <h3>Information</h3>
+            <p>
+                - For email, telephone number and photo, they can be changed but for email and telephone number, it is a request so HR will replace it.
+            </p>
+        </div>
+    </div>
+</div>                    
 
                 </div>
             </div>

@@ -61,7 +61,7 @@ use App\Http\Controllers\FingerprintrecapController;
 |
 */
 Route::view('/test-wireui', 'test-wireui');
-Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->group(function () {
+Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor'])->group(function () {
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
@@ -134,6 +134,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director'])->grou
         Route::post('/dashboardHR', [DashboardHRController::class, 'store'])->name('dashboardHR.store');
         Route::get('/dashboard/employee-by-department', [DashboardHRController::class, 'employeeByDepartment']);
         Route::get('/dashboard/employee-by-company', [DashboardHRController::class, 'employeeByCompany']);
+        Route::get('/dashboard/employee-by-los', [DashboardHRController::class, 'employeeByLengthOfService']);
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
         Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');

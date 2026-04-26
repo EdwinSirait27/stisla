@@ -1777,7 +1777,10 @@
         .dash-card .dash-card-body {
             padding: 20px 22px;
         }
-
+#losChart {
+    width: 100% !important;
+    height: 100% !important;
+}
         /* =====================================================
                    SUBMISSION LIST
                 ===================================================== */
@@ -2740,53 +2743,26 @@
                     </div>
 
                     {{-- Upcoming Birthdays --}}
-                    <div class="col-lg-4 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)"><i
-                                            class="fas fa-birthday-cake"></i></span>
-                                    Upcoming Birthdays
-                                </h4>
-                            </div>
-                            <div class="dash-card-body">
-                                <div class="inner-scroll">
-                                    @forelse($upcomingBirthdays ?? [] as $emp)
-                                        <div class="birthday-item">
-                                            <img class="birthday-avatar no-drag"
-                                                src="{{ $emp->photos ? asset('storage/' . $emp->photos) : asset('img/avatar/avatar-1.png') }}"
-                                                alt="{{ $emp->employee_name }}">
-                                            <div class="birthday-info">
-                                                <div class="birthday-name">{{ $emp->employee_name }}</div>
-                                                <div class="birthday-date">
-                                                    <i class="fas fa-birthday-cake mr-1"
-                                                        style="color:var(--rose-500)"></i>
-                                                    {{ \Carbon\Carbon::parse($emp->birth_date)->format('d F') }}
-                                                    &nbsp;· {{ $emp->department->department_name ?? '-' }}
-                                                </div>
-                                            </div>
-                                            @if (\Carbon\Carbon::parse($emp->birth_date)->format('m-d') === now()->format('m-d'))
-                                                <span class="birthday-today">🎂 Today!</span>
-                                            @else
-                                                <span class="stat-badge neutral"
-                                                    style="font-size:.7rem;white-space:nowrap;">
-                                                    in
-                                                    {{ \Carbon\Carbon::parse($emp->birth_date)->setYear(now()->year)->diffInDays(now()) }}
-                                                    days
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @empty
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-calendar-times fa-3x text-muted mb-3 d-block"></i>
-                                            <p class="text-muted mb-0" style="font-size:.875rem;">No upcoming birthdays
-                                                this month</p>
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="dash-card h-100">
+        <div class="dash-card-header">
+            <h4 class="dash-card-title">
+                <span class="title-icon" style="background:var(--success-gradient)">
+                    <i class="fas fa-chart-bar"></i>
+                </span>
+                Employee by Length of Service
+            </h4>
+        </div>
+        {{-- <div class="dash-card-body">
+            <canvas id="losChart" height="200"></canvas>
+        </div> --}}
+        {{-- <div class="dash-card-body d-flex align-items-center justify-content-center"> --}}
+     <div class="dash-card-body">
+    
+            <canvas id="losChart"height="400"></canvas>
+</div>
+    </div>
+</div>
                 </div>
                 <div class="row mb-4">
                     {{-- Payroll Status --}}
@@ -3569,5 +3545,58 @@
                 });
             })
             .catch(err => console.error('Chart error:', err));
+
+            // los
+            document.addEventListener("DOMContentLoaded", function () {
+
+    fetch('/dashboard/employee-by-los')
+        .then(res => res.json())
+        .then(data => {
+
+            const labels = data.map(i => i.range_label);
+            const values = data.map(i => i.total);
+
+            new Chart(document.getElementById('losChart'), {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Total Employee',
+            data: values,
+            backgroundColor: '#1cc88a',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        indexAxis: 'y', // 🔥 INI KUNCI
+        responsive: true,
+        maintainAspectRatio: false,
+
+        layout: {
+            padding: 0
+        },
+
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        },
+
+        scales: {
+            x: {
+                beginAtZero: true,
+                grace: 0
+            },
+            y: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+        });
+
+});
     </script>
 @endpush

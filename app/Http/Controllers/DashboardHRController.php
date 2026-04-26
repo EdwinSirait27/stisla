@@ -219,7 +219,30 @@ class DashboardHRController extends Controller
 
     return response()->json($data);
 }
-  
+
+public function employeeByLengthOfService()
+{
+    $data = DB::table('employees_tables')
+        ->selectRaw("
+            CASE
+                WHEN TIMESTAMPDIFF(MONTH, join_date, CURDATE()) < 12 THEN '< 1 Year'
+                WHEN TIMESTAMPDIFF(MONTH, join_date, CURDATE()) BETWEEN 12 AND 35 THEN '1-3 Years'
+                WHEN TIMESTAMPDIFF(MONTH, join_date, CURDATE()) BETWEEN 36 AND 59 THEN '3-5 Years'
+                WHEN TIMESTAMPDIFF(MONTH, join_date, CURDATE()) BETWEEN 60 AND 119 THEN '5-10 Years'
+                ELSE '> 10 Years'
+            END as range_label,
+            COUNT(*) as total
+        ")
+        ->whereNotNull('join_date')
+        ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
+        ->groupBy('range_label')
+        ->orderByRaw("
+            FIELD(range_label, '< 1 Year', '1-3 Years', '3-5 Years', '5-10 Years', '> 10 Years')
+        ")
+        ->get();
+
+    return response()->json($data);
+}
 
     public function getMonthlyData(Request $request)
     {
