@@ -1522,7 +1522,7 @@
                 })
                 .finally(() => {
                     btn.disabled  = false;
-                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit & Kirim Notifikasi';
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Recap';
                 });
             });
         };
