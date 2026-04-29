@@ -556,21 +556,12 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::post('/auto-generate',        [AutoRosterController::class, 'generate'])->name('auto-generate');
 });
 
-<<<<<<< HEAD
 // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
 Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
     Route::get('/',       [FingerprintrecapController::class, 'index'])   ->name('index');
     Route::post('/data',  [FingerprintrecapController::class, 'getData']) ->name('data');
     Route::post('/recap', [FingerprintrecapController::class, 'recap'])   ->name('recap');
-=======
-    // ── Schedule ──
-    Route::prefix('schedule')->name('schedule.')->middleware(['auth'])->group(function () {
-        Route::get('/',             [ScheduleController::class, 'index'])        ->name('index');
-        Route::post('/store',       [ScheduleController::class, 'store'])        ->name('store');
-        Route::post('/destroy',     [ScheduleController::class, 'destroy'])      ->name('destroy');
-        Route::post('/bulk-assign', [ScheduleController::class, 'bulkAssign'])   ->name('bulkAssign');
-        Route::post('/copy',        [ScheduleController::class, 'copySchedule']) ->name('copySchedule');
->>>>>>> f45adb9 (rosterfinal29April)
+
 });
 
     // ── Manual Recap (+Add Recap feature) ──
