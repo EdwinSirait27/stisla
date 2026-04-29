@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payroll_details', function (Blueprint $table) {
-        $table->uuid('id')->primary();
+            $table->uuid('id')->primary();
             $table->uuid('employee_id')->nullable();
             $table->integer('period_month')->nullable(); // 1-12
             $table->integer('period_year')->nullable();
-            $table->string('gross_salary')->nullable()->change();
-            $table->string('total_deduction')->nullable()->change();
-            $table->string('total_income')->nullable()->change();
-            $table->string('net_salary')->nullable()->change();
-            $table->string('take_home')->nullable()->change();
+            $table->decimal('gross_salary', 15, 2)->nullable();
+            $table->decimal('total_deduction', 15, 2)->nullable();
+            $table->decimal('total_income', 15, 2)->nullable();
+            $table->decimal('net_salary', 15, 2)->nullable();
+            $table->decimal('take_home', 15, 2)->nullable();
             $table->enum('status', ['Draft', 'Processed', 'Paid'])->default('Draft');
             $table->timestamps();
             // FK

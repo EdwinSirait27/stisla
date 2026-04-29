@@ -4,6 +4,7 @@ use App\Http\Controllers\dashboardAdminController;
 use App\Http\Controllers\DashboardManagerController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DashboardHRController;
 use App\Http\Controllers\PermissionController;
@@ -50,9 +51,10 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\RosterController;
 use App\Http\Controllers\ShiftsController;
 use App\Http\Controllers\PayrollcomponentsController;
-use App\Http\Controllers\FingerprintRecapController;
+use App\Http\Controllers\FingerprintrecapController;
 use App\Http\Controllers\ManualRecapController;
 use App\Http\Controllers\AutoRosterController; 
+use App\Models\Contract;
 
 /*
 |--------------------------------------------------------------------------
@@ -189,7 +191,22 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::get('/payroll/export', [PayrollsController::class, 'export'])->name('payroll.export');
     });
 
-    // ── Fingerspot, Attendance, Fingerprints ──
+
+      Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
+        Route::get('/datacontracts/datacontracts', [ContractController::class, 'getActivities'])->name('datacontracts.datacontracts');
+
+        Route::get('/contract', [ContractController::class, 'index'])
+            ->name('contract');
+        Route::get('contract/create', [ContractController::class, 'create'])->name('createcontract');
+        Route::post('/contract', [ContractController::class, 'store'])->name('storecontract');
+        Route::get('/contract/edit/{id}', [ContractController::class, 'edit'])->name('editcontract');
+        Route::get('/contract/show/{id}', [ContractController::class, 'show'])->name('showcontract');
+        Route::put('/contract/{id}', [ContractController::class, 'update'])->name('updatecontract');
+        Route::get('/contracts/contracts', [ContractController::class, 'getContracts'])->name('contracts.contracts');
+   Route::post('/contract/check-password', [ContractController::class, 'checkPassword'])
+    ->name('contract.password.ajax');
+        });
+
     Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
         Route::get('/Fingerspot', [FingerspotController::class, 'index'])
             ->name('pages.Fingerspot');

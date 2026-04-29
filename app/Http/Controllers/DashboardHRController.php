@@ -309,22 +309,23 @@ public function employeeByLengthOfService()
 
             // Ambil employee
             $employees = Employee::whereNotNull('email')
-                ->whereIn('status', ['Active', 'Pending', 'Mutation'])
-                ->get();
+    ->where('email', '!=', '')
+    ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
+    ->get();
 
             // Kumpulkan jobs
-            $jobs = [];
-            foreach ($employees as $employee) {
-                $jobs[] = (new SendAnnouncementEmail($announcement, $employee))
-                    ->onQueue('emailannouncement');
-            }
+           $jobs = [];
+foreach ($employees as $employee) {
+    $jobs[] = new SendAnnouncementEmail($announcement, $employee);
+    // hapus ->onQueue() di sini, sudah di-set di constructor job
+}
 
             // Dispatch batch
-            Bus::batch($jobs)
-                ->name("Send Announcement {$announcement->id}")
-                ->onQueue('emailannouncement')
-                ->allowFailures()
-                ->dispatch();
+           Bus::batch($jobs)
+    ->name("Send Announcement {$announcement->id}")
+    ->onQueue('sendannouncement') // samakan dengan constructor job
+    ->allowFailures()
+    ->dispatch();
 
             Log::info('Email batch dispatched', [
                 'announcement_id'  => $announcement->id,

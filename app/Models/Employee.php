@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,7 +13,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Svg\Tag\Group;
 use App\Models\Roster;
 use App\Models\Schedule;
-
 class Employee extends Model
 {
     use HasFactory, LogsActivity;
@@ -31,7 +28,6 @@ class Employee extends Model
             }
         });
     }
-   
     protected $fillable = [
         'employee_name',
         'photos',
@@ -84,28 +80,6 @@ class Employee extends Model
         'structure_id',
         'daily_duit'
     ];
-    // protected static function booted()
-    // {
-    //     static::creating(function ($employee) {
-    //         $employee->pin = self::generateSafePin();
-    //     });
-    // }
-    // public static function generateSafePin()
-    // {
-    //     return DB::transaction(function () {
-    //         // Lock baris untuk mencegah race condition
-    //         $lastPin = DB::table('employees_tables')
-    //             ->whereRaw('CHAR_LENGTH(pin) = 4 AND pin REGEXP "^[0-9]{4}$"')
-    //             ->lockForUpdate()
-    //             ->orderByDesc('pin')
-    //             ->value('pin');
-    //         $nextPin = str_pad(((int) $lastPin + 1), 5, '0', STR_PAD_LEFT);
-    //         if ((int)$nextPin > 99999) {
-    //             throw new \Exception("PIN sudah habis (lebih dari 9999)");
-    //         }
-    //         return $nextPin;
-    //     });
-    // }
       public static function getReligionOptions()
 {
     return [

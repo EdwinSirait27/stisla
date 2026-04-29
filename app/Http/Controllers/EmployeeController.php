@@ -301,16 +301,32 @@ class EmployeeController extends Controller
             ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
             ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+          ->editColumn('created_at', function ($e) {
+    return optional($e->created_at)
+        ->timezone('Asia/Makassar')
+        ->translatedFormat('d F Y H:i');
+})
+
+->editColumn('join_date', function ($e) {
+    return $e->join_date
+        ? Carbon::parse($e->join_date)
+            ->timezone('Asia/Makassar')
+            ->translatedFormat('d F Y')
+        : '-';
+})
+->editColumn('end_date', function ($e) {
+    return $e->end_date
+        ? Carbon::parse($e->end_date)
+            ->timezone('Asia/Makassar')
+            ->translatedFormat('d F Y')
+        : '-';
+})
             ->rawColumns(['action'])
             ->make(true);
     }
     public function exportEmployeesall(Request $request)
 {
-    // ❌ Masalah - only() kadang tidak baca query string
-    // $filters = $request->only([...]);
-
-    // ✅ Ambil manual dari query string
-    $filters = [
+     $filters = [
         'filter_company'    => $request->query('filter_company'),
         'filter_department' => $request->query('filter_department'),
         'filter_group'      => $request->query('filter_group'),
@@ -1045,8 +1061,8 @@ public function exportEmployees(Request $request)
                         'month_year' => $month_year,
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
-                    $transferred++;
+                        ]);
+                        $transferred++;
                 } else {
                     $skipped++;
                 }

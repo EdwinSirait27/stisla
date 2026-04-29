@@ -255,9 +255,12 @@
                         value="{{ $startDate }}">
                 </div>
                 <div class="filter-item-date">
-                    <label class="f-label">End Date</label>
-                    <input type="date" name="end_date" class="f-control" value="{{ $endDate }}">
-                </div>
+    <label class="f-label">End Date</label>
+    <input type="text" id="end_date" name="end_date"
+        class="f-control"
+        value="{{ $endDate }}">
+</div>
+              
                 <div class="filter-item-btn">
                     <button type="submit" class="btn-primary-r"><i class="fas fa-search"></i> Filter</button>
                     <a href="{{ route('roster.index') }}" class="btn-secondary-r">Reset</a>
@@ -281,7 +284,7 @@
         <div class="legend">
             <label class="legend-item">
                 <input type="checkbox" class="legend-filter" data-type="work" checked>
-                Shift Kerja
+                Work
             </label>
             <label class="legend-item">
                 <input type="checkbox" class="legend-filter" data-type="off">
@@ -297,7 +300,7 @@
             </label>
             <label class="legend-item">
                 <input type="checkbox" class="legend-filter" data-type="melahirkan">
-                Cuti Melahirkan
+                Maternity Leave
             </label>
             <label class="legend-item">
                 <input type="checkbox" class="legend-filter" data-type="weekend">
@@ -305,7 +308,7 @@
             </label>
             <label class="legend-item">
                 <input type="checkbox" class="legend-filter" data-type="today">
-                Hari Ini
+                Today
             </label>
         </div>
 
@@ -429,7 +432,7 @@
 <div class="m-overlay" id="modalCell">
     <div class="m-box">
         <div class="m-head">
-            <span>📅 Set Schedule</span>
+            <span>Set Schedule</span>
             <button onclick="closeModal('modalCell')">×</button>
         </div>
         <div class="m-body">
@@ -507,7 +510,7 @@
             <div id="bulkShiftWrap">
                 <label class="f-label">Shift</label>
                 <select id="bulkShift" class="f-control mb-3">
-                    <option value="">-- Choose Shift --</option>
+                    <option value="">Choose Shift</option>
                     @foreach($shifts as $shift)
                         <option value="{{ $shift->id }}">{{ $shift->shift_name }} ({{ substr($shift->start_time,0,5) }}-{{ substr($shift->end_time,0,5) }})</option>
                     @endforeach
@@ -521,13 +524,13 @@
 
             <div class="d-flex align-items-center gap-2 mb-2" style="margin-top:8px">
                 <input type="checkbox" id="bulkSaturdayShift" onchange="toggleSaturdayShift()">
-                <label for="bulkSaturdayShift" class="f-label mb-0">Shift Sabtu</label>
+                <label for="bulkSaturdayShift" class="f-label mb-0">Saturday Shift</label>
             </div>
 
             <div id="saturdayShiftWrap" style="display:none;margin-top:8px">
-                <label class="f-label">Pilih Shift Sabtu</label>
+                <label class="f-label">Choose Saturday Shift</label>
                 <select id="bulkSaturdayShiftId" class="f-control mb-3">
-                    <option value="">-- Pilih Shift Sabtu --</option>
+                    <option value="">Saturday Shift</option>
                     @foreach($shifts as $shift)
                         <option value="{{ $shift->id }}">
                             {{ $shift->shift_name }} ({{ substr($shift->start_time,0,5) }}-{{ substr($shift->end_time,0,5) }})
@@ -553,16 +556,17 @@
         <div class="m-body">
             <p style="font-size:12px;color:#64748b;margin-bottom:14px">Copy jadwal dari periode sumber ke periode target.</p>
 
+
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;font-size:12px;color:#1e40af;margin-bottom:14px">
                 <i class="fas fa-info-circle"></i>
-                <strong>Sumber</strong> = periode yang ingin dicopy.
-                <strong>Target</strong> = periode tujuan yang akan diisi jadwal baru.
+                <strong>Source</strong> = the period you want to copy.
+                <strong>Target</strong> = the target period to be filled with the new schedule.
             </div>
 
-            <label class="f-label">Sumber: Start Date <span style="color:#ef4444">*</span></label>
+            <label class="f-label">Source: Start Date <span style="color:#ef4444">*</span></label>
             <input type="date" id="copySourceStart" class="f-control mb-2" value="{{ $startDate }}">
 
-            <label class="f-label">Sumber: End Date <span style="color:#ef4444">*</span></label>
+            <label class="f-label">Source: End Date <span style="color:#ef4444">*</span></label>
             <input type="date" id="copySourceEnd" class="f-control mb-3" value="{{ $endDate }}">
 
             <div style="border-top:1px dashed #e2e8f0;margin:14px 0"></div>
@@ -584,17 +588,17 @@
 <div class="m-overlay" id="modalBulkDelete">
     <div class="m-box" style="width:400px">
         <div class="m-head">
-            <span>🗑️ Bulk Delete Roster</span>
+            <span>Bulk Delete Roster</span>
             <button onclick="closeModal('modalBulkDelete')">×</button>
         </div>
         <div class="m-body">
-            <label class="f-label">Pilih Karyawan</label>
+            <label class="f-label">Choose Employee</label>
             <select id="deleteEmps" class="f-control mb-1" multiple style="height:100px">
                 @foreach($employees as $emp)
                     <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}</option>
                 @endforeach
             </select>
-            <small class="text-muted d-block mb-3">Tahan <kbd>Ctrl</kbd> untuk pilih lebih dari satu</small>
+            <small class="text-muted d-block mb-3">Please hold button <kbd>Ctrl</kbd> to choose more than 1 employee</small>
 
             <div class="d-flex gap-2 mb-3">
                 <div style="flex:1">
@@ -608,13 +612,13 @@
             </div>
 
             <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px;font-size:12px;color:#991b1b;">
-                ⚠️ Semua jadwal karyawan yang dipilih dalam rentang tanggal ini akan dihapus permanen!
+              All selected employee schedules within this date range will be permanently deleted!
             </div>
         </div>
         <div class="m-foot">
-            <button class="btn-secondary-r" onclick="closeModal('modalBulkDelete')">Batal</button>
+            <button class="btn-secondary-r" onclick="closeModal('modalBulkDelete')">Cancel</button>
             <button class="btn-danger-r" onclick="saveBulkDelete()">
-                <i class="fas fa-trash"></i> Hapus
+                <i class="fas fa-trash"></i> Delete
             </button>
         </div>
     </div>
@@ -713,14 +717,25 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    flatpickr("#start_date", {
+flatpickr("#start_date", {
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d F Y",
+    locale: "id",
+
+    defaultDate: (function () {
+        let now = new Date();
+        return new Date(now.getFullYear(), now.getMonth() - 1, 26);
+    })()
+});
+    flatpickr("#end_date", {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "d F Y",
         locale: "id",
         defaultDate: (function () {
             let now = new Date();
-            return new Date(now.getFullYear(), now.getMonth(), 26);
+            return new Date(now.getFullYear(), now.getMonth(), 25);
         })()
     });
 </script>
@@ -849,6 +864,7 @@ function saveRoster() {
             toast('❌ Failed to save data.', false);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Save';
+
         }
     })
     .catch(() => {
@@ -903,7 +919,7 @@ function saveBulk() {
     const saturdayShiftId      = document.getElementById('bulkSaturdayShiftId').value;
 
     if (saturdayShiftChecked && !saturdayShiftId) {
-        toast('⚠️ Pilih shift untuk hari Sabtu.', false);
+        toast('Select shift for Saturday.', false);
         return;
     }
 
@@ -939,7 +955,7 @@ function saveBulk() {
         }
     })
     .catch(() => {
-        toast('❌ Terjadi kesalahan.', false);
+        toast('❌ Failed.', false);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-calendar-check"></i> Assign';
     });
@@ -950,17 +966,17 @@ function confirmCopyRoster() {
     Swal.fire({
         icon: 'warning',
         iconColor: '#f59e0b',
-        title: '⚠️ Perhatian!',
+        title: 'Caution!',
         html: `
             <div style="text-align:left;padding:8px 0;line-height:1.7;font-size:14px;color:#374151">
-                Mohon Dicek Kembali Setelah Mengcopy Roster Karena Mengikuti Roster Pada Bulan Ini, Agar Karyawan Yang Mengambil <strong>Cuti</strong>, <strong>Libur</strong>, Dan lain-lain Tidak Terinput Kembali Di Roster Yang Akan Di Gunakan Pada Bulan Berikutnya.
+                Please check again after copying the roster because it follows the roster for this month, so that employees who take <strong>Leave</strong>, <strong>Off</strong>, will be used in the following month..
             </div>
         `,
         showCancelButton: true,
         confirmButtonColor: '#1d4ed8',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i class="fas fa-copy"></i> Mengerti, Lanjutkan',
-        cancelButtonText: 'Batal',
+        confirmButtonText: '<i class="fas fa-copy"></i> Understood, Process',
+        cancelButtonText: 'Cancel',
         focusCancel: true
     }).then(result => {
         if (result.isConfirmed) openModal('modalCopy');
@@ -974,6 +990,7 @@ function saveCopy() {
     const targetEnd   = document.getElementById('copyTargetEnd').value;
 
     if (!sourceStart || !sourceEnd || !targetStart || !targetEnd) {
+
         toast('⚠️ Semua tanggal wajib diisi.', false); return;
     }
     if (sourceEnd < sourceStart) {
@@ -981,6 +998,7 @@ function saveCopy() {
     }
     if (targetEnd < targetStart) {
         toast('⚠️ Target End Date tidak boleh sebelum Target Start Date.', false); return;
+
     }
 
     const btn = document.querySelector('#modalCopy .btn-primary-r');
@@ -1006,13 +1024,13 @@ function saveCopy() {
             closeModal('modalCopy');
             setTimeout(() => location.reload(), 700);
         } else {
-            toast('❌ Gagal memproses.', false);
+            toast(' failed.', false);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
         }
     })
     .catch(() => {
-        toast('❌ Terjadi kesalahan.', false);
+        toast('failed.', false);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
     });
@@ -1021,8 +1039,8 @@ function saveCopy() {
 // ── Bulk delete ──
 function saveBulkDelete() {
     const selected = [...document.getElementById('deleteEmps').selectedOptions].map(o => o.value);
-    if (!selected.length) { toast('⚠️ Pilih minimal 1 karyawan.', false); return; }
-    if (!confirm('Yakin ingin menghapus semua jadwal yang dipilih?')) return;
+    if (!selected.length) { toast('Select at least 1 employee.', false); return; }
+    if (!confirm('Are you sure you want to delete all selected schedules?')) return;
 
     const btn = document.querySelector('#modalBulkDelete .btn-danger-r');
     btn.disabled = true;
@@ -1056,7 +1074,6 @@ function saveBulkDelete() {
         btn.innerHTML = '<i class="fas fa-trash"></i> Hapus';
     });
 }
-
 // ──────────────────────────────────────────────────────
 //  AUTO GENERATE ROSTER
 // ──────────────────────────────────────────────────────
@@ -1273,6 +1290,7 @@ function executeAutoGenerate() {
         console.error(err);
     });
 }
+
 
 $(document).ready(function () { $('.select2').select2(); });
 </script>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Fingerprints')
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}"> --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
@@ -510,6 +510,52 @@
             border-bottom-color: #1e293b;
             z-index: 1000;
         }
+
+        /* information */
+        .request-box {
+    background: linear-gradient(to right, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.request-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.request-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.icon-svg {
+    width: 20px;
+    height: 20px;
+    color: #fbbf24;
+}
+
+.request-text h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fbbf24;
+    margin-bottom: 4px;
+}
+
+.request-text p {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin: 0 0 4px 0;
+}
     </style>
 @endpush
 
@@ -645,12 +691,19 @@
                     </div>
                 </div>
 
-                {{-- Show entries + Search untuk Table 1 --}}
-                <div class="d-flex align-items-center gap-3 px-3 py-2"
+
+                {{-- DataTables length + search injected here --}}
+                {{-- <div class="d-flex align-items-center gap-3 px-3 py-2"
+
                     style="background:#fafafa;border-bottom:1px solid #f1f5f9">
                     <div id="custom-length"></div>
                     <div id="custom-search" class="ms-auto"></div>
-                </div>
+                </div> --}}
+                <div class="d-flex align-items-center gap-3 px-3 py-2"
+    style="background:#fafafa;border-bottom:1px solid #f1f5f9">
+    <div id="custom-length"></div>
+    <div id="custom-search" class="ms-auto"></div>
+</div>
 
                 {{-- Table --}}
                 <div class="table-responsive" style="max-height:560px;overflow-y:auto;padding:0">
@@ -661,7 +714,7 @@
                                 <th>NIP</th>
                                 <th>Location</th>
                                 <th>PIN</th>
-                                <th>Roster</th>
+                                <th>Schedule</th>
                                 <th>Position</th>
                                 <th>Emp. status</th>
                                 <th>Scan date</th>
@@ -746,6 +799,25 @@
             </div>{{-- /.fp-card Table 2 --}}
 
         </div>{{-- /.section-body --}}
+<br>
+ <div class="request-box">
+    <div class="request-content">
+        <div class="request-icon">
+            <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+        </div>
+        <div class="request-text">
+            <h3>Information</h3>
+            <p>
+                - For searches, you can only search for employee names and PINs, and don't forget to press the filter button.
+            </p>
+        </div>
+    </div>
+</div>              
+        </div>
+>>>>>>> f49d8c4 (fitur contract + probation reminder)
     </section>
 </div>
 
@@ -850,14 +922,20 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    {{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
     /* ── Avatar helpers ── */
     const AVATAR_COLORS = [
@@ -946,10 +1024,64 @@
             serverSide: true,
             autoWidth: false,
             responsive: false,
-            dom: "<'d-none'lf>" +
-                 "<'row'<'col-12'tr>>" +
-                 "<'d-none'<'col-md-5'i><'col-md-7'p>>" +
-                 "<'row mt-2'<'col-12'B>>",
+
+            // dom: "<'d-none'lf>" +
+            //      "<'row'<'col-12'tr>>" +
+            //      "<'row mt-2'<'col-12'B>>",
+            // Jadi ini — pisahkan l dan f
+dom: "t" +  // hanya table saja, semua kontrol dihandle manual
+     "<'row mt-2'<'col-12'B>>",
+     initComplete: function () {
+    // Pindah length control
+    const $length = this.api().table().container();
+    const $lenEl = $(this.api().table().container()).find('.dataTables_length');
+
+    // Buat length control manual karena dom hanya 't'
+    // Inject langsung ke #custom-length
+    const api = this.api();
+
+    // Length selector
+    const lengthHtml = `
+        <div class="d-flex align-items-center gap-2">
+            <label style="font-size:.775rem;color:#64748b;white-space:nowrap;margin:0">Show</label>
+            <select id="manualLength" class="form-select form-select-sm" style="height:30px;font-size:.775rem;width:70px">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="-1">All</option>
+            </select>
+        </div>
+    `;
+
+    // Search input
+    const searchHtml = `
+        <input type="search" id="manualSearch" class="form-control form-control-sm"
+            placeholder="Search employee, PIN..."
+            style="height:30px;font-size:.775rem;min-width:200px">
+    `;
+
+    $('#custom-length').html(lengthHtml);
+    $('#custom-search').html(searchHtml);
+
+    // Event length
+    $('#manualLength').on('change', function () {
+        api.page.len(parseInt($(this).val())).draw();
+    });
+
+    // Event search
+    let searchTimer;
+    $('#manualSearch').on('keyup input', function () {
+        clearTimeout(searchTimer);
+        const val = $(this).val();
+        searchTimer = setTimeout(function () {
+            api.search(val).draw();
+        }, 400);
+    });
+
+    // Buttons
+    table.buttons().container().appendTo('#custom-buttons');
+},
             buttons: [
                 {
                     extend: 'csv',
@@ -974,39 +1106,23 @@
                     d.store_name = $('#store_name').val();
                 }
             },
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
-            pageLength: 25,
-            language: {
-                lengthMenu: 'Show _MENU_',
-                search: '',
-                searchPlaceholder: 'Search',
-                info: 'Showing _START_–_END_ of _TOTAL_',
-                infoEmpty: 'No entries found',
-                infoFiltered: '(filtered from _MAX_ total)',
-                paginate: {
-                    previous: '‹',
-                    next: '›'
-                }
-            },
-            columns: [
 
-                /* 0 — Employee (name + NIP merged) */
-                // {
-                //     data: 'employee_name',
-                //     className: 'col-employee',
-                //     render: function (data, type, row, meta) {
-                //         if (type !== 'display') return data || '';
-                //         const ini = getInitials(data);
-                //         const sty = getAvatarStyle(data, meta.row);
-                //         return `<div class="emp-cell">
-                //             <div class="emp-avatar" style="${sty}">${ini}</div>
-                //             <div>
-                //                 <div class="emp-name-text">${data || '-'}</div>
-                //                 <div class="emp-nip-text">${row.employee_pengenal || '-'}</div>
-                //             </div>
-                //         </div>`;
-                //     }
-                // },
+            // lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+            // pageLength: 25,
+          
+            //  language: {
+            //         lengthMenu: 'Show _MENU_',
+            //         search: '',
+            //         searchPlaceholder: 'Search',
+            //         info: 'Showing _START_–_END_ of _TOTAL_',
+            //         infoEmpty: 'No entries found',
+            //         infoFiltered: '(filtered from _MAX_ total)',
+            //         paginate: {
+            //             previous: '‹',
+            //             next: '›'
+            //         }
+            //     },
+            columns: [
                 { data: 'employee_name',     className: 'text-center', render: d => d || '-' },
                 { data: 'employee_pengenal',     className: 'text-center', render: d => d || '-' },
 
@@ -1121,34 +1237,37 @@
                 const hasData = (json.recordsDisplay ?? json.recordsTotal ?? 0) > 0;
                 toggleHeaderButtons(hasData);
             },
-            initComplete: function () {
-                // Pindahkan length, search, info, paging ke container CUSTOM Table 1 saja
-                // Pakai $wrapper supaya scope-nya ke datatable INI saja
-                const $wrapper = $(this.api().table().container());
+// <<<<<<< HEAD
+//             initComplete: function () {
+//                 // Pindahkan length, search, info, paging ke container CUSTOM Table 1 saja
+//                 // Pakai $wrapper supaya scope-nya ke datatable INI saja
+//                 const $wrapper = $(this.api().table().container());
 
-                const $length = $wrapper.find('.dataTables_length').addClass('d-flex align-items-center gap-2');
-                $length.find('label').css({ fontSize: '.775rem', color: '#64748b', whiteSpace: 'nowrap' });
-                $length.find('select').addClass('form-select form-select-sm').css({
-                    height: '30px', fontSize: '.775rem', width: '70px'
-                });
+//                 const $length = $wrapper.find('.dataTables_length').addClass('d-flex align-items-center gap-2');
+//                 $length.find('label').css({ fontSize: '.775rem', color: '#64748b', whiteSpace: 'nowrap' });
+//                 $length.find('select').addClass('form-select form-select-sm').css({
+//                     height: '30px', fontSize: '.775rem', width: '70px'
+//                 });
 
-                const $search = $wrapper.find('.dataTables_filter');
-                $search.find('input').addClass('form-control form-control-sm')
-                    .css({ height: '30px', fontSize: '.775rem', minWidth: '180px' })
-                    .attr('placeholder', 'Search employee, PIN...');
-                $search.find('label').css('display', 'none');
+//                 const $search = $wrapper.find('.dataTables_filter');
+//                 $search.find('input').addClass('form-control form-control-sm')
+//                     .css({ height: '30px', fontSize: '.775rem', minWidth: '180px' })
+//                     .attr('placeholder', 'Search employee, PIN...');
+//                 $search.find('label').css('display', 'none');
 
-                $('#custom-length').html($length);
-                $('#custom-search').html($search);
+//                 $('#custom-length').html($length);
+//                 $('#custom-search').html($search);
 
-                const $info   = $wrapper.find('.dataTables_info');
-                const $paging = $wrapper.find('.dataTables_paginate');
-                $('#custom-info').html($info);
-                $('#custom-paging').html($paging);
+//                 const $info   = $wrapper.find('.dataTables_info');
+//                 const $paging = $wrapper.find('.dataTables_paginate');
+//                 $('#custom-info').html($info);
+//                 $('#custom-paging').html($paging);
 
-                // Export buttons
-                table.buttons().container().appendTo('#custom-buttons');
-            }
+//                 // Export buttons
+//                 table.buttons().container().appendTo('#custom-buttons');
+//             }
+// =======
+ 
         });
 
         /* ═══════════════════════════════════════════════════════════

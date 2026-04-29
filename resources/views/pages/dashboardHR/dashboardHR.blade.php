@@ -2671,10 +2671,10 @@
                                     Monthly Attendance Rate
                                 </h4>
                                 <div class="d-flex align-items-center gap-2">
-                                    <input type="date" id="startDate" class="date-input" aria-label="Start Date"
-                                        value="{{ now()->startOfMonth()->format('Y-m-d') }}">
-                                    <input type="date" id="endDate" class="date-input" aria-label="End Date"
-                                        value="{{ now()->endOfMonth()->format('Y-m-d') }}">
+                                    <input type="date" id="startDate" class="date-input" aria-label="Start Date">
+                                        {{-- value="{{ now()->startOfMonth()->format('Y-m-d') }}"> --}}
+                                    <input type="date" id="endDate" class="date-input" aria-label="End Date">
+                                        {{-- value="{{ now()->endOfMonth()->format('Y-m-d') }}"> --}}
                                     <button id="filterButton" class="btn btn-primary btn-sm">
                                         <i class="fas fa-filter mr-1"></i> Filter
                                     </button>
@@ -3143,7 +3143,6 @@
         document.getElementById('filterButton').addEventListener('click', function() {
             loadChartData(document.getElementById('startDate').value, document.getElementById('endDate').value);
         });
-
         //    DEPARTMENT bar CHART
         document.addEventListener('DOMContentLoaded', function() {
             const deptData = @json($departmentDistribution ?? []);

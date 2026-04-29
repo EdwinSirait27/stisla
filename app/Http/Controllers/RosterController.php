@@ -30,6 +30,7 @@ class RosterController extends Controller
             ])
             ->whereNull('deleted_at')
             ->where('store_id', $storeId)
+            ->whereIn('status', ['Active', 'Pending', 'On Leave'])
             ->orderBy('employee_name')
             ->get();
             $shifts = Shifts::where('store_id', $storeId)

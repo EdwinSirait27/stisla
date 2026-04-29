@@ -21,6 +21,7 @@ class SendAnnouncementEmail implements ShouldQueue
     {
         $this->announcement = $announcement;
         $this->employee = $employee;
+        $this->onQueue('sendannouncement'); 
     }
    
     public function handle()

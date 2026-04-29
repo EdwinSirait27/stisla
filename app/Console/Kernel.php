@@ -19,6 +19,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('sessions:cleanup')->monthly();
         $schedule->command('payrolls:delete-old')->daily();
         $schedule->command('leave:anniversary')->dailyAt('23:10');
+        $schedule->command('reminder:probation')->dailyAt('08:00');
+
     }
     /**
      * Register the commands for the application.
