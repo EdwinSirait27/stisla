@@ -32,7 +32,6 @@
         .stat-card-label {
             font-size: .67rem;
             font-weight: 700;
-            /* text-transform: uppercase; */
             letter-spacing: .7px;
             color: #94a3b8;
             margin-bottom: 5px;
@@ -124,7 +123,6 @@
         .filter-group .filter-label {
             font-size: .67rem;
             font-weight: 700;
-            /* text-transform: uppercase; */
             letter-spacing: .5px;
             color: #94a3b8;
             margin: 0;
@@ -172,18 +170,19 @@
             align-items: flex-end;
         }
 
-        /* ─── Table ──────────────────────────────────────────── */
-        #fingerprint-table {
+        /* ─── Table (apply ke kedua datatable) ─────────────── */
+        #fingerprint-table,
+        #manual-added-table {
             width: 100% !important;
             font-size: .775rem;
         }
 
-        #fingerprint-table thead th {
+        #fingerprint-table thead th,
+        #manual-added-table thead th {
             background: #f8fafc;
             color: #64748b;
             font-size: .67rem;
             font-weight: 700;
-            /* text-transform: uppercase; */
             letter-spacing: .5px;
             padding: .7rem .85rem;
             border: none;
@@ -195,11 +194,13 @@
             z-index: 5;
         }
 
-        #fingerprint-table thead th.col-employee {
+        #fingerprint-table thead th.col-employee,
+        #manual-added-table thead th.col-employee {
             text-align: left;
         }
 
-        #fingerprint-table tbody td {
+        #fingerprint-table tbody td,
+        #manual-added-table tbody td {
             padding: .65rem .85rem;
             vertical-align: middle;
             border: none;
@@ -208,12 +209,16 @@
             white-space: nowrap;
         }
 
-        #fingerprint-table tbody td.col-employee {
+        #fingerprint-table tbody td.col-employee,
+        #manual-added-table tbody td.col-employee {
             text-align: left;
         }
 
-        #fingerprint-table tbody tr:last-child td { border-bottom: none; }
-        #fingerprint-table tbody tr:hover td       { background: #f8fafc; }
+        #fingerprint-table tbody tr:last-child td,
+        #manual-added-table tbody tr:last-child td { border-bottom: none; }
+
+        #fingerprint-table tbody tr:hover td,
+        #manual-added-table tbody tr:hover td       { background: #f8fafc; }
 
         /* highlight edited rows */
         #fingerprint-table tbody tr.row-edited td {
@@ -344,10 +349,6 @@
             font-size: .75rem;
             border-radius: .375rem !important;
             padding: .2rem .5rem;
-        }
-
-        .dataTables_wrapper {
-            padding: .75rem 1.25rem 1rem;
         }
 
         /* ─── auto-refresh badge ─────────────────────────────── */
@@ -573,7 +574,9 @@
                 </div>
             </div>
 
-            {{-- ── Main Card ── --}}
+            {{-- ═══════════════════════════════════════════════════════════
+                 TABLE 1: List Fingerprints (raw scan dari mesin)
+            ═══════════════════════════════════════════════════════════ --}}
             <div class="fp-card">
 
                 <div class="fp-card-header">
@@ -581,7 +584,6 @@
                         <i class="fas fa-fingerprint"></i>
                     </div>
                     <span class="fp-card-header-title">List fingerprints</span>
-
 
                     <span id="addRecapWrap" class="btn-tooltip-wrap ms-auto"
                           data-tooltip="Klik Filter dulu untuk menampilkan data">
@@ -643,7 +645,7 @@
                     </div>
                 </div>
 
-                {{-- DataTables length + search injected here --}}
+                {{-- Show entries + Search untuk Table 1 --}}
                 <div class="d-flex align-items-center gap-3 px-3 py-2"
                     style="background:#fafafa;border-bottom:1px solid #f1f5f9">
                     <div id="custom-length"></div>
@@ -677,16 +679,73 @@
                     </table>
                 </div>
 
-                {{-- DataTables pagination injected here --}}
+                {{-- Pagination Table 1 --}}
                 <div class="d-flex align-items-center justify-content-between px-3 py-2"
                     style="background:#fafafa;border-top:1px solid #f1f5f9">
                     <div id="custom-info" style="font-size:.75rem;color:#64748b"></div>
                     <div id="custom-paging"></div>
                 </div>
 
-            </div>{{-- /.fp-card --}}
+            </div>{{-- /.fp-card Table 1 --}}
 
-        </div>
+            {{-- ═══════════════════════════════════════════════════════════
+                 TABLE 2: Manual Added (hasil Add Recap)
+            ═══════════════════════════════════════════════════════════ --}}
+            <div class="fp-card mt-4">
+
+                <div class="fp-card-header">
+                    <div class="fp-card-header-icon" style="background:#fef3c7">
+                        <i class="fas fa-user-edit" style="color:#d97706"></i>
+                    </div>
+                    <span class="fp-card-header-title">Manual Added</span>
+                    <span class="fp-badge fp-badge-updated ms-2">
+                        <i class="fas fa-check me-1"></i>From Add Recap
+                    </span>
+                </div>
+
+                {{-- Show entries + Search untuk Table 2 --}}
+                <div class="d-flex align-items-center gap-3 px-3 py-2"
+                    style="background:#fafafa;border-bottom:1px solid #f1f5f9">
+                    <div id="manual-added-length"></div>
+                    <div id="manual-added-search" class="ms-auto"></div>
+                </div>
+
+                {{-- Table --}}
+                <div class="table-responsive" style="max-height:560px;overflow-y:auto;padding:0">
+                    <table class="table" id="manual-added-table">
+                        <thead>
+                            <tr>
+                                <th class="col-employee" style="min-width:170px">Employee</th>
+                                <th>Location</th>
+                                <th>PIN</th>
+                                <th>Roster</th>
+                                <th>Position</th>
+                                <th>Emp. status</th>
+                                <th>Scan date</th>
+                                <th>In</th>
+                                <th>Out</th>
+                                <th>Break in</th>
+                                <th>Break out</th>
+                                <th>Ovt in</th>
+                                <th>Ovt out</th>
+                                <th>Duration</th>
+                                <th>Record status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                {{-- Pagination Table 2 --}}
+                <div class="d-flex align-items-center justify-content-between px-3 py-2"
+                    style="background:#fafafa;border-top:1px solid #f1f5f9">
+                    <div id="manual-added-info" style="font-size:.75rem;color:#64748b"></div>
+                    <div id="manual-added-paging"></div>
+                </div>
+
+            </div>{{-- /.fp-card Table 2 --}}
+
+        </div>{{-- /.section-body --}}
     </section>
 </div>
 
@@ -796,8 +855,6 @@
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script> --}}
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -818,6 +875,7 @@
         if (!name) return '?';
         return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
     }
+
     /* ── Roster badge renderer ── */
     function rosterBadge(data, row) {
         if (!data || data === '-') {
@@ -880,7 +938,9 @@
         /* ── Select2 ── */
         $('.select2').select2({ width: '100%' });
 
-        /* ── DataTable ── */
+        /* ═══════════════════════════════════════════════════════════
+           DATATABLE 1: List Fingerprints
+        ═══════════════════════════════════════════════════════════ */
         var table = $('#fingerprint-table').DataTable({
             processing: true,
             serverSide: true,
@@ -888,6 +948,7 @@
             responsive: false,
             dom: "<'d-none'lf>" +
                  "<'row'<'col-12'tr>>" +
+                 "<'d-none'<'col-md-5'i><'col-md-7'p>>" +
                  "<'row mt-2'<'col-12'B>>",
             buttons: [
                 {
@@ -915,19 +976,18 @@
             },
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
             pageLength: 25,
-          
-             language: {
-                    lengthMenu: 'Show _MENU_',
-                    search: '',
-                    searchPlaceholder: 'Search',
-                    info: 'Showing _START_–_END_ of _TOTAL_',
-                    infoEmpty: 'No entries found',
-                    infoFiltered: '(filtered from _MAX_ total)',
-                    paginate: {
-                        previous: '‹',
-                        next: '›'
-                    }
-                },
+            language: {
+                lengthMenu: 'Show _MENU_',
+                search: '',
+                searchPlaceholder: 'Search',
+                info: 'Showing _START_–_END_ of _TOTAL_',
+                infoEmpty: 'No entries found',
+                infoFiltered: '(filtered from _MAX_ total)',
+                paginate: {
+                    previous: '‹',
+                    next: '›'
+                }
+            },
             columns: [
 
                 /* 0 — Employee (name + NIP merged) */
@@ -985,7 +1045,6 @@
                     className: 'text-center',
                     render: d => d ? `<span style="font-size:.75rem;color:#64748b">${d}</span>` : '-'
                 },
-
                 /* 7 — In (combine_1) */
                 {
                     data: 'combine_1',
@@ -1063,11 +1122,17 @@
                 toggleHeaderButtons(hasData);
             },
             initComplete: function () {
-                const $length = $('.dataTables_length').addClass('d-flex align-items-center gap-2');
-                $length.find('label').css({ fontSize: '.775rem', color: '#64748b', whiteSpace: 'nowrap' });
-                $length.find('select').addClass('form-select form-select-sm').css({ height: '30px', fontSize: '.775rem', width: '70px' });
+                // Pindahkan length, search, info, paging ke container CUSTOM Table 1 saja
+                // Pakai $wrapper supaya scope-nya ke datatable INI saja
+                const $wrapper = $(this.api().table().container());
 
-                const $search = $('.dataTables_filter');
+                const $length = $wrapper.find('.dataTables_length').addClass('d-flex align-items-center gap-2');
+                $length.find('label').css({ fontSize: '.775rem', color: '#64748b', whiteSpace: 'nowrap' });
+                $length.find('select').addClass('form-select form-select-sm').css({
+                    height: '30px', fontSize: '.775rem', width: '70px'
+                });
+
+                const $search = $wrapper.find('.dataTables_filter');
                 $search.find('input').addClass('form-control form-control-sm')
                     .css({ height: '30px', fontSize: '.775rem', minWidth: '180px' })
                     .attr('placeholder', 'Search employee, PIN...');
@@ -1075,17 +1140,188 @@
 
                 $('#custom-length').html($length);
                 $('#custom-search').html($search);
+
+                const $info   = $wrapper.find('.dataTables_info');
+                const $paging = $wrapper.find('.dataTables_paginate');
+                $('#custom-info').html($info);
+                $('#custom-paging').html($paging);
+
+                // Export buttons
                 table.buttons().container().appendTo('#custom-buttons');
             }
         });
 
-        /* ── Filter ── */
+        /* ═══════════════════════════════════════════════════════════
+           DATATABLE 2: Manual Added
+        ═══════════════════════════════════════════════════════════ */
+        var tableManual = $('#manual-added-table').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            responsive: false,
+            dom: "<'d-none'lf>" +
+                 "<'row'<'col-12'tr>>" +
+                 "<'d-none'<'col-md-5'i><'col-md-7'p>>",
+            ajax: {
+                url: '{{ route('fingerprints.manual-added') }}',
+                type: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                data: function (d) {
+                    d.start_date = $('#startDate').val();
+                    d.end_date   = $('#endDate').val();
+                    d.store_name = $('#store_name').val();
+                }
+            },
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            pageLength: 25,
+            language: {
+                lengthMenu: 'Show _MENU_',
+                search: '',
+                searchPlaceholder: 'Search...',
+                info: 'Showing _START_–_END_ of _TOTAL_',
+                infoEmpty: 'No entries found',
+                infoFiltered: '(filtered from _MAX_ total)',
+                paginate: { previous: '‹', next: '›' }
+            },
+            columns: [
+                /* 0 — Employee */
+                {
+                    data: 'employee_name',
+                    className: 'col-employee',
+                    render: function (data, type, row, meta) {
+                        if (type !== 'display') return data || '';
+                        const ini = getInitials(data);
+                        const sty = getAvatarStyle(data, meta.row);
+                        return `<div class="emp-cell">
+                            <div class="emp-avatar" style="${sty}">${ini}</div>
+                            <div>
+                                <div class="emp-name-text">${data || '-'}</div>
+                                <div class="emp-nip-text">${row.employee_pengenal || '-'}</div>
+                            </div>
+                        </div>`;
+                    }
+                },
+                /* 1 — Location */
+                { data: 'name', className: 'text-center', render: d => d || '-' },
+                /* 2 — PIN */
+                {
+                    data: 'pin',
+                    className: 'text-center',
+                    render: d => d ? `<span style="font-size:.75rem;color:#64748b;font-family:monospace">${d}</span>` : '-'
+                },
+                /* 3 — Roster */
+                {
+                    data: 'roster_name',
+                    className: 'text-center',
+                    defaultContent: '-',
+                    render: function (data, type, row) {
+                        return type === 'display' ? rosterBadge(data, row) : (data || '');
+                    }
+                },
+                /* 4 — Position */
+                { data: 'position_name', className: 'text-center', render: d => d || '-' },
+                /* 5 — Emp. status */
+                {
+                    data: 'status_employee',
+                    className: 'text-center',
+                    render: function (d) {
+                        if (!d) return '-';
+                        const cls = d === 'Permanent' ? 'fp-badge-permanent' : 'fp-badge-contract';
+                        return `<span class="fp-badge ${cls}">${d}</span>`;
+                    }
+                },
+                /* 6 — Scan date */
+                {
+                    data: 'scan_date',
+                    className: 'text-center',
+                    render: d => d ? `<span style="font-size:.75rem;color:#64748b">${d}</span>` : '-'
+                },
+                /* 7 — In (combine_1) */
+                {
+                    data: 'combine_1',
+                    name: 'combine_1',
+                    className: 'text-center',
+                    render: function (d, type) {
+                        if (type !== 'display') return d || '';
+                        return timeCell(d, 'time-in');
+                    }
+                },
+                /* 8–12 — combine_2 … combine_6 */
+                @php $combineClasses2 = ['time-out','time-break','time-break','time-ovt','time-ovt']; @endphp
+                @for ($i = 2; $i <= 6; $i++)
+                {
+                    data: 'combine_{{ $i }}',
+                    name: 'combine_{{ $i }}',
+                    className: 'text-center',
+                    render: function (d, type) {
+                        if (type !== 'display') return d || '';
+                        return timeCell(d, '{{ $combineClasses2[$i - 2] }}');
+                    }
+                },
+                @endfor
+                /* 13 — Duration */
+                {
+                    data: 'duration',
+                    className: 'text-center',
+                    render: d => d
+                        ? `<span style="font-weight:600;font-size:.775rem">${d}</span>`
+                        : '<span class="time-null">–</span>'
+                },
+                /* 14 — Record status — selalu Updated */
+                {
+                    data: 'updated_status',
+                    className: 'text-center',
+                    render: function () {
+                        return '<span class="fp-badge fp-badge-updated"><i class="fas fa-check me-1"></i>Updated</span>';
+                    }
+                },
+                /* 15 — Action */
+                {
+                    data: 'action',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function (data) {
+                        return `<div class="action-wrap">${data}</div>`;
+                    }
+                }
+            ],
+            initComplete: function () {
+                // Pindahkan length, search, info, paging ke container CUSTOM Table 2 saja
+                // Pakai $wrapper supaya scope-nya ke datatable INI saja
+                const $wrapper = $(this.api().table().container());
+
+                const $length = $wrapper.find('.dataTables_length').addClass('d-flex align-items-center gap-2');
+                $length.find('label').css({ fontSize: '.775rem', color: '#64748b', whiteSpace: 'nowrap' });
+                $length.find('select').addClass('form-select form-select-sm').css({
+                    height: '30px', fontSize: '.775rem', width: '70px'
+                });
+
+                const $search = $wrapper.find('.dataTables_filter');
+                $search.find('input').addClass('form-control form-control-sm')
+                    .css({ height: '30px', fontSize: '.775rem', minWidth: '180px' })
+                    .attr('placeholder', 'Search...');
+                $search.find('label').css('display', 'none');
+
+                $('#manual-added-length').html($length);
+                $('#manual-added-search').html($search);
+
+                const $info   = $wrapper.find('.dataTables_info');
+                const $paging = $wrapper.find('.dataTables_paginate');
+                $('#manual-added-info').html($info);
+                $('#manual-added-paging').html($paging);
+            }
+        });
+
+        /* ═══════════════════════════════════════════════════════════
+           Filter & Reset Handlers (reload KEDUA tabel)
+        ═══════════════════════════════════════════════════════════ */
         $('#filterBtn').on('click', function () {
             toggleHeaderButtons(false);
             table.ajax.reload();
+            tableManual.ajax.reload();
         });
 
-        /* ── Reset ── */
         $('#resetBtn').on('click', function () {
             const today = new Date();
             const y = today.getFullYear(), m = today.getMonth();
@@ -1099,9 +1335,12 @@
             $('#store_name').val('').trigger('change');
             toggleHeaderButtons(false);
             table.ajax.reload();
+            tableManual.ajax.reload();
         });
 
-        /* ── Recap absensi ── */
+        /* ═══════════════════════════════════════════════════════════
+           Recap Absensi Handler
+        ═══════════════════════════════════════════════════════════ */
         $('#recapBtn').on('click', function () {
             const startDate = $('#startDate').val();
             const endDate   = $('#endDate').val();
@@ -1140,7 +1379,10 @@
                         $('#recapBtn').prop('disabled', false)
                             .html('<i class="fas fa-rotate-right me-1"></i> Recap absensi');
                         Swal.fire({ icon: 'success', title: 'Success!', text: response.message })
-                            .then(() => table.ajax.reload());
+                            .then(() => {
+                                table.ajax.reload();
+                                tableManual.ajax.reload();
+                            });
                     },
                     error: function (xhr) {
                         $('#recapBtn').prop('disabled', false)
@@ -1152,9 +1394,11 @@
             });
         });
 
-        /* ── Auto-refresh ── */
+        /* ═══════════════════════════════════════════════════════════
+           Auto-refresh (cuma reload Table 1, Manual Added jarang berubah)
+        ═══════════════════════════════════════════════════════════ */
         setInterval(function () {
-            const isSearching = $('.dataTables_filter input').val().trim().length > 0;
+            const isSearching = $('#custom-search input').val()?.trim().length > 0;
             if (!isSearching) {
                 table.ajax.reload(null, false);
             }
@@ -1183,7 +1427,7 @@
 
         /* ═══════════════════════════════════════════════════════════
            ADD RECAP FEATURE — handlers
-           ═══════════════════════════════════════════════════════════ */
+        ═══════════════════════════════════════════════════════════ */
 
         let evidenceFiles = [];
 
@@ -1496,7 +1740,9 @@
                             $('#addRecapFormModal').modal('hide');
                             evidenceFiles = [];
                             renderFileList();
+                            // Reload KEDUA tabel (data baru muncul di Manual Added)
                             table.ajax.reload();
+                            tableManual.ajax.reload();
                         });
                     } else {
                         Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Gagal menambah recap.' });

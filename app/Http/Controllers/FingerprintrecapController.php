@@ -13,21 +13,13 @@ use Yajra\DataTables\DataTables;
 
 class FingerprintrecapController extends Controller
 {
-    /**
-     * Store yang dapat toleransi 10 menit (HO/Holding/DC).
-     * Selain ini → toleransi 5 menit.
-     *
-     * NOTE: Cek nama persis di database — sesuaikan jika perlu.
-     */
     private const TOLERANSI_TINGGI_STORES = [
-        'HO',
         'Head Office',
         'Holding',
-        'DC',
-        'Distribution Center',  // ✅ FIX: nama lengkap di database
+        'Distribution Center',
     ];
-    private const TOLERANSI_TINGGI_MENIT  = 10;
-    private const TOLERANSI_NORMAL_MENIT  = 5;
+    private const TOLERANSI_TINGGI_MENIT = 10;
+    private const TOLERANSI_NORMAL_MENIT = 5;
 
     public function index()
     {
@@ -50,7 +42,6 @@ class FingerprintrecapController extends Controller
             'store_name' => $request->input('store_name'),
         ]);
 
-        // ── Validasi input (defensive coding) ──
         $request->validate([
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
@@ -87,52 +78,85 @@ class FingerprintrecapController extends Controller
                 ->get()
                 ->groupBy('employee_id');
 
-            // ── 3. Ambil roster Work + shift untuk hitung telat ──
+            // ── 3. Ambil roster Work + Cuti + shift ──
+            // Cuti (Leave, Cuti Melahirkan) dianggap masuk → ikut dihitung
             $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
                 ->whereIn('employee_id', $employeeIds)
                 ->whereBetween('date', [$startDate, $endDate])
-                ->where('day_type', 'Work')
+                ->whereIn('day_type', ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'])
                 ->get()
                 ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
 
             $rostersByEmployee = $rosters->groupBy('employee_id');
 
-            // ── 4. Build result ──
+            // ── 4. Ambil roster Public Holiday untuk Remarks ──
+            $publicHolidayRosters = Roster::whereIn('employee_id', $employeeIds)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->where('day_type', 'Public Holiday')
+                ->get()
+                ->groupBy('employee_id');
+
+            // ── 5. Build result ──
             $result = $employees->map(function ($employee) use (
-                $recaps, $rosters, $rostersByEmployee
+                $recaps, $rosters, $rostersByEmployee, $publicHolidayRosters
             ) {
-                $employeeRecaps  = $recaps->get($employee->id, collect());
-                $employeeRosters = $rostersByEmployee->get($employee->id, collect());
+                $employeeRecaps    = $recaps->get($employee->id, collect());
+                $employeeRosters   = $rostersByEmployee->get($employee->id, collect());
+                $employeePhRosters = $publicHolidayRosters->get($employee->id, collect());
 
                 $storeName = optional($employee->store)->name ?? '';
                 $toleransi = in_array($storeName, self::TOLERANSI_TINGGI_STORES)
                     ? self::TOLERANSI_TINGGI_MENIT
                     : self::TOLERANSI_NORMAL_MENIT;
 
-                // ──────────────────────────────────────────────────────
-                //  HITUNG TELAT (hanya dari recap yang ADA scan-nya)
-                // ──────────────────────────────────────────────────────
+                // ── Set semua tanggal dari roster (Work + Cuti) ──
+                $rosterAllDates = $employeeRosters->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+                $rosterAllDatesSet = array_flip($rosterAllDates);
+
+                // ── Set tanggal cuti saja (untuk exclude dari "tidak masuk") ──
+                $cutiDates = $employeeRosters
+                    ->whereIn('day_type', ['Leave', 'Cuti Melahirkan'])
+                    ->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+                $cutiDatesSet = array_flip($cutiDates);
+
+                // ── Set tanggal Work saja (untuk hitung telat) ──
+                $rosterWorkOnly = $employeeRosters->where('day_type', 'Work');
+                $rosterWorkDates = $rosterWorkOnly->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
+                $rosterWorkKey = $rosterWorkOnly->keyBy(
+                    fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString()
+                );
+
+                // ── Hitung telat (hanya dari hari Work, bukan cuti) ──
                 $telatDates = [];
 
                 foreach ($employeeRecaps as $recap) {
                     $dateStr = Carbon::parse($recap->date)->toDateString();
 
-                    // ✅ FIX: Skip kalau tidak ada scan sama sekali
-                    //    (ini bukan telat, ini "tidak masuk")
+                    // Skip kalau tidak ada scan
                     if (!$recap->time_in && !$recap->time_out) {
                         continue;
                     }
 
-                    // Cek apakah hari ini hari kerja (roster Work)
+                    // Skip kalau bukan hari Work (cuti tidak dihitung telat)
+                    if (isset($cutiDatesSet[$dateStr])) {
+                        continue;
+                    }
+
                     $rosterKey = $employee->id . '_' . $dateStr;
                     $roster    = $rosters->get($rosterKey);
 
-                    if (!$roster) continue; // bukan hari kerja → skip
+                    if (!$roster || $roster->day_type !== 'Work') continue;
 
-                    // Kondisi C: scan tidak lengkap (hanya IN atau hanya OUT)
+                    // Scan tidak lengkap
                     $scanTidakLengkap = (!$recap->time_in || !$recap->time_out);
 
-                    // Kondisi A: scan masuk terlambat
+                    // Masuk terlambat
                     $masukTerlambat = false;
                     if ($recap->time_in && $roster->shift) {
                         $shiftStart = Carbon::parse($dateStr . ' ' . $roster->shift->start_time);
@@ -149,33 +173,66 @@ class FingerprintrecapController extends Controller
                     }
                 }
 
-                // ── Total Hari Kerja = jumlah hari dengan is_counted = 1 ──
-                $totalHariKerja = $employeeRecaps->where('is_counted', 1)->count();
-
-                // ── Total Hari Telat ──
-                $totalHariTelat = count($telatDates);
-
-                // ── Hari tidak masuk (roster Work tapi is_counted = 0 atau tidak ada di recap) ──
-                $rosterDates = $employeeRosters->pluck('date')
-                    ->map(fn($d) => Carbon::parse($d)->toDateString())
-                    ->toArray();
-
-                // Hari yang DI RECAP DAN counted = hari kerja
+                // ── Total Hari Kerja (Work + Cuti yang is_counted=1) ──
                 $countedDates = $employeeRecaps
                     ->where('is_counted', 1)
                     ->pluck('date')
                     ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->filter(fn($dateStr) => isset($rosterAllDatesSet[$dateStr]))
+                    ->values()
                     ->toArray();
 
-                // Hari roster Work yang TIDAK terhitung kerja → tidak masuk
-                $tidakMasukDates = array_diff($rosterDates, $countedDates);
+                // ── Public Holiday otomatis terhitung tanpa perlu scan fingerprint ──
+                $phDates = $employeePhRosters
+                    ->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->toDateString())
+                    ->toArray();
 
-                // ── Remarks (Opsi 3): campur semua hari bermasalah ──
-                $bermasalahDates = collect(array_merge($telatDates, $tidakMasukDates))
+                $allCountedDates = array_unique(array_merge($countedDates, $phDates));
+                $totalHariKerja  = count($allCountedDates);
+
+                $totalHariTelat = count($telatDates);
+
+                // ── Tidak masuk = roster Work yang tidak counted, exclude cuti ──
+                $tidakMasukDates = array_diff($rosterWorkDates, $countedDates, $cutiDates);
+
+                // ── Remarks: telat + tidak masuk ──
+                $remarksItems = collect(array_merge($telatDates, array_values($tidakMasukDates)))
                     ->unique()
-                    ->sort()
-                    ->values()
-                    ->map(fn($d) => Carbon::parse($d)->format('d/m/Y'))
+                    ->map(fn($d) => [
+                        'date'    => $d,
+                        'display' => Carbon::parse($d)->format('d/m/Y'),
+                    ]);
+
+                // ── Remarks: Public Holiday ──
+                $phItems = $employeePhRosters->map(function ($phRoster) {
+                    $dateStr = Carbon::parse($phRoster->date)->toDateString();
+                    $remark  = $phRoster->notes ?: 'Public Holiday';
+
+                    return [
+                        'date'    => $dateStr,
+                        'display' => Carbon::parse($phRoster->date)->format('d/m/Y') . ' (' . $remark . ')',
+                    ];
+                });
+
+                // ── Remarks: Cuti (label agar HR tahu) ──
+                $cutiItems = $employeeRosters
+                    ->whereIn('day_type', ['Leave', 'Cuti Melahirkan'])
+                    ->map(function ($r) {
+                        return [
+                            'date'    => Carbon::parse($r->date)->toDateString(),
+                            'display' => Carbon::parse($r->date)->format('d/m/Y') . ' (' . $r->day_type . ')',
+                        ];
+                    })
+                    ->values();
+
+                // ── Combine semua remarks, sort by date ──
+                $bermasalahDates = $remarksItems
+                    ->concat($phItems)
+                    ->concat($cutiItems)
+                    ->unique('date')
+                    ->sortBy('date')
+                    ->pluck('display')
                     ->implode(', ');
 
                 return [

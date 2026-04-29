@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\FingerprintRecap;
 use App\Models\ManualRecapLog;
-use App\Models\ManualRecapEvidence;
 use App\Models\Roster;
 use App\Models\Shifts;
-use App\Jobs\SendWhatsAppNotificationJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,52 +14,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Controller untuk fitur "+Add Recap" (Manual Recap Absensi).
- *
- * Dipakai ketika HR ingin "memaksa" absensi karyawan yang tidak scan
- * (karena lupa, mesin error, sudah klarifikasi, dll) dengan melampirkan
- * bukti pendukung yang bisa dipertanggungjawabkan.
- *
- * Endpoints:
- *   GET  /manual-recap/hr-list    → hrList()    — dropdown HR (legacy)
- *   GET  /manual-recap/shift-list → shiftList() — dropdown Shift
- *   POST /manual-recap            → store()     — submit manual recap
- *
- * Future (kalau mau ditambah):
- *   GET  /manual-recap           → index()   — halaman riwayat
- *   GET  /manual-recap/{id}      → show()    — detail log
- *   DELETE /manual-recap/{id}    → destroy() — hapus log
- */
 class ManualRecapController extends Controller
 {
-    /**
-     * Menampilkan daftar HR untuk dropdown (legacy, tidak dipakai di form baru).
-     * Filter: karyawan di store Holding / Head Office.
-     */
-    public function hrList()
-    {
-        $hrList = Employee::with('position:id,name', 'store:id,name')
-            ->select('id', 'employee_name', 'position_id', 'store_id', 'pin')
-            ->whereNull('deleted_at')
-            ->whereHas('store', fn($q) =>
-                $q->whereIn('name', ['Holding', 'Head Office'])
-            )
-            ->orderBy('employee_name')
-            ->get()
-            ->map(fn($e) => [
-                'id'       => $e->id,
-                'name'     => $e->employee_name,
-                'position' => $e->position->name ?? '-',
-                'store'    => $e->store->name ?? '-',
-            ]);
+    private const MANUAL_SN = '616231023292867';
+    private const SYNC_STATUS_MANUAL = 'Manual';
 
-        return response()->json(['data' => $hrList]);
-    }
-
-    /**
-     * Menampilkan daftar shift untuk dropdown di modal "+Add Recap".
-     */
     public function shiftList()
     {
         $shifts = Shifts::select('id', 'shift_name', 'start_time', 'end_time')
@@ -76,23 +33,6 @@ class ManualRecapController extends Controller
         return response()->json(['data' => $shifts]);
     }
 
-    /**
-     * Menyimpan manual recap absensi dengan file bukti.
-     *
-     * Request body (form-data, karena ada file):
-     *   employee_ids[]   : array (wajib, min 1) — karyawan yang di-override
-     *   scan_date        : date  (wajib) — tanggal mulai
-     *   end_date         : date  (wajib) — tanggal selesai
-     *   shift_id         : uuid  (opsional) — jika kosong ambil dari roster
-     *   reason           : string (wajib, min 10 char)
-     *   evidence_files[] : file[] (wajib, min 1) — bukti pendukung
-     *
-     * Efek:
-     *   1. Update/Insert fingerprints_recap dengan is_counted = 1
-     *   2. Simpan audit trail di manual_recap_logs
-     *   3. Simpan file bukti di storage + manual_recap_evidences
-     *   4. (Pending) Dispatch notifikasi WhatsApp & Email
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -105,26 +45,19 @@ class ManualRecapController extends Controller
             'evidence_files'   => 'required|array|min:1',
             'evidence_files.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx|max:5120',
         ], [
-            // ── Karyawan ──
             'employee_ids.required' => 'Pilih minimal 1 karyawan.',
             'employee_ids.array'    => 'Format daftar karyawan tidak valid.',
             'employee_ids.min'      => 'Pilih minimal 1 karyawan.',
             'employee_ids.*.exists' => 'Salah satu karyawan yang dipilih tidak ditemukan.',
-
-            // ── Tanggal ──
             'scan_date.required'      => 'Scan Date wajib diisi.',
             'scan_date.date'          => 'Format Scan Date tidak valid.',
             'end_date.required'       => 'End Date wajib diisi.',
             'end_date.date'           => 'Format End Date tidak valid.',
             'end_date.after_or_equal' => 'End Date tidak boleh sebelum Scan Date.',
-
-            // ── Alasan ──
             'reason.required' => 'Alasan wajib diisi.',
             'reason.string'   => 'Alasan harus berupa teks.',
             'reason.min'      => 'Alasan minimal 10 karakter.',
             'reason.max'      => 'Alasan maksimal 1000 karakter.',
-
-            // ── Evidence Files ──
             'evidence_files.required' => 'Upload minimal 1 file bukti.',
             'evidence_files.array'    => 'Format file bukti tidak valid.',
             'evidence_files.min'      => 'Upload minimal 1 file bukti.',
@@ -133,16 +66,7 @@ class ManualRecapController extends Controller
             'evidence_files.*.max'    => 'Ukuran file maksimal 5 MB per file.',
         ]);
 
-        // ── Ambil HR dari user yang sedang login ──
-        $hr = Auth::user()->Employee;
-        if (!$hr) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data HR tidak ditemukan. Pastikan akun Anda terhubung ke data karyawan.',
-            ], 422);
-        }
-
-        // ── Ambil data shift jika dipilih manual ──
+        // ── Resolve shift jika dipilih manual ──
         $shiftTimeIn   = null;
         $shiftTimeOut  = null;
         $shiftDuration = null;
@@ -169,7 +93,7 @@ class ManualRecapController extends Controller
             $dates[] = $d->toDateString();
         }
 
-        // ── Upload file bukti dulu (sebelum masuk transaksi DB) ──
+        // ── Upload file bukti dulu ──
         $uploadedFiles = [];
         try {
             foreach ($request->file('evidence_files') as $file) {
@@ -187,7 +111,6 @@ class ManualRecapController extends Controller
             foreach ($uploadedFiles as $uf) {
                 Storage::disk('public')->delete($uf['file_path']);
             }
-
             Log::error('ManualRecap: upload file gagal', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
@@ -195,8 +118,12 @@ class ManualRecapController extends Controller
             ], 500);
         }
 
-        // ── Proses simpan data dalam transaksi ──
+        // ── Day type yang dianggap "masuk" (berbayar) ──
+        $allowedDayTypes = ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'];
+
         $successCount = 0;
+        $skippedCount = 0;
+        $logCount     = 0;
         $errors       = [];
 
         try {
@@ -215,26 +142,90 @@ class ManualRecapController extends Controller
                     $resolvedTimeOut  = $shiftTimeOut;
                     $resolvedDuration = $shiftDuration;
 
-                    // Jika shift tidak dipilih manual → ambil dari roster
-                    if (!$request->shift_id) {
-                        $roster = Roster::with('shift')
-                            ->where('employee_id', $employee->id)
-                            ->where('date', $date)
-                            ->first();
+                    // ── ROSTER sebagai GATEKEEPER ──
+                    $roster = Roster::with('shift')
+                        ->where('employee_id', $employee->id)
+                        ->where('date', $date)
+                        ->first();
 
-                        if ($roster && $roster->shift) {
+                    // Skip: tidak ada roster
+                    if (!$roster) {
+                        $skippedCount++;
+                        Log::info("ManualRecap: skip {$employee->id} on {$date} — no roster");
+                        continue;
+                    }
+
+                    // Skip: bukan hari yang dianggap masuk (Off, dll)
+                    if (!in_array($roster->day_type, $allowedDayTypes)) {
+                        $skippedCount++;
+                        Log::info("ManualRecap: skip {$employee->id} on {$date} — day_type={$roster->day_type}");
+                        continue;
+                    }
+
+                    // ── Tentukan waktu shift ──
+                    if ($request->shift_id) {
+                        // HR memilih shift manual → pakai waktu dari shift pilihan HR
+                        Log::info("ManualRecap: {$employee->id} on {$date} — using manual shift_id={$request->shift_id}");
+                    } else {
+                        // Cuti & Public Holiday tidak butuh shift — time_in/out null, is_counted tetap 1
+                        if (in_array($roster->day_type, ['Leave', 'Cuti Melahirkan', 'Public Holiday'])) {
+                            $resolvedTimeIn   = null;
+                            $resolvedTimeOut  = null;
+                            $resolvedDuration = null;
+                            Log::info("ManualRecap: {$employee->id} on {$date} — day_type={$roster->day_type}, no shift needed");
+                        } elseif (!$roster->shift) {
+                            // Work tapi shift belum diset di roster
+                            $skippedCount++;
+                            Log::info("ManualRecap: skip {$employee->id} on {$date} — roster Work but shift is null");
+                            continue;
+                        } else {
+                            // Work → ambil shift dari roster
                             $resolvedTimeIn  = $roster->shift->start_time;
                             $resolvedTimeOut = $roster->shift->end_time;
+
                             if ($resolvedTimeIn && $resolvedTimeOut) {
                                 $dtIn  = Carbon::parse($resolvedTimeIn);
                                 $dtOut = Carbon::parse($resolvedTimeOut);
                                 if ($dtOut->lt($dtIn)) $dtOut->addDay();
                                 $resolvedDuration = (int) $dtIn->diffInMinutes($dtOut);
                             }
+
+                            Log::info("ManualRecap: {$employee->id} on {$date} — using roster shift={$roster->shift->shift_name}");
                         }
                     }
 
-                    // 1. Update/Insert fingerprints_recap (paksa hadir)
+                    // ── 1. Insert ke manual_added (mysql_second) ──
+                    DB::connection('mysql_second')
+                        ->table('manual_added')
+                        ->where('pin', $employee->pin)
+                        ->whereDate('scan_date', $date)
+                        ->delete();
+
+                    if ($resolvedTimeIn) {
+                        DB::connection('mysql_second')->table('manual_added')->insert([
+                            'sn'         => self::MANUAL_SN,
+                            'scan_date'  => $date . ' ' . $resolvedTimeIn,
+                            'pin'        => $employee->pin,
+                            'verifymode' => 0,
+                            'inoutmode'  => 1,
+                            'reserved'   => 0,
+                            'work_code'  => 0,
+                        ]);
+                    }
+
+                    if ($resolvedTimeOut) {
+                        DB::connection('mysql_second')->table('manual_added')->insert([
+                            'sn'         => self::MANUAL_SN,
+                            'scan_date'  => $date . ' ' . $resolvedTimeOut,
+                            'pin'        => $employee->pin,
+                            'verifymode' => 0,
+                            'inoutmode'  => 2,
+                            'reserved'   => 0,
+                            'work_code'  => 0,
+                        ]);
+                    }
+
+                    // ── 2. Update/Insert fingerprints_recap ──
                     FingerprintRecap::updateOrCreate(
                         [
                             'employee_id' => $employee->id,
@@ -246,52 +237,40 @@ class ManualRecapController extends Controller
                             'time_out'         => $resolvedTimeOut,
                             'duration_minutes' => $resolvedDuration,
                             'is_counted'       => 1,
-                            'device_sn'        => null,
-                            'sync_status'      => 'Manual',
+                            'device_sn'        => self::MANUAL_SN,
+                            'sync_status'      => self::SYNC_STATUS_MANUAL,
                             'synced_at'        => now(),
                         ]
                     );
 
-                    // 2. Simpan audit trail
-                    $log = ManualRecapLog::create([
-                        'employee_id'  => $employee->id,
-                        'pin'          => $employee->pin,
-                        'date'         => $date,
-                        'time_in'      => $resolvedTimeIn,
-                        'time_out'     => $resolvedTimeOut,
-                        'reason'       => $request->reason,
-                        'hr_id'        => $hr->id,
-                        'hr_name'      => $hr->employee_name,
-                        'submitted_at' => now(),
-                    ]);
-
-                    // 3. Simpan file bukti (1:many)
-                    foreach ($uploadedFiles as $fileData) {
-                        ManualRecapEvidence::create([
-                            'manual_recap_log_id' => $log->id,
-                            'file_name'           => $fileData['file_name'],
-                            'file_path'           => $fileData['file_path'],
-                            'mime_type'           => $fileData['mime_type'],
-                            'file_size'           => $fileData['file_size'],
-                        ]);
-                    }
-
-                    // 4. Dispatch notification (aktivasi setelah provider siap)
-                    // SendWhatsAppNotificationJob::dispatch($log);
-                    // SendEmailNotificationJob::dispatch($log);
-
                     $successCount++;
+
+                    // ── 3. Insert ke manual_recap_logs ──
+                    foreach ($uploadedFiles as $fileData) {
+                        ManualRecapLog::create([
+                            'employee_id' => $employee->id,
+                            'reason'      => $request->reason,
+                            'file_name'   => $fileData['file_name'],
+                            'file_path'   => $fileData['file_path'],
+                            'mime_type'   => $fileData['mime_type'],
+                            'file_size'   => $fileData['file_size'],
+                        ]);
+                        $logCount++;
+                    }
                 }
             }
 
             DB::commit();
 
             return response()->json([
-                'success' => true,
-                'message' => "Berhasil menambah manual recap untuk {$successCount} entri. "
-                           . "Data akan dilaporkan ke Head HR & IT.",
-                'count'   => $successCount,
-                'errors'  => $errors,
+                'success'   => true,
+                'message'   => "Berhasil menambah manual recap untuk {$successCount} entri "
+                             . "({$skippedCount} tanggal dilewati karena Off/Libur/tidak ada roster) "
+                             . "dengan {$logCount} log file bukti.",
+                'count'     => $successCount,
+                'skipped'   => $skippedCount,
+                'log_count' => $logCount,
+                'errors'    => $errors,
             ]);
 
         } catch (\Exception $e) {

@@ -55,15 +55,31 @@
 }
 .r-badge .r-name { font-weight: 700; font-size: 11px; white-space: nowrap; }
 .r-badge .r-time { font-size: 10px; white-space: nowrap; opacity: .85; }
+
+/* ── Notes display di badge ── */
+.r-badge .r-notes {
+    font-size: 9px;
+    font-style: italic;
+    margin-top: 2px;
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.9;
+}
 .r-work    { background: #dbeafe; border-color: #93c5fd; }
-.r-work    .r-name { color: #1d4ed8; }
-.r-work    .r-time { color: #3b82f6; }
+.r-work    .r-name  { color: #1d4ed8; }
+.r-work    .r-time  { color: #3b82f6; }
+.r-work    .r-notes { color: #1e40af; }
 .r-off     { background: #f1f5f9; border-color: #cbd5e1; }
-.r-off     .r-name { color: #64748b; }
+.r-off     .r-name  { color: #64748b; }
+.r-off     .r-notes { color: #475569; }
 .r-holiday { background: #fef9c3; border-color: #fde047; }
-.r-holiday .r-name { color: #854d0e; }
+.r-holiday .r-name  { color: #854d0e; }
+.r-holiday .r-notes { color: #92400e; font-weight: 500; }
 .r-leave   { background: #f3e8ff; border-color: #d8b4fe; }
-.r-leave   .r-name { color: #7e22ce; }
+.r-leave   .r-name  { color: #7e22ce; }
+.r-leave   .r-notes { color: #6b21a8; }
 .r-empty   { color: #cbd5e1; font-size: 20px; line-height: 1; }
 
 /* ── Filter card ── */
@@ -77,8 +93,13 @@
 
 /* ── Buttons ── */
 .btn-primary-r   { background: #1d4ed8; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-primary-r:disabled { opacity: 0.7; cursor: not-allowed; }
 .btn-secondary-r { background: #e2e8f0; color: #334155; border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
 .btn-danger-r    { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
+.btn-danger-r:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-success-r   { background: #16a34a; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-success-r:hover { background: #15803d; }
+.btn-success-r:disabled { opacity: 0.7; cursor: not-allowed; }
 
 /* ── Modal ── */
 .m-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
@@ -116,6 +137,60 @@
 .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; }
 .empty-state h5 { font-size: 16px; font-weight: 600; color: #64748b; margin-bottom: 8px; }
 .empty-state p { font-size: 13px; color: #94a3b8; }
+
+/* ── Auto Roster: Periode card ── */
+.ag-period-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 14px;
+}
+.ag-period-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+}
+.ag-period-title small {
+    font-size: 11px;
+    font-weight: 400;
+    color: #94a3b8;
+}
+.btn-update-preview {
+    background: none;
+    border: none;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 0;
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-update-preview:hover { color: #1e40af; text-decoration: underline; }
+.btn-update-preview:disabled { color: #94a3b8; cursor: not-allowed; }
+
+/* ── Auto Roster: Detail Periode preview box ── */
+.auto-roster-preview {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12px;
+    color: #1e40af;
+    margin-bottom: 14px;
+}
+.auto-roster-preview .preview-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+}
+.auto-roster-preview .preview-row strong { color: #1e3a8a; }
+.auto-roster-preview .preview-row.created strong { color: #16a34a; font-weight: 700; }
+.auto-roster-preview .preview-row.skipped strong { color: #f59e0b; font-weight: 700; }
 </style>
 @endpush
 
@@ -127,10 +202,22 @@
         <h1>Roster & Schedule</h1>
         @if($storeId)
         <div class="d-flex" style="gap:16px">
+            @php
+                $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
+                $currentStoreName   = optional($stores->firstWhere('id', $storeId))->name ?? '';
+                $showAutoGenerate   = in_array($currentStoreName, $autoGenerateStores);
+            @endphp
+
+            @if($showAutoGenerate)
+            <button class="btn-success-r" onclick="confirmAutoGenerate()" style="padding:8px 24px"
+                    title="Auto generate roster untuk periode yang dipilih">
+                <i class="fas fa-magic"></i> Auto Generate Roster
+            </button>
+            @endif
+
             <button class="btn-primary-r" onclick="openModal('modalBulk')" style="padding:8px 24px">
                 <i class="fas fa-calendar-plus"></i> Bulk Assign
             </button>
-            {{-- ↓ PERUBAHAN: onclick ke confirmCopyRoster(), bukan openModal --}}
             <button class="btn-secondary-r" onclick="confirmCopyRoster()" style="padding:8px 24px">
                 <i class="fas fa-copy"></i> Copy Roster
             </button>
@@ -161,16 +248,12 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- <div class="filter-item-date">
-                    <label class="f-label">Start Date</label>
-                    <input type="date" name="start_date" class="f-control" value="{{ $startDate }}">
-                </div> --}}
                 <div class="filter-item-date">
-    <label class="f-label">Start Date</label>
-    <input type="text" id="start_date" name="start_date"
-        class="f-control"
-        value="{{ $startDate }}">
-</div>
+                    <label class="f-label">Start Date</label>
+                    <input type="text" id="start_date" name="start_date"
+                        class="f-control"
+                        value="{{ $startDate }}">
+                </div>
                 <div class="filter-item-date">
                     <label class="f-label">End Date</label>
                     <input type="date" name="end_date" class="f-control" value="{{ $endDate }}">
@@ -194,9 +277,8 @@
             </div>
         @else
 
-        {{-- ── Legend Checkbox Filter (radio behavior, tanpa kotak warna) ── --}}
+        {{-- ── Legend Checkbox Filter ── --}}
         <div class="legend">
-
             <label class="legend-item">
                 <input type="checkbox" class="legend-filter" data-type="work" checked>
                 Shift Kerja
@@ -305,16 +387,20 @@
                                             data-shift-id="{{ $roster?->shift_id ?? '' }}"
                                             data-day-type="{{ $roster?->day_type ?? 'Work' }}"
                                             data-has-roster="{{ $roster ? '1' : '0' }}"
+                                            data-notes="{{ $roster?->notes ?? '' }}"
                                             data-cell-type="{{ $cellType }}"
                                             data-is-today="{{ $isToday ? '1' : '0' }}"
                                             onclick="openCellModal(this)"
-                                            title="{{ $employee->employee_name }} – {{ $dateStr }}">
+                                            title="{{ $employee->employee_name }} – {{ $dateStr }}{{ $roster?->notes ? ' | ' . $roster->notes : '' }}">
                                             @if($badgeClass === '')
                                                 <span class="r-empty">+</span>
                                             @else
                                                 <span class="{{ $badgeClass }}">
                                                     <span class="r-name">{{ $badgeName }}</span>
                                                     @if($badgeTime)<span class="r-time">{{ $badgeTime }}</span>@endif
+                                                    @if($roster && $roster->notes)
+                                                        <span class="r-notes">{{ $roster->notes }}</span>
+                                                    @endif
                                                 </span>
                                             @endif
                                         </td>
@@ -353,7 +439,6 @@
 
             <label class="f-label">Day Type</label>
             <select id="mDayType" class="f-control mb-3" onchange="toggleShift()">
-
                 <option value="Work">Work (Kerja)</option>
                 <option value="Off">Off (Libur)</option>
                 <option value="Public Holiday">Public Holiday</option>
@@ -382,7 +467,7 @@
                 <i class="fas fa-trash"></i> Delete
             </button>
             <button class="btn-secondary-r" onclick="closeModal('modalCell')">Cancel</button>
-            <button class="btn-primary-r" onclick="saveRoster()">
+            <button class="btn-primary-r" id="mSaveBtn" onclick="saveRoster()">
                 <i class="fas fa-save"></i> Save
             </button>
         </div>
@@ -431,7 +516,6 @@
 
             <div class="d-flex align-items-center gap-2 mb-2">
                 <input type="checkbox" id="bulkSkipWeekend" checked>
-
                 <label for="bulkSkipWeekend" class="f-label mb-0">Skip Sunday</label>
             </div>
 
@@ -467,7 +551,6 @@
             <button onclick="closeModal('modalCopy')">×</button>
         </div>
         <div class="m-body">
-
             <p style="font-size:12px;color:#64748b;margin-bottom:14px">Copy jadwal dari periode sumber ke periode target.</p>
 
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;font-size:12px;color:#1e40af;margin-bottom:14px">
@@ -537,6 +620,91 @@
     </div>
 </div>
 
+{{-- ── Modal: Auto Generate Roster (DESIGN BARU) ── --}}
+<div class="m-overlay" id="modalAutoGenerate">
+    <div class="m-box" style="width:440px">
+        <div class="m-head">
+            <span>✨ Auto Generate Roster</span>
+            <button onclick="closeModal('modalAutoGenerate')">×</button>
+        </div>
+        <div class="m-body">
+            <p style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.6">
+                Sistem akan generate roster otomatis untuk karyawan di:
+                <strong>Head Office, Holding, Distribution Center</strong>.
+            </p>
+
+            {{-- ── Periode Generate Card (BARU) ── --}}
+            <div class="ag-period-card">
+                <div class="ag-period-title">
+                    Periode Generate
+                    <small>(kosongkan untuk default otomatis)</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <div style="flex:1">
+                        <label class="f-label">Start Date</label>
+                        <input type="date" id="ag-start-date" class="f-control" onchange="loadAutoGeneratePreview()">
+                    </div>
+                    <div style="flex:1">
+                        <label class="f-label">End Date</label>
+                        <input type="date" id="ag-end-date" class="f-control" onchange="loadAutoGeneratePreview()">
+                    </div>
+                </div>
+                <button type="button" class="btn-update-preview" onclick="loadAutoGeneratePreview()">
+                    <i class="fas fa-sync-alt"></i> Update Preview
+                </button>
+            </div>
+
+            {{-- ── Detail Periode preview box ── --}}
+            <div class="auto-roster-preview" id="autoRosterPreview">
+                <div style="font-weight:600;margin-bottom:8px;color:#1e3a8a">📅 Detail Periode</div>
+                <div class="preview-row">
+                    <span>Periode:</span>
+                    <strong id="ag-period">-</strong>
+                </div>
+                <div class="preview-row">
+                    <span>Total karyawan:</span>
+                    <strong id="ag-employees">-</strong>
+                </div>
+                <div class="preview-row">
+                    <span>&nbsp;&nbsp;• Hindu:</span>
+                    <strong id="ag-hindu">-</strong>
+                </div>
+                <div class="preview-row">
+                    <span>&nbsp;&nbsp;• Non Hindu:</span>
+                    <strong id="ag-non-hindu">-</strong>
+                </div>
+                <div class="preview-row">
+                    <span>Public Holiday dalam periode:</span>
+                    <strong id="ag-ph">-</strong>
+                </div>
+                <div style="border-top:1px dashed #bfdbfe;margin:6px 0"></div>
+                <div class="preview-row created">
+                    <span>Estimasi akan dibuat:</span>
+                    <strong id="ag-estimated-created">-</strong>
+                </div>
+                <div class="preview-row skipped">
+                    <span>Estimasi akan dilewati (sudah ada):</span>
+                    <strong id="ag-estimated-skipped">-</strong>
+                </div>
+            </div>
+
+            <div style="background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:10px;font-size:12px;color:#854d0e;">
+                <i class="fas fa-info-circle"></i>
+                Pola jadwal: <strong>Senin-Jumat</strong> (9 to 5), <strong>Sabtu</strong> (9 to 3), <strong>Minggu</strong> (Off).
+                Public Holiday di-filter sesuai agama karyawan.
+                <br><br>
+                Roster yang sudah ada <strong>tidak akan ditimpa</strong>.
+            </div>
+        </div>
+        <div class="m-foot">
+            <button class="btn-secondary-r" onclick="closeModal('modalAutoGenerate')">Cancel</button>
+            <button class="btn-success-r" onclick="executeAutoGenerate()" id="btnExecuteAutoGenerate">
+                <i class="fas fa-magic"></i> Generate
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="rosterToast"></div>
 @endsection
 
@@ -544,21 +712,12 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-{{-- <script>
-    flatpickr("#start_date", {
-        dateFormat: "Y-m-d",   // format ke backend Laravel
-        altInput: true,
-        altFormat: "d F Y",    // tampilan: 23 April 2026
-        allowInput: true
-    });
-</script> --}}
 <script>
     flatpickr("#start_date", {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "d F Y",
         locale: "id",
-
         defaultDate: (function () {
             let now = new Date();
             return new Date(now.getFullYear(), now.getMonth(), 26);
@@ -596,7 +755,16 @@ function toggleSaturdayShift() {
         document.getElementById('bulkSaturdayShift').checked ? 'block' : 'none';
 }
 
-// ── Legend Checkbox Filter (radio behavior) ──
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const d     = new Date(dateStr);
+    const day   = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year  = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// ── Legend Checkbox Filter ──
 document.querySelectorAll('.legend-filter').forEach(function(checkbox) {
     checkbox.addEventListener('change', function() {
         if (this.checked) {
@@ -615,26 +783,16 @@ function applyLegendFilter() {
     document.querySelectorAll('.day-cell').forEach(function(cell) {
         const type    = cell.dataset.cellType;
         const isToday = cell.dataset.isToday === '1';
-
         let show = false;
 
-        if (showAll || type === 'empty') {
-            show = true;
-        } else if (checkedTypes.includes('work') && type === 'work') {
-            show = true;
-        } else if (checkedTypes.includes('off') && type === 'off') {
-            show = true;
-        } else if (checkedTypes.includes('holiday') && type === 'holiday') {
-            show = true;
-        } else if (checkedTypes.includes('leave') && type === 'leave') {
-            show = true;
-        } else if (checkedTypes.includes('melahirkan') && type === 'melahirkan') {
-            show = true;
-        } else if (checkedTypes.includes('weekend') && type === 'weekend') {
-            show = true;
-        } else if (checkedTypes.includes('today') && isToday) {
-            show = true;
-        }
+        if (showAll || type === 'empty')                                    { show = true; }
+        else if (checkedTypes.includes('work')       && type === 'work')    { show = true; }
+        else if (checkedTypes.includes('off')        && type === 'off')     { show = true; }
+        else if (checkedTypes.includes('holiday')    && type === 'holiday') { show = true; }
+        else if (checkedTypes.includes('leave')      && type === 'leave')   { show = true; }
+        else if (checkedTypes.includes('melahirkan') && type === 'melahirkan') { show = true; }
+        else if (checkedTypes.includes('weekend')    && type === 'weekend') { show = true; }
+        else if (checkedTypes.includes('today')      && isToday)            { show = true; }
 
         cell.style.visibility    = show ? 'visible' : 'hidden';
         cell.style.pointerEvents = show ? 'auto' : 'none';
@@ -643,19 +801,32 @@ function applyLegendFilter() {
 
 // ── Klik cell ──
 function openCellModal(cell) {
-    document.getElementById('mEmpId').value          = cell.dataset.empId;
-    document.getElementById('mEmpName').textContent  = cell.dataset.empName;
-    document.getElementById('mDate').textContent     = cell.dataset.date;
-    document.getElementById('mDayType').value        = cell.dataset.dayType || 'Work';
-    document.getElementById('mShiftId').value        = cell.dataset.shiftId || '';
-    document.getElementById('mNotes').value          = '';
+    document.getElementById('mEmpId').value         = cell.dataset.empId;
+    document.getElementById('mEmpName').textContent = cell.dataset.empName;
+    document.getElementById('mDate').textContent    = cell.dataset.date;
+    document.getElementById('mDayType').value       = cell.dataset.dayType || 'Work';
+    document.getElementById('mShiftId').value       = cell.dataset.shiftId || '';
+    document.getElementById('mNotes').value         = cell.dataset.notes || '';
     document.getElementById('mDeleteBtn').style.display = cell.dataset.hasRoster === '1' ? 'block' : 'none';
+
+    const saveBtn = document.getElementById('mSaveBtn');
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+
+    const delBtn = document.getElementById('mDeleteBtn');
+    delBtn.disabled = false;
+    delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+
     toggleShift();
     openModal('modalCell');
 }
 
 // ── Simpan roster ──
 function saveRoster() {
+    const btn = document.getElementById('mSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
     fetch('{{ route('roster.store') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
@@ -670,18 +841,31 @@ function saveRoster() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            toast(' Schedule saved!');
+            btn.innerHTML = '<i class="fas fa-check"></i> Berhasil!';
+            toast('✅ Schedule saved!');
             closeModal('modalCell');
             setTimeout(() => location.reload(), 700);
         } else {
             toast('❌ Failed to save data.', false);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Save';
         }
+    })
+    .catch(() => {
+        toast('❌ Terjadi kesalahan.', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save';
     });
 }
 
 // ── Hapus roster ──
 function deleteRoster() {
     if (!confirm('Delete this schedule?')) return;
+
+    const btn = document.getElementById('mDeleteBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
     fetch('{{ route('roster.destroy') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
@@ -693,17 +877,27 @@ function deleteRoster() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            toast('Schedule deleted!');
+            btn.innerHTML = '<i class="fas fa-check"></i> Berhasil!';
+            toast('🗑️ Schedule deleted!');
             closeModal('modalCell');
             setTimeout(() => location.reload(), 700);
+        } else {
+            toast('❌ Gagal menghapus.', false);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash"></i> Delete';
         }
+    })
+    .catch(() => {
+        toast('❌ Terjadi kesalahan.', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash"></i> Delete';
     });
 }
 
 // ── Bulk assign ──
 function saveBulk() {
     const selected = [...document.getElementById('bulkEmps').selectedOptions].map(o => o.value);
-    if (!selected.length) { toast(' Choose at least 1 employee.', false); return; }
+    if (!selected.length) { toast('⚠️ Choose at least 1 employee.', false); return; }
 
     const saturdayShiftChecked = document.getElementById('bulkSaturdayShift').checked;
     const saturdayShiftId      = document.getElementById('bulkSaturdayShiftId').value;
@@ -721,14 +915,14 @@ function saveBulk() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
         body: JSON.stringify({
-            employee_ids:       selected,
-            shift_id:           document.getElementById('bulkShift').value || null,
-            start_date:         document.getElementById('bulkStart').value,
-            end_date:           document.getElementById('bulkEnd').value,
-            day_type:           document.getElementById('bulkDayType').value,
-            skip_weekend:       document.getElementById('bulkSkipWeekend').checked,
-            saturday_shift:     saturdayShiftChecked,
-            saturday_shift_id:  saturdayShiftId || null,
+            employee_ids:      selected,
+            shift_id:          document.getElementById('bulkShift').value || null,
+            start_date:        document.getElementById('bulkStart').value,
+            end_date:          document.getElementById('bulkEnd').value,
+            day_type:          document.getElementById('bulkDayType').value,
+            skip_weekend:      document.getElementById('bulkSkipWeekend').checked,
+            saturday_shift:    saturdayShiftChecked,
+            saturday_shift_id: saturdayShiftId || null,
         }),
     })
     .then(r => r.json())
@@ -751,7 +945,7 @@ function saveBulk() {
     });
 }
 
-// ── STEP 1: Klik tombol Copy Roster → tampilkan alert dulu ──
+// ── Copy Roster ──
 function confirmCopyRoster() {
     Swal.fire({
         icon: 'warning',
@@ -769,14 +963,10 @@ function confirmCopyRoster() {
         cancelButtonText: 'Batal',
         focusCancel: true
     }).then(result => {
-        if (result.isConfirmed) {
-            // STEP 2: Baru buka modal setelah user klik "Mengerti"
-            openModal('modalCopy');
-        }
+        if (result.isConfirmed) openModal('modalCopy');
     });
 }
 
-// ── STEP 3: User klik Copy di dalam modal → proses copy ──
 function saveCopy() {
     const sourceStart = document.getElementById('copySourceStart').value;
     const sourceEnd   = document.getElementById('copySourceEnd').value;
@@ -784,16 +974,13 @@ function saveCopy() {
     const targetEnd   = document.getElementById('copyTargetEnd').value;
 
     if (!sourceStart || !sourceEnd || !targetStart || !targetEnd) {
-        toast('⚠️ Semua tanggal wajib diisi.', false);
-        return;
+        toast('⚠️ Semua tanggal wajib diisi.', false); return;
     }
     if (sourceEnd < sourceStart) {
-        toast('⚠️ Sumber End Date tidak boleh sebelum Sumber Start Date.', false);
-        return;
+        toast('⚠️ Sumber End Date tidak boleh sebelum Sumber Start Date.', false); return;
     }
     if (targetEnd < targetStart) {
-        toast('⚠️ Target End Date tidak boleh sebelum Target Start Date.', false);
-        return;
+        toast('⚠️ Target End Date tidak boleh sebelum Target Start Date.', false); return;
     }
 
     const btn = document.querySelector('#modalCopy .btn-primary-r');
@@ -867,6 +1054,223 @@ function saveBulkDelete() {
         toast('❌ Terjadi kesalahan.', false);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-trash"></i> Hapus';
+    });
+}
+
+// ──────────────────────────────────────────────────────
+//  AUTO GENERATE ROSTER
+// ──────────────────────────────────────────────────────
+
+// ── STEP 1: Klik tombol → konfirmasi → buka modal & auto-load preview default ──
+function confirmAutoGenerate() {
+    Swal.fire({
+        icon: 'info',
+        iconColor: '#16a34a',
+        title: '✨ Auto Generate Roster',
+        html: `
+            <div style="text-align:left;padding:8px 0;line-height:1.7;font-size:14px;color:#374151">
+                Sistem akan men-generate roster otomatis untuk karyawan di
+                <strong>Head Office, Holding, dan Distribution Center</strong> dengan pola jadwal:
+                <ul style="margin:10px 0 10px 18px;padding:0">
+                    <li>Senin - Jumat: <strong>9 to 5</strong></li>
+                    <li>Sabtu: <strong>9 to 3</strong></li>
+                    <li>Minggu: <strong>Off</strong></li>
+                    <li>Public Holiday: sesuai agama karyawan</li>
+                </ul>
+                Roster yang sudah ada <strong>tidak akan ditimpa</strong>.
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#16a34a',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fas fa-eye"></i> Lihat Preview',
+        cancelButtonText: 'Batal',
+        focusCancel: true
+    }).then(result => {
+        if (result.isConfirmed) {
+            // Reset input tanggal ke kosong (default = pakai default backend)
+            document.getElementById('ag-start-date').value = '';
+            document.getElementById('ag-end-date').value   = '';
+
+            // Reset preview ke '-'
+            document.getElementById('ag-period').textContent            = '-';
+            document.getElementById('ag-employees').textContent         = '-';
+            document.getElementById('ag-hindu').textContent             = '-';
+            document.getElementById('ag-non-hindu').textContent         = '-';
+            document.getElementById('ag-ph').textContent                = '-';
+            document.getElementById('ag-estimated-created').textContent = '-';
+            document.getElementById('ag-estimated-skipped').textContent = '-';
+
+            // Reset tombol Generate
+            const genBtn = document.getElementById('btnExecuteAutoGenerate');
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fas fa-magic"></i> Generate';
+
+            openModal('modalAutoGenerate');
+
+            // Auto load preview dengan default backend (kosong)
+            loadAutoGeneratePreview();
+        }
+    });
+}
+
+// ── STEP 2: Load preview dari backend ──
+function loadAutoGeneratePreview() {
+    const startDate = document.getElementById('ag-start-date').value;
+    const endDate   = document.getElementById('ag-end-date').value;
+
+    // Build URL — kirim tanggal jika diisi, kosong = backend pakai default
+    let url = '{{ route('roster.auto-generate.preview') }}';
+    if (startDate && endDate) {
+        url += `?start_date=${startDate}&end_date=${endDate}`;
+    } else if (startDate || endDate) {
+        toast('⚠️ Isi Start Date dan End Date keduanya, atau kosongkan keduanya.', false);
+        return;
+    }
+
+    // Tampilkan loading di preview box (tanpa SweetAlert blocking)
+    document.getElementById('ag-period').textContent            = 'Loading...';
+    document.getElementById('ag-employees').textContent         = '...';
+    document.getElementById('ag-hindu').textContent             = '...';
+    document.getElementById('ag-non-hindu').textContent         = '...';
+    document.getElementById('ag-ph').textContent                = '...';
+    document.getElementById('ag-estimated-created').textContent = '...';
+    document.getElementById('ag-estimated-skipped').textContent = '...';
+
+    fetch(url, {
+        method: 'GET',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const p = data.preview;
+
+            document.getElementById('ag-period').textContent =
+                formatDate(p.start_date) + ' s/d ' + formatDate(p.end_date);
+            document.getElementById('ag-employees').textContent =
+                p.total_employees + ' karyawan';
+            document.getElementById('ag-hindu').textContent =
+                (p.employees_by_religion?.Hindu ?? 0) + ' orang';
+            document.getElementById('ag-non-hindu').textContent =
+                (p.employees_by_religion?.['Non Hindu'] ?? 0) + ' orang';
+
+            const phByType = p.public_holidays_by_type || {};
+            const phTotal  = Object.values(phByType).reduce((sum, n) => sum + n, 0);
+            const phDetail = [];
+            if (phByType.Hindu)        phDetail.push('Hindu: ' + phByType.Hindu);
+            if (phByType['Non Hindu']) phDetail.push('Non Hindu: ' + phByType['Non Hindu']);
+            if (phByType.All)          phDetail.push('All: ' + phByType.All);
+            document.getElementById('ag-ph').textContent =
+                phTotal + (phDetail.length ? ' (' + phDetail.join(', ') + ')' : '');
+
+            // Estimasi created vs skipped — backend kirim ini
+            document.getElementById('ag-estimated-created').textContent =
+                (p.estimated_created ?? p.estimated_rows ?? 0) + ' roster';
+            document.getElementById('ag-estimated-skipped').textContent =
+                (p.estimated_skipped ?? 0) + ' roster';
+
+            // Reset tombol Generate
+            const genBtn = document.getElementById('btnExecuteAutoGenerate');
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fas fa-magic"></i> Generate';
+
+        } else {
+            toast('❌ ' + (data.message || 'Gagal load preview'), false);
+            // Set ke error state
+            document.getElementById('ag-period').textContent            = '-';
+            document.getElementById('ag-employees').textContent         = '-';
+            document.getElementById('ag-hindu').textContent             = '-';
+            document.getElementById('ag-non-hindu').textContent         = '-';
+            document.getElementById('ag-ph').textContent                = '-';
+            document.getElementById('ag-estimated-created').textContent = '-';
+            document.getElementById('ag-estimated-skipped').textContent = '-';
+        }
+    })
+    .catch(err => {
+        toast('❌ Terjadi kesalahan saat load preview.', false);
+        console.error(err);
+    });
+}
+
+// ── STEP 3: User klik Generate → eksekusi ──
+function executeAutoGenerate() {
+    const startDate = document.getElementById('ag-start-date').value;
+    const endDate   = document.getElementById('ag-end-date').value;
+
+    const btn = document.getElementById('btnExecuteAutoGenerate');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+    const payload = {};
+    if (startDate && endDate) {
+        payload.start_date = startDate;
+        payload.end_date   = endDate;
+    }
+
+    fetch('{{ route('roster.auto-generate') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': CSRF,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    })
+    .then(r => r.json())
+    .then(data => {
+        closeModal('modalAutoGenerate');
+
+        if (data.success) {
+            const s = data.summary;
+            const detail = `
+                <div style="text-align:left;padding:8px 0;font-size:13px;color:#374151;line-height:1.8">
+                    <div style="margin-bottom:10px">
+                        <strong style="color:#16a34a">${s.created}</strong> roster baru di-generate
+                        ${s.skipped > 0 ? ', <strong style="color:#f59e0b">' + s.skipped + '</strong> dilewati (sudah ada)' : ''}
+                    </div>
+                    <div style="background:#f0fdf4;border-radius:6px;padding:10px;font-size:12px">
+                        <div style="font-weight:600;margin-bottom:6px">Breakdown:</div>
+                        <div>• Work: ${s.breakdown_by_type.Work}</div>
+                        <div>• Off: ${s.breakdown_by_type.Off}</div>
+                        <div>• Public Holiday: ${s.breakdown_by_type['Public Holiday']}</div>
+                    </div>
+                    <div style="margin-top:10px;font-size:12px;color:#64748b">
+                        Periode: ${formatDate(s.period.start)} s/d ${formatDate(s.period.end)}
+                    </div>
+                </div>
+            `;
+
+            Swal.fire({
+                icon: 'success',
+                title: '✅ Berhasil!',
+                html: detail,
+                confirmButtonColor: '#16a34a',
+                confirmButtonText: 'OK'
+            }).then(() => location.reload());
+
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '❌ Gagal',
+                text: data.message || 'Terjadi kesalahan saat generate',
+                confirmButtonColor: '#dc2626',
+            });
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Generate';
+        }
+    })
+    .catch(err => {
+        closeModal('modalAutoGenerate');
+        Swal.fire({
+            icon: 'error',
+            title: '❌ Terjadi Kesalahan',
+            text: 'Tidak dapat menghubungi server',
+            confirmButtonColor: '#dc2626',
+        });
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-magic"></i> Generate';
+        console.error(err);
     });
 }
 
