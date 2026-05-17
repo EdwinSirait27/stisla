@@ -12,81 +12,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Controller untuk fitur "Auto Generate Roster".
- *
- * FUNGSI:
- * ───────
- * Tombol manual untuk generate roster otomatis bagi karyawan di 3 store
- * dengan jadwal static:
- *   - Head Office
- *   - Holding
- *   - Distribution Center
- *
- * PERIODE:
- * ────────
- * Default : tanggal 26 bulan ini → tanggal 25 bulan depan
- * Override: kirim start_date & end_date di request body (POST) atau query string (GET)
- *
- * POLA JADWAL:
- * ────────────
- *   - Senin - Jumat       → Work, shift "9 to 5" (09:00-17:00)
- *   - Sabtu               → Work, shift "9 to 3" (09:00-15:00)
- *   - Minggu              → Off, shift_id = NULL
- *   - Public Holiday      → Public Holiday, shift_id = NULL
- *     (filter type sesuai agama karyawan)
- *
- * FILTER PUBLIC HOLIDAY PER AGAMA:
- * ────────────────────────────────
- * Karyawan dengan religion='Hindu' → libur untuk type ['Hindu', 'All']
- * Karyawan agama lain              → libur untuk type ['Non Hindu', 'All']
- *
- * SHIFT MAPPING:
- * ──────────────
- * Setiap store punya shift sendiri (shifts_tables.store_id), walaupun nama
- * dan jam-nya sama. Saat generate, filter shift berdasarkan store_id karyawan.
- *
- * BEHAVIOR JIKA ROSTER SUDAH ADA:
- * ───────────────────────────────
- * SKIP — data lama tidak ditimpa. Hanya generate yang belum ada.
- *
- * Endpoint:
- *   POST /roster/auto-generate          → generate()
- *   GET  /roster/auto-generate/preview  → preview()
- */
 class AutoRosterController extends Controller
 {
-    /**
-     * Daftar nama store yang dapat di-auto-generate roster-nya.
-     */
     private const TARGET_STORES = [
         'Head Office',
         'Holding',
         'Distribution Center',
     ];
 
-    /**
-     * Nama shift untuk masing-masing pola hari.
-     */
-    private const SHIFT_WEEKDAY  = '9 to 5';  // Senin – Jumat
-    private const SHIFT_SATURDAY = '9 to 3';  // Sabtu
-
-    /**
-     * Maksimal rentang hari yang boleh di-generate sekali jalan.
-     * Lindungi server dari request yang tidak wajar.
-     */
+    private const SHIFT_WEEKDAY  = '9 to 5';
+    private const SHIFT_SATURDAY = '9 to 3';
     private const MAX_RANGE_DAYS = 62;
 
     // ─────────────────────────────────────────────────────────────
     //  HELPERS
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Resolve type PH yang berlaku untuk seorang karyawan berdasarkan agamanya.
-     *
-     * @param  string|null  $religion
-     * @return array  ['Hindu','All'] atau ['Non Hindu','All']
-     */
     private function resolveRelevantPhTypes(?string $religion): array
     {
         return ($religion === 'Hindu')
@@ -95,11 +36,17 @@ class AutoRosterController extends Controller
     }
 
     /**
-     * Hitung periode default: 26 bulan ini → 25 bulan depan.
-     * Jika hari ini sudah >= 26, pakai bulan ini; jika belum, mundur ke bulan lalu.
-     *
-     * @return array{0: Carbon, 1: Carbon}
+     * Tentukan apakah karyawan berhak mendapat Public Holiday
+     * berdasarkan status_employee:
+     *   - PKWT → dapat PH
+     *   - OJT  → dapat PH
+     *   - DW   → TIDAK dapat PH
      */
+    private function isEligibleForPH(?string $statusEmployee): bool
+    {
+        return !in_array(strtoupper($statusEmployee ?? ''), ['DW']);
+    }
+
     private function defaultPeriod(): array
     {
         $today = Carbon::now();
@@ -113,31 +60,21 @@ class AutoRosterController extends Controller
         return [$startDate, $endDate];
     }
 
-    /**
-     * Parse & validasi periode dari request.
-     * Kembalikan [Carbon $start, Carbon $end] atau null jika tidak ada override.
-     * Lempar \InvalidArgumentException jika ada isian tapi tidak valid.
-     *
-     * @throws \InvalidArgumentException
-     */
     private function parsePeriodFromRequest(Request $request): ?array
     {
         $startRaw = $request->input('start_date');
         $endRaw   = $request->input('end_date');
 
-        // Jika keduanya kosong → pakai default
         if (empty($startRaw) && empty($endRaw)) {
             return null;
         }
 
-        // Jika salah satu diisi dan yang lain tidak
         if (empty($startRaw) || empty($endRaw)) {
             throw new \InvalidArgumentException(
                 'start_date dan end_date harus diisi keduanya atau dikosongkan keduanya.'
             );
         }
 
-        // Parse
         try {
             $startDate = Carbon::parse($startRaw)->startOfDay();
             $endDate   = Carbon::parse($endRaw)->startOfDay();
@@ -147,21 +84,18 @@ class AutoRosterController extends Controller
             );
         }
 
-        // end >= start
         if ($endDate->lt($startDate)) {
             throw new \InvalidArgumentException(
                 'end_date tidak boleh sebelum start_date.'
             );
         }
 
-        // Batas maksimal range
         if ($startDate->diffInDays($endDate) > self::MAX_RANGE_DAYS) {
             throw new \InvalidArgumentException(
                 'Rentang tanggal tidak boleh lebih dari ' . self::MAX_RANGE_DAYS . ' hari.'
             );
         }
 
-        // Batas maksimal ke depan: 3 bulan dari sekarang
         if ($startDate->gt(Carbon::now()->addMonths(3)->endOfDay())) {
             throw new \InvalidArgumentException(
                 'start_date tidak boleh lebih dari 3 bulan ke depan.'
@@ -175,16 +109,8 @@ class AutoRosterController extends Controller
     //  GENERATE
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Generate roster untuk 3 store target.
-     *
-     * Request body (opsional):
-     *   start_date : string YYYY-MM-DD  – override periode mulai
-     *   end_date   : string YYYY-MM-DD  – override periode selesai
-     */
     public function generate(Request $request)
     {
-        // ── 1. Validasi & resolve periode ──
         try {
             $override = $this->parsePeriodFromRequest($request);
         } catch (\InvalidArgumentException $e) {
@@ -203,25 +129,24 @@ class AutoRosterController extends Controller
                 'is_custom'  => $override !== null,
             ]);
 
-            // ── 2. Validasi store target & ambil store_ids ──
             $stores = Stores::whereIn('name', self::TARGET_STORES)->get();
 
             if ($stores->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada store target yang ditemukan. '
-                               . 'Pastikan store Head Office, Holding, dan Distribution Center ada di database.',
+                    'message' => 'Tidak ada store target yang ditemukan.',
                 ], 422);
             }
 
             $storeIds = $stores->pluck('id')->toArray();
 
-            // ── 3. Ambil semua karyawan di store target ──
-            // $employees = Employee::with('store:id,name')
-            //     ->select('id', 'employee_name', 'store_id', 'religion')
-            //     ->whereIn('store_id', $storeIds)
-            //     ->whereNull('deleted_at')
-            //     ->get();
+
+            // ── Tambah status_employee di select ──
+            $employees = Employee::with('store:id,name')
+                ->select('id', 'employee_name', 'store_id', 'religion', 'status_employee')
+                ->whereIn('store_id', $storeIds)
+                ->whereNull('deleted_at')
+                ->get();
 
             // if ($employees->isEmpty()) {
             //     return response()->json([
@@ -243,13 +168,11 @@ if ($employees->isEmpty()) {
     ], 422);
 }
 
-            // ── 4. Pre-load shifts per store ──
             $shifts = Shifts::whereIn('store_id', $storeIds)
                 ->whereIn('shift_name', [self::SHIFT_WEEKDAY, self::SHIFT_SATURDAY])
                 ->get()
                 ->keyBy(fn($s) => $s->store_id . '_' . $s->shift_name);
 
-            // Validasi: tiap store harus punya kedua shift
             $missingShifts = [];
             foreach ($stores as $store) {
                 foreach ([self::SHIFT_WEEKDAY, self::SHIFT_SATURDAY] as $shiftName) {
@@ -262,12 +185,10 @@ if ($employees->isEmpty()) {
             if (!empty($missingShifts)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Shift belum di-setup untuk: ' . implode(', ', $missingShifts)
-                               . '. Setup shift di halaman Shifts terlebih dahulu.',
+                    'message' => 'Shift belum di-setup untuk: ' . implode(', ', $missingShifts),
                 ], 422);
             }
 
-            // ── 5. Pre-load Public Holiday dalam range (semua type) ──
             $allPublicHolidays = PublicHoliday::whereBetween('date', [
                     $startDate->toDateString(),
                     $endDate->toDateString(),
@@ -275,7 +196,6 @@ if ($employees->isEmpty()) {
                 ->get()
                 ->groupBy(fn($ph) => Carbon::parse($ph->date)->toDateString());
 
-            // ── 6. Pre-load existing rosters (untuk SKIP) ──
             $employeeIds = $employees->pluck('id')->toArray();
 
             $existingRosters = Roster::whereIn('employee_id', $employeeIds)
@@ -286,13 +206,11 @@ if ($employees->isEmpty()) {
                 ->get()
                 ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
 
-            // ── 7. Generate daftar tanggal ──
             $dates = [];
             for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
                 $dates[] = $d->copy();
             }
 
-            // ── 8. Loop generate ──
             $created   = 0;
             $skipped   = 0;
             $phApplied = 0;
@@ -308,26 +226,26 @@ if ($employees->isEmpty()) {
                 $shift9to5 = $shifts->get($employee->store_id . '_' . self::SHIFT_WEEKDAY);
                 $shift9to3 = $shifts->get($employee->store_id . '_' . self::SHIFT_SATURDAY);
 
-                $relevantPhTypes = $this->resolveRelevantPhTypes($employee->religion);
+                $relevantPhTypes  = $this->resolveRelevantPhTypes($employee->religion);
+                // ── Cek eligibilitas PH berdasarkan status_employee ──
+                $eligibleForPH    = $this->isEligibleForPH($employee->status_employee);
 
                 foreach ($dates as $date) {
                     $dateStr = $date->toDateString();
                     $key     = $employee->id . '_' . $dateStr;
 
-                    // SKIP jika sudah ada
                     if ($existingRosters->has($key)) {
                         $skipped++;
                         continue;
                     }
 
-                    // Cek PH untuk agama karyawan ini
+                    // Cek PH — hanya untuk karyawan yang eligible (PKWT & OJT)
                     $phForDate = null;
-                    if ($allPublicHolidays->has($dateStr)) {
+                    if ($eligibleForPH && $allPublicHolidays->has($dateStr)) {
                         $phForDate = $allPublicHolidays->get($dateStr)
                             ->first(fn($ph) => in_array($ph->type, $relevantPhTypes));
                     }
 
-                    // Tentukan day_type, shift_id, notes
                     $dayType = null;
                     $shiftId = null;
                     $notes   = null;
@@ -367,13 +285,12 @@ if ($employees->isEmpty()) {
                 'ph_applied' => $phApplied,
             ]);
 
-            // ── 9. Response ──
             $message = "Berhasil generate {$created} roster";
             if ($skipped > 0) {
                 $message .= " ({$skipped} dilewati karena sudah ada)";
             }
             if ($phApplied > 0) {
-                $message .= ", {$phApplied} hari libur nasional diterapkan (sesuai agama masing-masing karyawan)";
+                $message .= ", {$phApplied} hari libur nasional diterapkan";
             }
             $message .= '.';
 
@@ -416,16 +333,8 @@ if ($employees->isEmpty()) {
     //  PREVIEW
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Preview periode tanpa generate (untuk konfirmasi UI).
-     *
-     * Query string (opsional):
-     *   start_date : string YYYY-MM-DD
-     *   end_date   : string YYYY-MM-DD
-     */
     public function preview(Request $request)
     {
-        // Validasi & resolve periode
         try {
             $override = $this->parsePeriodFromRequest($request);
         } catch (\InvalidArgumentException $e) {
@@ -438,7 +347,6 @@ if ($employees->isEmpty()) {
         [$startDate, $endDate] = $override ?? $this->defaultPeriod();
 
         try {
-            // Jumlah karyawan target per agama
             $employeeCounts = Employee::query()
                 ->whereHas('store', fn($q) => $q->whereIn('name', self::TARGET_STORES))
                 ->whereNull('deleted_at')
@@ -450,7 +358,6 @@ if ($employees->isEmpty()) {
             $hinduCount     = $employeeCounts->where('religion', 'Hindu')->sum('count');
             $nonHinduCount  = $totalEmployees - $hinduCount;
 
-            // Total hari & PH dalam periode
             $totalDates = $startDate->diffInDays($endDate) + 1;
 
             $phByType = PublicHoliday::query()
@@ -462,7 +369,6 @@ if ($employees->isEmpty()) {
                 ->groupBy('type')
                 ->pluck('count', 'type');
 
-            // Hitung existing roster (sudah ada) untuk estimasi yang akan di-skip
             $employeeIds = Employee::query()
                 ->whereHas('store', fn($q) => $q->whereIn('name', self::TARGET_STORES))
                 ->whereNull('deleted_at')
@@ -481,20 +387,20 @@ if ($employees->isEmpty()) {
             return response()->json([
                 'success' => true,
                 'preview' => [
-                    'start_date'      => $startDate->toDateString(),
-                    'end_date'        => $endDate->toDateString(),
-                    'is_custom_period'=> $override !== null,
-                    'total_dates'     => $totalDates,
-                    'total_employees' => $totalEmployees,
+                    'start_date'       => $startDate->toDateString(),
+                    'end_date'         => $endDate->toDateString(),
+                    'is_custom_period' => $override !== null,
+                    'total_dates'      => $totalDates,
+                    'total_employees'  => $totalEmployees,
                     'employees_by_religion' => [
                         'Hindu'     => $hinduCount,
                         'Non Hindu' => $nonHinduCount,
                     ],
                     'public_holidays_by_type' => $phByType,
-                    'estimated_rows'  => $estimatedRows,
-                    'existing_rosters'=> $existingCount,
-                    'will_be_created' => max(0, $estimatedRows - $existingCount),
-                    'will_be_skipped' => $existingCount,
+                    'estimated_rows'   => $estimatedRows,
+                    'existing_rosters' => $existingCount,
+                    'will_be_created'  => max(0, $estimatedRows - $existingCount),
+                    'will_be_skipped'  => $existingCount,
                 ],
             ]);
 

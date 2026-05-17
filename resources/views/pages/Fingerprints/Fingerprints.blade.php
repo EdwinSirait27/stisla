@@ -913,7 +913,8 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="submitManualRecap()"
                     style="background:#1d4ed8;border:none;font-weight:600" id="submitManualBtn">
-                    <i class="fas fa-paper-plane"></i> Submit &amp; and send notification
+
+                    <i class="fas fa-paper-plane"></i> Submit &amp; Recap
                 </button>
             </div>
         </div>
@@ -1291,7 +1292,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                     d.store_name = $('#store_name').val();
                 }
             },
-            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
             pageLength: 25,
             language: {
                 lengthMenu: 'Show _MENU_',
@@ -1568,12 +1569,19 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                 .catch(err => console.error('failed load shifts:', err));
         }
 
-        // Init dropzone
+       // Init dropzone (dengan guard agar listener tidak menumpuk)
+        let evidenceDropzoneInitialized = false;
         function initEvidenceDropzone() {
+            if (evidenceDropzoneInitialized) return;
+
             const dropzone  = document.getElementById('evidenceDropzone');
             const fileInput = document.getElementById('evidenceFiles');
 
-            dropzone.addEventListener('click', () => fileInput.click());
+            dropzone.addEventListener('click', (e) => {
+                // Cegah trigger ganda kalau klik tepat di input file
+                if (e.target === fileInput) return;
+                fileInput.click();
+            });
             fileInput.addEventListener('change', e => handleFiles(e.target.files));
 
             ['dragenter', 'dragover'].forEach(ev =>
@@ -1589,6 +1597,8 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                 })
             );
             dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+            evidenceDropzoneInitialized = true;
         }
 
         function handleFiles(fileList) {
@@ -1814,7 +1824,19 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
 
                 const btn = document.getElementById('submitManualBtn');
                 btn.disabled  = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Process...';
+
+                
+                // Pesan loading dinamis berdasarkan estimasi batch //
+                const totalEntries = empIds.length * diffDays;
+                let loadingMsg = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+                if (totalEntries > 1000) {
+                    loadingMsg = '<i class="fas fa-spinner fa-spin"></i> Memproses ' + totalEntries.toLocaleString('id-ID') + ' entri, mohon tunggu...';
+                }
+                btn.innerHTML = loadingMsg;
+
+                // AbortController untuk timeout 4 menit // 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 240000); // 4 menit
 
                 fetch('{{ route("manual-recap.store") }}', {
                     method: 'POST',
@@ -1823,6 +1845,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                         'Accept': 'application/json',
                     },
                     body: formData,
+                    signal: controller.signal,  
                 })
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));
@@ -1855,6 +1878,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                     }
                 })
                 .catch(err => {
+                    // Error 422: Validation //
                     if (err.status === 422 && err.errors) {
                         const allMessages = Object.values(err.errors)
                             .flat()
@@ -1866,7 +1890,36 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                             html: `<div style="text-align:left;font-size:14px;line-height:1.6">${allMessages}</div>`,
                             confirmButtonColor: '#f59e0b'
                         });
-                    } else {
+                    } 
+                    // Error 422: Batch terlalu besar (Custom dari Backend) // 
+                    else if (err.status === 422 && err.message) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Batch Terlalu Besar',
+                            text: err.message,
+                            confirmButtonColor: '#f59e0b'
+                        });
+                    }
+                    // Error 429: Idempotency lock //
+                    else if (err.status === 429) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Submit Berjalan',
+                            text: err.message || 'Submit sebelumnya masih diproses. Silakan tunggu sebentar dan refresh halaman jika perlu.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    }
+                    // Timeout (AbortController) // 
+                    else if (err.name === 'AbortError') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Proses Lama',
+                            html: 'Proses memakan waktu lebih dari 4 menit. <br>Silakan <strong>refresh halaman</strong> dan cek apakah data sudah masuk. <br>Jika belum, kurangi jumlah karyawan/tanggal dan coba lagi.',
+                            confirmButtonColor: '#f59e0b'
+                        });
+                    }
+                    // Generic Error // 
+                     else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -1874,8 +1927,10 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                             confirmButtonColor: '#dc2626'
                         });
                     }
+
                 })
                 .finally(() => {
+                    clearTimeout(timeoutId);
                     btn.disabled  = false;
                     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Recap';
                 });

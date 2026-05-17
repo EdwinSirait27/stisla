@@ -13,6 +13,8 @@ use App\Models\Departments;
 use App\Models\Stores;
 use App\Models\Leavebalance;
 use App\Models\Fingerprints;
+use App\Models\Overtimesubmissions;
+use App\Models\Leaverequest;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -65,12 +67,19 @@ class DashManagerController extends Controller
             ->distinct('pin')
             ->count('pin');
         $absentToday = count($employeesPins) - $presentToday;
+        $submissions = \App\Models\Overtimesubmissions::with('employees:id,employee_name')
+        ->where('approver_id', $employee->id)
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
+        ->get();
+
         return view('pages.dashboardTeam.dashboardTeam', compact(
             'absentToday',
             'presentToday',
             'announcements',
             'totalEmployees',
-            'totalEmployeespending'
+            'totalEmployeespending',
+            'submissions'
         ));
     }
 
@@ -112,19 +121,42 @@ class DashManagerController extends Controller
             ->distinct('scan_date')
             ->count();
 
-$employeelogin = $employee->id;
- $leavebalance = Leavebalance::with(['employees', 'leaves'])
-        ->where('employee_id', $employeelogin)
-        ->get();
+        $employeelogin = $employee->id;
+        $leavebalance = Leavebalance::with(['employees', 'leaves'])
+            ->where('employee_id', $employeelogin)
+            ->get();
 
-
+        // Ambil pending leave dari bawahan berdasarkan tree struktur
+        $myStructureId           = $employee->structure_id;
+        $subordinateStructureIds = $myStructureId
+            ? $this->getSubStructureIds($myStructureId)  // method ini sudah ada di controller
+            : [];
+ 
+        $subordinateEmployeeIds = Employee::whereIn('structure_id', $subordinateStructureIds)
+            ->pluck('id')
+            ->toArray();
+ 
+        $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
+            ->pluck('id')
+            ->toArray();
+ 
+        $pendingLeaves = Leaverequest::with([
+                'leavebalance.employees',
+                'leavebalance.leaves',
+            ])
+            ->whereIn('leave_balance_id', $subordinateBalanceIds)
+            ->whereIn('status', ['Pending', 'Sent'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
         return view('pages.dashboardManager.dashboardManager', compact(
             'presentCount',
             'announcements',
             'totalEmployees',
             'leavebalance',
-            'totalEmployeespending'
+            'totalEmployeespending',
+            'pendingLeaves'
         ));
     }
     public function team()

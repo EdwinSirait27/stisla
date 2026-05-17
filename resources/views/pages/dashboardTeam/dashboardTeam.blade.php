@@ -1117,34 +1117,15 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
-        /* :root {
-                            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                        } */
         :root {
-            /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
-
-            /* Emerald → Dark Teal */
             --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
-
-            /* Gold → Amber (lebih premium, bukan kuning norak) */
             --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
-
-            /* Steel Blue → Slate Cyan (soft, tidak neon) */
             --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
-
-            /* Soft shadow */
             --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
             --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
         }
 
-
-        /* ========== Welcome Banner ========== */
         .welcome-banner {
             background: var(--primary-gradient);
             border-radius: 16px;
@@ -1190,10 +1171,7 @@
             opacity: 0.9;
         }
 
-        /* ========== Quick Stats Cards ========== */
-        .quick-stats {
-            margin-bottom: 32px;
-        }
+        .quick-stats { margin-bottom: 32px; }
 
         .stat-card {
             background: white;
@@ -1228,21 +1206,10 @@
             color: white;
         }
 
-        .stat-icon.primary {
-            background: var(--primary-gradient);
-        }
-
-        .stat-icon.success {
-            background: var(--success-gradient);
-        }
-
-        .stat-icon.warning {
-            background: var(--warning-gradient);
-        }
-
-        .stat-icon.info {
-            background: var(--info-gradient);
-        }
+        .stat-icon.primary { background: var(--primary-gradient); }
+        .stat-icon.success { background: var(--success-gradient); }
+        .stat-icon.warning { background: var(--warning-gradient); }
+        .stat-icon.info    { background: var(--info-gradient); }
 
         .stat-content h3 {
             font-size: 2rem;
@@ -1268,17 +1235,9 @@
             margin-top: 8px;
         }
 
-        .stat-trend.up {
-            background: rgba(56, 239, 125, 0.15);
-            color: #11998e;
-        }
+        .stat-trend.up   { background: rgba(56, 239, 125, 0.15); color: #11998e; }
+        .stat-trend.down { background: rgba(245, 87, 108, 0.15); color: #f5576c; }
 
-        .stat-trend.down {
-            background: rgba(245, 87, 108, 0.15);
-            color: #f5576c;
-        }
-
-        /* ========== Team Overview Section ========== */
         .team-overview-card {
             background: white;
             border-radius: 12px;
@@ -1305,13 +1264,8 @@
             transition: background-color 0.2s;
         }
 
-        .team-member-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .team-member-item:last-child {
-            border-bottom: none;
-        }
+        .team-member-item:hover { background-color: #f8f9fa; }
+        .team-member-item:last-child { border-bottom: none; }
 
         .member-avatar {
             width: 48px;
@@ -1328,10 +1282,7 @@
             font-size: 0.95rem;
         }
 
-        .member-info small {
-            color: #64748b;
-            font-size: 0.8rem;
-        }
+        .member-info small { color: #64748b; font-size: 0.8rem; }
 
         .status-badge {
             padding: 6px 12px;
@@ -1342,22 +1293,52 @@
             letter-spacing: 0.5px;
         }
 
-        .status-badge.present {
-            background: rgba(56, 239, 125, 0.15);
-            color: #11998e;
+        .status-badge.present  { background: rgba(56, 239, 125, 0.15); color: #11998e; }
+        .status-badge.absent   { background: rgba(245, 87, 108, 0.15); color: #f5576c; }
+        .status-badge.leave    { background: rgba(255, 171, 0, 0.15); color: #f59e0b; }
+
+        /* ── Overtime Assignment Card ── */
+        .overtime-assignment-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
         }
 
-        .status-badge.absent {
-            background: rgba(245, 87, 108, 0.15);
-            color: #f5576c;
+        .overtime-assignment-card .card-header {
+            background: white;
+            border-bottom: 2px solid #f1f3f5;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .status-badge.leave {
-            background: rgba(255, 171, 0, 0.15);
-            color: #f59e0b;
+        .overtime-assignment-card .card-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #344767;
         }
 
-        /* ========== Pending Approvals Section ========== */
+        .overtime-item {
+            padding: 18px 24px;
+            border-bottom: 1px solid #f1f3f5;
+            transition: all 0.2s;
+        }
+
+        .overtime-item:hover { background-color: #f8f9fa; }
+        .overtime-item:last-child { border-bottom: none; }
+
+        .overtime-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* ── Pending Approvals (existing, kept intact) ── */
         .pending-approvals-card {
             background: white;
             border-radius: 12px;
@@ -1383,13 +1364,8 @@
             transition: all 0.2s;
         }
 
-        .approval-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .approval-item:last-child {
-            border-bottom: none;
-        }
+        .approval-item:hover { background-color: #f8f9fa; }
+        .approval-item:last-child { border-bottom: none; }
 
         .approval-header {
             display: flex;
@@ -1408,15 +1384,8 @@
             text-transform: uppercase;
         }
 
-        .approval-type.leave {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .approval-type.overtime {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-        }
+        .approval-type.leave    { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+        .approval-type.overtime { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
         .approval-meta {
             display: flex;
@@ -1427,14 +1396,9 @@
             margin-bottom: 12px;
         }
 
-        .approval-meta i {
-            width: 16px;
-        }
+        .approval-meta i { width: 16px; }
 
-        .approval-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .approval-actions { display: flex; gap: 8px; }
 
         .btn-approve {
             background: var(--success-gradient);
@@ -1470,7 +1434,6 @@
             color: #f5576c;
         }
 
-        /* ========== Performance Chart ========== */
         .performance-card {
             background: white;
             border-radius: 12px;
@@ -1492,10 +1455,7 @@
             color: #344767;
         }
 
-        .chart-filters {
-            display: flex;
-            gap: 8px;
-        }
+        .chart-filters { display: flex; gap: 8px; }
 
         .filter-btn {
             padding: 6px 16px;
@@ -1516,7 +1476,6 @@
             border-color: transparent;
         }
 
-        /* ========== Quick Actions ========== */
         .quick-actions-card {
             background: white;
             border-radius: 12px;
@@ -1562,12 +1521,8 @@
             display: block;
         }
 
-        .action-btn span {
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
+        .action-btn span { font-size: 0.875rem; font-weight: 500; }
 
-        /* ========== Recent Activities ========== */
         .activities-card {
             background: white;
             border-radius: 12px;
@@ -1586,9 +1541,7 @@
             color: #344767;
         }
 
-        .activity-timeline {
-            padding: 24px;
-        }
+        .activity-timeline { padding: 24px; }
 
         .activity-item {
             display: flex;
@@ -1597,9 +1550,7 @@
             position: relative;
         }
 
-        .activity-item:last-child {
-            margin-bottom: 0;
-        }
+        .activity-item:last-child { margin-bottom: 0; }
 
         .activity-item::before {
             content: '';
@@ -1611,9 +1562,7 @@
             background: #e9ecef;
         }
 
-        .activity-item:last-child::before {
-            display: none;
-        }
+        .activity-item:last-child::before { display: none; }
 
         .activity-icon {
             width: 40px;
@@ -1628,72 +1577,20 @@
             border: 2px solid #e9ecef;
         }
 
-        .activity-icon.success {
-            background: rgba(56, 239, 125, 0.15);
-            border-color: #11998e;
-            color: #11998e;
-        }
+        .activity-icon.success { background: rgba(56, 239, 125, 0.15); border-color: #11998e; color: #11998e; }
+        .activity-icon.warning { background: rgba(255, 171, 0, 0.15); border-color: #f59e0b; color: #f59e0b; }
+        .activity-icon.info    { background: rgba(79, 172, 254, 0.15); border-color: #4facfe; color: #4facfe; }
 
-        .activity-icon.warning {
-            background: rgba(255, 171, 0, 0.15);
-            border-color: #f59e0b;
-            color: #f59e0b;
-        }
+        .activity-content h6 { margin: 0 0 4px 0; font-weight: 600; color: #344767; font-size: 0.9rem; }
+        .activity-content p  { margin: 0; color: #64748b; font-size: 0.85rem; }
+        .activity-time       { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
 
-        .activity-icon.info {
-            background: rgba(79, 172, 254, 0.15);
-            border-color: #4facfe;
-            color: #4facfe;
-        }
+        .empty-state { text-align: center; padding: 48px 24px; }
+        .empty-state i   { font-size: 4rem; color: #cbd5e1; margin-bottom: 16px; }
+        .empty-state h6  { color: #64748b; font-weight: 600; margin-bottom: 8px; }
+        .empty-state p   { color: #94a3b8; font-size: 0.875rem; margin: 0; }
 
-        .activity-content h6 {
-            margin: 0 0 4px 0;
-            font-weight: 600;
-            color: #344767;
-            font-size: 0.9rem;
-        }
-
-        .activity-content p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.85rem;
-        }
-
-        .activity-time {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
-
-        /* ========== Empty State ========== */
-        .empty-state {
-            text-align: center;
-            padding: 48px 24px;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 16px;
-        }
-
-        .empty-state h6 {
-            color: #64748b;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .empty-state p {
-            color: #94a3b8;
-            font-size: 0.875rem;
-            margin: 0;
-        }
-
-        /* ========== Modal Improvements ========== */
-        .modal-content {
-            border-radius: 16px;
-            border: none;
-        }
+        .modal-content  { border-radius: 16px; border: none; }
 
         .modal-header {
             background: var(--primary-gradient);
@@ -1702,24 +1599,10 @@
             padding: 20px 24px;
         }
 
-        .modal-header .modal-title {
-            font-weight: 600;
-            color: white;
-        }
-
-        .modal-header .close {
-            color: white;
-            opacity: 0.9;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
+        .modal-header .modal-title { font-weight: 600; color: white; }
+        .modal-header .close       { color: white; opacity: 0.9; }
+        .modal-body   { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid rgba(0, 0, 0, 0.05); }
 
         .form-label {
             font-weight: 600;
@@ -1741,59 +1624,23 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        /* ========== Responsive Design ========== */
         @media (max-width: 768px) {
-            .welcome-banner {
-                padding: 24px;
-            }
-
-            .welcome-banner h2 {
-                font-size: 1.5rem;
-            }
-
-            .stat-card {
-                margin-bottom: 16px;
-            }
-
-            .action-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .chart-filters {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .filter-btn {
-                width: 100%;
-            }
-
-            .approval-actions {
-                flex-direction: column;
-            }
-
-            .btn-approve,
-            .btn-reject {
-                width: 100%;
-            }
+            .welcome-banner { padding: 24px; }
+            .welcome-banner h2 { font-size: 1.5rem; }
+            .stat-card { margin-bottom: 16px; }
+            .action-grid { grid-template-columns: 1fr; }
+            .chart-filters { flex-direction: column; width: 100%; }
+            .filter-btn { width: 100%; }
+            .approval-actions { flex-direction: column; }
+            .btn-approve, .btn-reject { width: 100%; }
         }
 
-        /* ========== Animations ========== */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
 
         .text-gradient {
             background: var(--primary-gradient);
@@ -1811,7 +1658,6 @@
             font-size: 0.75rem;
         }
 
-        /* annoucement */
         .announcements-card {
             background: white;
             border-radius: 16px;
@@ -1838,13 +1684,8 @@
             cursor: pointer;
         }
 
-        .announcement-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .announcement-item:last-child {
-            border-bottom: none;
-        }
+        .announcement-item:hover { background-color: #f8f9fa; }
+        .announcement-item:last-child { border-bottom: none; }
 
         .announcement-title {
             font-weight: 600;
@@ -1875,12 +1716,8 @@
             overflow: hidden;
         }
 
-        .announcement-date {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
+        .announcement-date { font-size: 0.75rem; color: #94a3b8; }
 
-        /* ========== Personal Profile Card ========== */
         .profile-header-card {
             background: var(--primary-gradient);
             border-radius: 20px;
@@ -1913,10 +1750,7 @@
             border-radius: 50%;
         }
 
-        .profile-content {
-            position: relative;
-            z-index: 1;
-        }
+        .profile-content { position: relative; z-index: 1; }
 
         .profile-avatar-large {
             width: 100px;
@@ -1927,11 +1761,7 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .profile-info h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
+        .profile-info h2 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
 
         .profile-meta {
             display: flex;
@@ -1948,8 +1778,70 @@
             opacity: 0.95;
         }
 
-        .profile-meta-item i {
-            font-size: 1.1rem;
+        .profile-meta-item i { font-size: 1.1rem; }
+
+        /* ── Select2 in modal fix ── */
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+            color: #344767;
+            font-size: 0.875rem;
+            padding-left: 0.75rem;
+            padding-right: 2.5rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+            top: 0;
+            right: 0;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__clear {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1rem;
+            cursor: pointer;
+            pointer-events: all;
+            z-index: 1;
+        }
+
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            min-height: 38px;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #5e72e4;
+            color: white;
+            border: none;
+            padding: 0.15rem 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: white;
+            margin-right: 0.3rem;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #5e72e4;
         }
     </style>
 @endpush
@@ -1957,22 +1849,8 @@
 @section('main')
     <div class="main-content">
         <section class="section">
-            <!-- Welcome Banner -->
-            {{-- <div class="welcome-banner animate-fade-in-up">
-                <div class="row align-items-center">
-                    <div class="col-lg-8">
-                        <h2>
-                            <i class="fas fa-hand-wave me-2"></i>
-                            Welcome back, {{ Auth::user()->employee->employee_name ?? 'Manager' }}!
-                        </h2>
-                        <p>Here's what's happening with your team today.</p>
-                        <div class="date-info">
-                            <i class="fas fa-calendar-day me-2"></i>
-                            {{ now()->format('l, F d, Y') }}
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
+
+            {{-- ── Profile Header ── --}}
             <div class="profile-header-card animate-fade-in-up">
                 <div class="profile-content">
                     <div class="row align-items-center">
@@ -1983,21 +1861,19 @@
                                     : asset('img/avatar/avatar-1.png') }}"
                                     alt="Profile" class="profile-avatar-large">
                                 <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
+                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Manager' }}</h2>
                                     <div class="profile-meta">
                                         <div class="profile-meta-item">
                                             <i class="fas fa-briefcase"></i>
-                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
-                                            {{-- <span>{{ $employee->position ?? 'Software Engineer' }}</span> --}}
+                                            <span>{{ Auth::user()->employee->position->name ?? '-' }}</span>
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
-                                            {{-- <span>{{ $employee->department ?? 'Engineering' }}</span> --}}
+                                            <span>{{ Auth::user()->employee->department->department_name ?? '-' }}</span>
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-id-badge"></i>
-                                            <span>{{ Auth::user()->employee->employee_pengenal ?? 'Edwin Sirait' }}</span>
+                                            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-calendar-alt"></i>
@@ -2007,12 +1883,11 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Stats -->
+            {{-- ── Quick Stats ── --}}
             <div class="quick-stats">
                 <div class="row">
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
@@ -2025,7 +1900,7 @@
                             <div class="stat-content" title="Employee Team's total">
                                 <h3>{{ $totalEmployees ?? 0 }}</h3>
                                 <p>Team Members</p>
-                                <span class="stat-trend up"title="Employees who were pending, please contact HR Department">
+                                <span class="stat-trend up" title="Employees who were pending, please contact HR Department">
                                     <i class="fas fa-arrow-up me-1"></i>
                                     {{ $totalEmployeespending }} Pending
                                 </span>
@@ -2049,7 +1924,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
                         <div class="stat-card">
                             <div class="stat-card-header">
@@ -2074,7 +1948,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-lg-3 col-md-6 col-12 mb-4">
                         <div class="stat-card">
                             <div class="stat-card-header">
@@ -2085,16 +1958,15 @@
                             <div class="stat-content">
                                 <h3>{{ $onLeave ?? 0 }}</h3>
                                 <p>On Leave</p>
-                                <span class="badge-primary-soft mt-2">
-                                    This Week
-                                </span>
+                                <span class="badge-primary-soft mt-2">This Week</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-12 col-12 mb-4">
+            {{-- ── Company Announcements ── --}}
+            <div class="col-lg-12 col-12 mb-4 px-0">
                 <div class="announcements-card">
                     <div class="announcements-header">
                         <h5>
@@ -2102,11 +1974,10 @@
                             Company Announcements
                         </h5>
                     </div>
-
                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                         @forelse($announcements as $a)
                             <div class="announcement-item" data-toggle="modal" data-target="#previewModal"
-                                data-title="{{ $a->title }}" {{-- data-content="{{ ($a->content) }}" --}}
+                                data-title="{{ $a->title }}"
                                 data-content="{{ str_replace('&nbsp;', ' ', $a->content) }}"
                                 data-publish="{{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}"
                                 data-end="{{ \Carbon\Carbon::parse($a->end_date)->format('d M Y') }}"
@@ -2114,132 +1985,100 @@
                                 <div class="announcement-title">
                                     <i class="fas fa-star text-warning"></i>
                                     {{ $a->title }}
-
                                     @if (\Carbon\Carbon::parse($a->publish_date)->greaterThan(now()->subDays(3)))
                                         <span class="announcement-badge-new">New</span>
                                     @endif
                                 </div>
-
                                 <div class="announcement-excerpt">
                                     {{ Str::limit(strip_tags($a->content), 120, '...') }}
                                 </div>
-
                                 <div class="announcement-date">
                                     <i class="fas fa-calendar-alt me-1"></i>
                                     Posted {{ \Carbon\Carbon::parse($a->publish_date)->diffForHumans() }}
                                 </div>
                             </div>
                         @empty
-                            <div class="p-3 text-center text-muted">
-                                No announcements found.
-                            </div>
+                            <div class="p-3 text-center text-muted">No announcements found.</div>
                         @endforelse
                     </div>
-
-                    {{-- Modal --}}
-                    {{-- <div class="modal fade" id="announcementModal-{{ $a->id }}">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">{{ $a->title }}</h5>
-                                        </div>
-
-                                        <div class="modal-body">
-                                            {!! $a->content !!}
-                                        </div>
-
-                                        <div class="modal-footer">
-                                            <small class="text-muted">
-                                                Posted {{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> --}}
-
-                    <div class="card-footer bg-light text-center">
-                        {{-- <a href="{{ route('announcements.index') }}" class="text-decoration-none">
-                View All Announcements
-                <i class="fas fa-arrow-right ms-2"></i>
-            </a> --}}
-                    </div>
+                    <div class="card-footer bg-light text-center"></div>
                 </div>
             </div>
 
-
-            <!-- Main Content Grid -->
+            {{-- ── Main Content Grid ── --}}
             <div class="row">
-                <!-- Pending Approvals -->
+
+                {{-- ════════════════════════════════════════
+                     Overtime Assignment (replaced Pending Approvals)
+                     ════════════════════════════════════════ --}}
                 <div class="col-lg-8 col-12 mb-4">
-                    <div class="pending-approvals-card">
+                    <div class="overtime-assignment-card">
                         <div class="card-header">
-                            <h4>
-                                <i class="fas fa-tasks me-2"></i>
-                                Pending Approvals
+                            <h4 class="mb-0">
+                                <i class="fas fa-business-time me-2"></i>
+                                Overtime Assignment
                             </h4>
+                            <button class="btn btn-primary btn-sm"
+                                data-toggle="modal" data-target="#modalAddOvertime">
+                                <i class="fas fa-plus me-1"></i> Add Overtime
+                            </button>
                         </div>
                         <div class="card-body p-0">
                             @forelse($submissions ?? [] as $submission)
-                                <div class="approval-item">
-                                    <div class="approval-header">
+                                <div class="overtime-item">
+                                    <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center gap-3">
-                                            <img class="rounded-circle" width="40" height="40"
+                                            <img class="rounded-circle" width="42" height="42"
                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
                                                 alt="{{ $submission->employee->employee_name ?? 'Employee' }}">
                                             <div>
-                                                <h6 class="mb-0">{{ $submission->employee->employee_name ?? 'Unknown' }}
+                                                <h6 class="mb-0 font-weight-bold">
+                                                    {{ $submission->employees->employee_name ?? 'Unknown' }}
                                                 </h6>
-                                                <small
-                                                    class="text-muted">{{ $submission->employee->position ?? 'Employee' }}</small>
+                                                <div class="overtime-meta">
+                                                    <span>
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ \Carbon\Carbon::parse($submission->leave_date_from ?? now())->format('d M Y') }}
+                                                    </span>
+                                                    <span>
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        {{ $submission->created_at->diffForHumans() }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <span class="approval-type {{ strtolower($submission->type) }}">
-                                            {{ $submission->type ?? 'Leave' }}
+                                        <span class="approval-type overtime">
+                                            {{ $submission->type ?? 'Overtime' }}
                                         </span>
                                     </div>
-                                    <div class="approval-meta">
-                                        <span>
-                                            <i class="fas fa-calendar"></i>
-                                            {{ \Carbon\Carbon::parse($submission->leave_date_from ?? now())->format('M d') }}
-                                            -
-                                            {{ \Carbon\Carbon::parse($submission->leave_date_to ?? now())->format('M d, Y') }}
-                                        </span>
-                                        <span>
-                                            <i class="fas fa-clock"></i>
-                                            {{ $submission->created_at->diffForHumans() ?? 'Recently' }}
-                                        </span>
-                                    </div>
-                                    <p class="text-muted mb-3">
-                                        <i class="fas fa-comment-alt me-2"></i>
-                                        {{ $submission->notes ?? 'No notes provided' }}
-                                    </p>
-                                    <div class="approval-actions">
-                                        <button class="btn btn-approve" data-id="{{ $submission->id }}"
-                                            data-action="approve">
-                                            <i class="fas fa-check me-1"></i>
-                                            Approve
-                                        </button>
-                                        <button class="btn btn-reject" data-id="{{ $submission->id }}"
-                                            data-action="reject">
-                                            <i class="fas fa-times me-1"></i>
-                                            Reject
-                                        </button>
-                                    </div>
+                                    @if ($submission->notes)
+                                        <p class="text-muted mt-2 mb-0" style="font-size: 0.85rem;">
+                                            <i class="fas fa-comment-alt me-1"></i>
+                                            {{ $submission->notes }}
+                                        </p>
+                                    @endif
                                 </div>
                             @empty
                                 <div class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <h6>No Pending Approvals</h6>
-                                    <p>All caught up! No submissions waiting for your approval.</p>
+                                    <i class="fas fa-business-time"></i>
+                                    <h6>No Overtime Records</h6>
+                                    <p>Click "Add Overtime" to assign overtime for your team.</p>
                                 </div>
                             @endforelse
+                        </div>
+                        <div class="card-footer bg-light text-center">
+                            <a href="{{ route('toil.assignment.index') }}" class="text-decoration-none">
+                                View All Overtime Assignments
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sidebar -->
+                {{-- ── Sidebar ── --}}
                 <div class="col-lg-4 col-12">
-                    <!-- Quick Actions -->
+
+                    {{-- Quick Actions --}}
                     <div class="quick-actions-card mb-4">
                         <h5>
                             <i class="fas fa-bolt me-2"></i>
@@ -2254,18 +2093,18 @@
                                 <i class="fas fa-umbrella-beach"></i>
                                 <span>Request Leave</span>
                             </a>
-                            <a href="#" class="action-btn" id="viewReportsBtn">
+                            <a href="#" class="action-btn">
                                 <i class="fas fa-chart-line"></i>
                                 <span>Coming Soon</span>
                             </a>
-                            <a href="#" class="action-btn" id="scheduleBtn">
+                            <a href="#" class="action-btn">
                                 <i class="fas fa-calendar"></i>
                                 <span>Coming Soon</span>
                             </a>
                         </div>
                     </div>
 
-                    <!-- Recent Activities -->
+                    {{-- Recent Activities --}}
                     <div class="activities-card">
                         <div class="card-header">
                             <h4>
@@ -2299,7 +2138,7 @@
                 </div>
             </div>
 
-            <!-- Team Overview -->
+            {{-- ── Team Overview & Performance ── --}}
             <div class="row mt-4">
                 <div class="col-lg-8 col-12 mb-4">
                     <div class="performance-card">
@@ -2366,11 +2205,113 @@
                 </div>
             </div>
 
-
         </section>
     </div>
 
-    <!-- Create Submission Modal -->
+    {{-- ════════════════════════════════════════
+         Modal: Add Overtime (baru)
+         ════════════════════════════════════════ --}}
+    <div class="modal fade" id="modalAddOvertime" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form id="formOvertimeDashboard">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-business-time me-2"></i> Assign Overtime
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        {{-- Pilih Karyawan --}}
+                        <div class="form-group">
+                            <label class="form-label">
+                                Select Employee(s) <span class="text-danger">*</span>
+                            </label>
+                           <select name="employee_ids[]" id="ot_employee_ids" multiple required>
+                        {{-- diisi via AJAX saat modal dibuka --}}
+                        </select>
+                            <small class="text-muted" id="ot-employee-loading">Loading employees...</small>
+                            <small class="text-muted">Can select more than 1 employee.</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" class="form-control" name="date" id="ot_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" name="start_time" id="ot_start_time">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">End Time</label>
+                                    <input type="time" class="form-control" name="end_time" id="ot_end_time">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Total Hours <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" name="total_hours" id="ot_total_hours"
+                                        step="0.5" min="0.5" max="24" required>
+                                    <small class="text-muted">0.5 - 24 hours</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Compensation Type <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="compensation_type" id="ot_compensation_type" required>
+                                        <option value="">-- Choose Type --</option>
+                                        <option value="Cash">Cash (Auto to Payroll)</option>
+                                        <option value="Toil">Toil Leave (Holiday Balance)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Reason / Notes <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" name="reason" id="ot_reason" rows="2"
+                                required minlength="10" maxlength="1000"
+                                placeholder="Min 10 characters..."></textarea>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Submit Assignment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- ════════════════════════════════════════
+         Modal: Create Submission (existing, kept intact)
+         ════════════════════════════════════════ --}}
     <div class="modal fade" id="createSubmissionModal" tabindex="-1" aria-labelledby="createSubmissionLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -2387,7 +2328,6 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <!-- Type Selection -->
                         <div class="mb-4">
                             <label class="form-label" for="type">
                                 <i class="fas fa-clipboard-list me-1"></i> Type
@@ -2406,7 +2346,6 @@
                             @enderror
                         </div>
 
-                        <!-- Overtime Type (Hidden by default) -->
                         <div class="mb-4" id="overtimeTypeDiv" style="display: none;">
                             <label class="form-label" for="overtime_type">
                                 <i class="fas fa-clock me-1"></i> Overtime Type
@@ -2419,27 +2358,26 @@
                             </select>
                         </div>
 
-                        <!-- Annual Leave Info (Hidden by default) -->
                         <div class="mb-4" id="annualLeaveInfo" style="display: none;">
                             <label class="form-label">
                                 <i class="fas fa-info-circle me-1"></i> Annual Leave Balance
                             </label>
                             <div class="alert alert-info d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>Total:</strong> <span id="totalLeave">{{ $leaveBalance->total ?? 0 }}</span>
-                                    days
+                                    <strong>Total:</strong>
+                                    <span id="totalLeave">{{ $leaveBalance->total ?? 0 }}</span> days
                                 </div>
                                 <div>
-                                    <strong>Used:</strong> <span id="usedLeave">{{ $leaveBalance->used ?? 0 }}</span> days
+                                    <strong>Used:</strong>
+                                    <span id="usedLeave">{{ $leaveBalance->used ?? 0 }}</span> days
                                 </div>
                                 <div>
-                                    <strong>Remaining:</strong> <span
-                                        id="remainingLeave">{{ $leaveBalance->remaining ?? 0 }}</span> days
+                                    <strong>Remaining:</strong>
+                                    <span id="remainingLeave">{{ $leaveBalance->remaining ?? 0 }}</span> days
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Date Range -->
                         <div class="row">
                             <div class="col-md-6 mb-4">
                                 <label class="form-label" for="leave_date_from">
@@ -2463,19 +2401,17 @@
                             </div>
                         </div>
 
-                        <!-- Notes -->
                         <div class="mb-3">
                             <label class="form-label" for="notes">
                                 <i class="fas fa-sticky-note me-1"></i> Notes / Reason
                             </label>
-                            <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror" rows="4"
-                                placeholder="Please provide details about your request..." required></textarea>
+                            <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror"
+                                rows="4" placeholder="Please provide details about your request..." required></textarea>
                             @error('notes')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
-                        <!-- Duration Display -->
                         <div class="alert alert-light border" id="durationDisplay" style="display: none;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span><i class="fas fa-calendar-day me-2"></i><strong>Duration:</strong></span>
@@ -2496,10 +2432,9 @@
         </div>
     </div>
 
-    <!-- Announcement Preview Modal -->
-
-
-    <!-- Approval Action Modal -->
+    {{-- ════════════════════════════════════════
+         Modal: Approval Action (existing, kept intact)
+         ════════════════════════════════════════ --}}
     <div class="modal fade" id="approvalActionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -2517,8 +2452,6 @@
                     </div>
                     <div class="modal-body">
                         <p id="approvalActionMessage">Are you sure you want to proceed with this action?</p>
-
-                        <!-- Rejection Reason (shown only for reject) -->
                         <div id="rejectionReasonDiv" style="display: none;">
                             <label class="form-label" for="rejection_reason">
                                 <i class="fas fa-comment me-1"></i> Reason for Rejection
@@ -2540,7 +2473,9 @@
         </div>
     </div>
 
-
+    {{-- ════════════════════════════════════════
+         Modal: Announcement Preview (existing, kept intact)
+         ════════════════════════════════════════ --}}
     <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -2554,7 +2489,6 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-
                 <div class="modal-body p-4">
                     <table class="table table-sm preview-table mb-4">
                         <tbody>
@@ -2572,13 +2506,9 @@
                             </tr>
                         </tbody>
                     </table>
-
                     <h5 id="previewTitle" class="fw-bold mb-3 text-center"></h5>
-
-                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
-                    </div>
+                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;"></div>
                 </div>
-
                 <div class="modal-footer bg-light">
                     <small class="text-muted text-center w-100">
                         <i class="fas fa-shield-alt me-2"></i>
@@ -2592,213 +2522,180 @@
         </div>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-        $('.announcement-item').on('click', function() {
-
-            $('#previewTitle').text($(this).data('title'));
-            $('#previewContent').html($(this).data('content'));
-
-            $('#previewDate').text($(this).data('publish'));
-            $('#previewEndDate').text($(this).data('end'));
-            $('#previewEmployee').text($(this).data('employee'));
-        });
-
-    });
-</script>
-<script>
-
- @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Announcement preview
+            $('.announcement-item').on('click', function () {
+                $('#previewTitle').text($(this).data('title'));
+                $('#previewContent').html($(this).data('content'));
+                $('#previewDate').text($(this).data('publish'));
+                $('#previewEndDate').text($(this).data('end'));
+                $('#previewEmployee').text($(this).data('employee'));
             });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+
+            $.ajaxSetup({
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+            });
+
+            // ── Select2: existing submission form ──
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+
+            // ── Select2: overtime modal — multi employee ──
+            $('#ot_employee_ids').select2({
+                placeholder: 'Select one or more employees...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#modalAddOvertime')
+            });
+
+            // ── Select2: overtime modal — compensation type ──
+            $('#ot_compensation_type').select2({
+                placeholder: '-- Choose Type --',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#modalAddOvertime')
+            });
+
+            // ── Load subordinates via AJAX saat modal dibuka ──
+            $('#modalAddOvertime').on('show.bs.modal', function () {
+            $('#ot-employee-loading').text('Loading employees...').show();
+
+            $.ajax({
+                url:    '{{ route('toil.assignment.subordinates') }}',
+                method: 'GET',
+                success: function (res) {
+                var $select = $('#ot_employee_ids');
+                $select.empty();
+
+            if (!res.data || res.data.length === 0) {
+                $('#ot-employee-loading').text('No subordinates found in your structure.');
+                return;
+            }
+
+            res.data.forEach(function (emp) {
+                $select.append(new Option(
+                    emp.employee_name + ' (' + emp.pin + ')',
+                    emp.id
+                ));
+            });
+
+            $('#ot-employee-loading').hide();
+        },
+        error: function () {
+            $('#ot-employee-loading').text('Failed to load employees.');
+        }
+    });
+});
+
+            // ── Set min date = today for overtime form ──
+            $('#ot_date').attr('min', new Date().toISOString().split('T')[0]);
+
+            // ── Auto hitung Total Hours dari Start & End Time ──
+            $('#ot_start_time, #ot_end_time').on('change', function () {
+                var start = $('#ot_start_time').val();
+                var end   = $('#ot_end_time').val();
+
+            if (start && end) {
+                var startParts = start.split(':');
+                var endParts   = end.split(':');
+
+                var startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+                var endMinutes   = parseInt(endParts[0])   * 60 + parseInt(endParts[1]);
+
+            // Handle overnight (misal 22:00 - 02:00)
+                if (endMinutes < startMinutes) {
+                endMinutes += 24 * 60;
+            }
+
+        var diffMinutes = endMinutes - startMinutes;
+        var diffHours   = diffMinutes / 60;
+
+        // Bulatkan ke kelipatan 0.5
+        diffHours = Math.round(diffHours * 2) / 2;
+
+        if (diffHours > 0 && diffHours <= 24) {
+            $('#ot_total_hours').val(diffHours);
+        } else {
+            $('#ot_total_hours').val('');
+        }
+    }
+});
+
+            // ── Submit overtime from dashboard modal ──
+            $('#formOvertimeDashboard').on('submit', function (e) {
+            e.preventDefault();
+
+            // ── Loading state ──
+            var $btn = $(this).find('button[type="submit"]');
+            $btn.prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+
+            var formData = {
+            employee_ids:      $('#ot_employee_ids').val(),
+            date:              $('#ot_date').val(),
+            start_time:        $('#ot_start_time').val() || null,
+            end_time:          $('#ot_end_time').val() || null,
+            total_hours:       $('#ot_total_hours').val(),
+            compensation_type: $('#ot_compensation_type').val(),
+            reason:            $('#ot_reason').val()
+        };
+
+        $.ajax({
+        url:    '{{ route('toil.assignment.store') }}',
+        method: 'POST',
+        data:   formData,
+        success: function (res) {
+            Swal.fire({ icon: 'success', title: 'Success', text: res.message });
+            $('#modalAddOvertime').modal('hide');
+            $('#formOvertimeDashboard')[0].reset();
+            $('#ot_employee_ids').val(null).trigger('change');
+            $('#ot_compensation_type').val('').trigger('change');
+        },
+        error: function (xhr) {
+            var msg = 'An error occurred';
+            if (xhr.responseJSON) {
+                msg = xhr.responseJSON.message
+                    || Object.values(xhr.responseJSON.errors ?? {}).flat().join('<br>');
+            }
+            Swal.fire({ icon: 'error', title: 'Failed', html: msg });
+        },
+            complete: function () {
+                // ── Restore button ──
+                $btn.prop('disabled', false)
+                    .html('<i class="fas fa-paper-plane me-1"></i> Submit Assignment');
+            }
+        });
+    });
+
+            // ── Reset Select2 when overtime modal closes ──
+            $('#modalAddOvertime').on('hidden.bs.modal', function () {
+                $('#formOvertimeDashboard')[0].reset();
+                $('#ot_employee_ids').val(null).trigger('change');
+                $('#ot_compensation_type').val('').trigger('change');
+            });
+
+        });
+    </script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({ icon: 'success', title: 'Success', text: '{{ session('success') }}' });
         @endif
         @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
+            Swal.fire({ title: 'Failed!', text: "{{ session('error') }}", icon: 'error', confirmButtonText: 'OK' });
         @endif
     </script>
 @endpush
-
-
-{{-- <div class="col-lg-12 col-12 mb-4">
-                <div class="announcements-card">
-                    <div class="announcements-header">
-                        <h5>
-                            <i class="fas fa-bullhorn me-2"></i>
-                            Company Announcements
-                        </h5>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        <!-- Announcement 1 -->
-                        <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
-                            <div class="announcement-title">
-                                <i class="fas fa-star text-warning"></i>
-                                Holiday Schedule for December
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                Dear Team, Please note the following holiday schedule for December 2024. The office will
-                                be closed from December 24-26 and December 31 - January 1...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 day ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 2 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-gift text-danger"></i>
-                                Year-End Bonus Announcement
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                We're pleased to announce that year-end bonuses will be distributed on December 15,
-                                2024. The amount will be based on individual performance...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 2 days ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 3 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-laptop-code text-primary"></i>
-                                New HR System Implementation
-                            </div>
-                            <div class="announcement-excerpt">
-                                Starting January 2025, we will be implementing a new HR management system. All employees
-                                are required to attend training sessions...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 5 days ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 4 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-heartbeat text-success"></i>
-                                Health Insurance Update
-                            </div>
-                            <div class="announcement-excerpt">
-                                Our company health insurance coverage has been upgraded to include dental and vision
-                                care for all employees and their families...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-
-                        <!-- Announcement 5 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-users text-info"></i>
-                                Team Building Event - December
-                            </div>
-                            <div class="announcement-excerpt">
-                                Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
-                                Resort. Activities include team games, BBQ dinner...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-light text-center">
-                        <a href="#" class="text-decoration-none">
-                            View All Announcements
-                            <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    </div>
-                </div>
-            </div> --}}
-<!-- Announcements Section -->
-{{-- <div class="row">
-                <div class="col-12">
-                    <div class="team-overview-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">
-                                <i class="fas fa-bullhorn me-2"></i>
-                                Company Announcements
-                            </h4>
-                            <span class="badge-primary-soft">
-                                {{ count($announcements ?? []) }} Active
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="announcements-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Title</th>
-                                            <th class="text-center">Published</th>
-                                            <th class="text-center">Expires</th>
-                                            <th class="text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($announcements ?? [] as $announcement)
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <i class="fas fa-file-alt text-primary"></i>
-                                                        <strong>{{ $announcement->title ?? 'Untitled' }}</strong>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    {{ \Carbon\Carbon::parse($announcement->publish_date ?? now())->format('M d, Y') }}
-                                                </td>
-                                                <td class="text-center">
-                                                    @if ($announcement->end_date)
-                                                        {{ \Carbon\Carbon::parse($announcement->end_date)->format('M d, Y') }}
-                                                    @else
-                                                        <span class="badge badge-info">Ongoing</span>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">
-                                                    <button class="btn btn-sm btn-primary preview-announcement-btn"
-                                                        data-id="{{ $announcement->id }}"
-                                                        data-title="{{ $announcement->title }}"
-                                                        data-content="{{ $announcement->content }}"
-                                                        data-date="{{ $announcement->publish_date }}"
-                                                        data-enddate="{{ $announcement->end_date }}">
-                                                        <i class="fas fa-eye me-1"></i>
-                                                        View
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="4">
-                                                    <div class="empty-state py-3">
-                                                        <i class="fas fa-inbox"></i>
-                                                        <h6>No Announcements</h6>
-                                                        <p>There are no active announcements at the moment</p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
