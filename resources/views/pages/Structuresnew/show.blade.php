@@ -243,6 +243,7 @@
                                                     <th>Qualifications</th>
                                                     <td>{!! $structure->submissionposition->qualifications ?? '<em>Empty</em>' !!}</td>
                                                 </tr>
+                                                @role('HeadHR')
                                                 <tr>
                                                     <th>Salary range from HR</th>
                                                     <td>
@@ -262,6 +263,7 @@
                                                   <td>{{ $structure->submissionposition->notes_dir ?? '-' }}</td>
                                                         
                                                 </tr>
+                                                @endrole
                                                 <tr>
                                                     <th>Type</th>
                                                     <td>

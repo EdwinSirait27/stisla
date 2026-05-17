@@ -7,6 +7,7 @@
         .avatar {
             position: relative;
         }
+
         .iframe-container {
             position: relative;
             overflow: hidden;
@@ -189,11 +190,13 @@
                                         </div>
                                     @endif
                                     @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success" role="alert">
+                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
+                                            role="alert">
                                             <span class="alert-text">
                                                 {{ session('success') }}
                                             </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                aria-label="Close">
                                                 <i class="fa fa-close" aria-hidden="true"></i>
                                             </button>
                                         </div>
@@ -207,9 +210,10 @@
                                                         <i class="fas fa-user"></i> {{ __('SK Type Name') }}
                                                     </label>
                                                     <div>
-                                                        <input type="text" class="form-control @error('sk_name') is-invalid @enderror" id="sk_name" name="sk_name" 
-                                                            value="{{ old('sk_name') }}" required
-                                                            placeholder="Fill SK Type Name">
+                                                        <input type="text"
+                                                            class="form-control @error('sk_name') is-invalid @enderror"
+                                                            id="sk_name" name="sk_name" value="{{ old('sk_name') }}"
+                                                            required placeholder="Fill SK Type Name">
                                                         @error('sk_name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -218,13 +222,170 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="nickname" class="form-control-label">
+                                                        <i class="fas fa-user"></i> {{ __('Nickname') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="text"
+                                                            class="form-control @error('nickname') is-invalid @enderror"
+                                                            id="nickname" name="nickname" value="{{ old('nickname') }}"
+                                                            required placeholder="exmpl OPR with capslock">
+                                                        @error('nickname')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="categories" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company NPWP') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="categories" id="categories"
+                                                            class="select2 form-control" required>
+                                                            <option value="">Choose categories</option>
+                                                            @foreach ($categories as $value)
+                                                                <option value="{{ $value }}"
+                                                                    {{ old('categories') == $value ? 'selected' : '' }}>
+                                                                    {{ $value }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('categories')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        </div>
+                                        <hr>
+
+                                        {{-- Affects Section --}}
+                                        <div class="mb-3">
+                                            <label class="font-weight-bold">Affects Configuration</label>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+
+                                                    <label class="form-control-label d-block">
+                                                        <i class="fas fa-money-bill-wave"></i> Generates Contract
+                                                    </label>
+
+
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="hidden" name="generates_contract" value="0">
+
+                                                        <input type="checkbox"
+                                                            class="custom-control-input @error('generates_contract') is-invalid @enderror"
+                                                            id="generates_contract" name="generates_contract" value="1"
+                                                            {{ old('generates_contract') ? 'checked' : '' }}>
+
+                                                        <label class="custom-control-label" for="generates_contract">
+                                                            No / Yes
+                                                        </label>
+
+                                                        @error('generates_contract')
+                                                            <span class="invalid-feedback d-block">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-control-label d-block">
+                                                        <i class="fas fa-money-bill-wave"></i> Affects Position
+                                                    </label>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="hidden" name="affects_position" value="0">
+
+                                                        <input type="checkbox"
+                                                            class="custom-control-input @error('affects_position') is-invalid @enderror"
+                                                            id="affects_position" name="affects_position" value="1"
+                                                            {{ old('affects_position') ? 'checked' : '' }}>
+
+                                                        <label class="custom-control-label" for="affects_position">
+                                                            No / Yes
+                                                        </label>
+
+                                                        @error('affects_position')
+                                                            <span class="invalid-feedback d-block">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                          <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-control-label d-block">
+                                                        <i class="fas fa-money-bill-wave"></i> Affects Status
+                                                    </label>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="hidden" name="affects_status" value="0">
+
+                                                        <input type="checkbox"
+                                                            class="custom-control-input @error('affects_status') is-invalid @enderror"
+                                                            id="affects_status" name="affects_status" value="1"
+                                                            {{ old('affects_status') ? 'checked' : '' }}>
+                                                        <label class="custom-control-label" for="affects_status">
+                                                            No / Yes
+                                                        </label>
+                                                        @error('affects_status')
+                                                            <span class="invalid-feedback d-block">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                             <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-control-label d-block">
+                                                        <i class="fas fa-money-bill-wave"></i> Affects Salaries
+                                                    </label>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="hidden" name="affects_salary" value="0">
+
+                                                        <input type="checkbox"
+                                                            class="custom-control-input @error('affects_salary') is-invalid @enderror"
+                                                            id="affects_salary" name="affects_salary" value="1"
+                                                            {{ old('affects_salary') ? 'checked' : '' }}>
+
+                                                        <label class="custom-control-label" for="affects_salary">
+                                                            No / Yes
+                                                        </label>
+
+                                                        @error('affects_salary')
+                                                            <span class="invalid-feedback d-block">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">
                                                 <strong>Important Note:</strong> <br>
                                                 - If a sk type name is already registered, you cannot register it again.
                                                 <br> - please use English to get used to it.
-                                                <br> - Before creating data, please check first whether there is already similar or identical data to avoid double input. 
+                                                <br> - Before creating data, please check first whether there is already
+                                                similar or identical data to avoid double input.
                                             </span>
                                         </div>
                                         <div class="d-flex justify-content-end mt-4">
@@ -247,27 +408,26 @@
 @endsection
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
     <script>
         document.getElementById('create-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
-              Swal.fire({
-                  title: 'Are You Sure?',
-                  text: "Make sure the data you entered is correct!",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
-                  cancelButtonText: 'Abort'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
-                      document.getElementById('position-create').submit();
-                  }
-              });
-          });
-           
+            e.preventDefault(); // Mencegah pengiriman form langsung
+            Swal.fire({
+                title: 'Are You Sure?',
+                text: "Make sure the data you entered is correct!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Assign!',
+                cancelButtonText: 'Abort'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit form
+                    document.getElementById('position-create').submit();
+                }
+            });
+        });
     </script>
     <script>
         @if (session('success'))

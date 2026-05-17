@@ -29,13 +29,9 @@ $headHRs = User::role('HeadHR')
             return;
         }
 
-        // Ambil employee yang join tepat 3 bulan lalu (hari ini)
-        $employees = Employee::whereDate(
-            'join_date', now()->subMonths(3)->toDateString()
-        )
-        ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
-        ->get();
-
+        $employees = Employee::whereDate('join_date', now()->subMonths(2)->toDateString())
+    ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
+    ->get();
         if ($employees->isEmpty()) {
             Log::info('No employees hit 3-month probation today');
             $this->info('No employees to remind today.');
@@ -64,3 +60,10 @@ $headHRs = User::role('HeadHR')
         $this->info("Dispatched {$employees->count()} reminder(s) to {$headHRs->count()} HeadHR(s).");
     }
 }
+
+        // Ambil employee yang join tepat 3 bulan lalu (hari ini)
+        // $employees = Employee::whereDate(
+        //     'join_date', now()->subMonths(3)->toDateString()
+        // )
+        // ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
+        // ->get();

@@ -47,29 +47,28 @@ class PHController extends Controller
         abort(404);
     }
    
-    public function Importphs(Request $request)
+    public function importPhs(Request $request)
 {
     $request->validate([
         'file' => 'required|mimes:xlsx,csv,xls'
     ], [
-        'file.required' => 'Please select an Excel file to import..',
+        'file.required' => 'Please select an Excel file to import.',
         'file.mimes'    => 'File format must be Excel (xlsx, xls) or CSV.',
     ]);
-    $errors = [];
-    $import = new PHImport($errors);
+
+    $import = new PHImport();
     $import->import($request->file('file'));
+
+    // Validation failures (format salah, kolom kosong, dll)
     if ($import->failures()->isNotEmpty()) {
-        return back()->with([
-            'failures'       => $import->failures(),
-            'import_errors'  => $errors, 
-        ]);
+        return back()->with('failures', $import->failures());
     }
 
-    if (!empty($errors)) {
-        return back()->with('import_errors', $errors); // 🔑 sama, jangan pakai 'errors'
+    // Runtime errors (exception tak terduga)
+    if ($import->errors()->isNotEmpty()) {
+        return back()->with('import_errors', $import->errors());
     }
 
-    return back()->with('success', 'Public Holidays import successfully!');
+    return back()->with('success', 'Public Holidays imported successfully!');
 }
-
 }

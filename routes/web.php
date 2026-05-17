@@ -54,8 +54,9 @@ use App\Http\Controllers\PayrollcomponentsController;
 use App\Http\Controllers\FingerprintrecapController;
 use App\Http\Controllers\ManualRecapController;
 use App\Http\Controllers\AutoRosterController; 
+use App\Http\Controllers\SkLetterController; 
+use App\Http\Controllers\UserrnrController; 
 use App\Models\Contract;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -66,24 +67,37 @@ use App\Models\Contract;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 Route::view('/test-wireui', 'test-wireui');
-
 Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor'])->group(function () {
-
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
+    Route::post('/savesign', [UserprofileController::class, 'save'])->name('save.signature');
+
+    Route::get('/rnr', [UserrnrController::class, 'index'])
+        ->name('pages.rnr');
+        Route::get('/my-sk-letter/{id}/download', [UserprofileController::class, 'downloadSkLetter'])
+    ->middleware('auth')
+    ->name('my-sk-letter.download');
+     // routes/web.php
+Route::get('/employee-photo/{filename}', [UserprofileController::class, 'servePhoto'])
+    ->name('useremployee.photo');
+Route::get('/employee-signature/{filename}', [UserprofileController::class, 'serveSignature'])
+    ->name('useremployeesignature.photo');
+Route::get('/employee-photo-kk/{filename}', [UserprofileController::class, 'servePhotokk'])
+    ->name('useremployeekk.photo');
+Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'servePhotoktp'])
+    ->name('useremployeektp.photo');
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
         ->name('pages.change-password');
     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
         ->name('change-password.update');
     Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelpphotos'])
         ->name('feature-profile.update');
-
+         Route::get('/profile/documents/{id}/download', [UserprofileController::class, 'downloadDocument'])
+        ->name('profile.documents.download');
     // ── Logout ──
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         ->name('logout');
-
     // ── Dashboard Admin & Users Management ──
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
         Route::get('/dashboardAdmin', [DashboardAdminController::class, 'index'])
@@ -94,7 +108,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
         Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
     });
-
     // ── Activity (catatan: tetap pakai permission:dashboardAdmin sesuai original) ──
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
         Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
@@ -102,12 +115,10 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
         Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
     });
-
     // ── Submissions ──
     Route::middleware(['auth'])->group(function () {
         Route::post('/Submissions', [SubmissionsController::class, 'store'])->name('Submissions.store');
     });
-
     // ── Roles & Permissions ──
     Route::group(['middleware' => ['permission:ManageRolesPermissions']], function () {
         Route::get('/roles', [RoleController::class, 'index'])
@@ -125,7 +136,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::put('/permissions/{hashedId}', [PermissionController::class, 'update'])->name('permissions.update');
         Route::get('/permissions/permissions', [PermissionController::class, 'getPermissions'])->name('permissions.permissions');
     });
-
     // ── Dashboard HR ──
     Route::group(['middleware' => ['permission:dashboardHR']], function () {
         Route::get('/dashboardHR', [DashboardHRController::class, 'index'])
@@ -469,7 +479,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::put('/Company/{hashedId}', [CompanyController::class, 'update'])->name('Company.update');
         Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
     });
-
     // ── Dashboard Human ──
     Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function () {
         Route::get('/Dashboard', [DashboardController::class, 'index'])
@@ -610,3 +619,17 @@ Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['aut
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
         Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
 });
+
+ Route::group(['middleware' => ['permission:ManageSkLetters']], function () {
+        Route::get('/SkLetters', [SkLetterController::class, 'index'])
+            ->name('SkLetters');
+        Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
+        Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
+        Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
+        Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
+    ->name('SkLetters.show');
+        Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
+        Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
+   Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
+    ->name('SkLetters.pdf');
+        });

@@ -69,9 +69,6 @@ protected $casts = [
         return $this->belongsTo(Employee::class,'employee_id');
     }
 
-    // Relasi ke tabel StockAdjustment
-   
-    // Relasi ke tabel Purchase
    
     public function Activity()
     {

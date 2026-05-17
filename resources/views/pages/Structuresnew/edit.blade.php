@@ -401,7 +401,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
-
+@role('HeadHR')
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label for="salary_hr" class="form-control-label">
@@ -437,6 +437,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
+
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="notes_dir" class="form-control-label">
@@ -491,6 +492,7 @@
                                                     @enderror
                                                 </div>
                                             </div>
+                                            @endif
 
                                             <div class="col-md-6">
                                                 <div class="form-group">

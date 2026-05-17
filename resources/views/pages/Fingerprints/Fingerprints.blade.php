@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Fingerprints')
+@section('title', 'Fingerprints Attendance')
 @push('styles')
     {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}"> --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -567,7 +567,7 @@
         <div class="section-header d-flex align-items-start justify-content-between flex-wrap gap-2 mb-4">
             <div>
                 <div style="font-size:.72rem;color:#94a3b8;margin-bottom:3px">
-                    Dashboard / <span style="color:#64748b">Fingerprints</span>
+                    Dashboard / <span style="color:#64748b">Fingerprints Attendance</span>
                 </div>
                 <h1>Fingerprint list</h1>
             </div>
@@ -643,7 +643,7 @@
                           data-tooltip="Klik Filter dulu untuk menampilkan data">
                         <button id="recapBtn" class="btn btn-success btn-sm" disabled
                             style="height:32px;font-size:.775rem">
-                            <i class="fas fa-rotate-right"></i> Recap absensi
+                            <i class="fas fa-rotate-right"></i> Attendance Recap
                         </button>
                     </span>
                 </div>
@@ -769,6 +769,7 @@
                         <thead>
                             <tr>
                                 <th class="col-employee" style="min-width:170px">Employee</th>
+                                <th>NIP</th>
                                 <th>Location</th>
                                 <th>PIN</th>
                                 <th>Roster</th>
@@ -817,7 +818,6 @@
     </div>
 </div>              
         </div>
->>>>>>> f49d8c4 (fitur contract + probation reminder)
     </section>
 </div>
 
@@ -829,7 +829,7 @@
         <div class="modal-content" style="border-radius:12px;border:none;overflow:hidden">
             <div class="modal-header" style="background:#1e293b;color:#fff">
                 <h5 class="modal-title" style="font-weight:700">
-                    <i class="fas fa-plus-circle"></i> Tambah Manual Recap
+                    <i class="fas fa-plus-circle"></i> Add Manual Recap
                 </h5>
                 <button type="button" class="close" style="color:#fff;opacity:.8" data-dismiss="modal">
                     <span>&times;</span>
@@ -840,11 +840,11 @@
                 {{-- Pilih Karyawan --}}
                 <div class="form-group">
                     <label style="font-weight:600;color:#374151">
-                        Pilih Karyawan <span style="color:#ef4444">*</span>
+                        Choose Employees <span style="color:#ef4444">*</span>
                     </label>
                     <select id="manualEmpIds" class="form-control select2-manual" multiple required style="width:100%">
                     </select>
-                    <small class="text-muted">Bisa pilih lebih dari satu karyawan</small>
+                    <small class="text-muted">Can select more than one employee</small>
                 </div>
 
                 {{-- Scan Date & End Date --}}
@@ -855,7 +855,7 @@
                                 Start Date <span style="color:#ef4444">*</span>
                             </label>
                             <input type="date" id="manualScanDate" class="form-control" required>
-                            <small class="text-muted">Tanggal mulai</small>
+                            <small class="text-muted">Start Date</small>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -864,7 +864,7 @@
                                 End Date <span style="color:#ef4444">*</span>
                             </label>
                             <input type="date" id="manualEndDate" class="form-control" required>
-                            <small class="text-muted">Tanggal selesai (isi sama jika hanya 1 hari)</small>
+                            <small class="text-muted">End date (fill in the same if only 1 day)</small>
                         </div>
                     </div>
                 </div>
@@ -875,7 +875,7 @@
                         <i class="fas fa-clock"></i> Shift
                     </label>
                     <select id="manualShiftId" class="form-control select2-manual-shift" style="width:100%">
-                        <option value="">-- Gunakan shift dari roster karyawan --</option>
+                        <option value="">Use shifts from employee roster</option>
                     </select>
                 </div>
 
@@ -883,13 +883,13 @@
                 <div class="form-group">
                     <label style="font-weight:600;color:#374151">
                         <i class="fas fa-paperclip"></i>
-                        Bukti Pendukung <span style="color:#ef4444">*</span>
-                        <span class="evidence-badge">WAJIB</span>
+                        Supporting Evidence <span style="color:#ef4444">*</span>
+                        <span class="evidence-badge">Required</span>
                     </label>
                     <div class="evidence-dropzone" id="evidenceDropzone">
                         <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                        <p><strong>Click</strong> atau <strong>Drag &amp; Drop</strong> file ke sini</p>
-                        <small>JPG, PNG, GIF, PDF, DOC, DOCX, XLS, XLSX · max 5 MB per file · bisa multiple</small>
+                        <p><strong>Click</strong> Or <strong>Drag &amp; Drop</strong> file here</p>
+                        <small>JPG, PNG, GIF, PDF, DOC, DOCX, XLS, XLSX · max 5 MB  file · can multiple</small>
                         <input type="file" id="evidenceFiles" multiple
                             accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx"
                             style="display:none">
@@ -900,20 +900,20 @@
                 {{-- Alasan --}}
                 <div class="form-group">
                     <label style="font-weight:600;color:#374151">
-                        Alasan <span style="color:#ef4444">*</span>
+                        Reason <span style="color:#ef4444">*</span>
                     </label>
                     <textarea id="manualReason" class="form-control" rows="4" required
-                        placeholder="Contoh: Karyawan telah klarifikasi bahwa masuk kerja namun mesin fingerprint rusak..."
+                        placeholder="Contoh: Employees have clarified that they went to work but the fingerprint machine was broken...."
                         minlength="10" maxlength="1000"></textarea>
-                    <small class="text-muted">Minimal 10 karakter.</small>
+                    <small class="text-muted">Minimal 10 characters.</small>
                 </div>
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="submitManualRecap()"
                     style="background:#1d4ed8;border:none;font-weight:600" id="submitManualBtn">
-                    <i class="fas fa-paper-plane"></i> Submit &amp; Kirim Notifikasi
+                    <i class="fas fa-paper-plane"></i> Submit &amp; and send notification
                 </button>
             </div>
         </div>
@@ -1007,8 +1007,8 @@
         } else {
             addBtn.disabled   = true;
             recapBtn.disabled = true;
-            addWrap.setAttribute('data-tooltip', 'Klik Filter dulu untuk menampilkan data');
-            recapWrap.setAttribute('data-tooltip', 'Klik Filter dulu untuk menampilkan data');
+            addWrap.setAttribute('data-tooltip', 'Click Filter first to display the data');
+            recapWrap.setAttribute('data-tooltip', 'Click Filter first to display the data');
         }
     }
 
@@ -1304,22 +1304,9 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
             },
             columns: [
                 /* 0 — Employee */
-                {
-                    data: 'employee_name',
-                    className: 'col-employee',
-                    render: function (data, type, row, meta) {
-                        if (type !== 'display') return data || '';
-                        const ini = getInitials(data);
-                        const sty = getAvatarStyle(data, meta.row);
-                        return `<div class="emp-cell">
-                            <div class="emp-avatar" style="${sty}">${ini}</div>
-                            <div>
-                                <div class="emp-name-text">${data || '-'}</div>
-                                <div class="emp-nip-text">${row.employee_pengenal || '-'}</div>
-                            </div>
-                        </div>`;
-                    }
-                },
+                { data: 'employee_name',     className: 'text-center', render: d => d || '-' },
+                { data: 'employee_pengenal',     className: 'text-center', render: d => d || '-' },
+
                 /* 1 — Location */
                 { data: 'name', className: 'text-center', render: d => d || '-' },
                 /* 2 — PIN */
@@ -1562,7 +1549,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                         select.append(new Option(text, emp.id));
                     });
                 })
-                .catch(err => console.error('Gagal load employees:', err));
+                .catch(err => console.error('Failed load employees:', err));
         }
 
         // Load shift list
@@ -1572,13 +1559,13 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                 .then(data => {
                     const select = $('#manualShiftId');
                     select.empty();
-                    select.append(new Option('-- Gunakan shift dari roster karyawan --', ''));
+                    select.append(new Option('Use shifts from employee roster', ''));
                     (data.data || []).forEach(shift => {
                         const text = `${shift.name} (${shift.time})`;
                         select.append(new Option(text, shift.id));
                     });
                 })
-                .catch(err => console.error('Gagal load shifts:', err));
+                .catch(err => console.error('failed load shifts:', err));
         }
 
         // Init dropzone
@@ -1619,8 +1606,8 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                 if (!allowedTypes.includes(file.type)) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Tipe file tidak diizinkan',
-                        html: `<strong>${file.name}</strong><br><small>Hanya JPG, PNG, GIF, WEBP, PDF, DOC, DOCX, XLS, XLSX.</small>`,
+                        title: 'File type not allowed',
+                        html: `<strong>${file.name}</strong><br><small>Only JPG, PNG, GIF, WEBP, PDF, DOC, DOCX, XLS, XLSX.</small>`,
                         confirmButtonColor: '#dc2626'
                     });
                     return;
@@ -1628,8 +1615,8 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                 if (file.size > maxSize) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'File terlalu besar',
-                        html: `<strong>${file.name}</strong><br><small>Ukuran file maksimal 5 MB per file.</small>`,
+                        title: 'File is too large',
+                        html: `<strong>${file.name}</strong><br><small>Maximum file size 5 MB file.</small>`,
                         confirmButtonColor: '#dc2626'
                     });
                     return;
@@ -1702,12 +1689,12 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
             if (selectManualInitialized) return;
             $('#manualEmpIds').select2({
                 dropdownParent: $('#addRecapFormModal'),
-                placeholder: 'Pilih karyawan...',
+                placeholder: 'Choose Employees...',
                 allowClear: true
             });
             $('#manualShiftId').select2({
                 dropdownParent: $('#addRecapFormModal'),
-                placeholder: 'Gunakan shift dari roster...',
+                placeholder: 'Use shift from roster...',
                 allowClear: true
             });
             selectManualInitialized = true;
@@ -1718,22 +1705,22 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
             Swal.fire({
                 icon: 'warning',
                 iconColor: '#f59e0b',
-                title: '⚠️ Peringatan Pertanggungjawaban',
+                title: 'Warning',
                 html: `
                     <div style="text-align:left;padding:10px 0">
                         <p style="color:#1f2937;font-size:15px;line-height:1.6;margin-bottom:10px">
-                            <strong>Data Ini Akan Dikirim Ke Email dan Whatsapp Head HR dan IT Sebagai Pertanggung Jawaban.</strong>
+                            <strong>This data will be sent to the Head of HR and IT's email and WhatsApp group..</strong>
                         </p>
                         <p style="color:#6b7280;font-size:13px;margin:0">
-                            Pastikan data &amp; bukti yang Anda input sudah benar dan dapat dipertanggungjawabkan.
+                            Make sure the data & evidence you input is correct.
                         </p>
                     </div>
                 `,
                 showCancelButton: true,
                 confirmButtonColor: '#f59e0b',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: '<i class="fas fa-check"></i> Saya Mengerti, Lanjutkan',
-                cancelButtonText: 'Batal',
+                confirmButtonText: '<i class="fas fa-check"></i> Okay, Understood',
+                cancelButtonText: 'Cancel',
                 focusCancel: true
             }).then(result => {
                 if (result.isConfirmed) openAddRecapForm();
@@ -1769,51 +1756,51 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
 
             // Validasi
             if (empIds.length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Pilih minimal 1 karyawan.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'Select at least 1 employee.' });
                 return;
             }
             if (!scanDate) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Scan Date wajib diisi.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'Scan Date required.' });
                 return;
             }
             if (!endDate) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'End Date wajib diisi.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'End Date required.' });
                 return;
             }
             if (endDate < scanDate) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'End Date tidak boleh sebelum Scan Date.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'End Date cannot be before Scan Date.' });
                 return;
             }
             if (evidenceFiles.length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Upload minimal 1 file bukti.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'Upload at least 1 proof file.' });
                 return;
             }
             if (reason.length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Alasan wajib diisi.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'Reason required.' });
                 return;
             }
             if (reason.length < 10) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Alasan minimal 10 karakter.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'Reason minimum 10 characters.' });
                 return;
             }
             if (reason.length > 1000) {
-                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Alasan maksimal 1000 karakter.' });
+                Swal.fire({ icon: 'warning', title: 'Warning', text: 'Maximum reason 1000 characters.' });
                 return;
             }
 
             const diffDays = Math.round((new Date(endDate) - new Date(scanDate)) / (1000*60*60*24)) + 1;
 
             Swal.fire({
-                title: 'Konfirmasi',
-                html: `Akan menambah manual recap untuk <strong>${empIds.length} karyawan</strong><br>
-                       Periode: <strong>${scanDate}</strong> s/d <strong>${endDate}</strong> (<strong>${diffDays} hari</strong>)<br>
-                       Dengan <strong>${evidenceFiles.length} file bukti</strong>.<br>
-                       <small style="color:#64748b">Lanjutkan?</small>`,
+                title: 'Confirmation',
+                html: `Will add manual recap for <strong>${empIds.length} Employess</strong><br>
+                       Period: <strong>${scanDate}</strong> to <strong>${endDate}</strong> (<strong>${diffDays} day</strong>)<br>
+                       with <strong>${evidenceFiles.length} file </strong>.<br>
+                       <small style="color:#64748b">Continue?</small>`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#1d4ed8',
-                confirmButtonText: 'Ya, submit',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Yes, submit',
+                cancelButtonText: 'Cancel'
             }).then(result => {
                 if (!result.isConfirmed) return;
 
@@ -1827,7 +1814,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
 
                 const btn = document.getElementById('submitManualBtn');
                 btn.disabled  = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Process...';
 
                 fetch('{{ route("manual-recap.store") }}', {
                     method: 'POST',
@@ -1840,7 +1827,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));
                     if (!response.ok) {
-                        const error = new Error(data.message || 'Terjadi kesalahan');
+                        const error = new Error(data.message || 'Failed');
                         error.status = response.status;
                         error.errors = data.errors || null;
                         error.data   = data;
@@ -1852,7 +1839,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                     if (data.success) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Berhasil!',
+                            title: 'Success!',
                             text: data.message,
                             confirmButtonColor: '#1d4ed8'
                         }).then(() => {
@@ -1864,7 +1851,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                             tableManual.ajax.reload();
                         });
                     } else {
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Gagal menambah recap.' });
+                        Swal.fire({ icon: 'error', title: 'Failed', text: data.message || 'Failed to add recap.' });
                     }
                 })
                 .catch(err => {
@@ -1875,7 +1862,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                             .join('<br>');
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Validasi Gagal',
+                            title: 'Validation failed',
                             html: `<div style="text-align:left;font-size:14px;line-height:1.6">${allMessages}</div>`,
                             confirmButtonColor: '#f59e0b'
                         });
@@ -1883,7 +1870,7 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: err.message || 'Terjadi kesalahan, coba lagi.',
+                            text: err.message || 'Failed, Try again later.',
                             confirmButtonColor: '#dc2626'
                         });
                     }

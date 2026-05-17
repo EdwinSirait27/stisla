@@ -18,6 +18,7 @@ use App\Models\Structuresnew;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\NoXSSInput;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeEmployeeMail;
@@ -30,24 +31,23 @@ class EmployeeController extends Controller
 {
     public function indexall()
     {
-      $countactives = Employee::where('status', 'Active')->count();
+        $countactives = Employee::where('status', 'Active')->count();
         $countpendings = Employee::where('status', 'Pending')->count();
         $countresigns = Employee::where('status', 'Resign')->count();
         $departments = Departments::pluck('department_name', 'id');
         $gradings = Grading::pluck('grading_name', 'id');
-        $groups = Groups::pluck('remark','id');
+        $groups = Groups::pluck('remark', 'id');
         $companies = Company::pluck('name', 'id');
         $locations = Stores::pluck('name', 'id');
         $employeestatuses = Employee::getStatusEmployeeOptions();
         $statuses = Employee::getStatusOptions();
-        $banks = Banks::pluck('name','id');
+        $banks = Banks::pluck('name', 'id');
         $genders = Employee::getGenderOptions();
         $marriages = Employee::getMarriageOptions();
         $religions = Employee::getReligionOptions();
         $lasteducations = Employee::getLastEducationOptions();
-        return view('pages.Employeeall.Employeeall', compact('marriages','genders','lasteducations','religions','banks','departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns','groups','gradings'));
-   
-        }
+        return view('pages.Employeeall.Employeeall', compact('marriages', 'genders', 'lasteducations', 'religions', 'banks', 'departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
+    }
     public function index()
     {
         $countactives = Employee::where('status', 'Active')->count();
@@ -55,13 +55,12 @@ class EmployeeController extends Controller
         $countresigns = Employee::where('status', 'Resign')->count();
         $departments = Departments::pluck('department_name', 'id');
         $gradings = Grading::pluck('grading_name', 'id');
-        $groups = Groups::pluck('remark','id');
-        // $groups = Groups::select('id', 'group_name', 'remark')->get();
+        $groups = Groups::pluck('remark', 'id');
         $companies = Company::pluck('name', 'id');
         $locations = Stores::pluck('name', 'id');
         $employeestatuses = Employee::getStatusEmployeeOptions();
         $statuses = Employee::getStatusOptions();
-        return view('pages.Employee.Employee', compact('departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns','groups','gradings'));
+        return view('pages.Employee.Employee', compact('departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
     }
     public function getActivities(Request $request)
     {
@@ -129,7 +128,7 @@ class EmployeeController extends Controller
             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
             ->leftJoin('banks_tables', 'banks_tables.id', '=', 'employees_tables.banks_id')
             ->select([
-                             'users.*',
+                'users.*',
                 'employees_tables.employee_name',
                 'employees_tables.employee_pengenal',
                 'employees_tables.bank_account_number',
@@ -301,56 +300,56 @@ class EmployeeController extends Controller
             ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
             ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
-          ->editColumn('created_at', function ($e) {
-    return optional($e->created_at)
-        ->timezone('Asia/Makassar')
-        ->translatedFormat('d F Y H:i');
-})
+            ->editColumn('created_at', function ($e) {
+                return optional($e->created_at)
+                    ->timezone('Asia/Makassar')
+                    ->translatedFormat('d F Y H:i');
+            })
 
-->editColumn('join_date', function ($e) {
-    return $e->join_date
-        ? Carbon::parse($e->join_date)
-            ->timezone('Asia/Makassar')
-            ->translatedFormat('d F Y')
-        : '-';
-})
-->editColumn('end_date', function ($e) {
-    return $e->end_date
-        ? Carbon::parse($e->end_date)
-            ->timezone('Asia/Makassar')
-            ->translatedFormat('d F Y')
-        : '-';
-})
+            ->editColumn('join_date', function ($e) {
+                return $e->join_date
+                    ? Carbon::parse($e->join_date)
+                    ->timezone('Asia/Makassar')
+                    ->translatedFormat('d F Y')
+                    : '-';
+            })
+            ->editColumn('end_date', function ($e) {
+                return $e->end_date
+                    ? Carbon::parse($e->end_date)
+                    ->timezone('Asia/Makassar')
+                    ->translatedFormat('d F Y')
+                    : '-';
+            })
             ->rawColumns(['action'])
             ->make(true);
     }
     public function exportEmployeesall(Request $request)
-{
-     $filters = [
-        'filter_company'    => $request->query('filter_company'),
-        'filter_department' => $request->query('filter_department'),
-        'filter_group'      => $request->query('filter_group'),
-        'filter_grading'    => $request->query('filter_grading'),
-        'filter_store'      => $request->query('filter_store'),
-        'filter_emp_status' => $request->query('filter_emp_status'),
-        'filter_status'     => $request->query('filter_status'),
-        'filter_los'        => $request->query('filter_los'),
-        'filter_bank'        => $request->query('filter_bank'),
-        'filter_gender'        => $request->query('filter_gender'),
-        'filter_marriage'        => $request->query('filter_marriage'),
-        'filter_religion'        => $request->query('filter_religion'),
-        'filter_last_education'        => $request->query('filter_last_education'),
-    ];
-    // dd($filters); // cek dulu, hapus setelah confirmed
-    
-    $fileName = 'employeesall_' . Carbon::now()->format('Ymd_His');
+    {
+        $filters = [
+            'filter_company'    => $request->query('filter_company'),
+            'filter_department' => $request->query('filter_department'),
+            'filter_group'      => $request->query('filter_group'),
+            'filter_grading'    => $request->query('filter_grading'),
+            'filter_store'      => $request->query('filter_store'),
+            'filter_emp_status' => $request->query('filter_emp_status'),
+            'filter_status'     => $request->query('filter_status'),
+            'filter_los'        => $request->query('filter_los'),
+            'filter_bank'        => $request->query('filter_bank'),
+            'filter_gender'        => $request->query('filter_gender'),
+            'filter_marriage'        => $request->query('filter_marriage'),
+            'filter_religion'        => $request->query('filter_religion'),
+            'filter_last_education'        => $request->query('filter_last_education'),
+        ];
+        // dd($filters); // cek dulu, hapus setelah confirmed
 
-    if ($request->query('type') === 'csv') {
-        return Excel::download(new EmployeesExportall($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        $fileName = 'employeesall_' . Carbon::now()->format('Ymd_His');
+
+        if ($request->query('type') === 'csv') {
+            return Excel::download(new EmployeesExportall($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
     }
-
-    return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
-}
     public function getEmployees(Request $request)
     {
         $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
@@ -372,9 +371,9 @@ class EmployeeController extends Controller
             ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
             ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
-            
-  ->select([
-                 'users.*',
+
+            ->select([
+                'users.*',
                 'employees_tables.employee_name',
                 'employees_tables.employee_pengenal',
                 'employees_tables.status_employee',
@@ -473,34 +472,34 @@ class EmployeeController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    
-public function exportEmployees(Request $request)
-{
-    // ❌ Masalah - only() kadang tidak baca query string
-    // $filters = $request->only([...]);
 
-    // ✅ Ambil manual dari query string
-    $filters = [
-        'filter_company'    => $request->query('filter_company'),
-        'filter_department' => $request->query('filter_department'),
-        'filter_group'      => $request->query('filter_group'),
-        'filter_grading'    => $request->query('filter_grading'),
-        'filter_store'      => $request->query('filter_store'),
-        'filter_emp_status' => $request->query('filter_emp_status'),
-        'filter_status'     => $request->query('filter_status'),
-        'filter_los'        => $request->query('filter_los'),
-    ];
+    public function exportEmployees(Request $request)
+    {
+        // ❌ Masalah - only() kadang tidak baca query string
+        // $filters = $request->only([...]);
 
-    // dd($filters); // cek dulu, hapus setelah confirmed
-    
-    $fileName = 'employees_' . Carbon::now()->format('Ymd_His');
+        // ✅ Ambil manual dari query string
+        $filters = [
+            'filter_company'    => $request->query('filter_company'),
+            'filter_department' => $request->query('filter_department'),
+            'filter_group'      => $request->query('filter_group'),
+            'filter_grading'    => $request->query('filter_grading'),
+            'filter_store'      => $request->query('filter_store'),
+            'filter_emp_status' => $request->query('filter_emp_status'),
+            'filter_status'     => $request->query('filter_status'),
+            'filter_los'        => $request->query('filter_los'),
+        ];
 
-    if ($request->query('type') === 'csv') {
-        return Excel::download(new EmployeesExport($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        // dd($filters); // cek dulu, hapus setelah confirmed
+
+        $fileName = 'employees_' . Carbon::now()->format('Ymd_His');
+
+        if ($request->query('type') === 'csv') {
+            return Excel::download(new EmployeesExport($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new EmployeesExport($filters), $fileName . '.xlsx');
     }
-
-    return Excel::download(new EmployeesExport($filters), $fileName . '.xlsx');
-}
 
     public function edit($hashedId)
     {
@@ -760,22 +759,16 @@ public function exportEmployees(Request $request)
             'photos.max' => 'photos must under 512 kb.',
 
         ]);
-        $filePath = null;
+       $filePath = null;
 
-        if ($request->hasFile('photos')) {
-            $file = $request->file('photos');
+if ($request->hasFile('photos')) {
+    $file     = $request->file('photos');
+    $safeName = Str::slug($request->employee_name);
+    $fileName = $safeName . '.' . $file->getClientOriginalExtension();
+    $folder   = 'employees-photos';
 
-            if ($file->getSize() > 512 * 1024) {
-                return back()->withErrors(['photos' => 'Photos must be under 512 KB']);
-            }
-
-            $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
-            $folderPath = 'employeesphotos/' . date('Y/m'); // rapi per tahun/bulan
-
-            // Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-            Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-            $filePath = $folderPath . '/' . $fileName;
-        }
+    $filePath = $file->storeAs($folder, $fileName, 'local');
+}
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -843,8 +836,8 @@ public function exportEmployees(Request $request)
             DB::rollBack();
 
 
-            if ($filePath && Storage::disk('public')->exists($filePath)) {
-                Storage::disk('public')->delete($filePath);
+            if ($filePath && Storage::disk('local')->exists($filePath)) {
+                Storage::disk('local')->delete($filePath);
             }
         }
         return redirect()->back()
@@ -939,24 +932,39 @@ public function exportEmployees(Request $request)
         try {
             DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
 
+                // if ($request->hasFile('photos')) {
+                //     $file = $request->file('photos');
+
+                //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
+                //         $file->getClientOriginalExtension();
+
+                //     $folderPath = 'employeesphotos/' . date('Y/m');
+
+                //     Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+
+                //     $newFilePath = $folderPath . '/' . $fileName;
+
+                //     if ($filePath && Storage::disk('public')->exists($filePath)) {
+                //         Storage::disk('public')->delete($filePath);
+                //     }
+
+                //     $filePath = $validatedData['photos'] = $newFilePath;
+                // }
                 if ($request->hasFile('photos')) {
-                    $file = $request->file('photos');
+    $file     = $request->file('photos');
+    $safeName = Str::slug($request->employee_name);
+    $fileName = $safeName . '.' . $file->getClientOriginalExtension();
+    $folder   = 'employees-photos';
 
-                    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-                        $file->getClientOriginalExtension();
+    // Hapus foto lama
+    if ($filePath && Storage::disk('local')->exists($filePath)) {
+        Storage::disk('local')->delete($filePath);
+    }
 
-                    $folderPath = 'employeesphotos/' . date('Y/m');
-
-                    Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-
-                    $newFilePath = $folderPath . '/' . $fileName;
-
-                    if ($filePath && Storage::disk('public')->exists($filePath)) {
-                        Storage::disk('public')->delete($filePath);
-                    }
-
-                    $filePath = $validatedData['photos'] = $newFilePath;
-                }
+    // Upload baru
+    $filePath = $file->storeAs($folder, $fileName, 'local');
+    $validatedData['photos'] = $filePath;
+}
                 /** --------------------------
                  *  Lock employee row
                  * -------------------------*/
@@ -1061,8 +1069,8 @@ public function exportEmployees(Request $request)
                         'month_year' => $month_year,
                         'created_at' => now(),
                         'updated_at' => now(),
-                        ]);
-                        $transferred++;
+                    ]);
+                    $transferred++;
                 } else {
                     $skipped++;
                 }

@@ -58,7 +58,7 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -181,6 +181,12 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">SK Name</th>
+                                                <th class="text-center">Nickname</th>
+                                                <th class="text-center">Categories</th>
+                                                <th class="text-center">Generates Contract</th>
+                                                <th class="text-center">Affects Salaries</th>
+                                                <th class="text-center">Affects Position</th>
+                                                <th class="text-center">Affects Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -197,7 +203,7 @@
                     </div>
                 </div>
             </div>
-          
+
         </section>
     </div>
 @endsection
@@ -223,12 +229,67 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'sk_name',
                         name: 'sk_name',
                         className: 'text-center'
                     },
+                    {
+                        data: 'nickname',
+                        name: 'nickname',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'categories',
+                        name: 'categories',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'generates_contract',
+                        name: 'generates_contract',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<span class="badge badge-success">Yes</span>';
+                            }
+                            return '<span class="badge badge-danger">No</span>';
+                        }
+                    },
+                    {
+                        data: 'affects_salary',
+                        name: 'affects_salary',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<span class="badge badge-success">Yes</span>';
+                            }
+                            return '<span class="badge badge-danger">No</span>';
+                        }
+                    },
+                    {
+                        data: 'affects_position',
+                        name: 'affects_position',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<span class="badge badge-success">Yes</span>';
+                            }
+                            return '<span class="badge badge-danger">No</span>';
+                        }
+                    },
+                    {
+                        data: 'affects_status',
+                        name: 'affects_status',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<span class="badge badge-success">Yes</span>';
+                            }
+                            return '<span class="badge badge-danger">No</span>';
+                        }
+                    },
+
+
                     {
                         data: 'action',
                         name: 'action',
@@ -253,5 +314,4 @@
 
         });
     </script>
-    
 @endpush

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Collection;
-use Svg\Tag\Group;
+// use Svg\Tag\Group;
 use App\Models\Roster;
 use App\Models\Schedule;
 class Employee extends Model
@@ -31,6 +31,8 @@ class Employee extends Model
     protected $fillable = [
         'employee_name',
         'photos',
+        'kk_photos',
+        'ktp_photos',
         'signature',
         'employee_pengenal',
         'position_id',
@@ -177,10 +179,33 @@ class Employee extends Model
     {
         return $this->hasOne(User::class, 'employee_id');
     }
-    // public function getLengthOfServiceAttribute()
-    // {
-    //     return $this->created_at->diffInDays(now()) . ' days';
-    // }
+    public function documents()
+{
+    return $this->hasMany(Documents::class, 'employee_id', 'id');
+}
+  public function skletters()
+{
+    return $this->belongsToMany(
+        SkLetter::class,
+        'sk_letter_employees',
+        'employee_id',
+        'sk_letter_id'
+    )->using(SkLetterEmployee::class)
+     ->withPivot([
+         'id',
+         'previous_structure_id',
+         'new_structure_id',
+         'position_id',
+         'group_id',
+         'grading_id',
+         'department_id',
+         'basic_salary',
+         'positional_allowance',
+         'daily_rate',
+         'notes',
+     ])
+     ->withTimestamps();
+}
     public function getLengthOfServiceAttribute()
 {
     // Jika status bukan Active atau Pending → kosong
@@ -344,7 +369,9 @@ class Employee extends Model
                 ];
                 $fieldLabels = [
                     'employee_name' => 'Employee Name',
-                    'foto' => 'Photo',
+                    'photos' => 'Photo',
+                    'kk_photos' => 'KK Photos',
+                    'ktp_photos' => 'KTP Photos',
                     'position_id' => 'Position',
                     'company_id' => 'Company',
                     'store_id' => 'Location',

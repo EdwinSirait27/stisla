@@ -17,11 +17,11 @@
 
         <li class="dropdown"><a href="#" data-toggle="dropdown"
                 class="nav-link dropdown-toggle nav-link-lg nav-link-user">
-                <img alt="image"
-                    src="{{ Auth::user()->employee->photos
-                        ? asset('storage/' . Auth::user()->employee->photos)
-                        : asset('img/avatar/avatar-1.png') }}"
-                    class="rounded-circle mr-1 no-drag">
+               <img alt="image"
+     src="{{ Auth::user()->employee->photos
+         ? route('useremployee.photo', basename(Auth::user()->employee->photos))
+         : asset('img/avatar/avatar-1.png') }}"
+     class="rounded-circle mr-1 no-drag">
                 <div class="d-sm-none d-lg-inline-block">Hi,
                     @auth
                         {{ auth()->user()->employee->employee_name }}

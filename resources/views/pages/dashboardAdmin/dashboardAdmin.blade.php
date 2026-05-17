@@ -185,6 +185,7 @@
                                             <tr>
                                                 <th class="text-center">Choose</th>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Grading</th>
                                                 <th class="text-center">Store</th>
                                                 <th class="text-center">Position</th>
                                                 <th class="text-center">Pin</th>
@@ -255,6 +256,11 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_name',
+                        name: 'Employee.grading.grading_name',
                         className: 'text-center'
                     },
                     {

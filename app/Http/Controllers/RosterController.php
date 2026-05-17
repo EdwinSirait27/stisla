@@ -13,8 +13,25 @@ class RosterController extends Controller
     public function index(Request $request)
     {
         $stores    = Stores::select('id', 'name')->whereNotNull('name')->orderBy('name')->get();
-        $startDate = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
-        $endDate   = $request->end_date   ?? Carbon::now()->endOfMonth()->toDateString();
+        // $startDate = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
+        // $endDate   = $request->end_date   ?? Carbon::now()->endOfMonth()->toDateString();
+        $today = Carbon::now();
+
+if ($today->day >= 26) {
+    // Periode: 26 bulan ini - 25 bulan depan
+    $startDate = $request->start_date 
+        ?? $today->copy()->day(26)->toDateString();
+
+    $endDate = $request->end_date 
+        ?? $today->copy()->addMonth()->day(25)->toDateString();
+} else {
+    // Periode: 26 bulan lalu - 25 bulan ini
+    $startDate = $request->start_date 
+        ?? $today->copy()->subMonth()->day(26)->toDateString();
+
+    $endDate = $request->end_date 
+        ?? $today->copy()->day(25)->toDateString();
+}
         $storeId   = $request->store_id;
         $employees = collect();
         $shifts    = collect();

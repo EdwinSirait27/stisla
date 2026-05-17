@@ -112,7 +112,7 @@
         .field-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: .75rem;
+            gap: 1rem;
         }
 
         .field-group {
@@ -448,12 +448,21 @@
                                         <label><i class="fas fa-user"></i> Employee Name</label>
                                         <select name="employee_id" id="employee_id" class="select2 form-control" required>
                                             <option value="">Choose Employee</option>
-                                            @foreach ($employees as $id => $employee)
+                                            {{-- @foreach ($employees as $id => $employee)
                                                 <option value="{{ $id }}"
                                                     {{ old('employee_id') == $id ? 'selected' : '' }}>
-                                                    {{ $employee }}
+                                                    {{ $employee }} - {{$employee->structuresnew->submissionposition->positionRelation->name}}
                                                 </option>
-                                            @endforeach
+                                            @endforeach --}}
+                                            @foreach ($employees as $employee)
+    <option value="{{ $employee->id }}"
+        {{ old('employee_id') == $employee->id ? 'selected' : '' }}>
+        
+        {{ $employee->employee_name }} 
+        - {{ $employee->structuresnew?->submissionposition?->positionRelation?->name ?? 'No Structure' }}
+        
+    </option>
+@endforeach
                                         </select>
                                         @error('employee_id')
                                             <span class="invalid-feedback">{{ $message }}</span>

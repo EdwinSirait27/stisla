@@ -674,7 +674,6 @@ class FingerprintsController extends Controller
             'isEdited' => false,
         ]);
     }
-
     public function updateFingerprint(Request $request)
     {
         try {

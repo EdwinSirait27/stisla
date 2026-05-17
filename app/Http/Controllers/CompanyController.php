@@ -18,7 +18,7 @@ class CompanyController extends Controller
     }
     public function getCompanys()
     {
-        $companys = Company::select(['id', 'foto', 'name', 'address', 'npwp','nickname','remark'])
+        $companys = Company::select(['id', 'foto', 'name', 'address', 'npwp','nickname','remark','header','website','email'])
             ->get()
             ->map(function ($company) {
                 $company->id_hashed = substr(hash('sha256', $company->id . env('APP_KEY')), 0, 8);
@@ -63,6 +63,15 @@ public function store(Request $request)
     $validatedData = $request->validate([
         'name' => [
             'required', 'string', 'max:255', 'unique:company_tables,name', new NoXSSInput()
+        ],
+        'header' => [
+            'required', 'string', 'max:255',new NoXSSInput()
+        ],
+        'website' => [
+            'required', 'string', 'max:255',new NoXSSInput()
+        ],
+        'email' => [
+            'required', 'string', 'max:255',new NoXSSInput()
         ],
         'address' => [
             'required', 'string', 'max:255', new NoXSSInput()
@@ -116,6 +125,9 @@ public function store(Request $request)
             'foto' => $filePath,
             'name' => $validatedData['name'],
             'remark' => $validatedData['remark'],
+            'header' => $validatedData['header'],
+            'website' => $validatedData['website'],
+            'email' => $validatedData['email'],
             'npwp' => $validatedData['npwp'],
             'nickname' => $validatedData['nickname'],
             'address' => $validatedData['address'],
@@ -165,6 +177,15 @@ public function store(Request $request)
         'nickname' => [
             'required', 'string', 'max:255', new NoXSSInput()
         ],
+        'header' => [
+            'required', 'string', 'max:255', new NoXSSInput()
+        ],
+        'website' => [
+            'required', 'string', 'max:255', new NoXSSInput()
+        ],
+        'email' => [
+            'required', 'string', 'max:255', new NoXSSInput()
+        ],
         'remark' => [
             'required', 'string', new NoXSSInput()
         ],
@@ -205,22 +226,21 @@ public function store(Request $request)
             if ($filePath && Storage::exists('public/' . $filePath)) {
                 Storage::delete('public/' . $filePath);
             }
-
             $filePath = $newFilePath;
         }
-
         // ✅ Update data
         $company->update([
             'name' => $validatedData['name'],
             'nickname' => $validatedData['nickname'],
+            'header' => $validatedData['header'],
+            'website' => $validatedData['website'],
+            'email' => $validatedData['email'],
             'remark' => $validatedData['remark'],
             'address' => $validatedData['address'],
             'npwp' => $validatedData['npwp'],
             'foto' => $filePath,
         ]);
-
         DB::commit();
-
         return redirect()->route('pages.Company')->with('success', 'Company updated successfully!');
     } catch (\Exception $e) {
         DB::rollBack();
@@ -245,6 +265,4 @@ public function store(Request $request)
             'logo_url' => asset('storage/' . $company->foto),
         ]);
     }
-
-
 }

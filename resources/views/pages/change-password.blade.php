@@ -138,7 +138,7 @@
                                             </div>
                                             <small class="text-muted">
                                                 Password must contain at least 1 uppercase letter, 1 lowercase letter,
-                                                1 number, and 1 symbol. (8-20 chars)
+                                                1 number, and 1 symbol. (8-20 chars) for exmpl. mJmRet@il123
                                             </small>
                                         </div>
                                     </div>

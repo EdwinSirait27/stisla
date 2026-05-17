@@ -9,8 +9,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 
-class EmployeesExportall implements FromQuery, WithHeadings, WithMapping, WithStyles
+// class EmployeesExportall implements FromQuery, WithHeadings, WithMapping, WithStyles
+class EmployeesExportall extends DefaultValueBinder implements FromQuery, WithHeadings, WithMapping, WithStyles, WithCustomValueBinder
 {
     protected $filters;
 
@@ -178,11 +183,11 @@ class EmployeesExportall implements FromQuery, WithHeadings, WithMapping, WithSt
         $this->rowNumber,
         $e->status ?? 'Empty',
         $e->employee_name ?? 'Empty',
-        // $e->employee_pengenal ?? 'Empty',
-        $e->employee_pengenal ? "'" . $e->employee_pengenal : 'Empty',
+        $e->employee_pengenal ?? 'Empty',
+        // $e->employee_pengenal ? "'" . $e->employee_pengenal : 'Empty',
         $e->pin ?? 'Empty',
-        // $e->nik ?? 'Empty',
-        $e->nik ? "''" . $e->nik : 'Empty',
+        $e->nik ?? 'Empty',
+        // $e->nik ? "''" . $e->nik : 'Empty',
         $e->religion ?? 'Empty',
         $e->gender ?? 'Empty',
         $this->formatDate($e->date_of_birth),
@@ -198,21 +203,21 @@ class EmployeesExportall implements FromQuery, WithHeadings, WithMapping, WithSt
         $e->email ?? 'Empty',
         $e->pending_email ?? 'Empty',
         $e->company_email ?? 'Empty',
-        // $e->telp_number ?? 'Empty',
-                $e->telp_number ? "'" . $e->telp_number : 'Empty',
+        $e->telp_number ?? 'Empty',
+                // $e->telp_number ? "'" . $e->telp_number : 'Empty',
                 
-                // $e->pending_telp_number ?? 'Empty',
-                $e->pending_telp_number ? "'" . $e->pending_telp_number : 'Empty',
-                $e->bpjs_kes ? "'" . $e->bpjs_kes : 'Empty',
-                $e->bpjs_ket ? "'" . $e->bpjs_ket : 'Empty',
-                $e->npwp ? "'" . $e->npwp : 'Empty',
-        // $e->bpjs_kes ?? 'Empty',
-        // $e->bpjs_ket ?? 'Empty',
-        // $e->npwp ?? 'Empty',
+                $e->pending_telp_number ?? 'Empty',
+                // $e->pending_telp_number ? "'" . $e->pending_telp_number : 'Empty',
+                // $e->bpjs_kes ? "'" . $e->bpjs_kes : 'Empty',
+                // $e->bpjs_ket ? "'" . $e->bpjs_ket : 'Empty',
+                // $e->npwp ? "'" . $e->npwp : 'Empty',
+        $e->bpjs_kes ?? 'Empty',
+        $e->bpjs_ket ?? 'Empty',
+        $e->npwp ?? 'Empty',
         
         $e->bank_name ?? 'Empty',
-        // $e->bank_account_number ?? 'Empty',
-        $e->bank_account_number ? "'" . $e->bank_account_number : 'Empty',
+        $e->bank_account_number ?? 'Empty',
+        // $e->bank_account_number ? "'" . $e->bank_account_number : 'Empty',
 
         $e->name_company ?? 'Empty',
         $e->department_name ?? 'Empty',
@@ -235,4 +240,14 @@ class EmployeesExportall implements FromQuery, WithHeadings, WithMapping, WithSt
             1 => ['font' => ['bold' => true]],
         ];
     }
+public function bindValue(Cell $cell, $value): bool
+{
+    // Jika value adalah string numerik panjang (> 10 digit), paksa jadi text
+    if (is_string($value) && preg_match('/^\d{10,}$/', $value)) {
+        $cell->setValueExplicit($value, DataType::TYPE_STRING);
+        return true;
+    }
+
+    return parent::bindValue($cell, $value);
+}
 }

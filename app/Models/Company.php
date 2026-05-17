@@ -20,6 +20,9 @@ class Company extends Model
     protected $table = 'company_tables'; 
     protected $fillable = [
         'name',
+        'header',
+        'website',
+        'email',
         'foto',
         'address',
         'npwp',  
@@ -39,4 +42,20 @@ class Company extends Model
 {
     return $this->hasMany(Employee::class, 'company_id', 'id');
 }
+ public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = strtoupper($value);
+    }
+     public function setHeaderAttribute($value)
+    {
+        $this->attributes['header'] = strtoupper($value);
+    }
+     public function setAddressAttribute($value)
+    {
+        $this->attributes['address'] = strtoupper($value);
+    }
+     public function setNicknameAttribute($value)
+    {
+        $this->attributes['nickname'] = strtoupper($value);
+    }
 }

@@ -41,7 +41,7 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -78,14 +78,14 @@
 <div class="main-content">
     <section class="section">
         <div class="section-header">
-            <h1>Fingerprint Recap</h1>
+            <h1>Attendance Recap</h1>
         </div>
         <div class="section-body">
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h6><i class="fas fa-calendar-check"></i> Summary Hari Kerja Karyawan</h6>
+                            <h6><i class="fas fa-calendar-check"></i> Summary Employee Attendance</h6>
                         </div>
                         <div class="card-body">
                             <div class="row mb-2 align-items-end">
@@ -123,10 +123,10 @@
                                 <table class="table table-hover" id="recap-table">
                                     <thead>
                                         <tr>
-                                            <th class="text-center">Nama</th>
-                                            <th class="text-center">Store</th>
-                                            <th class="text-center">Total Hari Kerja</th>
-                                            <th class="text-center">Total Hari Telat</th>
+                                            <th class="text-center">Name</th>
+                                            <th class="text-center">Location</th>
+                                            <th class="text-center">Total Working Days</th>
+                                            <th class="text-center">Total Days Late</th>
                                             <th class="text-center">Remarks</th>
                                             <th class="text-center">Periode In</th>
                                             <th class="text-center">Periode Out</th>

@@ -226,27 +226,31 @@
                                                     </div>
                                                 </div>
                                             </div>
-
-
-
-                                            {{-- <div class="col-md-6">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="foto" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Company Images') }}
                                                     </label>
+
                                                     <div>
+                                                        {{-- Preview Image --}}
                                                         <div class="mb-2">
                                                             @if (!empty($company?->foto))
                                                                 <img id="preview-image"
-                                                                    src="{{ asset('storage/company' . $company->foto) }}"
-                                                                    alt="Preview" class="img-thumbnail" width="150">
+                                                                    src="{{ asset('storage/company/' . $company->foto) }}"
+                                                                    alt="Preview" class="img-thumbnail" width="150"
+                                                                    style="cursor:pointer"
+                                                                    onclick="showImageSwal(this.src)">
                                                             @else
                                                                 <img id="preview-image"
                                                                     src="https://via.placeholder.com/150" alt="Preview"
-                                                                    class="img-thumbnail" width="150">
+                                                                    class="img-thumbnail" width="150"
+                                                                    style="cursor:pointer"
+                                                                    onclick="showImageSwal(this.src)">
                                                             @endif
                                                         </div>
 
+                                                        {{-- File Input --}}
                                                         <input type="file" name="foto" id="foto" required
                                                             class="form-control @error('foto') is-invalid @enderror"
                                                             accept="image/*" onchange="previewImage(event)">
@@ -259,55 +263,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div> --}}
-                                        <div class="col-md-6">
-    <div class="form-group">
-        <label for="foto" class="form-control-label">
-            <i class="fas fa-id-card"></i> {{ __('Company Images') }}
-        </label>
-
-        <div>
-            {{-- Preview Image --}}
-            <div class="mb-2">
-                @if (!empty($company?->foto))
-                    <img id="preview-image"
-                        src="{{ asset('storage/company/' . $company->foto) }}"
-                        alt="Preview"
-                        class="img-thumbnail"
-                        width="150"
-                        style="cursor:pointer"
-                        onclick="showImageSwal(this.src)">
-                @else
-                    <img id="preview-image"
-                        src="https://via.placeholder.com/150"
-                        alt="Preview"
-                        class="img-thumbnail"
-                        width="150"
-                        style="cursor:pointer"
-                        onclick="showImageSwal(this.src)">
-                @endif
-            </div>
-
-            {{-- File Input --}}
-            <input
-                type="file"
-                name="foto"
-                id="foto"
-                required
-                class="form-control @error('foto') is-invalid @enderror"
-                accept="image/*"
-                onchange="previewImage(event)"
-            >
-
-            @error('foto')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-            @enderror
-        </div>
-    </div>
-</div>
-</div>
+                                        </div>
 
                                         <div class="row mt-3">
                                             <div class="col-md-6">
@@ -350,55 +306,111 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="npwp" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Company NPWP') }}
-                                                </label>
-                                                <div>
-                                                    <input class="form-control @error('npwp') is-invalid @enderror"
-                                                        value="{{ old('npwp', $company->npwp ?? '') }}" type="text"
-                                                        id="npwp" name="npwp" value="{{ old('npwp') }}"
-                                                        aria-describedby="info-npwp" maxlength="255"
-                                                        placeholder="Insert npwp Company">
-                                                    @error('npwp')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="npwp" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company NPWP') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('npwp') is-invalid @enderror"
+                                                            value="{{ old('npwp', $company->npwp ?? '') }}"
+                                                            type="text" id="npwp" name="npwp"
+                                                            value="{{ old('npwp') }}" aria-describedby="info-npwp"
+                                                            maxlength="255" placeholder="Insert npwp Company">
+                                                        @error('npwp')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="remark" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Remark') }}
+                                                    </label>
+                                                    <div>
+                                                        <select name="remark"
+                                                            class="form-control select2 @error('remark') is-invalid @enderror"
+                                                            required>
+                                                            <option value="">Choose Remark</option>
+                                                            @foreach ($remarks as $value)
+                                                                <option value="{{ $value }}"
+                                                                    {{ old('remark') == $value ? 'selected' : '' }}>
+                                                                    {{ $value }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('remark')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="remark" class="form-control-label">
-                                                    <i class="fas fa-id-card"></i> {{ __('Remark') }}
-                                                </label>
-                                                <div>
-                                                    {{-- <input class="form-control select2 @error('remark') is-invalid @enderror"
-                                                        value="{{ old('npwp', $company->npwp ?? '') }}" type="text"
-                                                        id="npwp" name="npwp" value="{{ old('npwp') }}"
-                                                        aria-describedby="info-npwp" maxlength="255"
-                                                        placeholder="Insert npwp Company"> --}}
-                                                           <select name="remark"
-                                                                class="form-control select2 @error('remark') is-invalid @enderror"
-                                                                required>
-                                                                <option value="">Choose Remark</option>
-                                                                @foreach ($remarks as $value)
-                                                                    <option value="{{ $value }}"
-                                                                        {{ old('remark') == $value ? 'selected' : '' }}>
-                                                                        {{ $value }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                    @error('remark')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
+                                          <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="header" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Header') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('header') is-invalid @enderror"
+                                                            value="{{ old('header', $company->header ?? '') }}"
+                                                            type="text" id="header" name="header"
+                                                            value="{{ old('header') }}" aria-describedby="info-header"
+                                                            maxlength="255" placeholder="Insert header Company">
+                                                        @error('header')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="website" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Website') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('website') is-invalid @enderror"
+                                                            value="{{ old('website', $company->website ?? '') }}"
+                                                            type="text" id="website" name="website"
+                                                            value="{{ old('website') }}" aria-describedby="info-website"
+                                                            maxlength="255" placeholder="Insert website Company">
+                                                        @error('website')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                              <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="email" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Email') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('email') is-invalid @enderror"
+                                                            value="{{ old('email', $company->email ?? '') }}"
+                                                            type="text" id="email" name="email"
+                                                            value="{{ old('email') }}" aria-describedby="info-email"
+                                                            maxlength="255" placeholder="Insert email Company">
+                                                        @error('email')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
 
                                         <div class="alert alert-secondary mt-4" role="alert">
                                             <span class="text-dark">

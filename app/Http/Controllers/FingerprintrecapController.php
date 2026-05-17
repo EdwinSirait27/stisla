@@ -62,6 +62,8 @@ class FingerprintrecapController extends Controller
             $employeesQuery = Employee::with('store:id,name')
                 ->select('id', 'employee_name', 'store_id')
                 ->whereNotNull('pin')
+    ->whereIn('status', ['Active', 'Mutation', 'Pending'])
+
                 ->whereNull('deleted_at');
 
             if ($storeName) {

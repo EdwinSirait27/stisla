@@ -243,12 +243,13 @@
 
 
                                                 </tr>
+                                                @role('HeadHR')
                                                 <tr>
                                                     <th>Salary</th>
                                                     <td>{{ $structure->salary->salary_start ?? '-' }} to
                                                         {{ $structure->salary->salary_end ?? '-' }}</td>
                                                 </tr>
-
+@endrole
                                                 <tr>
                                                     <th>Type</th>
                                                     <td>

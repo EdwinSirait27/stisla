@@ -93,12 +93,9 @@ class Submissionposition extends Model
             $actor = auth()->user()->employee->employee_name
                 ?? auth()->user()->name
                 ?? 'system';
-
             $target = optional($this->submitter)->employee_name ?? 'Unknown Employee';
-
             $changes = $this->getChanges();
             $original = $this->getOriginal();
-
             // Mapping relasi ID → nama entitas
             $relationNames = [
                 'position_id' => fn($id) => optional(Position::find($id))->name,
@@ -148,7 +145,7 @@ class Submissionposition extends Model
                 $changesInfo = $details ? "Changes: {$details}" : '';
             }
 
-            return "Submissionposition for {$target} has been {$eventName} by {$actor}. {$changesInfo}";
+            return "Position Request for {$target} has been {$eventName} by {$actor}. {$changesInfo}";
         });
 }
 

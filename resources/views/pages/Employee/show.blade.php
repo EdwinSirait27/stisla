@@ -903,15 +903,15 @@
                             <div class="form-section-label">Profile photo</div>
                             <div class="photo-upload-wrap">
                                 <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-image').src)">
-                                    @if (!empty($employee->Employee->photos))
-                                        <img id="preview-image"
-                                             src="{{ asset('storage/' . $employee->Employee->photos) }}"
-                                             alt="Preview">
-                                    @else
-                                        <img id="preview-image" src="https://via.placeholder.com/60"
-                                             alt="No photo" style="display:none">
-                                        <i class="fas fa-user" id="photo-placeholder"></i>
-                                    @endif
+                                    @if (!empty($employee->employee->photos))
+                                            <img id="preview-image"
+                                                src="{{ route('useremployee.photo', basename($employee->employee->photos)) }}"
+                                                alt="Preview">
+                                        @else
+                                            <img id="preview-image" src="https://via.placeholder.com/60" alt="No photo"
+                                                style="display:none">
+                                            <i class="fas fa-user" id="photo-placeholder"></i>
+                                        @endif
                                 </div>
                                 <div>
                                     <div class="photo-upload-hint">

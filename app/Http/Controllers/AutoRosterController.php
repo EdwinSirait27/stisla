@@ -217,18 +217,31 @@ class AutoRosterController extends Controller
             $storeIds = $stores->pluck('id')->toArray();
 
             // ── 3. Ambil semua karyawan di store target ──
-            $employees = Employee::with('store:id,name')
-                ->select('id', 'employee_name', 'store_id', 'religion')
-                ->whereIn('store_id', $storeIds)
-                ->whereNull('deleted_at')
-                ->get();
+            // $employees = Employee::with('store:id,name')
+            //     ->select('id', 'employee_name', 'store_id', 'religion')
+            //     ->whereIn('store_id', $storeIds)
+            //     ->whereNull('deleted_at')
+            //     ->get();
 
-            if ($employees->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak ada karyawan di store target.',
-                ], 422);
-            }
+            // if ($employees->isEmpty()) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Tidak ada karyawan di store target.',
+            //     ], 422);
+            // }
+            $employees = Employee::with('store:id,name')
+    ->select('id', 'employee_name', 'store_id', 'religion')
+    ->whereIn('store_id', $storeIds)
+    ->whereIn('status', ['Active', 'Mutation', 'Pending'])
+    ->whereNull('deleted_at')
+    ->get();
+
+if ($employees->isEmpty()) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Tidak ada karyawan di store target.',
+    ], 422);
+}
 
             // ── 4. Pre-load shifts per store ──
             $shifts = Shifts::whereIn('store_id', $storeIds)

@@ -8,8 +8,10 @@ use App\Models\Departments;
 use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Fingerprints;
+use App\Models\Contract;
 use App\Models\Submissions;
 use App\Models\Announcement;
+use App\Models\Submissionposition;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -137,7 +139,39 @@ class DashboardHRController extends Controller
 
         $trend = $presentToday - $presentYesterday;
 
+        // contracrt
+       // Controller - bersihkan, tanpa map()
+$todaycontract = Carbon::today();
+$limitDate = $todaycontract->copy()->addDays(30);
 
+$expiringContracts = Contract::with('employee')
+    ->whereDate('end_date', '>=', $todaycontract->toDateString())
+    ->whereDate('end_date', '<=', $limitDate->toDateString())
+    ->orderBy('end_date', 'asc')
+    ->limit(5)
+    ->get();
+
+$contractsExpiringCount = $expiringContracts->count();
+$expiringContracts = $expiringContracts->map(function ($c) {
+    $daysLeft = now()->diffInDays($c->end_date, false);
+    $c->days_left = $daysLeft;
+    $c->urgency_class = $daysLeft <= 7 ? 'urgent' : ($daysLeft <= 30 ? 'warning' : 'ok');
+    return $c;
+});
+// count
+$contractsExpiringCount = $expiringContracts->count();
+
+$positionRequests = Submissionposition::with('submitter') // kalau ada relasi
+  ->where('status', 'Sent')
+    ->latest() // urut terbaru
+    ->limit(10)
+    ->get();
+$positionRequests = $positionRequests->map(function ($p) {
+    $p->status_label = $p->status === 'Sent' ? 'Need Approval' : $p->status;
+    return $p;
+});
+// count total
+$positionRequestCount = Submissionposition::count();
 
         return view('pages.dashboardHR.dashboardHR', [
             'month'              => $month,
@@ -157,6 +191,10 @@ class DashboardHRController extends Controller
             'managedEmployees'   => $managedEmployees,
             'selectedType'       => $selectedType,
             'leaveData'          => $leaveData,
+            'expiringContracts'          => $expiringContracts,
+            'contractsExpiringCount'          => $contractsExpiringCount,
+            'positionRequests' => $positionRequests,
+    'positionRequestCount' => $positionRequestCount,
         ]);
     }
  public function employeeByDepartment()

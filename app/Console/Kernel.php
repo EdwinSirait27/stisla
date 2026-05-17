@@ -4,6 +4,9 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Jobs\GeneratePayrollIntroLetterJob;
+use App\Jobs\SendWhatsappReminder3Month;
+;
 
 class Kernel extends ConsoleKernel
 {
@@ -20,7 +23,12 @@ class Kernel extends ConsoleKernel
         $schedule->command('payrolls:delete-old')->daily();
         $schedule->command('leave:anniversary')->dailyAt('23:10');
         $schedule->command('reminder:probation')->dailyAt('08:00');
-
+        $schedule->job(new SendWhatsappReminder3Month)->dailyAt('08:00');
+    $schedule->command('reminder:probation')->dailyAt('08:00');
+ $schedule->job(new GeneratePayrollIntroLetterJob)
+           ->everyFiveMinutes()
+            ->name('generate-payroll-intro-letter')
+            ->withoutOverlapping();
     }
     /**
      * Register the commands for the application.

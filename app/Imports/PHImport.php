@@ -13,48 +13,66 @@ use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Illuminate\Validation\Rule;
 
 class PHImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure, SkipsOnError
 {
     use SkipsFailures, SkipsErrors, Importable;
 
-    public function model(array $row)
+    private function parseDate(mixed $value): ?string
     {
-        $date = is_numeric($row['date'])
-            ? Date::excelToDateTimeObject($row['date'])->format('Y-m-d')
-            : Carbon::parse($row['date'])->format('Y-m-d');
+        try {
+            return is_numeric($value)
+                ? Date::excelToDateTimeObject($value)->format('Y-m-d')
+                : Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception) {
+            return null;
+        }
+    }
+
+    public function model(array $row): ?Ph
+    {
+        $date   = $this->parseDate($row['date']);
+        $type   = trim($row['type']);
+        $remark = trim($row['remark']);
+
+        if (!$date) return null;
+
+        // Skip jika kombinasi type + date sudah ada (bypass unique, tidak error)
+        if (Ph::where('type', $type)->whereDate('date', $date)->exists()) {
+            return null;
+        }
 
         return new Ph([
-            'type'   => $row['type'],
+            'type'   => $type,
             'date'   => $date,
-            'remark' => $row['remark'],
+            'remark' => $remark,
         ]);
     }
 
     public function rules(): array
     {
         return [
-            '*.date' => [
+            '*.type'   => ['required', 'string', 'max:50'],
+            '*.date'   => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    $date = is_numeric($value)
-                        ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y-m-d')
-                        : \Carbon\Carbon::parse($value)->format('Y-m-d');
-
-                    if (\App\Models\Ph::whereDate('date', $date)->exists()) {
-                        $fail("The date {$date} has already been taken.");
+                    if (!$this->parseDate($value)) {
+                        $fail('Format tanggal tidak valid.');
                     }
                 },
             ],
+            '*.remark' => ['required', 'string', 'max:255'],
+        ];
+    }
 
-            '*.type'   => ['required', 'string'],
-
-            '*.remark' => [
-                'required',
-                'string',
-                Rule::unique('ph', 'remark'),
-            ],
+    public function customValidationMessages(): array
+    {
+        return [
+            '*.type.required'   => 'Kolom type wajib diisi.',
+            '*.type.max'        => 'Kolom type maksimal 50 karakter.',
+            '*.date.required'   => 'Kolom date wajib diisi.',
+            '*.remark.required' => 'Kolom remark wajib diisi.',
+            '*.remark.max'      => 'Kolom remark maksimal 255 karakter.',
         ];
     }
 }

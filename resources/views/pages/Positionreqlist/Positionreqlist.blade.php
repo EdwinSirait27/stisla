@@ -57,7 +57,7 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -247,22 +247,46 @@
                     searchPlaceholder: "Search...",
                 },
                 columns: [
+                    // {
+                    //     data: 'sub',
+                    //     name: 'sub',
+                    //     className: 'text-center'
+                    // },
                     {
-                        data: 'sub',
-                        name: 'sub',
-                        className: 'text-center'
-                    },
+    data: 'sub',
+    name: 'sub',
+    className: 'text-center',
+    render: function(data) {
+        return data ?? '-';
+    }
+},
                     {
-                        data: 'position_name',
-                        name: 'position_name',
-                        className: 'text-center'
-                    },
+    data: 'position_name',
+    name: 'position_name',
+    className: 'text-center',
+    render: function(data) {
+        return data ?? '-';
+    }
+},
+                    {
+    data: 'remark',
+    name: 'remark',
+    className: 'text-center',
+    render: function(data) {
+        return data ?? '-';
+    }
+},
+                    // {
+                    //     data: 'position_name',
+                    //     name: 'position_name',
+                    //     className: 'text-center'
+                    // },
                   
-                    {
-                        data: 'remark',
-                        name: 'remark',
-                        className: 'text-center'
-                    },
+                    // {
+                    //     data: 'remark',
+                    //     name: 'remark',
+                    //     className: 'text-center'
+                    // },
                  
                      {
                         data: 'status',
