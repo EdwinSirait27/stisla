@@ -122,7 +122,7 @@ class LoginController extends Controller
              */
             $dashboardRoutes = [
                 'Admin' => 'pages.dashboardAdmin',
-                'Human' => 'pages.Dashboard',
+                'Human' => 'pages.Dashboard.Dashboard',
                 'Manager' => 'pages.dashboardTeam',
                 'Director' => 'pages.dashboardDirector',
                 'HeadHR' => 'pages.dashboardHR',

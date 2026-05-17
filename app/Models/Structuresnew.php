@@ -55,7 +55,7 @@ class Structuresnew extends Model
     }
     public function allChildren()
     {
-        return $this->children()->with('allChildren', 'submissionposition.positionRelation');
+        return $this->children()->with('allChildren', 'employee', 'submissionposition.positionRelation');
     }
    
     public function secondarySupervisors()

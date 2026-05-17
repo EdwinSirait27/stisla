@@ -1047,6 +1047,45 @@
         .pulse-animation {
             animation: pulse 2s infinite;
         }
+
+        /* ===== Select2 Custom Style untuk Match Modal ===== */
+        .select2-container--default .select2-selection--single {
+            height: 44px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 6px 14px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 30px;
+            color: #344767;
+            font-size: 0.95rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 42px;
+        }
+
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .select2-dropdown {
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #667eea;
+        }
+
+        /* z-index biar di atas modal */
+        .select2-container--open {
+            z-index: 99999;
+        }       
     </style>
 @endpush
 
@@ -1374,7 +1413,11 @@
                                     <i class="fas fa-file-alt me-2"></i>
                                     My Submissions
                                 </h4>
-                                <button class="btn btn-primary btn-sm" id="newSubmissionBtn">
+                                <button type="button"
+                                        class="btn btn-primary btn-sm"
+                                        id="newSubmissionBtn"
+                                        data-toggle="modal"
+                                        data-target="#requestLeaveModal">
                                     <i class="fas fa-plus me-1"></i>
                                     New Request
                                 </button>
@@ -1617,47 +1660,61 @@
             </div>
         </section>
     </div>
-    <!-- Request Leave Modal -->
+
+    {{-- ═════════════════════════════════════════════════════════════
+          MODAL DIUBAH: Request Leave Modal (DINAMIS DARI DB)
+         - action: route('Leaverequest.store') (bukan Submissions.store)
+         - Dropdown jenis cuti dari $leaveBalances
+         - Field name: leave_balance_id, start_date, end_date, employee_reason
+         ═════════════════════════════════════════════════════════════ --}}
     <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <form action="{{ route('Submissions.store') }}" method="POST" id="leaveRequestForm">
+                <form id="leaveRequestForm">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="requestLeaveLabel">
                             <i class="fas fa-paper-plane me-2"></i>
-                            Request Leave
+                            Apply Leave
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" data-dismiss="modal"
+                        >
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <!-- Leave Type -->
+
+                        <!-- Jenis Cuti (DINAMIS dari leave_balances_tables) -->
                         <div class="mb-4">
-                            <label class="form-label" for="leave_type">
-                                <i class="fas fa-clipboard-list me-1"></i> Leave Type
+                            <label class="form-label" for="leave_balance_id">
+                                <i class="fas fa-clipboard-list me-1"></i> Type Leave
                             </label>
-                            <select name="type" id="leave_type" class="form-control" required>
-                                <option value="">Choose leave type</option>
-                                <option value="Annual Leave">Annual Leave</option>
-                                <option value="Sick Leave">Sick Leave</option>
-                                <option value="Casual Leave">Casual Leave</option>
-                                <option value="Emergency Leave">Emergency Leave</option>
+                            <select name="leave_balance_id" id="leave_balance_id" class="form-control" required>
+                                <option value="">-- Select type of leave --</option>
+                                @forelse(($leaveBalances ?? []) as $balance)
+                                    <option value="{{ $balance->id }}"
+                                            data-days="{{ $balance->balance_days }}"
+                                            data-name="{{ $balance->leaves->name ?? 'Leave' }}">
+                                        {{ $balance->leaves->name ?? 'Leave' }}
+                                        — Sisa: {{ $balance->balance_days }} days
+                                    </option>
+                                @empty
+                                    <option value="" disabled>No leave balance available</option>
+                                @endforelse
                             </select>
                         </div>
 
-                        <!-- Leave Balance Info -->
-                        <div class="alert alert-info mb-4" id="leaveBalanceInfo">
-                            <div class="d-flex justify-content-between">
+                        <!-- Available Balance Info (auto-update) -->
+                        <div class="alert alert-info mb-4" id="leaveBalanceInfo" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>Available Balance:</strong>
-                                    <span id="availableBalance">12 days</span>
+                                    <strong>Balance Available:</strong>
+                                    <span id="availableBalance">- days</span>
                                 </div>
                                 <div>
-                                    <strong>Total Allocation:</strong>
-                                    <span id="totalAllocation">14 days</span>
+                                    <strong>Leave Type:</strong>
+                                    <span id="selectedLeaveType">-</span>
                                 </div>
                             </div>
                         </div>
@@ -1668,14 +1725,15 @@
                                 <label class="form-label" for="start_date">
                                     <i class="fas fa-calendar-alt me-1"></i> Start Date
                                 </label>
-                                <input type="date" name="leave_date_from" id="start_date" class="form-control"
-                                    required>
+                                <input type="date" name="start_date" id="start_date" class="form-control"
+                                    min="{{ date('Y-m-d') }}" required>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label" for="end_date">
                                     <i class="fas fa-calendar-check me-1"></i> End Date
                                 </label>
-                                <input type="date" name="leave_date_to" id="end_date" class="form-control" required>
+                                <input type="date" name="end_date" id="end_date" class="form-control"
+                                    min="{{ date('Y-m-d') }}" required>
                             </div>
                         </div>
 
@@ -1687,30 +1745,29 @@
                             </div>
                         </div>
 
-                        <!-- Reason -->
-                        <div class="mb-3">
-                            <label class="form-label" for="leave_reason">
-                                <i class="fas fa-sticky-note me-1"></i> Reason
-                            </label>
-                            <textarea name="notes" id="leave_reason" class="form-control" rows="4"
-                                placeholder="Please provide a brief reason for your leave request..." required></textarea>
+                        <!-- Warning kalau durasi > saldo -->
+                        <div class="alert alert-danger mb-4" id="balanceWarning" style="display:none;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Insufficient leave balance!</strong>
+                            The requested duration exceeds your remaining leave days.
                         </div>
 
-                        <!-- Emergency Contact (for longer leaves) -->
-                        <div class="mb-3" id="emergencyContactDiv" style="display: none;">
-                            <label class="form-label" for="emergency_contact">
-                                <i class="fas fa-phone me-1"></i> Emergency Contact (Optional)
+                        <!-- Alasan -->
+                        <div class="mb-3">
+                            <label class="form-label" for="employee_reason">
+                                <i class="fas fa-sticky-note me-1"></i> Reason for Application
                             </label>
-                            <input type="text" name="emergency_contact" id="emergency_contact" class="form-control"
-                                placeholder="Contact number during leave">
+                            <textarea name="employee_reason" id="employee_reason" class="form-control" rows="4"
+                                placeholder="Write the reason for your leave application..." required></textarea>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">
                             <i class="fas fa-times me-1"></i> Cancel
                         </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i> Submit Request
+                        <button type="submit" class="btn btn-primary" id="submitLeaveBtn">
+                            <i class="fas fa-paper-plane me-1"></i> Apply Leave
                         </button>
                     </div>
                 </form>
@@ -1768,3 +1825,192 @@
         </div>
     </div>
 @endsection
+
+{{-- ═════════════════════════════════════════════════════════════
+       modal pengajuan cuti
+     ═════════════════════════════════════════════════════════════ --}}
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+           $('#requestLeaveModal').on('shown.bs.modal', function () {
+           $('#leave_balance_id').select2({
+            dropdownParent: $('#requestLeaveModal'),
+            placeholder: '-- select the type of leave --',
+            allowClear: true,
+            width: '100%',
+        });
+    });
+
+    // ✅ Destroy Select2 saat modal ditutup
+    $('#requestLeaveModal').on('hidden.bs.modal', function () {
+        $('#leave_balance_id').select2('destroy');
+    });
+
+    // ✅ Satu saja, tidak perlu dua
+    $('#leave_balance_id').on('select2:select select2:clear', function() {
+        this.dispatchEvent(new Event('change', { bubbles: true }));
+    }); 
+
+            const csrfToken        = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const leaveSelect      = document.getElementById('leave_balance_id');
+            const balanceInfo      = document.getElementById('leaveBalanceInfo');
+            const availableBalance = document.getElementById('availableBalance');
+            const selectedType     = document.getElementById('selectedLeaveType');
+            const startDate        = document.getElementById('start_date');
+            const endDate          = document.getElementById('end_date');
+            const durationDisplay  = document.getElementById('calculatedDuration');
+            const balanceWarning   = document.getElementById('balanceWarning');
+            const submitBtn        = document.getElementById('submitLeaveBtn');
+            const form             = document.getElementById('leaveRequestForm');
+
+            let maxDays = 0;
+
+            // ── Saat pilih jenis cuti → tampilkan saldo tersedia ──
+            leaveSelect?.addEventListener('change', function () {
+                const opt  = this.options[this.selectedIndex];
+                const days = parseInt(opt.dataset.days ?? 0);
+                const name = opt.dataset.name ?? '-';
+
+                if (this.value) {
+                    maxDays = days;
+                    availableBalance.textContent = days + ' days';
+                    selectedType.textContent = name;
+                    balanceInfo.style.display = 'block';
+                } else {
+                    balanceInfo.style.display = 'none';
+                    maxDays = 0;
+                }
+                calculateDuration();
+            });
+
+            // ── Hitung durasi otomatis ──
+            function calculateDuration() {
+                const start = startDate.value;
+                const end   = endDate.value;
+
+                if (!start || !end) {
+                    durationDisplay.textContent = '0 days';
+                    balanceWarning.style.display = 'none';
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                const startObj = new Date(start);
+                const endObj   = new Date(end);
+
+                if (endObj < startObj) {
+                    durationDisplay.textContent = 'End date cannot be before start date';
+                    durationDisplay.classList.add('text-danger');
+                    durationDisplay.classList.remove('text-primary');
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                const diffTime = endObj - startObj;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                durationDisplay.textContent = diffDays + ' days';
+                durationDisplay.classList.remove('text-danger');
+                durationDisplay.classList.add('text-primary');
+
+                if (maxDays > 0 && diffDays > maxDays) {
+                    balanceWarning.style.display = 'block';
+                    submitBtn.disabled = true;
+                } else {
+                    balanceWarning.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            }
+
+            startDate?.addEventListener('change', function () {
+                if (endDate) endDate.min = this.value;
+                calculateDuration();
+            });
+            endDate?.addEventListener('change', calculateDuration);
+
+            // ── Submit via AJAX ──
+            form?.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                if (!leaveSelect.value) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select the type of leave',
+                        text: 'Please select the type of leave first.',
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Submit Leave Request?',
+                    text: 'Please ensure the data is correct before submitting.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Submit',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#1976D2',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
+
+                    const payload = {
+                        leave_balance_id: document.getElementById('leave_balance_id').value,
+                        start_date:       document.getElementById('start_date').value,
+                        end_date:         document.getElementById('end_date').value,
+                        employee_reason:  document.getElementById('employee_reason').value,
+                    };
+
+                    fetch("{{ route('Leaverequest.store') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                    .then(async (res) => {
+                        const data = await res.json();
+                        return { ok: res.ok, data };
+                    })
+                    .then(({ ok, data }) => {
+                        if (ok && data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: data.message ?? 'Leave request submitted successfully.',
+                                confirmButtonText: 'OK',
+                            }).then(() => {
+                                $('#requestLeaveModal').modal('hide');
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed',
+                                text: data.message ?? 'An error occurred while submitting the request.',
+                            });
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: 'An error occurred while submitting the request.',
+                        });
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
+                    });
+                });
+            });
+        });
+    </script>
+@endpush

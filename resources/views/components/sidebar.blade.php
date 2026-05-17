@@ -284,6 +284,45 @@
                     </ul>
                 </li>
             @endrole
+
+            {{-- ════════════════════════════════════════════════════ --}}
+            {{-- TOIL System Menu (untuk SEMUA role yang login)        --}}
+            {{-- ════════════════════════════════════════════════════ --}}
+            <li class="nav-item dropdown {{ Request::is('toil*') ? 'active' : '' }}">
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
+                    <i class="fas fa-business-time"></i>
+                    <span>TOIL</span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li class="{{ Request::is('toil/balance') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('toil.balance') }}">Balance</a>
+                </li>
+                <li class="{{ Request::is('toil/history*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('toil.history') }}">History</a>
+                </li>
+
+                {{-- HR Only: Monitoring Saldo Semua Karyawan --}}
+                @hasanyrole('HeadHR|HR')
+                    <li class="{{ Request::is('toil/all-balances*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('toil.all-balances') }}">
+                            All Balances
+                        </a>
+                    </li>
+                @endhasanyrole
+
+                <li class="{{ Request::is('toil/assignment*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('toil.assignment.index') }}">
+                        Overtime Assignment
+                    </a>
+                </li>
+                <li class="{{ Request::is('toil/approval*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('toil.approval.index') }}">
+                    Approval
+                </a>
+            </li>
+        </ul>
+    </li>
+
         </ul>
     </aside>
 </div>
