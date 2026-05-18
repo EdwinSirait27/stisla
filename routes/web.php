@@ -712,7 +712,6 @@ Route::group(['middleware' => 'guest'], function () {
         Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
     });
 });
-
     // ── Guest routes (tanpa throttle, di-define ulang sesuai original) ──
     Route::group(['middleware' => 'guest'], function () {
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');

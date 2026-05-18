@@ -8,20 +8,13 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * Tabel untuk klaim TOIL Leave dari karyawan.
-     *
-     * Flow:
-     *  1. Karyawan request klaim → INSERT row dengan status='Pending'
-     *  2. Atasan approve → UPDATE status='Approved'
-     *                    → UPDATE toil_balances_tables.used_hours
-     *                    → UPDATE rosters_tables.day_type='Off'
-     *  3. Atasan reject → UPDATE status='Rejected' + rejected_reason
      */
     public function up(): void
     {
         Schema::create('toil_leave_requests_tables', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+          $table->charset = 'utf8mb4';        // ← tambah ini
+        $table->collation = 'utf8mb4_unicode_ci'; // ← tambah ini
+        $table->uuid('id')->primary();
 
             // Karyawan yang request
             $table->uuid('employee_id');
@@ -83,3 +76,4 @@ return new class extends Migration
         Schema::dropIfExists('toil_leave_requests_tables');
     }
 };
+
