@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
-use App\Models\PublicHoliday;
+use App\Models\Ph;
 use App\Models\Roster;
 use App\Models\Shifts;
 use App\Models\Stores;
@@ -189,7 +189,7 @@ if ($employees->isEmpty()) {
                 ], 422);
             }
 
-            $allPublicHolidays = PublicHoliday::whereBetween('date', [
+            $allPublicHolidays = Ph::whereBetween('date', [
                     $startDate->toDateString(),
                     $endDate->toDateString(),
                 ])
@@ -360,7 +360,7 @@ if ($employees->isEmpty()) {
 
             $totalDates = $startDate->diffInDays($endDate) + 1;
 
-            $phByType = PublicHoliday::query()
+            $phByType = Ph::query()
                 ->whereBetween('date', [
                     $startDate->toDateString(),
                     $endDate->toDateString(),
