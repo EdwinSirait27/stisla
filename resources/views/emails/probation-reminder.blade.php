@@ -72,7 +72,7 @@
 
         {{-- ===== ENGLISH ===== --}}
         <span class="badge">Probation Reminder — 3 Month</span>
-        <h2>Dear {{ $headHR->name }},</h2>
+        <h2>Dear {{ $headHR->employee_name ?? 'Dian Ruth Juniarti'}},</h2>
         <p>This is an automated reminder that the following employee has completed <span class="highlight">3 months</span> of employment as of today, <span class="highlight">{{ now()->format('d F Y') }}</span>.</p>
         <p>Please review their probation status and take the necessary action.</p>
 
@@ -104,7 +104,7 @@
 
         {{-- ===== INDONESIA ===== --}}
         <span class="badge">Pengingat Masa Percobaan — 3 Bulan</span>
-        <h2>Kepada Yth. {{ $headHR->name }},</h2>
+        <h2>Kepada Yth. {{ $headHR->employee_name ?? 'Dian Ruth Juniarti'}},</h2>
         <p>Ini adalah pengingat otomatis bahwa karyawan berikut telah menyelesaikan <span class="highlight">3 bulan</span> masa kerja terhitung hari ini, <span class="highlight">{{ now()->locale('id')->isoFormat('D MMMM Y') }}</span>.</p>
         <p>Mohon tinjau status masa percobaan karyawan tersebut dan ambil tindakan yang diperlukan.</p>
         <div class="info-box">
