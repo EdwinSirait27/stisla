@@ -12,7 +12,10 @@ use Illuminate\Queue\SerializesModels;
 class GeneratePayrollIntroLetterJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
+   public function __construct()
+    {
+        $this->onQueue('document');
+    }
     public function handle(DocumentGeneratorService $service): void
     {
         $service->generatePayrollIntroLetter();
