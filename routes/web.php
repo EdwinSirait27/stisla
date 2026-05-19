@@ -53,14 +53,14 @@ use App\Http\Controllers\ShiftsController;
 use App\Http\Controllers\PayrollcomponentsController;
 use App\Http\Controllers\FingerprintrecapController;
 use App\Http\Controllers\ManualRecapController;
-use App\Http\Controllers\AutoRosterController; 
+use App\Http\Controllers\AutoRosterController;
 use App\Http\Controllers\AutoRosterOtherStoreController;
 use App\Http\Controllers\ToilController;
 use App\Http\Controllers\ToilLeaveRequestsController;
 use App\Http\Controllers\OvertimesubmissionsController;
 
-use App\Http\Controllers\SkLetterController; 
-use App\Http\Controllers\UserrnrController; 
+use App\Http\Controllers\SkLetterController;
+use App\Http\Controllers\UserrnrController;
 use App\Models\Contract;
 /*
 |--------------------------------------------------------------------------
@@ -81,25 +81,25 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
 
     Route::get('/rnr', [UserrnrController::class, 'index'])
         ->name('pages.rnr');
-        Route::get('/my-sk-letter/{id}/download', [UserprofileController::class, 'downloadSkLetter'])
-    ->middleware('auth')
-    ->name('my-sk-letter.download');
-     // routes/web.php
-Route::get('/employee-photo/{filename}', [UserprofileController::class, 'servePhoto'])
-    ->name('useremployee.photo');
-Route::get('/employee-signature/{filename}', [UserprofileController::class, 'serveSignature'])
-    ->name('useremployeesignature.photo');
-Route::get('/employee-photo-kk/{filename}', [UserprofileController::class, 'servePhotokk'])
-    ->name('useremployeekk.photo');
-Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'servePhotoktp'])
-    ->name('useremployeektp.photo');
+    Route::get('/my-sk-letter/{id}/download', [UserprofileController::class, 'downloadSkLetter'])
+        ->middleware('auth')
+        ->name('my-sk-letter.download');
+    // routes/web.php
+    Route::get('/employee-photo/{filename}', [UserprofileController::class, 'servePhoto'])
+        ->name('useremployee.photo');
+    Route::get('/employee-signature/{filename}', [UserprofileController::class, 'serveSignature'])
+        ->name('useremployeesignature.photo');
+    Route::get('/employee-photo-kk/{filename}', [UserprofileController::class, 'servePhotokk'])
+        ->name('useremployeekk.photo');
+    Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'servePhotoktp'])
+        ->name('useremployeektp.photo');
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
         ->name('pages.change-password');
     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
         ->name('change-password.update');
     Route::put('/feature-profile/update', [UserprofileController::class, 'updateemailtelpphotos'])
         ->name('feature-profile.update');
-         Route::get('/profile/documents/{id}/download', [UserprofileController::class, 'downloadDocument'])
+    Route::get('/profile/documents/{id}/download', [UserprofileController::class, 'downloadDocument'])
         ->name('profile.documents.download');
     // ── Logout ──
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
@@ -209,7 +209,7 @@ Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'ser
     });
 
 
-      Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
+    Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
         Route::get('/datacontracts/datacontracts', [ContractController::class, 'getActivities'])->name('datacontracts.datacontracts');
 
         Route::get('/contract', [ContractController::class, 'index'])
@@ -220,9 +220,9 @@ Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'ser
         Route::get('/contract/show/{id}', [ContractController::class, 'show'])->name('showcontract');
         Route::put('/contract/{id}', [ContractController::class, 'update'])->name('updatecontract');
         Route::get('/contracts/contracts', [ContractController::class, 'getContracts'])->name('contracts.contracts');
-   Route::post('/contract/check-password', [ContractController::class, 'checkPassword'])
-    ->name('contract.password.ajax');
-        });
+        Route::post('/contract/check-password', [ContractController::class, 'checkPassword'])
+            ->name('contract.password.ajax');
+    });
 
     Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
         Route::get('/Fingerspot', [FingerspotController::class, 'index'])
@@ -286,6 +286,20 @@ Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'ser
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
             ->name('pages.Editedfinger');
         Route::match(['GET', 'POST'], '/editedfinger/editedfinger', [Editedfingerprints::class, 'getEditedfingerprints'])->name('editedfinger.editedfinger');
+
+
+        Route::prefix('manual-recap')->name('manual-recap.')->middleware(['auth'])->group(function () {
+            Route::get('/hr-list',    [ManualRecapController::class, 'hrList'])->name('hr-list');
+            Route::get('/shift-list', [ManualRecapController::class, 'shiftList'])->name('shift-list');
+            Route::post('/',          [ManualRecapController::class, 'store'])->name('store');
+        });
+
+        // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
+        Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
+            Route::get('/',       [FingerprintRecapController::class, 'index'])->name('index');
+            Route::post('/data',  [FingerprintRecapController::class, 'getData'])->name('data');
+            Route::post('/recap', [FingerprintRecapController::class, 'recap'])->name('recap');
+        });
     });
 
     // ── Shifts ──
@@ -580,99 +594,107 @@ Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'ser
 // ════════════════════════════════════════════════════════════════
 //   TOIL SYSTEM ROUTES
 // ════════════════════════════════════════════════════════════════
+// Route::group(['middleware' => ['auth', 'permission:toil']]->prefix('toil')->name('toil.')->group(function () {
 
-Route::middleware(['auth'])->prefix('toil')->name('toil.')->group(function () {
+// Route::middleware(['auth'])->prefix('toil')->name('toil.')->group(function () {
+Route::middleware(['auth', 'permission:toil'])
+    ->prefix('toil')
+    ->name('toil.')
+    ->group(function () {
+        // ─────────────────────────────────────────────────────────
+        //  KARYAWAN (semua user) — View Saldo & History
+        // ─────────────────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────────────────
-    //  KARYAWAN (semua user) — View Saldo & History
-    // ─────────────────────────────────────────────────────────
+        // My Balance
+        Route::get('balance', [ToilController::class, 'index'])
+            ->name('balance');
 
-    // My Balance
-    Route::get('balance', [ToilController::class, 'index'])
-        ->name('balance');
+        Route::get('balance/data', [ToilController::class, 'getDataActive'])
+            ->name('balance.data');
 
-    Route::get('balance/data', [ToilController::class, 'getDataActive'])
-        ->name('balance.data');
+        // My History
+        Route::get('history', [ToilController::class, 'history'])
+            ->name('history');
 
-    // My History
-    Route::get('history', [ToilController::class, 'history'])
-        ->name('history');
+        Route::get('history/assignments', [ToilController::class, 'getHistoryAssignments'])
+            ->name('history.assignments');
 
-    Route::get('history/assignments', [ToilController::class, 'getHistoryAssignments'])
-        ->name('history.assignments');
+        Route::get('history/leave-requests', [ToilController::class, 'getHistoryLeaveRequests'])
+            ->name('history.leave-requests');
 
-    Route::get('history/leave-requests', [ToilController::class, 'getHistoryLeaveRequests'])
-        ->name('history.leave-requests');
+        // ─────────────────────────────────────────────────────────
+        //  HR/HeadHR ONLY — All Balances Monitoring
+        // ─────────────────────────────────────────────────────────
+        Route::group(['middleware' => ['auth', 'permission:allbalances']], function () {
 
-    // ─────────────────────────────────────────────────────────
-    //  HR/HeadHR ONLY — All Balances Monitoring
-    // ─────────────────────────────────────────────────────────
+            Route::get('all-balances', [ToilController::class, 'allBalances'])
+                ->name('all-balances');
 
-    Route::middleware(['role:HeadHR|HR'])->group(function () {
-        Route::get('all-balances', [ToilController::class, 'allBalances'])
-            ->name('all-balances');
+            Route::get('all-balances/data', [ToilController::class, 'getAllBalancesData'])
+                ->name('all-balances.data');
+        });
 
-        Route::get('all-balances/data', [ToilController::class, 'getAllBalancesData'])
-            ->name('all-balances.data');
+        // ─────────────────────────────────────────────────────────
+        //  MANAGER ONLY — Assignment Lembur & TOIL Approval
+        // ─────────────────────────────────────────────────────────
+
+        // Route::middleware(['manager.store'])->group(function () {
+        Route::group(['middleware' => ['auth', 'permission:assignment']], function () {
+
+
+            // ── Assignment Lembur (Manager input lembur) ──
+            Route::get('assignment', [OvertimesubmissionsController::class, 'index'])
+                ->name('assignment.index');
+
+            Route::get('assignment/data', [OvertimesubmissionsController::class, 'getData'])
+                ->name('assignment.data');
+
+            // DashboardTeam - Assignment Lembur (Manager input lembur)
+            Route::get('assignment/subordinates', [OvertimesubmissionsController::class, 'getSubordinatesList'])
+                ->name('assignment.subordinates');
+
+            Route::post('assignment', [OvertimesubmissionsController::class, 'store'])
+                ->name('assignment.store');
+
+            Route::put('assignment/{id}', [OvertimesubmissionsController::class, 'update'])
+                ->name('assignment.update');
+
+            Route::delete('assignment/{id}', [OvertimesubmissionsController::class, 'destroy'])
+                ->name('assignment.destroy');
+
+
+            // ── TOIL Approval (Manager input klaim cuti TOIL + langsung approved) ──
+            Route::get('approval', [ToilLeaveRequestsController::class, 'approvalIndex'])
+                ->name('approval.index');
+
+            Route::get('approval/data', [ToilLeaveRequestsController::class, 'getApprovalData'])
+                ->name('approval.data');
+
+            Route::get('approval/saldo/{employeeId}', [ToilLeaveRequestsController::class, 'getEmployeeSaldoToil'])
+                ->name('approval.saldo');
+
+            Route::post('approval', [ToilLeaveRequestsController::class, 'store'])
+                ->name('approval.store');
+
+            Route::put('approval/{id}/cancel', [ToilLeaveRequestsController::class, 'cancelApproved'])
+                ->name('approval.cancel');
+        });
     });
-
-    // ─────────────────────────────────────────────────────────
-    //  MANAGER ONLY — Assignment Lembur & TOIL Approval
-    // ─────────────────────────────────────────────────────────
-
-    Route::middleware(['manager.store'])->group(function () {
-
-        // ── Assignment Lembur (Manager input lembur) ──
-        Route::get('assignment', [OvertimesubmissionsController::class, 'index'])
-            ->name('assignment.index');
-
-        Route::get('assignment/data', [OvertimesubmissionsController::class, 'getData'])
-            ->name('assignment.data');
-        
-        // DashboardTeam - Assignment Lembur (Manager input lembur)
-        Route::get('assignment/subordinates', [OvertimesubmissionsController::class, 'getSubordinatesList'])
-            ->name('assignment.subordinates');
-
-        Route::post('assignment', [OvertimesubmissionsController::class, 'store'])
-            ->name('assignment.store');
-
-        Route::put('assignment/{id}', [OvertimesubmissionsController::class, 'update'])
-            ->name('assignment.update');
-
-        Route::delete('assignment/{id}', [OvertimesubmissionsController::class, 'destroy'])
-            ->name('assignment.destroy');
-        
-
-        // ── TOIL Approval (Manager input klaim cuti TOIL + langsung approved) ──
-        Route::get('approval', [ToilLeaveRequestsController::class, 'approvalIndex'])
-            ->name('approval.index');
-
-        Route::get('approval/data', [ToilLeaveRequestsController::class, 'getApprovalData'])
-            ->name('approval.data');
-
-        Route::get('approval/saldo/{employeeId}', [ToilLeaveRequestsController::class, 'getEmployeeSaldoToil'])
-            ->name('approval.saldo');
-
-        Route::post('approval', [ToilLeaveRequestsController::class, 'store'])
-            ->name('approval.store');
-
-        Route::put('approval/{id}/cancel', [ToilLeaveRequestsController::class, 'cancelApproved'])
-            ->name('approval.cancel');
-    });
-});
 
 // ════════════════════════════════════════════════════════════════
 //   ROSTER & RELATED (di luar grup auth+role utama)
 // ════════════════════════════════════════════════════════════════
 
 // ── Roster (master shift Pagi/Siang/Malam) ──
-Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function () {
-    Route::get('/',             [RosterController::class, 'index'])      ->name('index');
-    Route::post('/store',       [RosterController::class, 'store'])      ->name('store');
-    Route::post('/destroy',     [RosterController::class, 'destroy'])    ->name('destroy');
-    Route::post('/bulk-assign', [RosterController::class, 'bulkAssign']) ->name('bulkAssign');
-    Route::post('/copy',        [RosterController::class, 'copyRoster']) ->name('copyRoster');
-    Route::post('/bulk-delete', [RosterController::class, 'bulkDelete']) ->name('bulkDelete');
+Route::prefix('roster')->name('roster.')->middleware(['auth', 'permission:roster'])->group(function () {
+    // Route::group(['middleware' => ['auth', 'permission:roster']], function () {
+
+    Route::get('/',             [RosterController::class, 'index'])->name('index');
+    Route::post('/store',       [RosterController::class, 'store'])->name('store');
+    Route::post('/destroy',     [RosterController::class, 'destroy'])->name('destroy');
+    Route::post('/bulk-assign', [RosterController::class, 'bulkAssign'])->name('bulkAssign');
+    Route::post('/copy',        [RosterController::class, 'copyRoster'])->name('copyRoster');
+    Route::post('/bulk-delete', [RosterController::class, 'bulkDelete'])->name('bulkDelete');
 
     // ── Auto Generate Roster (HO/Holding/DC) ──
     Route::get('/auto-generate/preview', [AutoRosterController::class, 'preview'])->name('auto-generate.preview');
@@ -680,25 +702,14 @@ Route::prefix('roster')->name('roster.')->middleware(['auth'])->group(function (
 });
 
 // ── Auto Generate Other Store Roster ──
-Route::prefix('roster/auto-generate/other')->name('roster.auto-generate.other.')->group(function () {
+Route::prefix('roster/auto-generate/other')->middleware(['auth', 'permission:roster'])->name('roster.auto-generate.other.')->group(function () {
     Route::get('stores',  [AutoRosterOtherStoreController::class, 'listStores'])->name('stores');
     Route::get('preview', [AutoRosterOtherStoreController::class, 'preview'])->name('preview');
     Route::post('/',      [AutoRosterOtherStoreController::class, 'generate'])->name('generate');
 });
 
 // ── Manual Recap (+Add Recap feature) ──
-Route::prefix('manual-recap')->name('manual-recap.')->middleware(['auth'])->group(function () {
-    Route::get('/hr-list',    [ManualRecapController::class, 'hrList'])    ->name('hr-list');
-    Route::get('/shift-list', [ManualRecapController::class, 'shiftList']) ->name('shift-list');
-    Route::post('/',          [ManualRecapController::class, 'store'])     ->name('store');
-});
 
-// ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
-Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
-    Route::get('/',       [FingerprintRecapController::class, 'index'])   ->name('index');
-    Route::post('/data',  [FingerprintRecapController::class, 'getData']) ->name('data');
-    Route::post('/recap', [FingerprintRecapController::class, 'recap'])   ->name('recap');
-});
 
 // ════════════════════════════════════════════════════════════════
 //   GUEST ROUTES
@@ -712,22 +723,22 @@ Route::group(['middleware' => 'guest'], function () {
         Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
     });
 });
-    // ── Guest routes (tanpa throttle, di-define ulang sesuai original) ──
-    Route::group(['middleware' => 'guest'], function () {
-        Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
-        Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
+// ── Guest routes (tanpa throttle, di-define ulang sesuai original) ──
+Route::group(['middleware' => 'guest'], function () {
+    Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
+    Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
 });
 
- Route::group(['middleware' => ['permission:ManageSkLetters']], function () {
-        Route::get('/SkLetters', [SkLetterController::class, 'index'])
-            ->name('SkLetters');
-        Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
-        Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
-        Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
-        Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
-    ->name('SkLetters.show');
-        Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
-        Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
-   Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
-    ->name('SkLetters.pdf');
-        });
+Route::group(['middleware' => ['permission:ManageSkLetters']], function () {
+    Route::get('/SkLetters', [SkLetterController::class, 'index'])
+        ->name('SkLetters');
+    Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
+    Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
+    Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
+    Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
+        ->name('SkLetters.show');
+    Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
+    Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
+    Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
+        ->name('SkLetters.pdf');
+});
