@@ -678,7 +678,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
     // ════════════════════════════════════════════════════════════════
 
     // ── Roster (master shift Pagi/Siang/Malam) ──
-    Route::prefix('roster')->name('roster.')->middleware(['auth', 'permission:roster'])->group(function () {
+    Route::prefix('roster')->name('roster.')->middleware(['auth', 'permission:Managerosters'])->group(function () {
         // Route::group(['middleware' => ['auth', 'permission:roster']], function () {
 
         Route::get('/',             [RosterController::class, 'index'])->name('index');
@@ -694,7 +694,7 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
     });
 
     // ── Auto Generate Other Store Roster ──
-    Route::prefix('roster/auto-generate/other')->middleware(['auth', 'permission:roster'])->name('roster.auto-generate.other.')->group(function () {
+    Route::prefix('roster/auto-generate/other')->middleware(['auth', 'permission:Managerosters'])->name('roster.auto-generate.other.')->group(function () {
         Route::get('stores',  [AutoRosterOtherStoreController::class, 'listStores'])->name('stores');
         Route::get('preview', [AutoRosterOtherStoreController::class, 'preview'])->name('preview');
         Route::post('/',      [AutoRosterOtherStoreController::class, 'generate'])->name('generate');
