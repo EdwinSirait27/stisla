@@ -11,9 +11,7 @@ use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Facades\Log;
-
 
 class PHController extends Controller
 {
@@ -21,17 +19,45 @@ class PHController extends Controller
     {
         return view('pages.Pubholi.Pubholi');
     }
-    public function getPubholidays()
-    {
-        $pubholidays = Ph::select(['id', 'type', 'date', 'remark'])
-            ->get()
-            ->map(function ($pubholiday) {
-                return $pubholiday;
-            });
+    // public function getPubholidays()
+    // {
+    //     $pubholidays = Ph::select(['id', 'type', 'date', 'remark'])
+    //         ->get()
+    //         ->map(function ($pubholiday) {
+    //             return $pubholiday;
+    //         });
 
-        return DataTables::of($pubholidays)
-            ->make(true);
+    //     return DataTables::of($pubholidays)
+    //         ->make(true);
+    // }
+    
+
+public function getPubholidays(Request $request)
+{
+    $query = Ph::select([
+        'id',
+        'type',
+        'date',
+        'remark'
+    ]);
+    // Filter tanggal awal dan akhir
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereBetween('date', [
+            $request->start_date,
+            $request->end_date
+        ]);
     }
+
+    // Filter satu tanggal
+    if ($request->filled('date')) {
+        $query->whereDate('date', $request->date);
+    }
+
+    $pubholidays = $query->get();
+
+    return DataTables::of($pubholidays)
+        ->make(true);
+}
     public function indexphs()
     {
         $files = Storage::disk('public')->files('templatephs');

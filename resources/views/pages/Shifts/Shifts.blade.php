@@ -3,7 +3,16 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
-@endpush
+<style>
+    .select2-container {
+    width: 100% !important;
+}
+
+.select2-search__field {
+    width: 100% !important;
+}
+</style>
+    @endpush
 
 @section('main')
 <div class="main-content">
@@ -110,8 +119,34 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-    $('.select2').select2();
+// Select2 untuk filter luar modal
+$(document).ready(function () {
+
+    // select luar modal
+    $('#filterStore').select2({
+        width: '100%'
+    });
+
+    // ketika modal dibuka
+    $('#modalShift').on('shown.bs.modal', function () {
+
+        $('#shiftStore').select2({
+            dropdownParent: $('#modalShift'),
+            width: '100%'
+        });
+
+    });
+
+});
+</script>
+{{-- <script>
+        $('.select2').select2({
+            width: 'resolve' // atau bisa dihapus saja
+        });
+    </script> --}}
+<script>
 
     var table = $('#shifts-table').DataTable({
         processing: true,

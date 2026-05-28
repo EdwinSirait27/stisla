@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class SkMengingat extends Model
+class AssetCategories extends Model
 {
-   use HasFactory;
- protected $table = 'sk_mengingat';
+     use HasFactory;
+    protected $table = 'asset_categories';
     public $incrementing = false;
     protected $keyType = 'string';
- public $timestamps = false;
+
     protected static function boot()
     {
         parent::boot();
@@ -24,19 +24,11 @@ class SkMengingat extends Model
         });
     }
     protected $fillable = [
-        'sk_letter_id',
-        'content_mengingat',
-        'order_no'
+        'asset_category_name',
+        'description'
     ];
-    public function skletters()
+   public function setAssetCategoryNameAttribute($value)
     {
-        return $this->belongsTo(SkLetter::class, 'sk_letter_id', 'id');
+        $this->attributes['asset_category_name'] = strtoupper($value);
     }
-   
 }
-
-
-
-
-
-

@@ -239,72 +239,7 @@
                     </ul>
                 </li>
             @endrole
-            {{-- @role('HR')
-                <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ url('dashboardHR') }}"><i class="fas fa-house"></i>
-                        <span>Dashboard</span></a>
-                </li>
-                
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Employee</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">List Employees</a>
-                        </li>
-                        <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Master Data</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{Banks}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Banks') }}">Banks</a>
-                        </li>
-                        <li class="{{ Request::is('{Company}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Company') }}">Companies</a>
-                        </li>
-                        <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Position') }}">Position</a>
-                        </li>
-                        <li class="{{ Request::is('Department') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Department') }}">Departments</a>
-                        </li>
-                        <li class="{{ Request::is('Store') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Store') }}">Locations</a>
-                        </li>
-                        <li class="{{ Request::is('Grading') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
-                        </li>
-                        <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
-                        </li>
-                        <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
-                        </li>
-                    </ul>
-                </li>
-                <li
-                    class="nav-item dropdown {{ Request::is('Fingerprints', 'Editedfinger', 'roster*', 'schedule*', 'fingerprint-recap*') ? 'active' : '' }}">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Attendance</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerprints Data</a>
-                        </li>
-                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('roster.index') }}">Roster & Schedule</a>
-                        </li>
-                        <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
-                        </li>
-                    </ul>
-                </li>
-
-            @endrole
+            
 
             {{-- ════════════════════════════════════════════════════ --}}
             {{-- TOIL System Menu (untuk SEMUA role yang login)        --}}

@@ -192,5 +192,13 @@
                 confirmButtonColor: '#d33'
             });
         @endif
+        @if (session('warning'))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Warning',
+                text: '{{ session('warning') }}',
+                confirmButtonColor: '#f59e0b'
+            });
+        @endif
     </script>
 @endpush

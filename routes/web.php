@@ -24,6 +24,7 @@ use App\Http\Controllers\FingerspotController;
 use App\Http\Controllers\AttendanceimportController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\FingerprintsController;
+use App\Http\Controllers\AssetsController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\StructureSubmissionController;
@@ -57,6 +58,8 @@ use App\Http\Controllers\AutoRosterController;
 use App\Http\Controllers\AutoRosterOtherStoreController;
 use App\Http\Controllers\ToilController;
 use App\Http\Controllers\ToilLeaveRequestsController;
+use App\Http\Controllers\AssetCategoriesController;
+
 use App\Http\Controllers\OvertimesubmissionsController;
 
 use App\Http\Controllers\SkLetterController;
@@ -74,7 +77,7 @@ use App\Models\Contract;
 */
 
 Route::view('/test-wireui', 'test-wireui');
-Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor'])->group(function () {
+Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor|User'])->group(function () {
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
     Route::post('/savesign', [UserprofileController::class, 'save'])->name('save.signature');
@@ -321,7 +324,24 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
         Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
     });
-
+    Route::group(['middleware' => ['permission:ManageAssetcategories']], function () {
+        Route::get('/AssetCategories', [AssetCategoriesController::class, 'index'])
+            ->name('pages.AssetCategories');
+        Route::get('AssetCategories/create', [AssetCategoriesController::class, 'create'])->name('AssetCategories.create');
+        Route::post('/AssetCategories', [AssetCategoriesController::class, 'store'])->name('AssetCategories.store');
+        Route::get('/AssetCategories/edit/{id}', [AssetCategoriesController::class, 'edit'])->name('AssetCategories.edit');
+        Route::put('/AssetCategories/{id}', [AssetCategoriesController::class, 'update'])->name('AssetCategories.update');
+        Route::get('/assetcategories/assetcategories', [AssetCategoriesController::class, 'getAssetCategories'])->name('assetcategories.assetcategories');
+    });
+    Route::group(['middleware' => ['permission:ManageAssets']], function () {
+        Route::get('/Assets', [AssetsController::class, 'index'])
+            ->name('pages.Assets');
+        Route::get('Assets/create', [AssetsController::class, 'create'])->name('Assets.create');
+        Route::post('/Assets', [AssetsController::class, 'store'])->name('Assets.store');
+        Route::get('/Assets/edit/{id}', [AssetsController::class, 'edit'])->name('Assets.edit');
+        Route::put('/Assets/{id}', [AssetsController::class, 'update'])->name('Assets.update');
+        Route::get('/assets/assets', [AssetsController::class, 'getAssets'])->name('assets.assets');
+    });
     // ── Sktypes ──
     Route::group(['middleware' => ['permission:ManageSktypes']], function () {
         Route::get('/Sktype', [SKController::class, 'sktype'])
@@ -332,7 +352,6 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::put('/Sktype/{hashedId}', [SKController::class, 'update'])->name('Sktype.update');
         Route::get('/sktypes/sktypes', [SKController::class, 'getSktypes'])->name('sktypes.sktypes');
     });
-
     // ── Sktemplates ──
     Route::group(['middleware' => ['permission:ManageSktemplates']], function () {
         Route::get('/Sktemplate', [SktemplateController::class, 'sktemplate'])
@@ -699,37 +718,30 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::get('preview', [AutoRosterOtherStoreController::class, 'preview'])->name('preview');
         Route::post('/',      [AutoRosterOtherStoreController::class, 'generate'])->name('generate');
     });
-    
-    Route::group(['middleware' => ['permission:ManageSkLetters']], function () {
-    Route::get('/SkLetters', [SkLetterController::class, 'index'])
-        ->name('SkLetters');
-    Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
-    Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
-    Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
-    Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
-        ->name('SkLetters.show');
-    Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
-    Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
-    Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
-        ->name('SkLetters.pdf');
-});
-});
 
+    Route::group(['middleware' => ['permission:ManageSkLetters']], function () {
+        Route::get('/SkLetters', [SkLetterController::class, 'index'])
+            ->name('SkLetters');
+        Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
+        Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
+        Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
+        Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
+            ->name('SkLetters.show');
+        Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
+        Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
+        Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
+            ->name('SkLetters.pdf');
+    });
+});
 // ════════════════════════════════════════════════════════════════
 //   TOIL SYSTEM ROUTES
 // ════════════════════════════════════════════════════════════════
 // Route::group(['middleware' => ['auth', 'permission:toil']]->prefix('toil')->name('toil.')->group(function () {
-
 // Route::middleware(['auth'])->prefix('toil')->name('toil.')->group(function () {
-
-
 // ── Manual Recap (+Add Recap feature) ──
-
-
 // ════════════════════════════════════════════════════════════════
 //   GUEST ROUTES
 // ════════════════════════════════════════════════════════════════
-
 Route::group(['middleware' => 'guest'], function () {
     Route::middleware(['throttle:10,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
@@ -743,5 +755,3 @@ Route::group(['middleware' => 'guest'], function () {
     Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
     Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
 });
-
-

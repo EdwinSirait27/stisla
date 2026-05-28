@@ -1,17 +1,12 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
-
 class PublicHoliday extends Model
 {
     protected $table = 'ph';
-
     protected $keyType = 'string';
     public $incrementing = false;
-
     protected $fillable = [
         'type',
         'date',

@@ -421,6 +421,7 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+        
     </style>
 @endpush
 
@@ -758,21 +759,7 @@
                     }
                 },
                 columns: [
-                    /* 0 — Employee (name + NIP merged) */
-                    // {
-                    //     data: 'employee_name',
-                    //     render: function(data, type, row, meta) {
-                    //         const ini = initials(data);
-                    //         const sty = avatarStyle(data, meta.row);
-                    //         return `<div class="emp-cell">
-                    //         <div class="emp-avatar" style="${sty}">${ini}</div>
-                    //         <div>
-                    //             <div class="emp-avatar-name">${data || '-'}</div>
-                    //             <div class="emp-avatar-nip">NIP : ${row.employee_pengenal || ''}</div>
-                    //         </div>
-                    //     </div>`;
-                    //     }
-                    // },
+               
                     {
                         data: 'employee_name',
                         className: 'text-center',

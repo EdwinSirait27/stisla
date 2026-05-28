@@ -1163,45 +1163,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    {{-- <div>
-    <div class="profile-section-label">Signature</div>
-    <p class="text-muted small mb-3">Please create or update your signature</p>
 
-    @if (!empty22($user->employee->signature))
-        <div class="border rounded p-3 bg-light mb-3">
-            <p class="text-muted small mb-2">Current signature</p>
-            <div class="d-flex justify-content-center">
-                <img src="{{ route('useremployeesignature.photo', basename($user->employee->signature)) }}"
-                    class="img-fluid" style="height: 96px; object-fit: contain;">
-            </div>
-        </div>
-    @else
-        <form method="POST" action="{{ route('save.signature') }}" id="form-signature">
-            @csrf
-
-            <div class="border rounded p-3 bg-light mb-3" style="border-style: dashed !important;">
-                <p class="text-muted small mb-2">Draw your signature below</p>
-                <canvas id="signature-pad" class="w-100 bg-white rounded"
-                    style="height: 160px; cursor: crosshair;"></canvas>
-            </div>
-
-            <input type="hidden" name="signature" id="signature-input">
-
-            @error('signature')
-                <div class="text-danger mt-1 mb-2" style="font-size:.72rem">{{ $message }}</div>
-            @enderror
-
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-light border" id="clear-signature">
-                    <i class="fas fa-eraser"></i> Clear
-                </button>
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-floppy-disk"></i> Save
-                </button>
-            </div>
-        </form>
-    @endif
-</div> --}}
                                     <div>
                                         <div class="profile-section-label-ktp">Documents Pengantar Pembukaan Payroll</div>
                                         <div class="photo-upload-wrap-ktp">
@@ -1220,11 +1182,11 @@
                                     <div>
                                         <div class="profile-section-label-ktp">SK</div>
                                         <div class="photo-upload-wrap-ktp">
-                                            
+
                                             @if ($user->employee && $user->employee->skletters && $user->employee->skletters->isNotEmpty())
                                                 {{-- @foreach ($user->employee->skletters as $skletter) --}}
                                                 @foreach ($user->Employee->skletters->where('status', 'Draft') as $skletter)
-                                                {{-- @foreach ($user->Employee->skletters->where('status', 'Approved Managing Director') as $skletter) --}}
+                                                    {{-- @foreach ($user->Employee->skletters->where('status', 'Approved Managing Director') as $skletter) --}}
                                                     <a href="{{ route('my-sk-letter.download', $skletter->id) }}"
                                                         class="photo-upload-btn-ktp mt-1"
                                                         style="display:inline-block; text-decoration:none;">
@@ -1275,30 +1237,89 @@
                                                     class="img-fluid" style="height: 96px; object-fit: contain;">
                                             </div>
                                         </div>
+                                    
                                     @else
-                                        <form method="POST" action="{{ route('save.signature') }}" id="form-signature">
+                                        <form method="POST" action="{{ route('save.signature') }}" id="form-signature"
+                                            enctype="multipart/form-data">
                                             @csrf
 
-                                            <div class="border rounded p-3 bg-light mb-3" style="border-style: dashed !important;">
-                                                <p class="text-muted small mb-2">Draw your signature below</p>
-                                                <canvas id="signature-pad" class="w-100 bg-white rounded"
-                                                    style="height: 160px; cursor: crosshair;"></canvas>
-                                            </div>
-
-                                            <input type="hidden" name="signature" id="signature-input">
-
-                                            @error('signature')
-                                                <div class="text-danger mt-1 mb-2" style="font-size:.72rem">{{ $message }}</div>
-                                            @enderror
-
-                                            <div class="d-flex gap-2">
-                                                <button type="button" class="btn btn-sm btn-light border" id="clear-signature">
-                                                    <i class="fas fa-eraser"></i> Clear
+                                            {{-- Tab Navigation --}}
+                                            <div class="d-flex gap-2 mb-3">
+                                                <button type="button" class="btn btn-sm btn-primary" id="tab-draw"
+                                                    onclick="switchTab('draw')">
+                                                    <i class="fas fa-pen"></i> Draw
                                                 </button>
-                                                <button type="submit" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-floppy-disk"></i> Save Signature
+                                                <button type="button" class="btn btn-sm btn-light border"
+                                                    id="tab-import" onclick="switchTab('import')">
+                                                    <i class="fas fa-upload"></i> Import File
                                                 </button>
                                             </div>
+
+                                            {{-- Tab Draw --}}
+                                            <div id="section-draw">
+                                                <div class="border rounded p-3 bg-light mb-3"
+                                                    style="border-style: dashed !important;">
+                                                    <p class="text-muted small mb-2">Draw your signature below</p>
+                                                    <canvas id="signature-pad" class="w-100 bg-white rounded"
+                                                        style="height: 160px; cursor: crosshair;"></canvas>
+                                                </div>
+
+                                                <input type="hidden" name="signature" id="signature-input">
+
+                                                @error('signature')
+                                                    <div class="text-danger mt-1 mb-2" style="font-size:.72rem">
+                                                        {{ $message }}</div>
+                                                @enderror
+
+                                                <div class="d-flex gap-2 mb-3">
+                                                    <button type="button" class="btn btn-sm btn-light border"
+                                                        id="clear-signature">
+                                                        <i class="fas fa-eraser"></i> Clear
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- Tab Import --}}
+                                            <div id="section-import" style="display:none;">
+                                                <div class="border rounded p-3 bg-light mb-3"
+                                                    style="border-style: dashed !important;">
+                                                    <p class="text-muted small mb-2">Upload signature image (JPG, PNG, WEBP
+                                                        — max 512KB)</p>
+
+                                                    <div class="photo-upload-wrap">
+                                                        <div class="photo-thumb">
+                                                            <img id="preview-signature-import" src=""
+                                                                alt=""
+                                                                style="display:none; height:96px; object-fit:contain;">
+                                                            <i class="fas fa-file-image" id="signature-import-placeholder"
+                                                                style="font-size:2rem; color:#cbd5e1;"></i>
+                                                        </div>
+                                                        <div>
+                                                            <label for="signature_file" class="photo-upload-btn">
+                                                                <i class="fas fa-arrow-up-from-bracket"
+                                                                    style="font-size:.7rem"></i>
+                                                                Choose file
+                                                            </label>
+                                                            <input type="file" name="signature_file"
+                                                                id="signature_file"
+                                                                class="d-none @error('signature_file') is-invalid @enderror"
+                                                                accept=".jpg,.jpeg,.png,.webp"
+                                                                onchange="previewSignatureImport(event)">
+                                                            <div class="photo-upload-hint mt-1" id="signature-file-name">
+                                                                No file chosen</div>
+                                                        </div>
+                                                    </div>
+
+                                                    @error('signature_file')
+                                                        <div class="text-danger mt-1" style="font-size:.72rem">
+                                                            {{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-floppy-disk"></i> Save Signature
+                                            </button>
                                         </form>
                                     @endif
                                 </div>
@@ -1406,48 +1427,158 @@
             });
         @endif
     </script>
-    <script>
+    {{-- <script>
         const canvas = document.getElementById('signature-pad');
 
-if (canvas) {
-    function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d").scale(ratio, ratio);
-    }
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    const signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255,255,255)',
-        penColor: 'black',
-        minWidth: 2.5,
-        maxWidth: 4.5,
-        velocityFilterWeight: 0.7
-    });
-
-    document.getElementById('clear-signature')
-        .addEventListener('click', function () {
-            signaturePad.clear();
-        });
-
-    document.getElementById('form-signature')
-        .addEventListener('submit', function (e) {
-            if (signaturePad.isEmpty()) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Signature kosong',
-                    text: 'Silakan buat tanda tangan terlebih dahulu.',
-                    confirmButtonColor: '#1d4ed8'
-                });
-                return;
+        if (canvas) {
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
             }
-            document.getElementById('signature-input').value = signaturePad.toDataURL('image/png');
+            resizeCanvas();
+            window.addEventListener("resize", resizeCanvas);
+
+            const signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255,255,255)',
+                penColor: 'black',
+                minWidth: 2.5,
+                maxWidth: 4.5,
+                velocityFilterWeight: 0.7
+            });
+
+            document.getElementById('clear-signature')
+                .addEventListener('click', function() {
+                    signaturePad.clear();
+                });
+
+            document.getElementById('form-signature')
+                .addEventListener('submit', function(e) {
+                    if (signaturePad.isEmpty()) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Signature kosong',
+                            text: 'Silakan buat tanda tangan terlebih dahulu.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                        return;
+                    }
+                    document.getElementById('signature-input').value = signaturePad.toDataURL('image/png');
+                });
+        }
+    </script> --}}
+    <script>
+    const canvas = document.getElementById('signature-pad');
+    let signaturePad = null;
+
+    if (canvas) {
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        }
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+
+        signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255,255,255)',
+            penColor: 'black',
+            minWidth: 2.5,
+            maxWidth: 4.5,
+            velocityFilterWeight: 0.7
         });
-}
-    </script>
+
+        document.getElementById('clear-signature')
+            .addEventListener('click', function () {
+                signaturePad.clear();
+            });
+    }
+
+    function switchTab(tab) {
+        const drawSection   = document.getElementById('section-draw');
+        const importSection = document.getElementById('section-import');
+        const tabDraw       = document.getElementById('tab-draw');
+        const tabImport     = document.getElementById('tab-import');
+
+        if (tab === 'draw') {
+            drawSection.style.display   = 'block';
+            importSection.style.display = 'none';
+            tabDraw.classList.add('btn-primary');
+            tabDraw.classList.remove('btn-light');
+            tabImport.classList.add('btn-light');
+            tabImport.classList.remove('btn-primary');
+
+            document.getElementById('signature_file').value = '';
+            document.getElementById('preview-signature-import').style.display = 'none';
+            document.getElementById('signature-import-placeholder').style.display = 'inline';
+            document.getElementById('signature-file-name').textContent = 'No file chosen';
+        } else {
+            drawSection.style.display   = 'none';
+            importSection.style.display = 'block';
+            tabImport.classList.add('btn-primary');
+            tabImport.classList.remove('btn-light');
+            tabDraw.classList.add('btn-light');
+            tabDraw.classList.remove('btn-primary');
+
+            document.getElementById('signature-input').value = '';
+            if (signaturePad) signaturePad.clear();
+        }
+    }
+
+    function previewSignatureImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const url         = URL.createObjectURL(file);
+        const img         = document.getElementById('preview-signature-import');
+        const placeholder = document.getElementById('signature-import-placeholder');
+        const fileName    = document.getElementById('signature-file-name');
+
+        img.src                   = url;
+        img.style.display         = 'block';
+        placeholder.style.display = 'none';
+        fileName.textContent      = file.name;
+    }
+
+    const formSignature = document.getElementById('form-signature');
+    if (formSignature) {
+        formSignature.addEventListener('submit', function (e) {
+            const drawSection = document.getElementById('section-draw');
+            const isDrawTab   = drawSection.style.display !== 'none';
+
+            if (isDrawTab) {
+                if (!signaturePad || signaturePad.isEmpty()) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Signature kosong',
+                        text: 'Silakan buat tanda tangan terlebih dahulu.',
+                        confirmButtonColor: '#1d4ed8'
+                    });
+                    return;
+                }
+                document.getElementById('signature-input').value = signaturePad.toDataURL('image/png');
+                document.getElementById('signature_file').value  = '';
+            } else {
+                const fileInput = document.getElementById('signature_file');
+                if (!fileInput.files.length) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'File kosong',
+                        text: 'Silakan pilih file signature terlebih dahulu.',
+                        confirmButtonColor: '#1d4ed8'
+                    });
+                    return;
+                }
+                document.getElementById('signature-input').value = '';
+            }
+        });
+    }
+</script>
     <script>
         function previewProfilePhotokk(event) {
             const file = event.target.files[0];
@@ -1492,8 +1623,35 @@ if (canvas) {
             document.getElementById('imagePreviewModalktp').style.display = 'none';
         }
     </script>
-@endpush
 
+    
+@endpush
+    {{-- @else
+                                        <form method="POST" action="{{ route('save.signature') }}" id="form-signature">
+                                            @csrf
+
+                                            <div class="border rounded p-3 bg-light mb-3" style="border-style: dashed !important;">
+                                                <p class="text-muted small mb-2">Draw your signature below</p>
+                                                <canvas id="signature-pad" class="w-100 bg-white rounded"
+                                                    style="height: 160px; cursor: crosshair;"></canvas>
+                                            </div>
+
+                                            <input type="hidden" name="signature" id="signature-input">
+
+                                            @error('signature')
+                                                <div class="text-danger mt-1 mb-2" style="font-size:.72rem">{{ $message }}</div>
+                                            @enderror
+
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-sm btn-light border" id="clear-signature">
+                                                    <i class="fas fa-eraser"></i> Clear
+                                                </button>
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-floppy-disk"></i> Save Signature
+                                                </button>
+                                            </div>
+                                        </form>
+                                    @endif --}}
 
 
 {{-- "6281237175549"

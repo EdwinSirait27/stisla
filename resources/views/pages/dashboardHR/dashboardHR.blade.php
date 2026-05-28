@@ -1158,7 +1158,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
+                        {{-- <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
                             <div
                                 style="background:rgba(255,255,255,.12);border-radius:12px;padding:16px 20px;display:inline-block;text-align:center;">
                                 <div
@@ -1172,7 +1172,7 @@
                                     {{ $presentToday ?? 0 }} / {{ $totalEmployees ?? 0 }} Present
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
             </div>

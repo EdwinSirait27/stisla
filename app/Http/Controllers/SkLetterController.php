@@ -46,9 +46,6 @@ class SkLetterController extends Controller
         $query = SkLetter::query()
             ->leftJoin('sk_type as st', 'st.id', '=', 'sk_letters.sk_type_id')
             ->leftJoin('company_tables as c', 'c.id', '=', 'sk_letters.company_id')
-            // ->leftJoin('structures_tables as str', 'str.id', '=', 'sk_letters.structure_id')
-            // ->leftJoin('submission_position_tables as sp', 'sp.id', '=', 'str.submission_position_id')
-            // ->leftJoin('position_tables as p', 'p.id', '=', 'sp.position_id')
             ->leftJoin('employees_tables as a1', 'a1.id', '=', 'sk_letters.approver_1')
             ->leftJoin('employees_tables as a2', 'a2.id', '=', 'sk_letters.approver_2')
             ->leftJoin('employees_tables as a3', 'a3.id', '=', 'sk_letters.approver_3')
@@ -57,7 +54,6 @@ class SkLetterController extends Controller
                 'st.sk_name',
                 'st.nickname as sk_nickname',
                 'c.name as company_name',
-                // 'p.name as position_name',
                 'a1.employee_name as approver_1_name',
                 'a2.employee_name as approver_2_name',
                 'a3.employee_name as approver_3_name',
@@ -82,34 +78,6 @@ class SkLetterController extends Controller
             $request->filled('filter_effective_date_end'),
             fn($q) => $q->whereDate('sk_letters.effective_date', '<=', $request->filter_effective_date_end)
         );
-// return DataTables::of($query)
-//     ->addColumn('action', function ($row) {
-//         $id = $row->id;
-//         $actions = '
-//         <a href="' . route('SkLetters.show', $id) . '" class="mx-2">
-//             <i class="fas fa-eye text-secondary"></i>
-//         </a>';
-
-//         $lockedStatuses = ['Approved HR', 'Approved Director', 'Approved Managing Director'];
-
-//         if ($row->status === 'Draft' && auth()->user()->hasRole('HeadHR')) {
-//             $actions .= '
-//         <a href="' . route('SkLetters.edit', $id) . '" class="mx-2">
-//             <i class="fas fa-user-edit text-secondary"></i>
-//         </a>';
-//         } elseif (in_array($row->status, $lockedStatuses)) {
-//             $actions .= '
-//         <span class="mx-2 text-secondary" 
-//               title="Status terkunci" 
-//               data-bs-toggle="tooltip" 
-//               data-bs-placement="top"
-//               style="cursor: not-allowed;">
-//             <i class="fas fa-lock"></i>
-//         </span>';
-//         }
-
-//         return $actions;
-//     })
 return DataTables::of($query)
     ->addColumn('action', function ($row) {
         $id = $row->id;
@@ -220,42 +188,6 @@ return DataTables::of($query)
             ->rawColumns(['action', 'status'])
             ->make(true);
     }
-    // public function create()
-    // {
-    //     $skTypeFlags = Sktype::all()->keyBy('id')->map(fn($t) => [
-    //     'affects_salary'   => $t->affects_salary,
-    //     'affects_position' => $t->affects_position,
-    //     'affects_status'   => $t->affects_status,
-    //     'generates_contract' => $t->generates_contract,
-    // ]);
-
-    // return view('pages.SkLetters.create', [
-    //     'sktypes'     => Sktype::pluck('sk_name', 'id'),
-    //     'companies'   => Company::pluck('name', 'id'),
-    //     'employees'   => Employee::select('id', 'employee_name', 'employee_pengenal')->get(),
-    //     // 'employees_approver_2'   => Employee::select('id', 'employee_name', 'employee_pengenal')->get(),
-    //     'employees_approver_2' => Employee::select('id', 'employee_name', 'employee_pengenal', 'grading_id')
-    // ->with(['grading:id,grading_name'])
-    // ->whereHas('grading', function ($q) {
-    //     $q->where('grading_name', 'Director');
-    // })
-    // ->get(),
-    //     'employees_approver_3'   => Employee::select('id', 'employee_name', 'employee_pengenal')->get(),
-    //     // 'structures'  => Structuresnew::with('submissionposition.positionRelation')->get(),
-    //     $usedStructureIds = Employee::whereNotNull('structure_id')->pluck('structure_id')->toArray();
-
-    //  'structures' => Structuresnew::with('submissionposition')
-    // ->where(function ($q) use ($usedStructureIds, $employee) {
-
-    //     $q->whereNotIn('id', $usedStructureIds)
-    //       ->orWhere('id', optional($employee->Employee)->structure_id);
-
-    // })
-    // ->get(),
-    
-    //     'skTypeFlags' => $skTypeFlags,
-    // ]);
-    // }
     public function create()
 {
     $skTypeFlags = Sktype::all()->keyBy('id')->map(fn($t) => [
@@ -298,142 +230,6 @@ $employees = Employee::select('id', 'employee_name', 'employee_pengenal')
         'skTypeFlags'
     ));
 }
-//     public function store(Request $request): RedirectResponse
-// {
-//     $validated = $request->validate([
-//         // SK Header
-//         'sk_type_id'      => 'required|exists:sk_type,id',
-//         'title'           => 'nullable|string|max:255',
-//         'company_id'      => 'required|exists:company_tables,id',
-//         // 'structure_id'    => 'nullable|exists:structures_tables,id',
-//         'approver_1'      => 'nullable|exists:employees_tables,id',
-//         'approver_2'      => 'nullable|exists:employees_tables,id',
-//         'approver_3'      => 'nullable|exists:employees_tables,id',
-//         'effective_date'  => 'required|date',
-//         'inactive_date'   => 'nullable|date|after:effective_date',
-//         'location'        => 'nullable|string|max:255',
-//         'menetapkan_text' => 'nullable|string',
-//         'notes'           => 'nullable|string',
-//         'employees'                        => 'required|array|min:1',
-//         'employees.*.employee_id'          => 'required|exists:employees_tables,id',
-//         'employees.*.new_structure_id'     => 'nullable|exists:structures_tables,id',
-//         'employees.*.position_id'          => 'nullable|exists:position_tables,id',
-//         'employees.*.group_id'             => 'nullable|exists:groups_tables,id',
-//         'employees.*.grading_id'           => 'nullable|exists:grading,id',
-//         'employees.*.department_id'        => 'nullable|exists:departments_tables,id',
-//         'employees.*.basic_salary'         => 'nullable|numeric|min:0',
-//         'employees.*.positional_allowance' => 'nullable|numeric|min:0',
-//         'employees.*.daily_rate'           => 'nullable|numeric|min:0',
-//         'employees.*.notes'                => 'nullable|string',
-
-//         // Menimbang
-//         'menimbang'   => 'nullable|array',
-//         'menimbang.*' => 'nullable|string|max:500',
-
-//         // Mengingat
-//         'mengingat'   => 'nullable|array',
-//         'mengingat.*' => 'nullable|string|max:500',
-
-//         // Keputusan
-//         'keputusan'   => 'nullable|array',
-//         'keputusan.*' => 'nullable|string',
-//     ]);
-//     try {
-//         $skLetter = $this->service->store($validated);
-//         return redirect()
-//             ->route('SkLetters.show', $skLetter)
-//             ->with('success', 'SK created Succesfully.');
-//     } catch (\Exception $e) {
-//         return back()->with('error', $e->getMessage())->withInput();
-//     }
-// }
-// public function store(Request $request): RedirectResponse
-// {
-//     Log::info('SK Letter store request started', [
-//         'user_id' => auth()->id(),
-//         'ip'      => $request->ip(),
-//     ]);
-
-//     $validated = $request->validate([
-//         // SK Header
-//         'sk_type_id'      => 'required|exists:sk_type,id',
-//         'title'           => 'required|string|max:255',
-//         'company_id'      => 'required|exists:company_tables,id',
-//         // 'structure_id'    => 'nullable|exists:structures_tables,id',
-//         'approver_1'      => 'nullable|exists:employees_tables,id',
-//         'approver_2'      => 'nullable|exists:employees_tables,id',
-//         'approver_3'      => 'nullable|exists:employees_tables,id',
-//         'effective_date'  => 'required|date',
-//         'inactive_date'   => 'nullable|date|after:effective_date',
-//         'location'        => 'nullable|string|max:255',
-//         'menetapkan_text' => 'nullable|string',
-//         'notes'           => 'nullable|string',
-
-//         'employees'                        => 'required|array|min:1',
-//         'employees.*.employee_id'          => 'required|exists:employees_tables,id',
-//         'employees.*.new_structure_id'     => 'nullable|exists:structures_tables,id',
-//         'employees.*.position_id'          => 'nullable|exists:position_tables,id',
-//         'employees.*.group_id'             => 'nullable|exists:groups_tables,id',
-//         'employees.*.grading_id'           => 'nullable|exists:grading,id',
-//         'employees.*.department_id'        => 'nullable|exists:departments_tables,id',
-//         'employees.*.basic_salary'         => 'nullable|numeric|min:0',
-//         'employees.*.positional_allowance' => 'nullable|numeric|min:0',
-//         'employees.*.daily_rate'           => 'nullable|numeric|min:0',
-//         'employees.*.notes'                => 'nullable|string',
-
-//         // Menimbang
-//         'menimbang'   => 'nullable|array',
-//         'menimbang.*' => 'nullable|string|max:500',
-
-//         // Mengingat
-//         'mengingat'   => 'nullable|array',
-//         'mengingat.*' => 'nullable|string|max:500',
-
-//         // Keputusan
-//         'keputusan'   => 'nullable|array',
-//         'keputusan.*' => 'nullable|string',
-//     ]);
-
-//     Log::info('SK Letter validation passed', [
-//         'validated_data' => $validated,
-//     ]);
-
-//     try {
-
-//         Log::info('Calling SK service store');
-
-//         $skLetter = $this->service->store($validated);
-
-//         Log::info('SK Letter created successfully', [
-//             'sk_letter_id' => $skLetter->id,
-//         ]);
-
-//         return redirect()
-//             ->route('SkLetters.show', $skLetter)
-//             ->with('success', 'SK created successfully.');
-
-//     } catch (ValidationException $e) {
-
-//     Log::error('Validation failed', [
-//         'errors' => $e->errors(),
-//     ]);
-
-//     throw $e;
-
-// }catch (\Exception $e) {
-
-//         Log::error('Failed to create SK Letter', [
-//             'message' => $e->getMessage(),
-//             'file'    => $e->getFile(),
-//             'line'    => $e->getLine(),
-//             'trace'   => $e->getTraceAsString(),
-//         ]);
-
-//         return back()
-//             ->with('error', $e->getMessage())
-//             ->withInput();
-//     }
-// }
 public function store(Request $request): RedirectResponse
 {
     Log::info('SK Letter store request started', [
@@ -546,23 +342,6 @@ public function store(Request $request): RedirectResponse
             ->withInput();
     }
 }
-// public function show(SkLetter $skletter)
-//     {
-//         $skletter->load([
-//             'sktype',
-//             'company',
-//             'approver1',
-//             'approver2',
-//             'approver3',
-//             'employees',
-//             'contracts',
-//         ]);
-//         return view('pages.SkLetters.show', [
-//             'skletter'  => $skletter,
-//             'employees' => Employee::select('id', 'employee_name', 'employee_pengenal')->get(),
-//             'structures' => Structuresnew::with('submissionposition.positionRelation')->get(),
-//         ]);
-//     }
 public function show(SkLetter $skletter)
     {
         $skletter->load([

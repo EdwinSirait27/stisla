@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Public Holidays')
+@section('title', 'Assets')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -41,6 +41,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -161,63 +162,38 @@
         }
     }
 </style>
-
-
 @section('main')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Public Holidays</h1>
+                <h1>Assets</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Public Holidays</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Assets</h6>
                             </div>
-
                             <div class="card-body">
-                                {{-- <div class="table-responsive"> --}}
-                                    <div class="row mb-3">
-    <div class="col-md-3">
-        <label>Start Date</label>
-        <input type="date" id="start_date" class="form-control">
-    </div>
-
-    <div class="col-md-3">
-        <label>End Date</label>
-        <input type="date" id="end_date" class="form-control">
-    </div>
-
-    <div class="col-md-3 d-flex align-items-end">
-        <button type="button" id="filter" class="btn btn-primary mr-2">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-
-        <button type="button" id="reset" class="btn btn-secondary">
-            <i class="fas fa-sync"></i> Reset
-        </button>
-    </div>
-</div>
-
-<div class="table-responsive">
+                                <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                {{-- <th class="text-center">No.</th> --}}
-                                                <th class="text-center">Date</th>
-                                                <th class="text-center">Remark</th>
-                                                <th class="text-center">Type</th>
-                                                {{-- <th class="text-center">Action</th> --}}
+                                                <th class="text-center">Asset Categories</th>
+                                                <th class="text-center">Asset Name</th>
+                                                <th class="text-center">Purchase Date</th>
+                                                <th class="text-center">Purchase Price</th>
+                                                <th class="text-center">Status</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('pages.ImportPH') }}'"
+                                    <button type="button" onclick="window.location='{{ route('Assets.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Import Public Holidays
+                                        <i class="fas fa-plus-circle"></i> Create Assets
                                     </button>
                                 </div>
                             </div>
@@ -225,6 +201,7 @@
                     </div>
                 </div>
             </div>
+          
         </section>
     </div>
 @endsection
@@ -232,137 +209,93 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Wait for jQuery to be fully loaded
-    jQuery(document).ready(function($) {
-
-        var table = $('#users-table').DataTable({
-            processing: true,
-            serverSide: true,
-            autoWidth: false,
-            ajax: {
-                url: '{{ route('pubholis.pubholis') }}',
-                type: 'GET',
-                data: function(d) {
-                    d.start_date = $('#start_date').val();
-                    d.end_date = $('#end_date').val();
-                }
-            },
-            responsive: true,
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "All"]
-            ],
-            language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Search...",
-            },
-            columns: [
-                {
-                    data: 'date',
-                    name: 'date',
-                    className: 'text-center'
+        jQuery(document).ready(function($) {
+            var table = $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                ajax: {
+                    url: '{{ route('assets.assets') }}',
+                    type: 'GET'
                 },
-                {
-                    data: 'remark',
-                    name: 'remark',
-                    className: 'text-center'
+                responsive: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
                 },
-                {
-                    data: 'type',
-                    name: 'type',
-                    className: 'text-center'
+                columns: [
+                    {
+                        data: 'asset_category_name',
+                        name: 'asset_category_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'asset_name',
+                        name: 'asset_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'purchase_date',
+                        name: 'purchase_date',
+                        className: 'text-center'
+                    },
+                    // {
+                    //     data: 'purchase_price',
+                    //     name: 'purchase_price',
+                    //     className: 'text-center'
+                    // },
+                      {
+    data: 'purchase_price',
+    name: 'purchase_price',
+    className: 'text-center',
+    render: function (data, type, row) {
+
+        // untuk sorting & searching tetap pakai angka asli
+        if (type === 'sort' || type === 'type') {
+            return data;
+        }
+
+        return 'Rp ' + new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(parseFloat(data) || 0);
+    }
+},
+                    {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
                 }
-            ]
-        });
-
-        // FILTER
-        $('#filter').click(function() {
-            table.ajax.reload();
-        });
-
-        // RESET
-        $('#reset').click(function() {
-            $('#start_date').val('');
-            $('#end_date').val('');
-
-            table.ajax.reload();
-        });
-
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
             });
-        @endif
-
-    });
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
+        });
     </script>
 @endpush
 
-{{-- <script>
-    jQuery(document).ready(function($) {
 
-        var table = $('#users-table').DataTable({
-            processing: true,
-            serverSide: true,
-            autoWidth: false,
-            ajax: {
-                url: '{{ route('pubholis.pubholis') }}',
-                type: 'GET',
-                data: function(d) {
-                    d.start_date = $('#start_date').val();
-                    d.end_date = $('#end_date').val();
-                }
-            },
-            responsive: true,
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "All"]
-            ],
-            language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Search...",
-            },
-            columns: [
-                {
-                    data: 'date',
-                    name: 'date',
-                    className: 'text-center'
-                },
-                {
-                    data: 'remark',
-                    name: 'remark',
-                    className: 'text-center'
-                },
-                {
-                    data: 'type',
-                    name: 'type',
-                    className: 'text-center'
-                }
-            ]
-        });
 
-        // FILTER
-        $('#filter').click(function() {
-            table.ajax.reload();
-        });
 
-        // RESET
-        $('#reset').click(function() {
-            $('#start_date').val('');
-            $('#end_date').val('');
 
-            table.ajax.reload();
-        });
 
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-
-    });
-</script> --}}
