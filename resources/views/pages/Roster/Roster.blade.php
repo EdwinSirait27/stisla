@@ -918,13 +918,20 @@
                                                         {{ $employee->department->department_name ?? '-' }}</div>
                                                     <div class="emp-meta">Position :
                                                         {{ $employee->position->name ?? '-' }}</div>
-                                                    <div class="emp-meta">Location {{ $employee->store->name ?? '-' }}
+                                                    <div class="emp-meta">Location :
+                                                        {{ $employee->store->name ?? '-' }}
                                                     </div>
                                                     @if ($employee->status_employee)
-                                                        <span class="emp-status {{ $statusClass }}">
-                                                            {{ $employee->status_employee }}
-                                                        </span>
+
+                                                    <div class="emp-meta">Status Employee :
+                                                        {{ $employee->status_employee ?? '-' }}
+                                                    </div>
                                                     @endif
+                                                    {{-- @if ($employee->status_employee)
+                                                        Employee Status : <span class="emp-status {{ $statusClass }}">
+                                                        {{ $employee->status_employee }}
+                                                        </span>
+                                                    @endif --}}
                                                 </td>
                                                 @foreach ($dates as $carbon)
                                                     @php

@@ -84,11 +84,12 @@ class RosterController extends Controller
             $employees = Employee::with([
                 'position:id,name',
                 'store:id,name',
+                'department:id,department_name',
                 'rosters' => fn($q) => $q
                     ->whereBetween('date', [$startDate, $endDate])
                     ->with('shift:id,shift_name,start_time,end_time'),
             ])
-                ->select('id', 'employee_name', 'store_id', 'status_employee', 'status') // ⚠️ sesuaikan
+                ->select('id', 'employee_name', 'store_id', 'status_employee', 'status','company_id','department_id','position_id') 
                 ->whereNull('deleted_at')
                 ->where('store_id', $storeId)
                 ->whereIn('status', ['Active', 'Pending', 'On Leave'])
