@@ -113,7 +113,7 @@
 .m-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
 .m-overlay.open { display:flex; }
 .m-box { background:#fff; border-radius:12px; width:320px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden; }
-.m-head { background:#1e293b; color:#fff; padding:14px 18px; font-weight:700; font-size:15px; display:flex; justify-content:space-between; align-items:center; }
+.m-head { background:#1e293b; color:#fff; padding:14px 18px; font-weight:700; font-size:15px; display:flex; justify-content:space-between; align-items:center; position:relative; z-index:10; }
 .m-head button { background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer; line-height:1; }
 .m-head button:hover { color:#fff; }
 .m-body { padding:18px; }
@@ -201,12 +201,6 @@
         <h1>Roster & Schedule</h1>
         @if($storeId)
         <div class="d-flex" style="gap:16px">
-            @php
-                $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
-                $currentStoreName   = optional($stores->firstWhere('id', $storeId))->name ?? '';
-                $showAutoGenerate   = in_array($currentStoreName, $autoGenerateStores);
-            @endphp
-
             @if($showAutoGenerate)
                 <button class="btn-success-r" onclick="confirmAutoGenerate()" style="padding:8px 24px"
                         title="Auto generate roster untuk periode yang dipilih">
@@ -312,32 +306,16 @@
                         <thead>
                             <tr>
                                 <th class="col-emp">Employee</th>
-                                @foreach($dates as $carbon)
-                                    @php
-                                        $isWeekend = $carbon->isWeekend();
-                                        $isToday   = $carbon->isToday();
-                                    @endphp
-                                    <th class="{{ $isWeekend ? 'weekend' : '' }} {{ $isToday ? 'today' : '' }}" style="min-width:85px">
-                                        <div>{{ $carbon->format('D') }}</div>
-                                        <div style="font-size:10px;opacity:.8">{{ $carbon->format('d/m') }}</div>
+                                @foreach($dateHeaders as $header)
+                                    <th class="{{ $header['is_weekend'] ? 'weekend' : '' }} {{ $header['is_today'] ? 'today' : '' }}" style="min-width:85px">
+                                        <div>{{ $header['day_label'] }}</div>
+                                        <div style="font-size:10px;opacity:.8">{{ $header['date_label'] }}</div>
                                     </th>
                                 @endforeach
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($employees as $employee)
-                                @php
-                                    $rosterByDate = $employee->rosters->keyBy(fn($r) => \Carbon\Carbon::parse($r->date)->toDateString());
-                                    $statusRaw    = strtoupper($employee->status_employee ?? '');
-
-                                    //FIX 1: Gunakan str_contains untuk mendeteksi "On Job Training"
-                                    $statusClass  = match(true) {
-                                        $statusRaw === 'DW'                        => 'status-dw',
-                                        str_contains($statusRaw, 'JOB TRAINING')   => 'status-ojt',
-                                        $statusRaw === 'PKWT'                      => 'status-pkwt',
-                                        default                                    => 'status-pkwt',
-                                    };
-                                @endphp
                                 <tr>
                                     <td class="col-emp">
                                         <div class="emp-name">Employee Name : {{ $employee->employee_name }}</div>
@@ -345,65 +323,33 @@
                                         <div class="emp-meta">Position : {{ $employee->position->name ?? '-' }}</div>
                                         <div class="emp-meta">Location {{ $employee->store->name ?? '-' }}</div>
                                         @if($employee->status_employee)
-                                            <span class="emp-status {{ $statusClass }}">
+                                            <span class="emp-status {{ $employee->status_class }}">
                                                 {{ $employee->status_employee }}
                                             </span>
                                         @endif
                                     </td>
-                                    @foreach($dates as $carbon)
-                                        @php
-                                            $dateStr   = $carbon->toDateString();
-                                            $roster    = $rosterByDate->get($dateStr);
-                                            $isWeekend = $carbon->isWeekend();
-                                            $isToday   = $carbon->isToday();
-
-                                            $badgeClass = '';
-                                            $badgeName  = '+';
-                                            $badgeTime  = '';
-                                            $cellType   = 'empty';
-
-                                            if ($roster) {
-                                                if ($roster->day_type === 'Off') {
-                                                    $badgeClass = 'r-badge r-off'; $badgeName = 'Off'; $cellType = 'off';
-                                                } elseif ($roster->day_type === 'Public Holiday') {
-                                                    $badgeClass = 'r-badge r-holiday'; $badgeName = 'Public Holiday'; $cellType = 'holiday';
-                                                } elseif ($roster->day_type === 'Cuti Melahirkan') {
-                                                    $badgeClass = 'r-badge r-leave'; $badgeName = 'Cuti Melahirkan'; $cellType = 'melahirkan';
-                                                } elseif ($roster->day_type === 'Leave') {
-                                                    $badgeClass = 'r-badge r-leave'; $badgeName = 'Leave'; $cellType = 'leave';
-                                                } elseif ($roster->shift) {
-                                                    $badgeClass = 'r-badge r-work';
-                                                    $badgeName  = $roster->shift->shift_name;
-                                                    $badgeTime  = substr($roster->shift->start_time,0,5).'-'.substr($roster->shift->end_time,0,5);
-                                                    $cellType = 'work';
-                                                } else {
-                                                    $badgeClass = 'r-badge r-work'; $badgeName = 'Work'; $cellType = 'work';
-                                                }
-                                            } elseif ($isWeekend) {
-                                                $badgeClass = 'r-badge r-off'; $badgeName = 'Off'; $cellType = 'weekend';
-                                            }
-                                        @endphp
-                                        <td class="day-cell {{ $isWeekend ? 'weekend' : '' }} {{ $isToday ? 'today' : '' }}"
+                                    @foreach($employee->cells as $cell)
+                                        <td class="day-cell {{ $cell['is_weekend'] ? 'weekend' : '' }} {{ $cell['is_today'] ? 'today' : '' }}"
                                             data-emp-id="{{ $employee->id }}"
                                             data-emp-name="{{ $employee->employee_name }}"
                                             data-emp-status="{{ $employee->status_employee ?? '' }}"
-                                            data-date="{{ $dateStr }}"
-                                            data-shift-id="{{ $roster?->shift_id ?? '' }}"
-                                            data-day-type="{{ $roster?->day_type ?? 'Work' }}"
-                                            data-has-roster="{{ $roster ? '1' : '0' }}"
-                                            data-notes="{{ $roster?->notes ?? '' }}"
-                                            data-cell-type="{{ $cellType }}"
-                                            data-is-today="{{ $isToday ? '1' : '0' }}"
+                                            data-date="{{ $cell['date_str'] }}"
+                                            data-shift-id="{{ $cell['shift_id'] }}"
+                                            data-day-type="{{ $cell['day_type'] }}"
+                                            data-has-roster="{{ $cell['has_roster'] ? '1' : '0' }}"
+                                            data-notes="{{ $cell['notes'] }}"
+                                            data-cell-type="{{ $cell['cell_type'] }}"
+                                            data-is-today="{{ $cell['is_today'] ? '1' : '0' }}"
                                             onclick="openCellModal(this)"
-                                            title="{{ $employee->employee_name }} – {{ $dateStr }}{{ $roster?->notes ? ' | ' . $roster->notes : '' }}">
-                                            @if($badgeClass === '')
+                                            title="{{ $employee->employee_name }} – {{ $cell['date_str'] }}{{ $cell['notes'] ? ' | ' . $cell['notes'] : '' }}">
+                                            @if($cell['badge_class'] === '')
                                                 <span class="r-empty">+</span>
                                             @else
-                                                <span class="{{ $badgeClass }}">
-                                                    <span class="r-name">{{ $badgeName }}</span>
-                                                    @if($badgeTime)<span class="r-time">{{ $badgeTime }}</span>@endif
-                                                    @if($roster && $roster->notes)
-                                                        <span class="r-notes">{{ $roster->notes }}</span>
+                                                <span class="{{ $cell['badge_class'] }}">
+                                                    <span class="r-name">{{ $cell['badge_name'] }}</span>
+                                                    @if($cell['badge_time'])<span class="r-time">{{ $cell['badge_time'] }}</span>@endif
+                                                    @if($cell['notes'])
+                                                        <span class="r-notes">{{ $cell['notes'] }}</span>
                                                     @endif
                                                 </span>
                                             @endif
@@ -627,24 +573,58 @@
 </div>
 
 {{-- ════════════════════════════════════════════════════
-     MODAL: Auto Generate Roster — 3 Store Static
+     MODAL: Auto Generate Roster — Static
      ════════════════════════════════════════════════════ --}}
 <div class="m-overlay" id="modalAutoGenerate">
-    <div class="m-box" style="width:440px">
+    <div class="m-box" style="width:440px; max-height:90vh; display:flex; flex-direction:column;">
         <div class="m-head">
-            <span>✨ Auto Generate Roster</span>
+            <span>Auto Generate Roster</span>
             <button onclick="closeModal('modalAutoGenerate')">×</button>
         </div>
-        <div class="m-body">
+        <div class="m-body" style="overflow-y:auto; flex:1;">
             <p style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.6">
-                Sistem akan generate roster otomatis untuk karyawan di:
-                <strong>Head Office, Holding, Distribution Center</strong>.
+                Sistem akan generate roster otomatis untuk karyawan di store yang ditandai sebagai <strong>auto-generate</strong>.
             </p>
 
             <div class="ag-period-card">
                 <div class="ag-period-title">
-                    Periode Generate
-                    <small>(kosongkan untuk default otomatis)</small>
+                    Pilih Shift <small>(wajib dipilih)</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <div style="flex:1">
+                        <label class="f-label">
+                            Shift Senin - Jumat <span style="color:#ef4444">*</span>
+                        </label>
+                        <select id="ag-shift-weekday" class="f-control ag-shift-select2">
+                            <option value="">-- Pilih Shift --</option>
+                            @foreach($shifts as $shift)
+                                <option value="{{ $shift->id }}">
+                                    {{ $shift->shift_name }}
+                                    ({{ substr($shift->start_time,0,5) }} - {{ substr($shift->end_time,0,5) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div style="flex:1">
+                        <label class="f-label">
+                            Shift Sabtu <span style="color:#ef4444">*</span>
+                        </label>
+                        <select id="ag-shift-saturday" class="f-control ag-shift-select2">
+                            <option value="">-- Pilih Shift --</option>
+                            @foreach($shifts as $shift)
+                                <option value="{{ $shift->id }}">
+                                    {{ $shift->shift_name }}
+                                    ({{ substr($shift->start_time,0,5) }} - {{ substr($shift->end_time,0,5) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ag-period-card">
+                <div class="ag-period-title">
+                    Periode Generate <small>(kosongkan untuk default otomatis)</small>
                 </div>
                 <div class="d-flex gap-2">
                     <div style="flex:1">
@@ -675,7 +655,7 @@
 
             <div style="background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:10px;font-size:12px;color:#854d0e;">
                 <i class="fas fa-info-circle"></i>
-                Pola jadwal: <strong>Senin-Jumat</strong> (9 to 5), <strong>Sabtu</strong> (9 to 3), <strong>Minggu</strong> (Off).
+                Pola jadwal: <strong>Senin-Jumat</strong> (sesuai shift dipilih), <strong>Sabtu</strong> (sesuai shift dipilih), <strong>Minggu</strong> (Off).<br><br>
                 Public Holiday di-filter sesuai agama karyawan.<br><br>
                 Roster yang sudah ada <strong>tidak akan ditimpa</strong>.
             </div>
@@ -731,7 +711,7 @@
                 <div>
                     <label class="f-label">Store Aktif</label>
                     <div style="background:#f1f5f9;border-radius:6px;padding:10px 12px;font-size:12px;color:#334155;">
-                        <strong id="aroStoreName">{{ $currentStoreName ?? '-' }}</strong>
+                        <strong id="aroStoreName">{{ $currentStoreName }}</strong>
                         <div id="aroStoreEmpCount" style="color:#64748b;margin-top:2px;">— karyawan</div>
                     </div>
                 </div>
@@ -900,7 +880,8 @@ flatpickr("#start_date", {
 // ════════════════════════════════════════════════════════
 const CSRF               = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const CURRENT_STORE_ID   = '{{ $storeId ?? '' }}';
-const CURRENT_STORE_NAME = '{{ $currentStoreName ?? '' }}';
+const CURRENT_STORE_NAME = '{{ $currentStoreName }}';
+const TOTAL_EMPLOYEES    = {{ $employees->count() }};
 
 // ── Toast ──
 function toast(msg, ok = true) {
@@ -979,13 +960,9 @@ function applyLegendFilter() {
 
 // ════════════════════════════════════════════════════════
 //  HELPER: Filter opsi day_type berdasarkan status_employee
-//  PKWT            → semua opsi
-//  On Job Training → Work, Off, Public Holiday (sembunyikan Cuti)
-//  DW              → Work, Off saja (sembunyikan PH + Cuti)
 // ════════════════════════════════════════════════════════
 function applyDayTypeFilter(status, selectEl, noteEl) {
     const s     = (status || '').toUpperCase().trim();
-    // ✅ FIX 2: gunakan includes('JOB TRAINING') agar cocok dengan "On Job Training" dari DB
     const isDW  = s === 'DW';
     const isOJT = s.includes('JOB TRAINING');
 
@@ -998,13 +975,11 @@ function applyDayTypeFilter(status, selectEl, noteEl) {
         opt.style.display = hidden ? 'none' : '';
     });
 
-    // Reset ke Work jika nilai aktif tersembunyi
     const currentOpt = selectEl.options[selectEl.selectedIndex];
     if (currentOpt && currentOpt.style.display === 'none') {
         selectEl.value = 'Work';
     }
 
-    // Tampilkan note
     if (noteEl) {
         if (isDW) {
             noteEl.textContent   = '⚠️ Karyawan DW — opsi Public Holiday dan Cuti tidak tersedia.';
@@ -1032,10 +1007,8 @@ function openCellModal(cell) {
     const noteEl  = document.getElementById('mDayTypeNote');
     const status  = cell.dataset.empStatus || '';
 
-    // ── Filter opsi berdasarkan status karyawan ──
     applyDayTypeFilter(status, select, noteEl);
 
-    // Set nilai setelah filter
     const currentDayType = cell.dataset.dayType || 'Work';
     const targetOpt = Array.from(select.options).find(o => o.value === currentDayType && o.style.display !== 'none');
     select.value = targetOpt ? currentDayType : 'Work';
@@ -1112,7 +1085,7 @@ function deleteRoster() {
             closeModal('modalCell');
             setTimeout(() => location.reload(), 700);
         } else {
-            toast('❌ Gagal menghapus.', false);
+            toast('❌ ' + (data.message || 'Gagal menghapus.'), false);
             btn.disabled  = false;
             btn.innerHTML = '<i class="fas fa-trash"></i> Delete';
         }
@@ -1125,14 +1098,13 @@ function deleteRoster() {
 }
 
 // ════════════════════════════════════════════════════════
-//  BULK ASSIGN — filter day_type berdasarkan status karyawan
+//  BULK ASSIGN
 // ════════════════════════════════════════════════════════
 function filterBulkDayType() {
     const selected = [...document.getElementById('bulkEmps').selectedOptions];
     const statuses = selected.map(o => (o.dataset.status || '').toUpperCase().trim());
 
     const hasDW  = statuses.includes('DW');
-    // ✅ FIX 3: gunakan .some() + includes('JOB TRAINING') agar cocok dengan "On Job Training" dari DB
     const hasOJT = statuses.some(s => s.includes('JOB TRAINING'));
 
     const select = document.getElementById('bulkDayType');
@@ -1145,14 +1117,12 @@ function filterBulkDayType() {
         opt.style.display = hidden ? 'none' : '';
     });
 
-    // Reset ke Work jika nilai aktif tersembunyi
     const currentOpt = select.options[select.selectedIndex];
     if (currentOpt && currentOpt.style.display === 'none') {
         select.value = 'Work';
         toggleBulkShift();
     }
 
-    // Tampilkan note
     if (hasDW) {
         noteEl.textContent   = '⚠️ Terdapat karyawan DW — opsi Public Holiday dan Cuti tidak tersedia.';
         noteEl.style.display = 'block';
@@ -1164,7 +1134,7 @@ function filterBulkDayType() {
     }
 }
 
-document.getElementById('bulkEmps').addEventListener('change', filterBulkDayType);
+document.getElementById('bulkEmps')?.addEventListener('change', filterBulkDayType);
 
 function saveBulk() {
     const selected = [...document.getElementById('bulkEmps').selectedOptions].map(o => o.value);
@@ -1311,18 +1281,17 @@ function saveBulkDelete() {
 }
 
 // ════════════════════════════════════════════════════════
-//  AUTO GENERATE ROSTER — 3 STORE STATIC
+//  AUTO GENERATE ROSTER — STATIC (3 STORE)
 // ════════════════════════════════════════════════════════
 function confirmAutoGenerate() {
     Swal.fire({
         icon: 'info', iconColor: '#16a34a',
-        title: '✨ Auto Generate Roster',
+        title: 'Auto Generate Roster',
         html: `<div style="text-align:left;padding:8px 0;line-height:1.7;font-size:14px;color:#374151">
-                Sistem akan men-generate roster otomatis untuk karyawan di
-                <strong>Head Office, Holding, dan Distribution Center</strong> dengan pola jadwal:
+                Sistem akan men-generate roster otomatis untuk karyawan di store ini dengan pola jadwal:
                 <ul style="margin:10px 0 10px 18px;padding:0">
-                    <li>Senin - Jumat: <strong>9 to 5</strong></li>
-                    <li>Sabtu: <strong>9 to 3</strong></li>
+                    <li>Senin - Jumat: <strong>sesuai shift yang dipilih</strong></li>
+                    <li>Sabtu: <strong>sesuai shift yang dipilih</strong></li>
                     <li>Minggu: <strong>Off</strong></li>
                     <li>Public Holiday: sesuai agama karyawan (PKWT & On Job Training)</li>
                     <li>Karyawan DW: tidak mendapat Public Holiday</li>
@@ -1337,12 +1306,25 @@ function confirmAutoGenerate() {
         if (result.isConfirmed) {
             document.getElementById('ag-start-date').value = '';
             document.getElementById('ag-end-date').value   = '';
+            $('#ag-shift-weekday').val('').trigger('change');
+            $('#ag-shift-saturday').val('').trigger('change');
             ['ag-period','ag-employees','ag-hindu','ag-non-hindu','ag-ph','ag-estimated-created','ag-estimated-skipped']
                 .forEach(id => document.getElementById(id).textContent = '-');
             const genBtn = document.getElementById('btnExecuteAutoGenerate');
             genBtn.disabled  = false;
             genBtn.innerHTML = '<i class="fas fa-magic"></i> Generate';
             openModal('modalAutoGenerate');
+            $('.ag-shift-select2').select2({
+                placeholder: '-- Pilih Shift --',
+                allowClear: false,
+                width: '100%',
+                dropdownParent: $('#modalAutoGenerate .m-body')
+            });
+
+            $('#modalAutoGenerate .m-body').on('scroll', function() {
+                $('.ag-shift-select2').select2('close');
+            });
+
             loadAutoGeneratePreview();
         }
     });
@@ -1394,14 +1376,28 @@ function loadAutoGeneratePreview() {
 }
 
 function executeAutoGenerate() {
-    const startDate = document.getElementById('ag-start-date').value;
-    const endDate   = document.getElementById('ag-end-date').value;
-    const btn       = document.getElementById('btnExecuteAutoGenerate');
-    btn.disabled    = true;
-    btn.innerHTML   = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    const startDate     = document.getElementById('ag-start-date').value;
+    const endDate       = document.getElementById('ag-end-date').value;
+    const shiftWeekday  = document.getElementById('ag-shift-weekday').value;
+    const shiftSaturday = document.getElementById('ag-shift-saturday').value;
+
+    if (!shiftWeekday) {
+        toast('⚠️ Pilih shift untuk Senin - Jumat terlebih dahulu.', false);
+        return;
+    }
+    if (!shiftSaturday) {
+        toast('⚠️ Pilih shift untuk Sabtu terlebih dahulu.', false);
+        return;
+    }
+
+    const btn = document.getElementById('btnExecuteAutoGenerate');
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
 
     const payload = {};
     if (startDate && endDate) { payload.start_date = startDate; payload.end_date = endDate; }
+    payload.shift_weekday_id  = shiftWeekday;
+    payload.shift_saturday_id = shiftSaturday;
 
     fetch('{{ route('roster.auto-generate') }}', {
         method:'POST',
@@ -1463,8 +1459,8 @@ let aroState = {
 function openAroModal() {
     aroReset();
     document.getElementById('aroStoreName').textContent     = CURRENT_STORE_NAME || '-';
-    document.getElementById('aroStoreEmpCount').textContent = document.querySelectorAll('.day-cell').length > 0
-        ? '{{ $employees->count() ?? 0 }} karyawan aktif'
+    document.getElementById('aroStoreEmpCount').textContent = TOTAL_EMPLOYEES > 0
+        ? TOTAL_EMPLOYEES + ' karyawan aktif'
         : '—';
     openModal('modalAroOther');
 }

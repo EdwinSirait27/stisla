@@ -68,10 +68,10 @@ class DashManagerController extends Controller
             ->count('pin');
         $absentToday = count($employeesPins) - $presentToday;
         $submissions = \App\Models\Overtimesubmissions::with('employees:id,employee_name')
-        ->where('approver_id', $employee->id)
-        ->orderBy('created_at', 'desc')
-        ->limit(5)
-        ->get();
+            ->where('approver_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
         return view('pages.dashboardTeam.dashboardTeam', compact(
             'absentToday',
@@ -126,43 +126,114 @@ class DashManagerController extends Controller
             ->where('employee_id', $employeelogin)
             ->get();
 
+        // ─── Annual Leave untuk card Leave Balance (manager sendiri) ───
+        $annualLeave = Leavebalance::with('leaves')
+            ->where('employee_id', $employee->id)
+            ->where('year', date('Y'))
+            ->whereHas('leaves', fn($q) => $q->where('name', 'Annual Leave'))
+            ->first();
+
+        $isNewbie = $employee->join_date
+            ? \Carbon\Carbon::parse($employee->join_date)->diffInYears(now()) < 1
+            : false;
+
+        // Total hari pengajuan PENDING milik manager sendiri
+        $myPendingDays = Leaverequest::whereHas('leavebalance', fn($q) =>
+        $q->where('employee_id', $employee->id))
+            ->where('status', 'Pending')
+            ->sum('total_days');
+
+        // Saldo tampil = balance_days − hari pending
+        $displayBalance = $annualLeave
+            ? max(0, (float) $annualLeave->balance_days - (float) $myPendingDays)
+            : 0;
+
         // Ambil pending leave dari bawahan berdasarkan tree struktur
         $myStructureId           = $employee->structure_id;
         $subordinateStructureIds = $myStructureId
-            ? $this->getSubStructureIds($myStructureId)  // method ini sudah ada di controller
+            ? $this->getSubStructureIds($myStructureId)
             : [];
- 
+
         $subordinateEmployeeIds = Employee::whereIn('structure_id', $subordinateStructureIds)
             ->pluck('id')
             ->toArray();
- 
+
         $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
             ->pluck('id')
             ->toArray();
- 
-        $pendingLeaves = Leaverequest::with([
-                'leavebalance.employees',
-                'leavebalance.leaves',
-            ])
-            ->whereIn('leave_balance_id', $subordinateBalanceIds)
-            ->whereIn('status', ['Pending', 'Sent'])
+
+        // ─── Query $pendingLeaves sebelum di-map ───
+        $pendingLeaves = Leaverequest::whereIn('leave_balance_id', $subordinateBalanceIds)
+            ->where('status', 'Pending')
+            ->with(['leavebalance.employees', 'leavebalance.leaves'])
             ->orderBy('created_at', 'desc')
-            ->take(5)
             ->get();
 
+        $colors = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
+        $typeMap = [
+            'sakit'      => ['bg' => '#FFF3CD', 'text' => '#856404'],
+            'tahunan'    => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
+            'annual'     => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
+            'melahirkan' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
+            'darurat'    => ['bg' => '#F8D7DA', 'text' => '#721C24'],
+            'toil'       => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
+        ];
+
+        $pendingLeaves = $pendingLeaves->map(function ($leave) use ($colors, $typeMap) {
+            $balance   = $leave->leavebalance;
+            $employee  = $balance?->employees;
+            $leaveType = $balance?->leaves;
+
+            $employeeName  = $employee?->employee_name ?? $employee?->name ?? '-';
+            $leaveTypeName = $leaveType?->name ?? $leaveType?->leave_type_name ?? 'Cuti';
+
+            $bgColor = $colors[abs(crc32($employeeName)) % count($colors)];
+            $initial = strtoupper(substr($employeeName, 0, 1));
+
+            $key       = strtolower($leaveTypeName);
+            $typeStyle = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k))
+                ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
+
+            $start = \Carbon\Carbon::parse($leave->start_date);
+            $dateLabel = $start->format('d M Y');
+            if ($leave->end_date && $leave->end_date !== $leave->start_date) {
+                $dateLabel .= ' – ' . \Carbon\Carbon::parse($leave->end_date)->format('d M Y');
+            }
+
+            return [
+                'id'             => $leave->id,
+                'employeeName'   => $employeeName,
+                'leaveTypeName'  => $leaveTypeName,
+                'bgColor'        => $bgColor,
+                'initial'        => $initial,
+                'typeBg'         => $typeStyle['bg'],
+                'typeText'       => $typeStyle['text'],
+                'dateLabel'      => $dateLabel,
+                'ago'            => \Carbon\Carbon::parse($leave->created_at)->diffForHumans(),
+                'employeeReason' => $leave->employee_reason,
+                'approveUrl'     => route('leaverequest.approve', $leave->id),
+                'rejectUrl'      => route('leaverequest.reject', $leave->id),
+            ];
+        });
+
         return view('pages.dashboardManager.dashboardManager', compact(
-            'presentCount',
             'announcements',
             'totalEmployees',
-            'leavebalance',
             'totalEmployeespending',
+            'presentCount',
+            'leavebalance',
+            'annualLeave',
+            'isNewbie',
+            'displayBalance',
             'pendingLeaves'
         ));
     }
+
     public function team()
     {
         return view('pages.Team.Team');
     }
+
     public function getTeams(Request $request, DataTables $dataTables)
     {
         $loggedEmployee = auth()->user()->Employee;
@@ -218,6 +289,7 @@ class DashManagerController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
+
     public function show($hashedId)
     {
         $employee = User::with(
@@ -279,6 +351,7 @@ class DashManagerController extends Controller
             'isManager'
         ));
     }
+
     private function getSubStructureIds($id)
     {
         $children = Structuresnew::where('parent_id', $id)->pluck('id')->toArray();
@@ -337,22 +410,22 @@ class DashManagerController extends Controller
             ->whereIn('id', $allowedIds)
             ->get();
 
-        // 🔥 Kumpulkan parent_id dari structures
+        //  Kumpulkan parent_id dari structures
         $parentIds = $structures->pluck('parent_id')->filter()->unique()->toArray();
 
-        // 🔥 Kumpulkan secondary supervisor IDs dari tabel pivot
+        //  Kumpulkan secondary supervisor IDs dari tabel pivot
         $secondarySupervisorIds = DB::table('structure_supervisors')
             ->whereIn('structure_id', $allowedIds)
             ->pluck('supervisor_id')
             ->unique()
             ->toArray();
 
-        // 🔥 Gabungkan dan filter hanya yang belum ada
+        // Gabungkan dan filter hanya yang belum ada
         $missingIds = array_merge($parentIds, $secondarySupervisorIds);
         $missingIds = array_diff($missingIds, $allowedIds);
         $missingIds = array_filter($missingIds); // Hapus null/empty
 
-        // 🔥 Ambil struktur yang missing (parent & secondary supervisors)
+        //  Ambil struktur yang missing (parent & secondary supervisors)
         if (!empty($missingIds)) {
             $additionalStructures = Structuresnew::with([
                 'parent',
@@ -410,7 +483,9 @@ class DashManagerController extends Controller
 
     public function indexteamfingerprint()
     {
-        $user = auth()->user()->load([
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->load([
             'employee.structuresnew.submissionposition.stores',
             'employee.structuresnew.submissionposition.store'
         ]);

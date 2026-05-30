@@ -21,10 +21,11 @@ class Leaverequest extends Model
         });
     }
     protected $table = 'leave_requests';
-   protected $fillable = [
+    protected $fillable = [
         'leave_balance_id',
         'start_date',
         'end_date',
+        'total_days',
         'employee_reason',
         'approver_reason',
         'status',
@@ -61,22 +62,40 @@ class Leaverequest extends Model
      */
     public function approvers()
     {
-        $employee = $this->leavebalance->employees;
+        $employee  = $this->leavebalance->employees;
+        $structure = $employee?->structuresnew;
 
-        $structure = $employee->structuresnew; // relasi ke model Structuresnew
+        if (!$structure) {
+            return collect();
+        }
 
-        // manager utama
-        $primary = $structure->employees()->where('is_manager', 1)->get();
+        // Telusuri ke atas dari struktur karyawan, cari struktur ber-is_manager = 1
+        $managerStructureIds = [];
+        $cur = $structure->parent_id;
 
-        // secondary supervisor
-        $secondary = $structure->secondarySupervisors;
+        while ($cur) {
+            $s = \App\Models\Structuresnew::select('id', 'parent_id', 'is_manager')->find($cur);
+            if (!$s) break;
 
-        return $primary->merge($secondary);
+            if ($s->is_manager) {
+                $managerStructureIds[] = $s->id;
+            }
+            $cur = $s->parent_id;
+        }
+
+        // Ambil employee yang menempati struktur-struktur manager itu
+        $approverIds = !empty($managerStructureIds)
+            ? \App\Models\Employee::whereIn('structure_id', $managerStructureIds)->pluck('id')
+            : collect();
+
+        // Tambahkan secondary supervisor dari struktur karyawan sendiri
+        $secondary = $structure->secondarySupervisors->pluck('id');
+
+        return $approverIds->merge($secondary)->unique()->values();
     }
-
     // cek apakah employee tertentu boleh approve
     public function canBeApprovedBy($employeeId)
     {
-        return $this->approvers()->pluck('id')->contains($employeeId);
+        return $this->approvers()->contains($employeeId);
     }
 }

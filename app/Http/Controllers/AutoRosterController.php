@@ -20,8 +20,6 @@ class AutoRosterController extends Controller
         'Distribution Center',
     ];
 
-    private const SHIFT_WEEKDAY  = '9 to 5';
-    private const SHIFT_SATURDAY = '9 to 3';
     private const MAX_RANGE_DAYS = 62;
 
     // ─────────────────────────────────────────────────────────────
@@ -154,27 +152,25 @@ class AutoRosterController extends Controller
                 ], 422);
             }
 
-            $shifts = Shifts::whereIn('store_id', $storeIds)
-                ->whereIn('shift_name', [self::SHIFT_WEEKDAY, self::SHIFT_SATURDAY])
-                ->get()
-                ->keyBy(fn($s) => $s->store_id . '_' . $s->shift_name);
+            $shiftWeekdayId = $request->input('shift_weekday_id');
+            $shiftSaturdayId = $request->input('shift_saturday_id');
 
-            $missingShifts = [];
-            foreach ($stores as $store) {
-                foreach ([self::SHIFT_WEEKDAY, self::SHIFT_SATURDAY] as $shiftName) {
-                    if (!$shifts->has($store->id . '_' . $shiftName)) {
-                        $missingShifts[] = "{$store->name}: {$shiftName}";
-                    }
-                }
-            }
-
-            if (!empty($missingShifts)) {
+           if (!$shiftWeekdayId || !$shiftSaturdayId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Shift belum di-setup untuk: ' . implode(', ', $missingShifts),
+                    'message' => 'Shift weekday dan shift sabtu wajib dipilih.',
                 ], 422);
             }
 
+$shiftWeekday = Shifts::find($shiftWeekdayId);
+$shiftSaturday = Shifts::find($shiftSaturdayId);
+
+if (!$shiftWeekday || !$shiftSaturday) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Shift tidak ditemukan.',
+    ], 422);
+}
             $allPublicHolidays = PublicHoliday::whereBetween('date', [
                     $startDate->toDateString(),
                     $endDate->toDateString(),
@@ -209,8 +205,8 @@ class AutoRosterController extends Controller
             DB::beginTransaction();
 
             foreach ($employees as $employee) {
-                $shift9to5 = $shifts->get($employee->store_id . '_' . self::SHIFT_WEEKDAY);
-                $shift9to3 = $shifts->get($employee->store_id . '_' . self::SHIFT_SATURDAY);
+                $shift9to5 = $shiftWeekday;
+                $shift9to3 = $shiftSaturday;
 
                 $relevantPhTypes  = $this->resolveRelevantPhTypes($employee->religion);
                 // ── Cek eligibilitas PH berdasarkan status_employee ──

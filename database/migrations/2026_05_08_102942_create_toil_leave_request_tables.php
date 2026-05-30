@@ -24,13 +24,13 @@ return new class extends Migration
             $table->uuid('id')->primary();
 
             // Karyawan yang request
-            $table->uuid('employee_id');
+            $table->char('employee_id', 36);
 
             // Saldo (toil_balances) yang dipakai
-            $table->uuid('toil_balance_id');
+            $table->char('toil_balance_id', 36);
 
             // Atasan yang approve/reject
-            $table->uuid('approver_id');
+            $table->char('approver_id', 36);
 
             // Jam yang dipakai dari saldo (max 8 jam = 1 hari)
             $table->decimal('hours_used', 5, 2);

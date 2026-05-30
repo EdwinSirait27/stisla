@@ -10,14 +10,14 @@
 
     <style>
         /* :root {
-                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                } */
+                                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                                } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -763,6 +763,26 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
+        .btn-reject-leave {
+            transition: all 0.2s;
+        }
+
+        .btn-reject-leave:hover {
+            background-color: #D32F2F !important;
+            color: #fff !important;
+            border-color: #D32F2F !important;
+        }
+
+        .btn-approve-leave {
+            transition: all 0.2s;
+        }
+
+        .btn-approve-leave:hover {
+            background-color: #1565C0 !important;
+            color: #fff !important;
+            border-color: #1565C0 !important;
+        }
+
         /* ========== Responsive Design ========== */
         @media (max-width: 768px) {
             .profile-header-card {
@@ -969,372 +989,226 @@
                                 Leave Balance
                             </h4>
                         </div>
-                        @forelse ($leavebalance as $lb)
-                            <div class="leave-balance-body">
-                                <div class="leave-item">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon annual">
-                                            <i class="fas fa-calendar"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Annual Leave</div>
-                                            <div class="leave-type-period">{{ $lb->year }}</div>
-                                        </div>
+                        <div class="leave-balance-body">
+                            <div class="leave-item">
+                                <div class="leave-type">
+                                    <div class="leave-type-icon annual">
+                                        <i class="fas fa-umbrella-beach"></i>
                                     </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">ini sisa cuti</div>
-                                        <div class="leave-days-label">of {{ $lb->balance_days }} days</div>
+                                    <div>
+                                        <div class="leave-type-name">Annual Leave</div>
+                                        <div class="leave-type-period">{{ $annualLeave->year ?? date('Y') }}</div>
                                     </div>
                                 </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="leave-days">
+                                    <div class="leave-days-value">
+                                        {{ rtrim(rtrim(number_format($displayBalance, 2), '0'), '.') }}
                                     </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon sick">
-                                            <i class="fas fa-hospital"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Sick Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">5</div>
-                                        <div class="leave-days-label">of 7 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
-                                            aria-valuenow="71" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon casual">
-                                            <i class="fas fa-coffee"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Casual Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">3</div>
-                                        <div class="leave-days-label">of 5 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
-                                            aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
+                                    <div class="leave-days-label">days remaining</div>
                                 </div>
                             </div>
-                        @empty
-                            <div class="leave-balance-body">
-                                <div class="leave-item">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon annual">
-                                            <i class="fas fa-calendar"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Your leave is fake data because you have not been with the company for 1 year.</div>
-                                            <div class="leave-type-period"></div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">12</div>
-                                        <div class="leave-days-label">of 14 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
 
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon sick">
-                                            <i class="fas fa-hospital"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Sick Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">5</div>
-                                        <div class="leave-days-label">of 7 days</div>
-                                    </div>
+                            @unless ($annualLeave)
+                                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    @if ($isNewbie)
+                                        Anda belum genap 1 tahun berada di perusahaan ini, sehingga saldo cuti belum tersedia.
+                                    @else
+                                        Saldo cuti tahunan belum tersedia untuk periode ini.
+                                    @endif
                                 </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
-                                            aria-valuenow="71" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon casual">
-                                            <i class="fas fa-coffee"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Casual Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">3</div>
-                                        <div class="leave-days-label">of 5 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
-                                            aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforelse
+                            @endunless
+                        </div>
                     </div>
                 </div>
 
-                <!-- Leave Approval -->
-                <div class="col-lg-8 col-12 mb-4">
-                    <div class="submissions-card">
-                        <div class="submissions-header">
-                            <div class="d-flex justify-content-between align-items-center w-100">
-                                <h4>
-                                    <i class="fas fa-clipboard-check me-2"></i>
-                                    Leave Approval
-                                </h4>
-                                <span class="badge"
-                                    style="background-color:#FFF3CD; color:#856404; font-size:0.75rem; padding:6px 12px; border-radius:6px;">
-                                    {{ $pendingLeaves->count() }} Pending
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="card-body p-0">
-                            @forelse($pendingLeaves as $leave)
-                                @php
-                                    $balance = $leave->leavebalance;
-                                    $employee = $balance?->employees;
-                                    $leaveType = $balance?->leaves;
-
-                                    $employeeName = $employee?->employee_name ?? $employee?->name ?? '-';
-                                    $leaveTypeName = $leaveType?->name ?? $leaveType?->leave_type_name ?? 'Cuti';
-
-                                    $colors = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
-                                    $bgColor = $colors[abs(crc32($employeeName)) % count($colors)];
-                                    $initial = strtoupper(substr($employeeName, 0, 1));
-
-                                    $typeMap = [
-                                        'sakit' => ['bg' => '#FFF3CD', 'text' => '#856404'],
-                                        'tahunan' => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
-                                        'annual' => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
-                                        'melahirkan' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
-                                        'darurat' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
-                                        'toil' => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
-                                    ];
-                                    $key = strtolower($leaveTypeName);
-                                    $typeStyle = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k)) ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
-                                @endphp
-
-                                <div class="submission-item leave-approval-item" id="leave-item-{{ $leave->id }}">
-                                    <div class="d-flex align-items-center">
-
-                                        <!-- Avatar -->
-                                        <div class="me-3 flex-shrink-0">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                                style="width:44px; height:44px; background-color:{{ $bgColor }}; font-size:1rem;">
-                                                {{ $initial }}
-                                            </div>
-                                        </div>
-
-                                        <!-- Info -->
-                                        <div class="flex-grow-1">
-                                            <div class="fw-semibold mb-1" style="font-size:0.95rem; color:#344767;">
-                                                {{ $employeeName }}
-                                            </div>
-                                            <div class="d-flex align-items-center gap-3 flex-wrap"
-                                                style="font-size:0.82rem; color:#64748b;">
-                                                <span>
-                                                    <i class="fas fa-calendar me-1"></i>
-                                                    {{ \Carbon\Carbon::parse($leave->start_date)->format('d M Y') }}
-                                                    @if ($leave->end_date && $leave->end_date !== $leave->start_date)
-                                                        – {{ \Carbon\Carbon::parse($leave->end_date)->format('d M Y') }}
-                                                    @endif
-                                                </span>
-                                                <span>
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    {{ \Carbon\Carbon::parse($leave->created_at)->diffForHumans() }}
-                                                </span>
-                                                <span class="badge fw-semibold"
-                                                    style="background-color:{{ $typeStyle['bg'] }}; color:{{ $typeStyle['text'] }};
-                                                             font-size:0.7rem; padding:4px 10px; border-radius:6px;">
-                                                    {{ $leaveTypeName }}
-                                                </span>
-                                            </div>
-                                            @if ($leave->employee_reason)
-                                                <div class="mt-2" style="font-size:0.85rem; color:#344767;">
-                                                    <i class="fas fa-sticky-note me-1 text-muted"></i>
-                                                    <strong>Note:</strong> {{ $leave->employee_reason }}
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <!-- Tombol Approve & Reject -->
-                                        <div class="d-flex flex-column gap-2 ms-2">
-                                            <button type="button"
-                                                class="btn btn-sm fw-semibold btn-approve-leave"
-                                                data-id="{{ $leave->id }}"
-                                                data-name="{{ $employeeName }}"
-                                                data-url="{{ route('leaverequest.approve', $leave->id) }}"
-                                                style="background-color:#1976D2; color:#fff; border-radius:6px;
-                                                           font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
-                                                <i class="fas fa-check me-1"></i> Approve
-                                            </button>
-
-                                            <button type="button"
-                                                class="btn btn-sm fw-semibold btn-reject-leave"
-                                                data-id="{{ $leave->id }}"
-                                                data-name="{{ $employeeName }}"
-                                                data-url="{{ route('leaverequest.reject', $leave->id) }}"
-                                                data-bs-toggle="modal" data-bs-target="#rejectLeaveModal"
-                                                style="background-color:#fff; color:#D32F2F; border:1.5px solid #D32F2F;
-                                                           border-radius:6px; font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
-                                                <i class="fas fa-times me-1"></i> Reject
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-5 px-4" id="leave-empty-state">
-                                    <i class="fas fa-check-circle"
-                                        style="font-size:3rem; color:#11998e; opacity:0.5;"></i>
-                                    <h6 class="mt-3 mb-1" style="color:#344767;">Semua cuti sudah ditangani</h6>
-                                    <p class="text-muted mb-0" style="font-size:0.875rem;">
-                                        Tidak ada pengajuan cuti yang menunggu persetujuan.
-                                    </p>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        @if ($pendingLeaves->count() > 0)
-                            <div class="card-footer bg-light text-center" id="leave-footer">
-                                <a href="{{ route('leaverequest.index') }}" class="text-decoration-none">
-                                    View All Leave Requests
-                                    <i class="fas fa-arrow-right ms-2"></i>
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Attendance History Row -->
-            <div class="row">
-                <div class="col-lg-6 col-12 mb-4">
-                    <div class="attendance-history-card">
-                        <div class="attendance-history-header">
+            <!-- Leave Approval -->
+            <div class="col-lg-8 col-12 mb-4">
+                <div class="submissions-card">
+                    <div class="submissions-header">
+                        <div class="d-flex justify-content-between align-items-center w-100">
                             <h4>
-                                <i class="fas fa-calendar-check me-2"></i>
-                                Attendance History
+                                <i class="fas fa-clipboard-check me-2"></i>
+                                Leave Approval
                             </h4>
+                            <span class="badge"
+                                style="background-color:#FFF3CD; color:#856404; font-size:0.75rem; padding:6px 12px; border-radius:6px;">
+                                {{ $pendingLeaves->count() }} Pending
+                            </span>
                         </div>
-                        <div class="attendance-calendar">
-                            <div class="calendar-month">
-                                <i class="fas fa-chevron-left" style="cursor: pointer;"></i>
-                                <span class="mx-4">December 2024</span>
-                                <i class="fas fa-chevron-right" style="cursor: pointer;"></i>
-                            </div>
+                    </div>
 
-                            <div class="calendar-grid">
-                                <div class="calendar-day-header">Sun</div>
-                                <div class="calendar-day-header">Mon</div>
-                                <div class="calendar-day-header">Tue</div>
-                                <div class="calendar-day-header">Wed</div>
-                                <div class="calendar-day-header">Thu</div>
-                                <div class="calendar-day-header">Fri</div>
-                                <div class="calendar-day-header">Sat</div>
+                    <div class="card-body p-0">
+    @forelse($pendingLeaves as $leave)
+        <div class="submission-item leave-approval-item" id="leave-item-{{ $leave['id'] }}">
+            <div class="d-flex align-items-center">
 
-                                <div class="calendar-day weekend">1</div>
-                                <div class="calendar-day present">2</div>
-                                <div class="calendar-day present">3</div>
-                                <div class="calendar-day present">4</div>
-                                <div class="calendar-day present">5</div>
-                                <div class="calendar-day present">6</div>
-                                <div class="calendar-day weekend">7</div>
+                <!-- Avatar -->
+                <div class="flex-shrink-0" style="margin-right: 24px;">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                        style="width:44px; height:44px; background-color:{{ $leave['bgColor'] }}; font-size:1rem;">
+                        {{ $leave['initial'] }}
+                    </div>
+                </div>
 
-                                <div class="calendar-day weekend">8</div>
-                                <div class="calendar-day present">9</div>
-                                <div class="calendar-day present">10</div>
-                                <div class="calendar-day present">11</div>
-                                <div class="calendar-day present">12</div>
-                                <div class="calendar-day present">13</div>
-                                <div class="calendar-day weekend">14</div>
+                <!-- Info -->
+                <div class="flex-grow-1">
+                    <div class="fw-semibold mb-1" style="font-size:0.95rem; color:#344767;">
+                        {{ $leave['employeeName'] }}
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap"
+                        style="font-size:0.82rem; color:#64748b; gap: 14px;">
+                        <span><i class="fas fa-calendar me-1"></i>{{ $leave['dateLabel'] }}</span>
+                        <span><i class="fas fa-clock me-1"></i>{{ $leave['ago'] }}</span>
+                        <span class="badge fw-semibold"
+                            style="background-color:{{ $leave['typeBg'] }}; color:{{ $leave['typeText'] }};
+                                   font-size:0.7rem; padding:4px 10px; border-radius:6px;">
+                            {{ $leave['leaveTypeName'] }}
+                        </span>
+                    </div>
+                    @if ($leave['employeeReason'])
+                        <div class="mt-2" style="font-size:0.85rem; color:#344767;">
+                            <i class="fas fa-sticky-note me-1 text-muted"></i>
+                            <strong>Note:</strong> {{ $leave['employeeReason'] }}
+                        </div>
+                    @endif
+                </div>
 
-                                <div class="calendar-day weekend">15</div>
-                                <div class="calendar-day absent">16</div>
-                                <div class="calendar-day present">17</div>
-                                <div class="calendar-day present">18</div>
-                                <div class="calendar-day present">19</div>
-                                <div class="calendar-day leave">20</div>
-                                <div class="calendar-day weekend">21</div>
+                <!-- Tombol Approve & Reject -->
+                <div class="d-flex flex-column ms-2" style="gap: 10px;">
+                    <button type="button" class="btn btn-sm fw-semibold btn-approve-leave"
+                        data-id="{{ $leave['id'] }}" data-name="{{ $leave['employeeName'] }}"
+                        data-url="{{ $leave['approveUrl'] }}"
+                        style="background-color:#fff; color:#1976D2; border:1.5px solid #1976D2;
+                               border-radius:6px; font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
+                        <i class="fas fa-check me-1"></i> Approve
+                    </button>
 
-                                <div class="calendar-day weekend">22</div>
-                                <div class="calendar-day leave">23</div>
-                                <div class="calendar-day leave">24</div>
-                                <div class="calendar-day leave">25</div>
-                                <div class="calendar-day leave">26</div>
-                                <div class="calendar-day present">27</div>
-                                <div class="calendar-day weekend">28</div>
+                    <button type="button" class="btn btn-sm fw-semibold btn-reject-leave"
+                        data-id="{{ $leave['id'] }}" data-name="{{ $leave['employeeName'] }}"
+                        data-url="{{ $leave['rejectUrl'] }}"
+                        style="background-color:#fff; color:#D32F2F; border:1.5px solid #D32F2F;
+                               border-radius:6px; font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
+                        <i class="fas fa-times me-1"></i> Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="text-center py-5 px-4" id="leave-empty-state">
+            <i class="fas fa-check-circle" style="font-size:3rem; color:#11998e; opacity:0.5;"></i>
+            <h6 class="mt-3 mb-1" style="color:#344767;">Semua cuti sudah ditangani</h6>
+            <p class="text-muted mb-0" style="font-size:0.875rem;">
+                Tidak ada pengajuan cuti yang menunggu persetujuan.
+            </p>
+        </div>
+    @endforelse
+</div>
 
-                                <div class="calendar-day weekend">29</div>
-                                <div class="calendar-day present">30</div>
-                                <div class="calendar-day today">31</div>
-                                <div class="calendar-day empty"></div>
-                                <div class="calendar-day empty"></div>
-                                <div class="calendar-day empty"></div>
-                                <div class="calendar-day empty"></div>
-                            </div>
+                    @if ($pendingLeaves->count() > 0)
+                        <div class="card-footer bg-light text-center" id="leave-footer">
+                            <a href="{{ route('leaverequest.index') }}" class="text-decoration-none">
+                                View All Leave Requests
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
 
-                            <div class="calendar-legend">
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(56, 239, 125, 0.15);"></div>
-                                    <span>Present</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(245, 87, 108, 0.15);"></div>
-                                    <span>Absent</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(255, 171, 0, 0.15);"></div>
-                                    <span>On Leave</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #f8f9fa;"></div>
-                                    <span>Weekend</span>
-                                </div>
-                            </div>
+    </div>
+
+    <!-- Attendance History Row -->
+    <div class="row">
+        <div class="col-lg-6 col-12 mb-4">
+            <div class="attendance-history-card">
+                <div class="attendance-history-header">
+                    <h4>
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Attendance History
+                    </h4>
+                </div>
+                <div class="attendance-calendar">
+                    <div class="calendar-month">
+                        <i class="fas fa-chevron-left" style="cursor: pointer;"></i>
+                        <span class="mx-4">December 2024</span>
+                        <i class="fas fa-chevron-right" style="cursor: pointer;"></i>
+                    </div>
+
+                    <div class="calendar-grid">
+                        <div class="calendar-day-header">Sun</div>
+                        <div class="calendar-day-header">Mon</div>
+                        <div class="calendar-day-header">Tue</div>
+                        <div class="calendar-day-header">Wed</div>
+                        <div class="calendar-day-header">Thu</div>
+                        <div class="calendar-day-header">Fri</div>
+                        <div class="calendar-day-header">Sat</div>
+
+                        <div class="calendar-day weekend">1</div>
+                        <div class="calendar-day present">2</div>
+                        <div class="calendar-day present">3</div>
+                        <div class="calendar-day present">4</div>
+                        <div class="calendar-day present">5</div>
+                        <div class="calendar-day present">6</div>
+                        <div class="calendar-day weekend">7</div>
+
+                        <div class="calendar-day weekend">8</div>
+                        <div class="calendar-day present">9</div>
+                        <div class="calendar-day present">10</div>
+                        <div class="calendar-day present">11</div>
+                        <div class="calendar-day present">12</div>
+                        <div class="calendar-day present">13</div>
+                        <div class="calendar-day weekend">14</div>
+
+                        <div class="calendar-day weekend">15</div>
+                        <div class="calendar-day absent">16</div>
+                        <div class="calendar-day present">17</div>
+                        <div class="calendar-day present">18</div>
+                        <div class="calendar-day present">19</div>
+                        <div class="calendar-day leave">20</div>
+                        <div class="calendar-day weekend">21</div>
+
+                        <div class="calendar-day weekend">22</div>
+                        <div class="calendar-day leave">23</div>
+                        <div class="calendar-day leave">24</div>
+                        <div class="calendar-day leave">25</div>
+                        <div class="calendar-day leave">26</div>
+                        <div class="calendar-day present">27</div>
+                        <div class="calendar-day weekend">28</div>
+
+                        <div class="calendar-day weekend">29</div>
+                        <div class="calendar-day present">30</div>
+                        <div class="calendar-day today">31</div>
+                        <div class="calendar-day empty"></div>
+                        <div class="calendar-day empty"></div>
+                        <div class="calendar-day empty"></div>
+                        <div class="calendar-day empty"></div>
+                    </div>
+
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(56, 239, 125, 0.15);"></div>
+                            <span>Present</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(245, 87, 108, 0.15);"></div>
+                            <span>Absent</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(255, 171, 0, 0.15);"></div>
+                            <span>On Leave</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f8f9fa;"></div>
+                            <span>Weekend</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-        </section>
+    </section>
     </div>
 
     <!-- ═══════════ Modal Reject Leave ═══════════ -->
@@ -1353,8 +1227,8 @@
                         <label class="form-label fw-semibold" style="font-size:0.85rem;">
                             Alasan Penolakan
                         </label>
-                        <textarea id="rejectReason" class="form-control" rows="3"
-                            placeholder="Isi alasan penolakan..." style="font-size:0.9rem;"></textarea>
+                        <textarea id="rejectReason" class="form-control" rows="3" placeholder="Isi alasan penolakan..."
+                            style="font-size:0.9rem;"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -1369,7 +1243,8 @@
     </div>
 
     <!-- ═══════════ Request Leave Modal ═══════════ -->
-    <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel" aria-hidden="true">
+    <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <form action="{{ route('Submissions.store') }}" method="POST" id="leaveRequestForm">
@@ -1415,7 +1290,8 @@
                                 <label class="form-label" for="start_date">
                                     <i class="fas fa-calendar-alt me-1"></i> Start Date
                                 </label>
-                                <input type="date" name="leave_date_from" id="start_date" class="form-control" required>
+                                <input type="date" name="leave_date_from" id="start_date" class="form-control"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label" for="end_date">
@@ -1572,85 +1448,8 @@
                 }
             }
 
-            function showToast(message, type = 'success') {
-                const color = type === 'success' ? '#1976D2' : '#D32F2F';
-                const toast = document.createElement('div');
-                toast.style.cssText = `
-                    position:fixed; bottom:24px; right:24px; z-index:9999;
-                    background:${color}; color:#fff; padding:12px 20px;
-                    border-radius:8px; font-size:0.9rem; font-weight:600;
-                    box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:opacity 0.4s;`;
-                toast.textContent = message;
-                document.body.appendChild(toast);
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                }, 3000);
-                setTimeout(() => {
-                    toast.remove();
-                }, 3500);
-            }
-
-            // ── APPROVE ──
-            document.querySelectorAll('.btn-approve-leave').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-                    const name = this.dataset.name;
-                    const url = this.dataset.url;
-
-                    if (!confirm(`Setujui cuti ${name}?`)) return;
-
-                    this.disabled = true;
-                    this.innerHTML = '⏳ Proses...';
-
-                    fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json',
-                            },
-                            body: JSON.stringify({}),
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.status === 'success') {
-                                showToast(`✓ Cuti ${name} berhasil disetujui`);
-                                removeLeaveItem(id);
-                            } else {
-                                showToast(data.message ?? 'Gagal approve', 'error');
-                                this.disabled = false;
-                                this.innerHTML = '<i class="fas fa-check me-1"></i> Approve';
-                            }
-                        })
-                        .catch(() => {
-                            showToast('Terjadi kesalahan, coba lagi.', 'error');
-                            this.disabled = false;
-                            this.innerHTML = '<i class="fas fa-check me-1"></i> Approve';
-                        });
-                });
-            });
-
-            // ── REJECT ──
-            let rejectUrl = '';
-            let rejectId = '';
-
-            document.querySelectorAll('.btn-reject-leave').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    rejectUrl = this.dataset.url;
-                    rejectId = this.dataset.id;
-                    document.getElementById('rejectEmployeeName').textContent = this.dataset.name;
-                    document.getElementById('rejectReason').value = '';
-                });
-            });
-
-            document.getElementById('btnConfirmReject')?.addEventListener('click', function() {
-                const reason = document.getElementById('rejectReason').value;
-                const btn = this;
-
-                btn.disabled = true;
-                btn.textContent = '⏳ Proses...';
-
-                fetch(rejectUrl, {
+            function sendDecision(url, reason, id, successMsg) {
+                return fetch(url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1661,28 +1460,101 @@
                             approver_reason: reason
                         }),
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        bootstrap.Modal.getInstance(
-                            document.getElementById('rejectLeaveModal')
-                        )?.hide();
-
-                        if (data.status === 'success') {
-                            showToast('✕ Cuti berhasil ditolak');
-                            removeLeaveItem(rejectId);
+                    .then(async (res) => {
+                        const data = await res.json();
+                        return {
+                            ok: res.ok,
+                            data
+                        };
+                    })
+                    .then(({
+                        ok,
+                        data
+                    }) => {
+                        if (ok && data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: successMsg,
+                                timer: 1500,
+                                showConfirmButton: false,
+                            }).then(() => {
+                                window.location.reload();
+                            });
                         } else {
-                            showToast(data.message ?? 'Gagal reject', 'error');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message ?? 'Terjadi kesalahan.',
+                            });
                         }
-
-                        btn.disabled = false;
-                        btn.textContent = 'Tolak Cuti';
                     })
                     .catch(() => {
-                        showToast('Terjadi kesalahan, coba lagi.', 'error');
-                        btn.disabled = false;
-                        btn.textContent = 'Tolak Cuti';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Terjadi kesalahan, coba lagi.',
+                        });
+                    });
+            }
+
+            // ── APPROVE ──
+            document.querySelectorAll('.btn-approve-leave').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const url = this.dataset.url;
+
+                    Swal.fire({
+                        title: 'Setujui Cuti',
+                        html: `Setujui pengajuan cuti <strong>${name}</strong>?`,
+                        input: 'textarea',
+                        inputPlaceholder: 'Tulis alasan persetujuan...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Setujui',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#1976D2',
+                        inputValidator: (value) => {
+                            if (!value || !value.trim()) {
+                                return 'Alasan persetujuan wajib diisi.';
+                            }
+                        }
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+                        sendDecision(url, result.value.trim(), id,
+                            `Cuti ${name} berhasil disetujui.`);
                     });
                 });
+            });
+
+            // ── REJECT ──
+            document.querySelectorAll('.btn-reject-leave').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const url = this.dataset.url;
+
+                    Swal.fire({
+                        title: 'Tolak Cuti',
+                        html: `Tolak pengajuan cuti <strong>${name}</strong>?`,
+                        input: 'textarea',
+                        inputPlaceholder: 'Tulis alasan penolakan...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Tolak',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#D32F2F',
+                        inputValidator: (value) => {
+                            if (!value || !value.trim()) {
+                                return 'Alasan penolakan wajib diisi.';
+                            }
+                        }
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+                        sendDecision(url, result.value.trim(), id,
+                            `Cuti ${name} berhasil ditolak.`);
+                    });
+                });
+            });
         });
     </script>
 @endpush

@@ -237,14 +237,14 @@
 
     <style>
         /* :root {
-                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                } */
+                                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                                --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                            } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -819,12 +819,37 @@
             aspect-ratio: 1;
             border-radius: 8px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 4px;
             font-size: 0.85rem;
             font-weight: 500;
             transition: all 0.2s;
             cursor: pointer;
+            padding: 4px;
+            text-align: center;
+
+        }
+
+        .calendar-day-number {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .calendar-day-label {
+            font-size: 0.65rem;
+            font-weight: 500;
+            line-height: 1.1;
+            opacity: 0.85;
+        }
+
+        .calendar-day-remark {
+            font-size: 0.6rem;
+            font-weight: 400;
+            line-height: 1.1;
+            font-style: italic;
+            opacity: 0.75;
         }
 
         .calendar-day.empty {
@@ -1085,7 +1110,7 @@
         /* z-index biar di atas modal */
         .select2-container--open {
             z-index: 99999;
-        }       
+        }
     </style>
 @endpush
 
@@ -1322,84 +1347,39 @@
                         <div class="leave-balance-header">
                             <h4>
                                 <i class="fas fa-umbrella-beach me-2"></i>
-                                Leave Balance - {{ Auth::user()->employee->employee_name ?? Auth::user()->employee->employee_name }}
+                                Leave Balance -
+                                {{ Auth::user()->employee->employee_name ?? Auth::user()->employee->employee_name }}
                             </h4>
                         </div>
                         <div class="leave-balance-body">
                             <div class="leave-item">
                                 <div class="leave-type">
                                     <div class="leave-type-icon annual">
-                                        <i class="fas fa-calendar"></i>
+                                        <i class="fas fa-umbrella-beach"></i>
                                     </div>
                                     <div>
                                         <div class="leave-type-name">Annual Leave</div>
-                                        <div class="leave-type-period">
-                                            {{ Auth::user()->employee->created_at ?? Auth::user()->employee->created_at }}
-                                        </div>
+                                        <div class="leave-type-period">{{ $annualLeave->year ?? date('Y') }}</div>
                                     </div>
                                 </div>
                                 <div class="leave-days">
-                                    <div class="leave-days-value">12</div>
-                                    <div class="leave-days-label">of 14 days</div>
-                                </div>
-                            </div>
-                            <div class="leave-progress">
-                                <div class="progress">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                        {{-- style="width: {{ $leaveBalance->annual->percentage ?? 85 }}%" --}} aria-valuenow= "85" {{-- aria-valuenow="{{ $leaveBalance->annual->percentage ?? 85 }}"  --}}
-                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="leave-days-value">
+                                        {{ rtrim(rtrim(number_format($displayBalance, 2), '0'), '.') }}
+                                    </div>
+                                    <div class="leave-days-label">days remaining</div>
                                 </div>
                             </div>
 
-                            <div class="leave-item mt-3">
-                                <div class="leave-type">
-                                    <div class="leave-type-icon sick">
-                                        <i class="fas fa-hospital"></i>
-                                    </div>
-                                    <div>
-                                        <div class="leave-type-name">Sick Leave</div>
-                                        <div class="leave-type-period">2024</div>
-                                    </div>
+                            @unless ($annualLeave)
+                                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    @if ($isNewbie)
+                                        Anda belum genap 1 tahun berada di perusahaan ini, sehingga saldo cuti belum tersedia.
+                                    @else
+                                        Saldo cuti tahunan belum tersedia untuk periode ini.
+                                    @endif
                                 </div>
-                                <div class="leave-days">
-                                    {{-- <div class="leave-days-value">{{ $leaveBalance->sick->remaining ?? 5 }}</div> --}}
-                                    <div class="leave-days-value">5</div>
-                                    <div class="leave-days-label">of 7 days</div>
-                                    {{-- <div class="leave-days-label">of {{ $leaveBalance->sick->total ?? 7 }} days</div> --}}
-                                </div>
-                            </div>
-                            <div class="leave-progress">
-                                <div class="progress">
-                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
-                                        {{-- style="width: {{ $leaveBalance->sick->percentage ?? 71 }}%" --}} aria-valuenow="71" {{-- aria-valuenow="{{ $leaveBalance->sick->percentage ?? 71 }}"  --}} aria-valuemin="0"
-                                        aria-valuemax="100"></div>
-                                </div>
-                            </div>
-
-                            <div class="leave-item mt-3">
-                                <div class="leave-type">
-                                    <div class="leave-type-icon casual">
-                                        <i class="fas fa-coffee"></i>
-                                    </div>
-                                    <div>
-                                        <div class="leave-type-name">Casual Leave</div>
-                                        <div class="leave-type-period">2024</div>
-                                    </div>
-                                </div>
-                                <div class="leave-days">
-                                    <div class="leave-days-value">3</div>
-                                    {{-- <div class="leave-days-value">{{ $leaveBalance->casual->remaining ?? 3 }}</div> --}}
-                                    <div class="leave-days-label">of 5 days</div>
-                                    {{-- <div class="leave-days-label">of {{ $leaveBalance->casual->total ?? 5 }} days</div> --}}
-                                </div>
-                            </div>
-                            <div class="leave-progress">
-                                <div class="progress">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
-                                        {{-- style="width: {{ $leaveBalance->casual->percentage ?? 60 }}%" --}} aria-valuenow="60" {{-- aria-valuenow="{{ $leaveBalance->casual->percentage ?? 60 }}"  --}} aria-valuemin="0"
-                                        aria-valuemax="100"></div>
-                                </div>
-                            </div>
+                            @endunless
                         </div>
                     </div>
                 </div>
@@ -1413,144 +1393,63 @@
                                     <i class="fas fa-file-alt me-2"></i>
                                     My Submissions
                                 </h4>
-                                <button type="button"
-                                        class="btn btn-primary btn-sm"
-                                        id="newSubmissionBtn"
-                                        data-toggle="modal"
-                                        data-target="#requestLeaveModal">
-                                    <i class="fas fa-plus me-1"></i>
-                                    New Request
-                                </button>
+                                @if ($hasPending)
+                                    <button type="button" class="btn btn-secondary btn-sm" disabled
+                                        title="Anda masih memiliki pengajuan yang menunggu persetujuan">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Pending Approval
+                                    </button>
+                                @else
+                                    <button type="button" class="btn btn-primary btn-sm" id="newSubmissionBtn"
+                                        data-toggle="modal" data-target="#requestLeaveModal">
+                                        <i class="fas fa-plus me-1"></i>
+                                        New Request
+                                    </button>
+                                @endif
                             </div>
                         </div>
                         <div class="card-body p-0">
-                            <!-- Submission Item 1 -->
-                            <div class="submission-item">
-                                <div class="submission-header-row">
-                                    <span class="submission-type-badge annual-leave">
-                                        <i class="fas fa-umbrella-beach me-1"></i>
-                                        Annual Leave
-                                    </span>
-                                    <span class="submission-status pending">
-                                        <i class="fas fa-clock me-1"></i>
-                                        Pending
-                                    </span>
+                            @forelse ($submissions as $sub)
+                                <div class="submission-item">
+                                    <div class="submission-header-row">
+                                        <span class="submission-type-badge annual-leave">
+                                            <i class="fas fa-umbrella-beach me-1"></i>
+                                            {{ $sub['leave_name'] }}
+                                        </span>
+                                        <span class="submission-status {{ $sub['statusClass'] }}">
+                                            <i class="fas {{ $sub['statusIcon'] }} me-1"></i>
+                                            {{ $sub['status'] }}
+                                        </span>
+                                    </div>
+                                    <div class="submission-meta">
+                                        <span>
+                                            <i class="fas fa-calendar"></i>
+                                            {{ $sub['dateLabel'] }}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-hourglass-half"></i>
+                                            {{ $sub['totalDays'] }} days
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-clock"></i>
+                                            {{ $sub['ago'] }}
+                                        </span>
+                                    </div>
+                                    @if ($sub['reason'])
+                                        <div class="submission-notes">
+                                            <i class="fas fa-sticky-note me-2"></i>
+                                            <strong>{{ $sub['isRejected'] ? 'Rejection reason:' : 'Note:' }}</strong>
+                                            {{ $sub['reason'] }}
+                                        </div>
+                                    @endif
                                 </div>
-                                <div class="submission-meta">
-                                    <span>
-                                        <i class="fas fa-calendar"></i>
-                                        Dec 20, 2024 - Dec 24, 2024
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-hourglass-half"></i>
-                                        5 days
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-clock"></i>
-                                        2 days ago
-                                    </span>
+                            @empty
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <h6>No submissions yet</h6>
+                                    <p>You haven't submitted any leave requests.</p>
                                 </div>
-                                <div class="submission-notes">
-                                    <i class="fas fa-sticky-note me-2"></i>
-                                    <strong>Note:</strong> Family vacation to Bali
-                                </div>
-                            </div>
-
-                            <!-- Submission Item 2 -->
-                            <div class="submission-item">
-                                <div class="submission-header-row">
-                                    <span class="submission-type-badge overtime">
-                                        <i class="fas fa-clock me-1"></i>
-                                        Overtime
-                                    </span>
-                                    <span class="submission-status approved">
-                                        <i class="fas fa-check-circle me-1"></i>
-                                        Approved
-                                    </span>
-                                </div>
-                                <div class="submission-meta">
-                                    <span>
-                                        <i class="fas fa-calendar"></i>
-                                        Nov 28, 2024
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-hourglass-half"></i>
-                                        4 hours
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-clock"></i>
-                                        5 days ago
-                                    </span>
-                                </div>
-                                <div class="submission-notes">
-                                    <i class="fas fa-sticky-note me-2"></i>
-                                    <strong>Note:</strong> Project deadline completion
-                                </div>
-                            </div>
-
-                            <!-- Submission Item 3 -->
-                            <div class="submission-item">
-                                <div class="submission-header-row">
-                                    <span class="submission-type-badge sick-leave">
-                                        <i class="fas fa-hospital me-1"></i>
-                                        Sick Leave
-                                    </span>
-                                    <span class="submission-status approved">
-                                        <i class="fas fa-check-circle me-1"></i>
-                                        Approved
-                                    </span>
-                                </div>
-                                <div class="submission-meta">
-                                    <span>
-                                        <i class="fas fa-calendar"></i>
-                                        Nov 15, 2024 - Nov 16, 2024
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-hourglass-half"></i>
-                                        2 days
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-clock"></i>
-                                        2 weeks ago
-                                    </span>
-                                </div>
-                                <div class="submission-notes">
-                                    <i class="fas fa-sticky-note me-2"></i>
-                                    <strong>Note:</strong> Medical checkup and recovery
-                                </div>
-                            </div>
-
-                            <!-- Submission Item 4 -->
-                            <div class="submission-item">
-                                <div class="submission-header-row">
-                                    <span class="submission-type-badge annual-leave">
-                                        <i class="fas fa-umbrella-beach me-1"></i>
-                                        Annual Leave
-                                    </span>
-                                    <span class="submission-status rejected">
-                                        <i class="fas fa-times-circle me-1"></i>
-                                        Rejected
-                                    </span>
-                                </div>
-                                <div class="submission-meta">
-                                    <span>
-                                        <i class="fas fa-calendar"></i>
-                                        Nov 10, 2024 - Nov 12, 2024
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-hourglass-half"></i>
-                                        3 days
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-clock"></i>
-                                        3 weeks ago
-                                    </span>
-                                </div>
-                                <div class="submission-notes">
-                                    <i class="fas fa-sticky-note me-2"></i>
-                                    <strong>Rejection reason:</strong> Peak season - insufficient coverage
-                                </div>
-                            </div>
+                            @endforelse
                         </div>
                         <div class="card-footer bg-light text-center">
                             <a href="#" class="text-decoration-none">
@@ -1569,91 +1468,11 @@
                         <div class="attendance-history-header">
                             <h4>
                                 <i class="fas fa-calendar-check me-2"></i>
-                                Attendance History
+                                Schedule History
                             </h4>
                         </div>
-                        <div class="attendance-calendar">
-                            <div class="calendar-month">
-                                <i class="fas fa-chevron-left" style="cursor: pointer;"></i>
-                                <span class="mx-4">December 2024</span>
-                                <i class="fas fa-chevron-right" style="cursor: pointer;"></i>
-                            </div>
-
-                            <div class="calendar-grid">
-                                <!-- Day Headers -->
-                                <div class="calendar-day-header">Sun</div>
-                                <div class="calendar-day-header">Mon</div>
-                                <div class="calendar-day-header">Tue</div>
-                                <div class="calendar-day-header">Wed</div>
-                                <div class="calendar-day-header">Thu</div>
-                                <div class="calendar-day-header">Fri</div>
-                                <div class="calendar-day-header">Sat</div>
-
-                                <!-- Week 1 -->
-                                <div class="calendar-day weekend">1</div>
-                                <div class="calendar-day present">2</div>
-                                <div class="calendar-day present">3</div>
-                                <div class="calendar-day present">4</div>
-                                <div class="calendar-day present">5</div>
-                                <div class="calendar-day present">6</div>
-                                <div class="calendar-day weekend">7</div>
-
-                                <!-- Week 2 -->
-                                <div class="calendar-day weekend">8</div>
-                                <div class="calendar-day present">9</div>
-                                <div class="calendar-day present">10</div>
-                                <div class="calendar-day present">11</div>
-                                <div class="calendar-day present">12</div>
-                                <div class="calendar-day present">13</div>
-                                <div class="calendar-day weekend">14</div>
-
-                                <!-- Week 3 -->
-                                <div class="calendar-day weekend">15</div>
-                                <div class="calendar-day absent">16</div>
-                                <div class="calendar-day present">17</div>
-                                <div class="calendar-day present">18</div>
-                                <div class="calendar-day present">19</div>
-                                <div class="calendar-day leave">20</div>
-                                <div class="calendar-day weekend">21</div>
-
-                                <!-- Week 4 -->
-                                <div class="calendar-day weekend">22</div>
-                                <div class="calendar-day leave">23</div>
-                                <div class="calendar-day leave">24</div>
-                                <div class="calendar-day leave">25</div>
-                                <div class="calendar-day leave">26</div>
-                                <div class="calendar-day present">27</div>
-                                <div class="calendar-day weekend">28</div>
-
-                                <!-- Week 5 -->
-                                <div class="calendar-day weekend">29</div>
-                                <div class="calendar-day present">30</div>
-                                <div class="calendar-day today">31</div>
-                                <div class="calendar-day empty"></div>
-                                <div class="calendar-day empty"></div>
-                                <div class="calendar-day empty"></div>
-                                <div class="calendar-day empty"></div>
-                            </div>
-
-                            <!-- Calendar Legend -->
-                            <div class="calendar-legend">
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(56, 239, 125, 0.15);"></div>
-                                    <span>Present</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(245, 87, 108, 0.15);"></div>
-                                    <span>Absent</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(255, 171, 0, 0.15);"></div>
-                                    <span>Late</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #f8f9fa;"></div>
-                                    <span>Weekend</span>
-                                </div>
-                            </div>
+                        <div class="attendance-calendar" id="calendarContainer">
+                            @include('pages.Dashboard.calendar')
                         </div>
                     </div>
                 </div>
@@ -1678,8 +1497,7 @@
                             <i class="fas fa-paper-plane me-2"></i>
                             Apply Leave
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal"
-                        >
+                        <button type="button" class="close" data-dismiss="modal">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -1693,9 +1511,8 @@
                             <select name="leave_balance_id" id="leave_balance_id" class="form-control" required>
                                 <option value="">-- Select type of leave --</option>
                                 @forelse(($leaveBalances ?? []) as $balance)
-                                    <option value="{{ $balance->id }}"
-                                            data-days="{{ $balance->balance_days }}"
-                                            data-name="{{ $balance->leaves->name ?? 'Leave' }}">
+                                    <option value="{{ $balance->id }}" data-days="{{ $balance->balance_days }}"
+                                        data-name="{{ $balance->leaves->name ?? 'Leave' }}">
                                         {{ $balance->leaves->name ?? 'Leave' }}
                                         — Sisa: {{ $balance->balance_days }} days
                                     </option>
@@ -1834,43 +1651,65 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-           $('#requestLeaveModal').on('shown.bs.modal', function () {
-           $('#leave_balance_id').select2({
-            dropdownParent: $('#requestLeaveModal'),
-            placeholder: '-- select the type of leave --',
-            allowClear: true,
-            width: '100%',
-        });
-    });
+        function loadCalendar(month, year) {
+            const container = document.getElementById('calendarContainer');
+            container.style.opacity = '0.5';
 
-    // ✅ Destroy Select2 saat modal ditutup
-    $('#requestLeaveModal').on('hidden.bs.modal', function () {
-        $('#leave_balance_id').select2('destroy');
-    });
+            fetch(`{{ url('/Dashboard') }}?month=${month}&year=${year}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    container.innerHTML = html;
+                    container.style.opacity = '1';
+                })
+                .catch(() => {
+                    window.location.href = `{{ url('/Dashboard') }}?month=${month}&year=${year}`;
+                });
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            $('#requestLeaveModal').on('shown.bs.modal', function() {
+                $('#leave_balance_id').select2({
+                    dropdownParent: $('#requestLeaveModal'),
+                    placeholder: '-- select the type of leave --',
+                    allowClear: true,
+                    width: '100%',
+                });
+            });
 
-    // ✅ Satu saja, tidak perlu dua
-    $('#leave_balance_id').on('select2:select select2:clear', function() {
-        this.dispatchEvent(new Event('change', { bubbles: true }));
-    }); 
+            // ✅ Destroy Select2 saat modal ditutup
+            $('#requestLeaveModal').on('hidden.bs.modal', function() {
+                $('#leave_balance_id').select2('destroy');
+            });
 
-            const csrfToken        = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-            const leaveSelect      = document.getElementById('leave_balance_id');
-            const balanceInfo      = document.getElementById('leaveBalanceInfo');
+            // ✅ Satu saja, tidak perlu dua
+            $('#leave_balance_id').on('select2:select select2:clear', function() {
+                this.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            });
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const leaveSelect = document.getElementById('leave_balance_id');
+            const balanceInfo = document.getElementById('leaveBalanceInfo');
             const availableBalance = document.getElementById('availableBalance');
-            const selectedType     = document.getElementById('selectedLeaveType');
-            const startDate        = document.getElementById('start_date');
-            const endDate          = document.getElementById('end_date');
-            const durationDisplay  = document.getElementById('calculatedDuration');
-            const balanceWarning   = document.getElementById('balanceWarning');
-            const submitBtn        = document.getElementById('submitLeaveBtn');
-            const form             = document.getElementById('leaveRequestForm');
+            const selectedType = document.getElementById('selectedLeaveType');
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            const durationDisplay = document.getElementById('calculatedDuration');
+            const balanceWarning = document.getElementById('balanceWarning');
+            const submitBtn = document.getElementById('submitLeaveBtn');
+            const form = document.getElementById('leaveRequestForm');
 
             let maxDays = 0;
 
             // ── Saat pilih jenis cuti → tampilkan saldo tersedia ──
-            leaveSelect?.addEventListener('change', function () {
-                const opt  = this.options[this.selectedIndex];
+            leaveSelect?.addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
                 const days = parseInt(opt.dataset.days ?? 0);
                 const name = opt.dataset.name ?? '-';
 
@@ -1889,7 +1728,7 @@
             // ── Hitung durasi otomatis ──
             function calculateDuration() {
                 const start = startDate.value;
-                const end   = endDate.value;
+                const end = endDate.value;
 
                 if (!start || !end) {
                     durationDisplay.textContent = '0 days';
@@ -1899,7 +1738,7 @@
                 }
 
                 const startObj = new Date(start);
-                const endObj   = new Date(end);
+                const endObj = new Date(end);
 
                 if (endObj < startObj) {
                     durationDisplay.textContent = 'End date cannot be before start date';
@@ -1925,14 +1764,14 @@
                 }
             }
 
-            startDate?.addEventListener('change', function () {
+            startDate?.addEventListener('change', function() {
                 if (endDate) endDate.min = this.value;
                 calculateDuration();
             });
             endDate?.addEventListener('change', calculateDuration);
 
             // ── Submit via AJAX ──
-            form?.addEventListener('submit', function (e) {
+            form?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
                 if (!leaveSelect.value) {
@@ -1956,59 +1795,70 @@
                     if (!result.isConfirmed) return;
 
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
+                    submitBtn.innerHTML =
+                        '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
 
                     const payload = {
                         leave_balance_id: document.getElementById('leave_balance_id').value,
-                        start_date:       document.getElementById('start_date').value,
-                        end_date:         document.getElementById('end_date').value,
-                        employee_reason:  document.getElementById('employee_reason').value,
+                        start_date: document.getElementById('start_date').value,
+                        end_date: document.getElementById('end_date').value,
+                        employee_reason: document.getElementById('employee_reason').value,
                     };
 
                     fetch("{{ route('Leaverequest.store') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify(payload),
-                    })
-                    .then(async (res) => {
-                        const data = await res.json();
-                        return { ok: res.ok, data };
-                    })
-                    .then(({ ok, data }) => {
-                        if (ok && data.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: data.message ?? 'Leave request submitted successfully.',
-                                confirmButtonText: 'OK',
-                            }).then(() => {
-                                $('#requestLeaveModal').modal('hide');
-                                window.location.reload();
-                            });
-                        } else {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        })
+                        .then(async (res) => {
+                            const data = await res.json();
+                            return {
+                                ok: res.ok,
+                                data
+                            };
+                        })
+                        .then(({
+                            ok,
+                            data
+                        }) => {
+                            if (ok && data.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: data.message ??
+                                        'Leave request submitted successfully.',
+                                    confirmButtonText: 'OK',
+                                }).then(() => {
+                                    $('#requestLeaveModal').modal('hide');
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed',
+                                    text: data.message ??
+                                        'An error occurred while submitting the request.',
+                                });
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML =
+                                    '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(err);
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Failed',
-                                text: data.message ?? 'An error occurred while submitting the request.',
+                                text: 'An error occurred while submitting the request.',
                             });
                             submitBtn.disabled = false;
-                            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
-                        }
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Failed',
-                            text: 'An error occurred while submitting the request.',
+                            submitBtn.innerHTML =
+                                '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
                         });
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
-                    });
                 });
             });
         });

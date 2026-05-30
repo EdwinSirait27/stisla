@@ -99,6 +99,20 @@ class LeaverequestController extends Controller
             ], 403);
         }
 
+        // Cek: apakah karyawan masih punya pengajuan berstatus Pending?
+        $hasPending = Leaverequest::whereHas('leavebalance', function ($q) {
+            $q->where('employee_id', auth()->user()->employee_id);
+        })
+            ->where('status', 'Pending')
+            ->exists();
+
+        if ($hasPending) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Anda masih memiliki pengajuan cuti yang menunggu persetujuan. Harap tunggu hingga disetujui atau ditolak sebelum mengajukan kembali.',
+            ], 422);
+        }
+
         // 3. Pastikan saldo masih aktif (tahun berjalan)
         if ((int) $balance->year !== (int) date('Y')) {
             return response()->json([
@@ -122,16 +136,16 @@ class LeaverequestController extends Controller
 
         // 6. Cek overlap tanggal dengan pengajuan lain yang aktif
         $overlapping = Leaverequest::whereHas('leavebalance', function ($q) {
-                $q->where('employee_id', auth()->user()->employee_id);
-            })
+            $q->where('employee_id', auth()->user()->employee_id);
+        })
             ->whereNotIn('status', ['Rejected'])
             ->where(function ($q) use ($validated) {
                 $q->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
-                  ->orWhereBetween('end_date',  [$validated['start_date'], $validated['end_date']])
-                  ->orWhere(function ($q) use ($validated) {
-                      $q->where('start_date', '<=', $validated['start_date'])
-                        ->where('end_date',   '>=', $validated['end_date']);
-                  });
+                    ->orWhereBetween('end_date',  [$validated['start_date'], $validated['end_date']])
+                    ->orWhere(function ($q) use ($validated) {
+                        $q->where('start_date', '<=', $validated['start_date'])
+                            ->where('end_date',   '>=', $validated['end_date']);
+                    });
             })
             ->exists();
 
@@ -145,7 +159,6 @@ class LeaverequestController extends Controller
         // 7. Simpan pengajuan
         $leaveRequest = Leaverequest::create([
             'leave_balance_id' => $balance->id,
-            'employee_id'      => $balance->employee_id,
             'start_date'       => $validated['start_date'],
             'end_date'         => $validated['end_date'],
             'total_days'       => $totalDays,
@@ -183,7 +196,7 @@ class LeaverequestController extends Controller
         return true;
     }
 
-    public function approve($id)
+    public function approve(Request $request, $id)
     {
         $leaveRequest = Leaverequest::with('leavebalance')->findOrFail($id);
 
@@ -194,6 +207,15 @@ class LeaverequestController extends Controller
                 'status'  => 'error',
                 'message' => 'You are not allowed to approve this request',
             ], 403);
+        }
+
+        // Validasi alasan wajib
+        $reason = trim((string) $request->input('approver_reason'));
+        if ($reason === '') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Alasan persetujuan wajib diisi.',
+            ], 422);
         }
 
         $balance = $leaveRequest->leavebalance;
@@ -211,6 +233,7 @@ class LeaverequestController extends Controller
         $leaveRequest->update([
             'status'      => 'Approved',
             'approved_by' => $employeeId,
+            'approver_reason' => $reason,
         ]);
 
         $rosterEmployeeId = $balance->employee_id;
@@ -258,10 +281,19 @@ class LeaverequestController extends Controller
             ], 403);
         }
 
+        // Validasi alasan wajib
+        $reason = trim((string) $request->input('approver_reason'));
+        if ($reason === '') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Alasan penolakan wajib diisi.',
+            ], 422);
+        }
+
         $leaveRequest->update([
             'status'          => 'Rejected',
             'approved_by'     => $employeeId,
-            'approver_reason' => $request->approver_reason,
+            'approver_reason' => $reason,
         ]);
 
         $balance          = $leaveRequest->leavebalance;
