@@ -36,7 +36,3 @@ class Announcment extends Model
     }
 
 }
-
-// $ann = App\Models\Announcment::latest()->first();
-// $emp = (object)['email' => 'drummerboy794@gmail.com'];
-// Mail::to($emp->email)->send(new App\Mail\announcement($ann, $emp));

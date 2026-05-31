@@ -26,24 +26,8 @@ class UserprofileController extends Controller
         $user = Auth::user();
         return view('pages.change-password', compact('user'));
     }
-    // public function index()
-    // {
-    //     $user = Auth::user()->load([
-    //         'Employee.documents.companydocumentconfigs.documenttypes',
-    //         'Employee.position',
-    //         'Employee.skletters',
-    //     ]);
-    //     return view('pages.feature-profile', compact('user'));
-    // }
     public function index()
     {
-        // $user = Auth::user()->load([
-        //     'Employee.documents.companydocumentconfigs.documenttypes',
-        //     'Employee.position',
-        //     'Employee.skletters' => function ($query) {
-        //         $query->where('status', 'Cancelled');
-        //     },
-        // ]);
         $user = User::with([
             'Employee.documents.companydocumentconfigs.documenttypes',
             'Employee.position',
@@ -343,41 +327,41 @@ class UserprofileController extends Controller
 | SIGNATURE - FILE IMPORT
 |--------------------------------------------------------------------------
 */
-if ($request->hasFile('signature_file')) {
+        if ($request->hasFile('signature_file')) {
 
-    if (!empty($user->employee->signature)) {
-        Log::warning('[SIGNATURE FILE] Gagal upload, signature sudah ada', [
-            'employee_id' => $user->employee->id,
-        ]);
-        return back()
-            ->withInput()
-            ->withErrors([
-                'signature_file' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
+            if (!empty($user->employee->signature)) {
+                Log::warning('[SIGNATURE FILE] Gagal upload, signature sudah ada', [
+                    'employee_id' => $user->employee->id,
+                ]);
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'signature_file' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
+                    ]);
+            }
+
+            Log::info('[SIGNATURE FILE] File detected', [
+                'original_name' => $request->file('signature_file')->getClientOriginalName(),
+                'size'          => $request->file('signature_file')->getSize(),
+                'mime'          => $request->file('signature_file')->getMimeType(),
             ]);
-    }
 
-    Log::info('[SIGNATURE FILE] File detected', [
-        'original_name' => $request->file('signature_file')->getClientOriginalName(),
-        'size'          => $request->file('signature_file')->getSize(),
-        'mime'          => $request->file('signature_file')->getMimeType(),
-    ]);
+            $file     = $request->file('signature_file');
+            $safeName = Str::slug($user->employee->employee_name);
+            $fileName = $safeName . '-signature.' . $file->getClientOriginalExtension();
+            $folder   = 'employees-signatures';
+            $path     = $folder . '/' . $fileName;
 
-    $file     = $request->file('signature_file');
-    $safeName = Str::slug($user->employee->employee_name);
-    $fileName = $safeName . '-signature.' . $file->getClientOriginalExtension();
-    $folder   = 'employees-signatures';
-    $path     = $folder . '/' . $fileName;
+            Storage::disk('public')->putFileAs($folder, $file, $fileName);
 
-    Storage::disk('public')->putFileAs($folder, $file, $fileName);
+            Log::info('[SIGNATURE FILE] Upload selesai', [
+                'path'   => $path,
+                'exists' => Storage::disk('public')->exists($path),
+            ]);
 
-    Log::info('[SIGNATURE FILE] Upload selesai', [
-        'path'   => $path,
-        'exists' => Storage::disk('public')->exists($path),
-    ]);
-
-    $user->employee->signature = $path;
-    $photoUpdated = true;
-}
+            $user->employee->signature = $path;
+            $photoUpdated = true;
+        }
 
         $user->employee->save();
         Log::info('[SAVE] Employee saved', ['employee_id' => $user->employee->id]);
@@ -403,159 +387,99 @@ if ($request->hasFile('signature_file')) {
 
         return back()->with('status', 'No changes proposed.');
     }
-    // public function save(Request $request)
-    // {
-    //     $request->validate([
-    //         'signature' => 'required'
-    //     ]);
 
-    //     $user = auth()->user();
-    //     $employee = $user->employee;
-
-    //     // Jika bukan admin dan sudah punya signature → blok
-    //     if (!$user->hasRole('Admin') && $employee->signature) {
-    //         return back()->with('error', 'Anda sudah mempunyai signature, silakan hubungi administrator untuk mengupdate.');
-    //     }
-
-    //     // Cek apakah sudah ada signature (double check)
-    //     if (!empty($employee->signature)) {
-    //         Log::warning('[SIGNATURE] Gagal upload, signature sudah ada', [
-    //             'employee_id' => $employee->id,
-    //             'signature'   => $employee->signature,
-    //         ]);
-
-    //         return back()->withErrors([
-    //             'signature' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
-    //         ]);
-    //     }
-
-    //     Log::info('[SIGNATURE] Signature detected');
-
-    //     $signature = $request->signature;
-    //     $signature = str_replace('data:image/png;base64,', '', $signature);
-    //     $signature = str_replace(' ', '+', $signature);
-
-    //     $safeName  = Str::slug($employee->employee_name);
-    //     $fileName  = $safeName . '-signature.png';
-    //     $folder    = 'employees-signatures';
-    //     $path      = $folder . '/' . $fileName;
-
-    //     $decodedImage = base64_decode($signature);
-
-    //     if ($decodedImage === false) {
-    //         Log::error('[SIGNATURE] Base64 decode gagal');
-
-    //         return back()->withErrors([
-    //             'signature' => 'Signature gagal diproses.'
-    //         ]);
-    //     }
-        
-
-    //     $result = Storage::disk('public')->put($path, $decodedImage);
-
-    //     Log::info('[SIGNATURE] Upload signature selesai', [
-    //         'result' => $result,
-    //         'path'   => $path,
-    //         'exists' => Storage::disk('public')->exists($path),
-    //     ]);
-
-    //     $employee->signature = $path;
-    //     $employee->save();
-
-    //     return back()->with('success', 'Signature updated!');
-    // }
     public function save(Request $request)
-{
-    $request->validate([
-        'signature' => 'nullable|string',
-        'signature_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:512',
-    ]);
+    {
+        $request->validate([
+            'signature' => 'nullable|string',
+            'signature_file' => 'nullable|mimes:jpg,jpeg,png,webp|max:512',
+        ]);
 
-    $user     = auth()->user();
-    $employee = $user->employee;
+        $user     = auth()->user();
+        $employee = $user->employee;
 
-    // Jika bukan admin dan sudah punya signature → blok
-    if (!$user->hasRole('Admin') && $employee->signature) {
-        return back()->with('error', 'Anda sudah mempunyai signature, silakan hubungi administrator untuk mengupdate.');
-    }
+        // Jika bukan admin dan sudah punya signature → blok
+        if (!$user->hasRole('Admin') && $employee->signature) {
+            return back()->with('error', 'Anda sudah mempunyai signature, silakan hubungi administrator untuk mengupdate.');
+        }
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | SIGNATURE - CANVAS (base64)
     |--------------------------------------------------------------------------
     */
-    if ($request->filled('signature')) {
+        if ($request->filled('signature')) {
 
-        Log::info('[SIGNATURE] Signature detected');
+            Log::info('[SIGNATURE] Signature detected');
 
-        $signature = $request->signature;
-        $signature = str_replace('data:image/png;base64,', '', $signature);
-        $signature = str_replace(' ', '+', $signature);
+            $signature = $request->signature;
+            $signature = str_replace('data:image/png;base64,', '', $signature);
+            $signature = str_replace(' ', '+', $signature);
 
-        $safeName = Str::slug($employee->employee_name);
-        $fileName = $safeName . '-signature.png';
-        $folder   = 'employees-signatures';
-        $path     = $folder . '/' . $fileName;
+            $safeName = Str::slug($employee->employee_name);
+            $fileName = $safeName . '-signature.png';
+            $folder   = 'employees-signatures';
+            $path     = $folder . '/' . $fileName;
 
-        $decodedImage = base64_decode($signature);
+            $decodedImage = base64_decode($signature);
 
-        if ($decodedImage === false) {
-            Log::error('[SIGNATURE] Base64 decode gagal');
-            return back()->withErrors([
-                'signature' => 'Signature gagal diproses.'
+            if ($decodedImage === false) {
+                Log::error('[SIGNATURE] Base64 decode gagal');
+                return back()->withErrors([
+                    'signature' => 'Signature gagal diproses.'
+                ]);
+            }
+
+            Storage::disk('public')->put($path, $decodedImage);
+
+            Log::info('[SIGNATURE] Upload signature selesai', [
+                'path'   => $path,
+                'exists' => Storage::disk('public')->exists($path),
             ]);
+
+            $employee->signature = $path;
         }
 
-        Storage::disk('public')->put($path, $decodedImage);
-
-        Log::info('[SIGNATURE] Upload signature selesai', [
-            'path'   => $path,
-            'exists' => Storage::disk('public')->exists($path),
-        ]);
-
-        $employee->signature = $path;
-    }
-
-    /*
+        /*
     |--------------------------------------------------------------------------
     | SIGNATURE - FILE IMPORT
     |--------------------------------------------------------------------------
     */
-    if ($request->hasFile('signature_file')) {
+        if ($request->hasFile('signature_file')) {
 
-        Log::info('[SIGNATURE FILE] File detected', [
-            'original_name' => $request->file('signature_file')->getClientOriginalName(),
-            'size'          => $request->file('signature_file')->getSize(),
-            'mime'          => $request->file('signature_file')->getMimeType(),
-        ]);
+            Log::info('[SIGNATURE FILE] File detected', [
+                'original_name' => $request->file('signature_file')->getClientOriginalName(),
+                'size'          => $request->file('signature_file')->getSize(),
+                'mime'          => $request->file('signature_file')->getMimeType(),
+            ]);
 
-        $file     = $request->file('signature_file');
-        $safeName = Str::slug($employee->employee_name);
-        $fileName = $safeName . '-signature.' . $file->getClientOriginalExtension();
-        $folder   = 'employees-signatures';
-        $path     = $folder . '/' . $fileName;
+            $file     = $request->file('signature_file');
+            $safeName = Str::slug($employee->employee_name);
+            $fileName = $safeName . '-signature.' . $file->getClientOriginalExtension();
+            $folder   = 'employees-signatures';
+            $path     = $folder . '/' . $fileName;
 
-        Storage::disk('public')->putFileAs($folder, $file, $fileName);
+            Storage::disk('public')->putFileAs($folder, $file, $fileName);
 
-        Log::info('[SIGNATURE FILE] Upload selesai', [
-            'path'   => $path,
-            'exists' => Storage::disk('public')->exists($path),
-        ]);
+            Log::info('[SIGNATURE FILE] Upload selesai', [
+                'path'   => $path,
+                'exists' => Storage::disk('public')->exists($path),
+            ]);
 
-        $employee->signature = $path;
+            $employee->signature = $path;
+        }
+
+        // Jika tidak ada input sama sekali
+        if (!$request->filled('signature') && !$request->hasFile('signature_file')) {
+            return back()->withErrors([
+                'signature' => 'Harap isi signature terlebih dahulu.'
+            ]);
+        }
+
+        $employee->save();
+
+        return back()->with('success', 'Signature updated!');
     }
-
-    // Jika tidak ada input sama sekali
-    if (!$request->filled('signature') && !$request->hasFile('signature_file')) {
-        return back()->withErrors([
-            'signature' => 'Harap isi signature terlebih dahulu.'
-        ]);
-    }
-
-    $employee->save();
-
-    return back()->with('success', 'Signature updated!');
-}
     /*|--------------------------------------------------------------------------
 | SERVE PHOTO
 |--------------------------------------------------------------------------*/
@@ -658,34 +582,6 @@ if ($request->hasFile('signature_file')) {
             return back()->with('status', 'Password changed successfully.');
         }
     }
-    // public function downloadDocument(string $id)
-    // {
-    //     $user = Auth::user();
-
-    //     $document = Documents::with([
-    //         'employee.position',
-    //         'issued.position',
-    //         'companydocumentconfigs.company',
-    //         'companydocumentconfigs.documenttypes',
-    //     ])
-    //         ->where('employee_id', $user->employee_id)
-    //         ->findOrFail($id);
-
-    //     $viewName = $document->companydocumentconfigs->documenttypes->view_name;
-
-    //     $pdf = Pdf::loadView($viewName, [
-    //         'document' => $document,
-    //         'employee' => $document->employee,
-    //         'issued'   => $document->issued,
-    //         'config'   => $document->companydocumentconfigs,
-    //         'company'  => $document->companydocumentconfigs->company,
-    //     ])->setPaper('a4');
-
-    //     $filename = str_replace('/', '-', $document->document_number) . '.pdf';
-
-    //     return $pdf->download($filename);
-    // }
-
     public function downloadDocument(string $id)
     {
         $user = Auth::user();
@@ -749,44 +645,6 @@ if ($request->hasFile('signature_file')) {
 
         return $pdf->download($filename);
     }
-    // public function downloadSkLetter(string $id)
-    // {
-    //     $user = Auth::user();
-
-    //     $skletter = SkLetter::with([
-    //         'employees',
-    //         'skType',
-    //         'company',
-    //         'approver1',
-    //         'approver2',
-    //         'approver3',
-    //         'menimbang',
-    //         'mengingat',
-    //         'keputusan',
-    //     ])
-    //     ->where('id', $id)
-    //     ->whereHas('employees', function ($query) use ($user) {
-    //         $query->where(
-    //             'sk_letter_employees.employee_id',
-    //             $user->employee_id
-    //         );
-    //     })
-    //     ->firstOrFail();
-
-    //     // FILTER hanya employee login
-    //     $skletter->setRelation(
-    //         'employees',
-    //         $skletter->employees->where('id', $user->employee_id)
-    //     );
-
-    //     $filename = 'SK-' . str_replace('/', '-', $skletter->sk_number) . '.pdf';
-
-    //     $pdf = Pdf::loadView('pages.SkLetters.pdf', [
-    //         'skLetter' => $skletter,
-    //     ])->setPaper('a4', 'portrait');
-
-    //     return $pdf->download($filename);
-    // }
 
     public function downloadSkLetter(string $id)
     {
@@ -861,52 +719,4 @@ if ($request->hasFile('signature_file')) {
 
         return $pdf->download($filename);
     }
-
-    
 }
-
-//  <p class="body-text">
-//             Demikian Surat Pengantar ini kami sampaikan agar dapat digunakan sebagaimana mestinya.
-//             Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.
-//         </p>
-
-//         {{-- ── Tempat & Tanggal ── --}}
-//         <div style="font-size: 10.5pt; line-height: 1.8; margin-top: 12px;">
-//             Ditetapkan di &nbsp;: {{ $company->city ?? 'Denpasar' }}<br>
-//             Pada tanggal &nbsp;&nbsp;: {{ $formatTgl($document->issued_date) }}
-//         </div>
-
-//         {{-- ── Tanda Tangan ── --}}
-//         <div class="ttd-wrap">
-//             <table class="ttd-table">
-//                 <tr>
-//                     {{-- Penandatangan utama (issued_by) --}}
-//                     <td>
-//                         <div class="ttd-role">{{ $issued->position->name ?? 'HR Manager' }}</div>
-//                         @if ($issued->signature)
-//                             <div class="ttd-signature">
-//                                 <img src="{{ public_path('storage/' . $issued->signature) }}" alt="Signature">
-//                             </div>
-//                         @else
-//                             <div style="height: 64px;"></div>
-//                         @endif
-//                         <div class="ttd-line">
-//                             <div class="ttd-name">{{ $issued->employee_name }}</div>
-//                             <div class="ttd-position">{{ $issued->position->name ?? '-' }}</div>
-//                         </div>
-//                     </td>
-
-//                     {{-- Slot approval tambahan (kosong, siap dipakai nanti) --}}
-//                     {{-- 
-//                     <td>
-//                         <div class="ttd-role">Director</div>
-//                         <div style="height: 64px;"></div>
-//                         <div class="ttd-line">
-//                             <div class="ttd-name">( _________________ )</div>
-//                             <div class="ttd-pending">Belum disetujui</div>
-//                         </div>
-//                     </td>
-//                     --}}
-//                 </tr>
-//             </table>
-//         </div>

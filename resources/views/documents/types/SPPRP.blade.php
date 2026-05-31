@@ -44,7 +44,7 @@
         }
 
         /* Konten di atas watermark */
-        .page > *:not(.watermark-logo) {
+        .page>*:not(.watermark-logo) {
             position: relative;
             z-index: 1;
         }
@@ -113,8 +113,13 @@
             vertical-align: top;
         }
 
-        .info-table .col-label { width: 80px; }
-        .info-table .col-sep   { width: 20px; }
+        .info-table .col-label {
+            width: 80px;
+        }
+
+        .info-table .col-sep {
+            width: 20px;
+        }
 
         /* ── Judul ── */
         .doc-title {
@@ -157,8 +162,13 @@
             line-height: 1.5;
         }
 
-        .data-table .col-label { width: 160px; }
-        .data-table .col-sep   { width: 20px; }
+        .data-table .col-label {
+            width: 160px;
+        }
+
+        .data-table .col-sep {
+            width: 20px;
+        }
 
         /* ── Detail bank ── */
         .bank-table {
@@ -174,8 +184,13 @@
             line-height: 1.5;
         }
 
-        .bank-table .col-label { width: 160px; }
-        .bank-table .col-sep   { width: 20px; }
+        .bank-table .col-label {
+            width: 160px;
+        }
+
+        .bank-table .col-sep {
+            width: 20px;
+        }
 
         /* ── PIC list ── */
         .pic-list {
@@ -242,36 +257,45 @@
             margin-top: 2px;
         }
 
-    
-         .doc-footer {
-    position: fixed;
-    bottom: 20px;
-    left: 40px;
-    right: 40px;
 
-    text-align: center;
+        .doc-footer {
+            position: fixed;
+            bottom: 20px;
+            left: 40px;
+            right: 40px;
 
-    font-size: 8pt;
-    color: #555;
-    border-top: 1px solid #ccc;
-    padding-top: 5px;
-    line-height: 1.4;
-}
+            text-align: center;
 
+            font-size: 8pt;
+            color: #555;
+            border-top: 1px solid #ccc;
+            padding-top: 5px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 
 <body>
     @php
         $bulan = [
-            1  => 'Januari',  2  => 'Februari', 3  => 'Maret',
-            4  => 'April',    5  => 'Mei',       6  => 'Juni',
-            7  => 'Juli',     8  => 'Agustus',   9  => 'September',
-            10 => 'Oktober',  11 => 'November',  12 => 'Desember',
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
         ];
 
         $formatTgl = function ($dateStr) use ($bulan) {
-            if (!$dateStr) return '-';
+            if (!$dateStr) {
+                return '-';
+            }
             $d = \Carbon\Carbon::parse($dateStr);
             return $d->day . ' ' . $bulan[$d->month] . ' ' . $d->year;
         };
@@ -300,7 +324,7 @@
                         <div class="kop-address">{{ $company->address }}</div>
                         @if ($company->email)
                             <div class="kop-contact">
-                                 Email : {{ $company->email }} Website : {{ $company->website }}
+                                Email : {{ $company->email }} Website : {{ $company->website }}
                             </div>
                         @endif
                     </td>
@@ -357,76 +381,75 @@
             Selaku Perwakilan Perusahaan {{ $company->name }} dengan ini memberitahukan bahwa:
         </p>
         <table class="data-table">
-    @if ($employee->status_employee === 'DW' && $employee->company_id === '0196ba4f-5c58-7022-9eb2-ba407eaf4753')
-        <tr>
-            <td class="col-label">Nama</td>
-            <td class="col-sep">:</td>
-            <td><strong>{{ $employee->employee_name }}</strong></td>
-        </tr>
-        <tr>
-            <td class="col-label">NIK</td>
-            <td class="col-sep">:</td>
-            <td>{{ $employee->nik ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="col-label">Alamat</td>
-            <td class="col-sep">:</td>
-            <td>{{ $employee->current_address ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="col-label">Jabatan</td>
-            <td class="col-sep">:</td>
-            <td>{{ $employee->position->name ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="col-label">NIP</td>
-            <td class="col-sep">:</td>
-            <td>{{ $employee->employee_pengenal ?? '-' }}</td>
-        </tr>
-    @else
-        <tr>
-            <td class="col-label">Nama</td>
-            <td class="col-sep">:</td>
-            <td><strong>{{ $employee->employee_name }}</strong></td>
-        </tr>
-        <tr>
-            <td class="col-label">Jabatan</td>
-            <td class="col-sep">:</td>
-            <td>{{ $employee->position->name ?? '-' }}</td>
-        </tr>
-       
-    @endif
-</table>
-  
-@if ($employee->status_employee === 'DW' && $employee->company_id === '0196ba4f-5c58-7022-9eb2-ba407eaf4753')
+            @if ($employee->status_employee === 'DW' && $employee->company_id === '0196ba4f-5c58-7022-9eb2-ba407eaf4753')
+                <tr>
+                    <td class="col-label">Nama</td>
+                    <td class="col-sep">:</td>
+                    <td><strong>{{ $employee->employee_name }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="col-label">NIK</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $employee->nik ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="col-label">Alamat</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $employee->current_address ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="col-label">Jabatan</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $employee->position->name ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="col-label">NIP</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $employee->employee_pengenal ?? '-' }}</td>
+                </tr>
+            @else
+                <tr>
+                    <td class="col-label">Nama</td>
+                    <td class="col-sep">:</td>
+                    <td><strong>{{ $employee->employee_name }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="col-label">Jabatan</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $employee->position->name ?? '-' }}</td>
+                </tr>
+            @endif
+        </table>
 
-    <p class="body-text">
-        Dengan ini kami menyatakan bahwa data yang tercatat di atas adalah memang
-        <strong><u>BENAR</u></strong> Karyawan/Karyawati kami yang akan mengajukan
-        Pembukaan Rekening Payroll.
-    </p>
+        @if ($employee->status_employee === 'DW' && $employee->company_id === '0196ba4f-5c58-7022-9eb2-ba407eaf4753')
 
-    <p class="body-text">
-        Demikian Surat Pengantar ini kami sampaikan agar dapat digunakan sebagaimana mestinya.
-        Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.
-    </p>
+            <p class="body-text">
+                Dengan ini kami menyatakan bahwa data yang tercatat di atas adalah memang
+                <strong><u>BENAR</u></strong> Karyawan/Karyawati kami yang akan mengajukan
+                Pembukaan Rekening Payroll.
+            </p>
 
-    <table style="width: 100%; margin-bottom: 100px; font-size: 10.5pt;">
-        <tr>
-            {{-- Tempat & Tanggal --}}
-            <td style="width: 60%; vertical-align: top;">
-                <br><br>
+            <p class="body-text">
+                Demikian Surat Pengantar ini kami sampaikan agar dapat digunakan sebagaimana mestinya.
+                Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.
+            </p>
 
-                Ditetapkan di &nbsp;:
-                {{ $company->city ?? 'Denpasar' }}
-                <br>
+            <table style="width: 100%; margin-bottom: 100px; font-size: 10.5pt;">
+                <tr>
+                    {{-- Tempat & Tanggal --}}
+                    <td style="width: 60%; vertical-align: top;">
+                        <br><br>
 
-                Pada tanggal &nbsp;&nbsp;:
-                {{ $formatTgl($document->issued_date) }}
-            </td>
+                        Ditetapkan di &nbsp;:
+                        {{ $company->city ?? 'Denpasar' }}
+                        <br>
 
-            {{-- Tanda Tangan --}}
-            {{-- <td style="width: 40%; text-align: center; vertical-align: top;">
+                        Pada tanggal &nbsp;&nbsp;:
+                        {{ $formatTgl($document->issued_date) }}
+                    </td>
+
+                    {{-- Tanda Tangan --}}
+                    {{-- <td style="width: 40%; text-align: center; vertical-align: top;">
 
                 <div style="font-size: 9.5pt; font-style: italic; margin-bottom: 50px;">
                     {{ $issued->position->name ?? 'HR Manager' }}
@@ -449,9 +472,9 @@
                 </div>
 
             </td> --}}
-            <td style="width: 40%; text-align: center; vertical-align: bottom;">
-    @if ($issued->signature)
-        <img
+                    <td style="width: 40%; text-align: center; vertical-align: bottom;">
+                        @if ($issued->signature)
+                            {{-- <img
             src="{{ public_path('storage/' . $issued->signature) }}"
             alt="Signature"
             style="
@@ -460,119 +483,125 @@
                 display: block;
                 margin: 0 auto 4px 50px;
             "
-        >
-    @else
-        <div style="height: 70px;"></div>
-    @endif
-    <div style="padding-top: 4px; margin: 0 10px;">
-        <strong>{{ $issued->employee_name }}</strong><br>
-        <span style="font-size: 9.5pt;">
-            {{ $issued->position->name ?? '-' }}
-        </span>
-    </div>
-</td>
-        </tr>
-    </table>
+        > --}}
+                            <img src="{{ route('useremployeesignature.photo', basename($issued->signature)) }}"
+                                alt="Signature"
+                                style="
+                height: 70px;
+                width: auto;
+                display: block;
+                margin: 0 auto 4px 50px;
+            ">
+                        @else
+                            <div style="height: 70px;"></div>
+                        @endif
+                        <div style="padding-top: 4px; margin: 0 10px;">
+                            <strong>{{ $issued->employee_name }}</strong><br>
+                            <span style="font-size: 9.5pt;">
+                                {{ $issued->position->name ?? '-' }}
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        @else
+            <p class="body-text">
+                Adalah <strong><u>BENAR</u></strong> karyawan perusahaan kami dan merupakan
+                nasabah payroll Workplace Banking {{ $config->bank_name }}
+                yang akan melakukan pembukaan rekening payroll di cabang Bapak/Ibu.
 
-@else
+                Untuk detail ketentuan Jenis Produk Tabungan, Kode Promosi,
+                dan layanan adalah sebagai berikut:
+            </p>
 
-    <p class="body-text">
-        Adalah <strong><u>BENAR</u></strong> karyawan perusahaan kami dan merupakan
-        nasabah payroll Workplace Banking {{ $config->bank_name }}
-        yang akan melakukan pembukaan rekening payroll di cabang Bapak/Ibu.
+            <table class="bank-table">
+                <tr>
+                    <td class="col-label">Jenis Tabungan</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $config->savings_type }}</td>
+                </tr>
 
-        Untuk detail ketentuan Jenis Produk Tabungan, Kode Promosi,
-        dan layanan adalah sebagai berikut:
-    </p>
+                <tr>
+                    <td class="col-label">Kode Promosi</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $config->promo_code }}</td>
+                </tr>
 
-    <table class="bank-table">
-        <tr>
-            <td class="col-label">Jenis Tabungan</td>
-            <td class="col-sep">:</td>
-            <td>{{ $config->savings_type }}</td>
-        </tr>
+                <tr>
+                    <td class="col-label">Kode Komunitas</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $config->community_code }}</td>
+                </tr>
 
-        <tr>
-            <td class="col-label">Kode Promosi</td>
-            <td class="col-sep">:</td>
-            <td>{{ $config->promo_code }}</td>
-        </tr>
+                <tr>
+                    <td class="col-label">Layanan</td>
+                    <td class="col-sep">:</td>
+                    <td>{{ $config->service_name }}</td>
+                </tr>
+            </table>
 
-        <tr>
-            <td class="col-label">Kode Komunitas</td>
-            <td class="col-sep">:</td>
-            <td>{{ $config->community_code }}</td>
-        </tr>
+            <p class="body-text">
+                Jika membutuhkan informasi lebih lanjut, dapat menghubungi:
+            </p>
 
-        <tr>
-            <td class="col-label">Layanan</td>
-            <td class="col-sep">:</td>
-            <td>{{ $config->service_name }}</td>
-        </tr>
-    </table>
+            <div class="pic-list">
+                <ol>
+                    <li>
+                        {{ $config->pic_name }}
+                        &nbsp;|&nbsp;
+                        email: {{ $config->pic_email }}
+                    </li>
 
-    <p class="body-text">
-        Jika membutuhkan informasi lebih lanjut, dapat menghubungi:
-    </p>
+                    @if ($config->pic_name_2)
+                        <li>
+                            {{ $config->pic_name_2 }}
+                            &nbsp;|&nbsp;
+                            email: {{ $config->pic_email_2 }}
+                        </li>
+                    @endif
+                </ol>
+            </div>
 
-    <div class="pic-list">
-        <ol>
-            <li>
-                {{ $config->pic_name }}
-                &nbsp;|&nbsp;
-                email: {{ $config->pic_email }}
-            </li>
+            <p class="body-text">
+                Demikian Surat Pengantar ini kami sampaikan agar dapat digunakan
+                sebagaimana mestinya. Atas perhatian dan kerjasamanya,
+                kami ucapkan terima kasih.
+            </p>
+            {{-- <table style="width: 100%; margin-bottom: 20px; font-size: 10.5pt;"> --}}
+            <table style="width: 100%; margin-bottom: 90px; font-size: 10.5pt;">
 
-            @if ($config->pic_name_2)
-                <li>
-                    {{ $config->pic_name_2 }}
-                    &nbsp;|&nbsp;
-                    email: {{ $config->pic_email_2 }}
-                </li>
-            @endif
-        </ol>
-    </div>
+                <tr>
 
-                <p class="body-text">
-                    Demikian Surat Pengantar ini kami sampaikan agar dapat digunakan
-                    sebagaimana mestinya. Atas perhatian dan kerjasamanya,
-                    kami ucapkan terima kasih.
-                </p>
-    {{-- <table style="width: 100%; margin-bottom: 20px; font-size: 10.5pt;"> --}}
-    <table style="width: 100%; margin-bottom: 90px; font-size: 10.5pt;">
-        
-        <tr>
-
-            {{-- Keterangan --}}
-            <td style="width: 60%; vertical-align: top;">
+                    {{-- Keterangan --}}
+                    <td style="width: 60%; vertical-align: top;">
 
 
-                <br>
+                        <br>
 
-                Ditetapkan di &nbsp;:
-                {{ $company->city ?? 'Denpasar' }}
-                <br>
+                        Ditetapkan di &nbsp;:
+                        {{ $company->city ?? 'Denpasar' }}
+                        <br>
 
-                Pada tanggal &nbsp;&nbsp;:
-                {{ $formatTgl($document->issued_date) }}
+                        Pada tanggal &nbsp;&nbsp;:
+                        {{ $formatTgl($document->issued_date) }}
 
-            </td>
+                    </td>
 
-            {{-- Tanda Tangan --}}
-            {{-- <td style="width: 40%; text-align: center; vertical-align: top;">
+                    {{-- Tanda Tangan --}}
+                    {{-- <td style="width: 40%; text-align: center; vertical-align: top;">
 
                 {{-- <div style="font-size: 9.5pt; font-style: italic; margin-bottom: 10px;">
                     {{ $issued->position->name ?? 'HR Manager' }}
                 </div> --}}
 
-                {{-- @if ($issued->signature)
+                    {{-- @if ($issued->signature)
                     <img
                         src="{{ public_path('storage/' . $issued->signature) }}"
                         alt="Signature"
                         style="max-height: 25px; object-fit: contain; display: block; margin: 0 auto 4px;"
                     >
                 @endif --}}
-              {{-- @if ($issued->signature)
+                    {{-- @if ($issued->signature)
     <img
         src="{{ public_path('storage/' . $issued->signature) }}"
         alt="Signature"
@@ -584,8 +613,8 @@
         "
     >
 @endif --}}
-                {{-- <div style="border-top: 1px solid #000; padding-top: 4px; margin: 0 10px;"> --}}
-                {{-- <div style="margin: 0 10px;">
+                    {{-- <div style="border-top: 1px solid #000; padding-top: 4px; margin: 0 10px;"> --}}
+                    {{-- <div style="margin: 0 10px;">
 
                     <strong>{{ $issued->employee_name }}</strong><br>
 
@@ -594,33 +623,30 @@
                     </span>
                 </div> --}}
 
-            {{-- </td>  --}}
-            {{-- Tanda Tangan --}}
-<td style="width: 40%; text-align: center; vertical-align: bottom;">
-    @if ($issued->signature)
-        <img
-            src="{{ public_path('storage/' . $issued->signature) }}"
-            alt="Signature"
-            style="
+                    {{-- </td>  --}}
+                    {{-- Tanda Tangan --}}
+                    <td style="width: 40%; text-align: center; vertical-align: bottom;">
+                        @if ($issued->signature)
+                            <img src="{{ public_path('storage/' . $issued->signature) }}" alt="Signature"
+                                style="
                 height: 70px;
                 width: auto;
                 display: block;
                 margin: 0 auto 4px 50px;
-            "
-        >
-    @else
-        <div style="height: 70px;"></div>
-    @endif
-    <div style="padding-top: 4px; margin: 0 10px;">
-        <strong>{{ $issued->employee_name }}</strong><br>
-        <span style="font-size: 9.5pt;">
-            {{ $issued->position->name ?? '-' }}
-        </span>
-    </div>
-</td>
-        </tr>
-    </table>
-@endif
+            ">
+                        @else
+                            <div style="height: 70px;"></div>
+                        @endif
+                        <div style="padding-top: 4px; margin: 0 10px;">
+                            <strong>{{ $issued->employee_name }}</strong><br>
+                            <span style="font-size: 9.5pt;">
+                                {{ $issued->position->name ?? '-' }}
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        @endif
         {{-- ── Footer ── --}}
         <div class="doc-footer">
             Dokumen ini diterbitkan secara resmi oleh {{ $company->name }} &nbsp;|&nbsp;
@@ -629,4 +655,5 @@
         </div>
     </div>
 </body>
+
 </html>

@@ -1,230 +1,3 @@
-{{-- @extends('layouts.app')
-@section('title', 'Employee Dashboard')
-
-@push('style')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.css" />
-    <style>
-        .card-icon {
-            font-size: 2rem;
-            color: #fff;
-        }
-        .quick-action {
-            text-align: center;
-            border-radius: 10px;
-            padding: 10px;
-            transition: 0.3s;
-        }
-        .quick-action:hover {
-            transform: translateY(-5px);
-            background: #f8f9fa;
-        }
-        .quick-action i {
-            font-size: 1.8rem;
-            color: #6777ef;
-        }
-        .progress {
-            height: 8px;
-        }
-          .quick-action-card {
-        transition: all 0.25s ease-in-out;
-        border-radius: 12px;
-    }
-    .quick-action-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-    }
-    .icon-circle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-    }
-    </style>
-@endpush
-
-@section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Dashboard Karyawan</h1>
-        </div>
-
-        <div class="section-body">
-            <div class="row align-items-center mb-4">
-                <div class="col-md-8 d-flex align-items-center">
-                    <img alt="image" src="{{ asset('img/avatar/avatar-1.png') }}" class="rounded-circle mr-3" width="70">
-                    <div>
-                        <h4>{{ Auth::user()->employee->name ?? Auth::user()->username }}</h4>
-                        <p class="mb-1 text-muted">
-                            {{ Auth::user()->employee->position->name ?? 'Staff' }} - 
-                            {{ Auth::user()->employee->department->name ?? '-' }}
-                        </p>
-                        <span class="badge badge-success">Active Employee</span>
-                    </div>
-                </div>
-                <div class="col-md-4 text-right">
-                    <small>Bergabung sejak {{ Auth::user()->employee->join_date ?? '2022-01-01' }}</small><br>
-                    <small>Lama kerja: 2 Tahun 3 Bulan</small>
-                </div>
-            </div>
-
-            <div class="row mb-4">
-    @php
-        $actions = [
-            ['icon' => 'fa-plane', 'label' => 'Ajukan Cuti', 'url' => route('Store.create'), 'color' => '#4e73df'],
-            ['icon' => 'fa-clock', 'label' => 'Lihat Absensi', 'url' => route('Store.create'), 'color' => '#1cc88a'],
-            ['icon' => 'fa-file-invoice-dollar', 'label' => 'Slip Gaji', 'url' => route('Store.create'), 'color' => '#36b9cc'],
-            ['icon' => 'fa-user-check', 'label' => 'Evaluasi', 'url' => route('Store.create'), 'color' => '#f6c23e'],
-            ['icon' => 'fa-folder-open', 'label' => 'Dokumen', 'url' => route('Store.create'), 'color' => '#e74a3b'],
-            ['icon' => 'fa-calendar-alt', 'label' => 'Kalender', 'url' => route('Store.create'), 'color' => '#858796'],
-        ];
-    @endphp
-
-    @foreach ($actions as $action)
-        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
-            <a href="{{ $action['url'] }}" class="text-decoration-none">
-                <div class="card text-center shadow-sm border-0 quick-action-card h-100">
-                    <div class="card-body py-4">
-                        <div class="icon-circle mb-2" style="background: {{ $action['color'] }}20;">
-                            <i class="fas {{ $action['icon'] }}" style="color: {{ $action['color'] }}; font-size: 28px;"></i>
-                        </div>
-                        <div class="text-dark font-weight-bold">{{ $action['label'] }}</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    @endforeach
-</div>
-
-
-
-            <div class="row">
-                <div class="col-lg-3 col-md-6">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-primary"><i class="fas fa-clock"></i></div>
-                        <div class="card-wrap">
-                            <div class="card-header"><h4>Kehadiran Bulan Ini</h4></div>
-                            <div class="card-body">95%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-success"><i class="fas fa-plane"></i></div>
-                        <div class="card-wrap">
-                            <div class="card-header"><h4>Sisa Cuti</h4></div>
-                            <div class="card-body">8 Hari</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-warning"><i class="fas fa-business-time"></i></div>
-                        <div class="card-wrap">
-                            <div class="card-header"><h4>Total Lembur</h4></div>
-                            <div class="card-body">14 Jam</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-6">
-                    <div class="card card-statistic-1">
-                        <div class="card-icon bg-info"><i class="fas fa-chart-line"></i></div>
-                        <div class="card-wrap">
-                            <div class="card-header"><h4>Kinerja</h4></div>
-                            <div class="card-body">87 / 100</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header"><h4>Grafik Kehadiran Bulanan</h4></div>
-                        <div class="card-body">
-                            <canvas id="attendanceChart" height="130"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header"><h4>Pengumuman</h4></div>
-                        <div class="card-body">
-                            <div class="alert alert-info mb-2"><i class="fas fa-bullhorn"></i> Meeting umum hari Senin</div>
-                            <div class="alert alert-success mb-2"><i class="fas fa-gift"></i> Bonus akhir tahun segera cair!</div>
-                            <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Update data pribadi sebelum 25 Okt</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header"><h4>Aktivitas Terbaru</h4></div>
-                        <div class="card-body">
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-check text-success"></i> Clock in pukul 08:10</li>
-                                <li><i class="fas fa-paper-plane text-primary"></i> Mengajukan cuti 2 hari</li>
-                                <li><i class="fas fa-file-pdf text-danger"></i> Download slip gaji September</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header"><h4>Kelengkapan Dokumen</h4></div>
-                        <div class="card-body">
-                            <p>KTP: <span class="badge badge-success">Lengkap</span></p>
-                            <p>NPWP: <span class="badge badge-success">Lengkap</span></p>
-                            <p>Kontrak Kerja: <span class="badge badge-warning">Perlu Diperbarui</span></p>
-                            <p>Ijazah: <span class="badge badge-success">Lengkap</span></p>
-                            <div class="progress mb-2">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 85%;">85%</div>
-                            </div>
-                            <small>Kelengkapan dokumen pribadi</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </section>
-</div>
-@endsection
-
-@push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-    <script>
-        const ctx = document.getElementById('attendanceChart');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt'],
-                datasets: [{
-                    label: 'Persentase Kehadiran',
-                    data: [90, 92, 87, 95, 93, 96, 94, 97, 95, 98],
-                    borderColor: '#6777ef',
-                    fill: false,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true, max: 100 }
-                }
-            }
-        });
-    </script>
-@endpush --}}
 @extends('layouts.app')
 @section('title', 'User Dashboard')
 
@@ -237,14 +10,14 @@
 
     <style>
         /* :root {
-                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                } */
+                                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                                --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                            } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -1085,7 +858,7 @@
         /* z-index biar di atas modal */
         .select2-container--open {
             z-index: 99999;
-        }       
+        }
     </style>
 @endpush
 
@@ -1125,27 +898,9 @@
                                 </div>
                             </div>
                         </div>
-
-                        {{-- <div class="col-lg-3 text-lg-end mt-3 mt-lg-0">
-                            <button  class="btn btn-light btn-lg" id="requestLeaveBtn">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                Request Leave
-                            </button>
-                        </div> --}}
-                        {{-- <div class="col-lg-3 mt-3 mt-lg-0 d-flex justify-content-end">
-                            <button class="btn btn-light btn-lg" id="requestLeaveBtn">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                Request Leave
-                            </button>
-                        </div> --}}
-
                     </div>
                 </div>
             </div>
-
-
-
-
             <div class="row mb-4">
                 <div class="col-lg-3 col-md-6 col-12 mb-4">
                     <div class="mini-stat-card primary">
@@ -1189,6 +944,7 @@
                 </div>
             </div>
 
+
             <div class="col-lg-12 col-6 mb-4">
                 <div class="announcements-card">
                     <div class="announcements-header">
@@ -1198,131 +954,50 @@
                         </h4>
                     </div>
                     <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        <!-- Announcement 1 -->
-                        <div class="announcement-item" data-toggle="modal" data-target="#announcementModal">
-                            <div class="announcement-title">
-                                <i class="fas fa-star text-warning"></i>
-                                Holiday Schedule for December
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                Dear Team, Please note the following holiday schedule for December 2024. The office will
-                                be closed from December 24-26 and December 31 - January 1...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 day ago
-                            </div>
-                        </div>
 
-                        <!-- Announcement 2 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-gift text-danger"></i>
-                                Year-End Bonus Announcement
-                                <span class="announcement-badge-new">New</span>
-                            </div>
-                            <div class="announcement-excerpt">
-                                We're pleased to announce that year-end bonuses will be distributed on December 15,
-                                2024. The amount will be based on individual performance...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 2 days ago
-                            </div>
-                        </div>
+                        @forelse ($announcements as $announcement)
+                            <div class="announcement-item" data-toggle="modal" data-target="#announcementModal"
+                                data-id="{{ $announcement->id }}" data-title="{{ $announcement->title }}"
+                                data-content="{{ $announcement->content }}"
+                                data-author="{{ $announcement->user->employee->employee_name ?? 'Admin' }}"
+                                data-date="{{ $announcement->publish_date ?? $announcement->created_at->format('d M Y') }}">
 
-                        <!-- Announcement 3 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-laptop-code text-primary"></i>
-                                New HR System Implementation
-                            </div>
-                            <div class="announcement-excerpt">
-                                Starting January 2025, we will be implementing a new HR management system. All employees
-                                are required to attend training sessions...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 5 days ago
-                            </div>
-                        </div>
+                                <div class="announcement-title">
+                                    <i class="fas fa-bullhorn text-primary"></i>
+                                    {{ $announcement->title }}
 
-                        <!-- Announcement 4 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-heartbeat text-success"></i>
-                                Health Insurance Update
-                            </div>
-                            <div class="announcement-excerpt">
-                                Our company health insurance coverage has been upgraded to include dental and vision
-                                care for all employees and their families...
-                            </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
+                                    @if ($announcement->created_at->diffInDays(now()) <= 3)
+                                        <span class="announcement-badge-new">New</span>
+                                    @endif
+                                </div>
 
-                        <!-- Announcement 5 -->
-                        <div class="announcement-item">
-                            <div class="announcement-title">
-                                <i class="fas fa-users text-info"></i>
-                                Team Building Event - December
+                                <div class="announcement-excerpt">
+                                    {{ Str::limit(strip_tags($announcement->content), 120) }}
+                                </div>
+
+                                <div class="announcement-date">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ $announcement->created_at->diffForHumans() }}
+                                </div>
                             </div>
-                            <div class="announcement-excerpt">
-                                Join us for our annual team building event on December 18, 2024 at Nusa Dua Beach
-                                Resort. Activities include team games, BBQ dinner...
+                        @empty
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2"></i>
+                                <p>No announcements available.</p>
                             </div>
-                            <div class="announcement-date">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Posted 1 week ago
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-light text-center">
-                        <a href="#" class="text-decoration-none">
-                            View All Announcements
-                            <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
+                        @endforelse
                     </div>
                 </div>
             </div>
             <br>
-            <!-- Main Content Grid -->
             <div class="row">
-                <!-- Clock In/Out Section -->
                 <div class="col-lg-4 col-12 mb-4">
-                    {{-- <div class="clock-card">
-                        <h4 class="mb-3">
-                            <i class="fas fa-clock me-2"></i>
-                            Attendance Clock
-                        </h4>
-                        <div class="clock-display" id="currentTime">00:00:00</div>
-                        <div class="clock-date" id="currentDate">Monday, January 01, 2024</div>
-
-                        @if (true)
-                            <button class="btn clock-in-btn pulse-animation" id="clockInBtn">
-                                <i class="fas fa-sign-in-alt me-2"></i>
-                                Clock In
-                            </button>
-                        @else
-                            <button class="btn clock-out-btn" id="clockOutBtn">
-                                <i class="fas fa-sign-out-alt me-2"></i>
-                                Clock Out
-                            </button>
-                            <div class="clock-status">
-                                <strong>Clocked in at:</strong>08:00 AM
-                            </div>
-                        @endif
-                    </div> --}}
-
-                    <!-- Leave Balance -->
                     <div class="leave-balance-card mt-1">
                         <div class="leave-balance-header">
                             <h4>
                                 <i class="fas fa-umbrella-beach me-2"></i>
-                                Leave Balance - {{ Auth::user()->employee->employee_name ?? Auth::user()->employee->employee_name }}
+                                Leave Balance -
+                                {{ Auth::user()->employee->employee_name ?? Auth::user()->employee->employee_name }}
                             </h4>
                         </div>
                         <div class="leave-balance-body">
@@ -1346,8 +1021,8 @@
                             <div class="leave-progress">
                                 <div class="progress">
                                     <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                        {{-- style="width: {{ $leaveBalance->annual->percentage ?? 85 }}%" --}} aria-valuenow= "85" {{-- aria-valuenow="{{ $leaveBalance->annual->percentage ?? 85 }}"  --}}
-                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                        {{-- style="width: {{ $leaveBalance->annual->percentage ?? 85 }}%" --}} aria-valuenow= "85" {{-- aria-valuenow="{{ $leaveBalance->annual->percentage ?? 85 }}"  --}} aria-valuemin="0"
+                                        aria-valuemax="100"></div>
                                 </div>
                             </div>
 
@@ -1405,7 +1080,7 @@
                 </div>
 
                 <!-- My Submissions -->
-                <div class="col-lg-8 col-12 mb-4">
+                {{-- <div class="col-lg-8 col-12 mb-4">
                     <div class="submissions-card">
                         <div class="submissions-header">
                             <div class="d-flex justify-content-between align-items-center w-100">
@@ -1413,11 +1088,8 @@
                                     <i class="fas fa-file-alt me-2"></i>
                                     My Submissions
                                 </h4>
-                                <button type="button"
-                                        class="btn btn-primary btn-sm"
-                                        id="newSubmissionBtn"
-                                        data-toggle="modal"
-                                        data-target="#requestLeaveModal">
+                                <button type="button" class="btn btn-primary btn-sm" id="newSubmissionBtn"
+                                    data-toggle="modal" data-target="#requestLeaveModal">
                                     <i class="fas fa-plus me-1"></i>
                                     New Request
                                 </button>
@@ -1559,7 +1231,204 @@
                             </a>
                         </div>
                     </div>
+                </div> --}}
+                {{-- <div class="col-lg-8 col-12 mb-4">
+                    <div class="submissions-card">
+                        <div class="submissions-header">
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <h4>
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    My Submissions
+                                </h4>
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#requestLeaveModal">
+                                    <i class="fas fa-plus me-1"></i>
+                                    New Request
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-0">
+                            @forelse ($submissions as $submission)
+                                @php
+                                    // Tipe cuti dari relasi leavebalance -> leaves
+                                    $leaveType = optional($submission->leavebalance)->leaves;
+                                    $typeName = optional($leaveType)->name ?? 'Leave';
+                                    $typeSlug = strtolower(str_replace(' ', '-', $typeName)); // untuk class CSS
+
+                                    // Hitung durasi
+                                    $start = \Carbon\Carbon::parse($submission->start_date);
+                                    $end = \Carbon\Carbon::parse($submission->end_date);
+                                    $duration = $start->diffInDays($end) + 1;
+
+                                    // Icon per tipe
+                                    $typeIcons = [
+                                        'annual leave' => 'fa-umbrella-beach',
+                                        'sick leave' => 'fa-hospital',
+                                        'overtime' => 'fa-clock',
+                                    ];
+                                    $icon = $typeIcons[strtolower($typeName)] ?? 'fa-file-alt';
+
+                                    // Status config
+                                    $statusConfig = [
+                                        'pending' => ['class' => 'pending', 'icon' => 'fa-clock', 'label' => 'Pending'],
+                                        'approved' => [
+                                            'class' => 'approved',
+                                            'icon' => 'fa-check-circle',
+                                            'label' => 'Approved',
+                                        ],
+                                        'rejected' => [
+                                            'class' => 'rejected',
+                                            'icon' => 'fa-times-circle',
+                                            'label' => 'Rejected',
+                                        ],
+                                    ];
+                                    $status = $statusConfig[$submission->status] ?? $statusConfig['pending'];
+                                @endphp
+
+                                <div class="submission-item">
+                                    <div class="submission-header-row">
+                                        <span class="submission-type-badge {{ $typeSlug }}">
+                                            <i class="fas {{ $icon }} me-1"></i>
+                                            {{ $typeName }}
+                                        </span>
+                                        <span class="submission-status {{ $status['class'] }}">
+                                            <i class="fas {{ $status['icon'] }} me-1"></i>
+                                            {{ $status['label'] }}
+                                        </span>
+                                    </div>
+
+                                    <div class="submission-meta">
+                                        <span>
+                                            <i class="fas fa-calendar"></i>
+                                            {{ $start->format('M d, Y') }}
+                                            @if ($start->ne($end))
+                                                - {{ $end->format('M d, Y') }}
+                                            @endif
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-hourglass-half"></i>
+                                            {{ $duration }} {{ $duration > 1 ? 'days' : 'day' }}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-clock"></i>
+                                            {{ $submission->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+
+                                    <div class="submission-notes">
+                                        <i class="fas fa-sticky-note me-2"></i>
+                                        @if ($submission->status === 'rejected' && $submission->approver_reason)
+                                            <strong>Rejection reason:</strong> {{ $submission->approver_reason }}
+                                        @else
+                                            <strong>Note:</strong>
+                                            {{ $submission->employee_reason ?? '-' }}
+                                        @endif
+                                    </div>
+                                </div>
+
+                            @empty
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                    No submissions yet.
+                                </div>
+                            @endforelse
+                        </div>
+
+                        <div class="card-footer bg-light text-center">
+
+                        </div>
+                    </div>
+                </div> --}}
+                <div class="col-lg-8 col-12 mb-4">
+    <div class="submissions-card">
+        <div class="submissions-header">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <h4>
+                    <i class="fas fa-file-alt me-2"></i>
+                    My Submissions
+                </h4>
+                <button type="button" class="btn btn-primary btn-sm"
+                    data-toggle="modal" data-target="#requestLeaveModal">
+                    <i class="fas fa-plus me-1"></i>
+                    New Request
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            @forelse ($submissions as $s)
+                <div class="submission-item">
+
+                    {{-- Header: Tipe & Status --}}
+                    <div class="submission-header-row">
+                        <span class="submission-type-badge {{ $s->type_slug }}">
+                            <i class="fas {{ $s->type_icon }} me-1"></i>
+                            {{ $s->type_name }}
+                        </span>
+                        <span class="submission-status {{ $s->status_class }}">
+                            <i class="fas {{ $s->status_icon }} me-1"></i>
+                            {{ $s->status_label }}
+                        </span>
+                    </div>
+
+                    {{-- Meta: Tanggal, Durasi, Waktu Pengajuan --}}
+                    <div class="submission-meta">
+                        <span>
+                            <i class="fas fa-calendar"></i>
+                            {{ $s->start }}
+                            @unless ($s->is_same_day)
+                                - {{ $s->end }}
+                            @endunless
+                        </span>
+                        <span>
+                            <i class="fas fa-hourglass-half"></i>
+                            {{ $s->duration_label }}
+                        </span>
+                        <span>
+                            <i class="fas fa-clock"></i>
+                            {{ $s->posted_ago }}
+                        </span>
+                    </div>
+
+                    {{-- Approver (jika sudah diproses) --}}
+                    @if ($s->approver_name && $s->status !== 'pending')
+                        <div class="submission-approver">
+                            <i class="fas fa-user-check me-1"></i>
+                            <small class="text-muted">
+                                {{ $s->status === 'approved' ? 'Approved' : 'Reviewed' }} by
+                                <strong>{{ $s->approver_name }}</strong>
+                            </small>
+                        </div>
+                    @endif
+
+                    {{-- Notes / Rejection Reason --}}
+                    <div class="submission-notes">
+                        <i class="fas fa-sticky-note me-2"></i>
+                        @if ($s->status === 'rejected' && $s->reject_reason)
+                            <strong>Rejection reason:</strong> {{ $s->reject_reason }}
+                        @else
+                            <strong>Note:</strong> {{ $s->note }}
+                        @endif
+                    </div>
+
                 </div>
+            @empty
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                    No submissions yet.
+                </div>
+            @endforelse
+        </div>
+
+        <div class="card-footer bg-light text-center">
+            {{-- <a href="{{ route('leave-requests.index') }}" class="text-decoration-none">
+                View All Submissions
+                <i class="fas fa-arrow-right ms-2"></i>
+            </a> --}}
+        </div>
+    </div>
+</div>
             </div>
 
             <!-- Announcements & Attendance History Row -->
@@ -1678,8 +1547,7 @@
                             <i class="fas fa-paper-plane me-2"></i>
                             Apply Leave
                         </h5>
-                        <button type="button" class="close" data-dismiss="modal"
-                        >
+                        <button type="button" class="close" data-dismiss="modal">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -1693,9 +1561,8 @@
                             <select name="leave_balance_id" id="leave_balance_id" class="form-control" required>
                                 <option value="">-- Select type of leave --</option>
                                 @forelse(($leaveBalances ?? []) as $balance)
-                                    <option value="{{ $balance->id }}"
-                                            data-days="{{ $balance->balance_days }}"
-                                            data-name="{{ $balance->leaves->name ?? 'Leave' }}">
+                                    <option value="{{ $balance->id }}" data-days="{{ $balance->balance_days }}"
+                                        data-name="{{ $balance->leaves->name ?? 'Leave' }}">
                                         {{ $balance->leaves->name ?? 'Leave' }}
                                         — Sisa: {{ $balance->balance_days }} days
                                     </option>
@@ -1776,7 +1643,7 @@
     </div>
 
     <!-- Announcement Preview Modal -->
-    <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
+    {{-- <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1823,6 +1690,32 @@
                 </div>
             </div>
         </div>
+    </div> --}}
+    <div class="modal fade" id="announcementModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        <span id="modalTitle"></span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-user me-1"></i> <span id="modalAuthor"></span>
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-calendar-alt me-1"></i> <span id="modalDate"></span>
+                    </p>
+                    <div id="modalContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
@@ -1832,45 +1725,58 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Isi modal saat announcement diklik
+        $('#announcementModal').on('show.bs.modal', function(e) {
+            const trigger = $(e.relatedTarget);
+            $('#modalTitle').text(trigger.data('title'));
+            $('#modalAuthor').text(trigger.data('author'));
+            $('#modalDate').text(trigger.data('date'));
+            $('#modalContent').html(trigger.data('content'));
+        });
+    </script>
+
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-           $('#requestLeaveModal').on('shown.bs.modal', function () {
-           $('#leave_balance_id').select2({
-            dropdownParent: $('#requestLeaveModal'),
-            placeholder: '-- select the type of leave --',
-            allowClear: true,
-            width: '100%',
-        });
-    });
+        document.addEventListener('DOMContentLoaded', function() {
+            $('#requestLeaveModal').on('shown.bs.modal', function() {
+                $('#leave_balance_id').select2({
+                    dropdownParent: $('#requestLeaveModal'),
+                    placeholder: '-- select the type of leave --',
+                    allowClear: true,
+                    width: '100%',
+                });
+            });
 
-    // ✅ Destroy Select2 saat modal ditutup
-    $('#requestLeaveModal').on('hidden.bs.modal', function () {
-        $('#leave_balance_id').select2('destroy');
-    });
+            // ✅ Destroy Select2 saat modal ditutup
+            $('#requestLeaveModal').on('hidden.bs.modal', function() {
+                $('#leave_balance_id').select2('destroy');
+            });
 
-    // ✅ Satu saja, tidak perlu dua
-    $('#leave_balance_id').on('select2:select select2:clear', function() {
-        this.dispatchEvent(new Event('change', { bubbles: true }));
-    }); 
+            // ✅ Satu saja, tidak perlu dua
+            $('#leave_balance_id').on('select2:select select2:clear', function() {
+                this.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            });
 
-            const csrfToken        = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-            const leaveSelect      = document.getElementById('leave_balance_id');
-            const balanceInfo      = document.getElementById('leaveBalanceInfo');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const leaveSelect = document.getElementById('leave_balance_id');
+            const balanceInfo = document.getElementById('leaveBalanceInfo');
             const availableBalance = document.getElementById('availableBalance');
-            const selectedType     = document.getElementById('selectedLeaveType');
-            const startDate        = document.getElementById('start_date');
-            const endDate          = document.getElementById('end_date');
-            const durationDisplay  = document.getElementById('calculatedDuration');
-            const balanceWarning   = document.getElementById('balanceWarning');
-            const submitBtn        = document.getElementById('submitLeaveBtn');
-            const form             = document.getElementById('leaveRequestForm');
+            const selectedType = document.getElementById('selectedLeaveType');
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            const durationDisplay = document.getElementById('calculatedDuration');
+            const balanceWarning = document.getElementById('balanceWarning');
+            const submitBtn = document.getElementById('submitLeaveBtn');
+            const form = document.getElementById('leaveRequestForm');
 
             let maxDays = 0;
 
             // ── Saat pilih jenis cuti → tampilkan saldo tersedia ──
-            leaveSelect?.addEventListener('change', function () {
-                const opt  = this.options[this.selectedIndex];
+            leaveSelect?.addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
                 const days = parseInt(opt.dataset.days ?? 0);
                 const name = opt.dataset.name ?? '-';
 
@@ -1889,7 +1795,7 @@
             // ── Hitung durasi otomatis ──
             function calculateDuration() {
                 const start = startDate.value;
-                const end   = endDate.value;
+                const end = endDate.value;
 
                 if (!start || !end) {
                     durationDisplay.textContent = '0 days';
@@ -1899,7 +1805,7 @@
                 }
 
                 const startObj = new Date(start);
-                const endObj   = new Date(end);
+                const endObj = new Date(end);
 
                 if (endObj < startObj) {
                     durationDisplay.textContent = 'End date cannot be before start date';
@@ -1925,14 +1831,14 @@
                 }
             }
 
-            startDate?.addEventListener('change', function () {
+            startDate?.addEventListener('change', function() {
                 if (endDate) endDate.min = this.value;
                 calculateDuration();
             });
             endDate?.addEventListener('change', calculateDuration);
 
             // ── Submit via AJAX ──
-            form?.addEventListener('submit', function (e) {
+            form?.addEventListener('submit', function(e) {
                 e.preventDefault();
 
                 if (!leaveSelect.value) {
@@ -1956,59 +1862,70 @@
                     if (!result.isConfirmed) return;
 
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
+                    submitBtn.innerHTML =
+                        '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
 
                     const payload = {
                         leave_balance_id: document.getElementById('leave_balance_id').value,
-                        start_date:       document.getElementById('start_date').value,
-                        end_date:         document.getElementById('end_date').value,
-                        employee_reason:  document.getElementById('employee_reason').value,
+                        start_date: document.getElementById('start_date').value,
+                        end_date: document.getElementById('end_date').value,
+                        employee_reason: document.getElementById('employee_reason').value,
                     };
 
                     fetch("{{ route('Leaverequest.store') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify(payload),
-                    })
-                    .then(async (res) => {
-                        const data = await res.json();
-                        return { ok: res.ok, data };
-                    })
-                    .then(({ ok, data }) => {
-                        if (ok && data.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: data.message ?? 'Leave request submitted successfully.',
-                                confirmButtonText: 'OK',
-                            }).then(() => {
-                                $('#requestLeaveModal').modal('hide');
-                                window.location.reload();
-                            });
-                        } else {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        })
+                        .then(async (res) => {
+                            const data = await res.json();
+                            return {
+                                ok: res.ok,
+                                data
+                            };
+                        })
+                        .then(({
+                            ok,
+                            data
+                        }) => {
+                            if (ok && data.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: data.message ??
+                                        'Leave request submitted successfully.',
+                                    confirmButtonText: 'OK',
+                                }).then(() => {
+                                    $('#requestLeaveModal').modal('hide');
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed',
+                                    text: data.message ??
+                                        'An error occurred while submitting the request.',
+                                });
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML =
+                                    '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(err);
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Failed',
-                                text: data.message ?? 'An error occurred while submitting the request.',
+                                text: 'An error occurred while submitting the request.',
                             });
                             submitBtn.disabled = false;
-                            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
-                        }
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Failed',
-                            text: 'An error occurred while submitting the request.',
+                            submitBtn.innerHTML =
+                                '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
                         });
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Leave Request';
-                    });
                 });
             });
         });

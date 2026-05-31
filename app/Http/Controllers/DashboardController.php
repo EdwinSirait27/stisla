@@ -19,6 +19,6 @@ class DashboardController extends Controller
             ->where('balance_days', '>', 0)
             ->get();
 
-        return view('pages.Dashboard.Dashboard', compact('leaveBalances'));
+        return view('pages.dashboardHuman.dashboardHuman', compact('leaveBalances'));
     }
 }

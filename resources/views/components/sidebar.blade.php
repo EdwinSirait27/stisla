@@ -24,8 +24,8 @@
                 </ul>
             </li>
             @role('Human')
-                <li class="{{ Request::is('Dashboard') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ url('Dashboard') }}"><i class="fas fa-house"></i>
+                <li class="{{ Request::is('dashboardHuman') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ url('dashboardHuman') }}"><i class="fas fa-house"></i>
                         <span>Dashboard</span></a>
                 </li>
             @endrole
@@ -197,23 +197,7 @@
                     </li>
                 @endrole
                 {{-- ── Attendance (HeadHR) ── --}}
-                <li
-                    class="nav-item dropdown {{ Request::is('Fingerprints', 'Editedfinger', 'roster*', 'schedule*', 'fingerprint-recap*') ? 'active' : '' }}">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                            class="fas fa-calendar-check"></i>
-                        <span>Attendance</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerprints Data</a>
-                        </li>
-                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('roster.index') }}">Roster & Schedule</a>
-                        </li>
-                        <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
-                        </li>
-                    </ul>
-                </li>
+                
                 <li class="nav-item dropdown ">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
                             class="fas fa-paper-plane""></i>
@@ -265,6 +249,7 @@
                         </a>
                     </li>
                 @endhasanyrole
+                
 
                 <li class="{{ Request::is('toil/assignment*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('toil.assignment.index') }}">
@@ -276,7 +261,25 @@
                     Approval
                 </a>
             </li>
+            
         </ul>
+        <li
+                    class="nav-item dropdown {{ Request::is('Fingerprints', 'Editedfinger', 'roster*', 'schedule*', 'fingerprint-recap*') ? 'active' : '' }}">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                            class="fas fa-calendar-check"></i>
+                        <span>Attendance</span></a>
+                    <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerprints Data</a>
+                        </li>
+                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('roster.index') }}">Roster & Schedule</a>
+                        </li>
+                        <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
+                        </li>
+                    </ul>
+                </li>
     </li>
 
         </ul>

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Structuresnew;
 
-class ManagerStoreOnly
+class Managerstoreonly
 {
     /**
      * Handle an incoming request.

@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\dashboardAdminController;
 use App\Http\Controllers\DashboardManagerController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +13,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\PayrollEmailController;
 use App\Http\Controllers\EmployeeImportController;
 use App\Http\Controllers\PayrollsController;
+use App\Http\Controllers\DashboardSupervisorController;
 use App\Http\Controllers\UserprofileController;
 use App\Http\Controllers\DashManagerController;
 use App\Http\Controllers\CompanyController;
@@ -39,6 +39,7 @@ use App\Http\Controllers\PositionreqController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\SubmissionsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardHumanController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\LeavesController;
 use App\Http\Controllers\LeavebalancesController;
@@ -59,9 +60,7 @@ use App\Http\Controllers\AutoRosterOtherStoreController;
 use App\Http\Controllers\ToilController;
 use App\Http\Controllers\ToilLeaveRequestsController;
 use App\Http\Controllers\AssetCategoriesController;
-
 use App\Http\Controllers\OvertimesubmissionsController;
-
 use App\Http\Controllers\SkLetterController;
 use App\Http\Controllers\UserrnrController;
 use App\Models\Contract;
@@ -75,18 +74,17 @@ use App\Models\Contract;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 Route::view('/test-wireui', 'test-wireui');
-Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor|User'])->group(function () {
+Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor'])->group(function () {
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
     Route::post('/savesign', [UserprofileController::class, 'save'])->name('save.signature');
-
     Route::get('/rnr', [UserrnrController::class, 'index'])
         ->name('pages.rnr');
     Route::get('/my-sk-letter/{id}/download', [UserprofileController::class, 'downloadSkLetter'])
         ->middleware('auth')
         ->name('my-sk-letter.download');
+
     // routes/web.php
     Route::get('/employee-photo/{filename}', [UserprofileController::class, 'servePhoto'])
         ->name('useremployee.photo');
@@ -116,6 +114,11 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
         Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
         Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
+    });
+    Route::group(['middleware' => ['permission:DashboardSupervisor']], function () {
+        // Route::get('/dashboardSupervisor', dashboardSupervisorController::class, 'index'])->name('pages.dashboardSupervisor');
+        Route::get('/dashboardSupervisor', [DashboardSupervisorController::class, 'index'])
+            ->name('pages.dashboardSupervisor');
     });
     // ── Activity (catatan: tetap pakai permission:dashboardAdmin sesuai original) ──
     Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
@@ -518,9 +521,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
     });
     // ── Dashboard Human ──
-    Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function () {
-        Route::get('/Dashboard', [DashboardController::class, 'index'])
-            ->name('pages.Dashboard.Dashboard');
+    Route::group(['middleware' => ['auth', 'permission:DashboardHuman']], function () {
+        Route::get('/dashboardHuman', [DashboardHumanController::class, 'index'])
+            ->name('pages.dashboardHuman');
     });
 
     // ── Dashboard Manager & Team ──
@@ -697,23 +700,47 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
     // ════════════════════════════════════════════════════════════════
 
     // ── Roster (master shift Pagi/Siang/Malam) ──
-    Route::prefix('roster')->name('roster.')->middleware(['auth', 'permission:Managerosters'])->group(function () {
-        // Route::group(['middleware' => ['auth', 'permission:roster']], function () {
+    // Route::prefix('roster')->name('roster.')->middleware(['auth', 'permission:Managerosters|ManageRosterSPVManager'])->group(function () {
+    
+    //     Route::get('/',             [RosterController::class, 'index'])->name('index');
+    //     Route::post('/store',       [RosterController::class, 'store'])->name('store');
+    //     Route::post('/destroy',     [RosterController::class, 'destroy'])->name('destroy');
+    //     Route::post('/bulk-assign', [RosterController::class, 'bulkAssign'])->name('bulkAssign');
+    //     Route::post('/copy',        [RosterController::class, 'copyRoster'])->name('copyRoster');
+    //     Route::post('/bulk-delete', [RosterController::class, 'bulkDelete'])->name('bulkDelete');
+    //     Route::get('/auto-generate/preview', [AutoRosterController::class, 'preview'])->name('auto-generate.preview');
+    //     Route::post('/auto-generate',        [AutoRosterController::class, 'generate'])->name('auto-generate');
+    // });
 
-        Route::get('/',             [RosterController::class, 'index'])->name('index');
-        Route::post('/store',       [RosterController::class, 'store'])->name('store');
-        Route::post('/destroy',     [RosterController::class, 'destroy'])->name('destroy');
-        Route::post('/bulk-assign', [RosterController::class, 'bulkAssign'])->name('bulkAssign');
-        Route::post('/copy',        [RosterController::class, 'copyRoster'])->name('copyRoster');
-        Route::post('/bulk-delete', [RosterController::class, 'bulkDelete'])->name('bulkDelete');
+    // // ── Auto Generate Other Store Roster ──
+    // Route::prefix('roster/auto-generate/other')
+    // ->name('roster.auto-generate.other.')
+    // ->middleware(['auth', 'permission:Managerosters'])
+    // ->group(function () {
+    //     Route::get('stores',  [AutoRosterOtherStoreController::class, 'listStores'])->name('stores');
+    //     Route::get('preview', [AutoRosterOtherStoreController::class, 'preview'])->name('preview');
+    //     Route::post('/',      [AutoRosterOtherStoreController::class, 'generate'])->name('generate');
+    // });
+    Route::prefix('roster')->name('roster.')->group(function () {
 
-        // ── Auto Generate Roster (HO/Holding/DC) ──
-        Route::get('/auto-generate/preview', [AutoRosterController::class, 'preview'])->name('auto-generate.preview');
-        Route::post('/auto-generate',        [AutoRosterController::class, 'generate'])->name('auto-generate');
+    // ── Akses: Admin + SPV/Manager ──
+    Route::middleware(['auth', 'permission:ManageRoster|ManageRosterSPVManager'])->group(function () {
+        Route::get('/',              [RosterController::class, 'index'])->name('index');
+        Route::post('/store',        [RosterController::class, 'store'])->name('store');
+        Route::post('/destroy',      [RosterController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-assign',  [RosterController::class, 'bulkAssign'])->name('bulkAssign');
+        Route::post('/bulk-delete',  [RosterController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::post('/copy',         [RosterController::class, 'copyRoster'])->name('copyRoster');
+        Route::get('/auto-generate/preview',  [AutoRosterController::class, 'preview'])->name('auto-generate.preview');
+        Route::post('/auto-generate',         [AutoRosterController::class, 'generate'])->name('auto-generate');
     });
+});
 
-    // ── Auto Generate Other Store Roster ──
-    Route::prefix('roster/auto-generate/other')->middleware(['auth', 'permission:Managerosters'])->name('roster.auto-generate.other.')->group(function () {
+// ── Akses: Admin only ──
+Route::prefix('roster/auto-generate/other')
+    ->name('roster.auto-generate.other.')
+    ->middleware(['auth', 'permission:ManageRoster'])
+    ->group(function () {
         Route::get('stores',  [AutoRosterOtherStoreController::class, 'listStores'])->name('stores');
         Route::get('preview', [AutoRosterOtherStoreController::class, 'preview'])->name('preview');
         Route::post('/',      [AutoRosterOtherStoreController::class, 'generate'])->name('generate');

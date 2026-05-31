@@ -40,7 +40,7 @@ class RedirectIfAuthenticated
                 return redirect('/dashboardTeam');
             }
             if ($user->can('isHuman')) {
-                return redirect('/Dashboard');
+                return redirect('/dashboardHuman');
             }
             //         if ($user->can('isHuman')) {
             //     return redirect()->route('feature-profile')

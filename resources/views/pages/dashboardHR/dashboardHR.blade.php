@@ -1107,7 +1107,6 @@
         .inner-scroll::-webkit-scrollbar-track {
             background: transparent;
         }
-
         .inner-scroll::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 4px;

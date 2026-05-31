@@ -62,18 +62,13 @@ class Leaverequest extends Model
     public function approvers()
     {
         $employee = $this->leavebalance->employees;
-
         $structure = $employee->structuresnew; // relasi ke model Structuresnew
-
         // manager utama
         $primary = $structure->employees()->where('is_manager', 1)->get();
-
         // secondary supervisor
         $secondary = $structure->secondarySupervisors;
-
         return $primary->merge($secondary);
     }
-
     // cek apakah employee tertentu boleh approve
     public function canBeApprovedBy($employeeId)
     {
