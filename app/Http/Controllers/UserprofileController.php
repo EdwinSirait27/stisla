@@ -706,9 +706,13 @@ class UserprofileController extends Controller
     }
     public function downloadDocument(string $id)
     {
-        if (!ctype_digit($id)) {
-            abort(400, 'Invalid ID');
-        }
+       
+        // if (!ctype_digit($id)) {
+        //     abort(400, 'Invalid ID');
+        // }
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id)) {
+    abort(400, 'Invalid ID');
+}
         $user = Auth::user();
 
         $document = Documents::with([
