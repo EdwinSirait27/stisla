@@ -1073,7 +1073,7 @@
                                                 @if (!empty($user->employee->photos))
                                                     <img id="preview-image"
                                                         src="{{ route('useremployee.photo', basename($user->employee->photos)) }}"
-                                                        alt="Profile photo" onclick="openImageModal(this.src)">
+                                                        alt="Profile Photo" onclick="openImageModal(this.src)">
                                                 @else
                                                     <img id="preview-image" src="https://via.placeholder.com/56"
                                                         alt="No photo" style="display:none">

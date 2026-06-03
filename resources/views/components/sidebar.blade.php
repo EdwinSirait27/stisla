@@ -15,7 +15,7 @@
                         <a class="nav-link" href="{{ url('feature-profile') }}">Profile</a>
                     </li>
                     <li class="{{ Request::is('rnr') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('rnr') }}">R&R</a>
+                        <a class="nav-link" href="{{ url('rnr') }}">Roles & Responsibilities</a>
                     </li>
                     <li class="{{ Request::is('documents') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('documents') }}">Document</a>
@@ -242,13 +242,11 @@
                 </li>
 
                 {{-- HR Only: Monitoring Saldo Semua Karyawan --}}
-                @hasanyrole('HeadHR|HR')
                     <li class="{{ Request::is('toil/all-balances*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('toil.all-balances') }}">
                             All Balances
                         </a>
                     </li>
-                @endhasanyrole
                 
 
                 <li class="{{ Request::is('toil/assignment*') ? 'active' : '' }}">

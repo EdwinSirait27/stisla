@@ -106,7 +106,9 @@ class EmployeeController extends Controller
     }
     public function getEmployeesall(Request $request)
     {
-        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
         $query = User::query()
             ->with([
@@ -352,7 +354,9 @@ class EmployeeController extends Controller
     }
     public function getEmployees(Request $request)
     {
-        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
         $query = User::query()
             ->with([

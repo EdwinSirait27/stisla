@@ -3087,8 +3087,8 @@
         }
 
         /* ══════════════════════════════════════════════════════
-       AUTO ROSTER OTHER STORE — Step Indicator
-       ══════════════════════════════════════════════════════ */
+               AUTO ROSTER OTHER STORE — Step Indicator
+               ══════════════════════════════════════════════════════ */
         .aro-step-wrap {
             display: flex;
             align-items: center;
@@ -3303,6 +3303,11 @@
 
             <div class="section-header d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <h1>Roster & Schedule</h1>
+                @if ($isSupervisorOrManager && !$isRosterOpen)
+                    <div class="alert alert-warning">
+                        <i class="fas fa-lock"></i> Periode pengisian roster sedang ditutup.
+                    </div>
+                @endif
                 @if ($storeId)
                     <div class="d-flex" style="gap:16px">
                         @php
@@ -3311,26 +3316,25 @@
                             $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
                         @endphp
                         @can('ManageRoster')
-
-                        @if ($showAutoGenerate)
-                            <button class="btn-success-r" onclick="confirmAutoGenerate()" style="padding:8px 24px"
-                                title="Auto generate roster untuk periode yang dipilih">
-                                <i class="fas fa-magic"></i> Auto Generate Roster
-                            </button>
-                        @else
-                            <button class="btn-success-r" onclick="openAroModal()" style="padding:8px 24px"
-                                title="Auto generate roster mingguan dengan pola kustom">
-                                <i class="fas fa-calendar-week"></i> Auto Generate Roster
-                            </button>
-                             <button class="btn-secondary-r" onclick="confirmCopyRoster()" style="padding:8px 24px">
-                            <i class="fas fa-copy"></i> Copy Roster
-                        </button>
-                        @endif
-@endcan
+                            @if ($showAutoGenerate)
+                                <button class="btn-success-r" onclick="confirmAutoGenerate()" style="padding:8px 24px"
+                                    title="Auto generate roster untuk periode yang dipilih">
+                                    <i class="fas fa-magic"></i> Auto Generate Roster
+                                </button>
+                            @else
+                                <button class="btn-success-r" onclick="openAroModal()" style="padding:8px 24px"
+                                    title="Auto generate roster mingguan dengan pola kustom">
+                                    <i class="fas fa-calendar-week"></i> Auto Generate Roster
+                                </button>
+                                <button class="btn-secondary-r" onclick="confirmCopyRoster()" style="padding:8px 24px">
+                                    <i class="fas fa-copy"></i> Copy Roster
+                                </button>
+                            @endif
+                        @endcan
                         <button class="btn-primary-r" onclick="openModal('modalBulk')" style="padding:8px 24px">
                             <i class="fas fa-calendar-plus"></i> Bulk Assign
                         </button>
-                       
+
                         <button class="btn-danger-r" onclick="openModal('modalBulkDelete')"
                             style="padding:8px 24px;font-size:13px">
                             <i class="fas fa-trash"></i> Bulk Delete
@@ -3353,7 +3357,7 @@
                             </label>
                             @can('ManageRoster')
 
-                            {{-- <select name="store_id" class="f-control select2" style="min-width:180px" required>
+                                {{-- <select name="store_id" class="f-control select2" style="min-width:180px" required>
                                 <option value="">Choose Location</option>
                                 @foreach ($stores as $store)
                                     <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
@@ -3361,7 +3365,7 @@
                                     </option>
                                 @endforeach
                             </select> --}}
-                             <select name="store_id" class="f-control select2" style="min-width:180px" required>
+                                <select name="store_id" class="f-control select2" style="min-width:180px" required>
                                     <option value="">Choose Location</option>
                                     @foreach ($stores as $store)
                                         <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
@@ -3375,10 +3379,14 @@
                                     style="min-width:180px; background:#f1f5f9;">
                             @endcan
                         </div>
-                        <div class="filter-item-date">
+                        {{-- <div class="filter-item-date">
                             <label class="f-label">Start Date</label>
                             <input type="text" id="start_date" name="start_date" class="f-control"
                                 value="{{ $startDate }}">
+                        </div> --}}
+                        <div class="filter-item-date">
+                            <label class="f-label">Start Date</label>
+                            <input type="date" name="start_date" class="f-control" value="{{ $startDate }}">
                         </div>
                         <div class="filter-item-date">
                             <label class="f-label">End Date</label>
@@ -3573,7 +3581,96 @@
                         </div>
                     </div>
 
+
+
+
+                    {{-- ── Tabel Histori Roster ── --}}
+                    <div class="card mt-4" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
+                        <div class="card-body">
+                            <h6 style="font-weight:700;color:#0f172a;margin-bottom:16px;">
+                                <i class="fas fa-history"></i> Histori Roster
+                            </h6>
+
+                            {{-- Filter Histori --}}
+                            <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+                                @can('ManageRoster')
+                                    <div>
+                                        <label class="f-label">Location</label>
+                                        <select id="historyStore" class="f-control select2" style="min-width:100px;">
+                                            <option value="">-- All Locations --</option>
+                                            @foreach ($stores as $store)
+                                                <option value="{{ $store->id }}"
+                                                    {{ $storeId == $store->id ? 'selected' : '' }}>
+                                                    {{ $store->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @else
+                                    {{-- SPV: hidden, otomatis pakai store sendiri --}}
+                                    <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
+                                @endcan
+                                <div>
+                                    <label class="f-label">Start Date</label>
+                                    <input type="date" id="historyStart" value="{{ $startDate }}"
+                                        class="f-control">
+                                </div>
+                                <div>
+                                    <label class="f-label">End Date</label>
+                                    <input type="date" id="historyEnd" value="{{ $endDate }}"
+                                        class="f-control">
+                                </div>
+                                <div>
+                                    <label class="f-label">Cari Nama</label>
+                                    <input type="text" id="historySearch" class="f-control"
+                                        placeholder="Nama karyawan...">
+                                </div>
+                                <div>
+                                    <button class="btn-primary-r" onclick="loadHistory()">
+                                        <i class="fas fa-search"></i> Cari
+                                    </button>
+                                    <button class="btn-secondary-r" onclick="resetHistory()">
+                                        Reset
+                                    </button>
+                                    <button class="btn-success-r" onclick="exportHistory()">
+                                        <i class="fas fa-file-excel"></i> Export Excel
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Hasil --}}
+                            <div id="historyResult">
+                                <div class="text-muted text-center py-4" style="font-size:13px;">
+                                    <i class="fas fa-search"></i> Masukkan rentang tanggal lalu klik Cari.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 @endif
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-history me-2"></i> Roster Activity Log</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="activityTable">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="50">#</th>
+                                        <th width="100">Event</th>
+                                        <th>Description</th>
+                                        <th width="150">By</th>
+                                        <th>Changes</th>
+                                        <th width="160">Date & Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </section>
@@ -3677,7 +3774,8 @@
                         <option value="">-- Choose Shift --</option>
                         @foreach ($shifts as $shift)
                             <option value="{{ $shift->id }}">{{ $shift->shift_name }}
-                                ({{ substr($shift->start_time, 0, 5) }}-{{ substr($shift->end_time, 0, 5) }})</option>
+                                ({{ substr($shift->start_time, 0, 5) }}-{{ substr($shift->end_time, 0, 5) }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -4098,6 +4196,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -4275,7 +4374,7 @@
             // Set nilai setelah filter
             const currentDayType = cell.dataset.dayType || 'Work';
             const targetOpt = Array.from(select.options).find(o => o.value === currentDayType && o.style.display !==
-            'none');
+                'none');
             select.value = targetOpt ? currentDayType : 'Work';
 
             document.getElementById('mShiftId').value = cell.dataset.shiftId || '';
@@ -4972,7 +5071,7 @@
             const shift = aroState.availableShifts.find(s => s.id == shiftId);
             const el = document.getElementById(`aroShInfo${i}`);
             if (el) el.textContent = shift ? shift.start_time.substring(0, 5) + ' – ' + shift.end_time.substring(0, 5) :
-            '—';
+                '—';
         }
 
         function aroQuickPattern(type) {
@@ -5173,4 +5272,249 @@
             $('.select2').select2();
         });
     </script>
+    {{-- untuk tracking history --}}
+
+    <script>
+        // function loadHistory() {
+        //     const start    = document.getElementById('historyStart').value;
+        //     const end      = document.getElementById('historyEnd').value;
+        //     const search   = document.getElementById('historySearch').value;
+        //     const storeId  = CURRENT_STORE_ID;
+        //     const resultEl = document.getElementById('historyResult');
+
+        //     if (!start || !end) {
+        //         toast('Start Date dan End Date wajib diisi.', false);
+        //         return;
+        //     }
+        //     if (!storeId) {
+        //         toast('Pilih lokasi terlebih dahulu.', false);
+        //         return;
+        //     }
+
+        //     resultEl.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+
+        //     fetch(`{{ route('roster.history') }}?start_date=${start}&end_date=${end}&store_id=${storeId}&search=${search}`)
+        //         .then(r => r.json())
+        //         .then(data => {
+        //             if (!data.success || !data.data.length) {
+        //                 resultEl.innerHTML = '<div class="text-muted text-center py-4">Tidak ada data ditemukan.</div>';
+        //                 return;
+        //             }
+
+        //             let html = `<div style="overflow-x:auto;">
+    //                 <table class="roster-table" style="font-size:12px;">
+    //                     <thead>
+    //                         <tr>
+    //                             <th class="col-emp">Employee</th>
+    //                             <th>Tanggal</th>
+    //                             <th>Day Type</th>
+    //                             <th>Shift</th>
+    //                             <th>Jam</th>
+    //                             <th>Notes</th>
+    //                         </tr>
+    //                     </thead>
+    //                     <tbody>`;
+
+        //             data.data.forEach(emp => {
+        //                 emp.rosters.forEach((r, i) => {
+        //                     const badgeColor = {
+        //                         'Work'            : '#dbeafe',
+        //                         'Off'             : '#f1f5f9',
+        //                         'Public Holiday'  : '#fef9c3',
+        //                         'Leave'           : '#fce7f3',
+        //                         'Cuti Melahirkan' : '#fce7f3',
+        //                     }[r.day_type] || '#f1f5f9';
+
+        //                     html += `<tr>`;
+
+        //                     // Rowspan untuk nama employee
+        //                     if (i === 0) {
+        //                         html += `<td class="col-emp" rowspan="${emp.rosters.length}" style="vertical-align:top;">
+    //                             <div class="emp-name">${emp.employee_name}</div>
+    //                             <div class="emp-meta">Dept: ${emp.department}</div>
+    //                             <div class="emp-meta">Pos: ${emp.position}</div>
+    //                             <span class="emp-status status-pkwt">${emp.status_employee}</span>
+    //                         </td>`;
+        //                     }
+
+        //                     html += `
+    //                         <td>${r.date}</td>
+    //                         <td><span style="background:${badgeColor};padding:2px 8px;border-radius:4px;font-size:11px;">${r.day_type}</span></td>
+    //                         <td>${r.shift_name}</td>
+    //                         <td>${r.start_time && r.end_time ? r.start_time + ' - ' + r.end_time : '-'}</td>
+    //                         <td style="color:#64748b;">${r.notes || '-'}</td>
+    //                     </tr>`;
+        //                 });
+        //             });
+
+        //             html += `</tbody></table></div>`;
+        //             resultEl.innerHTML = html;
+        //         })
+        //         .catch(() => {
+        //             resultEl.innerHTML = '<div class="text-danger text-center py-4">Terjadi kesalahan.</div>';
+        //         });
+        // }
+
+
+
+
+
+
+
+        function loadHistory() {
+            const start = document.getElementById('historyStart').value;
+            const end = document.getElementById('historyEnd').value;
+            const search = document.getElementById('historySearch').value;
+            const storeId = document.getElementById('historyStore').value; // ← ambil dari select/hidden
+
+            const resultEl = document.getElementById('historyResult');
+
+            if (!start || !end) {
+                toast('Start Date dan End Date wajib diisi.', false);
+                return;
+            }
+
+            resultEl.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+
+            let url = `{{ route('roster.history') }}?start_date=${start}&end_date=${end}&search=${search}`;
+            // Kirim store_id hanya kalau ada (Admin bisa kosong = semua store)
+            if (storeId) url += `&store_id=${storeId}`;
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !data.data.length) {
+                        resultEl.innerHTML = '<div class="text-muted text-center py-4">Tidak ada data ditemukan.</div>';
+                        return;
+                    }
+
+                    let html = `<div style="overflow-x:auto;">
+                <table class="roster-table" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th class="col-emp">Employee</th>
+                            <th>Tanggal</th>
+                            <th>Day Type</th>
+                            <th>Shift</th>
+                            <th>Jam</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                    data.data.forEach(emp => {
+                        emp.rosters.forEach((r, i) => {
+                            const badgeColor = {
+                                'Work': '#dbeafe',
+                                'Off': '#f1f5f9',
+                                'Public Holiday': '#fef9c3',
+                                'Leave': '#fce7f3',
+                                'Cuti Melahirkan': '#fce7f3',
+                            } [r.day_type] || '#f1f5f9';
+
+                            html += `<tr>`;
+
+                            // Rowspan untuk nama employee
+                            if (i === 0) {
+                                html += `<td class="col-emp" rowspan="${emp.rosters.length}" style="vertical-align:top;">
+                            <div class="emp-name">${emp.employee_name}</div>
+                            <div class="emp-meta">Dept: ${emp.department}</div>
+                            <div class="emp-meta">Pos: ${emp.position}</div>
+                            <span class="emp-status status-pkwt">${emp.status_employee}</span>
+                        </td>`;
+                            }
+
+                            html += `
+                        <td>${r.date}</td>
+                        <td><span style="background:${badgeColor};padding:2px 8px;border-radius:4px;font-size:11px;">${r.day_type}</span></td>
+                        <td>${r.shift_name}</td>
+                        <td>${r.start_time && r.end_time ? r.start_time + ' - ' + r.end_time : '-'}</td>
+                        <td style="color:#64748b;">${r.notes || '-'}</td>
+                    </tr>`;
+                        });
+                    });
+                    html += `</tbody></table></div>`;
+                    resultEl.innerHTML = html;
+                })
+                .catch(() => {
+                    resultEl.innerHTML = '<div class="text-danger text-center py-4">Terjadi kesalahan.</div>';
+                });
+        }
+
+        function resetHistory() {
+            document.getElementById('historyStart').value = '';
+            document.getElementById('historyEnd').value = '';
+            document.getElementById('historySearch').value = '';
+            document.getElementById('historyResult').innerHTML =
+                '<div class="text-muted text-center py-4"><i class="fas fa-search"></i> Masukkan rentang tanggal lalu klik Cari.</div>';
+        }
+
+        function exportHistory() {
+            const start = document.getElementById('historyStart').value;
+            const end = document.getElementById('historyEnd').value;
+            const search = document.getElementById('historySearch').value;
+            const storeId = document.getElementById('historyStore').value;
+
+            if (!start || !end) {
+                toast('Start Date dan End Date wajib diisi.', false);
+                return;
+            }
+
+            let url = `{{ route('roster.history.export') }}?start_date=${start}&end_date=${end}&search=${search}`;
+            if (storeId) url += `&store_id=${storeId}`;
+
+            // Langsung download via window.location
+            window.location.href = url;
+        }
+    </script>
+
+    <script>
+    $(document).ready(function () {
+        $('#activityTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route("roster.activities") }}',
+            columns: [
+                { 
+                    data: 'DT_RowIndex', 
+                    name: 'DT_RowIndex', 
+                    orderable: false, 
+                    searchable: false,
+                    width: '50px'
+                },
+                { 
+                    data: 'event_badge', 
+                    name: 'event',
+                    width: '100px'
+                },
+                { 
+                    data: 'description', 
+                    name: 'description' 
+                },
+                { 
+                    data: 'causer_name', 
+                    name: 'causer_name',
+                    width: '150px'
+                },
+                { 
+                    data: 'properties', 
+                    name: 'properties', 
+                    orderable: false,
+                    searchable: false
+                },
+                { 
+                    data: 'created_at_formatted', 
+                    name: 'created_at',
+                    width: '160px'
+                },
+            ],
+            order: [[5, 'desc']],
+            pageLength: 10,
+            language: {
+                processing: '<i class="fas fa-spinner fa-spin"></i> Loading...',
+                emptyTable: 'No activity log found.',
+                zeroRecords: 'No matching records found.',
+            }
+        });
+    });
+</script>
 @endpush

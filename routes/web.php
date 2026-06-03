@@ -733,6 +733,9 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         Route::post('/copy',         [RosterController::class, 'copyRoster'])->name('copyRoster');
         Route::get('/auto-generate/preview',  [AutoRosterController::class, 'preview'])->name('auto-generate.preview');
         Route::post('/auto-generate',         [AutoRosterController::class, 'generate'])->name('auto-generate');
+        Route::get('/history', [RosterController::class, 'history'])->name('history');
+        Route::get('/history/export', [RosterController::class, 'historyExport'])->name('history.export');
+        Route::get('activities', [RosterController::class, 'getActivities'])->name('activities');
     });
 });
 

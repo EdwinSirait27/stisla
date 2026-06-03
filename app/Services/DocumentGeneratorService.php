@@ -47,29 +47,20 @@ class DocumentGeneratorService
                 continue;
             }
 
-            // $alreadyExists = Documents::where('company_document_config_id', $config->id)
-            //     ->where('employee_id', $employee->id)
-            //     ->whereYear('issued_date', now()->year)
-            //     ->whereMonth('issued_date', now()->month)
-            //     ->exists();
-            $alreadyExists = Documents::where('company_document_config_id', $config->id)
-                ->where('employee_id', $employee->id)
-                ->whereYear('issued_date', Carbon::parse($employee->join_date)->year)
-                ->whereMonth('issued_date', Carbon::parse($employee->join_date)->month)
-                ->exists();
+            $existing = Documents::where('company_document_config_id', $config->id)
+    ->where('employee_id', $employee->id)
+    ->exists();
 
-            if ($alreadyExists) {
-                continue;
-            }
-
-            Documents::create([
-                'company_document_config_id' => $config->id,
-                'employee_id'                => $employee->id,
-                'issued_by'                  => $headHR->employee_id,
-                'issued_date'                => $employee->join_date, // ← dari join_date employee
-
-                'status'                     => 'draft',
-            ]);
+if ($existing) {
+    continue;
+}
+           Documents::create([
+    'company_document_config_id' => $config->id,
+    'employee_id'                => $employee->id,
+    'issued_by'                  => $headHR->employee_id,
+    'issued_date'                => Carbon::parse($employee->join_date)->toDateString(),
+    'status'                     => 'draft',
+]);
         }
     }
 
@@ -92,3 +83,36 @@ class DocumentGeneratorService
             ->first();
     }
 }
+
+
+            // Documents::create([
+            //     'company_document_config_id' => $config->id,
+            //     'employee_id'                => $employee->id,
+            //     'issued_by'                  => $headHR->employee_id,
+            //     'issued_date'                => $employee->join_date, // ← dari join_date employee
+
+            //     'status'                     => 'draft',
+            // ]);
+            // Documents::firstOrCreate(
+            //     [
+            //         // Kolom yang dijadikan "key" untuk cek duplikat
+            //         'company_document_config_id' => $config->id,
+            //         'employee_id'                => $employee->id,
+            //         'issued_date'                => Carbon::parse($employee->join_date)
+            //             ->startOfMonth()
+            //             ->toDateString(),
+            //     ],
+            //     [
+            //         // Kolom yang diisi kalau record baru
+            //         'issued_by' => $headHR->employee_id,
+            //         'status'    => 'draft',
+            //     ]
+            // );
+
+
+
+    //         $duplicates = Documents::select('company_document_config_id', 'employee_id', 'issued_date')->groupBy('company_document_config_id', 'employee_id', 'issued_date')->havingRaw('COUNT(*) > 1')->get();
+
+    //         $duplicates = Documents::select('company_document_config_id', 'employee_id')->groupBy('company_document_config_id', 'employee_id')->havingRaw('COUNT(*) > 1')->get();
+
+    //   Documents::where('company_document_config_id', $duplicates[0]->company_document_config_id)->where('employee_id', $duplicates[0]->employee_id)->get(['id', 'employee_id', 'issued_date', 'status', 'created_at'])

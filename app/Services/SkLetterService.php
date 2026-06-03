@@ -300,7 +300,9 @@ public function store(array $data): SkLetter
         DB::transaction(function () use ($skLetter, $user, $now, $employee) {
 
             // Step 1 → Approved HR
+            /** @var \App\Models\User|null $user */
             if (
+                
                 $skLetter->status === 'Draft' &&
                 $user->hasRole('HeadHR')
             ) {

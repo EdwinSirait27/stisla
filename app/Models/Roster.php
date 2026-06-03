@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Shifts;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Roster extends Model
 {
-    use HasUuids;
+    use HasUuids, LogsActivity;
 
     protected $table = 'roster';
 
@@ -16,7 +18,6 @@ class Roster extends Model
     {
         return ['id'];
     }
-
     protected $fillable = [
         'employee_id',
         'shift_id',
@@ -24,6 +25,27 @@ class Roster extends Model
         'day_type',
         'notes',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'employee_id',
+                'shift_id',
+                'date',
+                'day_type',
+                'notes',
+            ])
+            ->logOnlyDirty()          
+            ->dontSubmitEmptyLogs()   
+            ->setDescriptionForEvent(fn(string $eventName) => match($eventName) {
+                'created' => 'Roster was created',
+                'updated' => 'Roster was updated',
+                'deleted' => 'Roster was deleted',
+                default   => "Roster {$eventName}",
+            });
+    }
+
 
     protected $casts = [
         'date' => 'date',

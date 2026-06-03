@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -332,7 +331,6 @@
                 </tr>
             </table>
         </div>
-
         {{-- ── Info Surat ── --}}
         <table class="info-table">
             <tr>
@@ -344,26 +342,21 @@
                 <td class="col-label">Perihal</td>
                 <td class="col-sep">:</td>
                 <td>
-                    Surat Pengantar Pembukaan Rekening Payroll Karyawan<br>
-                    {{ $company->name }}
+                    Surat Pengantar Pembukaan Rekening Payroll Karyawan
                 </td>
             </tr>
         </table>
-
         {{-- ── Judul ── --}}
         <div class="doc-title">
             <span class="doc-title-text">Surat Pengantar Pembukaan Rekening Payroll</span>
         </div>
         <div class="doc-number">Nomor: {{ $document->document_number }}</div>
-
         {{-- ── Kepada ── --}}
         <p class="body-text">
             Kepada Yth,<br>
             Service Advisor/Operation Manager/Area Service Manager {{ $config->bank_name }}
         </p>
-
         <p class="body-text">Saya yang bertandatangan di bawah ini:</p>
-
         <table class="data-table">
             <tr>
                 <td class="col-label">Nama</td>
@@ -376,7 +369,6 @@
                 <td>{{ $issued->position->name ?? '-' }}</td>
             </tr>
         </table>
-
         <p class="body-text">
             Selaku Perwakilan Perusahaan {{ $company->name }} dengan ini memberitahukan bahwa:
         </p>
@@ -447,43 +439,8 @@
                         Pada tanggal &nbsp;&nbsp;:
                         {{ $formatTgl($document->issued_date) }}
                     </td>
-
-                    {{-- Tanda Tangan --}}
-                    {{-- <td style="width: 40%; text-align: center; vertical-align: top;">
-
-                <div style="font-size: 9.5pt; font-style: italic; margin-bottom: 50px;">
-                    {{ $issued->position->name ?? 'HR Manager' }}
-                </div>
-
-                @if ($issued->signature)
-                    <img
-                        src="{{ public_path('storage/' . $issued->signature) }}"
-                        alt="Signature"
-                        style="max-height: 50px; object-fit: contain; display: block; margin: 0 auto 4px;"
-                    >
-                @endif
-
-                <div style="border-top: 1px solid #000; padding-top: 4px; margin: 0 10px;">
-                    <strong>{{ $issued->employee_name }}</strong><br>
-
-                    <span style="font-size: 9.5pt;">
-                        {{ $issued->position->name ?? '-' }}
-                    </span>
-                </div>
-
-            </td> --}}
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
                         @if ($issued->signature)
-                            {{-- <img
-            src="{{ public_path('storage/' . $issued->signature) }}"
-            alt="Signature"
-            style="
-                height: 70px;
-                width: auto;
-                display: block;
-                margin: 0 auto 4px 50px;
-            "
-        > --}}
                             <img src="{{ route('useremployeesignature.photo', basename($issued->signature)) }}"
                                 alt="Signature"
                                 style="
@@ -571,59 +528,15 @@
             <table style="width: 100%; margin-bottom: 90px; font-size: 10.5pt;">
 
                 <tr>
-
                     {{-- Keterangan --}}
                     <td style="width: 60%; vertical-align: top;">
-
-
                         <br>
-
                         Ditetapkan di &nbsp;:
                         {{ $company->city ?? 'Denpasar' }}
                         <br>
-
                         Pada tanggal &nbsp;&nbsp;:
                         {{ $formatTgl($document->issued_date) }}
-
                     </td>
-
-                    {{-- Tanda Tangan --}}
-                    {{-- <td style="width: 40%; text-align: center; vertical-align: top;">
-
-                {{-- <div style="font-size: 9.5pt; font-style: italic; margin-bottom: 10px;">
-                    {{ $issued->position->name ?? 'HR Manager' }}
-                </div> --}}
-
-                    {{-- @if ($issued->signature)
-                    <img
-                        src="{{ public_path('storage/' . $issued->signature) }}"
-                        alt="Signature"
-                        style="max-height: 25px; object-fit: contain; display: block; margin: 0 auto 4px;"
-                    >
-                @endif --}}
-                    {{-- @if ($issued->signature)
-    <img
-        src="{{ public_path('storage/' . $issued->signature) }}"
-        alt="Signature"
-        style="
-            height: 90px;
-            width: auto;
-            display: block;
-            margin: -20px auto -10px auto;
-        "
-    >
-@endif --}}
-                    {{-- <div style="border-top: 1px solid #000; padding-top: 4px; margin: 0 10px;"> --}}
-                    {{-- <div style="margin: 0 10px;">
-
-                    <strong>{{ $issued->employee_name }}</strong><br>
-
-                    <span style="font-size: 9.5pt;">
-                        {{ $issued->position->name ?? '-' }}
-                    </span>
-                </div> --}}
-
-                    {{-- </td>  --}}
                     {{-- Tanda Tangan --}}
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
                         @if ($issued->signature)

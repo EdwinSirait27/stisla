@@ -8,6 +8,7 @@ use App\Rules\NoXSSInput;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Models\UserSession;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
@@ -19,6 +20,7 @@ class LoginController extends Controller
    
     public function store(Request $request)
     {
+        
         $attributes = $request->validate([
             'username' => [
                 'required',
@@ -142,13 +144,14 @@ class LoginController extends Controller
                 'Admin' => 'pages.dashboardAdmin',
                 'Human' => 'pages.dashboardHuman',
                 'Supervisor' => 'pages.dashboardSupervisor',
-                'Human' => 'pages.dashboardHuman',
                 'Manager' => 'pages.dashboardTeam',
                 'Director' => 'pages.dashboardDirector',
                 'HeadHR' => 'pages.dashboardHR',
                 'HR' => 'pages.dashboardHR',
             ];
             foreach ($dashboardRoutes as $role => $route) {
+                /** @var \App\Models\User|null $user */
+
                 if ($user->hasRole($role)) {
                     Log::info("User logged in", [
                         'username' => $normalizedUsername,
@@ -184,6 +187,8 @@ class LoginController extends Controller
     }
     public function destroy(Request $request)
     {
+        /** @var User|null $user */
+
         $user = Auth::user();
         if ($user) {
             $user->setRememberToken(null);

@@ -44,7 +44,9 @@ use Illuminate\Support\Facades\Log;
 class FingerprintsController extends Controller
 {
     private const TOLERANSI_TINGGI_STORES = [
-        'Head Office', 'Holding', 'Distribution Center',
+        'Head Office',
+        'Holding',
+        'Distribution Center',
     ];
     private const TOLERANSI_TINGGI_MENIT = 10;
     private const TOLERANSI_NORMAL_MENIT = 5;
@@ -57,13 +59,13 @@ class FingerprintsController extends Controller
 
     public function index()
     {
+
         $stores = Stores::select('id', 'name')
             ->whereNotNull('name')
             ->distinct()
             ->pluck('name');
         return view('pages.Fingerprints.Fingerprints', compact('stores'));
     }
-
     /**
      * Recap Absensi: sync raw scan dari att_log ke fingerprints_recap.
      *
@@ -82,6 +84,7 @@ class FingerprintsController extends Controller
      */
     public function recap(Request $request)
     {
+
         $request->validate([
             'start_date' => 'required|date',
             'end_date'   => 'required|date|after_or_equal:start_date',
@@ -232,7 +235,6 @@ class FingerprintsController extends Controller
                         'employee_id' => $employee->id,
                         'date'        => $date,
                     ],
-
                     [
                         'pin'              => $pin,
                         'time_in'          => $timeIn,
@@ -254,7 +256,7 @@ class FingerprintsController extends Controller
         return response()->json([
             'success'        => true,
             'message'        => "Successfully summarized {$synced} attendance data. "
-                              . "({$skipped} unmatch PIN, {$skippedManual} skipped manual recap)",
+                . "({$skipped} unmatch PIN, {$skippedManual} skipped manual recap)",
             'synced'         => $synced,
             'skipped'        => $skipped,
             'skipped_manual' => $skippedManual,
@@ -330,7 +332,11 @@ class FingerprintsController extends Controller
             ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
 
         $result = $grouped->map(function ($group, $key) use (
-            $employees, $totalHariPerEmployee, $editedKeys, $rosters, $deviceNames
+            $employees,
+            $totalHariPerEmployee,
+            $editedKeys,
+            $rosters,
+            $deviceNames
         ) {
             $first    = $group->first();
             $pin      = $first->pin;
@@ -398,8 +404,10 @@ class FingerprintsController extends Controller
                 $minutes = $times->first()->diffInMinutes($times->last());
                 $row['duration'] = sprintf(
                     '%d hour%s %d minute%s',
-                    intdiv($minutes, 60), intdiv($minutes, 60) !== 1 ? 's' : '',
-                    $minutes % 60, $minutes % 60 !== 1 ? 's' : ''
+                    intdiv($minutes, 60),
+                    intdiv($minutes, 60) !== 1 ? 's' : '',
+                    $minutes % 60,
+                    $minutes % 60 !== 1 ? 's' : ''
                 );
             } else {
                 $row['duration'] = 'invalid';
@@ -467,12 +475,14 @@ class FingerprintsController extends Controller
             ->make(true);
     }
 
+
     /**
      * DataTable bawah: Manual Added
      * Sumber: mysql_second.manual_added (hasil Add Recap)
      */
     public function getManualAdded(Request $request)
     {
+
         ini_set('memory_limit', '1024M');
         set_time_limit(300);
 
@@ -583,8 +593,10 @@ class FingerprintsController extends Controller
                 $minutes = $times->first()->diffInMinutes($times->last());
                 $row['duration'] = sprintf(
                     '%d hour%s %d minute%s',
-                    intdiv($minutes, 60), intdiv($minutes, 60) !== 1 ? 's' : '',
-                    $minutes % 60, $minutes % 60 !== 1 ? 's' : ''
+                    intdiv($minutes, 60),
+                    intdiv($minutes, 60) !== 1 ? 's' : '',
+                    $minutes % 60,
+                    $minutes % 60 !== 1 ? 's' : ''
                 );
             } else {
                 $row['duration'] = 'Manual';
@@ -605,6 +617,7 @@ class FingerprintsController extends Controller
 
     public function editFingerprint($pin, Request $request)
     {
+
         $request->merge(['pin' => $pin]);
         $request->validate([
             'pin'       => 'required|string|max:20',
@@ -676,6 +689,7 @@ class FingerprintsController extends Controller
     }
     public function updateFingerprint(Request $request)
     {
+
         try {
             $validated = $request->validate([
                 'pin'            => 'required|string',

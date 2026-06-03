@@ -410,7 +410,9 @@ class DashManagerController extends Controller
 
     public function indexteamfingerprint()
     {
-        $user = auth()->user()->load([
+        /** @var \App\Models\User $user */
+$user = auth()->user();
+        $user->load([
             'employee.structuresnew.submissionposition.stores',
             'employee.structuresnew.submissionposition.store'
         ]);

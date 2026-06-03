@@ -969,7 +969,7 @@
                                 Leave Balance
                             </h4>
                         </div>
-                        @forelse ($leavebalance as $lb)
+                        {{-- @forelse ($leavebalance as $lb)
                             <div class="leave-balance-body">
                                 <div class="leave-item">
                                     <div class="leave-type">
@@ -1105,7 +1105,7 @@
                                     </div>
                                 </div>
                             </div>
-                        @endforelse
+                        @endforelse --}}
                     </div>
                 </div>
 

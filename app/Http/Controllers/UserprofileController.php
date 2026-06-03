@@ -399,6 +399,8 @@ class UserprofileController extends Controller
         $employee = $user->employee;
 
         // Jika bukan admin dan sudah punya signature → blok
+        /** @var \App\Models\User|null $user */
+
         if (!$user->hasRole('Admin') && $employee->signature) {
             return back()->with('error', 'Anda sudah mempunyai signature, silakan hubungi administrator untuk mengupdate.');
         }
@@ -550,38 +552,69 @@ class UserprofileController extends Controller
             Storage::disk('local')->path($path)
         );
     }
+    // public function updatePassword(Request $request)
+    // {
+    //             /** @var \App\Models\User|null $user */
+
+    //     $user = Auth::user();
+
+    //     $validated = $request->validate([
+    //         'password' => [
+    //             'nullable',
+    //             'string',
+    //             'min:8',
+    //             'max:20',
+    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
+    //         ],
+    //     ]);
+
+    //     $changes = [];
+    //     $passwordChanged = false;
+
+    //     // Update password
+    //     if (!empty($validated['password'])) {
+    //         $user->password = Hash::make($validated['password']);
+    //         $passwordChanged = true;
+    //     }
+    //     $user->save();
+    //     $user->employee->save();
+    //     if (empty($changes) && !$passwordChanged) {
+    //         return back()->with('status', 'No changes proposed.');
+    //     }
+
+    //     if ($passwordChanged) {
+    //         return back()->with('status', 'Password changed successfully.');
+    //     }
+    // }
     public function updatePassword(Request $request)
-    {
-        $user = Auth::user();
+{
+    /** @var \App\Models\User|null $user */
+    $user = Auth::user();
 
-        $validated = $request->validate([
-            'password' => [
-                'nullable',
-                'string',
-                'min:8',
-                'max:20',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
-            ],
-        ]);
+    $validated = $request->validate([
+        'current_password' => [
+            'required',
+            'string',
+            function ($attribute, $value, $fail) use ($user) {
+                if (!Hash::check($value, $user->password)) {
+                    $fail('The current password is incorrect.');
+                }
+            },
+        ],
+        'password' => [
+            'required',
+            'string',
+            'min:8',
+            'max:20',
+            'different:current_password',
+            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
+        ],
+    ]);
+    $user->password = Hash::make($validated['password']);
+    $user->save();
 
-        $changes = [];
-        $passwordChanged = false;
-
-        // Update password
-        if (!empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-            $passwordChanged = true;
-        }
-        $user->save();
-        $user->employee->save();
-        if (empty($changes) && !$passwordChanged) {
-            return back()->with('status', 'No changes proposed.');
-        }
-
-        if ($passwordChanged) {
-            return back()->with('status', 'Password changed successfully.');
-        }
-    }
+    return back()->with('status', 'Password changed successfully.');
+}
     public function downloadDocument(string $id)
     {
         $user = Auth::user();
