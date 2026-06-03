@@ -12,6 +12,7 @@ use App\Mail\UserUpdateRequestedMail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Documents;
+use App\Models\Employee;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -36,12 +37,8 @@ class UserprofileController extends Controller
                 // $query->where('status', 'Approved Managing Director');
             },
         ])->find(Auth::id());
-        // @dd($user->Employee->skletters->pluck('status'));
-
-
         return view('pages.feature-profile', compact('user'));
     }
-
     public function updateemailtelpphotos(Request $request)
     {
         $user = Auth::user();
@@ -73,10 +70,6 @@ class UserprofileController extends Controller
                 'mimes:jpg,jpeg,png,webp',
                 'max:512'
             ],
-            // 'signature' => [
-            //     'nullable',
-            //     'string'
-            // ],
             'signature' => [
                 'nullable',
                 'string'
@@ -103,39 +96,29 @@ class UserprofileController extends Controller
 
         if ($request->hasFile('photos')) {
 
-            Log::info('[PHOTO] File detected', [
-                'original_name' => $request->file('photos')->getClientOriginalName(),
-                'size'          => $request->file('photos')->getSize(),
-                'mime'          => $request->file('photos')->getMimeType(),
-            ]);
 
             $file     = $request->file('photos');
             $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '.' . $file->getClientOriginalExtension();
+            $fileName = $safeName . '-' . now()->timestamp . '-photos.png';
             $folder   = 'employees-photos';
             $oldPath  = $user->employee->photos;
-
-            Log::info('[PHOTO] Info upload ', [
-                'safeName' => $safeName,
-                'fileName' => $fileName,
-                'folder'   => $folder,
-                'oldPath'  => $oldPath ?? 'tidak ada',
-            ]);
-
             // Hapus foto lama
-            if ($oldPath && Storage::disk('local')->exists($oldPath)) {
-                Storage::disk('local')->delete($oldPath);
-                Log::info('[PHOTO] Foto lama dihapus', ['oldPath' => $oldPath]);
+            if ($oldPath && Storage::disk('s3')->exists($oldPath)) {
+                Storage::disk('s3')->delete($oldPath);
             } else {
                 Log::info('[PHOTO] Tidak ada foto lama untuk dihapus');
             }
 
             // Upload baru
-            $path = $file->storeAs($folder, $fileName, 'local');
+            $path = Storage::disk('s3')->putFileAs(
+                $folder,
+                $file,
+                $fileName
+            );
 
             Log::info('[PHOTO] Upload selesai', [
                 'path'   => $path,
-                'exists' => Storage::disk('local')->exists($path),
+                'exists' => Storage::disk('s3')->exists($path),
             ]);
 
             $user->employee->photos = $path;
@@ -153,7 +136,7 @@ class UserprofileController extends Controller
 
             $file     = $request->file('kk_photos');
             $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '.' . $file->getClientOriginalExtension();
+            $fileName = $safeName . '-' . now()->timestamp . '-kk.png';
             $folder   = 'employees-kk-photos';
             $oldPath  = $user->employee->kk_photos;
 
@@ -165,19 +148,22 @@ class UserprofileController extends Controller
             ]);
 
             // Hapus foto lama
-            if ($oldPath && Storage::disk('local')->exists($oldPath)) {
-                Storage::disk('local')->delete($oldPath);
-                Log::info('[KK PHOTO] Foto KK lama dihapus', ['oldPath' => $oldPath]);
+            if ($oldPath && Storage::disk('s3')->exists($oldPath)) {
+                Storage::disk('s3')->delete($oldPath);
             } else {
                 Log::info('[KK PHOTO] Tidak ada foto KK lama untuk dihapus');
             }
 
             // Upload baru
-            $path = $file->storeAs($folder, $fileName, 'local');
+            $path = Storage::disk('s3')->putFileAs(
+                $folder,
+                $file,
+                $fileName
+            );
 
             Log::info('[KK PHOTO] Upload KK selesai', [
                 'path'   => $path,
-                'exists' => Storage::disk('local')->exists($path),
+                'exists' => Storage::disk('s3')->exists($path),
             ]);
 
             $user->employee->kk_photos = $path;
@@ -195,7 +181,7 @@ class UserprofileController extends Controller
 
             $file     = $request->file('ktp_photos');
             $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '.' . $file->getClientOriginalExtension();
+            $fileName = $safeName . '-' . now()->timestamp . '-ktp.png';
             $folder   = 'employees-ktp-photos';
             $oldPath  = $user->employee->ktp_photos;
 
@@ -207,19 +193,22 @@ class UserprofileController extends Controller
             ]);
 
             // Hapus foto lama
-            if ($oldPath && Storage::disk('local')->exists($oldPath)) {
-                Storage::disk('local')->delete($oldPath);
-                Log::info('[KTP PHOTO] Foto lama KTP dihapus', ['oldPath' => $oldPath]);
+            if ($oldPath && Storage::disk('s3')->exists($oldPath)) {
+                Storage::disk('s3')->delete($oldPath);
             } else {
                 Log::info('[KTP PHOTO] Tidak ada foto ktp lama untuk dihapus');
             }
 
             // Upload baru
-            $path = $file->storeAs($folder, $fileName, 'local');
+            $path = Storage::disk('s3')->putFileAs(
+                $folder,
+                $file,
+                $fileName
+            );
 
             Log::info('[KTP PHOTO] Upload KTP selesai', [
                 'path'   => $path,
-                'exists' => Storage::disk('local')->exists($path),
+                'exists' => Storage::disk('s3')->exists($path),
             ]);
 
             $user->employee->ktp_photos = $path;
@@ -245,7 +234,6 @@ class UserprofileController extends Controller
     | TELP
     |--------------------------------------------------------------------------
     */
-
         if (!empty($validated['telp_number']) && $validated['telp_number'] !== $user->employee->telp_number) {
             $user->employee->pending_telp_number = $validated['telp_number'];
             $changes['telp_number']              = $validated['telp_number'];
@@ -260,104 +248,66 @@ class UserprofileController extends Controller
 
         if ($request->filled('signature')) {
 
-            /*
-    |--------------------------------------------------------------------------
-    | CEK APAKAH SUDAH ADA SIGNATURE
-    |--------------------------------------------------------------------------
-    */
-
             if (!empty($user->employee->signature)) {
-
-                Log::warning('[SIGNATURE] Gagal upload, signature sudah ada', [
-                    'employee_id' => $user->employee->id,
-                    'signature'   => $user->employee->signature,
+                return back()->withInput()->withErrors([
+                    'signature' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
                 ]);
-
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'signature' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
-                    ]);
             }
 
-            Log::info('[SIGNATURE] Signature detected');
-
             $signature = $request->signature;
-
-            // hapus prefix base64
             $signature = str_replace('data:image/png;base64,', '', $signature);
             $signature = str_replace(' ', '+', $signature);
 
             $safeName = Str::slug($user->employee->employee_name);
 
-            $fileName = $safeName . '-signature.png';
+            // ✅ Fix: hapus double dash
+            $fileName = $safeName . '-' . now()->timestamp . '-signature.png';
 
-            $folder = 'employees-signatures';
-
-            $path = $folder . '/' . $fileName;
+            $folder = 'employees-signatures-photos';
+            $path   = $folder . '/' . $fileName;
 
             $decodedImage = base64_decode($signature);
 
             if ($decodedImage === false) {
-
-                Log::error('[SIGNATURE] Base64 decode gagal');
-
-                return back()->withErrors([
-                    'signature' => 'Signature gagal diproses.'
-                ]);
+                return back()->withErrors(['signature' => 'Signature gagal diproses.']);
             }
 
-            $result = Storage::disk('public')->put(
-                $path,
-                $decodedImage
-            );
-
-            Log::info('[SIGNATURE] Upload signature selesai', [
-                'result' => $result,
-                'path'   => $path,
-                'exists' => Storage::disk('public')->exists($path),
-            ]);
+            Storage::disk('s3')->put($path, $decodedImage);
 
             $user->employee->signature = $path;
-
             $photoUpdated = true;
         }
+
         /*
 |--------------------------------------------------------------------------
 | SIGNATURE - FILE IMPORT
 |--------------------------------------------------------------------------
 */
+
         if ($request->hasFile('signature_file')) {
 
             if (!empty($user->employee->signature)) {
-                Log::warning('[SIGNATURE FILE] Gagal upload, signature sudah ada', [
-                    'employee_id' => $user->employee->id,
+                return back()->withInput()->withErrors([
+                    'signature_file' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
                 ]);
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'signature_file' => 'Signature sudah tersedia, silahkan menghubungi administrator.'
-                    ]);
             }
-
-            Log::info('[SIGNATURE FILE] File detected', [
-                'original_name' => $request->file('signature_file')->getClientOriginalName(),
-                'size'          => $request->file('signature_file')->getSize(),
-                'mime'          => $request->file('signature_file')->getMimeType(),
-            ]);
 
             $file     = $request->file('signature_file');
             $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '-signature.' . $file->getClientOriginalExtension();
-            $folder   = 'employees-signatures';
+
+            // ✅ Whitelist ekstensi, jangan pakai getClientOriginalExtension langsung
+            $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
+            $ext        = strtolower($file->getClientOriginalExtension());
+
+            if (!in_array($ext, $allowedExt)) {
+                return back()->withErrors(['signature_file' => 'Tipe file tidak diizinkan.']);
+            }
+
+            $fileName = $safeName . '-' . now()->timestamp . '-signature.' . $ext;
+            $folder   = 'employees-signatures-photos';
             $path     = $folder . '/' . $fileName;
 
-            Storage::disk('public')->putFileAs($folder, $file, $fileName);
-
-            Log::info('[SIGNATURE FILE] Upload selesai', [
-                'path'   => $path,
-                'exists' => Storage::disk('public')->exists($path),
-            ]);
+            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
 
             $user->employee->signature = $path;
             $photoUpdated = true;
@@ -371,7 +321,6 @@ class UserprofileController extends Controller
     | SEND EMAIL APPROVAL
     |--------------------------------------------------------------------------
     */
-
         if (!empty($changes)) {
             Mail::to('hrd@asianbay.co.id')
                 ->send(new UserUpdateRequestedMail($user, $changes));
@@ -419,8 +368,8 @@ class UserprofileController extends Controller
             $signature = str_replace(' ', '+', $signature);
 
             $safeName = Str::slug($employee->employee_name);
-            $fileName = $safeName . '-signature.png';
-            $folder   = 'employees-signatures';
+            $fileName = $safeName . '-' . now()->timestamp . '-signature.png';
+            $folder   = 'employees-signatures-photos';
             $path     = $folder . '/' . $fileName;
 
             $decodedImage = base64_decode($signature);
@@ -432,11 +381,11 @@ class UserprofileController extends Controller
                 ]);
             }
 
-            Storage::disk('public')->put($path, $decodedImage);
+            Storage::disk('s3')->put($path, $decodedImage);
 
             Log::info('[SIGNATURE] Upload signature selesai', [
                 'path'   => $path,
-                'exists' => Storage::disk('public')->exists($path),
+                'exists' => Storage::disk('s3')->exists($path),
             ]);
 
             $employee->signature = $path;
@@ -457,15 +406,20 @@ class UserprofileController extends Controller
 
             $file     = $request->file('signature_file');
             $safeName = Str::slug($employee->employee_name);
-            $fileName = $safeName . '-signature.' . $file->getClientOriginalExtension();
-            $folder   = 'employees-signatures';
+            $fileName = $safeName . '-' . now()->timestamp . '-signature.' . $file->getClientOriginalExtension();
+            $folder   = 'employees-signatures-photos';
             $path     = $folder . '/' . $fileName;
 
-            Storage::disk('public')->putFileAs($folder, $file, $fileName);
+            // Storage::disk('public')->putFileAs($folder, $file, $fileName);
+            Storage::disk('s3')->putFileAs(
+                $folder,
+                $file,
+                $fileName
+            );
 
             Log::info('[SIGNATURE FILE] Upload selesai', [
                 'path'   => $path,
-                'exists' => Storage::disk('public')->exists($path),
+                'exists' => Storage::disk('s3')->exists($path),
             ]);
 
             $employee->signature = $path;
@@ -482,141 +436,279 @@ class UserprofileController extends Controller
 
         return back()->with('success', 'Signature updated!');
     }
-    /*|--------------------------------------------------------------------------
-| SERVE PHOTO
-|--------------------------------------------------------------------------*/
     public function serveSignature($filename)
     {
-        $path = storage_path('app/public/employees-signatures/' . $filename);
+        // 1. Autentikasi - pastikan user sudah login
+        if (!auth()->check()) {
+            abort(401);
+        }
 
-        if (!file_exists($path)) {
+        // 2. Validasi format filename
+        if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+            abort(400, 'Invalid filename');
+        }
+
+        // 3. Basename untuk mencegah path traversal
+        $filename = basename($filename);
+
+        // 4. Whitelist ekstensi yang diizinkan
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $allowedExtensions)) {
+            abort(400, 'File type not allowed');
+        }
+        $user = auth()->user();
+
+        // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
+        // ✅ Tambahkan prefix folder saat query
+        $employee = Employee::where('id', $user->employee_id)
+            ->where('signature', 'employees-signatures-photos/' . $filename)
+            ->first();
+
+        if (!$employee) {
+            abort(403, 'Forbidden: You are not allowed to access this file');
+        }
+
+        // 6. Cek file exists di S3
+        $path = 'employees-signatures-photos/' . $filename;
+
+        if (!Storage::disk('s3')->exists($path)) {
             abort(404);
         }
 
-        return response()->file($path);
+        $file = Storage::disk('s3')->get($path);
+
+        // 7. Gunakan MIME type dari whitelist
+        $mimeTypes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+        $mimeType = $mimeTypes[$extension];
+
+        return response($file, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Security-Policy', "default-src 'none'")
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, max-age=3600');
     }
+
+
     public function servePhoto($filename)
     {
+        // 1. Autentikasi - pastikan user sudah login
+        if (!auth()->check()) {
+            abort(401);
+        }
+
+        // 2. Validasi format filename
+        if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+            abort(400, 'Invalid filename');
+        }
+
+        // 3. Basename untuk mencegah path traversal
+        $filename = basename($filename);
+
+        // 4. Whitelist ekstensi yang diizinkan
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $allowedExtensions)) {
+            abort(400, 'File type not allowed');
+        }
+        $user = auth()->user();
+
+        // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
+        // ✅ Tambahkan prefix folder saat query
+        $employee = Employee::where('id', $user->employee_id)
+            ->where('photos', 'employees-photos/' . $filename)
+            ->first();
+
+        if (!$employee) {
+            abort(403, 'Forbidden: You are not allowed to access this file');
+        }
+
+        // 6. Cek file exists di S3
         $path = 'employees-photos/' . $filename;
 
-        Log::info('[SERVE PHOTO] Request foto', [
-            'filename' => $filename,
-            'path'     => $path,
-            'exists'   => Storage::disk('local')->exists($path),
-        ]);
-
-        if (!Storage::disk('local')->exists($path)) {
-            Log::warning('[SERVE PHOTO] File tidak ditemukan', ['path' => $path]);
+        if (!Storage::disk('s3')->exists($path)) {
             abort(404);
         }
 
-        return response()->file(
-            Storage::disk('local')->path($path)
-        );
+        $file = Storage::disk('s3')->get($path);
+
+        // 7. Gunakan MIME type dari whitelist
+        $mimeTypes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+        $mimeType = $mimeTypes[$extension];
+
+        return response($file, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Security-Policy', "default-src 'none'")
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, max-age=3600');
     }
     public function servePhotoktp($filename)
     {
+        // 1. Autentikasi - pastikan user sudah login
+        if (!auth()->check()) {
+            abort(401);
+        }
+
+        // 2. Validasi format filename
+        if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+            abort(400, 'Invalid filename');
+        }
+
+        // 3. Basename untuk mencegah path traversal
+        $filename = basename($filename);
+
+        // 4. Whitelist ekstensi yang diizinkan
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $allowedExtensions)) {
+            abort(400, 'File type not allowed');
+        }
+        $user = auth()->user();
+
+        // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
+        // ✅ Tambahkan prefix folder saat query
+        $employee = Employee::where('id', $user->employee_id)
+            ->where('ktp_photos', 'employees-ktp-photos/' . $filename)
+            ->first();
+
+        if (!$employee) {
+            abort(403, 'Forbidden: You are not allowed to access this file');
+        }
+
+        // 6. Cek file exists di S3
         $path = 'employees-ktp-photos/' . $filename;
 
-        Log::info('[SERVE PHOTO KTP] Request foto KTP', [
-            'filename' => $filename,
-            'path'     => $path,
-            'exists'   => Storage::disk('local')->exists($path),
-        ]);
-
-        if (!Storage::disk('local')->exists($path)) {
-            Log::warning('[SERVE PHOTO KTP] File KTP tidak ditemukan', ['path' => $path]);
+        if (!Storage::disk('s3')->exists($path)) {
             abort(404);
         }
 
-        return response()->file(
-            Storage::disk('local')->path($path)
-        );
+        $file = Storage::disk('s3')->get($path);
+
+        // 7. Gunakan MIME type dari whitelist
+        $mimeTypes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+        $mimeType = $mimeTypes[$extension];
+
+        return response($file, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Security-Policy', "default-src 'none'")
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, max-age=3600');
     }
+
     public function servePhotokk($filename)
     {
+        if (!auth()->check()) {
+            abort(401);
+        }
+
+        // 2. Validasi format filename
+        if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+            abort(400, 'Invalid filename');
+        }
+
+        // 3. Basename untuk mencegah path traversal
+        $filename = basename($filename);
+
+        // 4. Whitelist ekstensi yang diizinkan
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $allowedExtensions)) {
+            abort(400, 'File type not allowed');
+        }
+        $user = auth()->user();
+
+        // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
+        // ✅ Tambahkan prefix folder saat query
+        $employee = Employee::where('id', $user->employee_id)
+            ->where('kk_photos', 'employees-kk-photos/' . $filename)
+            ->first();
+
+        if (!$employee) {
+            abort(403, 'Forbidden: You are not allowed to access this file');
+        }
+
+        // 6. Cek file exists di S3
         $path = 'employees-kk-photos/' . $filename;
 
-        Log::info('[SERVE PHOTO KK] Request foto KK', [
-            'filename' => $filename,
-            'path'     => $path,
-            'exists'   => Storage::disk('local')->exists($path),
-        ]);
-
-        if (!Storage::disk('local')->exists($path)) {
-            Log::warning('[SERVE PHOTO KK] File KK tidak ditemukan', ['path' => $path]);
+        if (!Storage::disk('s3')->exists($path)) {
             abort(404);
         }
 
-        return response()->file(
-            Storage::disk('local')->path($path)
-        );
+        $file = Storage::disk('s3')->get($path);
+
+        // 7. Gunakan MIME type dari whitelist
+        $mimeTypes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+        $mimeType = $mimeTypes[$extension];
+
+        return response($file, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Security-Policy', "default-src 'none'")
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, max-age=3600');
     }
-    // public function updatePassword(Request $request)
-    // {
-    //             /** @var \App\Models\User|null $user */
 
-    //     $user = Auth::user();
-
-    //     $validated = $request->validate([
-    //         'password' => [
-    //             'nullable',
-    //             'string',
-    //             'min:8',
-    //             'max:20',
-    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
-    //         ],
-    //     ]);
-
-    //     $changes = [];
-    //     $passwordChanged = false;
-
-    //     // Update password
-    //     if (!empty($validated['password'])) {
-    //         $user->password = Hash::make($validated['password']);
-    //         $passwordChanged = true;
-    //     }
-    //     $user->save();
-    //     $user->employee->save();
-    //     if (empty($changes) && !$passwordChanged) {
-    //         return back()->with('status', 'No changes proposed.');
-    //     }
-
-    //     if ($passwordChanged) {
-    //         return back()->with('status', 'Password changed successfully.');
-    //     }
-    // }
     public function updatePassword(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-    $user = Auth::user();
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
 
-    $validated = $request->validate([
-        'current_password' => [
-            'required',
-            'string',
-            function ($attribute, $value, $fail) use ($user) {
-                if (!Hash::check($value, $user->password)) {
-                    $fail('The current password is incorrect.');
-                }
-            },
-        ],
-        'password' => [
-            'required',
-            'string',
-            'min:8',
-            'max:20',
-            'different:current_password',
-            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
-        ],
-    ]);
-    $user->password = Hash::make($validated['password']);
-    $user->save();
+        $validated = $request->validate([
+            'current_password' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($user) {
+                    if (!Hash::check($value, $user->password)) {
+                        $fail('The current password is incorrect.');
+                    }
+                },
+            ],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:20',
+                'different:current_password',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
+            ],
+        ]);
+        $user->password = Hash::make($validated['password']);
+        $user->save();
 
-    return back()->with('status', 'Password changed successfully.');
-}
+        return back()->with('status', 'Password changed successfully.');
+    }
     public function downloadDocument(string $id)
     {
+        if (!ctype_digit($id)) {
+            abort(400, 'Invalid ID');
+        }
         $user = Auth::user();
 
         $document = Documents::with([
@@ -628,8 +720,21 @@ class UserprofileController extends Controller
             ->where('employee_id', $user->employee_id)
             ->findOrFail($id);
 
+        if (!$document->companydocumentconfigs || !$document->companydocumentconfigs->documenttypes) {
+            abort(404, 'Document configuration not found');
+        }
+
         $viewName = $document->companydocumentconfigs->documenttypes->view_name;
 
+        // ✅ Whitelist view yang diizinkan
+        $allowedViews = [
+            'documents.types.SPK',
+            'documents.types.SPPRP',
+        ];
+
+        if (!in_array($viewName, $allowedViews)) {
+            abort(403, 'Invalid document view');
+        }
         $pdf = Pdf::loadView($viewName, [
             'document' => $document,
             'employee' => $document->employee,
@@ -667,18 +772,14 @@ class UserprofileController extends Controller
         | setEncryption(userPassword, ownerPassword, permissions)
         |--------------------------------------------------------------------------
         */
-
             $cpdf->setEncryption(
                 $password,
                 $password
             );
         }
-
         $filename = str_replace('/', '-', $document->document_number) . '.pdf';
-
         return $pdf->download($filename);
     }
-
     public function downloadSkLetter(string $id)
     {
         $user = Auth::user();

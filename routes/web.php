@@ -86,13 +86,13 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
         ->name('my-sk-letter.download');
 
     // routes/web.php
-    Route::get('/employee-photo/{filename}', [UserprofileController::class, 'servePhoto'])
+    Route::get('/employee-photos/{filename}', [UserprofileController::class, 'servePhoto'])
         ->name('useremployee.photo');
-    Route::get('/employee-signature/{filename}', [UserprofileController::class, 'serveSignature'])
+    Route::get('/employee-signatures-photos/{filename}', [UserprofileController::class, 'serveSignature'])
         ->name('useremployeesignature.photo');
-    Route::get('/employee-photo-kk/{filename}', [UserprofileController::class, 'servePhotokk'])
+    Route::get('/employee-kk-photos/{filename}', [UserprofileController::class, 'servePhotokk'])
         ->name('useremployeekk.photo');
-    Route::get('/employee-photo-ktp/{filename}', [UserprofileController::class, 'servePhotoktp'])
+    Route::get('/employee-ktp-photos/{filename}', [UserprofileController::class, 'servePhotoktp'])
         ->name('useremployeektp.photo');
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
         ->name('pages.change-password');
@@ -187,10 +187,12 @@ Route::middleware(['auth', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervis
             ->name('pages.Importuser');
         Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
 
-        Route::get('/employee/photo/{path}', [EmployeeController::class, 'getPhoto'])
-            ->where('path', '.*')
-            ->middleware('auth')
-            ->name('employee.photo');
+        
+                Route::get('/employee-photo/{filename}',    [EmployeeController::class, 'servePhoto'])->name('employee.photo');
+    Route::get('/employee-ktp/{filename}',      [EmployeeController::class, 'serveKtpPhoto'])->name('employee.ktp');
+    Route::get('/employee-kk/{filename}',       [EmployeeController::class, 'serveKkPhoto'])->name('employee.kk');
+    Route::get('/employee-signature/{filename}',[EmployeeController::class, 'serveSignature'])->name('employee.signature');
+
     });
 
     // ── Payrolls ──

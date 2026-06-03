@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Banks;
 use App\Models\Company;
 use App\Models\Departments;
@@ -27,6 +29,7 @@ use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+
 class EmployeeController extends Controller
 {
     public function indexall()
@@ -660,12 +663,26 @@ class EmployeeController extends Controller
                 'unique:users,username',
                 new NoXSSInput()
             ],
-            'photos' => [
-                'nullable',
-                'mimes:jpg,jpeg,png,webp',
-                'max:512'
-
-            ],
+           'photos' => [
+            'nullable',
+            'mimes:jpg,jpeg,png,webp',
+            'max:512'
+        ],
+        'kk_photos' => [
+            'nullable',
+            'mimes:jpg,jpeg,png,webp',
+            'max:512'
+        ],
+        'ktp_photos' => [
+            'nullable',
+            'mimes:jpg,jpeg,png,webp',
+            'max:512'
+        ],
+        'signature_file' => [
+            'nullable',
+            'mimes:jpg,jpeg,png,webp',
+            'max:512'
+        ],
             'is_manager' => [
                 'nullable',
                 'boolean',
@@ -763,16 +780,89 @@ class EmployeeController extends Controller
             'photos.max' => 'photos must under 512 kb.',
 
         ]);
-       $filePath = null;
+        /*
+    |--------------------------------------------------------------------------
+    | HELPER: Upload file ke S3 dengan aman
+    |--------------------------------------------------------------------------
+    */
+        $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            $ext = strtolower($file->getClientOriginalExtension());
 
-if ($request->hasFile('photos')) {
-    $file     = $request->file('photos');
-    $safeName = Str::slug($request->employee_name);
-    $fileName = $safeName . '.' . $file->getClientOriginalExtension();
-    $folder   = 'employees-photos';
+            // ✅ Whitelist ekstensi
+            if (!in_array($ext, $allowedExtensions)) {
+                abort(400, 'File type not allowed');
+            }
 
-    $filePath = $file->storeAs($folder, $fileName, 'local');
-}
+            $fileName = $safeName . '-' . now()->timestamp . '-' . $suffix . '.' . $ext;
+            $path     = $folder . '/' . $fileName;
+
+            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+
+            return $path;
+        };
+
+        $safeName      = Str::slug($request->employee_name);
+        $photoPath     = null;
+        $kkPhotoPath   = null;
+        $ktpPhotoPath  = null;
+        $signaturePath = null;
+        /*
+    |--------------------------------------------------------------------------
+    | PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('photos')) {
+            $photoPath = $uploadToS3(
+                $request->file('photos'),
+                $safeName,
+                'photos',
+                'employees-photos'
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | KK PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('kk_photos')) {
+            $kkPhotoPath = $uploadToS3(
+                $request->file('kk_photos'),
+                $safeName,
+                'kk',
+                'employees-kk-photos'
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | KTP PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('ktp_photos')) {
+            $ktpPhotoPath = $uploadToS3(
+                $request->file('ktp_photos'),
+                $safeName,
+                'ktp',
+                'employees-ktp-photos'
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | SIGNATURE FILE
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('signature_file')) {
+            $signaturePath = $uploadToS3(
+                $request->file('signature_file'),
+                $safeName,
+                'signature',
+                'employees-signatures-photos'
+            );
+        }
+
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -791,7 +881,10 @@ if ($request->hasFile('photos')) {
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
-                'photos' => $filePath,
+                'photos'                  => $photoPath,
+                'kk_photos'               => $kkPhotoPath,
+                'ktp_photos'              => $ktpPhotoPath,
+                'signature'               => $signaturePath,
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -833,20 +926,26 @@ if ($request->hasFile('photos')) {
                 'password' => Hash::make($employeeId),
                 'employee_id' => $employees->id,
             ]);
+
             $user->assignRole('Human');
+            
             DB::commit();
+            
             return redirect()->route('pages.Employee')->with('success', 'Done!');
+       
         } catch (\Exception $e) {
             DB::rollBack();
 
 
-            if ($filePath && Storage::disk('local')->exists($filePath)) {
-                Storage::disk('local')->delete($filePath);
+            foreach ([$photoPath, $kkPhotoPath, $ktpPhotoPath, $signaturePath] as $path) {
+                if ($path && Storage::disk('s3')->exists($path)) {
+                    Storage::disk('s3')->delete($path);
+                }
             }
-        }
-        return redirect()->back()
+            return redirect()->back()
             ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
             ->withInput();
+        }
     }
 
     public function update(Request $request, $hashedId)
@@ -862,13 +961,10 @@ if ($request->hasFile('photos')) {
             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-            'photos' => [
-                'nullable',
-                'mimes:jpg,jpeg,png,webp',
-                'max:512'
-            ],
-            'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
-            'photos.max' => 'photos must under 512 kb.',
+             'photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
+        'kk_photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
+        'ktp_photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
+        'signature_file' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
@@ -931,44 +1027,104 @@ if ($request->hasFile('photos')) {
             'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ]);
+        /*
+    |--------------------------------------------------------------------------
+    | HELPER: Upload file ke S3 dengan aman
+    |--------------------------------------------------------------------------
+    */
+    $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        if (!in_array($ext, $allowedExtensions)) {
+            abort(400, 'File type not allowed');
+        }
+
+        $fileName = $safeName . '-' . now()->timestamp . '-' . $suffix . '.' . $ext;
+
+        Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+
+        return $folder . '/' . $fileName;
+    };
+
         // $filePath = $user->Employee->photos;
-        $filePath = optional($user->Employee)->photos;
-        try {
-            DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
+       $safeName = Str::slug($request->employee_name);
+    $employee = $user->Employee;
 
-                // if ($request->hasFile('photos')) {
-                //     $file = $request->file('photos');
+    // Simpan path lama untuk rollback jika gagal
+    $oldPaths = [
+        'photos'         => $employee->photos,
+        'kk_photos'      => $employee->kk_photos,
+        'ktp_photos'     => $employee->ktp_photos,
+        'signature'      => $employee->signature,
+    ];
 
-                //     $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-                //         $file->getClientOriginalExtension();
+    // Path baru hasil upload (untuk rollback jika DB gagal)
+    $newPaths = [];
 
-                //     $folderPath = 'employeesphotos/' . date('Y/m');
-
-                //     Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-
-                //     $newFilePath = $folderPath . '/' . $fileName;
-
-                //     if ($filePath && Storage::disk('public')->exists($filePath)) {
-                //         Storage::disk('public')->delete($filePath);
-                //     }
-
-                //     $filePath = $validatedData['photos'] = $newFilePath;
-                // }
-                if ($request->hasFile('photos')) {
-    $file     = $request->file('photos');
-    $safeName = Str::slug($request->employee_name);
-    $fileName = $safeName . '.' . $file->getClientOriginalExtension();
-    $folder   = 'employees-photos';
-
-    // Hapus foto lama
-    if ($filePath && Storage::disk('local')->exists($filePath)) {
-        Storage::disk('local')->delete($filePath);
+    /*
+    |--------------------------------------------------------------------------
+    | PHOTO
+    |--------------------------------------------------------------------------
+    */
+    if ($request->hasFile('photos')) {
+        $newPaths['photos'] = $uploadToS3(
+            $request->file('photos'),
+            $safeName,
+            'photos',
+            'employees-photos'
+        );
+        $validatedData['photos'] = $newPaths['photos'];
     }
 
-    // Upload baru
-    $filePath = $file->storeAs($folder, $fileName, 'local');
-    $validatedData['photos'] = $filePath;
-}
+    /*
+    |--------------------------------------------------------------------------
+    | KK PHOTO
+    |--------------------------------------------------------------------------
+    */
+    if ($request->hasFile('kk_photos')) {
+        $newPaths['kk_photos'] = $uploadToS3(
+            $request->file('kk_photos'),
+            $safeName,
+            'kk',
+            'employees-kk-photos'
+        );
+        $validatedData['kk_photos'] = $newPaths['kk_photos'];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | KTP PHOTO
+    |--------------------------------------------------------------------------
+    */
+    if ($request->hasFile('ktp_photos')) {
+        $newPaths['ktp_photos'] = $uploadToS3(
+            $request->file('ktp_photos'),
+            $safeName,
+            'ktp',
+            'employees-ktp-photos'
+        );
+        $validatedData['ktp_photos'] = $newPaths['ktp_photos'];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SIGNATURE FILE
+    |--------------------------------------------------------------------------
+    */
+    if ($request->hasFile('signature_file')) {
+        $newPaths['signature'] = $uploadToS3(
+            $request->file('signature_file'),
+            $safeName,
+            'signature',
+            'employees-signatures-photos'
+        );
+        $validatedData['signature'] = $newPaths['signature'];
+    }
+
+        try {
+            // DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
+            DB::transaction(function () use ($user, &$validatedData, $oldPaths, $newPaths) {
                 /** --------------------------
                  *  Lock employee row
                  * -------------------------*/
@@ -1014,6 +1170,23 @@ if ($request->hasFile('photos')) {
                     $newStructure->update(['status' => 'active']);
                 }
                 $employee->update($validatedData);
+                /*
+            |--------------------------------------------------------------------------
+            | Hapus file lama di S3 setelah DB berhasil update
+            |--------------------------------------------------------------------------
+            */
+            $fileMap = [
+                'photos'    => $oldPaths['photos'],
+                'kk_photos' => $oldPaths['kk_photos'],
+                'ktp_photos'=> $oldPaths['ktp_photos'],
+                'signature' => $oldPaths['signature'],
+            ];
+
+            foreach ($fileMap as $key => $oldPath) {
+                if (isset($newPaths[$key]) && $oldPath && Storage::disk('s3')->exists($oldPath)) {
+                    Storage::disk('s3')->delete($oldPath);
+                }
+            }
                 if ($oldStructureId && $oldStructureId != ($validatedData['structure_id'] ?? null)) {
                     Structuresnew::where('id', $oldStructureId)
                         ->lockForUpdate()
@@ -1024,25 +1197,22 @@ if ($request->hasFile('photos')) {
             return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
         } catch (\Throwable $th) {
 
-            Log::error('Employee update failed', [
-                'error' => $th->getMessage(),
-                'employee_id' => $user->Employee->id ?? null,
-            ]);
+           foreach ($newPaths as $path) {
+            if ($path && Storage::disk('s3')->exists($path)) {
+                Storage::disk('s3')->delete($path);
+            }
+        }
+
+        Log::error('Employee update failed', [
+            'error'       => $th->getMessage(),
+            'employee_id' => $user->Employee->id ?? null,
+        ]);
 
             return redirect()->route('pages.Employee')
                 ->with('error', 'Update failed: ' . $th->getMessage());
         }
     }
-    public function getPhoto($path)
-    {
-        $full = storage_path('app/' . $path);
-
-        if (!file_exists($full)) {
-            abort(404);
-        }
-
-        return response()->file($full);
-    }
+   
     public function transferAllToPayroll(Request $request)
     {
         try {
@@ -1093,4 +1263,80 @@ if ($request->hasFile('photos')) {
             return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
         }
     }
+
+    private function serveFile(string $filename, string $folder, string $column): \Illuminate\Http\Response
+{
+    // 1. Autentikasi
+    if (!auth()->check()) {
+        abort(401);
+    }
+
+    // 2. Validasi format filename
+    if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+        abort(400, 'Invalid filename');
+    }
+
+    // 3. Basename untuk mencegah path traversal
+    $filename = basename($filename);
+
+    // 4. Whitelist ekstensi
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+    if (!in_array($extension, $allowedExtensions)) {
+        abort(400, 'File type not allowed');
+    }
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+    // 5. ✅ Hanya user dengan permission yang bisa akses
+    if (!$user->can('ManageEmployee')) {
+        abort(403, 'Forbidden: You are not allowed to access this file');
+    }
+
+    $fullPath = $folder . '/' . $filename;
+
+    // 6. Cek file exists di S3
+    if (!Storage::disk('s3')->exists($fullPath)) {
+        abort(404);
+    }
+
+    $file = Storage::disk('s3')->get($fullPath);
+
+    // 7. MIME type dari whitelist
+    $mimeTypes = [
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'gif'  => 'image/gif',
+        'webp' => 'image/webp',
+    ];
+
+    return response($file, 200)
+        ->header('Content-Type', $mimeTypes[$extension])
+        ->header('Content-Security-Policy', "default-src 'none'")
+        ->header('X-Content-Type-Options', 'nosniff')
+        ->header('Cache-Control', 'private, max-age=3600');
+}
+// ============================================================
+// PUBLIC: masing-masing file punya route sendiri
+// ============================================================
+public function serveSignature($filename)
+{
+    return $this->serveFile($filename, 'employees-signatures-photos', 'signature');
+}
+
+public function servePhoto($filename)
+{
+    return $this->serveFile($filename, 'employees-photos', 'photos');
+}
+
+public function serveKtpPhoto($filename)
+{
+    return $this->serveFile($filename, 'employees-ktp-photos', 'ktp_photos');
+}
+
+public function serveKkPhoto($filename)
+{
+    return $this->serveFile($filename, 'employees-kk-photos', 'kk_photos');
+}
 }

@@ -1184,9 +1184,7 @@
                                         <div class="photo-upload-wrap-ktp">
 
                                             @if ($user->employee && $user->employee->skletters && $user->employee->skletters->isNotEmpty())
-                                                {{-- @foreach ($user->employee->skletters as $skletter) --}}
                                                 @foreach ($user->Employee->skletters->where('status', 'Draft') as $skletter)
-                                                    {{-- @foreach ($user->Employee->skletters->where('status', 'Approved Managing Director') as $skletter) --}}
                                                     <a href="{{ route('my-sk-letter.download', $skletter->id) }}"
                                                         class="photo-upload-btn-ktp mt-1"
                                                         style="display:inline-block; text-decoration:none;">
@@ -1212,9 +1210,6 @@
                                     </div>
                                 </div>
                                 <div class="profile-footer">
-                                    {{-- <a href="{{ url()->previous() }}" class="btn btn-back">
-                                        <i class="fas fa-arrow-left"></i> Back
-                                    </a> --}}
                                     <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i
                                             class="fas fa-arrow-left"></i> Back</a>
 
@@ -1237,7 +1232,6 @@
                                                     class="img-fluid" style="height: 96px; object-fit: contain;">
                                             </div>
                                         </div>
-                                    
                                     @else
                                         <form method="POST" action="{{ route('save.signature') }}" id="form-signature"
                                             enctype="multipart/form-data">
@@ -1348,7 +1342,8 @@
                                     <h3>Information</h3>
                                     <p>
                                         - Email, phone number, profile photo, KTP, and KK can all be changed. However, email
-                                        and phone number must be requested and HR will be responsible for changing them.
+                                        and phone number must be requested and HR will be responsible for changing them.<br>
+                                        - To change Signature, please contact HR Admin.
                                     </p>
                                 </div>
                             </div>
@@ -1427,8 +1422,9 @@
             });
         @endif
     </script>
-    {{-- <script>
+    <script>
         const canvas = document.getElementById('signature-pad');
+        let signaturePad = null;
 
         if (canvas) {
             function resizeCanvas() {
@@ -1440,7 +1436,7 @@
             resizeCanvas();
             window.addEventListener("resize", resizeCanvas);
 
-            const signaturePad = new SignaturePad(canvas, {
+            signaturePad = new SignaturePad(canvas, {
                 backgroundColor: 'rgb(255,255,255)',
                 penColor: 'black',
                 minWidth: 2.5,
@@ -1452,10 +1448,62 @@
                 .addEventListener('click', function() {
                     signaturePad.clear();
                 });
+        }
 
-            document.getElementById('form-signature')
-                .addEventListener('submit', function(e) {
-                    if (signaturePad.isEmpty()) {
+        function switchTab(tab) {
+            const drawSection = document.getElementById('section-draw');
+            const importSection = document.getElementById('section-import');
+            const tabDraw = document.getElementById('tab-draw');
+            const tabImport = document.getElementById('tab-import');
+
+            if (tab === 'draw') {
+                drawSection.style.display = 'block';
+                importSection.style.display = 'none';
+                tabDraw.classList.add('btn-primary');
+                tabDraw.classList.remove('btn-light');
+                tabImport.classList.add('btn-light');
+                tabImport.classList.remove('btn-primary');
+
+                document.getElementById('signature_file').value = '';
+                document.getElementById('preview-signature-import').style.display = 'none';
+                document.getElementById('signature-import-placeholder').style.display = 'inline';
+                document.getElementById('signature-file-name').textContent = 'No file chosen';
+            } else {
+                drawSection.style.display = 'none';
+                importSection.style.display = 'block';
+                tabImport.classList.add('btn-primary');
+                tabImport.classList.remove('btn-light');
+                tabDraw.classList.add('btn-light');
+                tabDraw.classList.remove('btn-primary');
+
+                document.getElementById('signature-input').value = '';
+                if (signaturePad) signaturePad.clear();
+            }
+        }
+
+        function previewSignatureImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            const img = document.getElementById('preview-signature-import');
+            const placeholder = document.getElementById('signature-import-placeholder');
+            const fileName = document.getElementById('signature-file-name');
+
+            img.src = url;
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+            fileName.textContent = file.name;
+        }
+
+        const formSignature = document.getElementById('form-signature');
+        if (formSignature) {
+            formSignature.addEventListener('submit', function(e) {
+                const drawSection = document.getElementById('section-draw');
+                const isDrawTab = drawSection.style.display !== 'none';
+
+                if (isDrawTab) {
+                    if (!signaturePad || signaturePad.isEmpty()) {
                         e.preventDefault();
                         Swal.fire({
                             icon: 'warning',
@@ -1466,119 +1514,24 @@
                         return;
                     }
                     document.getElementById('signature-input').value = signaturePad.toDataURL('image/png');
-                });
-        }
-    </script> --}}
-    <script>
-    const canvas = document.getElementById('signature-pad');
-    let signaturePad = null;
-
-    if (canvas) {
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-        }
-        resizeCanvas();
-        window.addEventListener("resize", resizeCanvas);
-
-        signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgb(255,255,255)',
-            penColor: 'black',
-            minWidth: 2.5,
-            maxWidth: 4.5,
-            velocityFilterWeight: 0.7
-        });
-
-        document.getElementById('clear-signature')
-            .addEventListener('click', function () {
-                signaturePad.clear();
+                    document.getElementById('signature_file').value = '';
+                } else {
+                    const fileInput = document.getElementById('signature_file');
+                    if (!fileInput.files.length) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'File kosong',
+                            text: 'Silakan pilih file signature terlebih dahulu.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                        return;
+                    }
+                    document.getElementById('signature-input').value = '';
+                }
             });
-    }
-
-    function switchTab(tab) {
-        const drawSection   = document.getElementById('section-draw');
-        const importSection = document.getElementById('section-import');
-        const tabDraw       = document.getElementById('tab-draw');
-        const tabImport     = document.getElementById('tab-import');
-
-        if (tab === 'draw') {
-            drawSection.style.display   = 'block';
-            importSection.style.display = 'none';
-            tabDraw.classList.add('btn-primary');
-            tabDraw.classList.remove('btn-light');
-            tabImport.classList.add('btn-light');
-            tabImport.classList.remove('btn-primary');
-
-            document.getElementById('signature_file').value = '';
-            document.getElementById('preview-signature-import').style.display = 'none';
-            document.getElementById('signature-import-placeholder').style.display = 'inline';
-            document.getElementById('signature-file-name').textContent = 'No file chosen';
-        } else {
-            drawSection.style.display   = 'none';
-            importSection.style.display = 'block';
-            tabImport.classList.add('btn-primary');
-            tabImport.classList.remove('btn-light');
-            tabDraw.classList.add('btn-light');
-            tabDraw.classList.remove('btn-primary');
-
-            document.getElementById('signature-input').value = '';
-            if (signaturePad) signaturePad.clear();
         }
-    }
-
-    function previewSignatureImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const url         = URL.createObjectURL(file);
-        const img         = document.getElementById('preview-signature-import');
-        const placeholder = document.getElementById('signature-import-placeholder');
-        const fileName    = document.getElementById('signature-file-name');
-
-        img.src                   = url;
-        img.style.display         = 'block';
-        placeholder.style.display = 'none';
-        fileName.textContent      = file.name;
-    }
-
-    const formSignature = document.getElementById('form-signature');
-    if (formSignature) {
-        formSignature.addEventListener('submit', function (e) {
-            const drawSection = document.getElementById('section-draw');
-            const isDrawTab   = drawSection.style.display !== 'none';
-
-            if (isDrawTab) {
-                if (!signaturePad || signaturePad.isEmpty()) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Signature kosong',
-                        text: 'Silakan buat tanda tangan terlebih dahulu.',
-                        confirmButtonColor: '#1d4ed8'
-                    });
-                    return;
-                }
-                document.getElementById('signature-input').value = signaturePad.toDataURL('image/png');
-                document.getElementById('signature_file').value  = '';
-            } else {
-                const fileInput = document.getElementById('signature_file');
-                if (!fileInput.files.length) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'File kosong',
-                        text: 'Silakan pilih file signature terlebih dahulu.',
-                        confirmButtonColor: '#1d4ed8'
-                    });
-                    return;
-                }
-                document.getElementById('signature-input').value = '';
-            }
-        });
-    }
-</script>
+    </script>
     <script>
         function previewProfilePhotokk(event) {
             const file = event.target.files[0];
@@ -1623,156 +1576,4 @@
             document.getElementById('imagePreviewModalktp').style.display = 'none';
         }
     </script>
-
-    
 @endpush
-    {{-- @else
-                                        <form method="POST" action="{{ route('save.signature') }}" id="form-signature">
-                                            @csrf
-
-                                            <div class="border rounded p-3 bg-light mb-3" style="border-style: dashed !important;">
-                                                <p class="text-muted small mb-2">Draw your signature below</p>
-                                                <canvas id="signature-pad" class="w-100 bg-white rounded"
-                                                    style="height: 160px; cursor: crosshair;"></canvas>
-                                            </div>
-
-                                            <input type="hidden" name="signature" id="signature-input">
-
-                                            @error('signature')
-                                                <div class="text-danger mt-1 mb-2" style="font-size:.72rem">{{ $message }}</div>
-                                            @enderror
-
-                                            <div class="d-flex gap-2">
-                                                <button type="button" class="btn btn-sm btn-light border" id="clear-signature">
-                                                    <i class="fas fa-eraser"></i> Clear
-                                                </button>
-                                                <button type="submit" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-floppy-disk"></i> Save Signature
-                                                </button>
-                                            </div>
-                                        </form>
-                                    @endif --}}
-
-
-{{-- "6281237175549"
-"6282394782341"
-"6282266530435"
-"6285198463291"
-"6281337548427"
-"6287877913577"
-"6287778168094"
-"6285720347075"
-"6285954121600"
-"6285624686506"
-"6283843555715"
-"6281910694461"
-"6281386028903"
-"6285536905364"
-"6282189483074"
-"6282279597426"
-"6287860596428"
-"6285738325380"
-"6285737284198"
-"6287758333577"
-"6285704140937"
-"6285846312969"
-"6285737603616"
-"6281237170837"
-"6285214147524"
-"6281770896570"
-"6285240994098"
-"6282146672433"
-"6287759544677"
-"62895429356906"
-"6282340787479"
-"6285806035597"
-"6285333762217"
-"6281936916113"
-"6287789043904"
-"6281339987508"
-"6287762462489"
-"6287860077700"
-"62895413421700"
-"6283835100452"
-"6285238865318"
-"6282259060894"
-"6281337414324"
-"6281883424187"
-
-
-"6282110212708"
-"6281368672999"
-"6285931994691"
-"6285339200763"
-"62895370085191"
-"6285138924512"
-"6281288376059"
-"6282266086472"
-"6281236060419"
-"6283114084288"
-"6285169994045"
-"6281366735646"
-"6285394587318"
-"6281939466447"
-"6289639157500"
-"6289624130101"
-"6281338494136"
-"62881026801037"
-"6281214425112"
-"6287865776554"
-"6285934887598"
-"6287833875982"
-"6285847374055"
-"6281937606287"
-"6281252044056"
-"6287849355402"
-"6281353411995"
-"6285702659148"
-"6281237092565"
-"6282349889044"
-"6283857853203"
-"6281239607379"
-"6289669737837"
-"6289526750868"
-"6282272501805"
-"6285964334535"
-"6285955286810"
-"6287798797086"
-"6289999999999"
-"6285858958911"
-"6281946257317"
-"6281338227347"
-"6287861870777"
-"6281249816232"
-"6281315465818"
-"6282264112016"
-"6281238814110"
-"6281999921265"
-"6281215100938"
-"6287762234492"
-"6282235357685"
-"6287890683764"
-"6282232122977"
-"6285954558924"
-"6282364135269"
-"6287833271991"
-"6282147189223"
-"6285789213133"
-"6287888079492"
-"6285337206845"
-"6285806322957"
-"6287889188044"
-"62895394015731"
-"6282247615701"
-"62895413615111"
-"6282213206756"
-"6281246769190"
-"6285163705066"
-"6282340571575"
-"6287771440393"
-"62895329837859"
-"6285738348743"
-"6283149016162"
-"6283119421404"
-"6289670115464"
-"628139957857" --}}

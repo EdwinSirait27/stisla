@@ -27,3 +27,8 @@ class AppServiceProvider extends ServiceProvider
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }
+
+// $employee = \App\Models\Employee::where('id', '0196bf55-ff53-722b-bc8b-1d907876ed15')->first();
+
+// Cek config SPK untuk company employee ini
+// \App\Models\Companydocumentconfigs::with('documenttypes')->where('company_id', '0199eb83-7351-729f-9def-c33ae7450447')->whereHas('documenttypes', fn($q) => $q->where('nickname', 'SPK'))->where('is_active', true)->first()
