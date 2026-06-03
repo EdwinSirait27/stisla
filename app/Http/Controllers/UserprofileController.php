@@ -47,7 +47,7 @@ class UserprofileController extends Controller
             'email' => [
                 'nullable',
                 'email',
-                'max:100',
+                'max:100', 'not_regex:/[\r\n]/',
                 Rule::unique('employees_tables', 'email')->ignore($user->employee->id)
             ],
             'telp_number' => [
