@@ -408,9 +408,9 @@
                     {{ $formatTgl($document->issued_date) }}
                 </td>
                 <td style="width: 40%; text-align: center; vertical-align: bottom;">
-                    {{-- @if ($issued->signature)
-                        <img src="{{ route('useremployeesignature.photo', basename($issued->signature)) }}"
-                            alt="Signature"
+
+                    @if ($issued->signature)
+                        <img src="{{ route('employee.signature', basename($issued->signature)) }}" alt="Signature"
                             style="
                 height: 70px;
                 width: auto;
@@ -419,18 +419,7 @@
             ">
                     @else
                         <div style="height: 70px;"></div>
-                    @endif --}}
-                      @if ($issued->signature)
-                            <img src="{{ public_path('storage/' . $issued->signature) }}" alt="Signature"
-                                style="
-                height: 70px;
-                width: auto;
-                display: block;
-                margin: 0 auto 4px 50px;
-            ">
-                        @else
-                            <div style="height: 70px;"></div>
-                        @endif
+                    @endif
                     <div style="padding-top: 4px; margin: 0 10px;">
                         <strong>{{ $issued->employee_name }}</strong><br>
                         <span style="font-size: 9.5pt;">
@@ -448,4 +437,5 @@
         </div>
     </div>
 </body>
+
 </html>

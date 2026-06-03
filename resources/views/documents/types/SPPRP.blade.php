@@ -441,7 +441,7 @@
                     </td>
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
                         @if ($issued->signature)
-                            <img src="{{ route('useremployeesignature.photo', basename($issued->signature)) }}"
+                            <img src="{{ route('employee.signature', basename($issued->signature)) }}"
                                 alt="Signature"
                                 style="
                 height: 70px;
@@ -540,7 +540,7 @@
                     {{-- Tanda Tangan --}}
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
                         @if ($issued->signature)
-                            <img src="{{ public_path('storage/' . $issued->signature) }}" alt="Signature"
+                            <img src="{{ route('employee.signature', basename($issued->signature)) }}" alt="Signature"
                                 style="
                 height: 70px;
                 width: auto;
