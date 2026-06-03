@@ -13,6 +13,7 @@
         "guzzlehttp/guzzle": "^7.9",
         "laravel/breeze": "^1.19",
         "laravel/framework": "^10.0",
+        "laravel/octane": "^2.17",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
         "league/flysystem-aws-s3-v3": "^3.34",
