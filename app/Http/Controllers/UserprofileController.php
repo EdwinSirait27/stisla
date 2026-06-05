@@ -706,10 +706,7 @@ class UserprofileController extends Controller
     }
     public function downloadDocument(string $id)
     {
-       
-        // if (!ctype_digit($id)) {
-        //     abort(400, 'Invalid ID');
-        // }
+     
         if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id)) {
     abort(400, 'Invalid ID');
 }
@@ -735,6 +732,15 @@ class UserprofileController extends Controller
             'documents.types.SPK',
             'documents.types.SPPRP',
         ];
+        $signatureData = null;
+if ($document->issued && $document->issued->signature) {
+    $path = 'employees-signatures-photos/' . basename($document->issued->signature);
+    if (Storage::disk('s3')->exists($path)) {
+        $signatureData = 'data:image/png;base64,' . base64_encode(
+            Storage::disk('s3')->get($path)
+        );
+    }
+}
 
         if (!in_array($viewName, $allowedViews)) {
             abort(403, 'Invalid document view');
@@ -745,6 +751,7 @@ class UserprofileController extends Controller
             'issued'   => $document->issued,
             'config'   => $document->companydocumentconfigs,
             'company'  => $document->companydocumentconfigs->company,
+            'signatureData' => $signatureData,
         ])->setPaper('a4');
 
         /*

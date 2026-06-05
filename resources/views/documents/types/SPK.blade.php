@@ -409,14 +409,21 @@
                 </td>
                 <td style="width: 40%; text-align: center; vertical-align: bottom;">
 
-                    @if ($issued->signature)
+                    {{-- @if ($issued->signature)
                         <img src="{{ route('employee.signature', basename($issued->signature)) }}" alt="Signature"
                             style="
                 height: 70px;
                 width: auto;
                 display: block;
                 margin: 0 auto 4px 50px;
-            ">
+            "> --}}
+            @if ($signatureData)
+    <img src="{{ $signatureData }}" alt="Signature" style="
+        height: 70px;
+        width: auto;
+        display: block;
+        margin: 0 auto 4px 50px;
+    ">
                     @else
                         <div style="height: 70px;"></div>
                     @endif
