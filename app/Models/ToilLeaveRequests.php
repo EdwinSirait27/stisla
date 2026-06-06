@@ -66,6 +66,15 @@ class ToilLeaveRequests extends Model
     }
 
     /**
+     * Detail pemotongan saldo (multi-saldo FIFO).
+     * Satu klaim bisa memotong dari beberapa saldo TOIL.
+     */
+    public function balanceBreakdowns()
+    {
+        return $this->hasMany(ToilLeaveRequestBalance::class, 'leave_request_id', 'id');
+    }
+
+    /**
      * Atasan yang approve / reject.
      */
     public function approver()
@@ -116,7 +125,7 @@ class ToilLeaveRequests extends Model
 
     public function canBeCancelledByManager(): bool
     {
-    return $this->status === 'Approved'
-        && $this->leave_date >= today();
+        return $this->status === 'Approved'
+            && $this->leave_date >= today();
     }
 }

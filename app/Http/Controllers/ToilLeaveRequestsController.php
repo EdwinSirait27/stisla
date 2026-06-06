@@ -258,8 +258,9 @@ class ToilLeaveRequestsController extends Controller
             // 5. Update Roster: ubah day_type jadi Off
             if ($roster) {
                 $roster->update([
-                    'day_type' => 'Off',
+                    'day_type' => 'TOIL Off',
                     'shift_id' => null,
+                    'notes'    => 'Tukar TOIL' . $validated['hours_used'] . ' jam - ',
                 ]);
             }
 
@@ -428,6 +429,7 @@ class ToilLeaveRequestsController extends Controller
         $roster->update([
             'day_type' => 'Work',
             'shift_id' => $originalShiftId,
+            'notes'    => null,
         ]);
     }
 

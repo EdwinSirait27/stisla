@@ -255,7 +255,7 @@ class LeaverequestController extends Controller
                     [
                         'shift_id' => null,
                         'day_type' => $dayType,
-                        'notes'    => 'Auto: Leave approved #' . $leaveRequest->id,
+                        'notes'    => $leaveRequest->employee_reason,
                     ]
                 );
                 $current->addDay();

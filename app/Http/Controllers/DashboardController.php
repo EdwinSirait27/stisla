@@ -82,6 +82,8 @@ class DashboardController extends Controller
                 'ago'         => Carbon::parse($sub->created_at)->diffForHumans(),
                 'isRejected'  => $isRejected,
                 'reason'      => $isRejected ? $sub->approver_reason : $sub->employee_reason,
+                'employeeReason' => $sub->employee_reason,
+                'approverReason' => $sub->approver_reason,
             ];
         });
         
@@ -119,13 +121,15 @@ class DashboardController extends Controller
             if ($roster) {
                 $type = strtolower($roster->day_type);
                 $cssClass = match (true) {
-                    str_contains($type, 'work')    => 'present',
-                    str_contains($type, 'off')     => 'weekend',
-                    str_contains($type, 'holiday') => 'leave',
-                    default                         => '',
+                    str_contains($type, 'work')           => 'present',
+                    str_contains($type, 'off')            => 'weekend',
+                    str_contains($type, 'holiday')        => 'leave',
+                    str_contains($type, 'leave')          => 'absent',
+                    str_contains($type, 'melahirkan')     => 'absent',
+                    default                               => '',
                 };
                 $label = $roster->day_type;
-                $remark  = str_contains($type, 'holiday') ? ($roster->notes ?? '') : '';
+                $remark  = (str_contains($type, 'holiday') || str_contains($type, 'toil')) ? ($roster->notes ?? '') : '';
                 $tooltip = $roster->day_type
                     . ($roster->shift ? ' • ' . $roster->shift->shift_name : '')
                     . ($roster->notes ? ' • ' . $roster->notes : '');

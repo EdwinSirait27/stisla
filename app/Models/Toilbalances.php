@@ -97,10 +97,6 @@ class Toilbalances extends Model
     //   HELPERS
     // ════════════════════════════════════════════════════════════════
 
-    public function getRemainingHoursAttribute(): float
-    {
-        return max(0, (float) $this->earned_hours - (float) $this->used_hours);
-    }
 
     public function isExpired(): bool
     {

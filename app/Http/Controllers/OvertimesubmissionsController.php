@@ -81,8 +81,9 @@ class OvertimesubmissionsController extends Controller
             'employee_ids'      => 'required|array|min:1',
             'employee_ids.*'    => 'exists:employees_tables,id',
             'date'              => 'required|date',
+            'end_date'          => 'required|date|after_or_equal:date',
             'start_time'        => 'nullable|date_format:H:i',
-            'end_time'          => 'nullable|date_format:H:i|after:start_time',
+            'end_time'          => 'nullable|date_format:H:i',
             'total_hours'       => 'required|numeric|min:0.5|max:24',
             'compensation_type' => 'required|in:Cash,Toil',
             'reason'            => 'required|string|min:10|max:1000',
@@ -125,6 +126,7 @@ class OvertimesubmissionsController extends Controller
                     'employee_id'       => $empId,
                     'approver_id'       => $manager->id,
                     'date'              => $validated['date'],
+                    'end_date'          => $validated['end_date'],
                     'start_time'        => $validated['start_time'] ?? null,
                     'end_time'          => $validated['end_time'] ?? null,
                     'total_hours'       => $validated['total_hours'],
@@ -161,7 +163,7 @@ class OvertimesubmissionsController extends Controller
         $validated = $request->validate([
             'date'        => 'sometimes|date',
             'start_time'  => 'nullable|date_format:H:i',
-            'end_time'    => 'nullable|date_format:H:i|after:start_time',
+            'end_time'    => 'nullable|date_format:H:i',
             'total_hours' => 'sometimes|numeric|min:0.5|max:24',
             'reason'      => 'sometimes|string|min:10|max:1000',
         ]);

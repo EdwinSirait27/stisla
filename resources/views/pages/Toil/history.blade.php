@@ -460,8 +460,6 @@
 
             // ── Load Both Endpoints & Merge ──
             function loadAllData() {
-                table.processing(true);
-
                 Promise.all([
                     fetch('{{ route('toil.history.assignments') }}').then(r => r.json()),
                     fetch('{{ route('toil.history.leave-requests') }}').then(r => r.json())
@@ -508,7 +506,7 @@
                         text: 'Unable to load history data.'
                     });
                 }).finally(function () {
-                    table.processing(false);
+                    
                 });
             }
 

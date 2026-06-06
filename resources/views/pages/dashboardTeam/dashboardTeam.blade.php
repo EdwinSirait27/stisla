@@ -1171,7 +1171,9 @@
             opacity: 0.9;
         }
 
-        .quick-stats { margin-bottom: 32px; }
+        .quick-stats {
+            margin-bottom: 32px;
+        }
 
         .stat-card {
             background: white;
@@ -1206,10 +1208,21 @@
             color: white;
         }
 
-        .stat-icon.primary { background: var(--primary-gradient); }
-        .stat-icon.success { background: var(--success-gradient); }
-        .stat-icon.warning { background: var(--warning-gradient); }
-        .stat-icon.info    { background: var(--info-gradient); }
+        .stat-icon.primary {
+            background: var(--primary-gradient);
+        }
+
+        .stat-icon.success {
+            background: var(--success-gradient);
+        }
+
+        .stat-icon.warning {
+            background: var(--warning-gradient);
+        }
+
+        .stat-icon.info {
+            background: var(--info-gradient);
+        }
 
         .stat-content h3 {
             font-size: 2rem;
@@ -1235,8 +1248,15 @@
             margin-top: 8px;
         }
 
-        .stat-trend.up   { background: rgba(56, 239, 125, 0.15); color: #11998e; }
-        .stat-trend.down { background: rgba(245, 87, 108, 0.15); color: #f5576c; }
+        .stat-trend.up {
+            background: rgba(56, 239, 125, 0.15);
+            color: #11998e;
+        }
+
+        .stat-trend.down {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
 
         .team-overview-card {
             background: white;
@@ -1264,8 +1284,13 @@
             transition: background-color 0.2s;
         }
 
-        .team-member-item:hover { background-color: #f8f9fa; }
-        .team-member-item:last-child { border-bottom: none; }
+        .team-member-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .team-member-item:last-child {
+            border-bottom: none;
+        }
 
         .member-avatar {
             width: 48px;
@@ -1282,7 +1307,10 @@
             font-size: 0.95rem;
         }
 
-        .member-info small { color: #64748b; font-size: 0.8rem; }
+        .member-info small {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
 
         .status-badge {
             padding: 6px 12px;
@@ -1293,9 +1321,20 @@
             letter-spacing: 0.5px;
         }
 
-        .status-badge.present  { background: rgba(56, 239, 125, 0.15); color: #11998e; }
-        .status-badge.absent   { background: rgba(245, 87, 108, 0.15); color: #f5576c; }
-        .status-badge.leave    { background: rgba(255, 171, 0, 0.15); color: #f59e0b; }
+        .status-badge.present {
+            background: rgba(56, 239, 125, 0.15);
+            color: #11998e;
+        }
+
+        .status-badge.absent {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
+
+        .status-badge.leave {
+            background: rgba(255, 171, 0, 0.15);
+            color: #f59e0b;
+        }
 
         /* ── Overtime Assignment Card ── */
         .overtime-assignment-card {
@@ -1326,8 +1365,13 @@
             transition: all 0.2s;
         }
 
-        .overtime-item:hover { background-color: #f8f9fa; }
-        .overtime-item:last-child { border-bottom: none; }
+        .overtime-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .overtime-item:last-child {
+            border-bottom: none;
+        }
 
         .overtime-meta {
             display: flex;
@@ -1364,8 +1408,13 @@
             transition: all 0.2s;
         }
 
-        .approval-item:hover { background-color: #f8f9fa; }
-        .approval-item:last-child { border-bottom: none; }
+        .approval-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .approval-item:last-child {
+            border-bottom: none;
+        }
 
         .approval-header {
             display: flex;
@@ -1384,8 +1433,15 @@
             text-transform: uppercase;
         }
 
-        .approval-type.leave    { background: rgba(102, 126, 234, 0.1); color: #667eea; }
-        .approval-type.overtime { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .approval-type.leave {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .approval-type.overtime {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
 
         .approval-meta {
             display: flex;
@@ -1396,9 +1452,14 @@
             margin-bottom: 12px;
         }
 
-        .approval-meta i { width: 16px; }
+        .approval-meta i {
+            width: 16px;
+        }
 
-        .approval-actions { display: flex; gap: 8px; }
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+        }
 
         .btn-approve {
             background: var(--success-gradient);
@@ -1455,7 +1516,10 @@
             color: #344767;
         }
 
-        .chart-filters { display: flex; gap: 8px; }
+        .chart-filters {
+            display: flex;
+            gap: 8px;
+        }
 
         .filter-btn {
             padding: 6px 16px;
@@ -1521,7 +1585,10 @@
             display: block;
         }
 
-        .action-btn span { font-size: 0.875rem; font-weight: 500; }
+        .action-btn span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
 
         .activities-card {
             background: white;
@@ -1541,7 +1608,9 @@
             color: #344767;
         }
 
-        .activity-timeline { padding: 24px; }
+        .activity-timeline {
+            padding: 24px;
+        }
 
         .activity-item {
             display: flex;
@@ -1550,7 +1619,9 @@
             position: relative;
         }
 
-        .activity-item:last-child { margin-bottom: 0; }
+        .activity-item:last-child {
+            margin-bottom: 0;
+        }
 
         .activity-item::before {
             content: '';
@@ -1562,7 +1633,9 @@
             background: #e9ecef;
         }
 
-        .activity-item:last-child::before { display: none; }
+        .activity-item:last-child::before {
+            display: none;
+        }
 
         .activity-icon {
             width: 40px;
@@ -1577,20 +1650,70 @@
             border: 2px solid #e9ecef;
         }
 
-        .activity-icon.success { background: rgba(56, 239, 125, 0.15); border-color: #11998e; color: #11998e; }
-        .activity-icon.warning { background: rgba(255, 171, 0, 0.15); border-color: #f59e0b; color: #f59e0b; }
-        .activity-icon.info    { background: rgba(79, 172, 254, 0.15); border-color: #4facfe; color: #4facfe; }
+        .activity-icon.success {
+            background: rgba(56, 239, 125, 0.15);
+            border-color: #11998e;
+            color: #11998e;
+        }
 
-        .activity-content h6 { margin: 0 0 4px 0; font-weight: 600; color: #344767; font-size: 0.9rem; }
-        .activity-content p  { margin: 0; color: #64748b; font-size: 0.85rem; }
-        .activity-time       { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+        .activity-icon.warning {
+            background: rgba(255, 171, 0, 0.15);
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
 
-        .empty-state { text-align: center; padding: 48px 24px; }
-        .empty-state i   { font-size: 4rem; color: #cbd5e1; margin-bottom: 16px; }
-        .empty-state h6  { color: #64748b; font-weight: 600; margin-bottom: 8px; }
-        .empty-state p   { color: #94a3b8; font-size: 0.875rem; margin: 0; }
+        .activity-icon.info {
+            background: rgba(79, 172, 254, 0.15);
+            border-color: #4facfe;
+            color: #4facfe;
+        }
 
-        .modal-content  { border-radius: 16px; border: none; }
+        .activity-content h6 {
+            margin: 0 0 4px 0;
+            font-weight: 600;
+            color: #344767;
+            font-size: 0.9rem;
+        }
+
+        .activity-content p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h6 {
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
 
         .modal-header {
             background: var(--primary-gradient);
@@ -1599,10 +1722,24 @@
             padding: 20px 24px;
         }
 
-        .modal-header .modal-title { font-weight: 600; color: white; }
-        .modal-header .close       { color: white; opacity: 0.9; }
-        .modal-body   { padding: 24px; }
-        .modal-footer { padding: 16px 24px; border-top: 1px solid rgba(0, 0, 0, 0.05); }
+        .modal-header .modal-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .modal-header .close {
+            color: white;
+            opacity: 0.9;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
 
         .form-label {
             font-weight: 600;
@@ -1625,22 +1762,56 @@
         }
 
         @media (max-width: 768px) {
-            .welcome-banner { padding: 24px; }
-            .welcome-banner h2 { font-size: 1.5rem; }
-            .stat-card { margin-bottom: 16px; }
-            .action-grid { grid-template-columns: 1fr; }
-            .chart-filters { flex-direction: column; width: 100%; }
-            .filter-btn { width: 100%; }
-            .approval-actions { flex-direction: column; }
-            .btn-approve, .btn-reject { width: 100%; }
+            .welcome-banner {
+                padding: 24px;
+            }
+
+            .welcome-banner h2 {
+                font-size: 1.5rem;
+            }
+
+            .stat-card {
+                margin-bottom: 16px;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-filters {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
+
+            .approval-actions {
+                flex-direction: column;
+            }
+
+            .btn-approve,
+            .btn-reject {
+                width: 100%;
+            }
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
 
         .text-gradient {
             background: var(--primary-gradient);
@@ -1684,8 +1855,13 @@
             cursor: pointer;
         }
 
-        .announcement-item:hover { background-color: #f8f9fa; }
-        .announcement-item:last-child { border-bottom: none; }
+        .announcement-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .announcement-item:last-child {
+            border-bottom: none;
+        }
 
         .announcement-title {
             font-weight: 600;
@@ -1716,7 +1892,10 @@
             overflow: hidden;
         }
 
-        .announcement-date { font-size: 0.75rem; color: #94a3b8; }
+        .announcement-date {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
 
         .profile-header-card {
             background: var(--primary-gradient);
@@ -1750,7 +1929,10 @@
             border-radius: 50%;
         }
 
-        .profile-content { position: relative; z-index: 1; }
+        .profile-content {
+            position: relative;
+            z-index: 1;
+        }
 
         .profile-avatar-large {
             width: 100px;
@@ -1761,7 +1943,11 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .profile-info h2 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+        .profile-info h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
 
         .profile-meta {
             display: flex;
@@ -1778,7 +1964,9 @@
             opacity: 0.95;
         }
 
-        .profile-meta-item i { font-size: 1.1rem; }
+        .profile-meta-item i {
+            font-size: 1.1rem;
+        }
 
         /* ── Select2 in modal fix ── */
         .select2-container--default .select2-selection--single {
@@ -1900,7 +2088,8 @@
                             <div class="stat-content" title="Employee Team's total">
                                 <h3>{{ $totalEmployees ?? 0 }}</h3>
                                 <p>Team Members</p>
-                                <span class="stat-trend up" title="Employees who were pending, please contact HR Department">
+                                <span class="stat-trend up"
+                                    title="Employees who were pending, please contact HR Department">
                                     <i class="fas fa-arrow-up me-1"></i>
                                     {{ $totalEmployeespending }} Pending
                                 </span>
@@ -2018,8 +2207,7 @@
                                 <i class="fas fa-business-time me-2"></i>
                                 Overtime Assignment
                             </h4>
-                            <button class="btn btn-primary btn-sm"
-                                data-toggle="modal" data-target="#modalAddOvertime">
+                            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAddOvertime">
                                 <i class="fas fa-plus me-1"></i> Add Overtime
                             </button>
                         </div>
@@ -2027,7 +2215,7 @@
                             @forelse($submissions ?? [] as $submission)
                                 <div class="overtime-item">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-3">
+                                        <div class="d-flex align-items-center" style="gap: 16px;">
                                             <img class="rounded-circle" width="42" height="42"
                                                 src="{{ asset('img/avatar/avatar-' . rand(1, 4) . '.png') }}"
                                                 alt="{{ $submission->employee->employee_name ?? 'Employee' }}">
@@ -2231,29 +2419,41 @@
                             <label class="form-label">
                                 Select Employee(s) <span class="text-danger">*</span>
                             </label>
-                           <select name="employee_ids[]" id="ot_employee_ids" multiple required>
-                        {{-- diisi via AJAX saat modal dibuka --}}
-                        </select>
+                            <select name="employee_ids[]" id="ot_employee_ids" multiple required>
+                                {{-- diisi via AJAX saat modal dibuka --}}
+                            </select>
                             <small class="text-muted" id="ot-employee-loading">Loading employees...</small>
                             <small class="text-muted">Can select more than 1 employee.</small>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="form-label">
-                                        Date <span class="text-danger">*</span>
+                                        Start Date <span class="text-danger">*</span>
                                     </label>
                                     <input type="date" class="form-control" name="date" id="ot_date" required>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        End Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" class="form-control" name="end_date" id="ot_end_date"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="form-label">Start Time</label>
                                     <input type="time" class="form-control" name="start_time" id="ot_start_time">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="form-label">End Time</label>
                                     <input type="time" class="form-control" name="end_time" id="ot_end_time">
@@ -2290,9 +2490,8 @@
                             <label class="form-label">
                                 Reason / Notes <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control" name="reason" id="ot_reason" rows="2"
-                                required minlength="10" maxlength="1000"
-                                placeholder="Min 10 characters..."></textarea>
+                            <textarea class="form-control" name="reason" id="ot_reason" rows="2" required minlength="10"
+                                maxlength="1000" placeholder="Min 10 characters..."></textarea>
                         </div>
 
                     </div>
@@ -2405,8 +2604,8 @@
                             <label class="form-label" for="notes">
                                 <i class="fas fa-sticky-note me-1"></i> Notes / Reason
                             </label>
-                            <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror"
-                                rows="4" placeholder="Please provide details about your request..." required></textarea>
+                            <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror" rows="4"
+                                placeholder="Please provide details about your request..." required></textarea>
                             @error('notes')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -2528,9 +2727,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             // Announcement preview
-            $('.announcement-item').on('click', function () {
+            $('.announcement-item').on('click', function() {
                 $('#previewTitle').text($(this).data('title'));
                 $('#previewContent').html($(this).data('content'));
                 $('#previewDate').text($(this).data('publish'));
@@ -2541,10 +2740,12 @@
     </script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             $.ajaxSetup({
-                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
 
             // ── Select2: existing submission form ──
@@ -2570,118 +2771,137 @@
             });
 
             // ── Load subordinates via AJAX saat modal dibuka ──
-            $('#modalAddOvertime').on('show.bs.modal', function () {
-            $('#ot-employee-loading').text('Loading employees...').show();
+            $('#modalAddOvertime').on('show.bs.modal', function() {
+                $('#ot-employee-loading').text('Loading employees...').show();
 
-            $.ajax({
-                url:    '{{ route('toil.assignment.subordinates') }}',
-                method: 'GET',
-                success: function (res) {
-                var $select = $('#ot_employee_ids');
-                $select.empty();
+                $.ajax({
+                    url: '{{ route('toil.assignment.subordinates') }}',
+                    method: 'GET',
+                    success: function(res) {
+                        var $select = $('#ot_employee_ids');
+                        $select.empty();
 
-            if (!res.data || res.data.length === 0) {
-                $('#ot-employee-loading').text('No subordinates found in your structure.');
-                return;
-            }
+                        if (!res.data || res.data.length === 0) {
+                            $('#ot-employee-loading').text(
+                                'No subordinates found in your structure.');
+                            return;
+                        }
 
-            res.data.forEach(function (emp) {
-                $select.append(new Option(
-                    emp.employee_name + ' (' + emp.pin + ')',
-                    emp.id
-                ));
+                        res.data.forEach(function(emp) {
+                            $select.append(new Option(
+                                emp.employee_name + ' (' + emp.pin + ')',
+                                emp.id
+                            ));
+                        });
+
+                        $('#ot-employee-loading').hide();
+                    },
+                    error: function() {
+                        $('#ot-employee-loading').text('Failed to load employees.');
+                    }
+                });
             });
 
-            $('#ot-employee-loading').hide();
-        },
-        error: function () {
-            $('#ot-employee-loading').text('Failed to load employees.');
-        }
-    });
-});
-
             // ── Set min date = today for overtime form ──
-            $('#ot_date').attr('min', new Date().toISOString().split('T')[0]);
+            var otToday = new Date().toISOString().split('T')[0];
+            $('#ot_date').attr('min', otToday);
+            $('#ot_end_date').attr('min', otToday);
+
+            $('#ot_date').on('change', function() {
+                $('#ot_end_date').attr('min', this.value);
+                if ($('#ot_end_date').val() && $('#ot_end_date').val() < this.value) {
+                    $('#ot_end_date').val(this.value);
+                }
+            });
 
             // ── Auto hitung Total Hours dari Start & End Time ──
-            $('#ot_start_time, #ot_end_time').on('change', function () {
+            $('#ot_start_time, #ot_end_time').on('change', function() {
                 var start = $('#ot_start_time').val();
-                var end   = $('#ot_end_time').val();
+                var end = $('#ot_end_time').val();
 
-            if (start && end) {
-                var startParts = start.split(':');
-                var endParts   = end.split(':');
+                if (start && end) {
+                    var startParts = start.split(':');
+                    var endParts = end.split(':');
 
-                var startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-                var endMinutes   = parseInt(endParts[0])   * 60 + parseInt(endParts[1]);
+                    var startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+                    var endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
-            // Handle overnight (misal 22:00 - 02:00)
-                if (endMinutes < startMinutes) {
-                endMinutes += 24 * 60;
-            }
+                    // Handle overnight (misal 22:00 - 02:00)
+                    if (endMinutes < startMinutes) {
+                        endMinutes += 24 * 60;
+                    }
 
-        var diffMinutes = endMinutes - startMinutes;
-        var diffHours   = diffMinutes / 60;
+                    var diffMinutes = endMinutes - startMinutes;
+                    var diffHours = diffMinutes / 60;
 
-        // Bulatkan ke kelipatan 0.5
-        diffHours = Math.round(diffHours * 2) / 2;
+                    // Bulatkan ke kelipatan 0.5
+                    diffHours = Math.round(diffHours * 2) / 2;
 
-        if (diffHours > 0 && diffHours <= 24) {
-            $('#ot_total_hours').val(diffHours);
-        } else {
-            $('#ot_total_hours').val('');
-        }
-    }
-});
+                    if (diffHours > 0 && diffHours <= 24) {
+                        $('#ot_total_hours').val(diffHours);
+                    } else {
+                        $('#ot_total_hours').val('');
+                    }
+                }
+            });
 
             // ── Submit overtime from dashboard modal ──
-            $('#formOvertimeDashboard').on('submit', function (e) {
-            e.preventDefault();
+            $('#formOvertimeDashboard').on('submit', function(e) {
+                e.preventDefault();
 
-            // ── Loading state ──
-            var $btn = $(this).find('button[type="submit"]');
-            $btn.prop('disabled', true)
-            .html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+                // ── Loading state ──
+                var $btn = $(this).find('button[type="submit"]');
+                $btn.prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
 
-            var formData = {
-            employee_ids:      $('#ot_employee_ids').val(),
-            date:              $('#ot_date').val(),
-            start_time:        $('#ot_start_time').val() || null,
-            end_time:          $('#ot_end_time').val() || null,
-            total_hours:       $('#ot_total_hours').val(),
-            compensation_type: $('#ot_compensation_type').val(),
-            reason:            $('#ot_reason').val()
-        };
+                var formData = {
+                    employee_ids: $('#ot_employee_ids').val(),
+                    date: $('#ot_date').val(),
+                    end_date: $('#ot_end_date').val(),
+                    start_time: $('#ot_start_time').val() || null,
+                    end_time: $('#ot_end_time').val() || null,
+                    total_hours: $('#ot_total_hours').val(),
+                    compensation_type: $('#ot_compensation_type').val(),
+                    reason: $('#ot_reason').val()
+                };
 
-        $.ajax({
-        url:    '{{ route('toil.assignment.store') }}',
-        method: 'POST',
-        data:   formData,
-        success: function (res) {
-            Swal.fire({ icon: 'success', title: 'Success', text: res.message });
-            $('#modalAddOvertime').modal('hide');
-            $('#formOvertimeDashboard')[0].reset();
-            $('#ot_employee_ids').val(null).trigger('change');
-            $('#ot_compensation_type').val('').trigger('change');
-        },
-        error: function (xhr) {
-            var msg = 'An error occurred';
-            if (xhr.responseJSON) {
-                msg = xhr.responseJSON.message
-                    || Object.values(xhr.responseJSON.errors ?? {}).flat().join('<br>');
-            }
-            Swal.fire({ icon: 'error', title: 'Failed', html: msg });
-        },
-            complete: function () {
-                // ── Restore button ──
-                $btn.prop('disabled', false)
-                    .html('<i class="fas fa-paper-plane me-1"></i> Submit Assignment');
-            }
-        });
-    });
+                $.ajax({
+                    url: '{{ route('toil.assignment.store') }}',
+                    method: 'POST',
+                    data: formData,
+                    success: function(res) {
+                        $('#modalAddOvertime').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message
+                        }).then(function() {
+                             location.reload();
+                        });
+                    },
+                    error: function(xhr) {
+                        var msg = 'An error occurred';
+                        if (xhr.responseJSON) {
+                            msg = xhr.responseJSON.message ||
+                                Object.values(xhr.responseJSON.errors ?? {}).flat().join(
+                                '<br>');
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            html: msg
+                        });
+                    },
+                    complete: function() {
+                        // ── Restore button ──
+                        $btn.prop('disabled', false)
+                            .html('<i class="fas fa-paper-plane me-1"></i> Submit Assignment');
+                    }
+                });
+            });
 
             // ── Reset Select2 when overtime modal closes ──
-            $('#modalAddOvertime').on('hidden.bs.modal', function () {
+            $('#modalAddOvertime').on('hidden.bs.modal', function() {
                 $('#formOvertimeDashboard')[0].reset();
                 $('#ot_employee_ids').val(null).trigger('change');
                 $('#ot_compensation_type').val('').trigger('change');
@@ -2692,10 +2912,19 @@
 
     <script>
         @if (session('success'))
-            Swal.fire({ icon: 'success', title: 'Success', text: '{{ session('success') }}' });
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}'
+            });
         @endif
         @if (session('error'))
-            Swal.fire({ title: 'Failed!', text: "{{ session('error') }}", icon: 'error', confirmButtonText: 'OK' });
+            Swal.fire({
+                title: 'Failed!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         @endif
     </script>
 @endpush

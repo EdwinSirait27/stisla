@@ -66,7 +66,11 @@ class RosterController extends Controller
         $cellType   = 'empty';
 
         if ($roster) {
-            if ($roster->day_type === 'Off') {
+            if ($roster->day_type === 'TOIL Off') {
+                $badgeClass = 'r-badge r-off';
+                $badgeName  = 'TOIL Off';
+                $cellType   = 'toiloff';
+            }elseif ($roster->day_type === 'Off') {
                 $badgeClass = 'r-badge r-off';
                 $badgeName  = 'Off';
                 $cellType   = 'off';
@@ -86,8 +90,8 @@ class RosterController extends Controller
                 $badgeClass = 'r-badge r-work';
                 $badgeName  = $roster->shift->shift_name;
                 $badgeTime  = substr($roster->shift->start_time, 0, 5)
-                            . '-'
-                            . substr($roster->shift->end_time, 0, 5);
+                    . '-'
+                    . substr($roster->shift->end_time, 0, 5);
                 $cellType   = 'work';
             } else {
                 $badgeClass = 'r-badge r-work';
@@ -242,14 +246,14 @@ class RosterController extends Controller
                 'department:id,department_name',
                 'rosters' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('date', [$startDate, $endDate])
-                      ->with('shift:id,shift_name,start_time,end_time');
+                        ->with('shift:id,shift_name,start_time,end_time');
                 },
             ])
-            ->select('id', 'employee_name', 'store_id', 'status_employee', 'religion', 'position_id', 'department_id')
-            ->whereNull('deleted_at')
-            ->where('store_id', $storeId)
-            ->orderBy('employee_name')
-            ->get();
+                ->select('id', 'employee_name', 'store_id', 'status_employee', 'religion', 'position_id', 'department_id')
+                ->whereNull('deleted_at')
+                ->where('store_id', $storeId)
+                ->orderBy('employee_name')
+                ->get();
 
             $shifts = Shifts::where('store_id', $storeId)
                 ->orderBy('shift_name')
@@ -336,7 +340,7 @@ class RosterController extends Controller
             ->where('status', 'Approved')
             ->exists();
 
-        if ($toilApproved && $request->day_type !== 'Off') {
+        if ($toilApproved) {
             return response()->json([
                 'success' => false,
                 'message' => "Karyawan punya TOIL Leave yang sudah Approved di tanggal ini. Cancel TOIL leave dulu via menu Approval kalau mau ubah jadwal.",
@@ -457,7 +461,7 @@ class RosterController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Karyawan berikut tidak dapat di-assign day type "' . $request->day_type . '": '
-                           . implode(', ', $rejected) . '.',
+                    . implode(', ', $rejected) . '.',
             ], 422);
         }
 
@@ -496,7 +500,7 @@ class RosterController extends Controller
                 if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $empId, 'date' => $dateStr],
-                        ['shift_id' => null, 'day_type' => 'Off']
+                        ['shift_id' => null, 'day_type' => 'TOIL Off']
                     );
                     $toilCount++;
                     continue;
@@ -584,11 +588,13 @@ class RosterController extends Controller
             $sourceStart->toDateString(),
             $sourceEnd->toDateString(),
         ])
-        ->when($request->store_id, fn($q) =>
-            $q->whereHas('employee', fn($eq) => $eq->where('store_id', $request->store_id))
-        )
-        ->orderBy('date')
-        ->get();
+            ->when(
+                $request->store_id,
+                fn($q) =>
+                $q->whereHas('employee', fn($eq) => $eq->where('store_id', $request->store_id))
+            )
+            ->orderBy('date')
+            ->get();
 
         if ($sourceRosters->isEmpty()) {
             return response()->json([
@@ -647,11 +653,10 @@ class RosterController extends Controller
                     if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
-                            ['shift_id' => null, 'day_type' => 'Off']
+                            ['shift_id' => null, 'day_type' => 'TOIL Off']
                         );
                         $toilCount++;
-                    }
-                    elseif ($this->isPublicHolidayForEmployee($phMap, $dateStr, $religion)) {
+                    } elseif ($this->isPublicHolidayForEmployee($phMap, $dateStr, $religion)) {
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
                             [
@@ -661,8 +666,7 @@ class RosterController extends Controller
                             ]
                         );
                         $phCount++;
-                    }
-                    elseif (isset($sourceMap[$empId][$srcOffset])) {
+                    } elseif (isset($sourceMap[$empId][$srcOffset])) {
                         $src = $sourceMap[$empId][$srcOffset];
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
@@ -675,7 +679,6 @@ class RosterController extends Controller
                     $dayIndex++;
                 }
             }
-
         } else {
             $diffDays = $sourceStart->diffInDays($targetStart);
 
@@ -686,11 +689,10 @@ class RosterController extends Controller
                 if ($this->hasToilApproved($toilApprovedMap, $src->employee_id, $newDate)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
-                        ['shift_id' => null, 'day_type' => 'Off']
+                        ['shift_id' => null, 'day_type' => 'TOIL Off']
                     );
                     $toilCount++;
-                }
-                elseif ($this->isPublicHolidayForEmployee($phMap, $newDate, $religion)) {
+                } elseif ($this->isPublicHolidayForEmployee($phMap, $newDate, $religion)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
                         [
@@ -700,8 +702,7 @@ class RosterController extends Controller
                         ]
                     );
                     $phCount++;
-                }
-                else {
+                } else {
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
                         ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]

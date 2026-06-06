@@ -96,19 +96,75 @@
         border-radius: 0.375rem;
     }
 
-    .badge-cash            { background-color: #d1fae5; color: #065f46; }
-    .badge-toil            { background-color: #dbeafe; color: #1e40af; }
-    .badge-status-Approved { background-color: #d1fae5; color: #065f46; }
-    .badge-status-Pending  { background-color: #fef3c7; color: #92400e; }
-    .badge-status-Rejected { background-color: #fee2e2; color: #991b1b; }
+    .badge-cash {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
 
+    .badge-toil {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-status-Approved {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-status-Pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-status-Rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-balance-active {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-balance-used {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-balance-expired {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-balance-cancelled {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+
+    table.dataTable {
+        width: 100% !important;
+    }
+
+    .dataTables_scrollHead table,
+    .dataTables_scrollBody table {
+        width: 100% !important;
+    }
+
+    .dataTables_scrollHead th,
+    .dataTables_scrollBody td {
+        box-sizing: border-box;
+    }
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
         overflow-x: auto;
     }
 
-    .table { width: auto !important; border-collapse: separate; border-spacing: 0; }
+    .table {
+        width: 100% !important;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
 
     .table thead th {
         background-color: #f8fafc;
@@ -122,9 +178,13 @@
         white-space: nowrap;
     }
 
-    .table tbody tr { transition: all 0.25s ease; }
+    .table tbody tr {
+        transition: all 0.25s ease;
+    }
 
-    .table tbody tr:hover { background-color: rgba(94, 114, 228, 0.03); }
+    .table tbody tr:hover {
+        background-color: rgba(94, 114, 228, 0.03);
+    }
 
     .table tbody td {
         padding: 0.75rem 0.65rem;
@@ -136,7 +196,26 @@
         white-space: nowrap;
     }
 
-    .text-center { text-align: center; }
+    .text-center {
+        text-align: center;
+    }
+
+    table.dataTable thead th {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        position: relative;
+    }
+
+    table.dataTable thead th.sorting:before,
+    table.dataTable thead th.sorting:after,
+    table.dataTable thead th.sorting_asc:before,
+    table.dataTable thead th.sorting_asc:after,
+    table.dataTable thead th.sorting_desc:before,
+    table.dataTable thead th.sorting_desc:after {
+        right: 0.5rem;
+    }
+
+    
 
     .section-header h1 {
         font-weight: 600;
@@ -162,8 +241,14 @@
     }
 
     /* ── Employee info ── */
-    .employee-info { text-align: left; }
-    .employee-info .name { font-weight: 600; color: #2d3748; }
+    .employee-info {
+        text-align: left;
+    }
+
+    .employee-info .name {
+        font-weight: 600;
+        color: #2d3748;
+    }
 
     /* ── Row hover effect seperti Approval ── */
     #assignment-table tbody tr:hover {
@@ -254,8 +339,13 @@
     }
 
     @keyframes fa-spin {
-        0%   { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     .fa-spin {
@@ -300,8 +390,8 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label>Select Employee <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="employee_ids[]" id="employee_ids"
-                                            multiple required>
+                                        <select class="form-control" name="employee_ids[]" id="employee_ids" multiple
+                                            required>
                                             @foreach ($employees as $emp)
                                                 <option value="{{ $emp->id }}">
                                                     {{ $emp->employee_name }} ({{ $emp->pin ?? '-' }})
@@ -309,7 +399,8 @@
                                             @endforeach
                                         </select>
                                         <small class="form-text text-muted">
-                                            Can select more than 1 employee. Total subordinates: <strong>{{ $employees->count() }}</strong>
+                                            Can select more than 1 employee. Total subordinates:
+                                            <strong>{{ $employees->count() }}</strong>
                                         </small>
                                     </div>
                                 </div>
@@ -318,8 +409,14 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label>Date <span class="text-danger">*</span></label>
+                                        <label>Start Date <span class="text-danger">*</span></label>
                                         <input type="date" class="form-control" name="date" id="date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="end_date" id="end_date" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -360,8 +457,8 @@
                                 <div class="col-md-9">
                                     <div class="form-group">
                                         <label>Reasons/Explanations <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" name="reason" id="reason" rows="2" required
-                                            minlength="10" maxlength="1000" placeholder="Min 10 characters"></textarea>
+                                        <textarea class="form-control" name="reason" id="reason" rows="2" required minlength="10" maxlength="1000"
+                                            placeholder="Min 10 characters"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -514,8 +611,7 @@
                         </div>
                         <div class="form-group">
                             <label>Reason</label>
-                            <textarea class="form-control" id="edit_reason" name="reason" rows="2" minlength="10"
-                                maxlength="1000"></textarea>
+                            <textarea class="form-control" id="edit_reason" name="reason" rows="2" minlength="10" maxlength="1000"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -535,10 +631,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             $.ajaxSetup({
-                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
 
             // ── Init Select2: multi-select Employee (form) ──
@@ -570,7 +668,7 @@
             });
 
             // ── Reset form (termasuk Select2) ──
-            $('#btn-form-reset').on('click', function () {
+            $('#btn-form-reset').on('click', function() {
                 $('#formAssignment')[0].reset();
                 $('#employee_ids').val(null).trigger('change');
                 $('#compensation_type').val('').trigger('change');
@@ -585,22 +683,22 @@
             // ════════════════════════════════════════
             function autoCalcHours(startId, endId, totalId, hintId) {
                 var start = $(startId).val();
-                var end   = $(endId).val();
+                var end = $(endId).val();
 
                 if (!start || !end) return;
 
-                var startParts   = start.split(':');
-                var endParts     = end.split(':');
+                var startParts = start.split(':');
+                var endParts = end.split(':');
                 var startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-                var endMinutes   = parseInt(endParts[0])   * 60 + parseInt(endParts[1]);
+                var endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
                 if (endMinutes <= startMinutes) {
                     endMinutes += 24 * 60;
                 }
 
                 var diffMinutes = endMinutes - startMinutes;
-                var diffHours   = diffMinutes / 60;
-                var rounded     = Math.round(diffHours * 2) / 2;
+                var diffHours = diffMinutes / 60;
+                var rounded = Math.round(diffHours * 2) / 2;
 
                 if (rounded < 0.5) {
                     $(hintId).text('End time must be after start time.')
@@ -615,32 +713,34 @@
                     .addClass('text-success');
             }
 
-            $('#start_time, #end_time').on('change', function () {
+            $('#start_time, #end_time').on('change', function() {
                 autoCalcHours('#start_time', '#end_time', '#total_hours', '#hours-hint');
             });
 
-            $('#edit_start_time, #edit_end_time').on('change', function () {
-                autoCalcHours('#edit_start_time', '#edit_end_time', '#edit_total_hours', '#edit-hours-hint');
+            $('#edit_start_time, #edit_end_time').on('change', function() {
+                autoCalcHours('#edit_start_time', '#edit_end_time', '#edit_total_hours',
+                    '#edit-hours-hint');
             });
 
             // ── Initialize DataTable ──
             var table = $('#assignment-table').DataTable({
                 processing: true,
                 serverSide: false,
-                autoWidth: true,
-                scrollX: true,
+                autoWidth: false,
+                scrollX: false,
                 ajax: {
                     url: '{{ route('toil.assignment.data') }}',
                     type: 'GET',
-                    data: function (d) {
-                        d.start_date        = $('#filter-start-date').val();
-                        d.end_date          = $('#filter-end-date').val();
+                    data: function(d) {
+                        d.start_date = $('#filter-start-date').val();
+                        d.end_date = $('#filter-end-date').val();
                         d.compensation_type = $('#filter-type').val();
-                        d.status            = $('#filter-status').val();
+                        d.status = $('#filter-status').val();
                     }
                 },
-                responsive: true,
-                order: [[1, 'desc']],
+                order: [
+                    [1, 'desc']
+                ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -650,22 +750,30 @@
                     searchPlaceholder: "Search...",
                     emptyTable: "No overtime assignments found."
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'employee_name',
-                        render: function (data) {
+                        render: function(data) {
                             return '<div class="employee-info">' +
                                 '<div class="name">' + (data ?? '-') + '</div>' +
                                 '</div>';
                         }
                     },
-                    { data: 'date',        className: 'text-center' },
-                    { data: 'time_range',  className: 'text-center' },
-                    { data: 'total_hours', className: 'text-center' },
+                    {
+                        data: 'date',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'time_range',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'total_hours',
+                        className: 'text-center'
+                    },
                     {
                         data: 'compensation_type',
                         className: 'text-center',
-                        render: function (data) {
+                        render: function(data) {
                             var cls = data === 'Cash' ? 'badge-cash' : 'badge-toil';
                             return '<span class="badge-type ' + cls + '">' + data + '</span>';
                         }
@@ -673,24 +781,43 @@
                     {
                         data: 'status',
                         className: 'text-center',
-                        render: function (data) {
-                            return '<span class="badge-type badge-status-' + data + '">' + data + '</span>';
+                        render: function(data) {
+                            return '<span class="badge-type badge-status-' + data + '">' + data +
+                                '</span>';
                         }
                     },
-                    { data: 'balance_status',  className: 'text-center' },
-                    { data: 'remaining_hours', className: 'text-center' },
-                    { data: 'expires_at',      className: 'text-center' },
+                    {
+                        data: 'balance_status',
+                        className: 'text-center',
+                        render: function(data) {
+                            if (!data || data === '-') return '<span class="text-muted">-</span>';
+                            var cls = 'badge-balance-' + data.toLowerCase();
+                            return '<span class="badge-type ' + cls + '">' + data + '</span>';
+                        }
+                    },
+                    {
+                        data: 'remaining_hours',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'expires_at',
+                        className: 'text-center'
+                    },
                     {
                         data: 'id',
                         className: 'text-center',
                         orderable: false,
                         searchable: false,
-                        render: function (data, type, row) {
+                        render: function(data, type, row) {
                             var buttons = '';
                             if (row.status === 'Approved') {
-                                buttons += '<button class="btn btn-sm btn-primary btn-edit" data-id="' + data + '" title="Edit">' +
+                                buttons +=
+                                    '<button class="btn btn-sm btn-primary btn-edit" data-id="' +
+                                    data + '" title="Edit">' +
                                     '<i class="fas fa-edit"></i></button> ';
-                                buttons += '<button class="btn btn-sm btn-danger btn-cancel" data-id="' + data + '" title="Cancel">' +
+                                buttons +=
+                                    '<button class="btn btn-sm btn-danger btn-cancel" data-id="' +
+                                    data + '" title="Cancel">' +
                                     '<i class="fas fa-times"></i> Cancel</button>';
                             }
                             return buttons || '<span class="text-muted">-</span>';
@@ -700,12 +827,12 @@
             });
 
             // ── Apply Filter ──
-            $('#btn-filter').on('click', function () {
+            $('#btn-filter').on('click', function() {
                 table.ajax.reload();
             });
 
             // ── Reset Filter ──
-            $('#btn-reset').on('click', function () {
+            $('#btn-reset').on('click', function() {
                 $('#filter-start-date').val('');
                 $('#filter-end-date').val('');
                 $('#filter-type').val('').trigger('change');
@@ -714,7 +841,7 @@
             });
 
             // ── Submit Assignment ──
-            $('#formAssignment').on('submit', function (e) {
+            $('#formAssignment').on('submit', function(e) {
                 e.preventDefault();
 
                 var $btn = $('#btn-submit');
@@ -722,34 +849,40 @@
                     .html('<i class="fas fa-spinner fa-spin"></i> Processing...');
 
                 var formData = {
-                    employee_ids:      $('#employee_ids').val(),
-                    date:              $('#date').val(),
-                    start_time:        $('#start_time').val() || null,
-                    end_time:          $('#end_time').val() || null,
-                    total_hours:       $('#total_hours').val(),
+                    employee_ids: $('#employee_ids').val(),
+                    date: $('#date').val(),
+                    end_date: $('#end_date').val(),
+                    start_time: $('#start_time').val() || null,
+                    end_time: $('#end_time').val() || null,
+                    total_hours: $('#total_hours').val(),
                     compensation_type: $('#compensation_type').val(),
-                    reason:            $('#reason').val()
+                    reason: $('#reason').val()
                 };
 
                 $.ajax({
-                    url:    '{{ route('toil.assignment.store') }}',
+                    url: '{{ route('toil.assignment.store') }}',
                     method: 'POST',
-                    data:   formData,
-                    success: function (res) {
+                    data: formData,
+                    success: function(res) {
                         $btn.prop('disabled', false)
                             .html('<i class="fas fa-paper-plane"></i> Submit Assignment');
 
-                        Swal.fire({ icon: 'success', title: 'Success', text: res.message });
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message
+                        });
                         $('#formAssignment')[0].reset();
                         $('#employee_ids').val(null).trigger('change');
                         $('#compensation_type').val('').trigger('change');
                         $('#total_hours').removeClass('total-hours-auto');
-                        $('#hours-hint').text('0.5 - 24 hours. Auto-calculated from Start & End Time.')
+                        $('#hours-hint').text(
+                                '0.5 - 24 hours. Auto-calculated from Start & End Time.')
                             .removeClass('text-success text-danger')
                             .addClass('text-muted');
                         table.ajax.reload();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         $btn.prop('disabled', false)
                             .html('<i class="fas fa-paper-plane"></i> Submit Assignment');
 
@@ -758,17 +891,22 @@
                             if (xhr.responseJSON.message) {
                                 msg = xhr.responseJSON.message;
                             } else if (xhr.responseJSON.errors) {
-                                msg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                                msg = Object.values(xhr.responseJSON.errors).flat().join(
+                                    '<br>');
                             }
                         }
-                        Swal.fire({ icon: 'error', title: 'Failed', html: msg });
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            html: msg
+                        });
                     }
                 });
             });
 
             // ── Edit Assignment (open modal) ──
-            $('#assignment-table').on('click', '.btn-edit', function () {
-                var id      = $(this).data('id');
+            $('#assignment-table').on('click', '.btn-edit', function() {
+                var id = $(this).data('id');
                 var rowData = table.row($(this).closest('tr')).data();
 
                 $('#edit_id').val(id);
@@ -779,7 +917,8 @@
                 $('#edit_reason').val(rowData.reason || '');
 
                 $('#edit_total_hours').removeClass('total-hours-auto');
-                $('#edit-hours-hint').text('Cannot be less than already used. Auto-calculated from Start & End Time.')
+                $('#edit-hours-hint').text(
+                        'Cannot be less than already used. Auto-calculated from Start & End Time.')
                     .removeClass('text-success text-danger')
                     .addClass('text-muted');
 
@@ -787,7 +926,7 @@
             });
 
             // ── Submit Edit ──
-            $('#formEdit').on('submit', function (e) {
+            $('#formEdit').on('submit', function(e) {
                 e.preventDefault();
                 var id = $('#edit_id').val();
 
@@ -796,38 +935,46 @@
                     .html('<i class="fas fa-spinner fa-spin"></i> Processing...');
 
                 var formData = {
-                    _method:     'PUT',
-                    date:        $('#edit_date').val(),
-                    start_time:  $('#edit_start_time').val() || null,
-                    end_time:    $('#edit_end_time').val() || null,
+                    _method: 'PUT',
+                    date: $('#edit_date').val(),
+                    start_time: $('#edit_start_time').val() || null,
+                    end_time: $('#edit_end_time').val() || null,
                     total_hours: $('#edit_total_hours').val(),
-                    reason:      $('#edit_reason').val()
+                    reason: $('#edit_reason').val()
                 };
 
                 $.ajax({
-                    url:    '{{ url('toil/assignment') }}/' + id,
+                    url: '{{ url('toil/assignment') }}/' + id,
                     method: 'POST',
-                    data:   formData,
-                    success: function (res) {
+                    data: formData,
+                    success: function(res) {
                         $btnUpdate.prop('disabled', false)
                             .html('<i class="fas fa-save"></i> Update');
 
-                        Swal.fire({ icon: 'success', title: 'Success', text: res.message });
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message
+                        });
                         $('#modalEdit').modal('hide');
                         table.ajax.reload();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         $btnUpdate.prop('disabled', false)
                             .html('<i class="fas fa-save"></i> Update');
 
                         var msg = xhr.responseJSON?.message || 'Failed to update';
-                        Swal.fire({ icon: 'error', title: 'Failed', text: msg });
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: msg
+                        });
                     }
                 });
             });
 
             // ── Cancel Assignment ──
-            $('#assignment-table').on('click', '.btn-cancel', function () {
+            $('#assignment-table').on('click', '.btn-cancel', function() {
                 var id = $(this).data('id');
 
                 Swal.fire({
@@ -839,18 +986,27 @@
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Yes, Cancel',
                     cancelButtonText: 'Back'
-                }).then(function (result) {
+                }).then(function(result) {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url:    '{{ url('toil/assignment') }}/' + id,
+                            url: '{{ url('toil/assignment') }}/' + id,
                             method: 'DELETE',
-                            success: function (res) {
-                                Swal.fire({ icon: 'success', title: 'Success', text: res.message });
+                            success: function(res) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: res.message
+                                });
                                 table.ajax.reload();
                             },
-                            error: function (xhr) {
-                                var msg = xhr.responseJSON?.message || 'Failed to cancel';
-                                Swal.fire({ icon: 'error', title: 'Failed', text: msg });
+                            error: function(xhr) {
+                                var msg = xhr.responseJSON?.message ||
+                                    'Failed to cancel';
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Failed',
+                                    text: msg
+                                });
                             }
                         });
                     }
@@ -860,7 +1016,14 @@
             // ── Set min date = today ──
             var today = new Date().toISOString().split('T')[0];
             $('#date').attr('min', today);
+            $('#end_date').attr('min', today);
 
+            $('#date').on('change', function() {
+                $('#end_date').attr('min', this.value);
+                if ($('#end_date').val() && $('#end_date').val() < this.value) {
+                    $('#end_date').val(this.value);
+                }
+            });
         });
     </script>
 @endpush

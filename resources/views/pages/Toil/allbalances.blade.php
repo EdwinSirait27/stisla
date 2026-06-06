@@ -154,6 +154,21 @@
 
     .text-center { text-align: center; }
 
+    table.dataTable {
+        width: 100% !important;
+    }
+
+    table.dataTable thead th {
+        position: relative;
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    table.dataTable thead th:before,
+    table.dataTable thead th:after {
+        right: 0.4rem;
+    }
+
     .section-header h1 {
         font-weight: 600;
         color: #2d3748;
@@ -378,6 +393,7 @@
                 processing: true,
                 serverSide: false,
                 autoWidth: false,
+                scrollX: false,
                 ajax: {
                     url: '{{ route('toil.all-balances.data') }}',
                     type: 'GET',
@@ -392,7 +408,7 @@
                         return json.data;
                     }
                 },
-                responsive: true,
+                
                 order: [[2, 'desc']], // sort by Ovt Date
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

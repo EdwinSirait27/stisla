@@ -69,11 +69,33 @@ class ToilController extends Controller
                 'remaining_hours'   => number_format($balance->remaining_hours, 2),
                 'expires_at'        => $balance->expires_at->format('d M Y'),
                 'days_left'         => $balance->days_until_expired,
+                'status'            => $balance->status,
                 'reason'            => $sub->reason ?? '-',
             ];
         });
 
-        return response()->json(['data' => $data]);
+        // ── Ambil SEMUA saldo (tanpa filter) untuk perhitungan summary kartu ──
+        $allBalances = Toilbalances::with('overtimeSubmission')
+            ->where('employee_id', $employee->id)
+            ->get();
+
+        $summary = [
+            'total_cash' => $allBalances
+                ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Cash' && $b->status === 'active')
+                ->sum('remaining_hours'),
+            'total_toil_remaining' => $allBalances
+                ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Toil' && $b->status === 'active')
+                ->sum('remaining_hours'),
+            'total_used' => $allBalances->sum('used_hours'),
+            'total_expired' => $allBalances
+                ->filter(fn($b) => $b->status === 'expired')
+                ->sum('remaining_hours'),
+        ];
+
+        return response()->json([
+            'data'    => $data,
+            'summary' => $summary,
+        ]);
     }
 
     /**

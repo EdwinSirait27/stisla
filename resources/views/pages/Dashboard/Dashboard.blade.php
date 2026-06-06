@@ -237,14 +237,14 @@
 
     <style>
         /* :root {
-                                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                                --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                                --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                                --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                                --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                                --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                            } */
+                                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                                } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -1435,11 +1435,21 @@
                                             {{ $sub['ago'] }}
                                         </span>
                                     </div>
-                                    @if ($sub['reason'])
+                                    @if ($sub['employeeReason'])
                                         <div class="submission-notes">
                                             <i class="fas fa-sticky-note me-2"></i>
-                                            <strong>{{ $sub['isRejected'] ? 'Rejection reason:' : 'Note:' }}</strong>
-                                            {{ $sub['reason'] }}
+                                            <strong>Note:</strong>
+                                            {{ $sub['employeeReason'] }}
+                                        </div>
+                                    @endif
+
+                                    @if (!empty($sub['approverReason']))
+                                        <div class="submission-notes"
+                                            style="border-top: 1px dashed #e9ecef; margin-top: 6px; padding-top: 6px;">
+                                            <i
+                                                class="fas {{ $sub['isRejected'] ? 'fa-times-circle' : 'fa-user-check' }} me-2"></i>
+                                            <strong>{{ $sub['isRejected'] ? 'Rejection reason:' : 'Approver:' }}</strong>
+                                            {{ $sub['approverReason'] }}
                                         </div>
                                     @endif
                                 </div>

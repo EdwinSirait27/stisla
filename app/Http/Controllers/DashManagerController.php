@@ -83,7 +83,7 @@ class DashManagerController extends Controller
         ));
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $announcements = Announcement::with('user')
             ->orderBy('publish_date', 'desc')
@@ -216,6 +216,80 @@ class DashManagerController extends Controller
             ];
         });
 
+        // ─── Roster manager (yang login) untuk Attendance History ───
+        $employeeId = $employee->id;
+
+        $month  = (int) $request->query('month', now()->month);
+        $year   = (int) $request->query('year', now()->year);
+        $cursor = \Carbon\Carbon::createFromDate($year, $month, 1);
+
+        $rosters = \App\Models\Roster::with('shift')
+            ->where('employee_id', $employeeId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->get()
+            ->keyBy(fn ($r) => \Carbon\Carbon::parse($r->date)->day);
+
+        $today     = \Carbon\Carbon::today();
+        $daysInMon = $cursor->daysInMonth;
+        $leadBlank = $cursor->copy()->startOfMonth()->dayOfWeek;
+
+        $calendarDays = [];
+
+        for ($i = 0; $i < $leadBlank; $i++) {
+            $calendarDays[] = ['empty' => true];
+        }
+
+        for ($d = 1; $d <= $daysInMon; $d++) {
+            $dateObj = $cursor->copy()->day($d);
+            $dow     = $dateObj->dayOfWeek;
+            $roster  = $rosters[$d] ?? null;
+
+            if ($roster) {
+                $type = strtolower($roster->day_type);
+                $cssClass = match (true) {
+                    str_contains($type, 'work')    => 'present',
+                    str_contains($type, 'off')     => 'weekend',
+                    str_contains($type, 'holiday') => 'leave',
+                    str_contains($type, 'leave')   => 'absent',
+                    str_contains($type, 'melahirkan')    => 'absent',
+                    default                         => '',
+                };
+                $label = $roster->day_type;
+                $remark  = (str_contains($type, 'holiday') || str_contains($type, 'toil')) ? ($roster->notes ?? '') : '';
+            } else {
+                $cssClass = in_array($dow, [0, 6]) ? 'weekend' : '';
+                $label    = '';
+                $remark   = '';
+            }
+
+            $calendarDays[] = [
+                'empty'    => false,
+                'day'      => $d,
+                'cssClass' => $cssClass,
+                'label'    => $label,
+                'remark'   => $remark,
+                'isToday'  => $dateObj->isSameDay($today),
+            ];
+        }
+
+        $prev = $cursor->copy()->subMonth();
+        $next = $cursor->copy()->addMonth();
+
+        $calendarLabel = $cursor->translatedFormat('F Y');
+        $prevMonth     = ['month' => $prev->month, 'year' => $prev->year];
+        $nextMonth     = ['month' => $next->month, 'year' => $next->year];
+
+        // ─── Cabang AJAX untuk navigasi panah (ganti bulan tanpa reload) ───
+        if ($request->ajax()) {
+            return view('pages.dashboardManager.calendar', compact(
+                'calendarDays',
+                'calendarLabel',
+                'prevMonth',
+                'nextMonth',
+            ));
+        }
+
         return view('pages.dashboardManager.dashboardManager', compact(
             'announcements',
             'totalEmployees',
@@ -225,7 +299,11 @@ class DashManagerController extends Controller
             'annualLeave',
             'isNewbie',
             'displayBalance',
-            'pendingLeaves'
+            'pendingLeaves',
+            'calendarDays',
+            'calendarLabel',
+            'prevMonth',
+            'nextMonth',
         ));
     }
 
