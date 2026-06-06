@@ -8,6 +8,7 @@
         body {
             background: #f5f6fa;
         }
+
         .card-modern {
             border: none;
             border-radius: 20px;
@@ -16,15 +17,18 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease-in-out;
         }
+
         .card-modern:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
         }
+
         .form-control {
             border-radius: 12px;
             border: 1px solid #dcdde1;
             transition: all 0.2s ease-in-out;
         }
+
         .form-control:focus {
             border-color: #4e73df;
             box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
@@ -119,15 +123,40 @@
                                             </ul>
                                         </div>
                                     @endif
-                                    {{-- <div class="row">
+                                  
+                                    <div class="row">
+                                        {{-- Current Password --}}
                                         <div class="col-md-12 mb-3">
-                                            <label for="password"><i class="fas fa-lock"></i> Password</label>
+                                            <label for="current_password">
+                                                <i class="fas fa-lock"></i> Current Password
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="password"
+                                                    class="form-control @error('current_password') is-invalid @enderror"
+                                                    id="current_password" name="current_password"
+                                                    placeholder="Enter your current password"
+                                                    oninput="this.value = this.value.replace(/\s/g, '');">
+                                                <span class="input-group-text" onclick="toggleCurrentPassword()"
+                                                    style="cursor:pointer;">
+                                                    <i id="eyeIconCurrent" class="fa fa-eye"></i>
+                                                </span>
+                                                @error('current_password')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- New Password --}}
+                                        <div class="col-md-12 mb-3">
+                                            <label for="password">
+                                                <i class="fas fa-lock"></i> New Password
+                                            </label>
                                             <div class="input-group">
                                                 <input type="password"
                                                     class="form-control @error('password') is-invalid @enderror"
-                                                    id="password" name="password"
-                                                    placeholder="Leave blank to keep current password" minlength="8"
-                                                    maxlength="20" oninput="this.value = this.value.replace(/\s/g, '');">
+                                                    id="password" name="password" placeholder="Enter your new password"
+                                                    minlength="8" maxlength="20"
+                                                    oninput="this.value = this.value.replace(/\s/g, '');">
                                                 <span class="input-group-text" onclick="togglePassword()"
                                                     style="cursor:pointer;">
                                                     <i id="eyeIcon" class="fa fa-eye"></i>
@@ -138,68 +167,19 @@
                                             </div>
                                             <small class="text-muted">
                                                 Password must contain at least 1 uppercase letter, 1 lowercase letter,
-                                                1 number, and 1 symbol. (8-20 chars) for exmpl. mJmRet@il123
+                                                1 number, and 1 symbol. (8-20 chars) e.g. mJmRet@il123
                                             </small>
                                         </div>
                                     </div>
-                                </div> --}}
-                                <div class="row">
-    {{-- Current Password --}}
-    <div class="col-md-12 mb-3">
-        <label for="current_password">
-            <i class="fas fa-lock"></i> Current Password
-        </label>
-        <div class="input-group">
-            <input type="password"
-                class="form-control @error('current_password') is-invalid @enderror"
-                id="current_password" 
-                name="current_password"
-                placeholder="Enter your current password"
-                oninput="this.value = this.value.replace(/\s/g, '');">
-            <span class="input-group-text" onclick="toggleCurrentPassword()" style="cursor:pointer;">
-                <i id="eyeIconCurrent" class="fa fa-eye"></i>
-            </span>
-            @error('current_password')
-                <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
-        </div>
-    </div>
-
-    {{-- New Password --}}
-    <div class="col-md-12 mb-3">
-        <label for="password">
-            <i class="fas fa-lock"></i> New Password
-        </label>
-        <div class="input-group">
-            <input type="password"
-                class="form-control @error('password') is-invalid @enderror"
-                id="password" 
-                name="password"
-                placeholder="Enter your new password"
-                minlength="8"
-                maxlength="20"
-                oninput="this.value = this.value.replace(/\s/g, '');">
-            <span class="input-group-text" onclick="togglePassword()" style="cursor:pointer;">
-                <i id="eyeIcon" class="fa fa-eye"></i>
-            </span>
-            @error('password')
-                <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
-        </div>
-        <small class="text-muted">
-            Password must contain at least 1 uppercase letter, 1 lowercase letter,
-            1 number, and 1 symbol. (8-20 chars) e.g. mJmRet@il123
-        </small>
-    </div>
-</div>
-                                <div class="card-footer d-flex justify-content-between">
-                                    <a href="{{ route('pages.feature-profile') }}" class="btn btn-modern btn-modern-secondary">
-                                        <i class="fas fa-arrow-left"></i> Back
-                                    </a>
-                                    <button type="submit" class="btn btn-modern btn-modern-primary">
-                                        <i class="fas fa-save"></i> Save Changes
-                                    </button>
-                                </div>
+                                    <div class="card-footer d-flex justify-content-between">
+                                        <a href="{{ route('pages.feature-profile') }}"
+                                            class="btn btn-modern btn-modern-secondary">
+                                            <i class="fas fa-arrow-left"></i> Back
+                                        </a>
+                                        <button type="submit" class="btn btn-modern btn-modern-primary">
+                                            <i class="fas fa-save"></i> Save Changes
+                                        </button>
+                                    </div>
                             </form>
                         </div>
                     </div>
@@ -214,32 +194,22 @@
     <script src="{{ asset('js/page/features-profile.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // function togglePassword() {
-        //     const passwordInput = document.getElementById('password');
-        //     const eyeIcon = document.getElementById('eyeIcon');
-        //     if (passwordInput.type === "password") {
-        //         passwordInput.type = "text";
-        //         eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
-        //     } else {
-        //         passwordInput.type = "password";
-        //         eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
-        //     }
-        // }
+      
         function togglePassword() {
-        const input = document.getElementById('password');
-        const icon  = document.getElementById('eyeIcon');
-        input.type  = input.type === 'password' ? 'text' : 'password';
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
-    }
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
 
-          function toggleCurrentPassword() {
-        const input = document.getElementById('current_password');
-        const icon  = document.getElementById('eyeIconCurrent');
-        input.type  = input.type === 'password' ? 'text' : 'password';
-        icon.classList.toggle('fa-eye');
-        icon.classList.toggle('fa-eye-slash');
-    }
+        function toggleCurrentPassword() {
+            const input = document.getElementById('current_password');
+            const icon = document.getElementById('eyeIconCurrent');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
         @if (session('success'))
             Swal.fire({
                 icon: 'success',

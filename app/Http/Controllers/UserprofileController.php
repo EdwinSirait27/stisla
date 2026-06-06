@@ -675,35 +675,99 @@ class UserprofileController extends Controller
             ->header('Cache-Control', 'private, max-age=3600');
     }
 
-    public function updatePassword(Request $request)
-    {
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
+    // public function updatePassword(Request $request)
+    // {
+    //     /** @var \App\Models\User|null $user */
+    //     $user = Auth::user();
 
-        $validated = $request->validate([
-            'current_password' => [
-                'required',
-                'string',
-                function ($attribute, $value, $fail) use ($user) {
-                    if (!Hash::check($value, $user->password)) {
-                        $fail('The current password is incorrect.');
-                    }
-                },
-            ],
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'max:20',
-                'different:current_password',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
-            ],
-        ]);
+    //     $validated = $request->validate([
+    //         'current_password' => [
+    //             'required',
+    //             'string',
+    //             function ($attribute, $value, $fail) use ($user) {
+    //                 if (!Hash::check($value, $user->password)) {
+    //                     $fail('The current password is incorrect.');
+    //                 }
+    //             },
+    //         ],
+    //         'password' => [
+    //             'required',
+    //             'string',
+    //             'min:8',
+    //             'max:20',
+    //             'different:current_password',
+    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
+    //         ],
+    //     ]);
+    //     $user->password = Hash::make($validated['password']);
+    //     $user->save();
+
+    //     return back()->with('status', 'Password changed successfully.');
+    // }
+    public function updatePassword(Request $request)
+{
+    /** @var \App\Models\User|null $user */
+    $user = Auth::user();
+
+    $validated = $request->validate([
+        'current_password' => [
+            'required',
+            'string',
+            function ($attribute, $value, $fail) use ($user) {
+                if (!Hash::check($value, $user->password)) {
+                    $fail('The current password is incorrect.');
+                }
+            },
+        ],
+        'password' => [
+            'required',
+            'string',
+            'min:8',
+            'max:20',
+            'different:current_password',
+            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/',
+            function ($attribute, $value, $fail) use ($user) {
+                if (strtolower($value) === strtolower($user->username)) {
+                    $fail('Password tidak boleh sama dengan username.');
+                }
+            },
+        ],
+    ], [], [], function ($validator) {
+        $validator->after(function ($validator) {
+            // tidak perlu tambahan logic di sini
+        });
+    });
+
+    try {
+        $isDefaultPassword = Hash::check(strtolower($user->username), $user->password);
+
         $user->password = Hash::make($validated['password']);
         $user->save();
 
-        return back()->with('status', 'Password changed successfully.');
+        Log::info("User changed password", [
+            'user_id'  => $user->id,
+            'username' => $user->username,
+            'ip'       => $request->ip(),
+        ]);
+
+        return redirect()->route('pages.feature-profile')
+            ->with('success', $isDefaultPassword
+                ? 'Password berhasil diubah. Selamat datang!'
+                : 'Password changed successfully.'
+            );
+
+    } catch (\Exception $e) {
+        Log::error("Failed to change password", [
+            'user_id'  => $user->id,
+            'username' => $user->username,
+            'ip'       => $request->ip(),
+            'error'    => $e->getMessage(),
+        ]);
+
+        return redirect()->route('pages.change-password')
+            ->with('error', 'Gagal mengubah password. Silakan coba lagi.');
     }
+}
     public function downloadDocument(string $id)
     {
      

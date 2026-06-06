@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -441,8 +442,7 @@
                     </td>
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
                         @if ($issued->signature)
-                            <img src="{{ route('employee.signature', basename($issued->signature)) }}"
-                                alt="Signature"
+                            <img src="{{ route('employee.signature', basename($issued->signature)) }}" alt="Signature"
                                 style="
                 height: 70px;
                 width: auto;
@@ -539,16 +539,9 @@
                     </td>
                     {{-- Tanda Tangan --}}
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
-                        {{-- @if ($issued->signature)
-                            <img src="{{ route('employee.signature', basename($issued->signature)) }}" alt="Signature"
+                        @if ($signatureData)
+                            <img src="{{ $signatureData }}" alt="Signature"
                                 style="
-                height: 70px;
-                width: auto;
-                display: block;
-                margin: 0 auto 4px 50px;
-            "> --}}
-            @if ($signatureData)
-    <img src="{{ $signatureData }}" alt="Signature" style="
         height: 70px;
         width: auto;
         display: block;

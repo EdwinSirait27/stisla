@@ -6,5 +6,6 @@ class Devicefingerprint extends Model
 {
     use HasFactory;
     protected $connection = 'mysql_second'; // koneksi ke database kedua
-    protected $table = 'device';     
+    protected $table = 'device';   
+        protected $fillable = ['sn', 'device_name'];  
 }

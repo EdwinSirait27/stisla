@@ -1,12 +1,10 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\Banks;
 use App\Models\Company;
 use App\Models\Departments;
 use App\Models\Employee;
 use App\Models\Grading;
 use App\Models\Payrolls;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Spatie\Activitylog\Models\Activity;
@@ -14,16 +12,9 @@ use Yajra\DataTables\DataTables;
 use App\Models\Stores;
 use App\Models\Structuresnew;
 use Illuminate\Support\Facades\Hash;
-use App\Rules\NoXSSInput;
-use Carbon\Carbon;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use App\Mail\WelcomeEmployeeMail;
 use App\Models\Groups;
 use App\Models\Contract;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ContractController extends Controller
 {
@@ -50,7 +41,6 @@ class ContractController extends Controller
                 ->where('subject_type', Contract::class)
                 ->with(['causer.employee'])  // eager load sampai employee
                 ->latest();
-
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('description', function ($row) {
@@ -68,7 +58,6 @@ class ContractController extends Controller
                 ->addColumn('changes', function ($row) {
                     $old = $row->properties['old'] ?? [];
                     $new = $row->properties['attributes'] ?? [];
-
                     $diff = [];
                     foreach ($new as $key => $value) {
                         $diff[$key] = [
@@ -76,13 +65,11 @@ class ContractController extends Controller
                             'new' => $value,
                         ];
                     }
-
                     return json_encode($diff);
                 })
                 ->filter(function ($instance) use ($request) {
                     if ($request->has('search') && $request->get('search')['value'] != '') {
                         $search = $request->get('search')['value'];
-
                         $instance->where(function ($q) use ($search) {
                             $q->where('description', 'like', "%{$search}%")
                                 ->orWhere('event', 'like', "%{$search}%")
@@ -96,28 +83,22 @@ class ContractController extends Controller
                 ->make(true);
         }
     }
-
     public function getContracts(Request $request)
     {
         $query = Contract::query()
-
             ->leftJoin('employees_tables as e', 'contract.employee_id', '=', 'e.id')
             ->leftJoin('structures_tables as st', 'st.id', '=', 'e.structure_id')
             ->leftJoin('submission_position_tables as sp', 'sp.id', '=', 'st.submission_position_id')
-
             ->leftJoin('position_tables as p', 'p.id', '=', 'sp.position_id')
             ->leftJoin('departments_tables as d', 'd.id', '=', 'sp.department_id')
             ->leftJoin('stores_tables as s', 's.id', '=', 'sp.store_id')
             ->leftJoin('company_tables as c', 'c.id', '=', 'sp.company_id')
-
             ->leftJoin('grading as g', 'g.id', '=', 'e.grading_id')
             ->leftJoin('groups_tables as gr', 'gr.id', '=', 'e.group_id')
-
             ->select([
                 'contract.*',
                 'e.employee_name',
                 'e.employee_pengenal',
-
                 'p.name as position_name',
                 'd.department_name',
                 's.name as store_name',
@@ -204,7 +185,7 @@ class ContractController extends Controller
             $q->where('contract.contract_status', 'like', "%$k%"))
             ->filterColumn('employee_status', fn($q, $k) =>
             $q->where('e.status', 'like', "%$k%"))
-             ->editColumn('created_at', function ($e) {
+            ->editColumn('created_at', function ($e) {
                 return optional($e->created_at)
                     ->timezone('Asia/Makassar')
                     ->translatedFormat('d F Y');
@@ -212,161 +193,123 @@ class ContractController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
-
     public function edit($id) {}
-
     public function show($id) {}
-//     public function create()
-// {
-// $employeeData = Employee::whereIn('status', ['Active', 'Mutation', 'Pending'])
-//     ->select('id', 'employee_name', 'join_date')
-//     ->get();
+    public function create()
+    {
+        /** @var \App\Models\User|null $user */
+        $user     = auth()->user();
 
-// $employees = $employeeData->pluck('employee_name', 'id');
-// $employeeJoinDates = $employeeData
-//     ->mapWithKeys(function ($item) {
-//         return [$item->id => \Carbon\Carbon::parse($item->join_date)->format('Y-m-d')];
-//     })
-//     ->toArray();
-//   $structures = Structuresnew::with('submissionposition.positionRelation')
-//     ->get()
-//     ->pluck('submissionposition.positionRelation.name', 'id');
-//     $statusOptions = Contract::getContractStatusOptions();
-//     $typeOptions   = Contract::getContractTypeOptions();
-//     return view('pages.contract.createcontract', compact(
-//         'employees',
-//         'employeeJoinDates',
-//         'structures',
-//         'statusOptions',
-//         'typeOptions'
-//     ));
-// }
-public function create()
-{
-    if (!auth()->user()->hasRole('HeadHR')) {
-        abort(403, 'Unauthorized');
+        if (!$user->hasRole('HeadHR')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $isHeadHR = $user->hasRole('HeadHR'); // ✅ WAJIB ADA
+        $employeeData = Employee::with('structuresnew')->whereIn('status', ['Active', 'Mutation', 'Pending'])
+            ->select('id', 'employee_name', 'join_date')
+            ->get();
+        $employees = Employee::with('structuresnew.submissionposition.positionRelation')
+            ->whereIn('status', ['Active', 'Mutation', 'Pending'])
+            ->get();
+        $employeeJoinDates = $employeeData
+            ->mapWithKeys(function ($item) {
+                return [$item->id => \Carbon\Carbon::parse($item->join_date)->format('Y-m-d')];
+            })
+            ->toArray();
+        $structures = Structuresnew::with('submissionposition.positionRelation')
+            ->get()
+            ->pluck('submissionposition.positionRelation.name', 'id');
+        $statusOptions = Contract::getContractStatusOptions();
+        $typeOptions   = Contract::getContractTypeOptions();
+        $confirmedAt = session('contract_password_confirmed_at');
+        $isPasswordExpired = true;
+        if ($confirmedAt) {
+            $isPasswordExpired = now()->diffInMinutes($confirmedAt) >= 5;
+        }
+        return view('pages.contract.createcontract', compact(
+            'employees',
+            'employeeJoinDates',
+            'structures',
+            'statusOptions',
+            'typeOptions',
+            'isHeadHR',
+            'isPasswordExpired'
+        ));
     }
-    $isHeadHR = auth()->user()->hasRole('HeadHR'); // ✅ WAJIB ADA
-
-    $employeeData = Employee::with('structuresnew')->whereIn('status', ['Active', 'Mutation', 'Pending'])
-        ->select('id', 'employee_name', 'join_date')
-        ->get();
-
-    // $employees = $employeeData->pluck('employee_name', 'id');
-$employees = Employee::with('structuresnew.submissionposition.positionRelation')
-    ->whereIn('status', ['Active', 'Mutation', 'Pending'])
-    ->get();
-    $employeeJoinDates = $employeeData
-        ->mapWithKeys(function ($item) {
-            return [$item->id => \Carbon\Carbon::parse($item->join_date)->format('Y-m-d')];
-        })
-        ->toArray();
-
-    $structures = Structuresnew::with('submissionposition.positionRelation')
-        ->get()
-        ->pluck('submissionposition.positionRelation.name', 'id');
-
-    $statusOptions = Contract::getContractStatusOptions();
-    $typeOptions   = Contract::getContractTypeOptions();
-$confirmedAt = session('contract_password_confirmed_at');
-
-$isPasswordExpired = true;
-
-if ($confirmedAt) {
-    $isPasswordExpired = now()->diffInMinutes($confirmedAt) >= 5;
-}
-    return view('pages.contract.createcontract', compact(
-        'employees',
-        'employeeJoinDates',
-        'structures',
-        'statusOptions',
-        'typeOptions',
-        'isHeadHR',
-    'isPasswordExpired'
-    ));
-}
-public function checkPassword(Request $request)
-{
-    if (Hash::check($request->password, auth()->user()->password)) {
-
-        session([
-            'contract_password_confirmed_at' => now()
+    public function checkPassword(Request $request)
+    {
+        if (Hash::check($request->password, auth()->user()->password)) {
+            session([
+                'contract_password_confirmed_at' => now()
+            ]);
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false]);
+    }
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees_tables,id',
+            'contract_type' => 'required|in:PKWT,On Job Training,DW',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'basic_salary' => 'nullable|numeric',
+            'positional_allowance' => 'nullable|numeric',
+            'daily_rate' => 'nullable|numeric',
+            'contract_status' => 'required|in:Active,Expired,Terminated',
+            'file_path' => 'nullable|file|mimes:pdf|max:2048',
+            'notes' => 'nullable|string',
         ]);
+        DB::beginTransaction();
+        try {
 
-        return response()->json(['success' => true]);
-    }
+            // ========================================================
+            // LOCK + CEK ACTIVE CONTRACT
+            // ========================================================
+            if ($validated['contract_status'] === 'Active') {
 
-    return response()->json(['success' => false]);
-}
+                $existsActive = Contract::where('employee_id', $validated['employee_id'])
+                    ->where('contract_status', 'Active')
+                    ->lockForUpdate() // 🔥 penting
+                    ->exists();
 
+                if ($existsActive) {
+                    throw new \Exception('Employee ini sudah memiliki contract Active');
+                }
+            }
+            // ========================================================
+            // AMBIL STRUCTURE
+            // ========================================================
+            $employee = Employee::findOrFail($validated['employee_id']);
 
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'employee_id' => 'required|exists:employees_tables,id',
-        'contract_type' => 'required|in:PKWT,On Job Training,DW',
-        'start_date' => 'required|date',
-        'end_date' => 'nullable|date|after_or_equal:start_date',
-        'basic_salary' => 'nullable|numeric',
-        'positional_allowance' => 'nullable|numeric',
-        'daily_rate' => 'nullable|numeric',
-        'contract_status' => 'required|in:Active,Expired,Terminated',
-        'file_path' => 'nullable|file|mimes:pdf|max:2048',
-        'notes' => 'nullable|string',
-    ]);
-    DB::beginTransaction();
+            if (!$employee->structure_id) {
+                throw new \Exception('Employee belum memiliki structure');
+            }
+            $validated['structure_id'] = $employee->structure_id;
+            // ========================================================
+            // FILE
+            // ========================================================
+            if ($request->hasFile('file_path')) {
+                $validated['file_path'] = $request->file('file_path')
+                    ->store('contracts', 'public');
+            }
+            // ========================================================
+            // CREATE
+            // ========================================================
+            Contract::create($validated);
+            DB::commit();
+            return redirect()
+                ->route('contracts.index')
+                ->with('success', 'Contract berhasil dibuat');
+        } catch (\Exception $e) {
 
-    try {
+            DB::rollBack();
 
-        // ========================================================
-    // LOCK + CEK ACTIVE CONTRACT
-    // ========================================================
-    if ($validated['contract_status'] === 'Active') {
-
-        $existsActive = Contract::where('employee_id', $validated['employee_id'])
-            ->where('contract_status', 'Active')
-            ->lockForUpdate() // 🔥 penting
-            ->exists();
-
-        if ($existsActive) {
-            throw new \Exception('Employee ini sudah memiliki contract Active');
+            return back()
+                ->withInput()
+                ->with('error', $e->getMessage());
         }
     }
-
-        // ========================================================
-        // AMBIL STRUCTURE
-        // ========================================================
-        $employee = Employee::findOrFail($validated['employee_id']);
-
-        if (!$employee->structure_id) {
-            throw new \Exception('Employee belum memiliki structure');
-        }
-        $validated['structure_id'] = $employee->structure_id;
-        // ========================================================
-        // FILE
-        // ========================================================
-        if ($request->hasFile('file_path')) {
-            $validated['file_path'] = $request->file('file_path')
-                ->store('contracts', 'public');
-        }
-        // ========================================================
-        // CREATE
-        // ========================================================
-        Contract::create($validated);
-        DB::commit();
-        return redirect()
-            ->route('contracts.index')
-            ->with('success', 'Contract berhasil dibuat');
-    } catch (\Exception $e) {
-
-        DB::rollBack();
-
-        return back()
-            ->withInput()
-            ->with('error', $e->getMessage());
-    }
-}
     public function transferAllToPayroll(Request $request)
     {
         try {

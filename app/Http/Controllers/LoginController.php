@@ -17,10 +17,10 @@ class LoginController extends Controller
     {
         return view('pages.login');
     }
-   
+
     public function store(Request $request)
     {
-        
+
         $attributes = $request->validate([
             'username' => [
                 'required',
@@ -76,20 +76,71 @@ class LoginController extends Controller
             RateLimiter::clear($rateLimiterKey);
             $user = Auth::user();
 
+            // ✅ Deklarasikan di sini, sebelum semua pengecekan
+            $currentSessionId = $request->session()->getId();
+            /**
+             *  Cek relasi employee dan status aktif
+             */
+            if (!$user->employee) {
+                Auth::logout();
+                RateLimiter::clear($rateLimiterKey);
+                return back()->withErrors(['/' => 'Your account is not yet connected to employee data.']);
+            }
+            if ($user->employee->status !== 'Active') {
+                Auth::logout();
+                RateLimiter::clear($rateLimiterKey);
+                return back()->withErrors(['/' => 'Your account is inactive. Please contact HR..']);
+            }
+
+
             /**
              * 🔐 Cek apakah password sama dengan username
              */
+            // if (Hash::check($normalizedUsername, $user->password)) {
+            //     Log::warning("User login with password same as username", [
+            //         'username' => $normalizedUsername,
+            //         'ip' => $request->ip(),
+            //     ]);
+
+            //     UserSession::updateOrCreate(
+            //         ['user_id' => $user->id, 'session_id' => $currentSessionId], // ✅ sudah ada
+            //         [
+            //             'ip_address'    => $request->ip(),
+            //             'last_activity' => now(),
+            //             'device_type'   => $request->header('User-Agent')
+            //         ]
+            //     );
+
+            //     return redirect()->route('pages.change-password')
+            //         ->with('warning', 'Your password is the same as your username. Please change your password first.');
+            // }
             if (Hash::check($normalizedUsername, $user->password)) {
                 Log::warning("User login with password same as username", [
                     'username' => $normalizedUsername,
                     'ip' => $request->ip(),
                 ]);
+
+                // ✅ Hapus sesi lain dulu sebelum simpan sesi baru
+                UserSession::where('user_id', $user->id)
+                    ->where('session_id', '!=', $currentSessionId)
+                    ->delete();
+
+                UserSession::updateOrCreate(
+                    ['user_id' => $user->id, 'session_id' => $currentSessionId],
+                    [
+                        'ip_address'    => $request->ip(),
+                        'last_activity' => now(),
+                        'device_type'   => $request->header('User-Agent')
+                    ]
+                );
+
                 return redirect()->route('pages.change-password')
                     ->with('warning', 'Your password is the same as your username. Please change your password first.');
             }
 
+
             /**
-             * 🔍 Cek relasi employee dan status aktif
+             *  Cek relasi employee dan status aktif
              */
             if (!$user->employee) {
                 Auth::logout();
@@ -102,7 +153,7 @@ class LoginController extends Controller
                 return back()->withErrors(['/' => 'Your account is inactive. Please contact HR..']);
             }
             /**
-             * 🔁 Cek apakah user sudah login di device lain
+             *  Cek apakah user sudah login di device lain
              */
             $currentSessionId = $request->session()->getId();
             $existingSession = UserSession::where('user_id', $user->id)

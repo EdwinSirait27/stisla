@@ -115,6 +115,7 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
         protected bool $canManageAll,
         protected ?string $myStoreId,
         protected ?string $storeName = null,
+        protected ?string $employeeIdFilter = null, 
     ) {}
 
     public function registerEvents(): array
@@ -130,21 +131,38 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
                     'employee.position:id,name',
                     'shift:id,shift_name,start_time,end_time',
                 ])
-                ->whereBetween('date', [$this->startDate, $this->endDate])
-                ->whereHas('employee', function ($q) {
-                    $q->whereNull('deleted_at');
-                    if ($this->search) {
-                        $q->where('employee_name', 'like', '%' . $this->search . '%');
-                    }
-                    if ($this->canManageAll) {
-                        if ($this->storeId) $q->where('store_id', $this->storeId);
-                    } else {
-                        $q->where('store_id', $this->myStoreId);
-                    }
-                })
-                ->orderBy('employee_id')
-                ->orderBy('date')
-                ->get();
+                    ->whereBetween('date', [$this->startDate, $this->endDate])
+                    // ->whereHas('employee', function ($q) {
+                    //     $q->whereNull('deleted_at');
+                    //     if ($this->search) {
+                    //         $q->where('employee_name', 'like', '%' . $this->search . '%');
+                    //     }
+                    //     if ($this->canManageAll) {
+                    //         if ($this->storeId) $q->where('store_id', $this->storeId);
+                    //     } else {
+                    //         $q->where('store_id', $this->myStoreId);
+                    //     }
+                    // })
+                    ->whereHas('employee', function ($q) {
+    $q->whereNull('deleted_at');
+
+    if ($this->search) {
+        $q->where('employee_name', 'like', '%' . $this->search . '%');
+    }
+
+    if ($this->employeeIdFilter) {
+        // ViewRoster: hanya data diri sendiri
+        $q->where('id', $this->employeeIdFilter);
+    } elseif ($this->canManageAll) {
+        if ($this->storeId) $q->where('store_id', $this->storeId);
+    } else {
+        // SPV
+        $q->where('store_id', $this->myStoreId);
+    }
+})
+                    ->orderBy('employee_id')
+                    ->orderBy('date')
+                    ->get();
 
                 // ── Generate tanggal ──
                 $dates   = [];
@@ -199,33 +217,33 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-               
+
                 foreach ($dates as $i => $date) {
-    $col   = $this->colLetter($i + 2);
-    $isSun = $date->isSunday();
+                    $col   = $this->colLetter($i + 2);
+                    $isSun = $date->isSunday();
 
-    $bgColor  = $isSun ? 'FFFFFF00' : null;
-    $txtColor = 'FF000000';
+                    $bgColor  = $isSun ? 'FFFFFF00' : null;
+                    $txtColor = 'FF000000';
 
-    $style = [
-        'font' => [
-            'bold'  => true,
-            'color' => ['argb' => $txtColor]
-        ],
-        'alignment' => [
-            'horizontal' => Alignment::HORIZONTAL_CENTER
-        ],
-    ];
+                    $style = [
+                        'font' => [
+                            'bold'  => true,
+                            'color' => ['argb' => $txtColor]
+                        ],
+                        'alignment' => [
+                            'horizontal' => Alignment::HORIZONTAL_CENTER
+                        ],
+                    ];
 
-    if ($isSun) {
-        $style['fill'] = [
-            'fillType'   => Fill::FILL_SOLID,
-            'startColor' => ['argb' => $bgColor],
-        ];
-    }
+                    if ($isSun) {
+                        $style['fill'] = [
+                            'fillType'   => Fill::FILL_SOLID,
+                            'startColor' => ['argb' => $bgColor],
+                        ];
+                    }
 
-    $sheet->getStyle("{$col}3:{$col}4")->applyFromArray($style);
-}
+                    $sheet->getStyle("{$col}3:{$col}4")->applyFromArray($style);
+                }
 
                 // ── Baris 5+: Data employee ──
                 $grouped = $query->groupBy('employee_id');
@@ -244,102 +262,59 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFF00']],
                     ]);
 
+
                     // Kolom tanggal
-                    // foreach ($dates as $i => $date) {
-                    //     $col     = $this->colLetter($i + 2);
-                    //     $dateStr = $date->toDateString();
-                    //     $roster  = $rosterMap->get($dateStr);
-                    //     $isSun   = $date->isSunday();
-                    //     $isToday = $date->isToday();
+                    foreach ($dates as $i => $date) {
+                        $col     = $this->colLetter($i + 2);
+                        $dateStr = $date->toDateString();
+                        $roster  = $rosterMap->get($dateStr);
+                        $isSun   = $date->isSunday();
 
-                    //     // Nilai cell: singkatan shift
-                    //     $value = '';
-                    //     if ($roster) {
-                    //         $value = match ($roster->day_type) {
-                    //             'Off'             => 'Off',  // Pulang/Off
-                    //             'Public Holiday'  => 'PH',
-                    //             'Leave'           => 'C',  // Cuti
-                    //             'Cuti Melahirkan' => 'CM',
-                    //             'Work'            => $roster->shift?->shift_name
-                    //                                 ? strtoupper(substr($roster->shift->shift_name, 0, 1))
-                    //                                 : 'M',
-                    //             default           => '',
-                    //         };
-                    //     }
+                        // Nilai cell
+                        $value = '';
+                        if ($roster) {
+                            $value = match ($roster->day_type) {
+                                'Off'             => 'Off',
+                                'Public Holiday'  => 'PH',
+                                'Leave'           => 'C',
+                                'Cuti Melahirkan' => 'CM',
+                                'Work'            => $roster->shift?->shift_name
+                                    ? strtoupper(substr($roster->shift->shift_name, 0, 1))
+                                    : 'M',
+                                default           => '',
+                            };
+                        }
 
-                    //     $sheet->setCellValue("{$col}{$rowNum}", $value);
+                        $sheet->setCellValue("{$col}{$rowNum}", $value);
 
-                    //     // Background
-                    //     if (!$roster && !$isSun) {
-                    //         // Kosong = hitam
-                    //         $bg = 'FF000000';
-                    //         $sheet->getStyle("{$col}{$rowNum}")->getFont()->setColor(
-                    //             new \PhpOffice\PhpSpreadsheet\Style\Color('FF000000')
-                    //         );
-                    //     } elseif ($isSun) {
-                    //         $bg = 'FFFFFF00'; // Minggu = kuning
-                    //     } else {
-                    //         $bg = 'FFFFFFFF'; // Normal = putih
-                    //     }
+                        // ── Background logic ──
+                        $nonWorkTypes = ['Off', 'Public Holiday', 'Leave', 'Cuti Melahirkan'];
+                        $isNonWork    = $roster && in_array($roster->day_type, $nonWorkTypes);
 
-                    //     $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
-                    //         'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => $bg]],
-                    //         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-                    //         'font'      => ['size' => 10],
-                    //     ]);
-                    // }
-                    // Kolom tanggal
-foreach ($dates as $i => $date) {
-    $col     = $this->colLetter($i + 2);
-    $dateStr = $date->toDateString();
-    $roster  = $rosterMap->get($dateStr);
-    $isSun   = $date->isSunday();
+                        if ($isSun) {
+                            // Minggu tetap kuning, apapun day_type-nya
+                            $bg        = 'FFFFFF00';
+                            $fontColor = 'FF000000';
+                        } elseif ($isNonWork) {
+                            // Off, PH, Leave, CM di hari biasa = merah
+                            $bg        = 'FFEF4444';
+                            $fontColor = 'FFFFFFFF'; // teks putih agar kontras
+                        } elseif (!$roster) {
+                            // Kosong = hitam
+                            $bg        = 'FF000000';
+                            $fontColor = 'FF000000';
+                        } else {
+                            // Work = putih
+                            $bg        = 'FFFFFFFF';
+                            $fontColor = 'FF000000';
+                        }
 
-    // Nilai cell
-    $value = '';
-    if ($roster) {
-        $value = match ($roster->day_type) {
-            'Off'             => 'Off',
-            'Public Holiday'  => 'PH',
-            'Leave'           => 'C',
-            'Cuti Melahirkan' => 'CM',
-            'Work'            => $roster->shift?->shift_name
-                                ? strtoupper(substr($roster->shift->shift_name, 0, 1))
-                                : 'M',
-            default           => '',
-        };
-    }
-
-    $sheet->setCellValue("{$col}{$rowNum}", $value);
-
-    // ── Background logic ──
-    $nonWorkTypes = ['Off', 'Public Holiday', 'Leave', 'Cuti Melahirkan'];
-    $isNonWork    = $roster && in_array($roster->day_type, $nonWorkTypes);
-
-    if ($isSun) {
-        // Minggu tetap kuning, apapun day_type-nya
-        $bg        = 'FFFFFF00';
-        $fontColor = 'FF000000';
-    } elseif ($isNonWork) {
-        // Off, PH, Leave, CM di hari biasa = merah
-        $bg        = 'FFEF4444';
-        $fontColor = 'FFFFFFFF'; // teks putih agar kontras
-    } elseif (!$roster) {
-        // Kosong = hitam
-        $bg        = 'FF000000';
-        $fontColor = 'FF000000';
-    } else {
-        // Work = putih
-        $bg        = 'FFFFFFFF';
-        $fontColor = 'FF000000';
-    }
-
-    $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
-        'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => $bg]],
-        'font'      => ['size' => 10, 'color' => ['argb' => $fontColor]],
-        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-    ]);
-}
+                        $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+                            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => $bg]],
+                            'font'      => ['size' => 10, 'color' => ['argb' => $fontColor]],
+                            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                        ]);
+                    }
 
                     $rowNum++;
                 }

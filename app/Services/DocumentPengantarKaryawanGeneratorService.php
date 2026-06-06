@@ -140,20 +140,28 @@ class DocumentPengantarKaryawanGeneratorService
         }
     }
 
-    private function resolveConfig(Employee $employee): ?Companydocumentconfigs
-    {
-        if (
-            $employee->company_id === self::MAHENDRADATA_COMPANY_ID &&
-            $employee->status_employee === 'DW'
-        ) {
-            return Companydocumentconfigs::find(self::MAHENDRADATA_DW_CONFIG_ID);
-        }
+    // private function resolveConfig(Employee $employee): ?Companydocumentconfigs
+    // {
+    //     if (
+    //         $employee->company_id === self::MAHENDRADATA_COMPANY_ID &&
+    //         $employee->status_employee === 'DW'
+    //     ) {
+    //         return Companydocumentconfigs::find(self::MAHENDRADATA_DW_CONFIG_ID);
+    //     }
 
-        return Companydocumentconfigs::with(['documenttypes'])
-            ->where('company_id', $employee->company_id)
-            ->whereHas('documenttypes', fn($q) => $q->where('nickname', 'SPK'))
-            ->where('is_active', true)
-            ->where('id', '!=', self::MAHENDRADATA_DW_CONFIG_ID)
-            ->first();
-    }
+    //     return Companydocumentconfigs::with(['documenttypes'])
+    //         ->where('company_id', $employee->company_id)
+    //         ->whereHas('documenttypes', fn($q) => $q->where('nickname', 'SPK'))
+    //         ->where('is_active', true)
+    //         ->where('id', '!=', self::MAHENDRADATA_DW_CONFIG_ID)
+    //         ->first();
+    // }
+    private function resolveConfig(Employee $employee): ?Companydocumentconfigs
+{
+    return Companydocumentconfigs::with(['documenttypes'])
+        ->where('company_id', $employee->company_id)
+        ->whereHas('documenttypes', fn($q) => $q->where('nickname', 'SPK'))
+        ->where('is_active', true)
+        ->first();
+}
 }

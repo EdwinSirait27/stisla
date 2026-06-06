@@ -1641,56 +1641,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Announcement Preview Modal -->
-    {{-- <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-bullhorn me-2"></i>
-                        Holiday Schedule for December
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-4 pb-3 border-bottom">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <small class="text-muted">Published By</small>
-                                <p class="mb-0 font-weight-bold">HR Department</p>
-                            </div>
-                            <div class="col-md-6">
-                                <small class="text-muted">Date</small>
-                                <p class="mb-0 font-weight-bold">December 1, 2024</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="line-height: 1.8;">
-                        <p>Dear Team,</p>
-                        <p>Please note the following holiday schedule for December 2024:</p>
-                        <ul>
-                            <li><strong>Christmas Eve & Christmas:</strong> December 24-26, 2024 (Office Closed)</li>
-                            <li><strong>New Year's Eve & New Year:</strong> December 31, 2024 - January 1, 2025 (Office
-                                Closed)</li>
-                        </ul>
-                        <p>Regular office hours will resume on January 2, 2025.</p>
-                        <p>For urgent matters during the holiday period, please contact the emergency hotline.</p>
-                        <p>Wishing you and your families a wonderful holiday season!</p>
-                        <p>Best regards,<br>HR Department</p>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <small class="text-muted text-center w-100">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        Official announcement from HR Department
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div> --}}
     <div class="modal fade" id="announcementModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -1725,6 +1675,24 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+          @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ session('error') }}'
+            });
+        @endif
+    </script>
     <script>
         // Isi modal saat announcement diklik
         $('#announcementModal').on('show.bs.modal', function(e) {

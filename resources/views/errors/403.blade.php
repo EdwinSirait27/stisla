@@ -1,177 +1,3 @@
-{{-- @extends('layouts.error')
-
-@section('title', '403 Forbidden')
-
-<style>
-    body {
-        background: url('{{ asset('img/unsplash/bg.jpg') }}') no-repeat center center fixed;
-        background-size: cover;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        font-family: 'Arial', sans-serif;
-    }
-
-    .container {
-        max-width: 600px;
-        text-align: center;
-        background: rgba(255, 255, 255, 0.8);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-        font-size: 80px;
-        font-weight: bold;
-        color: #e74c3c;
-        margin-bottom: 10px;
-        animation: fadeIn 1s ease-in-out;
-    }
-
-    .page-description {
-        font-size: 18px;
-        color: #555;
-        margin-bottom: 20px;
-    }
-
-    .btn-custom {
-        background-color: #e74c3c;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        font-size: 16px;
-        transition: 0.3s;
-    }
-
-    .btn-custom:hover {
-        background-color: #c0392b;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
-
-@section('main')
-<div class="container">
-    <h1>403</h1>
-    <p class="page-description">why do you visit this site.</p>
-    
-    <div class="mt-3">
-        @auth
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn-custom">Logout</button>
-        </form>
-        <button onclick="window.history.back()" class="btn-custom">go back</button>
-        @else
-          <a href="{{ url()->previous() }}" class="btn-custom">Back</a>
-
-        @endauth
-    </div>
-</div>
-@endsection
-
-@push('scripts')
-@endpush --}}
-{{-- @extends('layouts.error')
-
-@section('title', '404 Not Found')
-
-<style>
-    body {
-        background: url('{{ asset('img/unsplash/bg.jpg') }}') no-repeat center center fixed;
-        background-size: cover;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        font-family: 'Arial', sans-serif;
-    }
-
-    .container {
-        max-width: 600px;
-        text-align: center;
-        background: rgba(255, 255, 255, 0.8);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-        font-size: 80px;
-        font-weight: bold;
-        color: #e74c3c;
-        margin-bottom: 10px;
-        animation: fadeIn 1s ease-in-out;
-    }
-
-    .page-description {
-        font-size: 18px;
-        color: #555;
-        margin-bottom: 20px;
-    }
-
-    .btn-custom {
-        background-color: #e74c3c;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        font-size: 16px;
-        transition: 0.3s;
-    }
-
-    .btn-custom:hover {
-        background-color: #c0392b;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
-
-@section('main')
-<div class="container">
-    <h1>404</h1>
-    <p class="page-description">Not Found.</p>
-    <div class="mt-3">
-        @auth
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn-custom">Logout</button>
-            </form>
-        @else
-           <a href="{{ url()->previous() }}" class="btn-custom">Back</a>
-
-        @endauth
-    </div>
-</div>
-@endsection
-
-@push('scripts')
-@endpush --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -180,7 +6,6 @@
     <title>HRX — Asian Bay Development</title>
     <link rel="icon" type="image/png" href="{{ asset('img/AsianBay logomark.ico') }}">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Mulish:wght@300;400;500&display=swap" rel="stylesheet">
-
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -339,28 +164,29 @@
         <div class="code">403 — Forbidden</div>
         <h1>Forbidden <em>not</em><br>allowed.</h1>
         <p>why do you see this page?.</p>
-        <div class="actions">
+        {{-- <div class="actions">
              @auth
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-            {{-- <a href="{{ url('/') }}" class="btn"><span>Go to Dashboard</span></a> --}}
              <button type="submit" class="btn">Logout</button>
             </form>
         @else
             <a href="javascript:history.back()" class="back">← Go back</a>
             @endauth
-        </div>
+        </div> --}}
+        <div class="actions">
+    @auth
+        <a href="{{ route('pages.feature-profile') }}" class="back">← Go back</a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="btn">Logout</button>
+        </form>
+    @else
+        <a href="javascript:history.back()" class="back">← Go back</a>
+    @endauth
+</div>
     </main>
 
     <footer>© {{ date('Y') }} HRX · Developed by Edwin Sirait</footer>
 </body>
 </html>
- {{-- @auth
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn-custom">Logout</button>
-            </form>
-        @else
-           <a href="{{ url()->previous() }}" class="btn-custom">Back</a>
-
-        @endauth --}}

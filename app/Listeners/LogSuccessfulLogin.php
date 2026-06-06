@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use Illuminate\Auth\Events\Login;
-use App\Models\Activity;
+// use App\Models\Activity;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 
@@ -45,13 +45,13 @@ class LogSuccessfulLogin
                 }
             }
             
-            Activity::create([
-                'user_id' => $event->user->id,
-                'activity_type' => 'Login',
-                'activity_time' => now(),
-                'device_lan_mac' => $macAddresses['lan'] ?? null,
-                'device_wifi_mac' => $macAddresses['wifi'] ?? null,
-            ]);
+            // Activity::create([
+            //     'user_id' => $event->user->id,
+            //     'activity_type' => 'Login',
+            //     'activity_time' => now(),
+            //     'device_lan_mac' => $macAddresses['lan'] ?? null,
+            //     'device_wifi_mac' => $macAddresses['wifi'] ?? null,
+            // ]);
             
             Log::info("Login activity recorded for user: {$event->user->username}");
             Log::debug("Detected MAC Addresses", $macAddresses);

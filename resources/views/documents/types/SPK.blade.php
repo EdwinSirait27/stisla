@@ -382,11 +382,7 @@
             adalah karyawan dengan status <strong><u>{{ $employee->status_employee ?? '-' }}</u></strong> yang akan
             bergabung dengan <strong><u>{{ $employee->store->name ?? '-' }}</u></strong>
             Surat ini kami sampaikan sebagai pengantar resmi untuk keperluan administrasi dan agar
-            dapat ditunjukkan kepada <strong><u>LEADER</u></strong> yang bersangkutan pada saat mulai bekerja.
-
-            Dengan ini kami menyatakan bahwa data yang tercatat di atas adalah memang
-            <strong><u>BENAR</u></strong> Karyawan/Karyawati kami yang akan mengajukan
-            Pembukaan Rekening Payroll.
+            dapat ditunjukkan kepada <strong><u>LEADER / Manager</u></strong> yang bersangkutan pada saat mulai bekerja.
         </p>
 
         <p class="body-text">
@@ -409,21 +405,9 @@
                 </td>
                 <td style="width: 40%; text-align: center; vertical-align: bottom;">
 
-                    {{-- @if ($issued->signature)
-                        <img src="{{ route('employee.signature', basename($issued->signature)) }}" alt="Signature"
-                            style="
-                height: 70px;
-                width: auto;
-                display: block;
-                margin: 0 auto 4px 50px;
-            "> --}}
-            @if ($signatureData)
-    <img src="{{ $signatureData }}" alt="Signature" style="
-        height: 70px;
-        width: auto;
-        display: block;
-        margin: 0 auto 4px 50px;
-    ">
+                    @if ($signatureData)
+                        <img src="{{ $signatureData }}" alt="Signature"
+                            style="height: 70px; width: auto; display: block; margin: 0 auto 4px 50px;">
                     @else
                         <div style="height: 70px;"></div>
                     @endif
