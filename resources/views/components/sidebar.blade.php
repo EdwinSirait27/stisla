@@ -251,9 +251,18 @@
         <li class="{{ Request::is('payrollcomponents') ? 'active' : '' }}">
             <a class="nav-link" href="{{ url('payrollcomponents') }}">Payroll Components</a>
         </li>
-        <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
+        <li class="{{ Request::is('employee-salary') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ url('employee-salary') }}">Employee Salary</a>
         </li>
+        <li class="{{ Request::is('payroll-period') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ url('payroll-period') }}">Payroll Period</a>
+        </li>
+        {{-- <li class="{{ Request::is('payroll') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ url('payroll') }}">Payroll</a>
+        </li> --}}
+        {{-- <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
+        </li> --}}
     </ul>
 </li>
 @endcan

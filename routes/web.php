@@ -63,6 +63,9 @@ use App\Http\Controllers\AssetCategoriesController;
 use App\Http\Controllers\OvertimesubmissionsController;
 use App\Http\Controllers\SkLetterController;
 use App\Http\Controllers\UserrnrController;
+use App\Http\Controllers\EmployeeSalaryController;
+use App\Http\Controllers\PayrollPeriodController;
+use App\Http\Controllers\PayrollController;
 use App\Models\Contract;
 /*
 |--------------------------------------------------------------------------
@@ -202,25 +205,25 @@ Route::middleware(['auth', 'force.password.change','role:Admin|HeadHR|HR|Human|M
     });
 
     // ── Payrolls ──
-    Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
-        Route::get('/Payrolls', [PayrollsController::class, 'index'])
-            ->name('pages.Payrolls');
-        Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->name('Payrolls.edit');
-        Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
-        Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
-        Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
-        Route::delete('/payrolls/delete-bulk', [PayrollsController::class, 'bulkDelete'])->name('payrolls.bulkDelete');
-        Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
-        Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
-        Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
-        Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
-        Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
-            ->name('pages.Importpayroll');
-        Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
-        Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
-        Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
-        Route::get('/payroll/export', [PayrollsController::class, 'export'])->name('payroll.export');
-    });
+    // Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
+    //     Route::get('/Payrolls', [PayrollsController::class, 'index'])
+    //         ->name('pages.Payrolls');
+    //     Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->name('Payrolls.edit');
+    //     Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
+    //     Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
+    //     Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
+    //     Route::delete('/payrolls/delete-bulk', [PayrollsController::class, 'bulkDelete'])->name('payrolls.bulkDelete');
+    //     Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
+    //     Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
+    //     Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
+    //     Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
+    //     Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
+    //         ->name('pages.Importpayroll');
+    //     Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
+    //     Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
+    //     Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
+    //     Route::get('/payroll/export', [PayrollsController::class, 'export'])->name('payroll.export');
+    // });
 
 
     Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
@@ -605,6 +608,46 @@ Route::get('/Team', [DashManagerController::class, 'team'])
         Route::put('/payrollcomponents/{id}', [PayrollcomponentsController::class, 'update'])->name('updatepayrollcomponents');
         Route::get('/payrollcomponents/payrollcomponents', [PayrollcomponentsController::class, 'getPayrollcomponents'])->name('payrollcomponents.payrollcomponents');
     });
+    Route::prefix('employee-salary')->name('employeesalary.')->group(function () {
+    Route::group(['middleware' => ['auth', 'permission:ManageEmployeeSalary']], function () {
+    Route::get('/',             [EmployeeSalaryController::class, 'index'])->name('index');
+    Route::get('/data',         [EmployeeSalaryController::class, 'getEmployeeSalaries'])->name('data');
+    Route::get('/activity', [EmployeeSalaryController::class, 'getActivitySalary'])->name('activity');
+    Route::get('/create',       [EmployeeSalaryController::class, 'create'])->name('create');
+Route::get('/export', [EmployeeSalaryController::class, 'export'])->name('export');
+    Route::get('/template',     [EmployeeSalaryController::class, 'downloadTemplate'])->name('template'); // ← tambah ini
+    Route::post('/',            [EmployeeSalaryController::class, 'store'])->name('store');
+    Route::post('/import',      [EmployeeSalaryController::class, 'import'])->name('import');
+    Route::get('/{id}/edit',    [EmployeeSalaryController::class, 'edit'])->name('edit');
+    Route::put('/{id}',         [EmployeeSalaryController::class, 'update'])->name('update');
+    });
+});
+
+Route::prefix('payroll-period')->name('payrollperiod.')->group(function () {
+    Route::group(['middleware' => ['auth', 'permission:ManagePayrollPeriod']], function () {
+        Route::get('/',              [PayrollPeriodController::class, 'index'])->name('index');
+        Route::get('/data',          [PayrollPeriodController::class, 'getPayrollPeriod'])->name('data');
+        Route::post('/',             [PayrollPeriodController::class, 'store'])->name('store');
+        Route::get('/{id}/close',    [PayrollPeriodController::class, 'close'])->name('close');
+        Route::get('/{id}/lock',     [PayrollPeriodController::class, 'lock'])->name('lock');
+    });
+});
+
+Route::prefix('payroll')->name('payroll.')->group(function () {
+    Route::group(['middleware' => ['auth', 'permission:ManagePayroll']], function () {
+        Route::get('/{periodId}',              [PayrollController::class, 'index'])->name('index');
+        Route::get('/{periodId}/data',         [PayrollController::class, 'getPayroll'])->name('data');
+        Route::get('/{periodId}/generate',     [PayrollController::class, 'generate'])->name('generate');
+        Route::post('/{periodId}/generate-one',[PayrollController::class, 'generateOne'])->name('generateOne');
+        Route::get('/{periodId}/export', [PayrollController::class, 'export'])->name('export');
+        Route::get('/{id}/show',               [PayrollController::class, 'show'])->name('show');
+        Route::get('/{id}/edit',               [PayrollController::class, 'edit'])->name('edit');
+        Route::put('/{id}',                    [PayrollController::class, 'update'])->name('update');
+        Route::post('/{id}/approve',           [PayrollController::class, 'approve'])->name('approve');
+        Route::post('/approve-bulk',           [PayrollController::class, 'approveBulk'])->name('approveBulk');
+        Route::post('/{id}/paid',              [PayrollController::class, 'paid'])->name('paid');
+    });
+});
 
     // ── Position Request List ──
     Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], function () {

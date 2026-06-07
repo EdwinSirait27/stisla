@@ -21,6 +21,7 @@
         "maatwebsite/excel": "^3.1",
         "milon/barcode": "^12.0",
         "opcodesio/log-viewer": "^3.24",
+        "phpoffice/phpspreadsheet": "^1.30",
         "predis/predis": "*",
         "ramsey/uuid": "^4.7",
         "rappasoft/laravel-livewire-tables": "^3.7",

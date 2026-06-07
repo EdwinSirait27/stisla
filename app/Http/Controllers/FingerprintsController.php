@@ -439,7 +439,7 @@ private function buildFingerprintResult(
         ->whereNotNull('pin');
 
     if ($canViewOwn && !$canManage && !$canSpvManager) {
-        $employeesQuery->where('pin', $user->pin);
+        $employeesQuery->where('pin', $user->employee->pin);
     } elseif ($canSpvManager && !$canManage) {
         $employeesQuery->where('store_id', $user->employee->store_id);
     } else {

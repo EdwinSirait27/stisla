@@ -10,7 +10,7 @@ class PayrollcomponentsController extends Controller
 {
     public function getPayrollcomponents(Request $request)
     {
-        $query = Payrollcomponents::select('id',  'component_name', 'type', 'is_fixed');
+        $query = Payrollcomponents::select('id',  'component_name', 'type', 'is_fixed','is_employer_burden');
         return DataTables::eloquent($query)
             ->addColumn('action', function ($payroll) {
                 $id =  $payroll->id;
@@ -31,29 +31,34 @@ class PayrollcomponentsController extends Controller
             ->make(true);
     }
 
-    public function update(Request $request, $id)
-    {
-        $payroll = Payrollcomponents::findOrFail($id);
+   public function update(Request $request, $id)
+{
+    $payroll = Payrollcomponents::findOrFail($id);
 
-        // ✅ validasi
-        $validated = $request->validate([
-            'component_name'   => 'required|string|max:255|unique:payroll_components,component_name' . $payroll->id,
-            'type'        => 'required|in:Income,Deduction',
-            'is_fixed'       => 'nullable|boolean',
-        ]);
-        // ✅ update
-        $payroll->update($validated);
+    $validated = $request->validate([
+        'component_name' => 'required|string|max:255|unique:payroll_components,component_name,' . $payroll->id,
+        'type'           => 'required|in:Income,Deduction',
+        'is_fixed'       => 'nullable|boolean',
+        'is_employer_burden'       => 'nullable|boolean',
+    ]);
 
-        return redirect()
-            ->route('payrollcomponents')
-            ->with('success', 'Payroll Components Updated Successfully');
-    }
+    // Checkbox tidak terkirim jika tidak dicentang, default ke false
+    $validated['is_fixed'] = $request->boolean('is_fixed');
+    $validated['is_employer_burden'] = $request->boolean('is_employer_burden');
+
+    $payroll->update($validated);
+
+    return redirect()
+        ->route('payrollcomponents')
+        ->with('success', 'Payroll Components Updated Successfully');
+}
     public function store(Request $request)
     {
         $validated = $request->validate([
             'component_name'   => 'required|string|max:255|unique:payroll_components,component_name',
             'type'        => 'required|in:Income,Deduction',
             'is_fixed'       => 'nullable|boolean',
+            'is_employer_burden'       => 'nullable|boolean',
         ]);
         $payrolls = Payrollcomponents::create($validated);
         return redirect()

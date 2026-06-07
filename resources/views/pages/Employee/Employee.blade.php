@@ -421,7 +421,52 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
-        
+
+        /* #filter-emp-status + .select2-container .select2-selection--multiple {
+        height: 32px !important;
+        font-size: .775rem !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: .4rem !important;
+        min-width: 125px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+    } */
+        #filter-emp-status+.select2-container .select2-selection--multiple {
+            min-height: 32px !important;
+            height: auto !important;
+            /* expand otomatis */
+            font-size: .775rem !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: .4rem !important;
+            min-width: 125px;
+            max-width: 250px;
+            /* biar tidak terlalu lebar */
+            padding: 2px 4px;
+        }
+
+        #filter-emp-status+.select2-container .select2-selection__choice {
+            font-size: .7rem !important;
+            padding: 1px 6px !important;
+            margin: 2px !important;
+            border-radius: .3rem !important;
+            background-color: #4f46e5 !important;
+            /* sesuaikan warna badge */
+            border: none !important;
+            color: #fff !important;
+        }
+
+        #filter-emp-status+.select2-container .select2-selection__choice__remove {
+            color: #fff !important;
+            margin-right: 4px;
+        }
+
+        #filter-emp-status+.select2-container .select2-selection__rendered {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            padding: 2px !important;
+            gap: 2px;
+        }
     </style>
 @endpush
 
@@ -533,6 +578,25 @@
                             @endforeach
 
                         </select>
+                        {{-- <select id="filter-emp-status" 
+        multiple 
+        data-placeholder="All Emp. Status"
+        style="height:32px;font-size:.775rem;min-width:125px;">
+   <option value="">All Emp. Status</option>
+    @foreach ($employeestatuses as $status)
+    <option value="{{ $status }}">{{ $status }}</option>
+@endforeach
+</select> --}}
+                        {{-- <select id="filter-emp-status" 
+    multiple 
+    data-placeholder="All Emp. Status"
+    style="font-size:.775rem;max-width:100px;">
+    @foreach ($employeestatuses as $status)
+        <option value="{{ $status }}">{{ $status }}</option>
+    @endforeach
+</select> --}}
+                        {{-- @dd($employeestatuses) --}}
+
                         <select id="filter-grading" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Grd</option>
@@ -653,8 +717,12 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $('.select2').select2({
-            width: 'resolve' // atau bisa dihapus saja
+        $(function() {
+            $('#filter-emp-status').select2({
+                placeholder: 'All Emp. Status',
+                allowClear: true,
+                width: 'resolve'
+            });
         });
     </script>
     <script>
@@ -759,7 +827,7 @@
                     }
                 },
                 columns: [
-               
+
                     {
                         data: 'employee_name',
                         className: 'text-center',
