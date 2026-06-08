@@ -848,15 +848,12 @@ public function updateFingerprint(Request $request)
                 return ["in_$i" => 'nullable|string', "device_$i" => 'nullable|string'];
             })->toArray()
         ]);
-
         $attachmentPath = null;
-
         if ($request->hasFile('attachment')) {
             $file     = $request->file('attachment');
             $safeName = Str::slug($request->input('employee_name', 'employee'));
             $fileName = $safeName . '-' . now()->timestamp . '-fingerprint.' . $file->getClientOriginalExtension();
             $folder   = 'employees-edited-fingerprints';
-
             Log::info('[attachment fingerprints] Info upload', [
                 'original_name' => $file->getClientOriginalName(),
                 'size'          => $file->getSize(),
@@ -864,7 +861,6 @@ public function updateFingerprint(Request $request)
                 'fileName'      => $fileName,
                 'folder'        => $folder,
             ]);
-
             // ── Hapus attachment lama jika ada ──
             $existing = EditedFingerprint::where('pin', $validated['pin'])
                 ->whereDate('scan_date', $validated['scan_date'])
