@@ -9,6 +9,8 @@ use App\Models\Stores;
 use App\Models\Roster;
 use App\Models\Fingerprintrecap;
 use App\Models\Devicefingerprint;
+use App\Models\FingerprintRecapArchive;
+use App\Services\FingerprintRecapCalculator;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Carbon\Carbon;
@@ -136,7 +138,7 @@ class FingerprintsController extends Controller
             ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
 
         // ── Pre-load existing manual recaps supaya TIDAK ditimpa ──
-        $existingManualRecaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+        $existingManualRecaps = Fingerprintrecap::whereIn('employee_id', $employeeIds)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->where('sync_status', self::SYNC_STATUS_MANUAL)
             ->get()
@@ -249,6 +251,57 @@ class FingerprintsController extends Controller
 
                 $synced++;
             }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        //  SIMPAN KE ARSIP (per store + periode)
+        //  Dihitung via service yang sama dengan halaman Fingerprint Recap
+        //  supaya angka arsip = angka tampilan.
+        // ════════════════════════════════════════════════════════════
+        try {
+            // Ambil ulang employees lengkap (butuh status_employee + store untuk hitung)
+            $employeesForArchive = Employee::with('store:id,name')
+                ->select('id', 'employee_name', 'store_id', 'status_employee')
+                ->whereIn('id', $employeeIds)
+                ->get();
+
+            $calculator = new FingerprintRecapCalculator();
+            $archiveRows = $calculator->calculate(
+                $employeesForArchive,
+                $startDate->toDateString(),
+                $endDate->toDateString()
+            );
+
+            DB::transaction(function () use ($archiveRows, $startDate, $endDate) {
+                foreach ($archiveRows as $row) {
+                    // Timpa: hapus arsip lama untuk (karyawan + store + periode) ini
+                    FingerprintRecapArchive::where('employee_id', $row['employee_id'])
+                        ->where('store_name', $row['store_name'])
+                        ->where('period_start', $startDate->toDateString())
+                        ->where('period_end', $endDate->toDateString())
+                        ->delete();
+
+                    // Tulis arsip baru
+                    FingerprintRecapArchive::create([
+                        'employee_id'      => $row['employee_id'],
+                        'employee_name'    => $row['employee_name'],
+                        'store_name'       => $row['store_name'],
+                        'period_start'     => $startDate->toDateString(),
+                        'period_end'       => $endDate->toDateString(),
+                        'total_hari_kerja' => $row['total_hari_kerja'],
+                        'total_hari_telat' => $row['total_hari_telat'],
+                        'remarks'          => $row['remarks'],
+                        'archived_by'      => optional(auth()->user())->id,
+                    ]);
+                }
+            });
+        } catch (\Exception $e) {
+            Log::error('Recap: gagal simpan arsip', [
+                'error' => $e->getMessage(),
+                'line'  => $e->getLine(),
+            ]);
+            // Arsip gagal TIDAK membatalkan sync yang sudah berhasil.
+            // Sync tetap sukses; arsip bisa diulang dengan recap lagi.
         }
 
         return response()->json([

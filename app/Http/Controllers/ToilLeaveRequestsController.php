@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Roster;
 use App\Models\Toilbalances;
 use App\Models\ToilLeaveRequests;
+use App\Models\ToilLeaveRequestBalance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,8 @@ class ToilLeaveRequestsController extends Controller
 
         // Strict: Manager harus punya structure_id
         if (!$manager || !$manager->structure_id) {
-            return redirect()->back()->with('error', 
+            return redirect()->back()->with(
+                'error',
                 'Anda harus terdaftar di struktur organisasi (structuresnew) untuk akses halaman ini.'
             );
         }
@@ -53,9 +55,9 @@ class ToilLeaveRequestsController extends Controller
         $manager = $user->employee;
 
         $query = ToilLeaveRequests::with([
-                'employee:id,employee_name,pin',
-                'balance.overtimeSubmission',
-            ])
+            'employee:id,employee_name,pin',
+            'balance.overtimeSubmission',
+        ])
             ->where('approver_id', $manager->id)
             ->orderBy('created_at', 'desc');
 
@@ -109,7 +111,6 @@ class ToilLeaveRequestsController extends Controller
         $user    = Auth::user();
         $manager = $user->employee;
 
-        // Validasi: karyawan harus bawahan manager
         $subordinateIds = $this->getSubordinates($manager)->pluck('id')->toArray();
         if (!in_array($employeeId, $subordinateIds)) {
             return response()->json([
@@ -119,31 +120,21 @@ class ToilLeaveRequestsController extends Controller
         }
 
         $saldoList = Toilbalances::ofType('Toil')
-            ->with('overtimeSubmission')
             ->where('employee_id', $employeeId)
             ->where('status', 'active')
             ->where('expires_at', '>=', today())
-            ->orderBy('expires_at', 'asc')
             ->get();
 
-        $data = $saldoList->map(function ($balance) {
-            $sub = $balance->overtimeSubmission;
-            return [
-                'id'              => $balance->id,
-                'work_date'       => $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
-                'remaining_hours' => number_format($balance->remaining_hours, 2),
-                'expires_at'      => $balance->expires_at->format('d M Y'),
-                'days_left'       => $balance->days_until_expired,
-                'label'           => sprintf(
-                    '%s jam — Lembur %s — Expired %s',
-                    number_format($balance->remaining_hours, 2),
-                    $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
-                    $balance->expires_at->format('d M Y')
-                ),
-            ];
-        });
+        $totalRemaining = $saldoList->sum(fn($b) => (float) $b->remaining_hours);
 
-        return response()->json(['data' => $data]);
+        // Saldo terdekat expired (untuk info)
+        $nearest = $saldoList->sortBy('expires_at')->first();
+
+        return response()->json([
+            'total_remaining' => number_format($totalRemaining, 2),
+            'count'           => $saldoList->count(),
+            'nearest_expiry'  => $nearest ? $nearest->expires_at->format('d M Y') : null,
+        ]);
     }
 
     /**
@@ -160,11 +151,10 @@ class ToilLeaveRequestsController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'employee_id'     => 'required|exists:employees_tables,id',
-            'toil_balance_id' => 'required|exists:toil_balances_tables,id',
-            'hours_used'      => 'required|numeric|min:0.5|max:8',
-            'leave_date'      => 'required|date|after_or_equal:today',
-            'reason'          => 'required|string|min:10|max:1000',
+            'employee_id' => 'required|exists:employees_tables,id',
+            'hours_used'  => 'required|numeric|min:0.5|max:8',
+            'leave_date'  => 'required|date|after_or_equal:today',
+            'reason'      => 'required|string|min:10|max:1000',
         ], [
             'hours_used.min'            => 'Minimal 0.5 jam.',
             'hours_used.max'            => 'Maksimal 8 jam (= 1 hari) per request.',
@@ -175,7 +165,7 @@ class ToilLeaveRequestsController extends Controller
         $user    = Auth::user();
         $manager = $user->employee;
 
-        // Strict: Manager harus punya structure_id
+        // Manager harus terdaftar di struktur
         if (!$manager || !$manager->structure_id) {
             return response()->json([
                 'success' => false,
@@ -183,7 +173,7 @@ class ToilLeaveRequestsController extends Controller
             ], 403);
         }
 
-        // Validasi: karyawan harus bawahan manager
+        // Karyawan harus bawahan manager
         $subordinateIds = $this->getSubordinates($manager)->pluck('id')->toArray();
         if (!in_array($validated['employee_id'], $subordinateIds)) {
             return response()->json([
@@ -192,75 +182,95 @@ class ToilLeaveRequestsController extends Controller
             ], 403);
         }
 
-        // Validasi saldo
-        $balance = Toilbalances::with('overtimeSubmission')->findOrFail($validated['toil_balance_id']);
-
-        if ($balance->employee_id !== $validated['employee_id']) {
+        // Cegah leave ganda di tanggal sama (poin 2 yang dulu kita catat)
+        $existingLeave = ToilLeaveRequests::where('employee_id', $validated['employee_id'])
+            ->whereDate('leave_date', $validated['leave_date'])
+            ->where('status', 'Approved')
+            ->exists();
+        if ($existingLeave) {
             return response()->json([
                 'success' => false,
-                'message' => 'Saldo ini bukan milik karyawan yang dipilih.',
+                'message' => 'Karyawan sudah punya TOIL Leave aktif di tanggal tersebut.',
             ], 422);
         }
 
-        if ($balance->overtimeSubmission->compensation_type !== 'Toil') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya saldo TOIL yang bisa diklaim untuk libur. Cash otomatis masuk payroll.',
-            ], 422);
-        }
+        // Ambil SEMUA saldo Toil aktif, urut FIFO (paling cepat expired dulu)
+        $balances = Toilbalances::ofType('Toil')
+            ->where('employee_id', $validated['employee_id'])
+            ->where('status', 'active')
+            ->where('expires_at', '>=', today())
+            ->orderBy('expires_at', 'asc')
+            ->get();
 
-        if ($balance->status !== 'active' || $balance->expires_at < today()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Saldo tidak aktif atau sudah expired.',
-            ], 422);
-        }
+        // Cek total saldo cukup
+        $totalAvailable = $balances->sum(fn($b) => (float) $b->remaining_hours);
+        $needed = (float) $validated['hours_used'];
 
-        if ($balance->remaining_hours < $validated['hours_used']) {
+        if ($totalAvailable < $needed) {
             return response()->json([
                 'success' => false,
-                'message' => "Saldo tidak cukup. Tersisa {$balance->remaining_hours} jam.",
+                'message' => "Saldo TOIL tidak cukup. Total tersedia {$totalAvailable} jam, diminta {$needed} jam.",
             ], 422);
         }
 
         try {
             DB::beginTransaction();
 
-            // 1. Cari roster di tanggal leave untuk simpan shift original
+            // Roster di tanggal leave (untuk simpan shift original)
             $roster = Roster::where('employee_id', $validated['employee_id'])
                 ->whereDate('date', $validated['leave_date'])
                 ->first();
-
             $originalShiftId = $roster?->shift_id;
 
-            // 2. Create TOIL Leave LANGSUNG dengan status 'Approved'
+            // Buat leave request — toil_balance_id diisi saldo PERTAMA (kompatibilitas)
+            $firstBalanceId = $balances->first()->id;
+
             $leaveRequest = ToilLeaveRequests::create([
                 'employee_id'       => $validated['employee_id'],
-                'toil_balance_id'   => $balance->id,
+                'toil_balance_id'   => $firstBalanceId,
                 'approver_id'       => $manager->id,
-                'hours_used'        => $validated['hours_used'],
+                'hours_used'        => $needed,
                 'leave_date'        => $validated['leave_date'],
                 'reason'            => $validated['reason'],
                 'original_shift_id' => $originalShiftId,
-                'status'            => 'Approved',           // ⭐ Skip Pending, langsung Approved
+                'status'            => 'Approved',
                 'approved_at'       => now(),
             ]);
 
-            // 3. Update saldo: tambah used_hours
-            $balance->update([
-                'used_hours' => $balance->used_hours + $validated['hours_used'],
-            ]);
+            // Potong FIFO dari beberapa saldo + catat ke pivot
+            $remainingToDeduct = $needed;
 
-            // 4. Refresh status balance (auto-handle transisi)
-            $balance->refresh();
-            $balance->refreshStatus();
+            foreach ($balances as $balance) {
+                if ($remainingToDeduct <= 0) break;
 
-            // 5. Update Roster: ubah day_type jadi Off
+                $available = (float) $balance->remaining_hours;
+                if ($available <= 0) continue;
+
+                $take = min($available, $remainingToDeduct);
+
+                // Catat potongan ke pivot
+                ToilLeaveRequestBalance::create([
+                    'leave_request_id' => $leaveRequest->id,
+                    'toil_balance_id'  => $balance->id,
+                    'hours_taken'      => $take,
+                ]);
+
+                // Update saldo
+                $balance->update([
+                    'used_hours' => (float) $balance->used_hours + $take,
+                ]);
+                $balance->refresh();
+                $balance->refreshStatus();
+
+                $remainingToDeduct -= $take;
+            }
+
+            // Update roster jadi Off
             if ($roster) {
                 $roster->update([
                     'day_type' => 'TOIL Off',
                     'shift_id' => null,
-                    'notes'    => 'Tukar TOIL' . $validated['hours_used'] . ' jam - ',
+                    'notes'    => 'Tukar TOIL ' . $needed . ' jam',
                 ]);
             }
 
@@ -307,7 +317,7 @@ class ToilLeaveRequestsController extends Controller
         ]);
 
         $manager      = Auth::user()->employee;
-        $leaveRequest = ToilLeaveRequests::with('balance')->findOrFail($id);
+        $leaveRequest = ToilLeaveRequests::with('balanceBreakdowns')->findOrFail($id);
 
         if ($leaveRequest->approver_id !== $manager->id) {
             return response()->json([
@@ -326,15 +336,20 @@ class ToilLeaveRequestsController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Kembalikan saldo
-            $balance = $leaveRequest->balance;
-            $balance->update([
-                'used_hours' => max(0, $balance->used_hours - $leaveRequest->hours_used),
-            ]);
+            // 1. Kembalikan jam ke TIAP saldo asal berdasarkan pivot
+            foreach ($leaveRequest->balanceBreakdowns as $breakdown) {
+                $balance = Toilbalances::find($breakdown->toil_balance_id);
+                if (!$balance) continue;
 
-            // 2. Refresh status balance
-            $balance->refresh();
-            $balance->refreshStatus();
+                $balance->update([
+                    'used_hours' => max(0, (float) $balance->used_hours - (float) $breakdown->hours_taken),
+                ]);
+                $balance->refresh();
+                $balance->refreshStatus();
+            }
+
+            // 2. Hapus catatan pivot (potongan sudah dikembalikan)
+            $leaveRequest->balanceBreakdowns()->delete();
 
             // 3. Restore roster ke shift original
             $this->restoreRosterFromCancel(
@@ -384,11 +399,11 @@ class ToilLeaveRequestsController extends Controller
         $structure = \App\Models\Structuresnew::with([
             'allChildren.employee' => function ($q) use ($manager) {
                 $q->where('status', 'Active')
-                  ->where('id', '!=', $manager->id)
-                  ->select('id', 'employee_name', 'pin', 'store_id', 'department_id', 'structure_id');
+                    ->where('id', '!=', $manager->id)
+                    ->select('id', 'employee_name', 'pin', 'store_id', 'department_id', 'structure_id');
             },
         ])
-        ->find($manager->structure_id);
+            ->find($manager->structure_id);
 
         if (!$structure) {
             return new \Illuminate\Database\Eloquent\Collection();
@@ -432,96 +447,4 @@ class ToilLeaveRequestsController extends Controller
             'notes'    => null,
         ]);
     }
-
-
-    /*
-    public function getActiveSaldoToil(Request $request)
-    {
-        // [OLD] Karyawan ambil daftar saldo TOIL aktif untuk dropdown klaim
-        // SUDAH TIDAK DIPAKAI — karyawan tidak bisa klaim sendiri
-        
-        $user     = Auth::user();
-        $employee = $user->employee;
-
-        $saldoList = Toilbalances::ofType('Toil')
-            ->with('overtimeSubmission')
-            ->where('employee_id', $employee->id)
-            ->where('status', 'active')
-            ->where('expires_at', '>=', today())
-            ->orderBy('expires_at', 'asc')
-            ->get();
-
-        $data = $saldoList->map(function ($balance) {
-            $sub = $balance->overtimeSubmission;
-            return [
-                'id'              => $balance->id,
-                'work_date'       => $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
-                'remaining_hours' => number_format($balance->remaining_hours, 2),
-                'expires_at'      => $balance->expires_at->format('d M Y'),
-                'days_left'       => $balance->days_until_expired,
-                'label'           => sprintf(
-                    '%s jam — Lembur %s — Expired %s',
-                    number_format($balance->remaining_hours, 2),
-                    $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
-                    $balance->expires_at->format('d M Y')
-                ),
-            ];
-        });
-
-        return response()->json(['data' => $data]);
-    }
-    */
-
-    /*
-    public function destroy($id)
-    {
-        // [OLD] Karyawan cancel request Pending sendiri
-        // SUDAH TIDAK DIPAKAI — karyawan tidak bisa klaim, jadi tidak ada Pending
-        
-        $user         = Auth::user();
-        $employee     = $user->employee;
-        $leaveRequest = ToilLeaveRequests::findOrFail($id);
-
-        if ($leaveRequest->employee_id !== $employee->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak punya akses untuk cancel request ini.',
-            ], 403);
-        }
-
-        if (!$leaveRequest->canBeCancelledByEmployee()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Request tidak bisa di-cancel.',
-            ], 422);
-        }
-
-        $leaveRequest->update(['status' => 'Cancelled']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Request berhasil di-cancel.',
-        ]);
-    }
-    */
-
-    /*
-    public function approve(Request $request, $id)
-    {
-        // [OLD] Manager approve request Pending
-        // SUDAH TIDAK DIPAKAI — store() langsung create dengan status 'Approved'
-        
-        // ... logic approve lama
-    }
-    */
-
-    /*
-    public function reject(Request $request, $id)
-    {
-        // [OLD] Manager reject request Pending
-        // SUDAH TIDAK DIPAKAI — tidak ada Pending lagi
-        
-        // ... logic reject lama
-    }
-    */
 }

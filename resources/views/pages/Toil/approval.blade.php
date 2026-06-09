@@ -120,6 +120,22 @@
 
     .text-center { text-align: center; }
 
+    /* Beri ruang ikon sort di kanan tanpa menggeser teks dari datanya */
+    table.dataTable {
+        width: 100% !important;
+    }
+
+    table.dataTable thead th {
+        position: relative;
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    table.dataTable thead th:before,
+    table.dataTable thead th:after {
+        right: 0.4rem;
+    }
+
     .section-header h1 {
         font-weight: 600;
         color: #2d3748;
@@ -274,13 +290,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Select TOIL Balance <span class="text-danger">*</span></label>
-                                        {{-- ✅ Pakai select biasa tanpa form-control, Select2 akan override --}}
-                                        <select name="toil_balance_id" id="toil_balance_id" required disabled>
-                                            <option value="">-- Select an employee first --</option>
-                                        </select>
+                                        <label>Available TOIL Balance</label>
+                                        <div class="border rounded p-2" id="saldo-box"
+                                            style="background:#f8fafc; min-height:38px;">
+                                            <span id="saldo-display" class="text-muted">Select an employee first</span>
+                                        </div>
                                         <small class="form-text text-muted" id="saldo-info">
-                                            TOIL balance will load after selecting an employee
+                                            System will deduct from the oldest balance first (FIFO).
                                         </small>
                                     </div>
                                 </div>
@@ -476,13 +492,6 @@
                 width: '100%'
             });
 
-            // ── Init Select2: TOIL Balance dropdown ──
-            $('#toil_balance_id').select2({
-                placeholder: '-- Select an employee first --',
-                allowClear: true,
-                width: '100%'
-            });
-
             // ── Init Select2: Filter Status ──
             $('#filter-status').select2({
                 placeholder: 'All',
@@ -494,101 +503,54 @@
             var today = new Date().toISOString().split('T')[0];
             $('#leave_date').attr('min', today);
 
-            // ── Reset form (termasuk Select2) ──
+            // ── Reset form ──
             $('#btn-form-reset').on('click', function () {
                 $('#formCreateLeave')[0].reset();
                 $('#employee_id').val(null).trigger('change');
-
-                // ✅ Reset Select2 TOIL Balance
-                $('#toil_balance_id').empty()
-                    .append('<option value="">-- Select an employee first --</option>')
-                    .prop('disabled', true)
-                    .trigger('change');
-                $('#saldo-info').text('TOIL balance will load after selecting an employee');
+                $('#saldo-display').text('Select an employee first').addClass('text-muted');
+                $('#saldo-info').text('System will deduct from the oldest balance first (FIFO).');
+                $('#hours_used').attr('max', 8);
             });
 
-            // ── Load Employee TOIL Balance on employee change ──
+            // ── Load TOTAL TOIL balance saat pilih karyawan ──
             $('#employee_id').on('change', function () {
-                var employeeId   = $(this).val();
-                var $saldoSelect = $('#toil_balance_id');
-                var $saldoInfo   = $('#saldo-info');
+                var employeeId    = $(this).val();
+                var $saldoDisplay = $('#saldo-display');
+                var $saldoInfo    = $('#saldo-info');
 
                 if (!employeeId) {
-                    // ✅ Reset Select2 TOIL Balance
-                    $saldoSelect.empty()
-                        .append('<option value="">-- Select an employee first --</option>')
-                        .prop('disabled', true)
-                        .trigger('change');
-                    $saldoSelect.select2({
-                        placeholder: '-- Select an employee first --',
-                        allowClear: true,
-                        width: '100%'
-                    });
-                    $saldoInfo.text('TOIL balance will load after selecting an employee');
+                    $saldoDisplay.text('Select an employee first').addClass('text-muted');
+                    $saldoInfo.text('System will deduct from the oldest balance first (FIFO).');
+                    $('#hours_used').attr('max', 8);
                     return;
                 }
 
-                // ✅ Loading state di Select2
-                $saldoSelect.empty()
-                    .append('<option value="">Loading balance...</option>')
-                    .prop('disabled', true)
-                    .trigger('change');
-                $saldoInfo.text('Loading employee TOIL balance...');
+                $saldoDisplay.text('Loading balance...').addClass('text-muted');
 
                 $.get('{{ url('toil/approval/saldo') }}/' + employeeId, function (res) {
-                    $saldoSelect.empty();
+                    var total = parseFloat(res.total_remaining || 0);
 
-                    if (!res.data || res.data.length === 0) {
-                        $saldoSelect.append('<option value="">No active TOIL balance found</option>')
-                            .prop('disabled', true)
-                            .trigger('change');
-                        $saldoSelect.select2({
-                            placeholder: 'No active TOIL balance found',
-                            allowClear: false,
-                            width: '100%'
-                        });
-                        $saldoInfo.html('<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> This employee has no active TOIL balance</span>');
+                    if (total <= 0) {
+                        $saldoDisplay.removeClass('text-muted')
+                            .html('<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> No active TOIL balance</span>');
+                        $saldoInfo.text('This employee has no TOIL balance to claim.');
+                        $('#hours_used').attr('max', 8);
                         return;
                     }
 
-                    // ✅ Isi options dan re-init Select2
-                    $saldoSelect.append('<option value="">-- Select Balance --</option>');
-                    res.data.forEach(function (s) {
-                        $saldoSelect.append(
-                            '<option value="' + s.id + '" data-max="' + s.remaining_hours + '">' +
-                            s.label + '</option>'
-                        );
-                    });
+                    var nearest = res.nearest_expiry ? ' — nearest expiry ' + res.nearest_expiry : '';
+                    $saldoDisplay.removeClass('text-muted')
+                        .html('<strong>' + res.total_remaining + ' hours</strong> available (' +
+                              res.count + ' record' + (res.count > 1 ? 's' : '') + ')' + nearest);
 
-                    $saldoSelect.prop('disabled', false).trigger('change');
-                    $saldoSelect.select2({
-                        placeholder: '-- Select Balance --',
-                        allowClear: true,
-                        width: '100%'
-                    });
-
-                    $saldoInfo.text('Total ' + res.data.length + ' active balance(s)');
+                    var maxClaim = Math.min(total, 8);
+                    $('#hours_used').attr('max', maxClaim);
+                    $saldoInfo.text('Maximum claimable: ' + maxClaim + ' hours (oldest balance deducted first).');
 
                 }).fail(function (xhr) {
-                    var msg = xhr.responseJSON?.message || 'Failed to load balance';
-                    $saldoSelect.empty()
-                        .append('<option value="">Failed to load</option>')
-                        .prop('disabled', true)
-                        .trigger('change');
-                    $saldoInfo.html('<span class="text-danger">' + msg + '</span>');
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to load balance';
+                    $saldoDisplay.removeClass('text-muted').html('<span class="text-danger">' + msg + '</span>');
                 });
-            });
-
-            // ── Auto-set max hours based on selected balance ──
-            $('#toil_balance_id').on('change', function () {
-                var max = $(this).find(':selected').data('max');
-                if (max) {
-                    var maxAllowed = Math.min(parseFloat(max), 8);
-                    $('#hours_used').attr('max', maxAllowed);
-                    $('#hours_used').next('small').text(
-                        'Remaining balance: ' + max + ' hours. Maximum claimable: ' + maxAllowed + ' hours.'
-                    );
-                }
             });
 
             // ── DataTable History ──
@@ -596,6 +558,7 @@
                 processing: true,
                 serverSide: false,
                 autoWidth: false,
+                scrollX: false,
                 ajax: {
                     url: '{{ route('toil.approval.data') }}',
                     type: 'GET',
@@ -606,7 +569,6 @@
                         d.employee_search = $('#filter-employee').val();
                     }
                 },
-                responsive: true,
                 order: [[1, 'desc']],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
@@ -627,7 +589,7 @@
                                 '</div>';
                         }
                     },
-                    { data: 'leave_date',  className: 'text-center' },
+                    { data: 'leave_date', className: 'text-center' },
                     {
                         data: 'hours_used',
                         className: 'text-center',
@@ -635,7 +597,7 @@
                             return '<strong>' + data + ' hrs</strong>';
                         }
                     },
-                    { data: 'work_date',   className: 'text-center' },
+                    { data: 'work_date', className: 'text-center' },
                     {
                         data: 'reason',
                         render: function (data) {
@@ -650,7 +612,7 @@
                             return '<span class="badge-type badge-status-' + data + '">' + data + '</span>';
                         }
                     },
-                    { data: 'created_at',  className: 'text-center' },
+                    { data: 'created_at', className: 'text-center' },
                     {
                         data: 'id',
                         className: 'text-center',
@@ -686,16 +648,22 @@
                 if (e.which === 13) table.ajax.reload();
             });
 
+            // ── Cegah Enter men-submit form sebelum klik Submit ──
+            $('#formCreateLeave').on('keydown', function (e) {
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                }
+            });
+
             // ── Submit Create TOIL Leave ──
             $('#formCreateLeave').on('submit', function (e) {
                 e.preventDefault();
 
                 var formData = {
-                    employee_id:     $('#employee_id').val(),
-                    toil_balance_id: $('#toil_balance_id').val(),
-                    hours_used:      $('#hours_used').val(),
-                    leave_date:      $('#leave_date').val(),
-                    reason:          $('#reason').val()
+                    employee_id: $('#employee_id').val(),
+                    hours_used:  $('#hours_used').val(),
+                    leave_date:  $('#leave_date').val(),
+                    reason:      $('#reason').val()
                 };
 
                 Swal.fire({
@@ -710,7 +678,6 @@
                 }).then(function (result) {
                     if (!result.isConfirmed) return;
 
-                    // ✅ Processing state
                     var $btn = $('#btn-submit');
                     $btn.prop('disabled', true)
                         .html('<i class="fas fa-spinner fa-spin"></i> Processing...');
@@ -720,24 +687,19 @@
                         method: 'POST',
                         data:   formData,
                         success: function (res) {
-                            // ✅ Kembalikan button normal
                             $btn.prop('disabled', false)
                                 .html('<i class="fas fa-paper-plane"></i> Submit & Approve');
 
                             Swal.fire({ icon: 'success', title: 'Success', text: res.message });
 
-                            // ✅ Reset form + semua Select2
                             $('#formCreateLeave')[0].reset();
                             $('#employee_id').val(null).trigger('change');
-                            $('#toil_balance_id').empty()
-                                .append('<option value="">-- Select an employee first --</option>')
-                                .prop('disabled', true)
-                                .trigger('change');
-                            $('#saldo-info').text('TOIL balance will load after selecting an employee');
+                            $('#saldo-display').text('Select an employee first').addClass('text-muted');
+                            $('#saldo-info').text('System will deduct from the oldest balance first (FIFO).');
+                            $('#hours_used').attr('max', 8);
                             table.ajax.reload();
                         },
                         error: function (xhr) {
-                            // ✅ Kembalikan button normal saat error
                             $btn.prop('disabled', false)
                                 .html('<i class="fas fa-paper-plane"></i> Submit & Approve');
 
@@ -769,7 +731,6 @@
                 var id     = $('#cancel_id').val();
                 var reason = $('#cancel_reason').val();
 
-                // ✅ Processing state
                 var $btnCancel = $('#btn-confirm-cancel');
                 $btnCancel.prop('disabled', true)
                     .html('<i class="fas fa-spinner fa-spin"></i> Processing...');
@@ -779,7 +740,6 @@
                     method: 'POST',
                     data:   { _method: 'PUT', cancel_reason: reason },
                     success: function (res) {
-                        // ✅ Kembalikan button normal
                         $btnCancel.prop('disabled', false)
                             .html('<i class="fas fa-check"></i> Confirm Cancel');
 
@@ -788,11 +748,10 @@
                         table.ajax.reload();
                     },
                     error: function (xhr) {
-                        // ✅ Kembalikan button normal saat error
                         $btnCancel.prop('disabled', false)
                             .html('<i class="fas fa-check"></i> Confirm Cancel');
 
-                        var msg = xhr.responseJSON?.message || 'Failed to cancel';
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to cancel';
                         Swal.fire({ icon: 'error', title: 'Failed', text: msg });
                     }
                 });
