@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendances;
 use App\Models\User;
 use Illuminate\Http\Request;
-    use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SinkronPinFingerspotImport;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\DataTables;
@@ -45,10 +45,6 @@ public function getPins()
 
         return $employee;
     });
-
-
-
-
 
     return DataTables::of($employees)
         ->addColumn('name_store', fn($e) => optional(optional($e->Employee)->store)->name ?? 'Empty')
