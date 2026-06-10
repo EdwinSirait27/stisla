@@ -19,7 +19,6 @@
         transform: translateY(-3px);
         box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
     }
-
     .card-header {
         background-color: #f8fafc;
         border-bottom: 1px solid rgba(0, 0, 0, 0.03);
@@ -40,6 +39,7 @@
         color: #5e72e4;
         transition: color 0.3s ease;
     }
+
     /* Table Styles */
     .table-responsive {
         padding: 0 1.5rem;
@@ -181,12 +181,13 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Grading Name</th>
-                                               </tr>
+                                                <th class="text-center">Meal Allowance</th>
+                                            </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 <div class="action-buttons">
-                                    
+
                                 </div>
                             </div>
                         </div>
@@ -220,29 +221,28 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [
-                   
-                  
-                    
-                    {
+                columns: [{
                         data: 'grading_name',
                         name: 'grading_name',
                         className: 'text-center'
+                    },
+                    {
+                        data: 'meal_allowance',
+                        name: 'meal_allowance',
+                        className: 'text-center'
                     }
-                    
+
                 ],
-                initComplete: function() {
-                    }
+                initComplete: function() {}
             });
 
             @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                });
+            @endif
         });
     </script>
 @endpush
