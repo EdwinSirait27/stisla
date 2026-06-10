@@ -34,6 +34,11 @@ return [
     'bot_token' => env('TELEGRAM_BOT_TOKEN'),
     'chat_id' => env('TELEGRAM_CHAT_ID'),
 ],
+'whatsapp' => [
+    'enabled'  => env('WHATSAPP_ENABLED', false),
+    'endpoint' => env('WHATSAPP_ENDPOINT'),
+    'group_id' => env('WHATSAPP_GROUP_ID'),
+],
 
 
 ];

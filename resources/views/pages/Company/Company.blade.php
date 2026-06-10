@@ -57,7 +57,7 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -186,9 +186,12 @@
                                                 {{-- <th class="text-center">Company Key</th> --}}
                                                 {{-- <th class="text-center">Photo</th> --}}
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Header</th>
                                                 <th class="text-center">Nickname</th>
                                                 <th class="text-center">Address</th>
                                                 <th class="text-center">NPWP</th>
+                                                <th class="text-center">website</th>
+                                                <th class="text-center">email</th>
                                                 <th class="text-center">Remark</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -256,9 +259,12 @@
                 //         }
                 //     },
                 { data: 'name', name: 'name', className: 'text-center' },
+                { data: 'header', name: 'header', className: 'text-center' },
                 { data: 'nickname', name: 'nickname', className: 'text-center' },
                 { data: 'address', name: 'address', className: 'text-center' },
                 { data: 'npwp', name: 'npwp', className: 'text-center' },
+                { data: 'website', name: 'website', className: 'text-center' },
+                { data: 'email', name: 'email', className: 'text-center' },
                 { data: 'remark', name: 'remark', className: 'text-center' },
                
                 {

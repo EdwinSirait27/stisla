@@ -1,0 +1,853 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Employee;
+use App\Models\Roster;
+use App\Models\Shifts;
+use App\Models\Stores;
+use App\Models\PublicHoliday;
+use App\Models\ToilLeaveRequests;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
+class RosterforSupervisorManagerController extends Controller
+{
+     private function allowedDayTypes(?string $statusEmployee): array
+    {
+        $status = strtoupper($statusEmployee ?? '');
+        if ($status === 'DW') {
+            return ['Work', 'Off'];
+        }
+        if ($status === 'On Job Training') {
+            return ['Work', 'Off', 'Public Holiday'];
+        }
+        return ['Work', 'Off', 'Public Holiday', 'Leave', 'Cuti Melahirkan'];
+    }
+    private function getToilApprovedDatesMap(array $employeeIds, string $startDate, string $endDate): array
+    {
+        $approvedLeaves = ToilLeaveRequests::select('employee_id', 'leave_date')
+            ->whereIn('employee_id', $employeeIds)
+            ->where('status', 'Approved')
+            ->whereBetween('leave_date', [$startDate, $endDate])
+            ->get();
+
+        $map = [];
+        foreach ($approvedLeaves as $leave) {
+            $empId = $leave->employee_id;
+            $date  = Carbon::parse($leave->leave_date)->toDateString();
+
+            if (!isset($map[$empId])) {
+                $map[$empId] = [];
+            }
+            $map[$empId][] = $date;
+        }
+
+        return $map;
+    }
+    private function hasToilApproved(array $approvedMap, string $employeeId, string $date): bool
+    {
+        return isset($approvedMap[$employeeId])
+            && in_array($date, $approvedMap[$employeeId]);
+    }
+
+    // public function index(Request $request)
+    // {
+    //     $stores = Stores::select('id', 'name')
+    //         ->whereNotNull('name')
+    //         ->orderBy('name')
+    //         ->get();
+
+    //     $today = now();
+
+    //     $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
+    //     $defaultEndDate   = $today->copy()->day(25)->toDateString();
+
+    //     $startDate = $request->start_date ?? $defaultStartDate;
+    //     $endDate   = $request->end_date   ?? $defaultEndDate;
+    //     $storeId   = $request->store_id;
+
+    //     $employees = collect();
+    //     $shifts    = collect();
+    //     $dates     = [];
+
+    //     if ($storeId) {
+    //         $employees = Employee::with([
+    //             'position:id,name',
+    //             'store:id,name',
+    //             'department:id,department_name',
+    //             'rosters' => fn($q) => $q
+    //                 ->whereBetween('date', [$startDate, $endDate])
+    //                 ->with('shift:id,shift_name,start_time,end_time'),
+    //         ])
+    //             ->select('id', 'employee_name', 'store_id', 'status_employee', 'status','company_id','department_id','position_id') 
+    //             ->whereNull('deleted_at')
+    //             ->where('store_id', $storeId)
+    //             ->whereIn('status', ['Active', 'Pending', 'On Leave'])
+    //             ->orderBy('employee_name')
+    //             ->get();
+
+    //         $shifts = Shifts::where('store_id', $storeId)
+    //             ->orderBy('shift_name')
+    //             ->get();
+
+    //         $start   = Carbon::parse($startDate);
+    //         $end     = Carbon::parse($endDate);
+    //         $current = $start->copy();
+
+    //         while ($current->lte($end)) {
+    //             $dates[] = $current->copy();
+    //             $current->addDay();
+    //         }
+    //     }
+
+    //     return view('pages.Roster.Roster', compact(
+    //         'employees',
+    //         'shifts',
+    //         'stores',
+    //         'dates',
+    //         'startDate',
+    //         'endDate',
+    //         'storeId'
+    //     ));
+    // }
+    public function index(Request $request)
+{
+    $user  = auth()->user();
+    $role  = $user->role; // sesuaikan nama field role
+
+    $isSupervisorOrManager = in_array($role, ['Supervisor', 'Manager']);
+
+    // Ambil store_id langsung dari employee milik user login
+    $myStoreId = optional($user->employee)->store_id;
+
+    // Stores
+    $stores = $isSupervisorOrManager
+        ? Stores::select('id', 'name')
+            ->where('id', $myStoreId)
+            ->get()
+        : Stores::select('id', 'name')
+            ->whereNotNull('name')
+            ->orderBy('name')
+            ->get();
+
+    $today = now();
+
+    $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
+    $defaultEndDate   = $today->copy()->day(25)->toDateString();
+
+    $startDate = $request->start_date ?? $defaultStartDate;
+    $endDate   = $request->end_date   ?? $defaultEndDate;
+
+    // Supervisor/Manager: store_id dikunci, tidak bisa diganti dari request
+    $storeId = $isSupervisorOrManager ? $myStoreId : $request->store_id;
+
+    $employees = collect();
+    $shifts    = collect();
+    $dates     = [];
+
+    if ($storeId) {
+        $employeeQuery = Employee::with([
+            'position:id,name',
+            'store:id,name',
+            'department:id,department_name',
+            'rosters' => fn($q) => $q
+                ->whereBetween('date', [$startDate, $endDate])
+                ->with('shift:id,shift_name,start_time,end_time'),
+        ])
+        ->select('id', 'employee_name', 'store_id', 'status_employee', 'status', 'company_id', 'department_id', 'position_id')
+        ->whereNull('deleted_at')
+        ->where('store_id', $storeId)
+        ->orderBy('employee_name');
+
+        if ($isSupervisorOrManager) {
+            $employeeQuery->where('status', 'Active');
+        } else {
+            $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
+        }
+
+        $employees = $employeeQuery->get();
+
+        $shifts = Shifts::where('store_id', $storeId)
+            ->orderBy('shift_name')
+            ->get();
+
+        $start   = Carbon::parse($startDate);
+        $end     = Carbon::parse($endDate);
+        $current = $start->copy();
+
+        while ($current->lte($end)) {
+            $dates[] = $current->copy();
+            $current->addDay();
+        }
+    }
+
+    return view('pages.Roster.Roster', compact(
+        'employees',
+        'shifts',
+        'stores',
+        'dates',
+        'startDate',
+        'endDate',
+        'storeId',
+        'isSupervisorOrManager'
+    ));
+}
+    // ─────────────────────────────────────────────────────────────
+    //  STORE (klik cell)
+    //  Update: tolak override kalau ada TOIL Approved
+    // ─────────────────────────────────────────────────────────────
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees_tables,id',
+            'shift_id'    => 'nullable|exists:shifts_tables,id',
+            'date'        => 'required|date',
+            'day_type'    => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
+        ]);
+
+        // Validasi day_type vs status_employee
+        $employee = Employee::select('id', 'status_employee')
+            ->find($request->employee_id);
+
+        $allowed = $this->allowedDayTypes($employee?->status_employee);
+
+        if (!in_array($request->day_type, $allowed)) {
+            $status = strtoupper($employee?->status_employee ?? '-');
+            return response()->json([
+                'success' => false,
+                'message' => "Karyawan dengan status {$status} tidak dapat di-assign day type \"{$request->day_type}\".",
+            ], 422);
+        }
+
+        // Cek apakah tanggal ini ada TOIL approved
+        $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
+            ->whereDate('leave_date', $request->date)
+            ->where('status', 'Approved')
+            ->exists();
+
+        // Kalau ada TOIL approved & user coba set ke selain Off → tolak
+        if ($toilApproved && $request->day_type !== 'Off') {
+            return response()->json([
+                'success' => false,
+                'message' => "Karyawan punya TOIL Leave yang sudah Approved di tanggal ini. Cancel TOIL leave dulu via menu Approval kalau mau ubah jadwal.",
+            ], 422);
+        }
+
+        $roster = Roster::updateOrCreate(
+            ['employee_id' => $request->employee_id, 'date' => $request->date],
+            [
+                'shift_id' => $request->day_type === 'Work' ? $request->shift_id : null,
+                'day_type' => $request->day_type,
+                'notes'    => $request->notes,
+            ]
+        );
+
+        return response()->json([
+            'success'     => true,
+            'roster'      => $roster->load('shift'),
+            'roster_name' => $roster->shift?->shift_name ?? $request->day_type,
+            'roster_time' => $roster->shift
+                ? substr($roster->shift->start_time, 0, 5) . '-' . substr($roster->shift->end_time, 0, 5)
+                : '',
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  DESTROY (hapus 1 cell)
+    //  Update: tolak delete kalau ada TOIL Approved
+    // ─────────────────────────────────────────────────────────────
+
+    public function destroy(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees_tables,id',
+            'date'        => 'required|date',
+        ]);
+
+        // Cek apakah tanggal ini ada TOIL approved
+        $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
+            ->whereDate('leave_date', $request->date)
+            ->where('status', 'Approved')
+            ->exists();
+
+        if ($toilApproved) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak bisa hapus roster — ada TOIL Leave yang sudah Approved untuk tanggal ini.',
+            ], 422);
+        }
+
+        Roster::where('employee_id', $request->employee_id)
+            ->where('date', $request->date)
+            ->delete();
+
+        return response()->json(['success' => true]);
+    }
+    private function resolveRelevantPhTypes(?string $religion): array
+    {
+        return ($religion === 'Hindu')
+            ? ['Hindu', 'All']
+            : ['Non Hindu', 'All'];  // pastikan value ini PERSIS sama dengan di DB
+    }
+
+    /**
+     * Tentukan apakah karyawan berhak mendapat Public Holiday
+     * berdasarkan status_employee:
+     *   - PKWT → dapat PH
+     *   - OJT  → dapat PH
+     *   - DW   → TIDAK dapat PH
+     */
+    private function isEligibleForPH(?string $statusEmployee): bool
+    {
+        return !in_array(strtoupper($statusEmployee ?? ''), ['DW']);
+    }
+
+    public function bulkAssign(Request $request)
+    {
+        Log::info('=== BULK ASSIGN START ===', [
+            'request' => $request->all()
+        ]);
+
+        $request->validate([
+            'employee_ids'      => 'required|array|min:1',
+            'employee_ids.*'    => 'exists:employees_tables,id',
+            'shift_id'          => 'nullable|exists:shifts_tables,id',
+            'start_date'        => 'required|date',
+            'end_date'          => 'required|date|after_or_equal:start_date',
+            'day_type'          => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
+            'skip_weekend'      => 'boolean',
+            'saturday_shift'    => 'boolean',
+            'saturday_shift_id' => 'nullable|exists:shifts_tables,id',
+        ]);
+
+        $employees = Employee::select(
+            'id',
+            'employee_name',
+            'status_employee',
+            'religion'
+        )
+            ->whereIn('id', $request->employee_ids)
+            ->get()
+            ->keyBy('id');
+
+        Log::info('Employees Loaded', [
+            'count' => $employees->count(),
+            'employees' => $employees->toArray()
+        ]);
+
+        $rejected = [];
+
+        foreach ($employees as $emp) {
+
+            $allowed = $this->allowedDayTypes($emp->status_employee);
+
+            Log::info('Checking Allowed Day Type', [
+                'employee' => $emp->employee_name,
+                'status_employee' => $emp->status_employee,
+                'requested_day_type' => $request->day_type,
+                'allowed' => $allowed
+            ]);
+
+            if (!in_array($request->day_type, $allowed)) {
+
+                $rejected[] = "{$emp->employee_name} (status: " . strtoupper($emp->status_employee ?? '-') . ")";
+            }
+        }
+
+        if (!empty($rejected)) {
+
+            Log::warning('Rejected Employees', [
+                'rejected' => $rejected
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Karyawan berikut tidak dapat di-assign day type "' . $request->day_type . '": '
+                    . implode(', ', $rejected) . '.',
+            ], 422);
+        }
+        $publicHolidayMap = PublicHoliday::whereBetween('date', [$request->start_date, $request->end_date])
+            ->get()
+            ->groupBy(fn($ph) => Carbon::parse($ph->date)->toDateString());
+
+        Log::info('Public Holiday Loaded', [
+            'dates' => $publicHolidayMap->keys()
+        ]);
+
+        $toilApprovedMap = $this->getToilApprovedDatesMap(
+            $request->employee_ids,
+            $request->start_date,
+            $request->end_date
+        );
+
+        Log::info('TOIL Approved Map', [
+            'map' => $toilApprovedMap
+        ]);
+
+        $dates   = [];
+        $current = Carbon::parse($request->start_date);
+        $end     = Carbon::parse($request->end_date);
+
+        while ($current->lte($end)) {
+
+            if ($request->skip_weekend && $current->isSunday()) {
+                $current->addDay();
+                continue;
+            }
+
+            $dates[] = $current->copy();
+
+            $current->addDay();
+        }
+
+        Log::info('Generated Dates', [
+            'dates' => collect($dates)->map(fn($d) => $d->toDateString())
+        ]);
+
+        $count        = 0;
+        $skippedCount = 0;
+
+        foreach ($request->employee_ids as $empId) {
+
+            $emp = $employees[$empId];
+
+            Log::info('Processing Employee', [
+                'employee_id' => $empId,
+                'employee_name' => $emp->employee_name,
+                'religion' => $emp->religion,
+                'status_employee' => $emp->status_employee
+            ]);
+
+            $relevantPhTypes = $this->resolveRelevantPhTypes($emp->religion);
+
+            $eligibleForPH = $this->isEligibleForPH($emp->status_employee);
+
+            Log::info('PH Eligibility', [
+                'employee' => $emp->employee_name,
+                'relevant_ph_types' => $relevantPhTypes,
+                'eligible_for_ph' => $eligibleForPH
+            ]);
+
+            // foreach ($dates as $date) {
+
+            //     $dateStr = $date->toDateString();
+
+            //     Log::info('Processing Date', [
+            //         'employee' => $emp->employee_name,
+            //         'date' => $dateStr
+            //     ]);
+
+            //     if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
+
+            //         Log::warning('TOIL Approved → Force OFF', [
+            //             'employee' => $emp->employee_name,
+            //             'date' => $dateStr
+            //         ]);
+
+            //         Roster::updateOrCreate(
+            //             [
+            //                 'employee_id' => $empId,
+            //                 'date' => $dateStr
+            //             ],
+            //             [
+            //                 'shift_id' => null,
+            //                 'day_type' => 'Off'
+            //             ]
+            //         );
+
+            //         $skippedCount++;
+
+            //         continue;
+            //     }
+
+            //     $resolvedDayType = $request->day_type;
+
+            //     $resolvedShiftId = $request->day_type === 'Work'
+            //         ? $request->shift_id
+            //         : null;
+
+            //     if ($eligibleForPH && isset($publicHolidayMap[$dateStr])) {
+
+            //         $matchingPH = $publicHolidayMap[$dateStr]->first(
+            //             fn($ph) => in_array($ph->type, $relevantPhTypes)
+            //         );
+
+
+            //         if ($matchingPH) {
+            //             Log::info('Public Holiday Match', [
+            //                 'employee' => $emp->employee_name,
+            //                 'date'     => $dateStr,
+            //                 'type'     => $matchingPH->type,
+            //                 'remark'   => $matchingPH->remark,  // ← tambah di log juga sekalian
+            //             ]);
+
+            //             $resolvedDayType   = 'Public Holiday';
+            //             $resolvedShiftId   = null;
+            //             $resolvedRemark    = $matchingPH->remark;  // ← simpan remark PH
+            //         }
+            //     }
+
+            //     if ($date->isSaturday()) {
+
+            //         Log::info('Saturday Handling', [
+            //             'employee' => $emp->employee_name,
+            //             'date' => $dateStr,
+            //             'saturday_shift' => $request->saturday_shift,
+            //             'saturday_shift_id' => $request->saturday_shift_id
+            //         ]);
+
+            //         if ($request->saturday_shift && $request->saturday_shift_id) {
+
+            //             $finalDayType = ($resolvedDayType === 'Public Holiday')
+            //                 ? 'Public Holiday'
+            //                 : 'Work';
+
+            //             $finalShiftId = ($finalDayType === 'Work')
+            //                 ? $request->saturday_shift_id
+            //                 : null;
+
+            //             Roster::updateOrCreate(
+            //                 [
+            //                     'employee_id' => $empId,
+            //                     'date' => $dateStr
+            //                 ],
+            //                 [
+            //                     'shift_id' => $finalShiftId,
+            //                     'day_type' => $finalDayType,
+            //                     'notes'   => $resolvedRemark ?? null,  // ← tambahkan ini
+            //                 ]
+            //             );
+
+            //             Log::info('Saturday Shift Assigned', [
+            //                 'employee' => $emp->employee_name,
+            //                 'date' => $dateStr,
+            //                 'shift_id' => $finalShiftId,
+            //                 'day_type' => $finalDayType
+            //             ]);
+
+            //             $count++;
+            //         } elseif ($request->skip_weekend) {
+
+            //             Log::info('Saturday Skipped', [
+            //                 'employee' => $emp->employee_name,
+            //                 'date' => $dateStr
+            //             ]);
+
+            //             continue;
+            //         } else {
+
+            //             Roster::updateOrCreate(
+            //                 [
+            //                     'employee_id' => $empId,
+            //                     'date' => $dateStr
+            //                 ],
+            //                 [
+            //                     'shift_id' => $resolvedShiftId,
+            //                     'day_type' => $resolvedDayType
+            //                 ]
+            //             );
+
+            //             Log::info('Saturday Normal Assign', [
+            //                 'employee' => $emp->employee_name,
+            //                 'date' => $dateStr,
+            //                 'shift_id' => $resolvedShiftId,
+            //                 'day_type' => $resolvedDayType
+            //             ]);
+
+            //             $count++;
+            //         }
+
+            //         continue;
+            //     }
+
+            //     Roster::updateOrCreate(
+            //         [
+            //             'employee_id' => $empId,
+            //             'date' => $dateStr
+            //         ],
+            //         [
+            //             'shift_id' => $resolvedShiftId,
+            //             'day_type' => $resolvedDayType
+            //         ]
+            //     );
+
+            //     Log::info('Roster Assigned', [
+            //         'employee' => $emp->employee_name,
+            //         'date' => $dateStr,
+            //         'shift_id' => $resolvedShiftId,
+            //         'day_type' => $resolvedDayType
+            //     ]);
+
+            //     $count++;
+            // }
+            foreach ($dates as $date) {
+
+    $dateStr = $date->toDateString();
+
+    // ✅ Reset tiap iterasi agar tidak carry over ke tanggal berikutnya
+    $resolvedDayType = $request->day_type;
+    $resolvedShiftId = $request->day_type === 'Work' ? $request->shift_id : null;
+    $resolvedNotes   = null;  // ← reset di sini
+
+    if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
+        Roster::updateOrCreate(
+            ['employee_id' => $empId, 'date' => $dateStr],
+            ['shift_id' => null, 'day_type' => 'Off', 'notes' => null]
+        );
+        $skippedCount++;
+        continue;
+    }
+
+    if ($eligibleForPH && isset($publicHolidayMap[$dateStr])) {
+        $matchingPH = $publicHolidayMap[$dateStr]->first(
+            fn($ph) => in_array($ph->type, $relevantPhTypes)
+        );
+
+        if ($matchingPH) {
+            Log::info('Public Holiday Match', [
+                'employee' => $emp->employee_name,
+                'date'     => $dateStr,
+                'type'     => $matchingPH->type,
+                'remark'   => $matchingPH->remark,
+            ]);
+
+            $resolvedDayType = 'Public Holiday';
+            $resolvedShiftId = null;
+            $resolvedNotes   = $matchingPH->remark;  // ← PH remark → Roster notes
+        }
+    }
+
+    if ($date->isSaturday()) {
+        if ($request->saturday_shift && $request->saturday_shift_id) {
+            $finalDayType = ($resolvedDayType === 'Public Holiday') ? 'Public Holiday' : 'Work';
+            $finalShiftId = ($finalDayType === 'Work') ? $request->saturday_shift_id : null;
+
+            Roster::updateOrCreate(
+                ['employee_id' => $empId, 'date' => $dateStr],
+                ['shift_id' => $finalShiftId, 'day_type' => $finalDayType, 'notes' => $resolvedNotes]  // ✅
+            );
+            $count++;
+
+        } elseif ($request->skip_weekend) {
+            continue;
+
+        } else {
+            Roster::updateOrCreate(
+                ['employee_id' => $empId, 'date' => $dateStr],
+                ['shift_id' => $resolvedShiftId, 'day_type' => $resolvedDayType, 'notes' => $resolvedNotes]  // ✅
+            );
+            $count++;
+        }
+        continue;
+    }
+
+    // Hari biasa
+    Roster::updateOrCreate(
+        ['employee_id' => $empId, 'date' => $dateStr],
+        ['shift_id' => $resolvedShiftId, 'day_type' => $resolvedDayType, 'notes' => $resolvedNotes]  // ✅
+    );
+    $count++;
+}
+
+        }
+
+        Log::info('=== BULK ASSIGN FINISHED ===', [
+            'success_count' => $count,
+            'skipped_count' => $skippedCount
+        ]);
+
+        $message = "Assign schedule {$count} berhasil.";
+
+        if ($skippedCount > 0) {
+            $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  COPY ROSTER
+    //  Update: force Off untuk tanggal TOIL Approved
+    // ─────────────────────────────────────────────────────────────
+
+    public function copyRoster(Request $request)
+    {
+        $request->validate([
+            'store_id'     => 'nullable|exists:stores_tables,id',
+            'source_start' => 'required|date',
+            'source_end'   => 'required|date|after_or_equal:source_start',
+            'target_start' => 'required|date',
+            'target_end'   => 'nullable|date|after_or_equal:target_start',
+        ]);
+
+        $sourceStart = Carbon::parse($request->source_start);
+        $sourceEnd   = Carbon::parse($request->source_end);
+        $targetStart = Carbon::parse($request->target_start);
+
+        $sourceRosters = Roster::whereBetween('date', [
+            $sourceStart->toDateString(),
+            $sourceEnd->toDateString(),
+        ])
+            ->when(
+                $request->store_id,
+                fn($q) =>
+                $q->whereHas('employee', fn($eq) => $eq->where('store_id', $request->store_id))
+            )
+            ->orderBy('date')
+            ->get();
+
+        if ($sourceRosters->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada jadwal di periode sumber.',
+            ]);
+        }
+
+        // Tentukan rentang target untuk ambil TOIL approved map
+        $targetEndForCheck = $request->filled('target_end')
+            ? Carbon::parse($request->target_end)
+            : $targetStart->copy()->addDays($sourceStart->diffInDays($sourceEnd));
+
+        $employeeIds = $sourceRosters->pluck('employee_id')->unique()->toArray();
+        $toilApprovedMap = $this->getToilApprovedDatesMap(
+            $employeeIds,
+            $targetStart->toDateString(),
+            $targetEndForCheck->toDateString()
+        );
+
+        $count        = 0;
+        $skippedCount = 0;
+
+        if ($request->filled('target_end')) {
+            $targetEnd = Carbon::parse($request->target_end);
+
+            $sourceMap = [];
+            foreach ($sourceRosters as $src) {
+                $offset = $sourceStart->diffInDays(Carbon::parse($src->date));
+                $sourceMap[$src->employee_id][$offset] = $src;
+            }
+
+            $sourceLengthDays = $sourceStart->diffInDays($sourceEnd) + 1;
+            $employeeIds      = array_keys($sourceMap);
+
+            foreach ($employeeIds as $empId) {
+                $current  = $targetStart->copy();
+                $dayIndex = 0;
+
+                while ($current->lte($targetEnd)) {
+                    $srcOffset = $dayIndex % $sourceLengthDays;
+                    $dateStr   = $current->toDateString();
+
+                    // Kalau ada TOIL approved, force Off
+                    if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
+                        Roster::updateOrCreate(
+                            ['employee_id' => $empId, 'date' => $dateStr],
+                            ['shift_id' => null, 'day_type' => 'Off']
+                        );
+                        $skippedCount++;
+                    } elseif (isset($sourceMap[$empId][$srcOffset])) {
+                        $src = $sourceMap[$empId][$srcOffset];
+                        Roster::updateOrCreate(
+                            ['employee_id' => $empId, 'date' => $dateStr],
+                            ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
+                        );
+                        $count++;
+                    }
+
+                    $current->addDay();
+                    $dayIndex++;
+                }
+            }
+        } else {
+            $diffDays = $sourceStart->diffInDays($targetStart);
+
+            foreach ($sourceRosters as $src) {
+                $newDate = Carbon::parse($src->date)->addDays($diffDays)->toDateString();
+
+                // Kalau ada TOIL approved di tanggal baru, force Off
+                if ($this->hasToilApproved($toilApprovedMap, $src->employee_id, $newDate)) {
+                    Roster::updateOrCreate(
+                        ['employee_id' => $src->employee_id, 'date' => $newDate],
+                        ['shift_id' => null, 'day_type' => 'Off']
+                    );
+                    $skippedCount++;
+                } else {
+                    Roster::updateOrCreate(
+                        ['employee_id' => $src->employee_id, 'date' => $newDate],
+                        ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
+                    );
+                    $count++;
+                }
+            }
+        }
+
+        // Response message
+        $message = "Schedule copied {$count} berhasil.";
+        if ($skippedCount > 0) {
+            $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  BULK DELETE
+    //  Update: protect tanggal TOIL Approved (versi AMAN, loop per karyawan)
+    // ─────────────────────────────────────────────────────────────
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'employee_ids'   => 'required|array|min:1',
+            'employee_ids.*' => 'exists:employees_tables,id',
+            'start_date'     => 'required|date',
+            'end_date'       => 'required|date|after_or_equal:start_date',
+        ]);
+
+        // Ambil map tanggal TOIL approved (1 query)
+        $toilApprovedMap = $this->getToilApprovedDatesMap(
+            $request->employee_ids,
+            $request->start_date,
+            $request->end_date
+        );
+
+        $count          = 0;
+        $protectedCount = 0;
+
+        // Loop per karyawan — logic clear & mudah debug
+        foreach ($request->employee_ids as $empId) {
+            $protectedDates = $toilApprovedMap[$empId] ?? [];
+
+            $query = Roster::where('employee_id', $empId)
+                ->whereBetween('date', [$request->start_date, $request->end_date]);
+
+            // Exclude tanggal yang ada TOIL approved
+            if (!empty($protectedDates)) {
+                $query->whereNotIn('date', $protectedDates);
+                $protectedCount += count($protectedDates);
+            }
+
+            $count += $query->delete();
+        }
+
+        // Response message
+        $message = "Berhasil menghapus {$count} jadwal.";
+        if ($protectedCount > 0) {
+            $message .= " {$protectedCount} jadwal di-protect karena ada TOIL Leave yang sudah Approved.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+}

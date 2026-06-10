@@ -226,7 +226,7 @@
     </script>
 @endpush --}}
 @extends('layouts.app')
-@section('title', 'Employee Dashboard')
+@section('title', 'User Dashboard')
 
 @push('styles')
     <!-- CSS Libraries -->

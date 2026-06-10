@@ -92,6 +92,7 @@ class Leaverequest extends Model
         $secondary = $structure->secondarySupervisors->pluck('id');
 
         return $approverIds->merge($secondary)->unique()->values();
+
     }
     // cek apakah employee tertentu boleh approve
     public function canBeApprovedBy($employeeId)

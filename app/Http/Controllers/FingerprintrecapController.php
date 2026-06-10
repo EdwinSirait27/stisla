@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Employee;
 use App\Models\Fingerprintrecap;
 use App\Models\Roster;
@@ -11,7 +10,6 @@ use App\Services\FingerprintRecapCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
-
 class FingerprintrecapController extends Controller
 {
     private const TOLERANSI_TINGGI_STORES = [
@@ -21,22 +19,24 @@ class FingerprintrecapController extends Controller
     ];
     private const TOLERANSI_TINGGI_MENIT = 10;
     private const TOLERANSI_NORMAL_MENIT = 5;
-
     public function index()
     {
         Log::info('FingerprintRecap@index dipanggil');
-
         $stores = Stores::select('id', 'name')
             ->whereNotNull('name')
             ->distinct()
             ->orderBy('name')
             ->pluck('name');
-
         return view('pages.FingerprintRecap.FingerprintRecap', compact('stores'));
     }
-
     public function getData(Request $request)
     {
+
+        Log::info('FingerprintRecap@getData dipanggil', [
+            'start_date' => $request->input('start_date'),
+            'end_date'   => $request->input('end_date'),
+            'store_name' => $request->input('store_name'),
+        ]);
         $request->validate([
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date|after_or_equal:start_date',
@@ -45,18 +45,17 @@ class FingerprintrecapController extends Controller
             'end_date.after_or_equal' => 'End date harus setelah atau sama dengan start date.',
             'store_name.max'          => 'Nama store terlalu panjang.',
         ]);
-
         try {
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
             $endDate   = $request->input('end_date', Carbon::now()->toDateString());
             $storeName = $request->input('store_name');
 
-            // ── Ambil semua karyawan (supaya yang belum di-recap tetap tampil dengan 0) ──
+            // ── 1. Ambil semua employees + status_employee ──
             $employeesQuery = Employee::with('store:id,name')
                 ->select('id', 'employee_name', 'store_id')
                 ->whereNotNull('pin')
+    ->whereIn('status', ['Active', 'Mutation', 'Pending'])
                 ->whereNull('deleted_at');
-
             if ($storeName) {
                 $employeesQuery->whereHas('store', fn($q) => $q->where('name', $storeName));
             }
@@ -86,14 +85,12 @@ class FingerprintrecapController extends Controller
                     'period_out'       => $periodOut,
                 ];
             });
-
             return DataTables::of($result)->make(true);
         } catch (\Exception $e) {
             Log::error('FingerprintRecap@getData ERROR', [
                 'message' => $e->getMessage(),
                 'line'    => $e->getLine(),
             ]);
-
             return response()->json([
                 'error' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);

@@ -109,7 +109,6 @@ class PositionController extends Controller
         DB::beginTransaction();
         $position->update($positionData);
         DB::commit();
-
         return redirect()->route('pages.Position')->with('success', 'Position updated successfully.');
     }
 }

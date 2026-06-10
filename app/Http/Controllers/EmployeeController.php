@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Banks;
 use App\Models\Company;
 use App\Models\Departments;
@@ -18,6 +20,7 @@ use App\Models\Structuresnew;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\NoXSSInput;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Mail\WelcomeEmployeeMail;
@@ -26,28 +29,28 @@ use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+
 class EmployeeController extends Controller
 {
     public function indexall()
     {
-      $countactives = Employee::where('status', 'Active')->count();
+        $countactives = Employee::where('status', 'Active')->count();
         $countpendings = Employee::where('status', 'Pending')->count();
         $countresigns = Employee::where('status', 'Resign')->count();
         $departments = Departments::pluck('department_name', 'id');
         $gradings = Grading::pluck('grading_name', 'id');
-        $groups = Groups::pluck('remark','id');
+        $groups = Groups::pluck('remark', 'id');
         $companies = Company::pluck('name', 'id');
         $locations = Stores::pluck('name', 'id');
         $employeestatuses = Employee::getStatusEmployeeOptions();
         $statuses = Employee::getStatusOptions();
-        $banks = Banks::pluck('name','id');
+        $banks = Banks::pluck('name', 'id');
         $genders = Employee::getGenderOptions();
         $marriages = Employee::getMarriageOptions();
         $religions = Employee::getReligionOptions();
         $lasteducations = Employee::getLastEducationOptions();
-        return view('pages.Employeeall.Employeeall', compact('marriages','genders','lasteducations','religions','banks','departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns','groups','gradings'));
-   
-        }
+        return view('pages.Employeeall.Employeeall', compact('marriages', 'genders', 'lasteducations', 'religions', 'banks', 'departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
+    }
     public function index()
     {
         $countactives = Employee::where('status', 'Active')->count();
@@ -55,13 +58,12 @@ class EmployeeController extends Controller
         $countresigns = Employee::where('status', 'Resign')->count();
         $departments = Departments::pluck('department_name', 'id');
         $gradings = Grading::pluck('grading_name', 'id');
-        $groups = Groups::pluck('remark','id');
-        // $groups = Groups::select('id', 'group_name', 'remark')->get();
+        $groups = Groups::pluck('remark', 'id');
         $companies = Company::pluck('name', 'id');
         $locations = Stores::pluck('name', 'id');
         $employeestatuses = Employee::getStatusEmployeeOptions();
         $statuses = Employee::getStatusOptions();
-        return view('pages.Employee.Employee', compact('departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns','groups','gradings'));
+        return view('pages.Employee.Employee', compact('departments', 'companies', 'locations', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
     }
     public function getActivities(Request $request)
     {
@@ -107,7 +109,9 @@ class EmployeeController extends Controller
     }
     public function getEmployeesall(Request $request)
     {
-        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
         $query = User::query()
             ->with([
@@ -129,7 +133,7 @@ class EmployeeController extends Controller
             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
             ->leftJoin('banks_tables', 'banks_tables.id', '=', 'employees_tables.banks_id')
             ->select([
-                             'users.*',
+                'users.*',
                 'employees_tables.employee_name',
                 'employees_tables.employee_pengenal',
                 'employees_tables.bank_account_number',
@@ -301,43 +305,61 @@ class EmployeeController extends Controller
             ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
             ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+            ->editColumn('created_at', function ($e) {
+                return optional($e->created_at)
+                    ->timezone('Asia/Makassar')
+                    ->translatedFormat('d F Y H:i');
+            })
+
+            ->editColumn('join_date', function ($e) {
+                return $e->join_date
+                    ? Carbon::parse($e->join_date)
+                    ->timezone('Asia/Makassar')
+                    ->translatedFormat('d F Y')
+                    : '-';
+            })
+            ->editColumn('end_date', function ($e) {
+                return $e->end_date
+                    ? Carbon::parse($e->end_date)
+                    ->timezone('Asia/Makassar')
+                    ->translatedFormat('d F Y')
+                    : '-';
+            })
             ->rawColumns(['action'])
             ->make(true);
     }
     public function exportEmployeesall(Request $request)
-{
-    // ❌ Masalah - only() kadang tidak baca query string
-    // $filters = $request->only([...]);
+    {
+        $filters = [
+            'filter_company'    => $request->query('filter_company'),
+            'filter_department' => $request->query('filter_department'),
+            'filter_group'      => $request->query('filter_group'),
+            'filter_grading'    => $request->query('filter_grading'),
+            'filter_store'      => $request->query('filter_store'),
+            'filter_emp_status' => $request->query('filter_emp_status'),
+            'filter_status'     => $request->query('filter_status'),
+            'filter_los'        => $request->query('filter_los'),
+            'filter_bank'        => $request->query('filter_bank'),
+            'filter_gender'        => $request->query('filter_gender'),
+            'filter_marriage'        => $request->query('filter_marriage'),
+            'filter_religion'        => $request->query('filter_religion'),
+            'filter_last_education'        => $request->query('filter_last_education'),
+        ];
+        // dd($filters); // cek dulu, hapus setelah confirmed
 
-    // ✅ Ambil manual dari query string
-    $filters = [
-        'filter_company'    => $request->query('filter_company'),
-        'filter_department' => $request->query('filter_department'),
-        'filter_group'      => $request->query('filter_group'),
-        'filter_grading'    => $request->query('filter_grading'),
-        'filter_store'      => $request->query('filter_store'),
-        'filter_emp_status' => $request->query('filter_emp_status'),
-        'filter_status'     => $request->query('filter_status'),
-        'filter_los'        => $request->query('filter_los'),
-        'filter_bank'        => $request->query('filter_bank'),
-        'filter_gender'        => $request->query('filter_gender'),
-        'filter_marriage'        => $request->query('filter_marriage'),
-        'filter_religion'        => $request->query('filter_religion'),
-        'filter_last_education'        => $request->query('filter_last_education'),
-    ];
-    // dd($filters); // cek dulu, hapus setelah confirmed
-    
-    $fileName = 'employeesall_' . Carbon::now()->format('Ymd_His');
+        $fileName = 'employeesall_' . Carbon::now()->format('Ymd_His');
 
-    if ($request->query('type') === 'csv') {
-        return Excel::download(new EmployeesExportall($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        if ($request->query('type') === 'csv') {
+            return Excel::download(new EmployeesExportall($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
     }
-
-    return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
-}
     public function getEmployees(Request $request)
     {
-        $isHeadHR = auth()->user()->hasAnyRole(['HeadHR', 'HR', 'Admin']);
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
         $query = User::query()
             ->with([
@@ -356,9 +378,9 @@ class EmployeeController extends Controller
             ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
             ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
-            
-  ->select([
-                 'users.*',
+
+            ->select([
+                'users.*',
                 'employees_tables.employee_name',
                 'employees_tables.employee_pengenal',
                 'employees_tables.status_employee',
@@ -457,34 +479,34 @@ class EmployeeController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    
-public function exportEmployees(Request $request)
-{
-    // ❌ Masalah - only() kadang tidak baca query string
-    // $filters = $request->only([...]);
 
-    // ✅ Ambil manual dari query string
-    $filters = [
-        'filter_company'    => $request->query('filter_company'),
-        'filter_department' => $request->query('filter_department'),
-        'filter_group'      => $request->query('filter_group'),
-        'filter_grading'    => $request->query('filter_grading'),
-        'filter_store'      => $request->query('filter_store'),
-        'filter_emp_status' => $request->query('filter_emp_status'),
-        'filter_status'     => $request->query('filter_status'),
-        'filter_los'        => $request->query('filter_los'),
-    ];
+    public function exportEmployees(Request $request)
+    {
+        // ❌ Masalah - only() kadang tidak baca query string
+        // $filters = $request->only([...]);
 
-    // dd($filters); // cek dulu, hapus setelah confirmed
-    
-    $fileName = 'employees_' . Carbon::now()->format('Ymd_His');
+        // ✅ Ambil manual dari query string
+        $filters = [
+            'filter_company'    => $request->query('filter_company'),
+            'filter_department' => $request->query('filter_department'),
+            'filter_group'      => $request->query('filter_group'),
+            'filter_grading'    => $request->query('filter_grading'),
+            'filter_store'      => $request->query('filter_store'),
+            'filter_emp_status' => $request->query('filter_emp_status'),
+            'filter_status'     => $request->query('filter_status'),
+            'filter_los'        => $request->query('filter_los'),
+        ];
 
-    if ($request->query('type') === 'csv') {
-        return Excel::download(new EmployeesExport($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        // dd($filters); // cek dulu, hapus setelah confirmed
+
+        $fileName = 'employees_' . Carbon::now()->format('Ymd_His');
+
+        if ($request->query('type') === 'csv') {
+            return Excel::download(new EmployeesExport($filters), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new EmployeesExport($filters), $fileName . '.xlsx');
     }
-
-    return Excel::download(new EmployeesExport($filters), $fileName . '.xlsx');
-}
 
     public function edit($hashedId)
     {
@@ -645,7 +667,21 @@ public function exportEmployees(Request $request)
                 'nullable',
                 'mimes:jpg,jpeg,png,webp',
                 'max:512'
-
+            ],
+            'kk_photos' => [
+                'nullable',
+                'mimes:jpg,jpeg,png,webp',
+                'max:512'
+            ],
+            'ktp_photos' => [
+                'nullable',
+                'mimes:jpg,jpeg,png,webp',
+                'max:512'
+            ],
+            'signature_file' => [
+                'nullable',
+                'mimes:jpg,jpeg,png,webp',
+                'max:512'
             ],
             'is_manager' => [
                 'nullable',
@@ -657,8 +693,8 @@ public function exportEmployees(Request $request)
             'employee_name' => ['required', 'string', 'max:255', 'unique:employees_tables,employee_name', new NoXSSInput()],
             'bpjs_kes' => ['required', 'string', 'max:255', new NoXSSInput()],
             'bpjs_ket' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'email' => ['required', 'string', 'max:255', new NoXSSInput()],
-            'company_email' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'email' => ['required', 'string', 'max:255',  'not_regex:/[\r\n]/', new NoXSSInput()],
+            'company_email' => ['nullable', 'string', 'max:255',  'not_regex:/[\r\n]/', new NoXSSInput()],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -744,22 +780,89 @@ public function exportEmployees(Request $request)
             'photos.max' => 'photos must under 512 kb.',
 
         ]);
-        $filePath = null;
+        /*
+    |--------------------------------------------------------------------------
+    | HELPER: Upload file ke S3 dengan aman
+    |--------------------------------------------------------------------------
+    */
+        $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            $ext = strtolower($file->getClientOriginalExtension());
 
-        if ($request->hasFile('photos')) {
-            $file = $request->file('photos');
-
-            if ($file->getSize() > 512 * 1024) {
-                return back()->withErrors(['photos' => 'Photos must be under 512 KB']);
+            // ✅ Whitelist ekstensi
+            if (!in_array($ext, $allowedExtensions)) {
+                abort(400, 'File type not allowed');
             }
 
-            $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
-            $folderPath = 'employeesphotos/' . date('Y/m'); // rapi per tahun/bulan
+            $fileName = $safeName . '-' . now()->timestamp . '-' . $suffix . '.' . $ext;
+            $path     = $folder . '/' . $fileName;
 
-            // Storage::putFileAs('public/' . $folderPath, $file, $fileName);
-            Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-            $filePath = $folderPath . '/' . $fileName;
+            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+
+            return $path;
+        };
+
+        $safeName      = Str::slug($request->employee_name);
+        $photoPath     = null;
+        $kkPhotoPath   = null;
+        $ktpPhotoPath  = null;
+        $signaturePath = null;
+        /*
+    |--------------------------------------------------------------------------
+    | PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('photos')) {
+            $photoPath = $uploadToS3(
+                $request->file('photos'),
+                $safeName,
+                'photos',
+                'employees-photos'
+            );
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | KK PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('kk_photos')) {
+            $kkPhotoPath = $uploadToS3(
+                $request->file('kk_photos'),
+                $safeName,
+                'kk',
+                'employees-kk-photos'
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | KTP PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('ktp_photos')) {
+            $ktpPhotoPath = $uploadToS3(
+                $request->file('ktp_photos'),
+                $safeName,
+                'ktp',
+                'employees-ktp-photos'
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | SIGNATURE FILE
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('signature_file')) {
+            $signaturePath = $uploadToS3(
+                $request->file('signature_file'),
+                $safeName,
+                'signature',
+                'employees-signatures-photos'
+            );
+        }
+
         try {
             DB::beginTransaction();
             $lastEmployee = Employee::orderBy('employee_pengenal', 'desc')->first();
@@ -778,7 +881,10 @@ public function exportEmployees(Request $request)
             }
             $employeeId = $currentYearMonth . str_pad($sequence, 5, '0', STR_PAD_LEFT);
             $employees = Employee::create([
-                'photos' => $filePath,
+                'photos'                  => $photoPath,
+                'kk_photos'               => $kkPhotoPath,
+                'ktp_photos'              => $ktpPhotoPath,
+                'signature'               => $signaturePath,
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
@@ -820,20 +926,25 @@ public function exportEmployees(Request $request)
                 'password' => Hash::make($employeeId),
                 'employee_id' => $employees->id,
             ]);
+
             $user->assignRole('Human');
+
             DB::commit();
+
             return redirect()->route('pages.Employee')->with('success', 'Done!');
         } catch (\Exception $e) {
             DB::rollBack();
 
 
-            if ($filePath && Storage::disk('public')->exists($filePath)) {
-                Storage::disk('public')->delete($filePath);
+            foreach ([$photoPath, $kkPhotoPath, $ktpPhotoPath, $signaturePath] as $path) {
+                if ($path && Storage::disk('s3')->exists($path)) {
+                    Storage::disk('s3')->delete($path);
+                }
             }
+            return redirect()->back()
+                ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
+                ->withInput();
         }
-        return redirect()->back()
-            ->withErrors(['error' => 'Error while creating data: ' . $e->getMessage()])
-            ->withInput();
     }
 
     public function update(Request $request, $hashedId)
@@ -849,13 +960,10 @@ public function exportEmployees(Request $request)
             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-            'photos' => [
-                'nullable',
-                'mimes:jpg,jpeg,png,webp',
-                'max:512'
-            ],
-            'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
-            'photos.max' => 'photos must under 512 kb.',
+            'photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
+            'kk_photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
+            'ktp_photos' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
+            'signature_file' => ['nullable', 'mimes:jpg,jpeg,png,webp', 'max:512'],
             'join_date' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
             'end_date' => ['nullable', 'date_format:Y-m-d', new NoXSSInput()],
             'date_of_birth' => ['required', 'date_format:Y-m-d', new NoXSSInput()],
@@ -873,8 +981,8 @@ public function exportEmployees(Request $request)
             'group_id' => ['nullable', 'exists:groups_tables,id', new NoXSSInput()],
             'bpjs_kes' => ['required', 'string', 'max:255'],
             'bpjs_ket' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'max:255'],
-            'company_email' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'string', 'max:255', 'not_regex:/[\r\n]/'],
+            'company_email' => ['nullable', 'string', 'max:255', 'not_regex:/[\r\n]/',],
             'emergency_contact_name' => ['required', 'string', 'max:255', new NoXSSInput()],
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'notes' => ['nullable', 'string', 'max:255', new NoXSSInput()],
@@ -918,29 +1026,104 @@ public function exportEmployees(Request $request)
             'department_id' => ['nullable', 'exists:departments_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
         ]);
+        /*
+    |--------------------------------------------------------------------------
+    | HELPER: Upload file ke S3 dengan aman
+    |--------------------------------------------------------------------------
+    */
+        $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            if (!in_array($ext, $allowedExtensions)) {
+                abort(400, 'File type not allowed');
+            }
+
+            $fileName = $safeName . '-' . now()->timestamp . '-' . $suffix . '.' . $ext;
+
+            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+
+            return $folder . '/' . $fileName;
+        };
+
         // $filePath = $user->Employee->photos;
-        $filePath = optional($user->Employee)->photos;
+        $safeName = Str::slug($request->employee_name);
+        $employee = $user->Employee;
+
+        // Simpan path lama untuk rollback jika gagal
+        $oldPaths = [
+            'photos'         => $employee->photos,
+            'kk_photos'      => $employee->kk_photos,
+            'ktp_photos'     => $employee->ktp_photos,
+            'signature'      => $employee->signature,
+        ];
+
+        // Path baru hasil upload (untuk rollback jika DB gagal)
+        $newPaths = [];
+
+        /*
+    |--------------------------------------------------------------------------
+    | PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('photos')) {
+            $newPaths['photos'] = $uploadToS3(
+                $request->file('photos'),
+                $safeName,
+                'photos',
+                'employees-photos'
+            );
+            $validatedData['photos'] = $newPaths['photos'];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | KK PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('kk_photos')) {
+            $newPaths['kk_photos'] = $uploadToS3(
+                $request->file('kk_photos'),
+                $safeName,
+                'kk',
+                'employees-kk-photos'
+            );
+            $validatedData['kk_photos'] = $newPaths['kk_photos'];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | KTP PHOTO
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('ktp_photos')) {
+            $newPaths['ktp_photos'] = $uploadToS3(
+                $request->file('ktp_photos'),
+                $safeName,
+                'ktp',
+                'employees-ktp-photos'
+            );
+            $validatedData['ktp_photos'] = $newPaths['ktp_photos'];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | SIGNATURE FILE
+    |--------------------------------------------------------------------------
+    */
+        if ($request->hasFile('signature_file')) {
+            $newPaths['signature'] = $uploadToS3(
+                $request->file('signature_file'),
+                $safeName,
+                'signature',
+                'employees-signatures-photos'
+            );
+            $validatedData['signature'] = $newPaths['signature'];
+        }
+
         try {
-            DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
-
-                if ($request->hasFile('photos')) {
-                    $file = $request->file('photos');
-
-                    $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' .
-                        $file->getClientOriginalExtension();
-
-                    $folderPath = 'employeesphotos/' . date('Y/m');
-
-                    Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
-
-                    $newFilePath = $folderPath . '/' . $fileName;
-
-                    if ($filePath && Storage::disk('public')->exists($filePath)) {
-                        Storage::disk('public')->delete($filePath);
-                    }
-
-                    $filePath = $validatedData['photos'] = $newFilePath;
-                }
+            // DB::transaction(function () use ($user, &$validatedData, $request, &$filePath) {
+            DB::transaction(function () use ($user, &$validatedData, $oldPaths, $newPaths) {
                 /** --------------------------
                  *  Lock employee row
                  * -------------------------*/
@@ -986,6 +1169,23 @@ public function exportEmployees(Request $request)
                     $newStructure->update(['status' => 'active']);
                 }
                 $employee->update($validatedData);
+                /*
+            |--------------------------------------------------------------------------
+            | Hapus file lama di S3 setelah DB berhasil update
+            |--------------------------------------------------------------------------
+            */
+                $fileMap = [
+                    'photos'    => $oldPaths['photos'],
+                    'kk_photos' => $oldPaths['kk_photos'],
+                    'ktp_photos' => $oldPaths['ktp_photos'],
+                    'signature' => $oldPaths['signature'],
+                ];
+
+                foreach ($fileMap as $key => $oldPath) {
+                    if (isset($newPaths[$key]) && $oldPath && Storage::disk('s3')->exists($oldPath)) {
+                        Storage::disk('s3')->delete($oldPath);
+                    }
+                }
                 if ($oldStructureId && $oldStructureId != ($validatedData['structure_id'] ?? null)) {
                     Structuresnew::where('id', $oldStructureId)
                         ->lockForUpdate()
@@ -996,8 +1196,14 @@ public function exportEmployees(Request $request)
             return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
         } catch (\Throwable $th) {
 
+            foreach ($newPaths as $path) {
+                if ($path && Storage::disk('s3')->exists($path)) {
+                    Storage::disk('s3')->delete($path);
+                }
+            }
+
             Log::error('Employee update failed', [
-                'error' => $th->getMessage(),
+                'error'       => $th->getMessage(),
                 'employee_id' => $user->Employee->id ?? null,
             ]);
 
@@ -1005,16 +1211,7 @@ public function exportEmployees(Request $request)
                 ->with('error', 'Update failed: ' . $th->getMessage());
         }
     }
-    public function getPhoto($path)
-    {
-        $full = storage_path('app/' . $path);
 
-        if (!file_exists($full)) {
-            abort(404);
-        }
-
-        return response()->file($full);
-    }
     public function transferAllToPayroll(Request $request)
     {
         try {
@@ -1064,5 +1261,81 @@ public function exportEmployees(Request $request)
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
         }
+    }
+
+    private function serveFile(string $filename, string $folder, string $column): \Illuminate\Http\Response
+    {
+        // 1. Autentikasi
+        if (!auth()->check()) {
+            abort(401);
+        }
+
+        // 2. Validasi format filename
+        if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+            abort(400, 'Invalid filename');
+        }
+
+        // 3. Basename untuk mencegah path traversal
+        $filename = basename($filename);
+
+        // 4. Whitelist ekstensi
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!in_array($extension, $allowedExtensions)) {
+            abort(400, 'File type not allowed');
+        }
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        // 5. ✅ Hanya user dengan permission yang bisa akses
+        if (!$user->can('ManageEmployee')) {
+            abort(403, 'Forbidden: You are not allowed to access this file');
+        }
+
+        $fullPath = $folder . '/' . $filename;
+
+        // 6. Cek file exists di S3
+        if (!Storage::disk('s3')->exists($fullPath)) {
+            abort(404);
+        }
+
+        $file = Storage::disk('s3')->get($fullPath);
+
+        // 7. MIME type dari whitelist
+        $mimeTypes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+
+        return response($file, 200)
+            ->header('Content-Type', $mimeTypes[$extension])
+            ->header('Content-Security-Policy', "default-src 'none'")
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, max-age=3600');
+    }
+    // ============================================================
+    // PUBLIC: masing-masing file punya route sendiri
+    // ============================================================
+    public function serveSignature($filename)
+    {
+        return $this->serveFile($filename, 'employees-signatures-photos', 'signature');
+    }
+
+    public function servePhoto($filename)
+    {
+        return $this->serveFile($filename, 'employees-photos', 'photos');
+    }
+
+    public function serveKtpPhoto($filename)
+    {
+        return $this->serveFile($filename, 'employees-ktp-photos', 'ktp_photos');
+    }
+
+    public function serveKkPhoto($filename)
+    {
+        return $this->serveFile($filename, 'employees-kk-photos', 'kk_photos');
     }
 }

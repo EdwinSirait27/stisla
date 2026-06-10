@@ -112,7 +112,7 @@ class Structuresnew extends Model
                     $changesInfo = $details ? "Changes: {$details}" : '';
                 }
 
-                return "Structuresnew has been {$eventName} by {$actor}. {$changesInfo}";
+                return "Structures has been {$eventName} by {$actor}. {$changesInfo}";
             });
     }
 }

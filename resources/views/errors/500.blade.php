@@ -161,17 +161,27 @@
         <div class="code">500 — Server Error</div>
         <h1>Server <em>internal</em><br>error.</h1>
         <p>Please contact edwin sirait ASAP.</p>
-        <div class="actions">
+        {{-- <div class="actions">
              @auth
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-            {{-- <a href="{{ url('/') }}" class="btn"><span>Go to Dashboard</span></a> --}}
              <button type="submit" class="btn">Logout</button>
             </form>
         @else
             <a href="javascript:history.back()" class="back">← Go back</a>
             @endauth
-        </div>
+        </div> --}}
+         <div class="actions">
+    @auth
+        <a href="{{ route('pages.feature-profile') }}" class="back">← Go back</a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="btn">Logout</button>
+        </form>
+    @else
+        <a href="javascript:history.back()" class="back">← Go back</a>
+    @endauth
+</div>
     </main>
 
     <footer>© {{ date('Y') }} HRX · Developed by Edwin Sirait</footer>

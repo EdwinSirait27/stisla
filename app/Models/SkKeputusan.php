@@ -4,16 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Ramsey\Uuid\Uuid;
 
-
-
-class Activity extends Model
+class SkKeputusan extends Model
 {
-    use HasFactory;
+   use HasFactory;
+ protected $table = 'sk_keputusan';
     public $incrementing = false;
     protected $keyType = 'string';
+     public $timestamps = false;
 
     protected static function boot()
     {
@@ -25,19 +24,13 @@ class Activity extends Model
             }
         });
     }
-    protected $table = 'activity_logs'; 
-
     protected $fillable = [
-        'user_id',
-        'activity_type',
-        'activity_time',
-        'device_lan_mac',
-        'device_wifi_mac',
+        'sk_letter_id',
+        'content_keputusan',
+        'order_no'
     ];
- 
-
-    public function user()
+    public function skletters()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(SkLetter::class, 'sk_letter_id', 'id');
     }
 }

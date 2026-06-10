@@ -4,12 +4,10 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <style>
         .avatar {
             position: relative;
         }
-
         .iframe-container {
             position: relative;
             overflow: hidden;
@@ -385,6 +383,68 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
+                                                    <label for="header" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Header') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('header') is-invalid @enderror"
+                                                            value="{{ old('header', $company->header ?? '') }}"
+                                                            type="text" id="header" name="header"
+                                                            aria-describedby="info-header" placeholder="Insert Header Company"
+                                                            maxlength="255">
+                                                        @error('header')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="website" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Website') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('website') is-invalid @enderror"
+                                                            value="{{ old('website', $company->website ?? '') }}"
+                                                            type="text" id="website" name="website"
+                                                            aria-describedby="info-website" placeholder="Insert website Company"
+                                                            maxlength="255">
+                                                        @error('website')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="email" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Company Email') }}
+                                                    </label>
+                                                    <div>
+                                                        <input class="form-control @error('email') is-invalid @enderror"
+                                                            value="{{ old('email', $company->email ?? '') }}"
+                                                            type="text" id="email" name="email"
+                                                            aria-describedby="info-email" placeholder="Insert email Company"
+                                                            maxlength="255">
+                                                        @error('email')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="row mt-3">
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
                                                     <label for="remark" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Remark') }}
                                                     </label>
@@ -447,21 +507,10 @@
             $('.select2').select2();
         });
     </script>
-    {{-- <script>
-        function showImageSwal(src) {
-            Swal.fire({
-                title: 'Preview Image',
-                imageUrl: src,
-                imageAlt: 'Preview',
-                showCloseButton: true,
-                showConfirmButton: false,
-                width: 400
-            });
-        }
-    </script> --}}
+
     <script>
         document.getElementById('edit-btn').addEventListener('click', function(e) {
-            e.preventDefault(); // Mencegah pengiriman form langsung
+            e.preventDefault(); 
             Swal.fire({
                 title: 'Are You Sure?',
                 text: "Make sure the data you entered is correct!",
@@ -473,40 +522,11 @@
                 cancelButtonText: 'Abort'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Jika pengguna mengkonfirmasi, submit form
                     document.getElementById('company-edit').submit();
                 }
             });
         });
     </script>
-    {{-- <script>
-        function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const output = document.getElementById('preview-image');
-                output.src = reader.result;
-            };
-            reader.readAsDataURL(event.target.files[0]);
-        }
-        @if (session('success'))
-            Swal.fire({
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonText: 'OK'
-            });
-        @endif
-        @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script> --}}
-   
-{{-- JS Preview + SweetAlert --}}
 <script>
     function previewImage(event) {
         const preview = document.getElementById('preview-image');
@@ -515,7 +535,6 @@
             preview.src = URL.createObjectURL(file);
         }
     }
-
     function showImageSwal(src) {
         Swal.fire({
             imageUrl: src,
@@ -524,21 +543,4 @@
         });
     }
 </script>
-
 @endpush
-{{-- JS Preview --}}
-{{-- <script>
-    function previewImage(event) {
-        const preview = document.getElementById('preview-image');
-        preview.src = URL.createObjectURL(event.target.files[0]);
-    }
-
-    function showImageSwal(src) {
-        Swal.fire({
-            imageUrl: src,
-            imageAlt: 'Preview',
-            showConfirmButton: false,
-        });
-    }
-</script>
- --}}

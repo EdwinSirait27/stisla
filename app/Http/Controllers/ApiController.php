@@ -3,6 +3,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\User;
+
+use Illuminate\Support\Facades\Storage;
+
 class ApiController extends Controller
 {
     public function getManagerByEmployee($employeeId)
@@ -114,4 +117,50 @@ public function show($id)
                                : null,
     ]);
 }
+//  public function showsignature($id)
+//     {
+//         $employee = Employee::findOrFail($id);
+
+//         // cek signature kosong
+//         if (empty($employee->signature)) {
+//             abort(404, 'Signature tidak ditemukan');
+//         }
+
+//         $path = $employee->signature;
+
+//         // cek file ada
+//         if (!Storage::disk('public')->exists($path)) {
+//             abort(404, 'File signature tidak ditemukan');
+//         }
+
+//         // ambil file
+//         $file = Storage::disk('public')->get($path);
+
+//         // mime type
+//         $mime = Storage::disk('public')->mimeType($path);
+
+//         return response($file, 200)
+//             ->header('Content-Type', $mime)
+//             ->header('Cache-Control', 'public, max-age=86400');
+//     }
+public function showsignature($id)
+{
+    $employee = Employee::findOrFail($id);
+    if (empty($employee->signature)) {
+        abort(404, 'Signature tidak ditemukan');
+    }
+    $path = $employee->signature;
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404, 'File signature tidak ditemukan');
+    }
+    $file = Storage::disk('public')->get($path);
+    $mime = Storage::disk('public')->mimeType($path);
+
+    return response($file, 200)
+        ->header('Content-Type', $mime)
+        ->header('Cache-Control', 'public, max-age=86400')
+        ->header('Access-Control-Allow-Origin', '*')        // izinkan semua domain
+        ->header('Access-Control-Allow-Methods', 'GET');    // hanya GET
+}
+
 }

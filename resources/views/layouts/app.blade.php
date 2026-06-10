@@ -18,6 +18,7 @@
         @stack('styles')
     <!-- Template CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/mobile-nav.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components.css') }}">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
     <!-- Start GA -->
@@ -32,7 +33,6 @@
         gtag('config', 'UA-94034622-3');
     </script>
     <script src="{{ mix('js/app.js') }}" defer></script>
-     {{-- <script src="https://cdn.balkan.app/orgchart/latest/OrgChart.js"></script> --}}
 </head>
 <body>
     <div id="app">
@@ -45,9 +45,11 @@
 
             <!-- Content -->
             @yield('main')
+            @include('components.mobile-bottom-nav')
 
             <!-- Footer -->
             @include('components.footer')
+
         </div>
     </div>
 

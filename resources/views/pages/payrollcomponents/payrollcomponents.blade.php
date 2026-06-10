@@ -444,7 +444,8 @@
                                 <tr>
                                     <th class="text-center">Component Name</th>
                                     <th class="text-center">Type</th>
-                                    <th class="text-center">Fixed?</th>
+                                    <th class="text-center">Nilai Tetap</th>
+                                    <th class="text-center">Tanggungan Perusahaan</th>
                                     <th class="text-center">Action</th>
                                 </tr>
                             </thead>
@@ -543,10 +544,19 @@
                         render: d => d || '-'
                     },
                     {
-                        data: 'is_fixed',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
+    data: 'is_fixed',
+    className: 'text-center',
+    render: function (data) {
+        return data == 1 ? 'Yes' : 'No';
+    }
+},
+{
+    data: 'is_employer_burden',
+    className: 'text-center',
+    render: function (data) {
+        return data == 1 ? 'Yes' : 'No';
+    }
+},
                     
                     {
                         data: 'action',

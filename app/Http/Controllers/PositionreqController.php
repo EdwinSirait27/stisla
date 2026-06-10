@@ -34,7 +34,7 @@ class PositionreqController extends Controller
            class="mx-2" 
            data-bs-toggle="tooltip" 
            data-bs-original-title="View details" 
-           title="Show Position Request: ' . e($position->positionRelation->name) . '">
+           title="Show Position Request: ' . e($position->id) . '">
             <i class="fas fa-eye "></i>
         </a>';
 

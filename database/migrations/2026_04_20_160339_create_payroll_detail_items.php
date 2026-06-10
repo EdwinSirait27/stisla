@@ -16,7 +16,8 @@ return new class extends Migration
 
             $table->uuid('payroll_detail_id')->nullable();
             $table->uuid('payroll_component_id')->nullable();
-            $table->string('amount')->nullable()->change();
+            $table->decimal('amount', 15, 2)->nullable();
+
             $table->timestamps();
             // FK
             $table->foreign('payroll_detail_id')

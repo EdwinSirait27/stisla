@@ -27,3 +27,5 @@ Route::get('/company/{id}', [CompanyController::class, 'show']);
 Route::get('/finance/{id}', [ApiController::class, 'show']);
 Route::get('/manager/{employeeId}', [ApiController::class, 'getManagerByEmployee']);
 Route::get('/employee/{employeeId}', [ApiController::class, 'getEmployeeById']);
+Route::get('/signature/{id}', [ApiController::class, 'showsignature'])
+    ->name('signature.show');

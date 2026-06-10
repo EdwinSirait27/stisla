@@ -900,36 +900,127 @@
 
                         {{-- ── Section 5: Profile photo ── --}}
                         <div class="form-section">
-                            <div class="form-section-label">Profile photo</div>
-                            <div class="photo-upload-wrap">
-                                <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-image').src)">
-                                    @if (!empty($employee->Employee->photos))
-                                        <img id="preview-image"
-                                             src="{{ asset('storage/' . $employee->Employee->photos) }}"
-                                             alt="Preview">
-                                    @else
-                                        <img id="preview-image" src="https://via.placeholder.com/60"
-                                             alt="No photo" style="display:none">
-                                        <i class="fas fa-user" id="photo-placeholder"></i>
-                                    @endif
-                                </div>
-                                <div>
-                                    <div class="photo-upload-hint">
-                                        JPG, PNG, or WEBP — max 2 MB. Click image to preview full size.
-                                    </div>
-                                    <label for="photos" class="photo-upload-btn">
-                                        <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                                        Upload new photo
-                                    </label>
-                                    <input type="file" name="photos" id="photos"
-                                        class="d-none @error('photos') is-invalid @enderror"
-                                        accept="image/*" onchange="previewPhoto(event)"disabled>
-                                    @error('photos')
-                                        <div class="invalid-feedback d-block mt-1" style="font-size:.7rem">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
+    <div class="form-section-label">Profile Photo</div>
+    <div class="photo-upload-wrap">
+        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-photos').src)">
+            @if (!empty($employee->employee->photos))
+                <img id="preview-photos"
+                    src="{{ route('employee.photo', basename($employee->employee->photos)) }}"
+                    alt="Preview">
+            @else
+                <img id="preview-photos" src="" alt="" style="display:none;">
+                <i class="fas fa-user" id="placeholder-photos"></i>
+            @endif
+        </div>
+        <div>
+            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
+            <label for="photos" class="photo-upload-btn">
+                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                Upload Photo
+            </label>
+            {{-- <input type="file" name="photos" id="photos"
+                class="d-none @error('photos') is-invalid @enderror"
+                accept=".jpg,.jpeg,.png,.webp"
+                onchange="previewImage(event, 'preview-photos', 'placeholder-photos')"> --}}
+            @error('photos')
+                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+</div>
+
+{{-- ==================== KTP PHOTO ==================== --}}
+<div class="form-section">
+    <div class="form-section-label">KTP Photo</div>
+    <div class="photo-upload-wrap">
+        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-ktp-photos').src)">
+            @if (!empty($employee->employee->ktp_photos))
+                <img id="preview-ktp-photos"
+                    src="{{ route('employee.ktp', basename($employee->employee->ktp_photos)) }}"
+                    alt="Preview">
+            @else
+                <img id="preview-ktp-photos" src="" alt="" style="display:none;">
+                <i class="fas fa-id-card" id="placeholder-ktp-photos"></i>
+            @endif
+        </div>
+        <div>
+            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
+            <label for="ktp_photos" class="photo-upload-btn">
+                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                Upload KTP
+            </label>
+            {{-- <input type="file" name="ktp_photos" id="ktp_photos"
+                class="d-none @error('ktp_photos') is-invalid @enderror"
+                accept=".jpg,.jpeg,.png,.webp"
+                onchange="previewImage(event, 'preview-ktp-photos', 'placeholder-ktp-photos')"> --}}
+            @error('ktp_photos')
+                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+</div>
+
+{{-- ==================== KK PHOTO ==================== --}}
+<div class="form-section">
+    <div class="form-section-label">KK Photo</div>
+    <div class="photo-upload-wrap">
+        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-kk-photos').src)">
+            @if (!empty($employee->employee->kk_photos))
+                <img id="preview-kk-photos"
+                    src="{{ route('employee.kk', basename($employee->employee->kk_photos)) }}"
+                    alt="Preview">
+            @else
+                <img id="preview-kk-photos" src="" alt="" style="display:none;">
+                <i class="fas fa-users" id="placeholder-kk-photos"></i>
+            @endif
+        </div>
+        <div>
+            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
+            <label for="kk_photos" class="photo-upload-btn">
+                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                Upload KK
+            </label>
+            {{-- <input type="file" name="kk_photos" id="kk_photos"
+                class="d-none @error('kk_photos') is-invalid @enderror"
+                accept=".jpg,.jpeg,.png,.webp"
+                onchange="previewImage(event, 'preview-kk-photos', 'placeholder-kk-photos')"> --}}
+            @error('kk_photos')
+                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+</div>
+
+{{-- ==================== SIGNATURE ==================== --}}
+<div class="form-section">
+    <div class="form-section-label">Signature</div>
+    <div class="photo-upload-wrap">
+        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-signature').src)">
+            @if (!empty($employee->employee->signature))
+                <img id="preview-signature"
+                    src="{{ route('employee.signature', basename($employee->employee->signature)) }}"
+                    alt="Preview">
+            @else
+                <img id="preview-signature" src="" alt="" style="display:none;">
+                <i class="fas fa-signature" id="placeholder-signature"></i>
+            @endif
+        </div>
+        <div>
+            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
+            <label for="signature_file" class="photo-upload-btn">
+                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                Upload Signature
+            </label>
+            {{-- <input type="file" name="signature_file" id="signature_file"
+                class="d-none @error('signature_file') is-invalid @enderror"
+                accept=".jpg,.jpeg,.png,.webp"
+                onchange="previewImage(event, 'preview-signature', 'placeholder-signature')"> --}}
+            @error('signature_file')
+                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+</div>
 
                         {{-- Note --}}
                         <div class="note-box">

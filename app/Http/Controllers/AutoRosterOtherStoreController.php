@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
-use App\Models\PublicHoliday;
+use App\Models\Ph;
 use App\Models\Roster;
 use App\Models\Shifts;
 use App\Models\Stores;
@@ -303,7 +303,7 @@ class AutoRosterOtherStoreController extends Controller
         $dwCount   = $employees->filter(fn($e) => strtoupper($e->status_employee ?? '') === 'DW')->count();
 
         // ── Public Holiday dalam minggu ini ──
-        $publicHolidays = PublicHoliday::whereBetween('date', [
+        $publicHolidays = Ph::whereBetween('date', [
                 $weekStart->toDateString(),
                 $weekEnd->toDateString(),
             ])
@@ -476,7 +476,7 @@ class AutoRosterOtherStoreController extends Controller
             }
 
             // ── 5. Pre-load Public Holiday dalam minggu ini ──
-            $allPublicHolidays = PublicHoliday::whereBetween('date', [
+            $allPublicHolidays = Ph::whereBetween('date', [
                     $weekStart->toDateString(),
                     $weekEnd->toDateString(),
                 ])

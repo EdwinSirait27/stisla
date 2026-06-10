@@ -25,6 +25,9 @@ class Grading extends Model
         'grading_name',
         'group_id',
     ];
+      protected $casts = [
+        'meal_allwance' => 'decimal:2',
+    ];
      public function groups()
     {
         return $this->belongsTo(Groups::class, 'group_id', 'id');

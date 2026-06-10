@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
  * Activate salah satu provider di method sendViaProvider()
  * setelah Anda memutuskan (Fonnte / Twilio / Meta Cloud API).
  */
-class SendWhatsAppNotificationJob implements ShouldQueue
+class SendWhatsappJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -64,7 +64,7 @@ class SendWhatsAppNotificationJob implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
-            Log::error('SendWhatsAppNotificationJob failed', [
+            Log::error('SendWhatsappJob failed', [
                 'log_id' => $this->log->id,
                 'error'  => $e->getMessage(),
             ]);
@@ -101,15 +101,15 @@ class SendWhatsAppNotificationJob implements ShouldQueue
 
         return "🔔 *MANUAL RECAP ABSENSI*\n\n"
              . "Telah dilakukan penambahan data absensi manual:\n\n"
-             . "👤 *Karyawan:* {$empName}\n"
-             . "🏢 *Store:* {$storeName}\n"
-             . "📅 *Tanggal:* {$date}\n"
-             . "🕐 *Time In:* {$timeIn}\n"
-             . "🕐 *Time Out:* {$timeOut}\n\n"
-             . "📝 *Alasan:*\n{$reason}\n\n"
-             . "📎 *Bukti Terlampir:* {$evidenceCount} file\n\n"
-             . "👨‍💼 *Diajukan oleh HR:* {$hrName}\n"
-             . "⏰ *Waktu:* " . $this->log->submitted_at->format('d/m/Y H:i:s') . "\n\n"
+             . "*Karyawan:* {$empName}\n"
+             . "*Location:* {$storeName}\n"
+             . "*Tanggal:* {$date}\n"
+             . "*Time In:* {$timeIn}\n"
+             . "*Time Out:* {$timeOut}\n\n"
+             . "*Alasan:*\n{$reason}\n\n"
+             . "*Bukti Terlampir:* {$evidenceCount} file\n\n"
+             . "*Diajukan oleh HR:* {$hrName}\n"
+             . "*Waktu:* " . $this->log->submitted_at->format('d/m/Y H:i:s') . "\n\n"
              . "_Pesan otomatis dari sistem HRX_";
     }
 

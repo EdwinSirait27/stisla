@@ -420,8 +420,8 @@
                         </div>
                     </div>
 
-                  
-    <form action="{{ route('updatepayrollcomponents', $payrolls->id) }}" method="POST">
+
+                    <form action="{{ route('updatepayrollcomponents', $payrolls->id) }}" method="POST">
                         @csrf
                         @method('PUT')
 
@@ -478,44 +478,48 @@
                                         @enderror
                                     </div>
 
-                                   <div class="field-group">
-                <label>
-                    <input type="hidden" name="is_fixed" value="0">
-                    <input type="checkbox" name="is_fixed" value="1"
-                        {{ old('is_fixed', $payrolls->is_fixed) ? 'checked' : '' }}>
-                    Fixed
-                </label>
+                                    <div class="field-group">
+                                        <label><i class="fas fa-lock"></i> Fixed Component</label>
 
-                <br>
-                <small class="text-muted">
-                   Check if this component has a fixed value every period.
-                </small>
+                                        <input type="hidden" name="is_fixed" value="0">
 
-                @error('is_fixed')
-                    <span class="invalid-feedback d-block">{{ $message }}</span>
-                @enderror
-            </div>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <input type="checkbox" name="is_fixed" id="is_fixed" value="1"
+                                                {{ old('is_fixed', $payrolls->is_fixed) ? 'checked' : '' }}>
+                                            <label for="is_fixed" class="mb-0">Fixed</label>
+                                        </div>
 
-                                 
+                                        <small class="text-muted">
+                                            Centang kalau nilainya tetap.
 
-                                 
+                                        </small>
 
-                                 
+                                        @error('is_fixed')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    <div class="field-group">
+                                        <label><i class="fas fa-lock"></i> Tanggungan Perusahaan</label>
 
+                                        <input type="hidden" name="is_employer_burden" value="0">
+
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <input type="checkbox" name="is_employer_burden" id="is_employer_burden"
+                                                value="1"
+                                                {{ old('is_employer_burden', $payrolls->is_employer_burden) ? 'checked' : '' }}>
+                                            <label for="is_employer_burden" class="mb-0">Tanggungan Perusahaan</label>
+                                        </div>
+
+                                        <small class="text-muted">
+                                            Centang kalau dibebani oleh perusahaan.
+                                        </small>
+                                        @error('is_employer_burden')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
-
-                           
-                           
-                            {{-- ── Section 4: Bank & contact ── --}}
-                           
-                            {{-- ── Section 5: Profile photo ── --}}
-                           
-
-                            {{-- Note --}}
-                            
-                        </div>{{-- /.form-body --}}
-
+                        </div>
                         <div class="emp-form-footer">
                             <a href="{{ route('payrollcomponents') }}" class="btn btn-back">
                                 <i class="fas fa-arrow-left"></i> Back to Payroll Components
@@ -525,21 +529,17 @@
                             </button>
                         </div>
                     </form>
-
                 </div>{{-- /.emp-form-card --}}
             </div>
         </section>
     </div>
 @endsection
-
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         /* ── Photo preview ── */
-     
-
         $(function() {
             /* ── Select2 ── */
             $('.select2').select2({

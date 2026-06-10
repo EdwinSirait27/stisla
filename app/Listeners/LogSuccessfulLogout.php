@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use Illuminate\Auth\Events\Logout;
-use App\Models\Activity;
+// use App\Models\Activity;
 use Illuminate\Support\Facades\Log;
 
 class LogSuccessfulLogout
@@ -29,13 +29,13 @@ class LogSuccessfulLogout
         try {
             $macAddresses = $this->getAllMacAddresses();
             
-            Activity::create([
-                'user_id' => $event->user->id,
-                'activity_type' => 'Logout',
-                'activity_time' => now(),
-                'device_lan_mac' => $macAddresses['lan'] ?? null,
-                'device_wifi_mac' => $macAddresses['wifi'] ?? null,
-            ]);
+            // Activity::create([
+            //     'user_id' => $event->user->id,
+            //     'activity_type' => 'Logout',
+            //     'activity_time' => now(),
+            //     'device_lan_mac' => $macAddresses['lan'] ?? null,
+            //     'device_wifi_mac' => $macAddresses['wifi'] ?? null,
+            // ]);
             
             Log::info("Logout activity recorded for user: {$event->user->username}");
         } catch (\Exception $e) {

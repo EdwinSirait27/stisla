@@ -263,7 +263,8 @@ public function storeToStructure($hashedId)
     
     // GANTI QUERY INI - langsung cari berdasarkan prefix di structure_code saja
     $lastStructure = Structuresnew::where('structure_code', 'like', $prefix . '%')
-        ->orderByRaw('CAST(SUBSTRING(structure_code, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+    ->lockForUpdate()    
+    ->orderByRaw('CAST(SUBSTRING(structure_code, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
         ->first();
     
     Log::info('Query executed');

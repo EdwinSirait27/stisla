@@ -57,7 +57,7 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -178,7 +178,30 @@
                             </div>
 
                             <div class="card-body">
-                                <div class="table-responsive">
+                                {{-- <div class="table-responsive"> --}}
+                                    <div class="row mb-3">
+    <div class="col-md-3">
+        <label>Start Date</label>
+        <input type="date" id="start_date" class="form-control">
+    </div>
+
+    <div class="col-md-3">
+        <label>End Date</label>
+        <input type="date" id="end_date" class="form-control">
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <button type="button" id="filter" class="btn btn-primary mr-2">
+            <i class="fas fa-filter"></i> Filter
+        </button>
+
+        <button type="button" id="reset" class="btn btn-secondary">
+            <i class="fas fa-sync"></i> Reset
+        </button>
+    </div>
+</div>
+
+<div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
@@ -210,56 +233,136 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Wait for jQuery to be fully loaded
-        jQuery(document).ready(function($) {
-            // Initialize DataTable with proper configuration
-            var table = $('#users-table').DataTable({
-                processing: true,
-                serverSide: true,
-                autoWidth: false,
-                ajax: {
-                    url: '{{ route('pubholis.pubholis') }}',
-                    type: 'GET'
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, "All"]
-                ],
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search...",
-                },
-                columns: [
-                   
-                  
-                    {
-                        data: 'date',
-                        name: 'date',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'remark',
-                        name: 'remark',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'type',
-                        name: 'type',
-                        className: 'text-center'
-                    }
-                ],
-                initComplete: function() {
-                  }
-            });
+    jQuery(document).ready(function($) {
 
-            @if (session('success'))
+        var table = $('#users-table').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: {
+                url: '{{ route('pubholis.pubholis') }}',
+                type: 'GET',
+                data: function(d) {
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
+                }
+            },
+            responsive: true,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search...",
+            },
+            columns: [
+                {
+                    data: 'date',
+                    name: 'date',
+                    className: 'text-center'
+                },
+                {
+                    data: 'remark',
+                    name: 'remark',
+                    className: 'text-center'
+                },
+                {
+                    data: 'type',
+                    name: 'type',
+                    className: 'text-center'
+                }
+            ]
+        });
+
+        // FILTER
+        $('#filter').click(function() {
+            table.ajax.reload();
+        });
+
+        // RESET
+        $('#reset').click(function() {
+            $('#start_date').val('');
+            $('#end_date').val('');
+
+            table.ajax.reload();
+        });
+
+        @if (session('success'))
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
                 text: '{{ session('success') }}',
             });
         @endif
-    
-        });
+
+    });
     </script>
 @endpush
+
+{{-- <script>
+    jQuery(document).ready(function($) {
+
+        var table = $('#users-table').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: {
+                url: '{{ route('pubholis.pubholis') }}',
+                type: 'GET',
+                data: function(d) {
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
+                }
+            },
+            responsive: true,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search...",
+            },
+            columns: [
+                {
+                    data: 'date',
+                    name: 'date',
+                    className: 'text-center'
+                },
+                {
+                    data: 'remark',
+                    name: 'remark',
+                    className: 'text-center'
+                },
+                {
+                    data: 'type',
+                    name: 'type',
+                    className: 'text-center'
+                }
+            ]
+        });
+
+        // FILTER
+        $('#filter').click(function() {
+            table.ajax.reload();
+        });
+
+        // RESET
+        $('#reset').click(function() {
+            $('#start_date').val('');
+            $('#end_date').val('');
+
+            table.ajax.reload();
+        });
+
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+            });
+        @endif
+
+    });
+</script> --}}

@@ -10,8 +10,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+// class EmployeesExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnFormatting, NumberFormat
+class EmployeesExport extends DefaultValueBinder implements FromQuery, WithHeadings, WithMapping, WithStyles, WithCustomValueBinder
 
-class EmployeesExport implements FromQuery, WithHeadings, WithMapping, WithStyles
 {
     protected $filters;
 
@@ -113,8 +118,8 @@ private function applyLosFilter($query, $los)
         return [
             $this->rowNumber,
             $e->employee_name  ?? 'Empty',
-            // $e->employee_pengenal  ?? 'Empty',
-        $e->employee_pengenal ? "'" . $e->employee_pengenal : 'Empty',
+            $e->employee_pengenal  ?? 'Empty',
+        // $e->employee_pengenal ? "'" . $e->employee_pengenal : 'Empty',
 
             $e->name_company   ?? 'Empty',
             $e->department_name ?? 'Empty',
@@ -135,4 +140,14 @@ private function applyLosFilter($query, $los)
             1 => ['font' => ['bold' => true]],
         ];
     }
+    public function bindValue(Cell $cell, $value): bool
+{
+    // Kolom C = NIP, paksa sebagai string
+    if ($cell->getColumn() === 'C') {
+        $cell->setValueExplicit($value, DataType::TYPE_STRING);
+        return true;
+    }
+
+    return parent::bindValue($cell, $value);
+}
 }

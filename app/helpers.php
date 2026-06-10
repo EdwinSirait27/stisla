@@ -2,6 +2,7 @@
 
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Auth;
+
 if (!function_exists('uuid7')) {
     function uuid7()
     {
@@ -10,6 +11,8 @@ if (!function_exists('uuid7')) {
 }
 function getDashboardRoute()
 {
+    /** @var \App\Models\User|null $user */
+
     $user = Auth::user();
 
     if ($user->hasRole('Admin')) {

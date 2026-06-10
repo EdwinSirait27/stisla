@@ -24,7 +24,7 @@ class dashboardAdminController extends Controller
     }
         public function getUsers(Request $request)
 {
-    $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position'])
+    $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position','Employee.grading'])
         ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
         ->get()
         ->map(function ($user) {
@@ -52,6 +52,7 @@ class dashboardAdminController extends Controller
         ->addColumn('device_lan_mac', fn($user) => optional($user->Terms)->device_lan_mac ?? 'Empty')
         ->addColumn('employee_name', fn($user) => optional($user->Employee)->employee_name ?? 'Empty')
         ->addColumn('store_name', fn($user) => optional(optional($user->Employee)->store)->name ?? 'Empty')
+        ->addColumn('grading_name', fn($user) => optional(optional($user->Employee)->grading)->grading_name ?? 'Empty')
         ->addColumn('position_name', fn($user) => optional(optional($user->Employee)->position)->name ?? 'Empty')
         ->addColumn('pin', fn($user) => optional($user->Employee)->pin ?? 'Empty')
         ->addColumn('device_wifi_mac', fn($user) => optional($user->Terms)->device_wifi_mac ?? 'Empty')

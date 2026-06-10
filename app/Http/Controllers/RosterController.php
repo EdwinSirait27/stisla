@@ -5,11 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Ph;
 use App\Models\Roster;
+use App\Models\User;
 use App\Models\Shifts;
 use App\Models\Stores;
+use App\Models\RosterSetting;
+use App\Models\PublicHoliday;
+use Yajra\DataTables\DataTables;
+use Spatie\Activitylog\Models\Activity;
 use App\Models\ToilLeaveRequests;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RosterHistoryExport;
 
 class RosterController extends Controller
 {
@@ -17,10 +25,10 @@ class RosterController extends Controller
     //  HELPER: Resolve allowed day_type berdasarkan status_employee
     // ─────────────────────────────────────────────────────────────
 
+
     private function allowedDayTypes(?string $statusEmployee): array
     {
         $status = strtoupper($statusEmployee ?? '');
-
         if ($status === 'DW') {
             return ['Work', 'Off'];
         }
@@ -130,7 +138,6 @@ class RosterController extends Controller
             ->where('status', 'Approved')
             ->whereBetween('leave_date', [$startDate, $endDate])
             ->get();
-
         $map = [];
         foreach ($approvedLeaves as $leave) {
             $empId = $leave->employee_id;
@@ -141,127 +148,151 @@ class RosterController extends Controller
             }
             $map[$empId][] = $date;
         }
-
         return $map;
     }
-
     private function hasToilApproved(array $approvedMap, string $employeeId, string $date): bool
     {
         return isset($approvedMap[$employeeId])
             && in_array($date, $approvedMap[$employeeId]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  HELPER: Public Holiday
-    // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Map: [date => ['type' => 'All'|'Hindu'|'Non Hindu', 'remark' => 'Tahun Baru Imlek']]
-     */
-    private function getPublicHolidaysMap(string $startDate, string $endDate): array
+    private function isSPVOnly(): bool
     {
-        $holidays = Ph::select('date', 'type', 'remark')
-            ->whereBetween('date', [$startDate, $endDate])
-            ->get();
-
-        $map = [];
-        foreach ($holidays as $ph) {
-            $date = Carbon::parse($ph->date)->toDateString();
-            $map[$date] = [
-                'type'   => $ph->type,
-                'remark' => $ph->remark,
-            ];
-        }
-
-        return $map;
+        /** @var User|null $user */
+        $user = auth()->user();
+        return $user->hasPermissionTo('ManageRosterSPVManager')
+            && !$user->hasPermissionTo('ManageRoster');
     }
 
-    private function isPublicHolidayForEmployee(array $phMap, string $date, ?string $religion): bool
+    private function checkRosterWindow(): bool
     {
-        if (!isset($phMap[$date])) {
-            return false;
+        $setting = RosterSetting::where('is_active', true)->latest()->first();
+        if (!$setting) return false;
+
+        $today    = now()->day;
+        $openDay  = $setting->open_day;
+        $closeDay = $setting->close_day;
+
+        if ($openDay <= $closeDay) {
+            return $today >= $openDay && $today <= $closeDay;
         }
 
-        $phType = $phMap[$date]['type'];
-
-        if ($phType === 'All') {
-            return true;
-        }
-
-        if (empty($religion)) {
-            return false;
-        }
-
-        if ($phType === 'Hindu') {
-            return $religion === 'Hindu';
-        }
-
-        if ($phType === 'Non Hindu') {
-            return $religion !== 'Hindu';
-        }
-
-        return false;
+        // Lintas bulan: misal open 25, close 3
+        return $today >= $openDay || $today <= $closeDay;
     }
-
-    /**
-     * Ambil remark PH untuk tanggal tertentu (mis: 'Tahun Baru Imlek').
-     * Return '' kalau tanggal bukan PH.
-     */
-    private function getPublicHolidayRemark(array $phMap, string $date): string
-    {
-        return $phMap[$date]['remark'] ?? '';
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    //  INDEX
-    //  Pre-compute semua data untuk view (view 100% bersih dari @php)
-    // ─────────────────────────────────────────────────────────────
 
     public function index(Request $request)
     {
-        $stores = Stores::select('id', 'name', 'is_auto_generate')
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+
+        $canManageAll = $user->hasPermissionTo('ManageRoster');
+        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+        $canView      = $user->hasPermissionTo('ViewRoster');
+
+
+        if (!$canManageAll && !$canManageSPV && !$canView) {
+            return abort(403, 'Unauthorized');
+        }
+
+
+        $myEmployee  = optional($user->employee);
+        $myStoreId   = $myEmployee->store_id;
+        $myStoreName = optional($myEmployee->store)->name;
+        $myDepartmentId = $myEmployee->department_id;
+
+        $today            = now();
+        $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
+        $defaultEndDate   = $today->copy()->day(25)->toDateString();
+
+        if ($canView && !$canManageAll && !$canManageSPV) {
+            $storeId = $myStoreId;
+        } else {
+            // $storeId = $request->store_id;
+        }
+
+        if (!$canManageAll && $canManageSPV) {
+            // Guard store_id
+            if ($request->store_id && $request->store_id !== $myStoreId) {
+                return redirect()->route('roster.index', [
+                    'store_id'   => $myStoreId,
+                    'start_date' => $request->start_date,
+                    'end_date'   => $request->end_date,
+                ]);
+            }
+
+            // Guard date range
+            $maxStartDate = Carbon::parse($defaultStartDate)->addMonth();
+            $maxEndDate   = Carbon::parse($defaultEndDate)->addMonth();
+
+            if ($request->start_date && Carbon::parse($request->start_date)->gt($maxStartDate)) {
+                return redirect()->route('roster.index', [
+                    'store_id'   => $request->store_id,
+                    'start_date' => $defaultStartDate,
+                    'end_date'   => $request->end_date,
+                ]);
+            }
+
+            if ($request->end_date && Carbon::parse($request->end_date)->gt($maxEndDate)) {
+                return redirect()->route('roster.index', [
+                    'store_id'   => $request->store_id,
+                    'start_date' => $request->start_date,
+                    'end_date'   => $defaultEndDate,
+                ]);
+            }
+        }
+
+        $startDate = $request->start_date ?? $defaultStartDate;
+        $endDate   = $request->end_date   ?? $defaultEndDate;
+        $storeId   = $request->store_id;
+
+        $stores = Stores::select('id', 'name')
             ->whereNotNull('name')
             ->orderBy('name')
             ->get();
 
-        $startDate = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
-        $endDate   = $request->end_date   ?? Carbon::now()->endOfMonth()->toDateString();
-        $storeId   = $request->store_id;
-
-        $employees        = collect();
-        $shifts           = collect();
-        $dates            = [];
-        $dateHeaders      = [];
-        $currentStoreName = '';
-        $showAutoGenerate = false;
+        $employees = collect();
+        $shifts    = collect();
+        $dates     = [];
 
         if ($storeId) {
-            $currentStore     = $stores->firstWhere('id', $storeId);
-            $currentStoreName = $currentStore?->name ?? '';
-            $showAutoGenerate = (bool) ($currentStore?->is_auto_generate ?? false);
-
-            $employees = Employee::with([
+            $employeeQuery = Employee::with([
                 'position:id,name',
                 'store:id,name',
                 'department:id,department_name',
-                'rosters' => function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('date', [$startDate, $endDate])
-                        ->with('shift:id,shift_name,start_time,end_time');
-                },
+                'rosters' => fn($q) => $q
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->with('shift:id,shift_name,start_time,end_time'),
             ])
-                ->select('id', 'employee_name', 'store_id', 'status_employee', 'religion', 'position_id', 'department_id')
+                ->select('id', 'employee_name', 'store_id', 'status_employee', 'status', 'company_id', 'department_id', 'position_id')
                 ->whereNull('deleted_at')
                 ->where('store_id', $storeId)
-                ->orderBy('employee_name')
-                ->get();
+                ->orderBy('employee_name');
+
+
+            if ($canManageAll) {
+                $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
+            } elseif ($canManageSPV) {
+                $employeeQuery->where('status', 'Active');
+            } elseif ($canView) {
+                $employeeQuery->where('id', $myEmployee->id);
+            } else {
+                return abort(403, 'Unauthorized');
+            }
+
+            $employees = $employeeQuery->get();
 
             $shifts = Shifts::where('store_id', $storeId)
                 ->orderBy('shift_name')
                 ->get();
 
-            $current   = Carbon::parse($startDate);
-            $endCarbon = Carbon::parse($endDate);
-            while ($current->lte($endCarbon)) {
+
+            $start   = Carbon::parse($startDate);
+            $end     = Carbon::parse($endDate);
+            $current = $start->copy();
+
+            while ($current->lte($end)) {
                 $dates[] = $current->copy();
                 $current->addDay();
             }
@@ -295,26 +326,45 @@ class RosterController extends Controller
             }
         }
 
+        $isSupervisorOrManager = $canManageSPV && !$canManageAll;
+        $isRosterOpen = $this->isSPVOnly() ? $this->checkRosterWindow() : true;
+        $canViewOnly = $canView && !$canManageAll && !$canManageSPV;
+
         return view('pages.Roster.Roster', compact(
             'employees',
             'shifts',
             'stores',
             'dates',
-            'dateHeaders',
+
             'startDate',
             'endDate',
             'storeId',
-            'currentStoreName',
-            'showAutoGenerate'
+            'myStoreId',
+            'isRosterOpen',
+            'myStoreName',
+            'isSupervisorOrManager',
+            'canView',
+            'canManageAll',
+            'canManageSPV',
+            'canViewOnly',
+            'user'
         ));
     }
-
     // ─────────────────────────────────────────────────────────────
     //  STORE (klik cell)
     // ─────────────────────────────────────────────────────────────
 
     public function store(Request $request)
+
     {
+
+
+        if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode pengisian roster sedang ditutup.',
+            ], 403);
+        }
         $request->validate([
             'employee_id' => 'required|exists:employees_tables,id',
             'shift_id'    => 'nullable|exists:shifts_tables,id',
@@ -384,13 +434,18 @@ class RosterController extends Controller
                 : '',
         ]);
     }
-
     // ─────────────────────────────────────────────────────────────
     //  DESTROY (hapus 1 cell)
     // ─────────────────────────────────────────────────────────────
 
     public function destroy(Request $request)
     {
+        if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode pengisian roster sedang ditutup.',
+            ], 403);
+        }
         $request->validate([
             'employee_id' => 'required|exists:employees_tables,id',
             'date'        => 'required|date',
@@ -408,30 +463,57 @@ class RosterController extends Controller
             ], 422);
         }
 
-        $employee = Employee::select('id', 'religion')->find($request->employee_id);
-        $phMap    = $this->getPublicHolidaysMap($request->date, $request->date);
-        $isPH     = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
 
-        if ($isPH) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak bisa hapus roster — tanggal ini adalah Public Holiday.',
-            ], 422);
-        }
-
-        Roster::where('employee_id', $request->employee_id)
+        // Roster::where('employee_id', $request->employee_id)
+        //     ->where('date', $request->date)
+        //     ->delete();
+        //  Sesudah - trigger Eloquent events
+        $rosters = Roster::where('employee_id', $request->employee_id)
             ->where('date', $request->date)
-            ->delete();
+            ->get();
+        Log::info('Rosters found: ' . $rosters->count());
+        Log::info($rosters->pluck('id')->toArray());
+
+        foreach ($rosters as $roster) {
+            $roster->delete();
+        }
 
         return response()->json(['success' => true]);
     }
+    private function resolveRelevantPhTypes(?string $religion): array
+    {
+        return ($religion === 'Hindu')
+            ? ['Hindu', 'All']
+            : ['Non Hindu', 'All'];
+    }
 
-    // ─────────────────────────────────────────────────────────────
-    //  BULK ASSIGN
-    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Tentukan apakah karyawan berhak mendapat Public Holiday
+     * berdasarkan status_employee:
+     *   - PKWT → dapat PH
+     *   - OJT  → dapat PH
+     *   - DW   → TIDAK dapat PH
+     */
+    private function isEligibleForPH(?string $statusEmployee): bool
+    {
+        return !in_array(strtoupper($statusEmployee ?? ''), ['DW']);
+    }
 
     public function bulkAssign(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+        if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode pengisian roster sedang ditutup.',
+            ], 403);
+        }
+        Log::info('=== BULK ASSIGN START ===', [
+            'request' => $request->all()
+        ]);
+
         $request->validate([
             'employee_ids'      => 'required|array|min:1',
             'employee_ids.*'    => 'exists:employees_tables,id',
@@ -444,26 +526,60 @@ class RosterController extends Controller
             'saturday_shift_id' => 'nullable|exists:shifts_tables,id',
         ]);
 
-        $employees = Employee::select('id', 'employee_name', 'status_employee', 'religion')
+
+        $employees = Employee::select(
+            'id',
+            'employee_name',
+            'status_employee',
+            'religion'
+        )
             ->whereIn('id', $request->employee_ids)
             ->get()
             ->keyBy('id');
 
+        Log::info('Employees Loaded', [
+            'count' => $employees->count(),
+            'employees' => $employees->toArray()
+        ]);
+
         $rejected = [];
+
         foreach ($employees as $emp) {
+
             $allowed = $this->allowedDayTypes($emp->status_employee);
+
+            Log::info('Checking Allowed Day Type', [
+                'employee' => $emp->employee_name,
+                'status_employee' => $emp->status_employee,
+                'requested_day_type' => $request->day_type,
+                'allowed' => $allowed
+            ]);
+
             if (!in_array($request->day_type, $allowed)) {
+
                 $rejected[] = "{$emp->employee_name} (status: " . strtoupper($emp->status_employee ?? '-') . ")";
             }
         }
 
         if (!empty($rejected)) {
+
+            Log::warning('Rejected Employees', [
+                'rejected' => $rejected
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Karyawan berikut tidak dapat di-assign day type "' . $request->day_type . '": '
                     . implode(', ', $rejected) . '.',
             ], 422);
         }
+        $publicHolidayMap = PublicHoliday::whereBetween('date', [$request->start_date, $request->end_date])
+            ->get()
+            ->groupBy(fn($ph) => Carbon::parse($ph->date)->toDateString());
+
+        Log::info('Public Holiday Loaded', [
+            'dates' => $publicHolidayMap->keys()
+        ]);
 
         $toilApprovedMap = $this->getToilApprovedDatesMap(
             $request->employee_ids,
@@ -471,59 +587,104 @@ class RosterController extends Controller
             $request->end_date
         );
 
-        $phMap = $this->getPublicHolidaysMap($request->start_date, $request->end_date);
+
+        Log::info('TOIL Approved Map', [
+            'map' => $toilApprovedMap
+        ]);
 
         $dates   = [];
         $current = Carbon::parse($request->start_date);
         $end     = Carbon::parse($request->end_date);
 
         while ($current->lte($end)) {
+
             if ($request->skip_weekend && $current->isSunday()) {
                 $current->addDay();
                 continue;
             }
+
             $dates[] = $current->copy();
+
             $current->addDay();
         }
 
-        $count     = 0;
-        $toilCount = 0;
-        $phCount   = 0;
+
+        Log::info('Generated Dates', [
+            'dates' => collect($dates)->map(fn($d) => $d->toDateString())
+        ]);
+
+        $count        = 0;
+        $skippedCount = 0;
 
         foreach ($request->employee_ids as $empId) {
-            $employee = $employees[$empId] ?? null;
-            $religion = $employee?->religion;
+
+            $emp = $employees[$empId];
+
+            Log::info('Processing Employee', [
+                'employee_id' => $empId,
+                'employee_name' => $emp->employee_name,
+                'religion' => $emp->religion,
+                'status_employee' => $emp->status_employee
+            ]);
+
+            $relevantPhTypes = $this->resolveRelevantPhTypes($emp->religion);
+
+            $eligibleForPH = $this->isEligibleForPH($emp->status_employee);
+
+            Log::info('PH Eligibility', [
+                'employee' => $emp->employee_name,
+                'relevant_ph_types' => $relevantPhTypes,
+                'eligible_for_ph' => $eligibleForPH
+            ]);
 
             foreach ($dates as $date) {
+
                 $dateStr = $date->toDateString();
+
+
+                //  Reset tiap iterasi agar tidak carry over ke tanggal berikutnya
+                $resolvedDayType = $request->day_type;
+                $resolvedShiftId = $request->day_type === 'Work' ? $request->shift_id : null;
+                $resolvedNotes   = null;
 
                 if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $empId, 'date' => $dateStr],
-                        ['shift_id' => null, 'day_type' => 'TOIL Off']
-                    );
-                    $toilCount++;
-                    continue;
-                }
-
-                if ($this->isPublicHolidayForEmployee($phMap, $dateStr, $religion)) {
-                    Roster::updateOrCreate(
-                        ['employee_id' => $empId, 'date' => $dateStr],
-                        [
-                            'shift_id' => null,
-                            'day_type' => 'Public Holiday',
-                            'notes'    => $this->getPublicHolidayRemark($phMap, $dateStr),
-                        ]
+                        ['shift_id' => null, 'day_type' => 'Off', 'notes' => null]
                     );
                     $phCount++;
                     continue;
                 }
 
+                if ($eligibleForPH && isset($publicHolidayMap[$dateStr])) {
+                    $matchingPH = $publicHolidayMap[$dateStr]->first(
+                        fn($ph) => in_array($ph->type, $relevantPhTypes)
+                    );
+
+                    if ($matchingPH) {
+                        Log::info('Public Holiday Match', [
+                            'employee' => $emp->employee_name,
+                            'date'     => $dateStr,
+                            'type'     => $matchingPH->type,
+                            'remark'   => $matchingPH->remark,
+                        ]);
+
+                        $resolvedDayType = 'Public Holiday';
+                        $resolvedShiftId = null;
+                        $resolvedNotes   = $matchingPH->remark;  // ← PH remark → Roster notes
+                    }
+                }
+
                 if ($date->isSaturday()) {
                     if ($request->saturday_shift && $request->saturday_shift_id) {
+                        $finalDayType = ($resolvedDayType === 'Public Holiday') ? 'Public Holiday' : 'Work';
+                        $finalShiftId = ($finalDayType === 'Work') ? $request->saturday_shift_id : null;
+
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
-                            ['shift_id' => $request->saturday_shift_id, 'day_type' => 'Work']
+
+                            ['shift_id' => $finalShiftId, 'day_type' => $finalDayType, 'notes' => $resolvedNotes]  // 
+
                         );
                         $count++;
                     } elseif ($request->skip_weekend) {
@@ -531,10 +692,7 @@ class RosterController extends Controller
                     } else {
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
-                            [
-                                'shift_id' => $request->day_type === 'Work' ? $request->shift_id : null,
-                                'day_type' => $request->day_type,
-                            ]
+                            ['shift_id' => $resolvedShiftId, 'day_type' => $resolvedDayType, 'notes' => $resolvedNotes]  // 
                         );
                         $count++;
                     }
@@ -543,21 +701,23 @@ class RosterController extends Controller
 
                 Roster::updateOrCreate(
                     ['employee_id' => $empId, 'date' => $dateStr],
-                    [
-                        'shift_id' => $request->day_type === 'Work' ? $request->shift_id : null,
-                        'day_type' => $request->day_type,
-                    ]
+                    ['shift_id' => $resolvedShiftId, 'day_type' => $resolvedDayType, 'notes' => $resolvedNotes]  // 
                 );
                 $count++;
             }
         }
 
+
+        Log::info('=== BULK ASSIGN FINISHED ===', [
+            'success_count' => $count,
+            'skipped_count' => $skippedCount
+        ]);
+
         $message = "Assign schedule {$count} berhasil.";
-        if ($toilCount > 0) {
-            $message .= " {$toilCount} tanggal di-set Off karena ada TOIL Leave Approved.";
-        }
-        if ($phCount > 0) {
-            $message .= " {$phCount} tanggal di-set Public Holiday otomatis.";
+
+        if ($skippedCount > 0) {
+            $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
+
         }
 
         return response()->json([
@@ -565,13 +725,82 @@ class RosterController extends Controller
             'message' => $message,
         ]);
     }
+    // ─────────────────────────────────────────────────────────────
+    //  BULK DELETE
+    //  Update: protect tanggal TOIL Approved (versi AMAN, loop per karyawan)
+    // ─────────────────────────────────────────────────────────────
 
+    public function bulkDelete(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+        if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode pengisian roster sedang ditutup.',
+            ], 403);
+        }
+
+        $request->validate([
+            'employee_ids'   => 'required|array|min:1',
+            'employee_ids.*' => 'exists:employees_tables,id',
+            'start_date'     => 'required|date',
+            'end_date'       => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $toilApprovedMap = $this->getToilApprovedDatesMap(
+            $request->employee_ids,
+            $request->start_date,
+            $request->end_date
+        );
+
+        $count          = 0;
+        $protectedCount = 0;
+
+        foreach ($request->employee_ids as $empId) {
+            $protectedDates = $toilApprovedMap[$empId] ?? [];
+
+            $query = Roster::where('employee_id', $empId)
+                ->whereBetween('date', [$request->start_date, $request->end_date]);
+
+            if (!empty($protectedDates)) {
+                $query->whereNotIn('date', $protectedDates);
+                $protectedCount += count($protectedDates);
+            }
+
+            //  Chunk agar tidak timeout kalau data banyak
+            $query->chunk(100, function ($rosters) use (&$count) {
+                foreach ($rosters as $roster) {
+                    $roster->delete(); // trigger Eloquent events → activity log tercatat
+                    $count++;
+                }
+            });
+        }
+
+        $message = "Berhasil menghapus {$count} jadwal.";
+        if ($protectedCount > 0) {
+            $message .= " {$protectedCount} jadwal di-protect karena ada TOIL Leave yang sudah Approved.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
     // ─────────────────────────────────────────────────────────────
     //  COPY ROSTER
     // ─────────────────────────────────────────────────────────────
 
     public function copyRoster(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+        if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode pengisian roster sedang ditutup.',
+            ], 403);
+        }
         $request->validate([
             'store_id'     => 'nullable|exists:stores_tables,id',
             'source_start' => 'required|date',
@@ -726,72 +955,201 @@ class RosterController extends Controller
         ]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  BULK DELETE
-    // ─────────────────────────────────────────────────────────────
-
-    public function bulkDelete(Request $request)
+    public function history(Request $request)
     {
         $request->validate([
-            'employee_ids'   => 'required|array|min:1',
-            'employee_ids.*' => 'exists:employees_tables,id',
-            'start_date'     => 'required|date',
-            'end_date'       => 'required|date|after_or_equal:start_date',
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+            'store_id'   => 'nullable',
+            'search'     => 'nullable|string',
         ]);
 
-        $employees = Employee::select('id', 'religion')
-            ->whereIn('id', $request->employee_ids)
-            ->get()
-            ->keyBy('id');
 
-        $toilApprovedMap = $this->getToilApprovedDatesMap(
-            $request->employee_ids,
-            $request->start_date,
-            $request->end_date
-        );
+        $user         = auth()->user();
+        /** @var \App\Models\User|null $user */
+        $canManageAll = $user->hasPermissionTo('ManageRoster');
+        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+        $canViewOwn   = $user->hasPermissionTo('ViewRoster'); // ← tambah
+        $myEmployee   = optional($user->employee);
 
-        $phMap = $this->getPublicHolidaysMap($request->start_date, $request->end_date);
+        // Tidak punya permission apapun → 403
+        if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
 
-        $count         = 0;
-        $toilProtected = 0;
-        $phProtected   = 0;
+        $query = Roster::with([
+            'employee:id,employee_name,department_id,position_id,store_id,status_employee',
+            'employee.department:id,department_name',
+            'employee.position:id,name',
+            'shift:id,shift_name,start_time,end_time',
+        ])
+            ->whereBetween('date', [$request->start_date, $request->end_date])
+            ->whereHas('employee', function ($q) use ($request, $myEmployee, $canManageAll, $canManageSPV, $canViewOwn) {
+                $q->whereNull('deleted_at');
 
-        foreach ($request->employee_ids as $empId) {
-            $religion  = $employees[$empId]?->religion ?? null;
-            $toilDates = $toilApprovedMap[$empId] ?? [];
-
-            $phDates = [];
-            foreach (array_keys($phMap) as $phDate) {
-                if ($this->isPublicHolidayForEmployee($phMap, $phDate, $religion)) {
-                    $phDates[] = $phDate;
+                if ($request->search) {
+                    $q->where('employee_name', 'like', '%' . $request->search . '%');
                 }
-            }
 
-            $protectedDates = array_unique(array_merge($toilDates, $phDates));
+                if ($canManageAll) {
+                    // Admin: semua store, filter kalau dipilih
+                    if ($request->store_id) {
+                        $q->where('store_id', $request->store_id);
+                    }
+                } elseif ($canManageSPV) {
+                    // SPV: terkunci store sendiri
+                    $q->where('store_id', $myEmployee->store_id);
+                } elseif ($canViewOwn) {
+                    // Employee: hanya data diri sendiri
+                    $q->where('id', $myEmployee->id);
+                }
+            })
+            ->orderBy('date')
+            ->orderBy('employee_id');
 
-            $query = Roster::where('employee_id', $empId)
-                ->whereBetween('date', [$request->start_date, $request->end_date]);
-
-            if (!empty($protectedDates)) {
-                $query->whereNotIn('date', $protectedDates);
-                $toilProtected += count($toilDates);
-                $phProtected   += count($phDates);
-            }
-
-            $count += $query->delete();
-        }
-
-        $message = "Berhasil menghapus {$count} jadwal.";
-        if ($toilProtected > 0) {
-            $message .= " {$toilProtected} jadwal di-protect karena TOIL Leave Approved.";
-        }
-        if ($phProtected > 0) {
-            $message .= " {$phProtected} jadwal di-protect karena Public Holiday.";
-        }
+        $rosters = $query->get();
+        $grouped = $rosters->groupBy('employee_id');
 
         return response()->json([
             'success' => true,
-            'message' => $message,
+            'data'    => $grouped->map(function ($items) {
+                $emp = $items->first()->employee;
+                return [
+                    'employee_name'   => $emp->employee_name,
+                    'department'      => $emp->department->department_name ?? '-',
+                    'position'        => $emp->position->name ?? '-',
+                    'status_employee' => $emp->status_employee ?? '-',
+                    'rosters'         => $items->map(fn($r) => [
+                        'date'       => Carbon::parse($r->date)->toDateString(),
+                        'day_type'   => $r->day_type,
+                        'shift_name' => $r->shift?->shift_name ?? '-',
+                        'start_time' => $r->shift ? substr($r->shift->start_time, 0, 5) : '',
+                        'end_time'   => $r->shift ? substr($r->shift->end_time, 0, 5) : '',
+                        'notes'      => $r->notes ?? '-',
+                    ])->values(),
+                ];
+            })->values(),
         ]);
+    }
+
+    public function historyExport(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+            'store_id'   => 'nullable',
+            'search'     => 'nullable|string',
+        ]);
+
+        $user         = auth()->user();
+        /** @var \App\Models\User|null $user */
+        $canManageAll = $user->hasPermissionTo('ManageRoster');
+        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+        $canViewOwn   = $user->hasPermissionTo('ViewRoster');
+        $myEmployee   = optional($user->employee);
+        $myStoreId    = $myEmployee->store_id;
+
+        // Tidak punya permission apapun → 403
+        if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
+            abort(403, 'Unauthorized.');
+        }
+
+        // ViewRoster: paksa export hanya data diri sendiri
+        $employeeIdFilter = null;
+        if ($canViewOwn && !$canManageAll && !$canManageSPV) {
+            $employeeIdFilter = $myEmployee->id;
+        }
+
+        // Nama file
+        $filename = $employeeIdFilter
+            ? 'roster-' . str($myEmployee->employee_name ?? 'employee')->slug() . '-' . $request->start_date . '-to-' . $request->end_date . '.xlsx'
+            : 'roster-history-' . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+        // Store name untuk kop
+        $storeName = $request->store_id
+            ? Stores::find($request->store_id)?->name
+            : ($employeeIdFilter ? optional($myEmployee->store)->name : 'All Locations');
+
+        return Excel::download(
+            new RosterHistoryExport(
+                startDate: $request->start_date,
+                endDate: $request->end_date,
+                storeId: $request->store_id,
+                search: $request->search,
+                canManageAll: $canManageAll,
+                myStoreId: $canManageSPV && !$canManageAll ? $myStoreId : null,
+                storeName: $storeName,
+                employeeIdFilter: $employeeIdFilter,
+            ),
+            $filename
+        );
+    }
+    public function getActivities(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user         = auth()->user();
+        $canManageAll = $user->hasPermissionTo('ManageRoster');
+        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+
+        if (!$canManageAll && !$canManageSPV) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $query = Activity::with('causer.employee')
+            ->where('subject_type', Roster::class)
+            ->orderBy('created_at', 'desc');
+
+        // SPV hanya lihat activity dari causer yang store_id-nya sama
+        if (!$canManageAll && $canManageSPV) {
+            $storeId = $user->employee->store_id;
+
+            $query->whereHas('causer.employee', function ($q) use ($storeId) {
+                $q->where('store_id', $storeId);
+            });
+        }
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('causer_name', function ($row) {
+                if (!$row->causer) return 'System';
+                return optional($row->causer->employee)->employee_name ?? $row->causer->name ?? 'System';
+            })
+            ->addColumn('properties', function ($row) {
+                $properties = $row->properties;
+
+                if ($row->event === 'created') {
+                    return collect($properties->get('attributes', []))
+                        ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+                        ->implode('<br>');
+                }
+
+                if ($row->event === 'updated') {
+                    $old        = $properties->get('old', []);
+                    $attributes = $properties->get('attributes', []);
+
+                    return collect($attributes)
+                        ->map(fn($val, $key) => "<b>{$key}</b>: " . ($old[$key] ?? '-') . " → {$val}")
+                        ->implode('<br>');
+                }
+
+                if ($row->event === 'deleted') {
+                    return collect($properties->get('attributes', []))
+                        ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+                        ->implode('<br>');
+                }
+
+                return '-';
+            })
+            ->addColumn('event_badge', fn($row) => match ($row->event) {
+                'created' => '<span class="badge bg-success">Created</span>',
+                'updated' => '<span class="badge bg-warning text-dark">Updated</span>',
+                'deleted' => '<span class="badge bg-danger">Deleted</span>',
+                default   => '<span class="badge bg-secondary">' . $row->event . '</span>',
+            })
+            ->addColumn('created_at_formatted', fn($row) => $row->created_at->format('d M Y, H:i'))
+            ->rawColumns(['properties', 'event_badge'])
+            ->make(true);
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Providers\RouteServiceProvider;
 use Closure;
+use App\Models\User;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,6 +22,8 @@ class RedirectIfAuthenticated
     public function handle($request, Closure $next, ...$guards)
     {
         if (Auth::check()) {
+                /** @var \App\Models\User|null $user */
+
             $user = auth()->user();
             if ($user->can('isAdmin')) {
                 return redirect('/dashboardAdmin');
@@ -40,12 +44,9 @@ class RedirectIfAuthenticated
                 return redirect('/dashboardTeam');
             }
             if ($user->can('isHuman')) {
-                return redirect('/Dashboard');
+                return redirect('/dashboardHuman');
             }
-            //         if ($user->can('isHuman')) {
-            //     return redirect()->route('feature-profile')
-            //         ->with('success', 'Selamat datang di Feature Profile!');
-            // }
+           
             Auth::logout();
             return redirect('/')->withErrors(['error' => 'Access Denied.']);
         }

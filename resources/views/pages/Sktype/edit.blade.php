@@ -226,7 +226,84 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                             <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="nickname" class="form-control-label">
+                                                        <i class="fas fa-id-card"></i> {{ __('Nickname') }}
+                                                    </label>
+     <div>
+                                                   <input type="text"
+                                                            class="form-control @error('nickname') is-invalid @enderror"
+                                                            id="nickname" name="nickname"
+                                                            value="{{ old('nickname', $sktype->nickname) }}"
+                                                            placeholder="exmpl DMS with capslock" required>
+                                                    @error('nickname')
+                                                        <span class="invalid-feedback" role="alert">
+                                                            <strong>{{ $message }}</strong>
+                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
                                         </div>
+
+                                        </div>
+                                        <div class="row mt-3">
+    <div class="col-md-6">
+        <div class="form-group">
+
+            <label for="categories" class="form-control-label">
+                <i class="fas fa-layer-group"></i> Category
+            </label>
+
+            <select name="categories"
+                    id="categories"
+                    class="select2 form-control @error('categories') is-invalid @enderror"
+                    required>
+
+                <option value="">Choose category</option>
+
+                @foreach ($categories as $value)
+                    <option value="{{ $value }}"
+                        {{ old('categories', $sktype->categories) == $value ? 'selected' : '' }}>
+                        {{ ucfirst($value) }}
+                    </option>
+                @endforeach
+            </select>
+            @error('categories')
+                <span class="invalid-feedback d-block">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+
+        </div>
+    </div>
+</div>
+@foreach ([
+    'affects_salary' => 'Salary',
+    'affects_position' => 'Position',
+    'affects_status' => 'Status',
+    'generates_contract' => 'Contract'
+] as $field => $label)
+
+<div class="col-md-4">
+    <div class="custom-control custom-switch">
+        <input type="hidden" name="{{ $field }}" value="0">
+
+        <input type="checkbox"
+            class="custom-control-input"
+            id="{{ $field }}"
+            name="{{ $field }}"
+            value="1"
+            {{ old($field, $sktype->$field) ? 'checked' : '' }}>
+
+        <label class="custom-control-label" for="{{ $field }}">
+            Affects {{ $label }}
+        </label>
+    </div>
+</div>
+
+@endforeach
                                        
                                          <div class="alert alert-secondary mt-4" role="alert">
                                              <span class="text-dark">

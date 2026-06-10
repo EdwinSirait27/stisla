@@ -69,26 +69,11 @@ protected $casts = [
         return $this->belongsTo(Employee::class,'employee_id');
     }
 
-    // Relasi ke tabel StockAdjustment
    
-    // Relasi ke tabel Purchase
    
-    public function Activity()
-    {
-        return $this->hasMany(Activity::class, 'user_id', 'id');
-    }
     public function sessions()
     {
         return $this->hasMany(UserSession::class, 'user_id', 'id');
     }
-    // Method untuk mendapatkan sesi aktif
-    public function getActiveSessionsAttribute()
-    {
-        return $this->sessions()->where('last_activity', '>', now()->subHours(2))->get();
-    }
-    // Method untuk mendapatkan jumlah sesi aktif
-    public function getActiveSessioCountAttribute()
-    {
-        return $this->sessions()->where('last_activity', '>', now()->subHours(2))->count();
-    }
+   
 }

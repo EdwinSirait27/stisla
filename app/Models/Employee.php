@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -12,10 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Collection;
-use Svg\Tag\Group;
+// use Svg\Tag\Group;
 use App\Models\Roster;
 use App\Models\Schedule;
-
 class Employee extends Model
 {
     use HasFactory, LogsActivity;
@@ -31,10 +28,11 @@ class Employee extends Model
             }
         });
     }
-   
     protected $fillable = [
         'employee_name',
         'photos',
+        'kk_photos',
+        'ktp_photos',
         'signature',
         'employee_pengenal',
         'position_id',
@@ -84,28 +82,6 @@ class Employee extends Model
         'structure_id',
         'daily_duit'
     ];
-    // protected static function booted()
-    // {
-    //     static::creating(function ($employee) {
-    //         $employee->pin = self::generateSafePin();
-    //     });
-    // }
-    // public static function generateSafePin()
-    // {
-    //     return DB::transaction(function () {
-    //         // Lock baris untuk mencegah race condition
-    //         $lastPin = DB::table('employees_tables')
-    //             ->whereRaw('CHAR_LENGTH(pin) = 4 AND pin REGEXP "^[0-9]{4}$"')
-    //             ->lockForUpdate()
-    //             ->orderByDesc('pin')
-    //             ->value('pin');
-    //         $nextPin = str_pad(((int) $lastPin + 1), 5, '0', STR_PAD_LEFT);
-    //         if ((int)$nextPin > 99999) {
-    //             throw new \Exception("PIN sudah habis (lebih dari 9999)");
-    //         }
-    //         return $nextPin;
-    //     });
-    // }
       public static function getReligionOptions()
 {
     return [
@@ -203,10 +179,33 @@ class Employee extends Model
     {
         return $this->hasOne(User::class, 'employee_id');
     }
-    // public function getLengthOfServiceAttribute()
-    // {
-    //     return $this->created_at->diffInDays(now()) . ' days';
-    // }
+    public function documents()
+{
+    return $this->hasMany(Documents::class, 'employee_id', 'id');
+}
+  public function skletters()
+{
+    return $this->belongsToMany(
+        SkLetter::class,
+        'sk_letter_employees',
+        'employee_id',
+        'sk_letter_id'
+    )->using(SkLetterEmployee::class)
+     ->withPivot([
+         'id',
+         'previous_structure_id',
+         'new_structure_id',
+         'position_id',
+         'group_id',
+         'grading_id',
+         'department_id',
+         'basic_salary',
+         'positional_allowance',
+         'daily_rate',
+         'notes',
+     ])
+     ->withTimestamps();
+}
     public function getLengthOfServiceAttribute()
 {
     // Jika status bukan Active atau Pending → kosong
@@ -370,7 +369,9 @@ class Employee extends Model
                 ];
                 $fieldLabels = [
                     'employee_name' => 'Employee Name',
-                    'foto' => 'Photo',
+                    'photos' => 'Photo',
+                    'kk_photos' => 'KK Photos',
+                    'ktp_photos' => 'KTP Photos',
                     'position_id' => 'Position',
                     'company_id' => 'Company',
                     'store_id' => 'Location',

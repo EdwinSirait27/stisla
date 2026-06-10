@@ -1,36 +1,36 @@
 <?php
 
 namespace App\Models;
-use Ramsey\Uuid\Uuid;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Ramsey\Uuid\Uuid;
 
-class Employeesalaries extends Model
+class SkMenimbang extends Model
 {
-   use HasFactory;
+    use HasFactory;
+ protected $table = 'sk_menimbang';
     public $incrementing = false;
     protected $keyType = 'string';
+ public $timestamps = false;
     protected static function boot()
     {
         parent::boot();
+
         static::creating(function ($model) {
             if (!$model->getKey()) {
                 $model->{$model->getKeyName()} = Uuid::uuid7()->toString();
             }
         });
     }
-    protected $table = 'employee_salaries'; 
     protected $fillable = [
-        'employee_id',
-        'satuts',
-        'basic_salary',
-        'daily_rate',
-        'effective_date',
-        'end_date',
+        'sk_letter_id',
+        'content_menimbang',
+        'order_no'
     ];
-public function employee()
+    public function skletters()
     {
-        return $this->belongsTo(Employee::class, 'employee_id','id');
+        return $this->belongsTo(SkLetter::class, 'sk_letter_id', 'id');
     }
+   
 }
