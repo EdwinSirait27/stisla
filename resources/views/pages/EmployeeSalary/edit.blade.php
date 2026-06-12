@@ -207,6 +207,19 @@
             background: #fffbeb;
             color: #92400e;
         }
+         .request-text h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+
+        .request-text p {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin: 0 0 4px 0;
+        }
     </style>
 @endpush
 
@@ -312,8 +325,8 @@
                                 @if (!$isDW)
                                     <div class="field-group">
                                         <label><i class="fas fa-money-bill"></i> Basic Salary</label>
-                                        <input type="number" name="basic_salary"
-                                            class="form-control @error('basic_salary') is-invalid @enderror"
+                                        <input type="text" name="basic_salary"
+                                            class="form-control currency-format @error('basic_salary') is-invalid @enderror"
                                             value="{{ old('basic_salary', $salary->basic_salary) }}" min="0">
                                         @error('basic_salary')
                                             <span class="invalid-feedback">{{ $message }}</span>
@@ -322,8 +335,8 @@
 
                                     <div class="field-group">
                                         <label><i class="fas fa-briefcase"></i> Position Allowance</label>
-                                        <input type="number" name="position_allowance"
-                                            class="form-control @error('position_allowance') is-invalid @enderror"
+                                        <input type="text" name="position_allowance"
+                                            class="form-control currency-format @error('position_allowance') is-invalid @enderror"
                                             value="{{ old('position_allowance', $salary->position_allowance) }}"
                                             min="0">
                                         @error('position_allowance')
@@ -336,8 +349,8 @@
                                 @if ($isDW)
                                     <div class="field-group">
                                         <label><i class="fas fa-calendar-day"></i> Daily Rate</label>
-                                        <input type="number" name="daily_rate"
-                                            class="form-control @error('daily_rate') is-invalid @enderror"
+                                        <input type="text" name="daily_rate"
+                                            class="form-control currency-format @error('daily_rate') is-invalid @enderror"
                                             value="{{ old('daily_rate', $salary->daily_rate) }}" min="0">
                                         @error('daily_rate')
                                             <span class="invalid-feedback">{{ $message }}</span>
@@ -346,7 +359,56 @@
                                 @endif
 
                                 {{-- Semua status --}}
-                               
+                               <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i>Meal Allowance</label>
+                                        <input type="text" name="meal_allowance"
+                                            class="form-control currency-format @error('meal_allowance') is-invalid @enderror"
+                                            value="{{ old('meal_allowance', $salary->meal_allowance) }}"
+                                            min="0">
+                                        @error('meal_allowance')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                               <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i>House Allowance</label>
+                                        <input type="text" name="house_allowance"
+                                            class="form-control currency-format @error('house_allowance') is-invalid @enderror"
+                                            value="{{ old('house_allowance', $salary->house_allowance) }}"
+                                            min="0">
+                                        @error('house_allowance')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                               <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i>Transport Allowance</label>
+                                        <input type="text" name="transport_allowance"
+                                            class="form-control currency-format @error('transport_allowance') is-invalid @enderror"
+                                            value="{{ old('transport_allowance', $salary->transport_allowance) }}"
+                                            min="0">
+                                        @error('transport_allowance')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                               <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i>BPJS Ketenagakerjaan</label>
+                                        <input type="text" name="bpjs_ketenagakerjaan"
+                                            class="form-control currency-format @error('transport_allowance') is-invalid @enderror"
+                                            value="{{ old('transport_allowance', $salary->transport_allowance) }}"
+                                            min="0">
+                                        @error('transport_allowance')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                               <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i>BPJS Kesehatan</label>
+                                        <input type="text" name="bpjs_kesehatan"
+                                            class="form-control currency-format @error('bpjs_kesehatan') is-invalid @enderror"
+                                            value="{{ old('bpjs_kesehatan', $salary->bpjs_kesehatan) }}"
+                                            min="0">
+                                        @error('bpjs_kesehatan')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
 
                             </div>
                         </div>
@@ -362,8 +424,13 @@
                         </button>
                     </div>
                 </form>
-
             </div>
+             <div class="request-text">
+                                    <h3>Information</h3>
+                                    <p>
+                                        - jika employee itu tidak mempunyai meal, house, transport allowance tetap di nolkan ya, berlaku juga untuk BPJS.<br>
+                                     </p>
+                                </div>
         </section>
     </div>
 @endsection
@@ -393,4 +460,56 @@
             @endif
         });
     </script>
+      {{-- tanda baca --}}
+    <script>
+document.querySelectorAll('.currency-format').forEach(function(input) {
+
+    // Format saat halaman pertama kali dibuka
+    let value = input.value;
+
+    if (value && !isNaN(value)) {
+        input.value = Number(value).toLocaleString('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Format saat user mengetik
+    input.addEventListener('input', function(e) {
+
+        let value = e.target.value.replace(/[^\d]/g, '');
+
+        if (!value) {
+            e.target.value = '';
+            return;
+        }
+
+        value = (parseInt(value, 10) / 100).toFixed(2);
+
+        e.target.value = new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
+    });
+
+});
+
+// Sebelum submit form, ubah ke format database
+document.querySelector('form').addEventListener('submit', function() {
+
+    document.querySelectorAll('.currency-format').forEach(function(input) {
+
+        let value = input.value;
+
+        if (value) {
+            value = value
+                .replace(/\./g, '')
+                .replace(',', '.');
+
+            input.value = value;
+        }
+    });
+
+});
+</script>
 @endpush

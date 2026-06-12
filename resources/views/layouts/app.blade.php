@@ -101,11 +101,9 @@
     
                 function resetTimer() {
                     clearTimeout(time);
-                    // Set timeout 1 menit (60000 ms)
-                    time = setTimeout(logout, 1200000);
+                    time = setTimeout(logout, 3600000);
                 }
             };
-    
             // Initialize only if not already initialized
             if (!window.inactivityTimerInitialized) {
                 inactivityTime();

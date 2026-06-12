@@ -370,17 +370,21 @@
             <tr>
                 <td class="col-label">Jabatan</td>
                 <td class="col-sep">:</td>
-                <td>{{ $employee->position->name ?? '-' }}</td>
+                {{-- <td>{{ $employee->position->name ?? '-' }}</td> --}}
+                                  <td>{{ $employee->position->first()->name ?? '-'}}</td>
+
             </tr>
             <tr>
                 <td class="col-label">Lokasi</td>
                 <td class="col-sep">:</td>
-                <td>{{ $employee->store->name ?? '-' }}</td>
+                <td>
+                                                   {{ $employee->store->first()->name ?? '-'}}
+                </td>
             </tr>
         </table>
         <p class="body-text">
             adalah karyawan dengan status <strong><u>{{ $employee->status_employee ?? '-' }}</u></strong> yang akan
-            bergabung dengan <strong><u>{{ $employee->store->name ?? '-' }}</u></strong>
+            bergabung dengan <strong><u>{{ $employee->store->first()->name ?? '-'}}</u></strong>
             Surat ini kami sampaikan sebagai pengantar resmi untuk keperluan administrasi dan agar
             dapat ditunjukkan kepada <strong><u>LEADER / Manager</u></strong> yang bersangkutan pada saat mulai bekerja.
         </p>
@@ -414,7 +418,8 @@
                     <div style="padding-top: 4px; margin: 0 10px;">
                         <strong>{{ $issued->employee_name }}</strong><br>
                         <span style="font-size: 9.5pt;">
-                            {{ $issued->position->name ?? '-' }}
+                                  {{ $issued->position->first()->name ?? '-'}}
+
                         </span>
                     </div>
                 </td>

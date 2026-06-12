@@ -181,6 +181,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Grading Name</th>
+                                                <th class="text-center">Level</th>
                                                 <th class="text-center">Meal Allowance</th>
                                             </tr>
                                         </thead>
@@ -221,16 +222,31 @@
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
                 },
-                columns: [{
+                columns: [
+                {
                         data: 'grading_name',
                         name: 'grading_name',
                         className: 'text-center'
                     },
-                    {
-                        data: 'meal_allowance',
-                        name: 'meal_allowance',
+                {
+                        data: 'level',
+                        name: 'level',
                         className: 'text-center'
-                    }
+                    },
+                  {
+    data: 'meal_allowance',
+    name: 'meal_allowance',
+    className: 'text-center',
+    render: function(data, type, row) {
+        if (type === 'display' || type === 'filter') {
+            return Number(data || 0).toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        return data;
+    }
+}
 
                 ],
                 initComplete: function() {}

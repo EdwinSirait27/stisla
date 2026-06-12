@@ -605,6 +605,21 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                 <div class="field-group">
+                                    <label><i class="fas fa-graduation-cap"></i>Blood Type</label>
+                                    <select name="blood_type" class="form-control @error('blood_type') is-invalid @enderror" disabled>
+                                        <option value="">-- Choose Blood --</option>
+                                        @foreach ($bloodtypes as $value)
+                                            <option value="{{ $value }}"
+                                                {{ old('blood_type', $employee->Employee->blood_type ?? '') == $value ? 'selected' : '' }}>
+                                                {{ $value }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('blood_type')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
 
                             </div>
                         </div>
@@ -613,40 +628,81 @@
                         <div class="form-section">
                             <div class="form-section-label">Employment</div>
                             <div class="field-grid">
-
+                               
                                 <div class="field-group">
-                                    <label><i class="fas fa-briefcase"></i> Position</label>
-                                    <select name="position_id" id="position_id"
-                                        class="form-control select2 @error('position_id') is-invalid @enderror" disabled>
-                                        <option value="">-- Choose position --</option>
-                                        @foreach ($positions as $position)
-                                            <option value="{{ $position->id }}"
-                                                {{ old('position_id', $employee->Employee->position_id ?? '') == $position->id ? 'selected' : '' }}>
-                                                {{ $position->name }}
+                                    <label><i class="fas fa-layer-group"></i> Company</label>
+                                    <select name="company_id" id="company_id"
+                                        class="form-control select2 @error('company_id') is-invalid @enderror" disabled>
+                                        <option value="">-- Choose Company --</option>
+                                        @foreach ($companys as $company)
+                                            <option value="{{ $company->id }}"
+                                                {{ old('company_id', $employee->Employee->company_id ?? '') == $company->id ? 'selected' : '' }}>
+                                                {{ $company->name }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('position_id')
+                                    @error('company_id')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
 
                                 <div class="field-group">
-                                    <label><i class="fas fa-store"></i> Location</label>
-                                    <select name="store_id" id="store_id"
-                                        class="form-control select2 @error('store_id') is-invalid @enderror" disabled>
-                                        <option value="">-- Choose location --</option>
-                                        @foreach ($stores as $store)
-                                            <option value="{{ $store->id }}"
-                                                {{ old('store_id', $employee->Employee->store_id ?? '') == $store->id ? 'selected' : '' }}>
-                                                {{ $store->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('store_id')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                                        <label><i class="fas fa-briefcase"></i> Departments </label>
+                                        <select name="departments[]" id="departments"
+                                            class="form-control select2 @error('departments') is-invalid @enderror"
+                                            multiple disabled>
+                                            @foreach ($allDepartments as $department)
+                                                <option value="{{ $department->id }}"
+                                                    @if (collect(old('department', $selectedDepartments))->contains($department->id)) selected @endif>
+                                                    {{ $department->department_name }}
+                @if ($primaryDepartmentId === $department->id) ★ Primary @endif
+
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('departments')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i> Position</label>
+                                        <select name="positions[]" id="positions"
+                                            class="form-control select2 @error('positions') is-invalid @enderror" multiple
+                                            disabled>
+                                            @foreach ($allPositions as $position)
+                                                <option value="{{ $position->id }}"
+                                                    @if (collect(old('positions', $selectedPositions))->contains($position->id)) selected @endif>
+                                                    {{ $position->name }}
+                @if ($primaryPositionId === $position->id) ★ Primary @endif
+
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('positions')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+
+
+
+                                  
+                                    <div class="field-group">
+    <label><i class="fas fa-store"></i> Location</label>
+    <select name="stores[]" id="stores"
+        class="form-control select2 @error('stores') is-invalid @enderror" multiple disabled>
+        @foreach ($allStores as $store)
+            <option value="{{ $store->id }}"
+                @if (collect(old('stores', $selectedStores))->contains($store->id)) selected @endif>
+                {{ $store->name }}
+                @if ($primaryStoreId === $store->id) ★ Primary @endif
+            </option>
+        @endforeach
+    </select>
+    @error('stores')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
 
                                 <div class="field-group">
                                     <label><i class="fas fa-circle-dot"></i> Status employee</label>
@@ -725,25 +781,7 @@
                                     @enderror
                                 </div>
 
-                                <div class="field-group">
-                                    <label><i class="fas fa-sitemap"></i> Structure</label>
-                                    <select name="structure_id"
-                                        class="form-control select2 @error('structure_id') is-invalid @enderror" disabled>
-                                        <option value="">-- Choose structure --</option>
-                                        @foreach ($structures as $structure)
-                                            <option value="{{ $structure->id }}"
-                                                {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
-                                                {{ $structure->submissionposition->positionRelation->name ?? '-' }}
-                                                — {{ $structure->submissionposition->company->name ?? '-' }}
-                                                — {{ $structure->submissionposition->department->department_name ?? '-' }}
-                                                — {{ $structure->submissionposition->store->name ?? '-' }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('structure_id')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                               
 
                                 <div class="field-group">
                                     <label><i class="fas fa-fingerprint"></i> Pin fingerspot</label>

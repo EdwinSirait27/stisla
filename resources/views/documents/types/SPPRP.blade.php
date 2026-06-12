@@ -367,7 +367,9 @@
             <tr>
                 <td class="col-label">Jabatan</td>
                 <td class="col-sep">:</td>
-                <td>{{ $issued->position->name ?? '-' }}</td>
+                {{-- <td>{{ $issued->position->name ?? '-' }}</td> --}}
+                {{ $issued->position->first()->name ?? '-'}}
+                
             </tr>
         </table>
         <p class="body-text">
@@ -393,7 +395,8 @@
                 <tr>
                     <td class="col-label">Jabatan</td>
                     <td class="col-sep">:</td>
-                    <td>{{ $employee->position->name ?? '-' }}</td>
+
+                    <td>{{ $employee->position->first()->name ?? '-'}}</td>
                 </tr>
                 <tr>
                     <td class="col-label">NIP</td>
@@ -409,7 +412,9 @@
                 <tr>
                     <td class="col-label">Jabatan</td>
                     <td class="col-sep">:</td>
-                    <td>{{ $employee->position->name ?? '-' }}</td>
+              
+
+                    <td>{{ $employee->position->first()->name ?? '-'}}</td>
                 </tr>
             @endif
         </table>
@@ -455,7 +460,7 @@
                         <div style="padding-top: 4px; margin: 0 10px;">
                             <strong>{{ $issued->employee_name }}</strong><br>
                             <span style="font-size: 9.5pt;">
-                                {{ $issued->position->name ?? '-' }}
+                                  {{ $issued->position->first()->name ?? '-'}}
                             </span>
                         </div>
                     </td>
@@ -553,7 +558,10 @@
                         <div style="padding-top: 4px; margin: 0 10px;">
                             <strong>{{ $issued->employee_name }}</strong><br>
                             <span style="font-size: 9.5pt;">
-                                {{ $issued->position->name ?? '-' }}
+                                {{-- {{ $issued->position->name ?? '-' }} --}}
+                                  {{ $issued->position->first()->name ?? '-'}}
+
+                                
                             </span>
                         </div>
                     </td>

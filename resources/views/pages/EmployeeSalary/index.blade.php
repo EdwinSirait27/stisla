@@ -464,7 +464,7 @@
                 </div>
 
                 {{-- Table --}}
-                <div style="padding:.75rem 1.25rem 1rem">
+                <div class="table-responsive" style="padding:.75rem 1.25rem 1rem">
                     <table id="salary-table">
                         <thead>
                             <tr>
@@ -480,6 +480,11 @@
                                 <th class="text-center num">Basic Salary</th>
                                 <th class="text-center num">Position Allowance</th>
                                 <th class="text-center num">Daily Rate</th>
+                                <th class="text-center num">Meal Allowance</th>
+                                <th class="text-center num">House Allowance</th>
+                                <th class="text-center num">Transport Allowance</th>
+                                <th class="text-center num">BPJS Ketenagakerjaan</th>
+                                <th class="text-center num">BPJS Keshatan</th>
                                 <th class="text-center">Effective Date</th>
                                 <th style="text-align:center">Action</th>
                             </tr>
@@ -487,7 +492,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-
                 {{-- Hint bar --}}
                 <div class="hint-bar">
                     <div class="hint-item">
@@ -502,7 +506,6 @@
                     </div>
                 </div>
             </div>
-
             {{-- Activity Log Card --}}
             <div class="emp-card">
                 <div class="emp-card-header">
@@ -512,7 +515,7 @@
                     <span class="emp-card-header-title">Activity Log</span>
                 </div>
 
-                <div style="padding:.75rem 1.25rem 1rem">
+                <div class="table-responsive" style="padding:.75rem 1.25rem 1rem">
                     <table id="activity-table">
                         <thead>
                             <tr>
@@ -526,6 +529,19 @@
                                 <th class="text-center num">Position Allowance (New)</th>
                                 <th class="text-center num">Daily Rate (Old)</th>
                                 <th class="text-center num">Daily Rate (New)</th>
+                                <th class="text-center num">Meal Allowance (Old)</th>
+                                <th class="text-center num">Meal Allowance (New)</th>
+                                <th class="text-center num">House Allowance (Old)</th>
+                                <th class="text-center num">House Allowance (New)</th>
+
+                                <th class="text-center num">Transport Allowance (Old)</th>
+                                <th class="text-center num">Transport Allowance (New)</th>
+
+                                <th class="text-center num">BPJS Ketenagakerjaan (Old)</th>
+                                <th class="text-center num">BPJS Ketenagakerjaan (New)</th>
+
+                                <th class="text-center num">BPJS Kesehatan (Old)</th>
+                                <th class="text-center num">Meal Kesehatan (New)</th>
                                 <th class="text-center">Changed By</th>
                                 <th class="text-center">Changed At</th>
                             </tr>
@@ -568,10 +584,16 @@
                         </div>
                         <div class="alert alert-info py-2" style="font-size:.8rem">
                             <i class="fas fa-info-circle"></i>
-                            Kolom yang dibutuhkan:
+                            Kolom yang dibutuhkan hanya ini ya dan untuk simbol dan tanda baca tidak diperbolehkan exmpl. . , spasi ! :
                             <code>employee_pengenal</code>,
                             <code>basic_salary</code>,
                             <code>position_allowance</code>,
+                            <code>daily_rate</code>,
+                            <code>meal_allowance</code>,
+                            <code>house_allowance</code>,
+                            <code>transport_rate</code>,
+                            <code>bpjs_ketenagakerjaan</code>,
+                            <code>bpjs_kesehatan</code>,
                             <code>daily_rate</code>
                         </div>
                     </div>
@@ -693,6 +715,31 @@
                             '<span style="color:#cbd5e1">—</span>' : parseInt(data).toLocaleString(
                                 'id-ID')
                     },
+                    {
+    data: 'meal_allowance',
+    className: 'num text-center',
+    render: data => parseInt(data).toLocaleString('id-ID')
+},
+{
+    data: 'house_allowance',
+    className: 'num text-center',
+    render: data => parseInt(data).toLocaleString('id-ID')
+},
+{
+    data: 'transport_allowance',
+    className: 'num text-center',
+    render: data => parseInt(data).toLocaleString('id-ID')
+},
+{
+    data: 'bpjs_ketenagakerjaan',
+    className: 'num text-center',
+    render: data => parseInt(data).toLocaleString('id-ID')
+},
+{
+    data: 'bpjs_kesehatan',
+    className: 'num text-center',
+    render: data => parseInt(data).toLocaleString('id-ID')
+},
                     {
                         data: 'effective_date',
                         className: 'num text-center',
@@ -840,6 +887,62 @@
                         defaultContent: '-'
                     },
                     {
+                        data: 'meal_allowance_old',
+                        className: 'text-center num',
+                        defaultContent: '-',
+                        render: d => d !== '-' ? `<span style="color:#94a3b8">${d}</span>` : '-'
+                    },
+                    {
+                        data: 'meal_allowance_new',
+                        className: 'text-center num',
+                        defaultContent: '-'
+                    },
+                   
+                    {
+                        data: 'house_allowance_old',
+                        className: 'text-center num',
+                        defaultContent: '-',
+                        render: d => d !== '-' ? `<span style="color:#94a3b8">${d}</span>` : '-'
+                    },
+                    {
+                        data: 'house_allowance_new',
+                        className: 'text-center num',
+                        defaultContent: '-'
+                    },
+                     {
+                        data: 'transport_allowance_old',
+                        className: 'text-center num',
+                        defaultContent: '-',
+                        render: d => d !== '-' ? `<span style="color:#94a3b8">${d}</span>` : '-'
+                    },
+                    {
+                        data: 'transport_allowance_new',
+                        className: 'text-center num',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'bpjs_ketenagakerjaan_old',
+                        className: 'text-center num',
+                        defaultContent: '-',
+                        render: d => d !== '-' ? `<span style="color:#94a3b8">${d}</span>` : '-'
+                    },
+                    {
+                        data: 'bpjs_ketenagakerjaan_new',
+                        className: 'text-center num',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'bpjs_kesehatan_old',
+                        className: 'text-center num',
+                        defaultContent: '-',
+                        render: d => d !== '-' ? `<span style="color:#94a3b8">${d}</span>` : '-'
+                    },
+                    {
+                        data: 'bpjs_kesehatan_new',
+                        className: 'text-center num',
+                        defaultContent: '-'
+                    },
+                    {
                         data: 'causer_name',
                         className: 'text-center',
                         defaultContent: '-'
@@ -873,19 +976,7 @@
                 table.ajax.reload();
             });
 
-            // ── Export ──
-            // $('#btn-export').on('click', () => {
-            //     const params = new URLSearchParams({
-            //         effective_date: $('#filter-effective-date').val(),
-            //         status: $('#filter-status').val(),
-            //         store_name: $('#filter-store').val(),
-            //         company_name: $('#filter-company').val(),
-            //         department_name: $('#filter-department').val(),
-            //         grading_name: $('#filter-grading').val(),
-            //         export: 1,
-            //     });
-            //     window.location.href = '{{ route('employeesalary.data') }}?' + params.toString();
-            // });
+            
             $('#btn-export').on('click', () => {
                 const params = new URLSearchParams({
                     effective_date: $('#filter-effective-date').val(),

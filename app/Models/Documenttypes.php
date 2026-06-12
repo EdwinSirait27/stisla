@@ -39,18 +39,5 @@ class Documenttypes extends Model
     {
         $this->attributes['nickname'] = strtoupper($value);
     }
-// $type = \App\Models\DocumentType::create([
-//     'document_name'      => 'Surat Pengantar Pembukaan Rekening Payroll',
-//     'nickname'      => 'SPPRP',
-//     'view_name' => 'documents.types.SPPRP',
-//     'is_active' => true,
-// ]);
 
-
-// $type = \App\Models\Documenttypes::create([                                                                               
-// 'document_name'      => 'Surat Pengantar Karyawan',                  
-// 'nickname'      => 'SPK',  
-// 'view_name' => 'documents.types.SPK',  
-// 'is_active' => true, 
-// ]);
 }

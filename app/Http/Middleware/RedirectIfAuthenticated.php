@@ -19,37 +19,32 @@ class RedirectIfAuthenticated
      * @param  string|null  ...$guards
      * @return mixed
      */
+   
     public function handle($request, Closure $next, ...$guards)
-    {
-        if (Auth::check()) {
-                /** @var \App\Models\User|null $user */
+{
+    if (Auth::check()) {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
 
-            $user = auth()->user();
-            if ($user->can('isAdmin')) {
-                return redirect('/dashboardAdmin');
+        $dashboardRoutes = [
+            'dashboardAdmin'      => 'pages.dashboardAdmin',
+            'dashboardHuman'      => 'pages.dashboardHuman',
+            'dashboardSupervisor' => 'pages.dashboardSupervisor',
+            'dashboardTeam'       => 'pages.dashboardTeam',
+            'dashboardDirector'   => 'pages.dashboardDirector',
+            'dashboardHR'         => 'pages.dashboardHR',
+        ];
+
+        foreach ($dashboardRoutes as $permission => $route) {
+            if ($user->hasPermissionTo($permission)) {
+                return redirect()->route($route);
             }
-            if ($user->can('isHR')) {
-                return redirect('/dashboardHR');
-            }
-            if ($user->can('isHeadHR')) {
-                return redirect('/dashboardHR');
-            }
-            if ($user->can('isDirector')) {
-                return redirect('/dashboardDirector');
-            }
-            if ($user->can('isSupervisor')) {
-                return redirect('/dashboardSupervisor');
-            }
-            if ($user->can('isManager')) {
-                return redirect('/dashboardTeam');
-            }
-            if ($user->can('isHuman')) {
-                return redirect('/dashboardHuman');
-            }
-           
-            Auth::logout();
-            return redirect('/')->withErrors(['error' => 'Access Denied.']);
         }
-        return $next($request);
+
+        Auth::logout();
+        return redirect('/')->withErrors(['error' => 'Access Denied.']);
     }
+
+    return $next($request);
+}
 }

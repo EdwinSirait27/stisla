@@ -24,7 +24,9 @@ class dashboardAdminController extends Controller
     }
         public function getUsers(Request $request)
 {
-    $users = User::with(['Terms', 'roles', 'Employee.store', 'Employee.position','Employee.grading'])
+    $users = User::with(['Terms', 'roles',
+     'Employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+    'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),'Employee.grading'])
         ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at'])
         ->get()
         ->map(function ($user) {
@@ -37,7 +39,6 @@ class dashboardAdminController extends Controller
         });
 
     return DataTables::of($users)
-        // ✅ Tambahkan kolom checkbox
         ->addColumn('checkbox', function ($user) {
             return '<input type="checkbox" class="user-checkbox" value="' . e($user->id) . '">';
         })
@@ -51,9 +52,9 @@ class dashboardAdminController extends Controller
         })
         ->addColumn('device_lan_mac', fn($user) => optional($user->Terms)->device_lan_mac ?? 'Empty')
         ->addColumn('employee_name', fn($user) => optional($user->Employee)->employee_name ?? 'Empty')
-        ->addColumn('store_name', fn($user) => optional(optional($user->Employee)->store)->name ?? 'Empty')
+        ->addColumn('store_name', fn($user) => optional($user->Employee)->store->first()?->name ?? 'Empty')
+->addColumn('position_name', fn($user) => optional($user->Employee)->position->first()?->name ?? 'Empty')
         ->addColumn('grading_name', fn($user) => optional(optional($user->Employee)->grading)->grading_name ?? 'Empty')
-        ->addColumn('position_name', fn($user) => optional(optional($user->Employee)->position)->name ?? 'Empty')
         ->addColumn('pin', fn($user) => optional($user->Employee)->pin ?? 'Empty')
         ->addColumn('device_wifi_mac', fn($user) => optional($user->Terms)->device_wifi_mac ?? 'Empty')
         ->addColumn('status', fn($user) => optional($user->Employee)->status ?? 'Empty')

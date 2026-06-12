@@ -962,7 +962,7 @@
                                             <textarea class="form-control" rows="6" name="roles" placeholder="Input employee roles..."
                                                 style="height:auto; padding:.75rem;">{{ old(
                                                     'role_summary',
-                                                    html_entity_decode(strip_tags($user->employee->structuresnew->submissionposition->role_summary ?? 'empty')),
+                                                    // html_entity_decode(strip_tags($user->employee->structuresnew->submissionposition->role_summary ?? 'empty')),
                                                 ) }}</textarea>
                                         </div>
                                         <div class="field-group">
@@ -974,7 +974,7 @@
                                             <textarea class="form-control" rows="6" name="roles" placeholder="Input employee roles..."
                                                 style="height:auto; padding:.75rem;">{{ old(
                                                     'key_respon',
-                                                    html_entity_decode(strip_tags($user->employee->structuresnew->submissionposition->key_respon ?? 'empty')),
+                                                    // html_entity_decode(strip_tags($user->employee->structuresnew->submissionposition->key_respon ?? 'empty')),
                                                 ) }}</textarea>
                                         </div>
                                     </div>

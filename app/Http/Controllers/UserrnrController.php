@@ -13,7 +13,7 @@ class UserrnrController extends Controller
         $user = auth()->user();
 
         $user->load([
-            'employee.structuresnew',
+            'employee',
         ]);
         return view('pages.rnr.index', compact('user'));
     }

@@ -30,11 +30,21 @@ class EmployeeSalary extends Model
         'daily_rate',
         'effective_date',
         'created_by',
+        'meal_allowance',
+        'transport_allowance',
+        'house_allowance',
+        'bpjs_ketenagakerjaan',
+        'bpjs_kesehatan',
     ];
     protected $casts = [
         'basic_salary'       => 'decimal:2',
         'position_allowance' => 'decimal:2',
         'daily_rate'         => 'decimal:2',
+        'meal_allowance'         => 'decimal:2',
+        'transport_allowance'         => 'decimal:2',
+        'house_allowance'         => 'decimal:2',
+        'bpjs_ketenagakerjaan'         => 'decimal:2',
+        'bpjs_kesehatan'         => 'decimal:2',
         'effective_date'     => 'date',
     ];
      public function getActivitylogOptions(): LogOptions
@@ -46,6 +56,11 @@ class EmployeeSalary extends Model
                 'position_allowance',
                 'daily_rate',
                 'effective_date',
+                 'meal_allowance',
+                 'house_allowance',
+                 'transport_allowance',
+        'bpjs_ketenagakerjaan',
+        'bpjs_kesehatan',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -57,41 +72,7 @@ class EmployeeSalary extends Model
             });
     }
 
-    // public function tapActivity(Activity $activity, string $eventName): void
-    // {
-    //     $employeeName  = $this->employee?->employee_name ?? '-';
-    //     $effectiveDate = $this->effective_date?->format('d/m/Y') ?? '-';
-    //     $status        = $this->employee?->status_employee ?? '-';
-
-    //     $attributes = [
-    //         'employee_name'      => $employeeName,
-    //         'status_employee'    => $status,
-    //         'effective_date'     => $effectiveDate,
-    //         'basic_salary'       => $this->basic_salary,
-    //         'position_allowance' => $this->position_allowance,
-    //         'allowance'          => $this->allowance,
-    //         'daily_rate'         => $this->daily_rate,
-    //     ];
-
-    //     if ($eventName === 'created') {
-    //         $activity->properties = $activity->properties->merge([
-    //             'attributes' => $attributes,
-    //         ]);
-    //     }
-
-    //     if ($eventName === 'updated') {
-    //         $activity->properties = $activity->properties->merge([
-    //             'attributes' => $attributes,
-    //         ]);
-    //     }
-
-    //     if ($eventName === 'deleted') {
-    //         $activity->properties = $activity->properties->merge([
-    //             'attributes' => $attributes,
-    //             'old'        => $attributes,
-    //         ]);
-    //     }
-    // }
+   
     public function tapActivity(Activity $activity, string $eventName): void
 {
     $employeeName  = $this->employee?->employee_name ?? '-';
@@ -106,8 +87,13 @@ class EmployeeSalary extends Model
                 'effective_date'     => $effectiveDate,
                 'basic_salary'       => $this->basic_salary,
                 'position_allowance' => $this->position_allowance,
-                // 'allowance'          => $this->allowance,
+                
                 'daily_rate'         => $this->daily_rate,
+                'meal_allowance' => $this->meal_allowance,
+                'house_allowance' => $this->house_allowance,
+                'transport_allowance' => $this->transport_allowance,
+                'bpjs_kesehatan'            => $this->bpjs_kesehatan,
+                'bpjs_ketenagakerjaan'      => $this->bpjs_ketenagakerjaan,
             ],
         ]);
     }
@@ -118,19 +104,26 @@ class EmployeeSalary extends Model
                 'employee_name'      => $employeeName,
                 'status_employee'    => $status,
                 'effective_date'     => $effectiveDate,
-                // New value — nilai setelah update
                 'basic_salary'       => $this->basic_salary,
                 'position_allowance' => $this->position_allowance,
-                // 'allowance'          => $this->allowance,
                 'daily_rate'         => $this->daily_rate,
+                'meal_allowance' => $this->meal_allowance,
+                'house_allowance' => $this->house_allowance,
+                'transport_allowance' => $this->transport_allowance,
+                'bpjs_kesehatan'            => $this->bpjs_kesehatan,
+                'bpjs_ketenagakerjaan'      => $this->bpjs_ketenagakerjaan,
             ],
             'old' => [
                 // Old value — nilai sebelum update
                 'basic_salary'       => $this->getOriginal('basic_salary'),
                 'position_allowance' => $this->getOriginal('position_allowance'),
-                // 'allowance'          => $this->getOriginal('allowance'),
                 'daily_rate'         => $this->getOriginal('daily_rate'),
                 'effective_date'     => $this->getOriginal('effective_date'),
+                'meal_allowance'         => $this->getOriginal('meal_allowance'),
+                'house_allowance'         => $this->getOriginal('house_allowance'),
+                'transport_allowance'         => $this->getOriginal('transport_allowance'),
+                'bpjs_kesehatan'         => $this->getOriginal('bpjs_kesehatan'),
+                'bpjs_ketenagakerjaan'         => $this->getOriginal('bpjs_ketenagakerjaan'),
             ],
         ]);
     }
@@ -143,8 +136,12 @@ class EmployeeSalary extends Model
                 'effective_date'     => $effectiveDate,
                 'basic_salary'       => $this->basic_salary,
                 'position_allowance' => $this->position_allowance,
-                // 'allowance'          => $this->allowance,
                 'daily_rate'         => $this->daily_rate,
+                'meal_allowance' => $this->meal_allowance,
+                'transport_allowance' => $this->transport_allowance,
+                'house_allowance' => $this->house_allowance,
+                'bpjs_kesehatan'            => $this->bpjs_kesehatan,
+                'bpjs_ketenagakerjaan'      => $this->bpjs_ketenagakerjaan,
             ],
         ]);
     }

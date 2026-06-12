@@ -103,11 +103,11 @@
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
                     @endcanany
-                    @can('ManageStructuresnew')
+                    {{-- @can('ManageStructuresnew')
                         <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>
-                    @endcan
+                    @endcan --}}
                     @can('ManageSummaries')
                         <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Summaries') }}">Leaves List</a>

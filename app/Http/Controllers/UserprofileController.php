@@ -31,7 +31,10 @@ class UserprofileController extends Controller
     {
         $user = User::with([
             'Employee.documents.companydocumentconfigs.documenttypes',
-            'Employee.position',
+                    'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+                    'Employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+                    'Employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+
             'Employee.skletters' => function ($query) {
                 $query->where('status', 'Draft');
                 // $query->where('status', 'Approved Managing Director');
@@ -675,35 +678,6 @@ class UserprofileController extends Controller
             ->header('Cache-Control', 'private, max-age=3600');
     }
 
-    // public function updatePassword(Request $request)
-    // {
-    //     /** @var \App\Models\User|null $user */
-    //     $user = Auth::user();
-
-    //     $validated = $request->validate([
-    //         'current_password' => [
-    //             'required',
-    //             'string',
-    //             function ($attribute, $value, $fail) use ($user) {
-    //                 if (!Hash::check($value, $user->password)) {
-    //                     $fail('The current password is incorrect.');
-    //                 }
-    //             },
-    //         ],
-    //         'password' => [
-    //             'required',
-    //             'string',
-    //             'min:8',
-    //             'max:20',
-    //             'different:current_password',
-    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/'
-    //         ],
-    //     ]);
-    //     $user->password = Hash::make($validated['password']);
-    //     $user->save();
-
-    //     return back()->with('status', 'Password changed successfully.');
-    // }
     public function updatePassword(Request $request)
 {
     /** @var \App\Models\User|null $user */
