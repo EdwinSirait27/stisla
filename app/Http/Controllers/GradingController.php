@@ -18,7 +18,7 @@ class GradingController extends Controller
     }
     public function getGradings()
     {
-        $gradings = Grading::with('groups')->select(['id', 'grading_name', 'grading_code','meal_allowance','group_id'])
+        $gradings = Grading::with('groups')->select(['id', 'grading_name', 'grading_code','level','meal_allowance','group_id'])
             ->get()
             ->map(function ($grading) {
                 $grading->id_hashed = substr(hash('sha256', $grading->id . env('APP_KEY')), 0, 8);

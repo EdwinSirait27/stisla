@@ -396,13 +396,12 @@ foreach ($employees as $employee) {
             });
 
         return DataTables::of($announcements)
-            ->addColumn('employee_name', function ($announcement) {
-                return !empty($announcement->user->Employee->department) && !empty($announcement->user->Employee->department->department_name)
-                    ? $announcement->user->Employee->department->department_name
-                    : 'Empty';
+           ->addColumn('employee_name', function ($announcement) {
+                $dept = $announcement->user?->Employee?->department?->first();
+                return $dept?->department_name ?? 'Empty';
             })
             ->addColumn('action', function ($announcement) {
-                $employee = $announcement->user->Employee->department->department_name ?? 'Empty';
+               $employee = $announcement->user?->Employee?->department?->first()?->department_name ?? 'Empty';
                 $date = Carbon::parse($announcement->publish_date)->locale('en')->isoFormat('D MMMM YYYY');
                 $enddate = $announcement->end_date
                     ? Carbon::parse($announcement->end_date)->locale('en')->isoFormat('D MMMM YYYY')

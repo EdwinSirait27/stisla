@@ -29,10 +29,10 @@ class WelcomeEmployeeMail extends Mailable
         return $this->subject('Welcome to our Company')
                     ->view('emails.welcome', [
                         'employee' => $this->employee,
-                        'department' => $this->employee->department,
-                        'position' => $this->employee->position,
+                        'department' => $this->employee->primaryDepartment()->first(),
+                        'position' => $this->employee->primaryPosition()->first(),
                         'company' => $this->employee->company,
-                        'store' => $this->employee->store,
+                        'store' => $this->employee->primaryStore()->first(),
                     ]);
     }
 }

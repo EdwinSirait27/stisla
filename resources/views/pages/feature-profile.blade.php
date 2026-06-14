@@ -982,25 +982,31 @@
                                             <div class="field-group">
                                                 <label><i class="fas fa-building"></i> Company</label>
                                                 <div class="field-readonly">
-                                                    {{ $user->employee->company->name ?? '-' }}
+                                                  {{-- {{ $user->Employee->company->pluck('name')->join(', ') }} --}}
+                                                  {{ $user->Employee->company->name }}
+
+                                                    {{-- {{ $user->employee->company->name ?? '-' }} --}}
                                                 </div>
                                             </div>
                                             <div class="field-group">
                                                 <label><i class="fas fa-sitemap"></i> Department</label>
                                                 <div class="field-readonly">
-                                                    {{ $user->employee->department->department_name ?? '-' }}
+                                                  {{ $user->Employee->department->first()->department_name ?? '-'}}
+
+                                                    {{-- {{ $department->department_name ?? '-' }} --}}
                                                 </div>
                                             </div>
                                             <div class="field-group">
                                                 <label><i class="fas fa-briefcase"></i> Position</label>
                                                 <div class="field-readonly">
-                                                    {{ $user->employee->position->name ?? '-' }}
+                                                                                                    {{ $user->Employee->position->first()->name ?? '-'}}
+
                                                 </div>
                                             </div>
                                             <div class="field-group">
                                                 <label><i class="fas fa-store"></i> Location</label>
                                                 <div class="field-readonly">
-                                                    {{ $user->employee->store->name ?? '-' }}
+                                                    {{ $user->store->name ?? '-' }}
                                                 </div>
                                             </div>
                                             <div class="field-group">

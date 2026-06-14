@@ -32,69 +32,37 @@ class Leaverequest extends Model
         'approved_by',
     ];
 
-    // relasi utama
     public function leavebalance()
     {
         return $this->belongsTo(Leavebalance::class, 'leave_balance_id', 'id');
     }
 
-    // employee yang mengajukan
     public function employee()
     {
         return $this->leavebalance->employees;
     }
 
-    // tipe cuti
     public function leaveType()
     {
         return $this->leaveBalance->leaves;
     }
 
-    // approver (employee)
     public function approver()
     {
         return $this->belongsTo(Employee::class, 'approved_by', 'id');
     }
-    /**
-     * Ambil semua approver berdasarkan struktur organisasi:
-     * - Primary manager
-     * - Secondary supervisor
-     */
+
     public function approvers()
     {
-        $employee  = $this->leavebalance->employees;
-        $structure = $employee?->structuresnew;
+        $employee = $this->leavebalance->employees;
 
-        if (!$structure) {
+        if (!$employee) {
             return collect();
         }
 
-        // Telusuri ke atas dari struktur karyawan, cari struktur ber-is_manager = 1
-        $managerStructureIds = [];
-        $cur = $structure->parent_id;
-
-        while ($cur) {
-            $s = \App\Models\Structuresnew::select('id', 'parent_id', 'is_manager')->find($cur);
-            if (!$s) break;
-
-            if ($s->is_manager) {
-                $managerStructureIds[] = $s->id;
-            }
-            $cur = $s->parent_id;
-        }
-
-        // Ambil employee yang menempati struktur-struktur manager itu
-        $approverIds = !empty($managerStructureIds)
-            ? \App\Models\Employee::whereIn('structure_id', $managerStructureIds)->pluck('id')
-            : collect();
-
-        // Tambahkan secondary supervisor dari struktur karyawan sendiri
-        $secondary = $structure->secondarySupervisors->pluck('id');
-
-        return $approverIds->merge($secondary)->unique()->values();
-
+        return $employee->atasanList()->pluck('id');
     }
-    // cek apakah employee tertentu boleh approve
+
     public function canBeApprovedBy($employeeId)
     {
         return $this->approvers()->contains($employeeId);

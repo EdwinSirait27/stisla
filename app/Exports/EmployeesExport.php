@@ -1,5 +1,4 @@
 <?php
-// app/Exports/EmployeesExport.php
 
 namespace App\Exports;
 
@@ -14,7 +13,6 @@ use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-// class EmployeesExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnFormatting, NumberFormat
 class EmployeesExport extends DefaultValueBinder implements FromQuery, WithHeadings, WithMapping, WithStyles, WithCustomValueBinder
 
 {
@@ -28,9 +26,27 @@ class EmployeesExport extends DefaultValueBinder implements FromQuery, WithHeadi
 {
     $query = User::query()
         ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
-        ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
-        ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employees_tables.store_id')
-        ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employees_tables.department_id')
+        ->leftJoin('employee_positions', function ($join) {
+            $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+                 ->where('employee_positions.is_primary', true);
+        })
+        ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+        
+        ->leftJoin('employee_stores', function ($join) {
+            $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+                 ->where('employee_stores.is_primary', true);
+        })
+        ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+
+        // ← Department lewat pivot
+        ->leftJoin('employee_departments', function ($join) {
+            $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+                 ->where('employee_departments.is_primary', true);
+        })
+        ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
+
+        
+        
         ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
         ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
@@ -41,6 +57,7 @@ class EmployeesExport extends DefaultValueBinder implements FromQuery, WithHeadi
             'employees_tables.status_employee',
             'employees_tables.status',
             'employees_tables.join_date',
+            'employees_tables.end_date',
             'position_tables.name as position_name',
             'groups_tables.remark as remark',
             'stores_tables.name as store_name',
@@ -61,6 +78,10 @@ class EmployeesExport extends DefaultValueBinder implements FromQuery, WithHeadi
                 'filter_emp_status' => $query->where('employees_tables.status_employee', $value),
                 'filter_status'     => $query->where('employees_tables.status', $value),
                 'filter_los'        => $this->applyLosFilter($query, $value),
+                'filter_join_date_from' => $query->where('employees_tables.join_date', '>=', Carbon::parse($value)->startOfDay()),
+'filter_join_date_to'   => $query->where('employees_tables.join_date', '<=', Carbon::parse($value)->endOfDay()),
+'filter_end_date_from'  => $query->where('employees_tables.end_date', '>=', Carbon::parse($value)->startOfDay()),
+'filter_end_date_to'    => $query->where('employees_tables.end_date', '<=', Carbon::parse($value)->endOfDay()),
                 default             => null,
             };
         }
@@ -103,7 +124,6 @@ private function applyLosFilter($query, $los)
         ];
     }
 
-    // Counter untuk nomor urut
     private $rowNumber = 0;
 
     public function map($e): array
@@ -119,8 +139,6 @@ private function applyLosFilter($query, $los)
             $this->rowNumber,
             $e->employee_name  ?? 'Empty',
             $e->employee_pengenal  ?? 'Empty',
-        // $e->employee_pengenal ? "'" . $e->employee_pengenal : 'Empty',
-
             $e->name_company   ?? 'Empty',
             $e->department_name ?? 'Empty',
             $e->store_name     ?? 'Empty',

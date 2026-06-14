@@ -66,10 +66,24 @@
         <p>Here is your employment details below:</p>
         <div class="info-box">
             <p><strong>Company:</strong> {{ $employee->company->name ?? '-' }}</p>
-            <p><strong>Location:</strong> {{ $employee->store->name ?? '-' }}</p>
-            <p><strong>Department:</strong> {{ $employee->department->department_name ?? '-' }}</p>
-            <p><strong>Position:</strong> {{ $employee->position->name ?? '-' }}</p>
-            <p><strong>Daily Allowance:</strong> {{ $employee->daily_allowance ?? 'To be informed' }}</p>
+            <p><strong>Location:</strong> {{ $store->name ?? '-' }}</p>
+            <p><strong>Department:</strong> {{ $department->department_name ?? '-' }}</p>
+            <p><strong>Position:</strong> {{ $position->name ?? '-' }}</p>
+            {{-- <p><strong>Daily Allowance:</strong> {{ $employee->daily_allowance ?? 'To be informed' }}</p> --}}
+            @if($employee->status_employee === 'DW')
+    <p>
+        <strong>Daily Allowance:</strong>
+        {{ $employee->daily_allowance ?? 'To be informed' }}
+    </p>
+@endif
+@if(in_array($employee->status_employee, ['PKWT', 'On Job Training']))
+    <p>
+        <strong>Gross Salary:</strong>
+        {{ $employee->daily_allowance
+            ? number_format($employee->daily_allowance, 2, ',', '.')
+            : 'Akan diinformasikan' }}
+    </p>
+@endif
         </div>
         <p>Best Regards,<br>
             <strong>HR Department<br>PT. Asian Bay Development</strong>
@@ -90,10 +104,24 @@
         <p>Berikut detail informasi pekerjaan anda:</p>
         <div class="info-box">
             <p><strong>Perusahaan:</strong> {{ $employee->company->name ?? '-' }}</p>
-            <p><strong>Lokasi:</strong> {{ $employee->store->name ?? '-' }}</p>
-            <p><strong>Departemen:</strong> {{ $employee->department->department_name ?? '-' }}</p>
-            <p><strong>Jabatan:</strong> {{ $employee->position->name ?? '-' }}</p>
-            <p><strong>Tunjangan Harian:</strong> {{ $employee->daily_allowance ?? 'Akan diinformasikan' }}</p>
+            <p><strong>Lokasi:</strong> {{ $store->name ?? '-' }}</p>
+            <p><strong>Departemen:</strong> {{ $department->department_name ?? '-' }}</p>
+            <p><strong>Jabatan:</strong> {{ $position->name ?? '-' }}</p>
+            {{-- <p><strong>Tunjangan Harian:</strong> {{ $employee->daily_allowance ?? 'Akan diinformasikan' }}</p> --}}
+            @if($employee->status_employee === 'DW')
+    <p>
+        <strong>Tunjangan Harian:</strong>
+        {{ $employee->daily_allowance ?? 'Akan diinformasikan' }}
+    </p>
+@endif
+@if(in_array($employee->status_employee, ['PKWT', 'On Job Training']))
+    <p>
+        <strong>Gaji Kotor:</strong>
+        {{ $employee->daily_allowance
+            ? number_format($employee->daily_allowance, 2, ',', '.')
+            : 'Akan diinformasikan' }}
+    </p>
+@endif
         </div>
         <p>Hormat kami,<br>
             <strong>Departemen HR<br>PT. Asian Bay Development</strong>

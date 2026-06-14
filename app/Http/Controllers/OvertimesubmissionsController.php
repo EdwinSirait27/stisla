@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Overtimesubmissions;
 use App\Models\Toilbalances;
-use App\Models\Structuresnew;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,10 +33,10 @@ class OvertimesubmissionsController extends Controller
         $manager = $user->employee;
 
         $query = Overtimesubmissions::with([
-                'employees:id,employee_name,pin',
-                'approver:id,employee_name',
-                'balance',
-            ])
+            'employees:id,employee_name,pin',
+            'approver:id,employee_name',
+            'balance',
+        ])
             ->where('approver_id', $manager->id)
             ->orderBy('created_at', 'desc');
 
@@ -58,8 +57,8 @@ class OvertimesubmissionsController extends Controller
                 'date'              => Carbon::parse($row->date)->format('d M Y'),
                 'date_raw'          => Carbon::parse($row->date)->format('Y-m-d'),
                 'time_range'        => ($row->start_time ? Carbon::parse($row->start_time)->format('H:i') : '-')
-                                     . ' - '
-                                     . ($row->end_time ? Carbon::parse($row->end_time)->format('H:i') : '-'),
+                    . ' - '
+                    . ($row->end_time ? Carbon::parse($row->end_time)->format('H:i') : '-'),
                 'start_time_raw'    => $row->start_time ? Carbon::parse($row->start_time)->format('H:i') : '',
                 'end_time_raw'      => $row->end_time ? Carbon::parse($row->end_time)->format('H:i') : '',
                 'total_hours'       => number_format($row->total_hours, 2),
@@ -92,11 +91,8 @@ class OvertimesubmissionsController extends Controller
         $user    = Auth::user();
         $manager = $user->employee;
 
-        if (!$manager || !$manager->structure_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Manager harus terdaftar di struktur organisasi. Hubungi HR.',
-            ], 403);
+        if (!$manager) {
+            return response()->json(['success' => false, 'message' => 'Data karyawan tidak ditemukan.'], 403);
         }
 
         $validSubordinateIds = $this->getSubordinates($manager)
@@ -272,44 +268,8 @@ class OvertimesubmissionsController extends Controller
     // ════════════════════════════════════════════════════════════════
     //   PRIVATE METHODS
     // ════════════════════════════════════════════════════════════════
-
     private function getSubordinates(Employee $manager): Collection
     {
-        if (!$manager->structure_id) {
-            return new Collection();
-        }
-
-        return $this->getSubordinatesFromTree($manager);
-    }
-
-    private function getSubordinatesFromTree(Employee $manager): Collection
-    {
-        $structure = Structuresnew::find($manager->structure_id);
-
-        if (!$structure) {
-            return new Collection();
-        }
-
-        $structure->load('allChildren.employee');
-
-        return $this->flattenEmployeesFromStructure($structure);
-    }
-
-    private function flattenEmployeesFromStructure($structure): Collection
-    {
-        $employees = new Collection();
-
-        foreach ($structure->allChildren ?? [] as $child) {
-            $activeEmployees = $child->employee
-                ->where('status', 'Active')
-                ->filter(fn($e) => $e->structure_id !== null);
-
-            $employees = $employees->merge($activeEmployees);
-
-            $deeper    = $this->flattenEmployeesFromStructure($child);
-            $employees = $employees->merge($deeper);
-        }
-
-        return $employees->unique('id')->values();
+        return $manager->bawahanList()->get();
     }
 }

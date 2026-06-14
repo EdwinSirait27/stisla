@@ -11,9 +11,9 @@ class UserrnrController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = auth()->user();
-
         $user->load([
-            'employee.structuresnew',
+            'employee.position.responsibilities',
+            'employee.position.qualifications',
         ]);
         return view('pages.rnr.index', compact('user'));
     }

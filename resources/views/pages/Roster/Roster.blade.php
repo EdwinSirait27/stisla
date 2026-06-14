@@ -801,6 +801,7 @@
                 $currentStoreName = optional($stores->firstWhere('id', $storeId))->name ?? '';
                 $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
                 @endphp
+
                 <div class="d-flex flex-wrap ml-auto" style="gap: 8px;">
                     @can('ManageRoster')
                     @if ($showAutoGenerate)
@@ -862,74 +863,83 @@
                     @endcan
 
                 </div>
-                @endif
+
+                  @endif     
+               
             </div>
-
-
         </div>
 
-        <div class="section-body">
+            <div class="section-body">
 
-            {{-- ── Filter ── --}}
-            <div class="filter-card">
-                <form method="GET" action="{{ route('roster.index') }}" class="d-flex flex-wrap align-items-end"
-                    style="gap: 20px;">
-                    <div class="filter-item">
-                        <label class="f-label">
-                            Location
-                            <span style="color:#ef4444">*</span>
-                            <small style="color:#94a3b8;font-weight:400">(Required)</small>
-                        </label>
-                        @can('ManageRoster')
-                        <select name="store_id" class="f-control select2" style="min-width:180px" required>
-                            <option value="">Choose Location</option>
-                            @foreach ($stores as $store)
-                            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                                {{ $store->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @else
-                        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-                        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-                            style="min-width:180px; background:#f1f5f9;">
+                {{-- ── Filter ── --}}
+                <div class="filter-card">
+                    <form method="GET" action="{{ route('roster.index') }}" class="d-flex flex-wrap align-items-end"
+                        style="gap: 20px;">
+                        <div class="filter-item">
+                            <label class="f-label">
+                                Location
+                                <span style="color:#ef4444">*</span>
+                                <small style="color:#94a3b8;font-weight:400">(Required)</small>
+                            </label>
+                            @can('ManageRoster')
+                                <select name="store_id" class="f-control select2" style="min-width:180px" required>
+                                    <option value="">Choose Location</option>
+                                    @foreach ($stores as $store)
+                                        <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                                            {{ $store->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+    @if (isset($myStores) && $myStores->count() > 1)
+        <select name="store_id" class="f-control select2" style="min-width:180px" required>
+            @foreach ($myStores as $store)
+            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                {{ $store->name }}
+            </option>
+            @endforeach
+        </select>
+    @else
+        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+            style="min-width:180px; background:#f1f5f9;">
+    @endif
+@endcan
+</div>
+                               @can('ManageRoster')
+                            <div class="filter-item-date">
+                                <label class="f-label">Start Date</label>
+                                <input type="date" name="start_date" class="f-control" value="{{ $startDate }}">
+                            </div>
+                            <div class="filter-item-date">
+                                <label class="f-label">End Date</label>
+                                <input type="date" name="end_date" class="f-control" value="{{ $endDate }}">
+                            </div>
                         @endcan
-                    </div>
 
-                    @can('ManageRoster')
-                    <div class="filter-item-date">
-                        <label class="f-label">Start Date</label>
-                        <input type="date" name="start_date" class="f-control" value="{{ $startDate }}">
-                    </div>
-                    <div class="filter-item-date">
-                        <label class="f-label">End Date</label>
-                        <input type="date" name="end_date" class="f-control" value="{{ $endDate }}">
-                    </div>
-                    @endcan
+                        @cannot('ManageRoster')
+                            @can('ManageRosterSPVManager')
+                                <div class="filter-item-date">
+                                    <label class="f-label">Start Date</label>
+                                    <input type="date" name="start_date" class="f-control" value="{{ $startDate }}"
+                                        min="{{ $startDate }}"
+                                        max="{{ \Carbon\Carbon::parse($startDate)->addMonth()->toDateString() }}">
+                                </div>
+                                <div class="filter-item-date">
+                                    <label class="f-label">End Date</label>
+                                    <input type="date" name="end_date" class="f-control" value="{{ $endDate }}"
+                                        min="{{ $endDate }}"
+                                        max="{{ \Carbon\Carbon::parse($endDate)->addMonth()->toDateString() }}">
+                                </div>
+                            @endcan
+                        @endcannot
 
-                    @cannot('ManageRoster')
-                    @can('ManageRosterSPVManager')
-                    <div class="filter-item-date">
-                        <label class="f-label">Start Date</label>
-                        <input type="date" name="start_date" class="f-control" value="{{ $startDate }}"
-                            min="{{ $startDate }}"
-                            max="{{ \Carbon\Carbon::parse($startDate)->addMonth()->toDateString() }}">
-                    </div>
-                    <div class="filter-item-date">
-                        <label class="f-label">End Date</label>
-                        <input type="date" name="end_date" class="f-control" value="{{ $endDate }}"
-                            min="{{ $endDate }}"
-                            max="{{ \Carbon\Carbon::parse($endDate)->addMonth()->toDateString() }}">
-                    </div>
-                    @endcan
-                    @endcannot
-
-                    <div class="filter-item-btn">
-                        <button type="submit" class="btn-primary-r"><i class="fas fa-search"></i> Filter</button>
-                        <a href="{{ route('roster.index') }}" class="btn-secondary-r">Reset</a>
-                    </div>
-                </form>
-            </div>
+                        <div class="filter-item-btn">
+                            <button type="submit" class="btn-primary-r"><i class="fas fa-search"></i> Filter</button>
+                            <a href="{{ route('roster.index') }}" class="btn-secondary-r">Reset</a>
+                        </div>
+                    </form>
+                </div>
 
             @if (!$storeId)
             <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
@@ -1003,12 +1013,12 @@
                                         <div class="emp-meta">Employee Name : {{ $employee->employee_name }}
                                         </div>
                                         <div class="emp-meta">Department :
-                                            {{ $employee->department->department_name ?? '-' }}
+                                            {{ $employee->department->first()?->department_name ?? '-' }}
                                         </div>
                                         <div class="emp-meta">Position :
-                                            {{ $employee->position->name ?? '-' }}
+                                            {{ $employee->position->first()?->name ?? '-' }}
                                         </div>
-                                        {{-- <div class="emp-meta">Location {{ $employee->store->name ?? '-' }}
+                                        {{-- <div class="emp-meta">Location {{ $employee->store->first()?->name ?? '-' }}
                     </div> --}}
                     @if ($employee->status_employee)
 
@@ -1265,7 +1275,7 @@
             <select id="bulkEmps" class="f-control mb-1" multiple style="height:100px">
                 @foreach ($employees as $emp)
                 <option value="{{ $emp->id }}" data-status="{{ $emp->status_employee ?? '' }}">
-                    {{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}
+                    {{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
                 </option>
                 @endforeach
             </select>
@@ -1279,26 +1289,19 @@
                         class="f-control" value="{{ $endDate }}"></div>
             </div>
 
-            <label class="f-label">Day Type</label>
-            <select id="bulkDayType" class="f-control mb-1" onchange="toggleBulkShift()">
-                <option value="Work">Work</option>
-                <option value="Off">Off</option>
-                <option value="Public Holiday" class="bulk-opt-ph">Public Holiday</option>
-                <option value="Leave" class="bulk-opt-cuti">Leave</option>
-                <option value="Cuti Melahirkan" class="bulk-opt-cuti">Cuti Melahirkan / Maternity leave</option>
-            </select>
-            <small id="bulkDayTypeNote"
-                style="display:none;color:#92400e;font-size:11px;margin-bottom:10px;display:block"></small>
-
-            <div id="bulkShiftWrap" style="margin-top:10px">
-                <label class="f-label">Shift</label>
-                <select id="bulkShift" class="f-control mb-3">
-                    <option value="">-- Choose Shift --</option>
-                    @foreach ($shifts as $shift)
-                    <option value="{{ $shift->id }}">{{ $shift->shift_name }}
-                        ({{ substr($shift->start_time, 0, 5) }}-{{ substr($shift->end_time, 0, 5) }})
-                    </option>
-                    @endforeach
+            <div class="m-body">
+                <label class="f-label">Choose Employee</label>
+                <select id="bulkEmps" class="f-control mb-1" multiple style="height:100px">
+                    {{-- @foreach ($employees as $emp)
+                        <option value="{{ $emp->id }}" data-status="{{ $emp->status_employee ?? '' }}">
+                            {{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
+                        </option>
+                    @endforeach --}}
+                    @foreach ($employees as $emp)
+    <option value="{{ $emp->id }}" data-status="{{ $emp->status_employee ?? '' }}">
+        {{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
+    </option>
+@endforeach
                 </select>
             </div>
 
@@ -1381,7 +1384,7 @@
             <label class="f-label">Pilih Karyawan</label>
             <select id="deleteEmps" class="f-control mb-1" multiple style="height:100px">
                 @foreach ($employees as $emp)
-                <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}
+                <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
                 </option>
                 @endforeach
             </select>
@@ -1461,12 +1464,22 @@
                 </div>
             </div>
 
-            {{-- Periode Generate --}}
-            <div class="ag-period-card">
-                <div class="ag-period-title">
-                    Periode Generate <small>(kosongkan untuk default otomatis)</small>
-                </div>
-                <div class="d-flex gap-2">
+
+            <div class="m-body">
+                <label class="f-label">Pilih Karyawan</label>
+                <select id="deleteEmps" class="f-control mb-1" multiple style="height:100px">
+                    {{-- @foreach ($employees as $emp)
+                        <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
+                        </option>
+                    @endforeach --}}
+                    @foreach ($employees as $emp)
+    <option value="{{ $emp->id }}">
+        {{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
+    </option>
+@endforeach
+                </select>
+                <small class="text-muted d-block mb-3">Tahan <kbd>Ctrl</kbd> untuk pilih lebih dari satu</small>
+                <div class="d-flex gap-2 mb-3">
                     <div style="flex:1">
                         <label class="f-label">Start Date</label>
                         <input type="date" id="ag-start-date" class="f-control"

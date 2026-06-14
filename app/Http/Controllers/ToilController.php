@@ -236,9 +236,10 @@ class ToilController extends Controller
         $query = Toilbalances::query()
             ->with([
                 'employee:id,employee_name,pin,store_id,department_id',
-                'employee.store:id,name',
-                'employee.department:id,department_name',
+                'employee.primaryStore:id,name',
+                'employee.primaryDepartment:id,department_name',
                 'overtimeSubmission:id,date,compensation_type',
+
             ]);
 
         // ── Apply Filters ──
@@ -299,8 +300,8 @@ class ToilController extends Controller
                 'id'                => $balance->id,
                 'employee_name'     => $emp->employee_name ?? '-',
                 'employee_pin'      => $emp->pin ?? '-',
-                'store'             => $emp->store->name ?? '-',
-                'department'        => $emp->department->department_name ?? '-',
+                'store'             => $emp->primaryStore->first()?->name ?? '-',
+                'department'        => $emp->primaryDepartment->first()?->department_name ?? '-',
                 'work_date'         => $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
                 'compensation_type' => $sub->compensation_type ?? '-',
                 'earned_hours'      => number_format($balance->earned_hours, 2),

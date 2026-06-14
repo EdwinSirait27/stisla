@@ -8,8 +8,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class EmployeeSalaryExport implements FromQuery, WithHeadings, WithMapping, WithStyles
+
+class EmployeeSalaryExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
     public function __construct(
         protected ?string $effectiveDate,
@@ -23,8 +25,6 @@ class EmployeeSalaryExport implements FromQuery, WithHeadings, WithMapping, With
     public function query()
     {
         $query = EmployeeSalary::with([
-            // 'employee:id,employee_name,employee_pengenal,status_employee,store_id',
-            // 'employee.store:id,name',
             'employee:id,employee_name,employee_pengenal,status_employee,store_id,grading_id,company_id,department_id,position_id', // ← tambah store_id
             'employee.store:id,name',
             'employee.grading:id,grading_name',
@@ -50,7 +50,7 @@ class EmployeeSalaryExport implements FromQuery, WithHeadings, WithMapping, With
         }
         if ($this->companyName) {
             $query->whereHas('employee.company', fn($q) =>
-                $q->where('name', $this->storeName)
+                $q->where('name', $this->companyName)
             );
         }
         if ($this->departmentName) {
@@ -66,7 +66,6 @@ class EmployeeSalaryExport implements FromQuery, WithHeadings, WithMapping, With
 
         return $query;
     }
-
     public function headings(): array
     {
         return [
@@ -81,24 +80,33 @@ class EmployeeSalaryExport implements FromQuery, WithHeadings, WithMapping, With
             'Basic Salary',
             'Position Allowance',
             'Daily Rate',
+            'Meal Allowance',
+            'House Allowance',
+            'Transport Allowance',
+            'BPJS Ketenagakerjaan',
+            'BPJS Kesehatan',
             'Effective Date',
         ];
     }
-
     public function map($row): array
     {
         return [
             $row->employee->employee_name     ?? '-',
             $row->employee->employee_pengenal ?? '-',
             $row->employee->company->name       ?? '-',
-            $row->employee->department->department_name       ?? '-',
-            $row->employee->store->name       ?? '-',
+            $row->employee->department->first()?->department_name       ?? '-',
+            $row->employee->store->first()?->name       ?? '-',
             $row->employee->grading->grading_name       ?? '-',
-            $row->employee->position->name       ?? '-',
+            $row->employee->position->first()?->name       ?? '-',
             $row->employee->status_employee   ?? '-',
             $row->basic_salary,
             $row->position_allowance,
             $row->daily_rate,
+            $row->meal_allowance,
+            $row->house_allowance,
+            $row->transport_allowance,
+            $row->bpjs_ketenagakerjaan,
+            $row->bpjs_kesehatan,
             $row->effective_date?->format('d/m/Y'),
         ];
     }

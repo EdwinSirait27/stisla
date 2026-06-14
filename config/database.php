@@ -1,5 +1,7 @@
 <?php
+
 use Illuminate\Support\Str;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -46,8 +48,8 @@ return [
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
-          'charset' => 'utf8mb4',
-'collation' => 'utf8mb4_unicode_ci',
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
@@ -56,7 +58,7 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-       'mysql_second' => [
+        'mysql_second' => [
             'driver' => 'mysql',
             'host' => env('DB_SECOND_HOST', '127.0.0.1'),
             'port' => env('DB_SECOND_PORT', '3306'),
@@ -69,27 +71,19 @@ return [
             'strict' => false, // Sesuaikan untuk MySQL 5
             'engine' => null,
         ],
-        // 'mysql3' => [
-        //     'driver' => 'mysql',
-        //     'host' => env('DB_HOST_THIRD', '127.0.0.1'),
-        //     'port' => env('DB_PORT_THIRD', '3306'),
-        //     'database' => env('DB_DATABASE_THIRD', 'se005'),
-        //     'username' => env('DB_USERNAME_THIRD', 'root'),
-        //     'password' => env('DB_PASSWORD_THIRD', ''),
-        //     'unix_socket' => env('DB_SOCKET_THIRD', ''),
-        //     // 'charset' => 'utf8mb4',
-        //     // 'collation' => 'utf8mb4_unicode_ci',
-        //     'charset' => 'utf8',
-        //     'collation' => 'utf8_unicode_ci',
-        //     'prefix' => '',
-        //     'prefix_indexes' => true,
-        //     'strict' => true,
-        //     'engine' => null,
-        //     'options' => extension_loaded('pdo_mysql') ? array_filter([
-        //         PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA_THIRD'),
-        //     ]) : [],
-        // ],
-
+        'mysql_third' => [
+            'driver' => 'mysql',
+            'host' => env('DB_THIRD_HOST', '127.0.0.1'),
+            'port' => env('DB_THIRD_PORT', '3306'),
+            'database' => env('DB_THIRD_DATABASE', 'forge'),
+            'username' => env('DB_THIRD_USERNAME', 'forge'),
+            'password' => env('DB_THIRD_PASSWORD', ''),
+            'charset' => 'utf8', // Untuk MySQL 5
+            'collation' => 'utf8_general_ci', // Disarankan untuk MySQL 5.x
+            'prefix' => '',
+            'strict' => false, // Sesuaikan untuk MySQL 5
+            'engine' => null,
+        ],
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),
@@ -104,7 +98,6 @@ return [
             'search_path' => 'public',
             'sslmode' => 'prefer',
         ],
-
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
@@ -116,12 +109,8 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
-            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
-        ],
-
+        ]
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Migration Repository Table
@@ -170,22 +159,22 @@ return [
     //     ],
     // ],
     'redis' => [
-    'client' => env('REDIS_CLIENT', 'predis'),
-    'options' => [
-        'cluster' => env('REDIS_CLUSTER', 'redis'),
-        'prefix' => env('REDIS_PREFIX', ''),
+        'client' => env('REDIS_CLIENT', 'predis'),
+        'options' => [
+            'cluster' => env('REDIS_CLUSTER', 'redis'),
+            'prefix' => env('REDIS_PREFIX', ''),
+        ],
+        'default' => [
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => env('REDIS_PORT', 6379),
+            'database' => env('REDIS_DB', 0),
+        ],
+        'cache' => [
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => env('REDIS_PORT', 6379),
+            'database' => env('REDIS_CACHE_DB', 1),
+        ],
     ],
-    'default' => [
-        'host' => env('REDIS_HOST', '127.0.0.1'),
-        'password' => env('REDIS_PASSWORD', null),
-        'port' => env('REDIS_PORT', 6379),
-        'database' => env('REDIS_DB', 0),
-    ],
-    'cache' => [
-        'host' => env('REDIS_HOST', '127.0.0.1'),
-        'password' => env('REDIS_PASSWORD', null),
-        'port' => env('REDIS_PORT', 6379),
-        'database' => env('REDIS_CACHE_DB', 1),
-    ],
-],
 ];

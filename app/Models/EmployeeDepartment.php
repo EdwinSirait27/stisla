@@ -2,39 +2,45 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\Pivot;
+
+
 use Ramsey\Uuid\Uuid;
 
-class Structure extends Model
+class EmployeeDepartment extends Pivot
 {
-    public $incrementing = false;
-    protected $keyType = 'string';
+   use HasUuids;
+
+    protected $table = 'employee_departments';
     protected static function boot()
     {
         parent::boot();
+
         static::creating(function ($model) {
             if (!$model->getKey()) {
                 $model->{$model->getKeyName()} = Uuid::uuid7()->toString();
             }
         });
     }
-    protected $table = 'structure';
     protected $fillable = [
         'employee_id',
-        'level_id',
-        'is_manager',
+        'department_id',
+        'is_primary',
     ];
+
     protected $casts = [
-    'is_manager' => 'boolean',
-];
+        'is_primary' => 'boolean',
+    ];
 
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
-    public function level()
+
+    public function department()
     {
-        return $this->belongsTo(Employee::class, 'level_id', 'id');
+        return $this->belongsTo(Departments::class, 'department_id', 'id');
     }
 }

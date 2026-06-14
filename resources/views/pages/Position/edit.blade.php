@@ -1,273 +1,375 @@
-@extends('layouts.app')
-@section('title', 'Update Position')
-@push('style')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <style>
-        .avatar {
-            position: relative;
-        }
+  @extends('layouts.app')
+  @section('title', 'Update Position')
+  @push('styles')
+      <style>
+          .form-control {
+              border-radius: 8px;
+              padding: 10px 15px;
+              transition: all 0.3s ease;
+              border: 1px solid #d1d1d1;
+          }
 
-        .iframe-container {
-            position: relative;
-            overflow: hidden;
-            padding-top: 56.25%;
-            /* Aspect ratio 16:9 */
-        }
+          .form-control:focus {
+              border-color: #6777ef;
+              box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.25);
+          }
 
-        .iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
+          .form-control-label {
+              font-weight: 600;
+              margin-bottom: 8px;
+              color: #34395e;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+          }
 
-        /* Additional CSS for improved styling */
-        .form-control {
-            border-radius: 8px;
-            padding: 10px 15px;
-            transition: all 0.3s ease;
-            border: 1px solid #d1d1d1;
-        }
+          .form-control-label i {
+              color: #6777ef;
+          }
 
-        .form-control:focus {
-            border-color: #6777ef;
-            box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.25);
-        }
+          .card {
+              border-radius: 15px;
+              box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.1);
+              transition: all 0.3s ease;
+          }
 
-        .form-control-label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #34395e;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+          .card:hover {
+              box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.15);
+          }
 
-        .form-control-label i {
-            color: #6777ef;
-        }
+          .card-header {
+              background-color: #fff;
+              border-bottom: 1px solid #f9f9f9;
+              padding: 20px;
+          }
 
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 4px 25px 0 rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
+          .card-header h6 {
+              font-weight: 700;
+              font-size: 16px;
+              color: #34395e;
+          }
 
-        .card:hover {
-            box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.15);
-        }
+          .card-body {
+              padding: 30px;
+          }
 
-        .card-header {
-            background-color: #fff;
-            border-bottom: 1px solid #f9f9f9;
-            padding: 20px;
-        }
+          .btn {
+              border-radius: 8px;
+              padding: 10px 20px;
+              font-weight: 600;
+              transition: all 0.3s ease;
+              margin-left: 10px;
+          }
 
-        .card-header h6 {
-            font-weight: 700;
-            font-size: 16px;
-            color: #34395e;
-        }
+          .btn-secondary {
+              background-color: #cdd3d8;
+              border-color: #cdd3d8;
+              color: #34395e;
+          }
 
-        .card-body {
-            padding: 30px;
-        }
+          .btn-secondary:hover {
+              background-color: #b9bfc4;
+              border-color: #b9bfc4;
+          }
 
-        .btn {
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-left: 10px;
-        }
+          .invalid-feedback {
+              display: block;
+              margin-top: 5px;
+              font-size: 13px;
+              color: #fc544b;
+          }
 
-        .btn-secondary {
-            background-color: #cdd3d8;
-            border-color: #cdd3d8;
-            color: #34395e;
-        }
+          .alert-danger {
+              background-color: #ffdede;
+              border-color: #ffd0d0;
+              color: #dc3545;
+          }
 
-        .btn-secondary:hover {
-            background-color: #b9bfc4;
-            border-color: #b9bfc4;
-        }
+          .alert-success {
+              background-color: #d4edda;
+              border-color: #c3e6cb;
+              color: #155724;
+          }
 
-        .bg-gradient-dark {
-            background: linear-gradient(310deg, #2dce89, #2dcec7);
-            border: none;
-        }
+          /* Dynamic list styles */
+          .responsibility-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 8px;
+          }
 
-        .bg-gradient-dark:hover {
-            background: linear-gradient(310deg, #26b179, #26b1a9);
-            transform: translateY(-2px);
-        }
+          .responsibility-item input {
+              flex: 1;
+              margin-bottom: 0 !important;
+          }
 
-        .alert {
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
+          .btn-remove-item {
+              background: #fff;
+              color: #fc544b;
+              border: 1px solid #fc544b;
+              border-radius: 6px;
+              padding: 6px 10px;
+              cursor: pointer;
+              flex-shrink: 0;
+              font-size: 12px;
+              line-height: 1;
+              width: 32px;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s;
+          }
 
-        .alert-secondary {
-            background-color: #f8f9fa;
-            border-color: #f1f2f3;
-        }
+          .btn-remove-item:hover {
+              background: #fc544b;
+              color: white;
+          }
 
-        .alert-secondary .text-white {
-            color: #6c757d !important;
-        }
+          .btn-add-item {
+              background: #f4f6f9;
+              border: 1px dashed #6777ef;
+              color: #6777ef;
+              border-radius: 8px;
+              padding: 7px 16px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 13px;
+              width: 100%;
+              margin-top: 4px;
+              transition: all 0.2s;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+          }
 
-        .form-check {
-            padding-left: 30px;
-            margin-bottom: 10px;
-        }
+          .btn-add-item:hover {
+              background: #eef0fd;
+              border-color: #4a5fd4;
+          }
 
-        .form-check-input {
-            width: 18px;
-            height: 18px;
-            margin-top: 3px;
-            margin-left: -30px;
-            cursor: pointer;
-        }
+          .section-label {
+              font-weight: 700;
+              font-size: 14px;
+              color: #34395e;
+              margin-bottom: 12px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+          }
 
-        .form-check-label {
-            cursor: pointer;
-        }
+          .divider {
+              border-top: 1px solid #f1f2f3;
+              margin: 24px 0;
+          }
 
-        .invalid-feedback {
-            display: block;
-            margin-top: 5px;
-            font-size: 13px;
-            color: #fc544b;
-        }
+          .list-wrapper {
+              background: #f8f9fc;
+              border: 1px solid #eaeaea;
+              border-radius: 10px;
+              padding: 16px;
+              margin-bottom: 8px;
+          }
+      </style>
+  @endpush
+  @section('main')
+      <div class="main-content">
+          <section class="section">
+              <div class="section-header">
+                  <h1>Update Position {{ $position->name }}</h1>
+                  <div class="section-header-breadcrumb">
+                      <div class="breadcrumb-item"><a href="{{ route('pages.Position') }}">Positions</a></div>
+                      <div class="breadcrumb-item">Update Position {{ $position->name }}</div>
+                  </div>
+              </div>
+              <div class="section-body">
+                  <div class="container-fluid">
+                      <div class="row">
+                          <div class="col-12">
+                              <div class="card">
+                                  <div class="card-header pb-0 px-3">
+                                      <h6 class="mb-0">{{ __('Update Position') }} {{ $position->name }}</h6>
+                                  </div>
+                                  <div class="card-body pt-4 p-3">
+                                      @if ($errors->any())
+                                          <div class="alert alert-danger">
+                                              <ul class="mb-0">
+                                                  @foreach ($errors->all() as $error)
+                                                      <li>{{ $error }}</li>
+                                                  @endforeach
+                                              </ul>
+                                          </div>
+                                      @endif
 
-        .alert-danger {
-            background-color: #ffdede;
-            border-color: #ffd0d0;
-            color: #dc3545;
-        }
+                                      <form id="position-edit" action="{{ route('Position.update', $hashedId) }}"
+                                          method="POST">
+                                          @csrf
+                                          @method('PUT')
 
-        .alert-success {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
+                                          {{-- Position Name --}}
+                                          <div class="row">
+                                              <div class="col-md-6">
+                                                  <div class="form-group">
+                                                      <label for="name" class="form-control-label">
+                                                          <i class="fas fa-briefcase"></i> {{ __('Position Name') }}
+                                                      </label>
+                                                      <input type="text"
+                                                          class="form-control @error('name') is-invalid @enderror"
+                                                          id="name" name="name"
+                                                          value="{{ old('name', $position->name) }}"
+                                                          placeholder="e.g. Kasir, IT Support, HRD" required>
+                                                      @error('name')
+                                                          <span
+                                                              class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                                      @enderror
+                                                  </div>
+                                              </div>
+                                          </div>
 
-        select.form-control {
-            height: 42px;
-        }
-    </style>
-@endpush
-@section('main')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-header">
-                <h1>Update Position {{ $position->name }}</h1>
-                <div class="section-header-breadcrumb">
-                    {{-- <div class="breadcrumb-item active"><a href="{{ route('dashboard') }}">Dashboard</a></div> --}}
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Position') }}">Positions</a></div>
-                    <div class="breadcrumb-item">Update Position {{ $position->name }}</div>
-                </div>
-            </div>
+                                          <div class="divider"></div>
 
-            <div class="section-body">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header pb-0 px-3">
-                                    <h6 class="mb-0">{{ __('Update Position') }} {{ $position->name }}</h6>
-                                </div>
-                                <div class="card-body pt-4 p-3">
-                                    @if ($errors->any())
-                                        <div class="alert alert-danger">
-                                            <ul class="mb-0">
-                                                @foreach ($errors->all() as $error)
-                                                    <li>{{ $error }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @endif
+                                          {{-- Role Summary --}}
+                                          <div class="form-group">
+                                              <label for="role_summary" class="form-control-label">
+                                                  <i class="fas fa-align-left"></i> {{ __('Role Summary') }}
+                                              </label>
+                                              <textarea class="form-control @error('role_summary') is-invalid @enderror" id="role_summary" name="role_summary"
+                                                  rows="3" placeholder="Deskripsi singkat peran posisi ini...">{{ old('role_summary', $position->role_summary) }}</textarea>
+                                              @error('role_summary')
+                                                  <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                              @enderror
+                                          </div>
 
-                                    @if (session('success'))
-                                        <div class="alert alert-success alert-dismissible fade show" id="alert-success"
-                                            role="alert">
-                                            <span class="alert-text">
-                                                {{ session('success') }}
-                                            </span>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                                aria-label="Close">
-                                                <i class="fa fa-close" aria-hidden="true"></i>
-                                            </button>
-                                        </div>
-                                    @endif
-                                    <form id="position-edit" action="{{ route('Position.update', $hashedId) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
+                                          <div class="divider"></div>
 
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="name" class="form-control-label">
-                                                        <i class="fas fa-user"></i> {{ __('Position Name') }}
-                                                    </label>
-                                                    <div>
-                                                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
-                                                            name="name" value="{{ old('name', $position->name) }}"
-                                                            placeholder="IT" required>
-                                                        @error('name')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {{-- <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a name is already registered, you cannot register it again.<br>
-                                                
-                                            </span>
-                                        </div> --}}
-                                         <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a position name is already registered, you cannot register it again.
-                                                <br> - please use English to get used to it.
-                                                <br> - Before updating data, please check first whether there is already similar or identical data to avoid double input. 
-                                            </span>
-                                        </div>
+                                          {{-- Key Responsibilities --}}
+                                          <div class="form-group">
+                                              <div class="section-label">
+                                                  <i class="fas fa-tasks mr-2" style="color:#6777ef"></i> Key
+                                                  Responsibilities
+                                              </div>
+                                              <div id="key-respon-list">
+                                                  @php
+                                                      $keyResponItems = old('key_respon')
+                                                          ? collect(old('key_respon'))
+                                                          : $position->responsibilities->pluck('description');
+                                                  @endphp
+                                                  @forelse($keyResponItems as $item)
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="key_respon[]"
+                                                              value="{{ $item }}" placeholder="Tanggung jawab...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @empty
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="key_respon[]"
+                                                              placeholder="Tanggung jawab...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @endforelse
+                                              </div>
+                                              <button type="button" class="btn-add-item"
+                                                  onclick="addItem('key-respon-list', 'key_respon[]', 'Tanggung jawab...')">
+                                                  <i class="fas fa-plus"></i> Add Responsibility
+                                              </button>
+                                          </div>
 
-                                        <div class="d-flex justify-content-end mt-4">
-                                            <a href="{{ route('pages.Position') }}" class="btn btn-secondary">
-                                                <i class="fas fa-times"></i> {{ __('Cancel') }}
-                                            </a>
-                                            <button type="submit" id="edit-btn" class="btn bg-primary">
-                                                <i class="fas fa-save"></i> {{ __('Update') }}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-@endsection
+                                          <div class="divider"></div>
 
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
-<script>
-     document.getElementById('edit-btn').addEventListener('click', function(e) {
-              e.preventDefault(); // Mencegah pengiriman form langsung
+                                          {{-- Qualifications --}}
+                                          <div class="form-group">
+                                              <div class="section-label">
+                                                  <i class="fas fa-graduation-cap mr-2" style="color:#6777ef"></i>
+                                                  Qualifications
+                                              </div>
+                                              <div id="qualification-list">
+                                                  @php
+                                                      $qualificationItems = old('qualification')
+                                                          ? collect(old('qualification'))
+                                                          : $position->qualifications->pluck('description');
+                                                  @endphp
+                                                  @forelse($qualificationItems as $item)
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="qualification[]"
+                                                              value="{{ $item }}" placeholder="Kualifikasi...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @empty
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="qualification[]"
+                                                              placeholder="Kualifikasi...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @endforelse
+                                              </div>
+                                              <button type="button" class="btn-add-item"
+                                                  onclick="addItem('qualification-list', 'qualification[]', 'Kualifikasi...')">
+                                                  <i class="fas fa-plus"></i> Add Qualification
+                                              </button>
+                                          </div>
+
+                                          <div class="divider"></div>
+
+                                          <div class="d-flex justify-content-end mt-4">
+                                              <a href="{{ route('pages.Position') }}" class="btn btn-secondary">
+                                                  <i class="fas fa-times"></i> {{ __('Cancel') }}
+                                              </a>
+                                              <button type="button" id="edit-btn" class="btn bg-primary">
+                                                  <i class="fas fa-save"></i> {{ __('Update') }}
+                                              </button>
+                                          </div>
+                                      </form>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </section>
+      </div>
+  @endsection
+  @push('scripts')
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script>
+          function addItem(listId, inputName, placeholder) {
+              const list = document.getElementById(listId);
+              const div = document.createElement('div');
+              div.className = 'responsibility-item';
+              div.innerHTML = `
+                <input type="text" class="form-control" name="${inputName}" placeholder="${placeholder}">
+                <button type="button" class="btn-remove-item" onclick="removeItem(this)">
+                    <i class="fas fa-times"></i>
+                </button>`;
+              list.appendChild(div);
+              div.querySelector('input').focus();
+          }
+
+          function removeItem(btn) {
+              const list = btn.closest('[id$="-list"]');
+              const items = list.querySelectorAll('.responsibility-item');
+              if (items.length > 1) {
+                  btn.closest('.responsibility-item').remove();
+              } else {
+                  btn.closest('.responsibility-item').querySelector('input').value = '';
+              }
+          }
+
+          document.getElementById('edit-btn').addEventListener('click', function(e) {
+              e.preventDefault();
               Swal.fire({
                   title: 'Are You Sure?',
                   text: "Make sure the data you entered is correct!",
@@ -275,33 +377,30 @@
                   showCancelButton: true,
                   confirmButtonColor: '#3085d6',
                   cancelButtonColor: '#d33',
-                  confirmButtonText: 'Yes, Assign!',
+                  confirmButtonText: 'Yes, Update!',
                   cancelButtonText: 'Abort'
               }).then((result) => {
                   if (result.isConfirmed) {
-                      // Jika pengguna mengkonfirmasi, submit form
                       document.getElementById('position-edit').submit();
                   }
               });
           });
-</script>
-    <script>
-        @if (session('success'))
-            Swal.fire({
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonText: 'OK'
-            });
-        @endif
 
-        @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script>
+          @if (session('success'))
+              Swal.fire({
+                  title: 'Berhasil!',
+                  text: "{{ session('success') }}",
+                  icon: 'success',
+                  confirmButtonText: 'OK'
+              });
+          @endif
+          @if (session('error'))
+              Swal.fire({
+                  title: 'Gagal!',
+                  text: "{{ session('error') }}",
+                  icon: 'error',
+                  confirmButtonText: 'OK'
+              });
+          @endif
+      </script>
   @endpush

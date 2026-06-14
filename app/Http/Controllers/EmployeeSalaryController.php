@@ -52,14 +52,17 @@ class EmployeeSalaryController extends Controller
         if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
             abort(403, 'Unauthorized');
         }
+       
         $query = EmployeeSalary::with([
-            'employee:id,employee_name,employee_pengenal,status_employee,store_id,grading_id,company_id,department_id,position_id', // ← tambah store_id
-            'employee.store:id,name',
-            'employee.grading:id,grading_name',
-            'employee.company:id,name',
-            'employee.department:id,department_name',
-            'employee.position:id,name'
-        ]);
+    'employee:id,employee_name,employee_pengenal,status_employee,grading_id,company_id,store_id,department_id',
+    'employee.grading:id,grading_name',
+    'employee.company:id,name',
+    'employee.department:id,department_name',
+    'employee.store:id,name',
+    'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+    'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+    'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+]);
         if ($request->filled('store_name')) {
             $query->whereHas(
                 'employee.store',
@@ -104,15 +107,19 @@ class EmployeeSalaryController extends Controller
             ->addColumn('employee_name', fn($row) => $row->employee->employee_name ?? '-')
             ->addColumn('employee_pengenal', fn($row) => $row->employee->employee_pengenal ?? '-')
             ->addColumn('status_employee', fn($row) => $row->employee->status_employee ?? '-')
-            ->addColumn('employee_pengenal', fn($row) => $row->employee->employee_pengenal ?? '-')
-            ->addColumn('store_name', fn($row) => $row->employee->store->name ?? '-')
             ->addColumn('grading_name', fn($row) => $row->employee->grading->grading_name ?? '-')
             ->addColumn('company_name', fn($row) => $row->employee->company->name ?? '-')
-            ->addColumn('department_name', fn($row) => $row->employee->department->department_name ?? '-')
-            ->addColumn('position_name', fn($row) => $row->employee->position->name ?? '-')
             ->addColumn('basic_salary_fmt', fn($row) => number_format($row->basic_salary, 0, ',', '.'))
             ->addColumn('position_allowance_fmt', fn($row) => number_format($row->position_allowance, 0, ',', '.'))
             ->addColumn('daily_rate_fmt', fn($row) => number_format($row->daily_rate, 0, ',', '.'))
+            ->addColumn('meal_allowance_fmt', fn($row) => number_format($row->meal_allowance, 0, ',', '.'))
+            ->addColumn('house_allowance_fmt', fn($row) => number_format($row->house_allowance, 0, ',', '.'))
+            ->addColumn('transport_allowance_fmt', fn($row) => number_format($row->transport_allowance, 0, ',', '.'))
+            ->addColumn('bpjs_ketenagakerjaan_fmt', fn($row) => number_format($row->bpjs_ketenagakerjaan, 0, ',', '.'))
+            ->addColumn('bpjs_kesehatan_fmt', fn($row) => number_format($row->bpjs_kesehatan, 0, ',', '.'))
+            ->addColumn('store_name', fn($row) => $row->employee->store->first()?->name ?? '-')
+->addColumn('department_name', fn($row) => $row->employee->department->first()?->department_name ?? '-')
+->addColumn('position_name', fn($row) => $row->employee->position->first()?->name ?? '-')
 
             ->filterColumn('employee_name', fn($q, $k) => $q->whereHas('employee', fn($q2) => $q2->where('employee_name', 'like', "%$k%")))
             ->filterColumn('employee_pengenal', fn($q, $k) => $q->whereHas('employee', fn($q2) => $q2->where('employee_pengenal', 'like', "%$k%")))
@@ -143,45 +150,7 @@ class EmployeeSalaryController extends Controller
         ->where('log_name', 'employee_salary')
         ->latest();
 
-    // return DataTables::of($query)
-    //     ->addColumn('causer_name', fn($row) => $row->causer?->employee->employee_name ?? '-')
-    //     ->addColumn('event_badge', fn($row) => match($row->event) {
-    //         'created' => '<span class="status-badge" style="background:#f0fdf4;color:#166534">Created</span>',
-    //         'updated' => '<span class="status-badge" style="background:#fffbeb;color:#92400e">Updated</span>',
-    //         'deleted' => '<span class="status-badge" style="background:#fef2f2;color:#991b1b">Deleted</span>',
-    //         default   => '<span class="status-badge">' . $row->event . '</span>',
-    //     })
-    //     ->addColumn('employee_name', fn($row) => 
-    //         $row->properties['attributes']['employee_name'] ?? '-'
-    //     )
-    //     ->addColumn('effective_date', fn($row) => 
-    //         $row->properties['attributes']['effective_date'] ?? '-'
-    //     )
-    //     ->addColumn('basic_salary', fn($row) => 
-    //         isset($row->properties['attributes']['basic_salary'])
-    //             ? number_format($row->properties['attributes']['basic_salary'], 0, ',', '.')
-    //             : '-'
-    //     )
-    //     ->addColumn('position_allowance', fn($row) => 
-    //         isset($row->properties['attributes']['position_allowance'])
-    //             ? number_format($row->properties['attributes']['position_allowance'], 0, ',', '.')
-    //             : '-'
-    //     )
-    //     ->addColumn('allowance', fn($row) => 
-    //         isset($row->properties['attributes']['allowance'])
-    //             ? number_format($row->properties['attributes']['allowance'], 0, ',', '.')
-    //             : '-'
-    //     )
-    //     ->addColumn('daily_rate', fn($row) => 
-    //         isset($row->properties['attributes']['daily_rate'])
-    //             ? number_format($row->properties['attributes']['daily_rate'], 0, ',', '.')
-    //             : '-'
-    //     )
-    //     ->addColumn('changed_at', fn($row) => 
-    //         $row->created_at->format('d/m/Y H:i')
-    //     )
-    //     ->rawColumns(['event_badge'])
-    //     ->make(true);
+   
     return DataTables::of($query)
     ->addColumn('causer_name', fn($row) => $row->causer?->employee->employee_name ?? '-')
     ->addColumn('event_badge', fn($row) => match($row->event) {
@@ -212,6 +181,31 @@ class EmployeeSalaryController extends Controller
             ? number_format($row->properties['attributes']['daily_rate'], 0, ',', '.')
             : '-'
     )
+    ->addColumn('meal_allowance_new', fn($row) =>
+        isset($row->properties['attributes']['meal_allowance'])
+            ? number_format($row->properties['attributes']['meal_allowance'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('transport_allowance_new', fn($row) =>
+        isset($row->properties['attributes']['transport_allowance'])
+            ? number_format($row->properties['attributes']['transport_allowance'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('house_allowance_new', fn($row) =>
+        isset($row->properties['attributes']['house_allowance'])
+            ? number_format($row->properties['attributes']['house_allowance'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('bpjs_ketenagakerjaan_new', fn($row) =>
+        isset($row->properties['attributes']['bpjs_ketenagakerjaan'])
+            ? number_format($row->properties['attributes']['bpjs_ketenagakerjaan'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('bpjs_kesehatan_new', fn($row) =>
+        isset($row->properties['attributes']['bpjs_kesehatan'])
+            ? number_format($row->properties['attributes']['bpjs_kesehatan'], 0, ',', '.')
+            : '-'
+    )
     // ── Old values (hanya saat updated) ──
     ->addColumn('basic_salary_old', fn($row) =>
         isset($row->properties['old']['basic_salary'])
@@ -228,9 +222,45 @@ class EmployeeSalaryController extends Controller
             ? number_format($row->properties['old']['daily_rate'], 0, ',', '.')
             : '-'
     )
+    ->addColumn('meal_allowance_old', fn($row) =>
+        isset($row->properties['old']['meal_allowance'])
+            ? number_format($row->properties['old']['meal_allowance'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('transport_allowance_old', fn($row) =>
+        isset($row->properties['old']['transport_allowance'])
+            ? number_format($row->properties['old']['transport_allowance'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('house_allowance_old', fn($row) =>
+        isset($row->properties['old']['house_allowance'])
+            ? number_format($row->properties['old']['house_allowance'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('bpjs_ketenagakerjaan_old', fn($row) =>
+        isset($row->properties['old']['bpjs_ketenagakerjaan'])
+            ? number_format($row->properties['old']['bpjs_ketenagakerjaan'], 0, ',', '.')
+            : '-'
+    )
+    ->addColumn('bpjs_kesehatan_old', fn($row) =>
+        isset($row->properties['old']['bpjs_kesehatan'])
+            ? number_format($row->properties['old']['bpjs_kesehatan'], 0, ',', '.')
+            : '-'
+    )
     ->addColumn('changed_at', fn($row) =>
         $row->created_at->format('d/m/Y H:i')
     )
+   ->filterColumn('employee_name', fn($q, $k) =>
+    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(properties, '$.attributes.employee_name')) like ?", ["%$k%"])
+)
+->filterColumn('causer_name', fn($q, $k) =>
+    $q->whereHas('causer', fn($q2) =>
+        $q2->whereHas('employee', fn($q3) =>
+            $q3->where('employee_name', 'like', "%$k%")
+        )
+    )
+)
+
     ->rawColumns(['event_badge'])
     ->make(true);
 }
@@ -256,10 +286,6 @@ class EmployeeSalaryController extends Controller
         if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
             abort(403, 'Unauthorized');
         }
-        // $employees = Employee::whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave','Resign'])
-        //     ->whereNotNull('employee_pengenal')
-        //     ->orderBy('employee_name')
-        //     ->get();
         $employees = Employee::where(function ($query) {
             // Status normal tetap muncul
             $query->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave']);
@@ -276,52 +302,31 @@ class EmployeeSalaryController extends Controller
 
         return view('pages.EmployeeSalary.create', compact('employees'));
     }
+private function normalizeCurrency(Request $request): void
+    {
+        $fields = [
+            'basic_salary',
+            'position_allowance',
+            'daily_rate',
+            'meal_allowance',
+            'house_allowance',
+            'transport_allowance',
+            'bpjs_kesehatan',
+            'bpjs_ketenagakerjaan',
+        ];
 
-    // ── Store ──
-//     public function store(Request $request)
-//     {
-//         $user     = auth()->user();
-//         /** @var \App\Models\User|null $user */
-//         if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
-//             abort(403, 'Unauthorized');
-//         }
-//         $request->validate([
-//             'employee_id'        => 'required|exists:employees_tables,id',
-//             'basic_salary'       => 'nullable|numeric|min:0',
-//             'position_allowance' => 'nullable|numeric|min:0',
-//             'daily_rate'         => 'nullable|numeric|min:0',
-//             'effective_date'     => 'required|date',
-//         ]);
-
-//         $employee = Employee::findOrFail($request->employee_id);
-//         $status   = strtoupper($employee->status_employee);
-
-//         try {
-//             // updateOrCreate berdasarkan employee_id + effective_date
-//             EmployeeSalary::updateOrCreate(
-//                 [
-//                     'employee_id'    => $request->employee_id,
-//                     'effective_date' => $request->effective_date,
-//                 ],
-//                 [
-//                     'basic_salary'       => $status === 'DW' ? 0 : $request->basic_salary ?? 0,
-//                     'position_allowance' => $status === 'DW' ? 0 : $request->position_allowance ?? 0,
-//                     'daily_rate'         => $status === 'DW' ? $request->daily_rate ?? 0 : 0,
-//                     'created_by' => $user->employee_id,
-//                 ]
-//             );
-
-//             return redirect()
-//                 ->route('employeesalary.index')
-//                 ->with('success', 'Employee Salary saved successfully.');
-       
-//         } catch (\Exception $e) {
-//     Log::error('EmployeeSalary store error: ' . $e->getMessage());
-//     return back()
-//         ->with('error', 'Failed to save salary: ' . $e->getMessage())
-//         ->withInput();
-// }
-//     }
+        foreach ($fields as $field) {
+            if ($request->filled($field)) {
+                $request->merge([
+                    $field => str_replace(
+                        ',',
+                        '.',
+                        str_replace('.', '', $request->$field)
+                    )
+                ]);
+            }
+        }
+    }
 public function store(Request $request)
 {
     $user = auth()->user();
@@ -329,12 +334,17 @@ public function store(Request $request)
     if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
         abort(403, 'Unauthorized');
     }
-
+          $this->normalizeCurrency($request);
     $request->validate([
         'employee_id'        => 'required|exists:employees_tables,id',
         'basic_salary'       => 'nullable|numeric|min:0',
         'position_allowance' => 'nullable|numeric|min:0',
         'daily_rate'         => 'nullable|numeric|min:0',
+        'meal_allowance'         => 'nullable|numeric|min:0',
+        'house_allowance'         => 'nullable|numeric|min:0',
+        'transport_allowance'         => 'nullable|numeric|min:0',
+        'bpjs_ketenagakerjaan'         => 'nullable|numeric|min:0',
+        'bpjs_kesehatan'         => 'nullable|numeric|min:0',
         'effective_date'     => 'required|date',
     ]);
 
@@ -351,6 +361,11 @@ public function store(Request $request)
             'basic_salary'       => $status === 'DW' ? 0 : $request->basic_salary ?? 0,
             'position_allowance' => $status === 'DW' ? 0 : $request->position_allowance ?? 0,
             'daily_rate'         => $status === 'DW' ? $request->daily_rate ?? 0 : 0,
+            'meal_allowance'       => $request->meal_allowance ?? 0,       // ← tambah
+    'house_allowance'      => $request->house_allowance ?? 0,      // ← tambah
+    'transport_allowance'  => $request->transport_allowance ?? 0,  // ← tambah
+    'bpjs_kesehatan'       => $request->bpjs_kesehatan ?? 0,       // ← tambah
+    'bpjs_ketenagakerjaan' => $request->bpjs_ketenagakerjaan ?? 0, // ← tambah
             'created_by'         => $user->employee_id,
         ];
 
@@ -392,7 +407,7 @@ public function store(Request $request)
             ->orderBy('employee_name')
             ->get();
 
-        return view('pages.employeesalary.edit', compact('salary', 'employees'));
+        return view('pages.EmployeeSalary.edit', compact('salary', 'employees'));
     }
 
     // ── Update ──
@@ -406,11 +421,17 @@ public function store(Request $request)
         $salary   = EmployeeSalary::findOrFail($id);
         $employee = $salary->employee;
         $status   = strtoupper($employee->status_employee);
+        $this->normalizeCurrency($request);
 
         $request->validate([
             'basic_salary'       => 'nullable|numeric|min:0',
             'position_allowance' => 'nullable|numeric|min:0',
             'daily_rate'         => 'nullable|numeric|min:0',
+            'meal_allowance'       => 'nullable|numeric|min:0',
+        'house_allowance'      => 'nullable|numeric|min:0',
+        'transport_allowance'  => 'nullable|numeric|min:0',
+        'bpjs_kesehatan'       => 'nullable|numeric|min:0',
+        'bpjs_ketenagakerjaan' => 'nullable|numeric|min:0',
             'effective_date'     => 'required|date',
         ]);
         try {
@@ -418,6 +439,11 @@ public function store(Request $request)
                 'basic_salary'       => $status === 'DW' ? 0 : $request->basic_salary ?? 0,
                 'position_allowance' => $status === 'DW' ? 0 : $request->position_allowance ?? 0,
                 'daily_rate'         => $status === 'DW' ? $request->daily_rate ?? 0 : 0,
+                'meal_allowance'       => $request->meal_allowance ?? 0,
+            'house_allowance'      => $request->house_allowance ?? 0,
+            'transport_allowance'  => $request->transport_allowance ?? 0,
+            'bpjs_kesehatan'       => $request->bpjs_kesehatan ?? 0,
+            'bpjs_ketenagakerjaan' => $request->bpjs_ketenagakerjaan ?? 0,
                 'effective_date'     => $request->effective_date,
             ]);
 
@@ -444,18 +470,7 @@ public function store(Request $request)
             'effective_date' => 'required|date',
         ]);
 
-        // try {
-        //     $createdBy = Auth::user()->employee->id ?? null;
-
-        //     Excel::import(
-        //         new EmployeeSalaryImport($request->effective_date, $createdBy),
-        //         $request->file('file')
-        //     );
-        //     return back()->with('success', 'Import successful.');
-        // } catch (\Exception $e) {
-        //     Log::error('EmployeeSalary import error: ' . $e->getMessage());
-        //     return back()->with('error', 'Import failed: ' . $e->getMessage());
-        // }
+       
         try {
     $createdBy = Auth::user()->employee->id ?? null;
 
@@ -475,53 +490,116 @@ public function store(Request $request)
     return back()->with('error', 'Import failed: ' . $e->getMessage());
 }
     }
+    // public function downloadTemplate()
+    // {
+    //     $user     = auth()->user();
+    //     /** @var \App\Models\User|null $user */
+    //     if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+    //         abort(403, 'Unauthorized');
+    //     }
+
+    //     $headers = [
+    //         'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    //         'Content-Disposition' => 'attachment; filename="template_employee_salary.xlsx"',
+    //     ];
+
+    //     // Buat file Excel sederhana dengan header kolom
+    //     $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    //     $sheet       = $spreadsheet->getActiveSheet();
+
+    //     // Header row
+    //     $sheet->fromArray([
+    //         ['employee_pengenal', 'basic_salary', 'position_allowance', 'daily_rate','meal_allowance','transport_allowance','house_allowance','bpjs_ketenagakerjaan','bpjs_kesehatan']
+    //     ], null, 'A1');
+
+    //     // Contoh data
+    //     $sheet->fromArray([
+    //         ['EMP001', 4200000, 1800000, 0],
+    //         ['EMP002', 0, 0, 110000],
+    //     ], null, 'A2');
+
+    //     // Style header
+    //     $sheet->getStyle('A1:D1')->applyFromArray([
+    //         'font'      => ['bold' => true],
+    //         'fill'      => [
+    //             'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+    //             'startColor' => ['rgb' => '1e293b'],
+    //         ],
+    //         'font'      => ['color' => ['rgb' => 'FFFFFF'], 'bold' => true],
+    //     ]);
+
+    //     // Auto width
+    //     foreach (range('A', 'D') as $col) {
+    //         $sheet->getColumnDimension($col)->setAutoSize(true);
+    //     }
+
+    //     $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    //     $filename = tempnam(sys_get_temp_dir(), 'salary_template');
+    //     $writer->save($filename);
+    //     return response()->download($filename, 'template_employee_salary.xlsx', $headers)
+    //         ->deleteFileAfterSend(true);
+    // }
     public function downloadTemplate()
-    {
-        $user     = auth()->user();
-        /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
-            abort(403, 'Unauthorized');
-        }
-
-        $headers = [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="template_employee_salary.xlsx"',
-        ];
-
-        // Buat file Excel sederhana dengan header kolom
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
-
-        // Header row
-        $sheet->fromArray([
-            ['employee_pengenal', 'basic_salary', 'position_allowance', 'daily_rate']
-        ], null, 'A1');
-
-        // Contoh data
-        $sheet->fromArray([
-            ['EMP001', 4200000, 1800000, 0],
-            ['EMP002', 0, 0, 110000],
-        ], null, 'A2');
-
-        // Style header
-        $sheet->getStyle('A1:D1')->applyFromArray([
-            'font'      => ['bold' => true],
-            'fill'      => [
-                'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1e293b'],
-            ],
-            'font'      => ['color' => ['rgb' => 'FFFFFF'], 'bold' => true],
-        ]);
-
-        // Auto width
-        foreach (range('A', 'D') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = tempnam(sys_get_temp_dir(), 'salary_template');
-        $writer->save($filename);
-        return response()->download($filename, 'template_employee_salary.xlsx', $headers)
-            ->deleteFileAfterSend(true);
+{
+    $user = auth()->user();
+    /** @var \App\Models\User|null $user */
+    if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        abort(403, 'Unauthorized');
     }
+
+    $headers = [
+        'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="template_employee_salary.xlsx"',
+    ];
+
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet       = $spreadsheet->getActiveSheet();
+
+    // Header row — 9 kolom
+    $sheet->fromArray([[
+        'employee_pengenal',
+        'basic_salary',
+        'position_allowance',
+        'daily_rate',
+        'meal_allowance',
+        'house_allowance',
+        'transport_allowance',
+        'bpjs_kesehatan',
+        'bpjs_ketenagakerjaan',
+    ]], null, 'A1');
+
+    // Contoh data PKWT
+    $sheet->fromArray([[
+        '2025', 4200000, 1800000, 0, 500000, 300000, 200000, 0, 0, 0,
+    ]], null, 'A2');
+
+    // Contoh data DW
+    $sheet->fromArray([[
+        'EMP002', 0, 0, 50000, 0, 0, 0, 0, 0,
+    ]], null, 'A3');
+
+    // Style header — fix range jadi A1:J1 (10 kolom)
+    $sheet->getStyle('A1:I1')->applyFromArray([
+        'font' => [
+            'bold'  => true,
+            'color' => ['rgb' => 'FFFFFF'],
+        ],
+        'fill' => [
+            'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => '1e293b'],
+        ],
+    ]);
+
+    // Auto width — fix range jadi A sampai J (10 kolom)
+    foreach (range('A', 'I') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    $filename = tempnam(sys_get_temp_dir(), 'salary_template');
+    $writer->save($filename);
+
+    return response()->download($filename, 'template_employee_salary.xlsx', $headers)
+        ->deleteFileAfterSend(true);
+}
 }

@@ -181,6 +181,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Role Summary</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -227,6 +228,11 @@
                     {
                         data: 'name',
                         name: 'name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'role_summary',
+                        name: 'role_summary',
                         className: 'text-center'
                     },
                     {

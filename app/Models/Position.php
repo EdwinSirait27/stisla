@@ -9,7 +9,6 @@ use Ramsey\Uuid\Uuid;
 class Position extends Model
 {
     use HasFactory;
-
     protected $table = 'position_tables';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -26,21 +25,29 @@ class Position extends Model
     }
     protected $fillable = [
         'name',
-        'status',
-        'reason_reject',
-        'approval_1',
-        'approval_2',
         'role_summary',
-        'key_respon',
-        'qualifications',
-        'work_location'
+        'status'
+        
     ];
-    public function approval1()
+     public function responsibilities()
     {
-        return $this->belongsTo(Structuresnew::class, 'approval_1', 'id');
+        return $this->hasMany(PositionResponsibility::class, 'position_id')
+            ->where('type', 'key_respon')
+            ->orderBy('order');
     }
-    public function approval2()
+
+    public function qualifications()
     {
-        return $this->belongsTo(Structuresnew::class, 'approval_2', 'id');
+        return $this->hasMany(PositionResponsibility::class, 'position_id')
+            ->where('type', 'qualification')
+            ->orderBy('order');
+    }
+
+    // Ambil semua sekaligus
+    public function positionResponsibilities()
+    {
+        return $this->hasMany(PositionResponsibility::class, 'position_id')
+            ->orderBy('type')
+            ->orderBy('order');
     }
 }

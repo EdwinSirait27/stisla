@@ -55,6 +55,11 @@ class EmployeeSalaryImport implements ToCollection, WithHeadingRow, WithValidati
                 'basic_salary'       => $status === 'DW' ? 0 : (float) ($row['basic_salary'] ?? 0),
                 'position_allowance' => $status === 'DW' ? 0 : (float) ($row['position_allowance'] ?? 0),
                 'daily_rate'         => $status === 'DW' ? (float) ($row['daily_rate'] ?? 0) : 0,
+                'meal_allowance' => (float) ($row['meal_allowance'] ?? 0),
+                'house_allowance' => (float) ($row['house_allowance'] ?? 0),
+                'transport_allowance' => (float) ($row['transport_allowance'] ?? 0),
+                'bpjs_kesehatan' => (float) ($row['bpjs_kesehatan'] ?? 0),
+                'bpjs_ketenagakerjaan' => (float) ($row['bpjs_ketenagakerjaan'] ?? 0),
                 'created_by'         => $this->createdBy,
             ]);
         }
@@ -67,93 +72,3 @@ class EmployeeSalaryImport implements ToCollection, WithHeadingRow, WithValidati
         ];
     }
 }
-// class EmployeeSalaryImport implements ToCollection, WithHeadingRow, WithValidation
-// {
-//     protected string $effectiveDate;
-//     protected string $createdBy;
-
-//     public function __construct(string $effectiveDate, string $createdBy)
-//     {
-//         $this->effectiveDate = $effectiveDate;
-//         $this->createdBy     = $createdBy;
-//     }
-
-    
-//     public function collection(Collection $rows)
-// {
-//     foreach ($rows as $row) {
-//         $employee = Employee::where('employee_pengenal', $row['employee_pengenal'])
-//             ->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave', 'Resign'])
-//             ->first();
-
-//         if (!$employee) {
-//             Log::warning('EmployeeSalaryImport: NIP tidak ditemukan', [
-//                 'employee_pengenal' => $row['employee_pengenal'],
-//             ]);
-//             continue;
-//         }
-
-//         $status = strtoupper($employee->status_employee);
-
-//         $data = [
-//             'basic_salary'       => $status === 'DW' ? 0 : (float) ($row['basic_salary'] ?? 0),
-//             'position_allowance' => $status === 'DW' ? 0 : (float) ($row['position_allowance'] ?? 0),
-//             // 'allowance'          => (float) ($row['allowance'] ?? 0), // ← tambah allowance
-//             'daily_rate'         => $status === 'DW' ? (float) ($row['daily_rate'] ?? 0) : 0,
-//             'created_by'         => $this->createdBy,
-//         ];
-
-//         // ← ganti updateOrCreate dengan pisah create/update
-//         $existing = EmployeeSalary::where('employee_id', $employee->id)
-//             ->where('effective_date', $this->effectiveDate)
-//             ->first();
-
-//         if ($existing) {
-//             $existing->update($data); // trigger 'updated' → Spatie log
-//         } else {
-//             EmployeeSalary::create(array_merge($data, [
-//                 'employee_id'    => $employee->id,
-//                 'effective_date' => $this->effectiveDate,
-//             ])); // trigger 'created' → Spatie log
-//         }
-//     }
-// }
-//     public function rules(): array
-//     {
-//         return [
-//             'employee_pengenal' => 'required',
-//         ];
-//     }
-// }
-
-// public function collection(Collection $rows)
-    // {
-    //     foreach ($rows as $row) {
-    //         // Cari employee berdasarkan employee_pengenal
-    //         $employee = Employee::where('employee_pengenal', $row['employee_pengenal'])
-    //             ->whereIn('status', ['Active', 'Mutation','Pending','On Leave','Resign'])
-    //             ->first();
-
-    //         if (!$employee) {
-    //             Log::warning('EmployeeSalaryImport: NIP tidak ditemukan', [
-    //                 'employee_pengenal' => $row['employee_pengenal'],
-    //             ]);
-    //             continue;
-    //         }
-
-    //         $status = strtoupper($employee->status_employee);
-
-    //         EmployeeSalary::updateOrCreate(
-    //             [
-    //                 'employee_id'    => $employee->id,
-    //                 'effective_date' => $this->effectiveDate,
-    //             ],
-    //             [
-    //                 'basic_salary'       => $status === 'DW' ? 0 : (float) ($row['basic_salary'] ?? 0),
-    //                 'position_allowance' => $status === 'DW' ? 0 : (float) ($row['position_allowance'] ?? 0),
-    //                 'daily_rate'         => $status === 'DW' ? (float) ($row['daily_rate'] ?? 0) : 0,
-    //                 'created_by'         => $this->createdBy,
-    //             ]
-    //         );
-    //     }
-    // }

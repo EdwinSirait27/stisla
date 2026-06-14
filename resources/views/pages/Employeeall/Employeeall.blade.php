@@ -6,7 +6,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <!-- Tambahkan setelah datatables js yang sudah ada -->
-<link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 
     <style>
         /* ─── Page header ────────────────────────────────────── */
@@ -386,16 +386,28 @@
         }
 
         /* untuk fixedclolom */
-    /* Agar fixed columns menyatu dengan tema */
-    table.dataTable tbody tr.odd  > .dtfc-fixed-left { background: #fff; }
-    table.dataTable tbody tr.even > .dtfc-fixed-left { background: #f8fafc; }
-    table.dataTable tbody tr:hover > .dtfc-fixed-left { background: #f8fafc; }
-    .dtfc-fixed-left { 
-        box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); 
-        z-index: 3;
-    }
-    /* Pastikan wrapper tidak overflow hidden agar fixed columns kelihatan */
-    .dataTables_scrollBody { overflow-x: auto !important; }
+        /* Agar fixed columns menyatu dengan tema */
+        table.dataTable tbody tr.odd>.dtfc-fixed-left {
+            background: #fff;
+        }
+
+        table.dataTable tbody tr.even>.dtfc-fixed-left {
+            background: #f8fafc;
+        }
+
+        table.dataTable tbody tr:hover>.dtfc-fixed-left {
+            background: #f8fafc;
+        }
+
+        .dtfc-fixed-left {
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1);
+            z-index: 3;
+        }
+
+        /* Pastikan wrapper tidak overflow hidden agar fixed columns kelihatan */
+        .dataTables_scrollBody {
+            overflow-x: auto !important;
+        }
 
 
 
@@ -455,13 +467,13 @@
                     <h1>Employee Details</h1>
                 </div>
                 <div class="page-actions">
-                   <a href="{{ route('pages.Employee') }}" class="btn btn-danger">
+                    <a href="{{ route('pages.Employee') }}" class="btn btn-danger">
                         <i class="fas fa-users"></i> Back to employees
                     </a>
                     <a href="{{ route('Employee.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create employee
                     </a>
-                    
+
                 </div>
             </div>
 
@@ -541,6 +553,13 @@
                                 <option value="{{ $marriage }}">{{ $marriage }}</option>
                             @endforeach
                         </select>
+                        <select id="filter-blood-type" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Blood Types?</option>
+                            @foreach ($bloodtypes as $bloodtype)
+                                <option value="{{ $bloodtype }}">{{ $bloodtype }}</option>
+                            @endforeach
+                        </select>
                         <select id="filter-religion" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Religions</option>
@@ -563,18 +582,19 @@
                             @endforeach
                         </select>
 
+
                         <select id="filter-department" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Departments</option>
-                            @foreach ($departments as $department)
-                                <option value="{{ $department }}">{{ $department }}</option>
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->department_name }}">{{ $dept->department_name }}</option>
                             @endforeach
                         </select>
                         <select id="filter-store" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Locations</option>
-                            @foreach ($locations as $location)
-                                <option value="{{ $location }}">{{ $location }}</option>
+                            @foreach ($stores as $store)
+                                <option value="{{ $store->name }}">{{ $store->name }}</option>
                             @endforeach
                         </select>
 
@@ -613,19 +633,45 @@
 
                         </select>
 
-                        <select id="filter-status" class="select2 form-select form-select-sm"
+                        {{-- <select id="filter-status" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Status</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status }}">{{ $status }}</option>
+                            @endforeach
+                        </select> --}}
+                        <select id="filter-status" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;max-width:150px;">
                             <option value="">All Status</option>
                             @foreach ($statuses as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
                             @endforeach
                         </select>
 
+                        {{-- Join Date Range --}}
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="font-size:.72rem;color:#64748b;white-space:nowrap;font-weight:500;">Join</span>
+                            <input type="date" id="filter-join-date-from" class="form-control form-control-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
+                            <span style="font-size:.75rem;color:#94a3b8;">–</span>
+                            <input type="date" id="filter-join-date-to" class="form-control form-control-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
+                        </div>
+
+                        {{-- End Date Range --}}
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="font-size:.72rem;color:#64748b;white-space:nowrap;font-weight:500;">End</span>
+                            <input type="date" id="filter-end-date-from" class="form-control form-control-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
+                            <span style="font-size:.75rem;color:#94a3b8;">–</span>
+                            <input type="date" id="filter-end-date-to" class="form-control form-control-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
+                        </div>
+
                         <button id="btn-reset-filter" class="btn btn-sm btn-light"
                             style="height:32px;font-size:.775rem;padding:0 .75rem;display:inline-flex;align-items:center;gap:.35rem;border-radius:.4rem;border:1px solid #e2e8f0">
                             <i class="fas fa-rotate-left"></i> Reset
                         </button>
-                        <!-- Tombol Export, filter ikut terbawa via URL -->
                         <a id="btn-export-excel" href="{{ route('Employee.export') }}" class="btn btn-success">
                             <i class="fas fa-file-excel"></i> Export Excel
                         </a>
@@ -638,11 +684,12 @@
                         <table id="employees-table" class="table">
                             <thead>
                                 <tr>
-                                    <th class="text-center">Action</th>         
+                                    <th class="text-center">Action</th>
                                     <th class="text-center">Status</th>
                                     <th class="text-center">Employee</th>
                                     <th class="text-center">NIP</th>
                                     <th class="text-center">P.Finger</th>
+                                    <th class="text-center">Approve</th>
                                     <th class="text-center">NIK</th>
                                     <th class="text-center">Religion</th>
                                     <th class="text-center">Gender</th>
@@ -655,6 +702,7 @@
                                     <th class="text-center">Institution</th>
                                     <th class="text-center">Marriage</th>
                                     <th class="text-center">Child</th>
+                                    <th class="text-center">Bld. Type</th>
                                     <th class="text-center">Emer. Contact</th>
                                     <th class="text-center">Email</th>
                                     <th class="text-center">Pend. Email</th>
@@ -679,7 +727,7 @@
                                     <th class="text-center">Acc. Created</th>
                                 </tr>
                             </thead>
-                          </table>
+                        </table>
                     </div>
 
                     <div class="hint-bar">
@@ -704,7 +752,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 
     <script>
         $('.select2').select2({
@@ -772,24 +820,22 @@
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
-                 scrollX: true,
-    scrollCollapse: true,
-    fixedColumns: {
-        left: 4  // freeze: Action, Status, Employee (kolom 0,1,2)
-    },
+                scrollX: true,
+                scrollCollapse: true,
+                fixedColumns: {
+                    left: 4 // freeze: Action, Status, Employee (kolom 0,1,2)
+                },
 
-    dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
-                // dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
-                //     "<'row'<'col-sm-12'tr>>" +
-                //     "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
+                dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
                 ajax: {
                     url: '{{ route('employeesall.employeesall') }}',
                     data: function(d) {
                         d.filter_company = $('#filter-company').val();
                         d.filter_department = $('#filter-department').val();
                         d.filter_emp_status = $('#filter-emp-status').val();
+                        d.filter_blood_type = $('#filter-blood-type').val();
                         d.filter_status = $('#filter-status').val();
                         d.filter_store = $('#filter-store').val();
                         d.filter_los = $('#filter-los').val();
@@ -800,6 +846,10 @@
                         d.filter_marriage = $('#filter-marriage').val();
                         d.filter_religion = $('#filter-religion').val();
                         d.filter_last_education = $('#filter-last-education').val();
+                        d.filter_join_date_from = $('#filter-join-date-from').val();
+                        d.filter_join_date_to = $('#filter-join-date-to').val();
+                        d.filter_end_date_from = $('#filter-end-date-from').val();
+                        d.filter_end_date_to = $('#filter-end-date-to').val();
                     },
                     error: function() {
                         Swal.fire({
@@ -826,8 +876,7 @@
                         next: '›'
                     }
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'action',
                         orderable: false,
                         searchable: false,
@@ -835,26 +884,13 @@
                         render: function(data) {
                             return `<div class="action-wrap">${data}</div>`;
                         }
-                    }, 
+                    },
                     {
                         data: 'status',
                         className: 'text-center',
                         render: d => statusBadge(d, STATUS_BADGE)
                     },
-                    // {
-                    //     data: 'employee_name',
-                    //     render: function(data, type, row, meta) {
-                    //         const ini = initials(data);
-                    //         const sty = avatarStyle(data, meta.row);
-                    //         return `<div class="emp-cell">
-                    //         <div class="emp-avatar" style="${sty}">${ini}</div>
-                    //         <div>
-                    //             <div class="emp-avatar-name">${data || '-'}</div>
-                    //             <div class="emp-avatar-nip">${row.nip || '-'}</div>
-                    //         </div>
-                    //     </div>`;
-                    //     }
-                    // },
+                  
                     {
                         data: 'employee_name',
                         className: 'text-center',
@@ -870,6 +906,18 @@
                         className: 'text-center',
                         render: d => d || '-'
                     },
+                    {
+    data: 'can_approve',
+    className: 'text-center',
+    render: function(data, type, row) {
+        if (data == 1) {
+            return 'Yes';
+        } else if (data == 0) {
+            return 'No';
+        }
+        return '-';
+    }
+},
                     {
                         data: 'nik',
                         className: 'text-center',
@@ -931,6 +979,11 @@
                         render: d => d || '-'
                     },
                     {
+                        data: 'blood_type',
+                        className: 'text-center',
+                        render: d => d || '-'
+                    },
+                    {
                         data: 'emergency_contact_name',
                         className: 'text-center',
                         render: d => d || '-'
@@ -985,7 +1038,7 @@
                         className: 'text-center',
                         render: d => d || '-'
                     },
-                    
+
                     {
                         data: 'name_company',
                         className: 'text-center',
@@ -997,7 +1050,7 @@
                         render: d => d || '-'
                     },
                     {
-                        data: 'name',
+                        data: 'store_name',
                         className: 'text-center',
                         render: d => d || '-'
                     },
@@ -1027,17 +1080,17 @@
                         render: d => d ? `<span style="color:#64748b;font-size:.775rem">${d}</span>` :
                             '-'
                     },
-                     {
+                    {
                         data: 'join_date',
                         className: 'text-center',
                         render: d => statusBadge(d, EMP_STATUS_BADGE)
                     },
-                     {
+                    {
                         data: 'end_date',
                         className: 'text-center',
                         render: d => statusBadge(d, EMP_STATUS_BADGE)
                     },
-                     {
+                    {
                         data: 'created_at',
                         className: 'text-center',
                         render: d => statusBadge(d, EMP_STATUS_BADGE)
@@ -1061,11 +1114,11 @@
                 //     $('.dataTables_length select').addClass('form-select form-select-sm');
                 // }
                 initComplete: function() {
-        $('.dataTables_filter input').addClass('form-control form-control-sm');
-        $('.dataTables_length select').addClass('form-select form-select-sm');
-    }
+                    $('.dataTables_filter input').addClass('form-control form-control-sm');
+                    $('.dataTables_length select').addClass('form-select form-select-sm');
+                }
             });
-            $('#filter-company, #filter-department, #filter-emp-status, #filter-status, #filter-los, #filter-store, #filter-grading, #filter-group,#filter-bank,#filter-gender,#filter-marriage,#filter-religion,#filter-last-education')
+            $('#filter-blood-type,#filter-company, #filter-department, #filter-emp-status, #filter-status, #filter-los, #filter-store, #filter-grading, #filter-group,#filter-bank,#filter-gender,#filter-marriage,#filter-religion,#filter-last-education,#filter-join-date-from,#filter-join-date-to,#filter-end-date-from,#filter-end-date-to')
                 .on('change', function() {
                     empTable.ajax.reload();
                     updateExportLinks(); // ← tambahkan di sini
@@ -1074,6 +1127,7 @@
             /* ── Reset filter ── */
             $('#btn-reset-filter').on('click', function() {
 
+                $('#filter-blood-type').val('').trigger('change');
                 $('#filter-company').val('').trigger('change');
                 $('#filter-department').val('').trigger('change');
                 $('#filter-emp-status').val('').trigger('change');
@@ -1087,11 +1141,16 @@
                 $('#filter-marriage').val('').trigger('change');
                 $('#filter-religion').val('').trigger('change');
                 $('#filter-last-education').val('').trigger('change');
+                $('#filter-join-date-from').val('').trigger('change');
+                $('#filter-join-date-to').val('').trigger('change');
+                $('#filter-end-date-from').val('').trigger('change');
+                $('#filter-end-date-to').val('').trigger('change');
                 empTable.ajax.reload();
             });
             // Setiap kali filter berubah, update href tombol export
             function updateExportLinks() {
                 const params = new URLSearchParams({
+                    filter_blood_type: $('#filter-blood-type').val(),
                     filter_company: $('#filter-company').val(),
                     filter_department: $('#filter-department').val(),
                     filter_group: $('#filter-group').val(),
@@ -1105,6 +1164,10 @@
                     filter_marriage: $('#filter-marriage').val(),
                     filter_religion: $('#filter-religion').val(),
                     filter_last_education: $('#filter-last-education').val(),
+                    filter_join_date_from: $('#filter-join-date-from').val(),
+                    filter_join_date_to: $('#filter-join-date-to').val(),
+                    filter_end_date_from: $('#filter-end-date-from').val(),
+                    filter_end_date_to: $('#filter-end-date-to').val(),
                 });
 
                 const baseUrl = "{{ route('Employeeall.exportall') }}";

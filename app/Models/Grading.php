@@ -23,6 +23,8 @@ class Grading extends Model
     protected $fillable = [
         'grading_code',
         'grading_name',
+        'level',
+        'meal_allowance',
         'group_id',
     ];
       protected $casts = [

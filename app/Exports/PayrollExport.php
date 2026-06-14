@@ -101,6 +101,7 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
             $row->basic_salary,
             $row->position_allowance,
             $row->daily_rate,
+            
             $row->gross_salary,
             $row->total_income,
             $row->total_deduction,

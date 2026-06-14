@@ -427,11 +427,7 @@
             <i class="fas fa-tachometer-alt"></i> Position Request List
         </a>
         @endcan
-    @can('ManageStructuresnew')
-        <a href="{{ route('pages.Structuresnew') }}" class="drawer-item">
-            <i class="fas fa-tachometer-alt"></i> Structure List
-        </a>
-        @endcan
+    
     @can('ManageSummaries')
         <a href="{{ route('pages.Summaries') }}" class="drawer-item">
             <i class="fas fa-tachometer-alt"></i> Leave List
