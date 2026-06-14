@@ -472,6 +472,7 @@
                     </div>
                     <h1>Employees</h1>
                 </div>
+                @can('ManageEmployee')
                 <div class="page-actions">
                     <a href="{{ route('Employee.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create employee
@@ -480,6 +481,7 @@
                         <i class="fas fa-users"></i> Employee Details
                     </a>
                 </div>
+                @endcan
             </div>
 
             <div class="section-body">
@@ -502,6 +504,7 @@
                             </div>
                         </div>
                     @endcan
+                    @can('ManageEmployee|ManageEmployeeSPVManager')
                     <div class="stat-card">
                         <div class="stat-card-label">Pending</div>
                         <div class="stat-card-value amber" id="stat-leave">{{ $countpendings }}</div>
@@ -509,6 +512,7 @@
                             <span class="stat-dot" style="background:#d97706"></span> Employee Pending
                         </div>
                     </div>
+                    @endcan
                     @can('ManageEmployee')
                         <div class="stat-card">
                             <div class="stat-card-label">Resigned</div>
@@ -519,7 +523,6 @@
                         </div>
                     @endcan
                 </div>
-
                 {{-- ── Employee Table Card ── --}}
                 <div class="emp-card">
                     <div class="emp-card-header">

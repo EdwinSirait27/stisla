@@ -17,9 +17,9 @@
                     <li class="{{ Request::is('rnr') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('rnr') }}">Roles & Responsibilities</a>
                     </li>
-                    <li class="{{ Request::is('documents') ? 'active' : '' }}">
+                    {{-- <li class="{{ Request::is('documents') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('documents') }}">Document</a>
-                    </li>
+                    </li> --}}
 
                 </ul>
             </li>

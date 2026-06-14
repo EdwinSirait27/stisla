@@ -1176,8 +1176,11 @@ if ($canManageAll) {
         $canViewOwn   = $user->hasPermissionTo('ViewRoster');
         $myEmployee   = optional($user->employee);
         // $myStoreId    = $myEmployee->store_id;
-        $myStore   = $myEmployee->store()->wherePivot('is_primary', true)->first();
-$myStoreId = $myStore?->id;
+       $myStore      = $myEmployee->store()->wherePivot('is_primary', true)->first();
+$myStoreId    = $myStore?->id;
+$myDepartment   = $myEmployee->department()->wherePivot('is_primary', true)->first();
+$myDepartmentId = $myDepartment?->id;
+$myCompanyId    = $myEmployee->company_id;
 
         // Tidak punya permission apapun → 403
         if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
@@ -1195,28 +1198,81 @@ $myStoreId = $myStore?->id;
             ? 'roster-' . str($myEmployee->employee_name ?? 'employee')->slug() . '-' . $request->start_date . '-to-' . $request->end_date . '.xlsx'
             : 'roster-history-' . $request->start_date . '-to-' . $request->end_date . '.xlsx';
 
-        // Store name untuk kop
-        // $storeName = $request->store_id
-        //     ? Stores::find($request->store_id)?->name
-        //     : ($employeeIdFilter ? optional($myEmployee->store)->name : 'All Locations');
-        $storeName = $request->store_id
+           $storeName = $request->store_id
     ? Stores::find($request->store_id)?->name
     : ($employeeIdFilter ? $myStore?->name : 'All Locations');
 
-        return Excel::download(
-            new RosterHistoryExport(
-                startDate: $request->start_date,
-                endDate: $request->end_date,
-                storeId: $request->store_id,
-                search: $request->search,
-                canManageAll: $canManageAll,
-                myStoreId: $canManageSPV && !$canManageAll ? $myStoreId : null,
-                storeName: $storeName,
-                employeeIdFilter: $employeeIdFilter,
-            ),
-            $filename
-        );
+      return Excel::download(
+    new RosterHistoryExport(
+        startDate: $request->start_date,
+        endDate: $request->end_date,
+        storeId: $request->store_id,
+        search: $request->search,
+        canManageAll: $canManageAll,
+        myStoreId: $canManageSPV && !$canManageAll ? $myStoreId : null,
+        storeName: $storeName,
+        employeeIdFilter: $employeeIdFilter,
+        myDepartmentId: $canManageSPV && !$canManageAll ? $myDepartmentId : null,
+        myCompanyId: $canManageSPV && !$canManageAll ? $myCompanyId : null,
+    ),
+    $filename
+);
     }
+//     public function historyExport(Request $request)
+//     {
+//         ini_set('memory_limit', '512M');
+//         set_time_limit(300);
+//         $request->validate([
+//             'start_date' => 'required|date',
+//             'end_date'   => 'required|date|after_or_equal:start_date',
+//             'store_id'   => 'nullable',
+//             'search'     => 'nullable|string',
+//         ]);
+
+//         $user         = auth()->user();
+//         /** @var \App\Models\User|null $user */
+//         $canManageAll = $user->hasPermissionTo('ManageRoster');
+//         $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+//         $canViewOwn   = $user->hasPermissionTo('ViewRoster');
+//         $myEmployee   = optional($user->employee);
+//         // $myStoreId    = $myEmployee->store_id;
+//         $myStore   = $myEmployee->store()->wherePivot('is_primary', true)->first();
+// $myStoreId = $myStore?->id;
+
+//         // Tidak punya permission apapun → 403
+//         if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
+//             abort(403, 'Unauthorized.');
+//         }
+
+//         // ViewRoster: paksa export hanya data diri sendiri
+//         $employeeIdFilter = null;
+//         if ($canViewOwn && !$canManageAll && !$canManageSPV) {
+//             $employeeIdFilter = $myEmployee->id;
+//         }
+
+//         // Nama file
+//         $filename = $employeeIdFilter
+//             ? 'roster-' . str($myEmployee->employee_name ?? 'employee')->slug() . '-' . $request->start_date . '-to-' . $request->end_date . '.xlsx'
+//             : 'roster-history-' . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+//            $storeName = $request->store_id
+//     ? Stores::find($request->store_id)?->name
+//     : ($employeeIdFilter ? $myStore?->name : 'All Locations');
+
+//         return Excel::download(
+//             new RosterHistoryExport(
+//                 startDate: $request->start_date,
+//                 endDate: $request->end_date,
+//                 storeId: $request->store_id,
+//                 search: $request->search,
+//                 canManageAll: $canManageAll,
+//                 myStoreId: $canManageSPV && !$canManageAll ? $myStoreId : null,
+//                 storeName: $storeName,
+//                 employeeIdFilter: $employeeIdFilter,
+//             ),
+//             $filename
+//         );
+//     }
     public function getActivities(Request $request)
     {
         /** @var \App\Models\User|null $user */
@@ -1232,14 +1288,7 @@ $myStoreId = $myStore?->id;
             ->where('subject_type', Roster::class)
             ->orderBy('created_at', 'desc');
 
-        // SPV hanya lihat activity dari causer yang store_id-nya sama
-        // if (!$canManageAll && $canManageSPV) {
-        //     $storeId = $user->employee->store_id;
-
-        //     $query->whereHas('causer.employee', function ($q) use ($storeId) {
-        //         $q->where('store_id', $storeId);
-        //     });
-        // }
+       
         if (!$canManageAll && $canManageSPV) {
     $myStoreId = $user->employee->store()->wherePivot('is_primary', true)->first()?->id;
     $query->whereHas('causer.employee', function ($q) use ($myStoreId) {

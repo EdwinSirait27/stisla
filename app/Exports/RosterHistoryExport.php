@@ -1,98 +1,4 @@
 <?php
-// app/Exports/RosterHistoryExport.php
-
-// namespace App\Exports;
-
-// use App\Models\Roster;
-// use Maatwebsite\Excel\Concerns\FromCollection;
-// use Maatwebsite\Excel\Concerns\WithHeadings;
-// use Maatwebsite\Excel\Concerns\WithStyles;
-// use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-// use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-
-// class RosterHistoryExport implements FromCollection, WithHeadings, WithStyles, ShouldAutoSize
-// {
-//     public function __construct(
-//         protected string $startDate,
-//         protected string $endDate,
-//         protected ?string $storeId,
-//         protected ?string $search,
-//         protected bool $canManageAll,
-//         protected ?string $myStoreId,
-//     ) {}
-
-//     public function collection()
-//     {
-//         $query = Roster::with([
-//             'employee:id,employee_name,department_id,position_id,store_id,status_employee',
-//             'employee.department:id,department_name',
-//             'employee.position:id,name',
-//             'employee.store:id,name',
-//             'shift:id,shift_name,start_time,end_time',
-//         ])
-//         ->whereBetween('date', [$this->startDate, $this->endDate])
-//         ->whereHas('employee', function ($q) {
-//             $q->whereNull('deleted_at');
-
-//             if ($this->search) {
-//                 $q->where('employee_name', 'like', '%' . $this->search . '%');
-//             }
-
-//             if ($this->canManageAll) {
-//                 if ($this->storeId) {
-//                     $q->where('store_id', $this->storeId);
-//                 }
-//             } else {
-//                 // SPV: terkunci store sendiri
-//                 $q->where('store_id', $this->myStoreId);
-//             }
-//         })
-//         ->orderBy('date')
-//         ->orderBy('employee_id')
-//         ->get();
-
-//         return $query->map(fn($r) => [
-//             $r->employee->employee_name         ?? '-',
-//             $r->employee->store->name           ?? '-',
-//             $r->employee->department->department_name ?? '-',
-//             $r->employee->position->name        ?? '-',
-//             $r->employee->status_employee       ?? '-',
-//             $r->date,
-//             $r->day_type,
-//             $r->shift?->shift_name              ?? '-',
-//             $r->shift ? substr($r->shift->start_time, 0, 5) . ' - ' . substr($r->shift->end_time, 0, 5) : '-',
-//             $r->notes                           ?? '-',
-//         ]);
-//     }
-
-//     public function headings(): array
-//     {
-//         return [
-//             'Employee Name',
-//             'Location',
-//             'Department',
-//             'Position',
-//             'Status',
-//             'Date',
-//             'Day Type',
-//             'Shift',
-//             'Jam',
-//             'Notes',
-//         ];
-//     }
-
-//     public function styles(Worksheet $sheet): array
-//     {
-//         return [
-//             // Header bold + background biru
-//             1 => [
-//                 'font'    => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-//                 'fill'    => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF1D4ED8']],
-//             ],
-//         ];
-//     }
-// }
-
 namespace App\Exports;
 
 use App\Models\Roster;
@@ -101,6 +7,8 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Illuminate\Support\Facades\DB;
+
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -116,6 +24,8 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
         protected ?string $myStoreId,
         protected ?string $storeName = null,
         protected ?string $employeeIdFilter = null, 
+         protected ?string $myDepartmentId = null, // ← tambah
+    protected ?string $myCompanyId = null,    // ← tambah
     ) {}
 
     public function registerEvents(): array
@@ -123,27 +33,43 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-
                 // ── Ambil data roster ──
-                $query = Roster::with([
-                    'employee:id,employee_name,department_id,position_id,store_id,status_employee',
-                    'employee.department:id,department_name',
-                    'employee.position:id,name',
-                    'shift:id,shift_name,start_time,end_time',
-                ])
-                    ->whereBetween('date', [$this->startDate, $this->endDate])
-                    // ->whereHas('employee', function ($q) {
-                    //     $q->whereNull('deleted_at');
-                    //     if ($this->search) {
-                    //         $q->where('employee_name', 'like', '%' . $this->search . '%');
-                    //     }
-                    //     if ($this->canManageAll) {
-                    //         if ($this->storeId) $q->where('store_id', $this->storeId);
-                    //     } else {
-                    //         $q->where('store_id', $this->myStoreId);
-                    //     }
-                    // })
-                    ->whereHas('employee', function ($q) {
+//                 $query = Roster::with([
+//                     'employee:id,employee_name,department_id,position_id,store_id,status_employee',
+//                     'employee.department:id,department_name',
+//                     'employee.position:id,name',
+//                     'shift:id,shift_name,start_time,end_time',
+//                 ])
+//                     ->whereBetween('date', [$this->startDate, $this->endDate])
+             
+//                     ->whereHas('employee', function ($q) {
+//     $q->whereNull('deleted_at');
+
+//     if ($this->search) {
+//         $q->where('employee_name', 'like', '%' . $this->search . '%');
+//     }
+
+//     if ($this->employeeIdFilter) {
+//         // ViewRoster: hanya data diri sendiri
+//         $q->where('id', $this->employeeIdFilter);
+//     } elseif ($this->canManageAll) {
+//         if ($this->storeId) $q->where('store_id', $this->storeId);
+//     } else {
+//         // SPV
+//         $q->where('store_id', $this->myStoreId);
+//     }
+// })
+//                     ->orderBy('employee_id')
+//                     ->orderBy('date')
+//                     ->get();
+$query = Roster::with([
+    'employee:id,employee_name,status_employee,company_id',
+    'employee.department:id,department_name',
+    'employee.position:id,name',
+    'shift:id,shift_name,start_time,end_time',
+])
+->whereBetween('date', [$this->startDate, $this->endDate])
+->whereHas('employee', function ($q) {
     $q->whereNull('deleted_at');
 
     if ($this->search) {
@@ -153,16 +79,43 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
     if ($this->employeeIdFilter) {
         // ViewRoster: hanya data diri sendiri
         $q->where('id', $this->employeeIdFilter);
+
     } elseif ($this->canManageAll) {
-        if ($this->storeId) $q->where('store_id', $this->storeId);
+        // ManageRoster: bebas filter store
+        if ($this->storeId) {
+            $q->whereHas('store', fn($sq) =>
+                $sq->where('stores_tables.id', $this->storeId)
+            );
+        }
+
     } else {
-        // SPV
-        $q->where('store_id', $this->myStoreId);
+        // ManageRosterSPVManager: filter store + department + company
+        if ($this->myStoreId) {
+            $q->whereExists(function ($sq) {
+                $sq->select(DB::raw(1))
+                    ->from('employee_stores')
+                    ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                    ->where('employee_stores.store_id', $this->myStoreId);
+            });
+        }
+
+        if ($this->myDepartmentId) {
+            $q->whereExists(function ($sq) {
+                $sq->select(DB::raw(1))
+                    ->from('employee_departments')
+                    ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                    ->where('employee_departments.department_id', $this->myDepartmentId);
+            });
+        }
+
+        if ($this->myCompanyId) {
+            $q->where('company_id', $this->myCompanyId);
+        }
     }
 })
-                    ->orderBy('employee_id')
-                    ->orderBy('date')
-                    ->get();
+->orderBy('employee_id')
+->orderBy('date')
+->get();
 
                 // ── Generate tanggal ──
                 $dates   = [];

@@ -9,15 +9,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
     <style>
-        /* :root {
-                    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-                    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                    --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-                } */
         :root {
             /* Deep Indigo → Royal Blue */
             --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
@@ -845,31 +836,31 @@
                     <div class="row align-items-center">
                         <div class="col-lg-8">
                             <div class="d-flex align-items-center gap-4">
-                                 <img src="{{ Auth::user()->employee->photos
+                                <img src="{{ Auth::user()->employee->photos
                                     ? route('useremployee.photo', basename(Auth::user()->employee->photos))
                                     : asset('img/avatar/avatar-1.png') }}"
                                     alt="Profile" class="profile-avatar-large no-drag">
-                               <div class="profile-info">
-    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
-    <div class="profile-meta">
-        <div class="profile-meta-item">
-            <i class="fas fa-briefcase"></i>
-            <span>{{ Auth::user()->employee->position->first()?->name ?? '-' }}</span>
-        </div>
-        <div class="profile-meta-item">
-            <i class="fas fa-building"></i>
-            <span>{{ Auth::user()->employee->department->first()?->department_name ?? '-' }}</span>
-        </div>
-        <div class="profile-meta-item">
-            <i class="fas fa-id-badge"></i>
-            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
-        </div>
-        <div class="profile-meta-item">
-            <i class="fas fa-calendar-alt"></i>
-            <span>{{ now()->format('l, F d, Y') }}</span>
-        </div>
-    </div>
-</div>
+                                <div class="profile-info">
+                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
+                                    <div class="profile-meta">
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-briefcase"></i>
+                                            <span>{{ Auth::user()->employee->position->first()?->name ?? '-' }}</span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-building"></i>
+                                            <span>{{ Auth::user()->employee->department->first()?->department_name ?? '-' }}</span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-id-badge"></i>
+                                            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
+                                        </div>
+                                        <div class="profile-meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>{{ now()->format('l, F d, Y') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -969,143 +960,7 @@
                                 Leave Balance
                             </h4>
                         </div>
-                        {{-- @forelse ($leavebalance as $lb)
-                            <div class="leave-balance-body">
-                                <div class="leave-item">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon annual">
-                                            <i class="fas fa-calendar"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Annual Leave</div>
-                                            <div class="leave-type-period">{{ $lb->year }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">ini sisa cuti</div>
-                                        <div class="leave-days-label">of {{ $lb->balance_days }} days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon sick">
-                                            <i class="fas fa-hospital"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Sick Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">5</div>
-                                        <div class="leave-days-label">of 7 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
-                                            aria-valuenow="71" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon casual">
-                                            <i class="fas fa-coffee"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Casual Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">3</div>
-                                        <div class="leave-days-label">of 5 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
-                                            aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="leave-balance-body">
-                                <div class="leave-item">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon annual">
-                                            <i class="fas fa-calendar"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Your leave is fake data because you have not been with the company for 1 year.</div>
-                                            <div class="leave-type-period"></div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">12</div>
-                                        <div class="leave-days-label">of 14 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
-                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon sick">
-                                            <i class="fas fa-hospital"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Sick Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">5</div>
-                                        <div class="leave-days-label">of 7 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
-                                            aria-valuenow="71" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-
-                                <div class="leave-item mt-3">
-                                    <div class="leave-type">
-                                        <div class="leave-type-icon casual">
-                                            <i class="fas fa-coffee"></i>
-                                        </div>
-                                        <div>
-                                            <div class="leave-type-name">Casual Leave</div>
-                                            <div class="leave-type-period">2024</div>
-                                        </div>
-                                    </div>
-                                    <div class="leave-days">
-                                        <div class="leave-days-value">3</div>
-                                        <div class="leave-days-label">of 5 days</div>
-                                    </div>
-                                </div>
-                                <div class="leave-progress">
-                                    <div class="progress">
-                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
-                                            aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforelse --}}
+                        
                     </div>
                 </div>
 
@@ -1132,8 +987,8 @@
                                     $employee = $balance?->employees;
                                     $leaveType = $balance?->leaves;
 
-                                    $employeeName = $employee?->employee_name ?? $employee?->name ?? '-';
-                                    $leaveTypeName = $leaveType?->name ?? $leaveType?->leave_type_name ?? 'Cuti';
+                                    $employeeName = $employee?->employee_name ?? ($employee?->name ?? '-');
+                                    $leaveTypeName = $leaveType?->name ?? ($leaveType?->leave_type_name ?? 'Cuti');
 
                                     $colors = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
                                     $bgColor = $colors[abs(crc32($employeeName)) % count($colors)];
@@ -1148,7 +1003,10 @@
                                         'toil' => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
                                     ];
                                     $key = strtolower($leaveTypeName);
-                                    $typeStyle = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k)) ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
+                                    $typeStyle = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k)) ?? [
+                                        'bg' => '#E2E3E5',
+                                        'text' => '#383D41',
+                                    ];
                                 @endphp
 
                                 <div class="submission-item leave-approval-item" id="leave-item-{{ $leave->id }}">
@@ -1196,20 +1054,16 @@
 
                                         <!-- Tombol Approve & Reject -->
                                         <div class="d-flex flex-column gap-2 ms-2">
-                                            <button type="button"
-                                                class="btn btn-sm fw-semibold btn-approve-leave"
-                                                data-id="{{ $leave->id }}"
-                                                data-name="{{ $employeeName }}"
+                                            <button type="button" class="btn btn-sm fw-semibold btn-approve-leave"
+                                                data-id="{{ $leave->id }}" data-name="{{ $employeeName }}"
                                                 data-url="{{ route('leaverequest.approve', $leave->id) }}"
                                                 style="background-color:#1976D2; color:#fff; border-radius:6px;
                                                            font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
                                                 <i class="fas fa-check me-1"></i> Approve
                                             </button>
 
-                                            <button type="button"
-                                                class="btn btn-sm fw-semibold btn-reject-leave"
-                                                data-id="{{ $leave->id }}"
-                                                data-name="{{ $employeeName }}"
+                                            <button type="button" class="btn btn-sm fw-semibold btn-reject-leave"
+                                                data-id="{{ $leave->id }}" data-name="{{ $employeeName }}"
                                                 data-url="{{ route('leaverequest.reject', $leave->id) }}"
                                                 data-bs-toggle="modal" data-bs-target="#rejectLeaveModal"
                                                 style="background-color:#fff; color:#D32F2F; border:1.5px solid #D32F2F;
@@ -1353,8 +1207,8 @@
                         <label class="form-label fw-semibold" style="font-size:0.85rem;">
                             Alasan Penolakan
                         </label>
-                        <textarea id="rejectReason" class="form-control" rows="3"
-                            placeholder="Isi alasan penolakan..." style="font-size:0.9rem;"></textarea>
+                        <textarea id="rejectReason" class="form-control" rows="3" placeholder="Isi alasan penolakan..."
+                            style="font-size:0.9rem;"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -1369,7 +1223,8 @@
     </div>
 
     <!-- ═══════════ Request Leave Modal ═══════════ -->
-    <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel" aria-hidden="true">
+    <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <form action="{{ route('Submissions.store') }}" method="POST" id="leaveRequestForm">
@@ -1415,7 +1270,8 @@
                                 <label class="form-label" for="start_date">
                                     <i class="fas fa-calendar-alt me-1"></i> Start Date
                                 </label>
-                                <input type="date" name="leave_date_from" id="start_date" class="form-control" required>
+                                <input type="date" name="leave_date_from" id="start_date" class="form-control"
+                                    required>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label class="form-label" for="end_date">
@@ -1682,7 +1538,144 @@
                         btn.disabled = false;
                         btn.textContent = 'Tolak Cuti';
                     });
-                });
+            });
         });
     </script>
 @endpush
+{{-- @forelse ($leavebalance as $lb)
+                            <div class="leave-balance-body">
+                                <div class="leave-item">
+                                    <div class="leave-type">
+                                        <div class="leave-type-icon annual">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <div>
+                                            <div class="leave-type-name">Annual Leave</div>
+                                            <div class="leave-type-period">{{ $lb->year }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="leave-days">
+                                        <div class="leave-days-value">ini sisa cuti</div>
+                                        <div class="leave-days-label">of {{ $lb->balance_days }} days</div>
+                                    </div>
+                                </div>
+                                <div class="leave-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
+                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="leave-item mt-3">
+                                    <div class="leave-type">
+                                        <div class="leave-type-icon sick">
+                                            <i class="fas fa-hospital"></i>
+                                        </div>
+                                        <div>
+                                            <div class="leave-type-name">Sick Leave</div>
+                                            <div class="leave-type-period">2024</div>
+                                        </div>
+                                    </div>
+                                    <div class="leave-days">
+                                        <div class="leave-days-value">5</div>
+                                        <div class="leave-days-label">of 7 days</div>
+                                    </div>
+                                </div>
+                                <div class="leave-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
+                                            aria-valuenow="71" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="leave-item mt-3">
+                                    <div class="leave-type">
+                                        <div class="leave-type-icon casual">
+                                            <i class="fas fa-coffee"></i>
+                                        </div>
+                                        <div>
+                                            <div class="leave-type-name">Casual Leave</div>
+                                            <div class="leave-type-period">2024</div>
+                                        </div>
+                                    </div>
+                                    <div class="leave-days">
+                                        <div class="leave-days-value">3</div>
+                                        <div class="leave-days-label">of 5 days</div>
+                                    </div>
+                                </div>
+                                <div class="leave-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
+                                            aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="leave-balance-body">
+                                <div class="leave-item">
+                                    <div class="leave-type">
+                                        <div class="leave-type-icon annual">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <div>
+                                            <div class="leave-type-name">Your leave is fake data because you have not been with the company for 1 year.</div>
+                                            <div class="leave-type-period"></div>
+                                        </div>
+                                    </div>
+                                    <div class="leave-days">
+                                        <div class="leave-days-value">12</div>
+                                        <div class="leave-days-label">of 14 days</div>
+                                    </div>
+                                </div>
+                                <div class="leave-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 85%"
+                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="leave-item mt-3">
+                                    <div class="leave-type">
+                                        <div class="leave-type-icon sick">
+                                            <i class="fas fa-hospital"></i>
+                                        </div>
+                                        <div>
+                                            <div class="leave-type-name">Sick Leave</div>
+                                            <div class="leave-type-period">2024</div>
+                                        </div>
+                                    </div>
+                                    <div class="leave-days">
+                                        <div class="leave-days-value">5</div>
+                                        <div class="leave-days-label">of 7 days</div>
+                                    </div>
+                                </div>
+                                <div class="leave-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 71%"
+                                            aria-valuenow="71" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="leave-item mt-3">
+                                    <div class="leave-type">
+                                        <div class="leave-type-icon casual">
+                                            <i class="fas fa-coffee"></i>
+                                        </div>
+                                        <div>
+                                            <div class="leave-type-name">Casual Leave</div>
+                                            <div class="leave-type-period">2024</div>
+                                        </div>
+                                    </div>
+                                    <div class="leave-days">
+                                        <div class="leave-days-value">3</div>
+                                        <div class="leave-days-label">of 5 days</div>
+                                    </div>
+                                </div>
+                                <div class="leave-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 60%"
+                                            aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforelse --}}
