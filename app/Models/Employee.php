@@ -173,6 +173,7 @@ class Employee extends Model
     {
         return $this->belongsTo(Grading::class, 'grading_id');
     }
+  
     public function group()
     {
         return $this->belongsTo(Groups::class, 'group_id');
@@ -283,16 +284,7 @@ class Employee extends Model
                 $original = $this->getOriginal();
                 $relationNames = [
                     'company_id' => fn($id) => optional(Company::find($id))->name,
-                    'store_id' => fn($id) => optional(Stores::find($id))->name,
-                    'position_id' => fn($id) => optional(Position::find($id))->name,
                     'banks_id' => fn($id) => optional(Banks::find($id))->name,
-                    'structure_id' => fn($id) => optional(
-                        optional(
-                            optional(Structuresnew::with('submissionposition.positionRelation')->find($id))
-                                ->submissionposition
-                        )->positionRelation
-                    )->name,
-                    'department_id' => fn($id) => optional(Departments::find($id))->department_name,
                     'grading_id' => fn($id) => optional(Grading::find($id))->grading_name,
                     'group_id' => fn($id) => optional(Groups::find($id))->group_name,
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
@@ -302,12 +294,9 @@ class Employee extends Model
                     'photos' => 'Photo',
                     'kk_photos' => 'KK Photos',
                     'ktp_photos' => 'KTP Photos',
-                    'position_id' => 'Position',
                     'company_id' => 'Company',
-                    'store_id' => 'Location',
                     'bank_account_number' => 'Bank Account Number',
                     'banks_id' => 'Bank',
-                    'department_id' => 'Department',
                     'grading_id' => 'Grading',
                     'group_id' => 'Group',
                     'status_employee' => 'Employee Status',
@@ -334,7 +323,6 @@ class Employee extends Model
                     'notes' => 'Resign notes',
                     'pin' => 'Employee Fingerprints',
                     'end_date' => 'Leave',
-                    'structure_id' => 'Structures',
                 ];
                 $changesInfo = '';
                 if ($eventName === 'updated' && !empty($changes)) {
@@ -347,7 +335,6 @@ class Employee extends Model
                             $newLabel = $relationNames[$field]($new) ?? $new;
                             return "{$label}: {$oldLabel} → {$newLabel}";
                         }
-                        // Selain relasi, tampilkan nilai langsung
                         if ($old == $new) return null;
                         return "{$label}: {$old} → {$new}";
                     })
@@ -361,6 +348,91 @@ class Employee extends Model
                 return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
             });
     }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->logFillable()
+    //         ->useLogName('employee')
+    //         ->setDescriptionForEvent(function (string $eventName) {
+    //             $actor = auth()->user()->employee->employee_name
+    //                 ?? auth()->user()->name
+    //                 ?? 'system';
+    //             $target = $this->employee_name ?? 'Unknown Employee';
+    //             $changes = $this->getChanges();
+    //             $original = $this->getOriginal();
+    //             $relationNames = [
+    //                 'company_id' => fn($id) => optional(Company::find($id))->name,
+    //                 'store_id' => fn($id) => optional(Stores::find($id))->name,
+    //                 'position_id' => fn($id) => optional(Position::find($id))->name,
+    //                 'banks_id' => fn($id) => optional(Banks::find($id))->name,
+    //                 'department_id' => fn($id) => optional(Departments::find($id))->department_name,
+    //                 'grading_id' => fn($id) => optional(Grading::find($id))->grading_name,
+    //                 'group_id' => fn($id) => optional(Groups::find($id))->group_name,
+    //                 'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
+    //             ];
+    //             $fieldLabels = [
+    //                 'employee_name' => 'Employee Name',
+    //                 'photos' => 'Photo',
+    //                 'kk_photos' => 'KK Photos',
+    //                 'ktp_photos' => 'KTP Photos',
+    //                 'position_id' => 'Position',
+    //                 'company_id' => 'Company',
+    //                 'store_id' => 'Location',
+    //                 'bank_account_number' => 'Bank Account Number',
+    //                 'banks_id' => 'Bank',
+    //                 'department_id' => 'Department',
+    //                 'grading_id' => 'Grading',
+    //                 'group_id' => 'Group',
+    //                 'status_employee' => 'Employee Status',
+    //                 'join_date' => 'Join',
+    //                 'marriage' => 'Status Marriage',
+    //                 'child' => 'Child',
+    //                 'telp_number' => 'Telephone Number',
+    //                 'nik' => 'ID Card',
+    //                 'gender' => 'Gender',
+    //                 'date_of_birth' => 'Date of Birth',
+    //                 'place_of_birth' => 'Place of Birth',
+    //                 'biological_mother_name' => 'Mothers Name',
+    //                 'religion' => 'Religion',
+    //                 'current_address' => 'Current Address',
+    //                 'id_card_address' => 'ID Card Address',
+    //                 'last_education' => 'Last Education',
+    //                 'institution' => 'Institution',
+    //                 'npwp' => 'NPWP',
+    //                 'bpjs_kes' => 'BPJS Kesehatan',
+    //                 'bpjs_ket' => 'BPJS Ketenagakerjaan',
+    //                 'email' => 'email',
+    //                 'emergency_contact_name' => 'Emergency Contact',
+    //                 'status' => 'status',
+    //                 'notes' => 'Resign notes',
+    //                 'pin' => 'Employee Fingerprints',
+    //                 'end_date' => 'Leave',
+    //                 'structure_id' => 'Structures',
+    //             ];
+    //             $changesInfo = '';
+    //             if ($eventName === 'updated' && !empty($changes)) {
+    //                 $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
+    //                     $old = $original[$field] ?? 'null';
+    //                     $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
+    //                     if (isset($relationNames[$field])) {
+    //                         $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
+    //                         $oldLabel = $relationNames[$field]($old) ?? $old;
+    //                         $newLabel = $relationNames[$field]($new) ?? $new;
+    //                         return "{$label}: {$oldLabel} → {$newLabel}";
+    //                     }
+    //                     if ($old == $new) return null;
+    //                     return "{$label}: {$old} → {$new}";
+    //                 })
+    //                     ->filter()
+    //                     ->values()
+    //                     ->implode(', ');
+
+    //                 $changesInfo = $details ? "Changes: {$details}" : '';
+    //             }
+
+    //             return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
+    //         });
+    // }
 
     public function rosters()
     {
@@ -409,6 +481,20 @@ class Employee extends Model
             ->withTimestamps()
             ->using(EmployeePosition::class);
     }
+  public function atasanList()
+{
+    return $this->belongsToMany(Employee::class, 'employee_atasans', 'employee_id', 'atasan_id')
+        ->withPivot('is_primary')
+        ->withTimestamps();
+}
+
+public function bawahanList()
+{
+    return $this->belongsToMany(Employee::class, 'employee_atasans', 'atasan_id', 'employee_id')
+        ->withPivot('is_primary')
+        ->withTimestamps();
+}
+   
     public function primaryStore()
     {
         return $this->store()->wherePivot('is_primary', true);
@@ -423,6 +509,279 @@ class Employee extends Model
     {
         return $this->position()->wherePivot('is_primary', true);
     }
+    
+    public function atasanStruktur()
+{
+    $atasanManual = $this->atasanList()->first();
+    if ($atasanManual) return $atasanManual;
+
+    $store = $this->primaryStore()->first();
+    $department = $this->primaryDepartment()->first();
+
+    $atasan = Employee::whereHas('store', fn($q) => $q->where('stores_tables.id', $store?->id))
+        ->whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+        ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+        ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+        ->orderByDesc('grading.level')
+        ->select('employees_tables.*')
+        ->first();
+
+    if (!$atasan) {
+        $atasan = Employee::whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+            ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+            ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+            ->orderByDesc('grading.level')
+            ->select('employees_tables.*')
+            ->first();
+    }
+
+    if (!$atasan) {
+        $atasan = Employee::whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+            ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+            ->orderByDesc('grading.level')
+            ->select('employees_tables.*')
+            ->first();
+    }
+
+    return $atasan;
+}
+
+public function atasan()
+{
+    $atasanManual = $this->atasanList()->first();
+    if ($atasanManual) return $atasanManual;
+
+    $store = $this->primaryStore()->first();
+    $department = $this->primaryDepartment()->first();
+
+    $atasan = Employee::whereHas('store', fn($q) => $q->where('stores_tables.id', $store?->id))
+        ->whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+        ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+        ->where('can_approve', true)
+        ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+        ->orderByDesc('grading.level')
+        ->select('employees_tables.*')
+        ->first();
+
+    if (!$atasan) {
+        $atasan = Employee::whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+            ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+            ->where('can_approve', true)
+            ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+            ->orderByDesc('grading.level')
+            ->select('employees_tables.*')
+            ->first();
+    }
+
+    if (!$atasan) {
+        $atasan = Employee::whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+            ->where('can_approve', true)
+            ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+            ->orderByDesc('grading.level')
+            ->select('employees_tables.*')
+            ->first();
+    }
+
+    return $atasan;
+}
+
+public function bawahan()
+{
+    return $this->bawahanList()->get();
+}
+// public function atasanStruktur()
+// {
+//     $atasanManual = $this->atasanList()->first();
+//     if ($atasanManual) return $atasanManual;
+
+//     $store = $this->primaryStore()->first();
+//     $department = $this->primaryDepartment()->first();
+
+//     $atasan = Employee::whereHas('store', fn($q) => $q->where('stores_tables.id', $store?->id))
+//         ->whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+//         ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+//             ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     return $atasan;
+// }
+// public function atasanStruktur()
+// {
+//     $atasanManual = $this->atasanList()->first();
+//     if ($atasanManual) return $atasanManual;
+
+//     $store = $this->primaryStore()->first();
+//     $department = $this->primaryDepartment()->first();
+
+//     $atasan = Employee::whereHas('store', fn($q) => $q->where('stores_tables.id', $store?->id))
+//         ->whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+//         ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('department', fn($q) => $q->where('departments_tables.id', $department?->id))
+//             ->whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('grading', fn($q) => $q->where('level', '<', $this->grading->level))
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     return $atasan;
+// }
+
+// public function atasan()
+// {
+//     if ($this->atasan_id) {
+//         return Employee::find($this->atasan_id);
+//     }
+
+//     $store = $this->primaryStore()->first();
+//     $department = $this->primaryDepartment()->first();
+
+//     // Fallback — cari di store + department yang sama
+//     $atasan = Employee::whereHas('store', fn($q) =>
+//             $q->where('stores_tables.id', $store?->id)
+//         )
+//         ->whereHas('department', fn($q) =>
+//             $q->where('departments_tables.id', $department?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->where('can_approve', true)
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+
+//     // Kalau tidak ketemu, fallback department saja
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('department', fn($q) =>
+//                 $q->where('departments_tables.id', $department?->id)
+//             )
+//             ->whereHas('grading', fn($q) =>
+//                 $q->where('level', '<', $this->grading->level)
+//             )
+//             ->where('can_approve', true)
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     // Kalau masih tidak ketemu, fallback level saja
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('grading', fn($q) =>
+//                 $q->where('level', '<', $this->grading->level)
+//             )
+//             ->where('can_approve', true)
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     return $atasan;
+// }
+
+// public function bawahan()
+// {
+//     // 1. Bawahan manual
+//     $bawahanManual = Employee::where('atasan_id', $this->id)
+//         ->pluck('id');
+//     $bawahanOtomatis = Employee::whereNull('atasan_id')
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '>', $this->grading->level)
+//         )
+//         ->where('can_approve', false) // bukan approver
+//         ->get()
+//         ->filter(fn($emp) => $emp->atasan()?->id === $this->id)
+//         ->pluck('id');
+//     $allIds = $bawahanManual->merge($bawahanOtomatis);
+//     return Employee::whereIn('id', $allIds)->get();
+// }
+
+
+
+
+
+// Relasi untuk eager loading
+
+    // public function atasan()
+    // {
+    //     $store = $this->primaryStore()->first();
+    //     $department = $this->primaryDepartment()->first();
+
+    //     return Employee::whereHas(
+    //         'store',
+    //         fn($q) =>
+    //         $q->where('stores_tables.id', $store?->id)
+    //     )
+    //         ->whereHas(
+    //             'department',
+    //             fn($q) =>
+    //             $q->where('departments_tables.id', $department?->id)
+    //         )
+    //         ->whereHas(
+    //             'grading',
+    //             fn($q) =>
+    //             $q->where('level', '<', $this->grading->level)
+    //                 ->where('can_approve', true)
+    //         )
+    //         ->where('can_approve', true)
+    //         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+    //         ->orderByDesc('grading.level')
+    //         ->select('employees_tables.*')
+    //         ->first();
+    // }
+//     public function atasan()
+// {
+//     if ($this->atasan_id) {
+//         return Employee::find($this->atasan_id);
+//     }
+
+//     // Fallback otomatis kalau belum di-set
+//     return Employee::whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->where('can_approve', true)
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+// }
+
     // public function atasan()
     // {
     //     $store = $this->primaryStore()->first();
@@ -468,45 +827,167 @@ class Employee extends Model
 //         ->select('employees_tables.*')
 //         ->first();
 // }
-public function atasanStruktur()
-{
-    $department = $this->primaryDepartment()->first();
-    return Employee::whereHas('department', fn($q) =>
-            $q->where('departments_tables.id', $department?->id)
-        )
-        ->whereHas('grading', fn($q) =>
-            $q->where('level', '<', $this->grading->level)
-        )
-        ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
-        ->orderByDesc('grading.level')
-        ->select('employees_tables.*')
-        ->first();
-}
-    public function atasan()
-    {
-        $store = $this->primaryStore()->first();
-        $department = $this->primaryDepartment()->first();
+// public function atasanStruktur()
+// {
+//     $department = $this->primaryDepartment()->first();
+//     return Employee::whereHas('department', fn($q) =>
+//             $q->where('departments_tables.id', $department?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+// }
+// public function atasanStruktur()
+// {
+//     $department = $this->primaryDepartment()->first();
 
-        return Employee::whereHas(
-            'store',
-            fn($q) =>
-            $q->where('stores_tables.id', $store?->id)
-        )
-            ->whereHas(
-                'department',
-                fn($q) =>
-                $q->where('departments_tables.id', $department?->id)
-            )
-            ->whereHas(
-                'grading',
-                fn($q) =>
-                $q->where('level', '<', $this->grading->level)
-                    ->where('can_approve', true)
-            )
-            ->where('can_approve', true)
-            ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
-            ->orderByDesc('grading.level')
-            ->select('employees_tables.*')
-            ->first();
-    }
+//     return Employee::whereHas('department', fn($q) =>
+//             $q->where('departments_tables.id', $department?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+// }
+// public function atasanStruktur()
+// {
+//     $store = $this->primaryStore()->first();
+
+//     return Employee::whereHas('store', fn($q) =>
+//             $q->where('stores_tables.id', $store?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+// }
+// public function atasanStruktur()
+// {
+//     $store = $this->primaryStore()->first();
+//     $department = $this->primaryDepartment()->first();
+
+//     return Employee::whereHas('store', fn($q) =>
+//             $q->where('stores_tables.id', $store?->id)
+//         )
+//         ->whereHas('department', fn($q) =>
+//             $q->where('departments_tables.id', $department?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+// }
+// public function atasanStruktur()
+// {
+//     $store = $this->primaryStore()->first();
+//     $department = $this->primaryDepartment()->first();
+
+//     // Cari atasan di store + department yang sama dulu
+//     $atasan = Employee::whereHas('store', fn($q) =>
+//             $q->where('stores_tables.id', $store?->id)
+//         )
+//         ->whereHas('department', fn($q) =>
+//             $q->where('departments_tables.id', $department?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+
+//     // Kalau tidak ketemu, fallback cari berdasarkan department saja
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('department', fn($q) =>
+//                 $q->where('departments_tables.id', $department?->id)
+//             )
+//             ->whereHas('grading', fn($q) =>
+//                 $q->where('level', '<', $this->grading->level)
+//             )
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     // Kalau masih tidak ketemu, fallback cari berdasarkan level saja
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('grading', fn($q) =>
+//                 $q->where('level', '<', $this->grading->level)
+//             )
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     return $atasan;
+// }
+
 }
+
+// public function atasanStruktur()
+// {
+//     // Prioritas 1 — atasan_id manual yang sudah di-set HR
+//     if ($this->atasan_id) {
+//         return Employee::find($this->atasan_id);
+//     }
+
+//     $store = $this->primaryStore()->first();
+//     $department = $this->primaryDepartment()->first();
+
+//     // Prioritas 2 — store + department sama
+//     $atasan = Employee::whereHas('store', fn($q) =>
+//             $q->where('stores_tables.id', $store?->id)
+//         )
+//         ->whereHas('department', fn($q) =>
+//             $q->where('departments_tables.id', $department?->id)
+//         )
+//         ->whereHas('grading', fn($q) =>
+//             $q->where('level', '<', $this->grading->level)
+//         )
+//         ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->orderByDesc('grading.level')
+//         ->select('employees_tables.*')
+//         ->first();
+
+//     // Prioritas 3 — department saja
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('department', fn($q) =>
+//                 $q->where('departments_tables.id', $department?->id)
+//             )
+//             ->whereHas('grading', fn($q) =>
+//                 $q->where('level', '<', $this->grading->level)
+//             )
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+//     // Prioritas 4 — level saja
+//     if (!$atasan) {
+//         $atasan = Employee::whereHas('grading', fn($q) =>
+//                 $q->where('level', '<', $this->grading->level)
+//             )
+//             ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->orderByDesc('grading.level')
+//             ->select('employees_tables.*')
+//             ->first();
+//     }
+
+//     return $atasan;
+// }

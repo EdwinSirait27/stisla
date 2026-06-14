@@ -808,26 +808,27 @@
                                         @enderror
                                     </div>
 
-                                    {{-- <div class="field-group">
-                                        <label><i class="fas fa-sitemap"></i> Structure</label>
-                                        <select name="structure_id"
-                                            class="form-control select2 @error('structure_id') is-invalid @enderror">
-                                            <option value="">-- Choose structure --</option>
-                                            @foreach ($structures as $structure)
-                                                <option value="{{ $structure->id }}"
-                                                    {{ old('structure_id', $employee->Employee?->structure_id) == $structure->id ? 'selected' : '' }}>
-                                                    {{ $structure->submissionposition->positionRelation->name ?? '-' }}
-                                                    — {{ $structure->submissionposition->company->name ?? '-' }}
-                                                    —
-                                                    {{ $structure->submissionposition->department->department_name ?? '-' }}
-                                                    — {{ $structure->submissionposition->store->name ?? '-' }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('structure_id')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div> --}}
+                                   
+                                     {{-- <select name="employee_id" id="employee_id"
+                                    class="select2-employee w-100 @error('employee_id') is-invalid @enderror" required>
+                                    <option value="">-- Cari Employee --</option>
+                                    @foreach($employees as $emp)
+                                        <option value="{{ $emp->id }}"
+                                            data-status="{{ $emp->status_employee }}"
+                                            data-name="{{ $emp->employee_name }}"
+                                            {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
+                                            {{ $emp->employee_pengenal }} — {{ $emp->employee_name }} — {{ $emp->status_employee }} - {{ $emp->status }} 
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('employee_id')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror --}}
+
+
+
+
+
 
                                     <div class="field-group">
                                         <label><i class="fas fa-fingerprint"></i> Pin fingerspot</label>
@@ -839,6 +840,39 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
+                                     <div class="field-group">
+                                        <label><i class="fas fa-users"></i> Group class</label>
+                                        <select name="group_id" id="group_id"
+                                            class="form-control select2 @error('group_id') is-invalid @enderror">
+                                            <option value="">-- Choose group --</option>
+                                            @foreach ($groups as $group)
+                                                <option value="{{ $group->id }}"
+                                                    {{ old('group_id', $employee->Employee->group_id ?? '') == $group->id ? 'selected' : '' }}>
+                                                    {{ $group->group_name }} — {{ $group->remark }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('group_id')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                 <div class="field-group">
+    <label><i class="fas fa-briefcase"></i> Atasan</label>
+    <select name="atasans[]" id="atasans"
+        class="form-control select2 @error('atasans') is-invalid @enderror"
+        multiple>
+        @foreach ($allEmployees as $emp)
+            <option value="{{ $emp->id }}"
+                @if (collect(old('atasans', $selectedAtasans))->contains($emp->id)) selected @endif>
+                {{ $emp->employee_name }}
+                @if ($primaryEmployeeId === $emp->id) ★ Primary @endif
+            </option>
+        @endforeach
+    </select>
+    @error('atasans')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
 
                                     <div class="field-group">
     <label><i class="fas fa-check-circle"></i> Can Approve</label>
@@ -972,7 +1006,7 @@
                                         <input type="email" name="company_email"
                                             class="form-control @error('company_email') is-invalid @enderror"
                                             value="{{ old('company_email', $employee->Employee->company_email ?? '') }}"
-                                            placeholder="Company email" required>
+                                            placeholder="Company email">
                                         @error('company_email')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror

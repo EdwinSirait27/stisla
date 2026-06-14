@@ -673,9 +673,9 @@
                                 <div class="card-body">
                                     <div class="d-flex gap-3 flex-wrap mb-4 align-items-end">
                                         <div>
-                                            <label class="form-label text-muted" style="font-size:13px">Store</label>
+                                            <label class="form-label text-muted" style="font-size:13px">Locations</label>
                                             <select id="sel-store" class="form-control select2" style="min-width:180px">
-                                                <option value="all">-- Semua Store --</option>
+                                                <option value="all">All Locations</option>
                                                 @foreach ($stores as $store)
                                                     <option value="{{ $store->id }}">{{ $store->name }}</option>
                                                 @endforeach
@@ -684,7 +684,7 @@
                                         <div>
                                             <label class="form-label text-muted" style="font-size:13px">Department</label>
                                             <select id="sel-dept" class="form-control select2" style="min-width:180px">
-                                                <option value="all">-- Semua Department --</option>
+                                                <option value="all">All Departments</option>
                                                 @foreach ($departments as $dept)
                                                     <option value="{{ $dept->id }}">{{ $dept->department_name }}
                                                     </option>
@@ -1265,6 +1265,53 @@
                 stroke: '#D85A30',
                 text: '#712B13'
             };
+          if (level <= 4) return {
+    fill: '#E0F7FA',
+    stroke: '#00ACC1',
+    text: '#006064'
+};
+
+    if (level <= 5) return {
+        fill: '#FFF3E0',
+        stroke: '#FB8C00',
+        text: '#E65100'
+    };
+
+    if (level <= 6) return {
+        fill: '#FFF8E1',
+        stroke: '#FBC02D',
+        text: '#F57F17'
+    };
+
+    if (level <= 7) return {
+        fill: '#FFFDE7',
+        stroke: '#C0CA33',
+        text: '#827717'
+    };
+
+    if (level <= 8) return {
+        fill: '#F1F8E9',
+        stroke: '#7CB342',
+        text: '#33691E'
+    };
+
+    if (level <= 9) return {
+        fill: '#EDE7F6',
+        stroke: '#673AB7',
+        text: '#311B92'
+    };
+
+    if (level <= 10) return {
+        fill: '#F3E5F5',
+        stroke: '#8E24AA',
+        text: '#4A148C'
+    };
+
+    if (level <= 11) return {
+        fill: '#FCE4EC',
+        stroke: '#D81B60',
+        text: '#880E4F'
+    };
             return {
                 fill: '#F1EFE8',
                 stroke: '#888780',

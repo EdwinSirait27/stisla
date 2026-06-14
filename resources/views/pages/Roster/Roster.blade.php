@@ -972,9 +972,9 @@
                                                     <div class="emp-meta">Employee Name : {{ $employee->employee_name }}
                                                     </div>
                                                     <div class="emp-meta">Department :
-                                                        {{ $employee->department->department_name ?? '-' }}</div>
+                                                        {{ optional($employee->department->first())->department_name ?? '-' }}</div>
                                                     <div class="emp-meta">Position :
-                                                        {{ $employee->position->name ?? '-' }}</div>
+                                                        {{ optional($employee->position->first())->name ?? '-' }}</div>
                                                     {{-- <div class="emp-meta">Location {{ $employee->store->name ?? '-' }}
                                                     </div> --}}
                                                     @if ($employee->status_employee)
@@ -1258,11 +1258,16 @@
             <div class="m-body">
                 <label class="f-label">Choose Employee</label>
                 <select id="bulkEmps" class="f-control mb-1" multiple style="height:100px">
-                    @foreach ($employees as $emp)
+                    {{-- @foreach ($employees as $emp)
                         <option value="{{ $emp->id }}" data-status="{{ $emp->status_employee ?? '' }}">
                             {{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}
                         </option>
-                    @endforeach
+                    @endforeach --}}
+                    @foreach ($employees as $emp)
+    <option value="{{ $emp->id }}" data-status="{{ $emp->status_employee ?? '' }}">
+        {{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
+    </option>
+@endforeach
                 </select>
                 <small class="text-muted d-block mb-3">Hold the button <kbd>Ctrl</kbd> to choose more than 1
                     employee</small>
@@ -1375,10 +1380,15 @@
             <div class="m-body">
                 <label class="f-label">Pilih Karyawan</label>
                 <select id="deleteEmps" class="f-control mb-1" multiple style="height:100px">
-                    @foreach ($employees as $emp)
+                    {{-- @foreach ($employees as $emp)
                         <option value="{{ $emp->id }}">{{ $emp->employee_name }} – {{ $emp->store->name ?? '' }}
                         </option>
-                    @endforeach
+                    @endforeach --}}
+                    @foreach ($employees as $emp)
+    <option value="{{ $emp->id }}">
+        {{ $emp->employee_name }} – {{ $emp->store->first()?->name ?? '' }}
+    </option>
+@endforeach
                 </select>
                 <small class="text-muted d-block mb-3">Tahan <kbd>Ctrl</kbd> untuk pilih lebih dari satu</small>
                 <div class="d-flex gap-2 mb-3">

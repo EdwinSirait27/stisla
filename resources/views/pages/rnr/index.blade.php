@@ -859,7 +859,6 @@
 
                         <div class="profile-card">
 
-                            {{-- ── Hero ── --}}
                             <div class="profile-hero">
                                 <div class="profile-avatar-wrap">
                                     <div class="profile-avatar">
@@ -929,7 +928,6 @@
 
                             <div class="profile-body">
 
-                                {{-- Flash messages --}}
                                 @if (session('status') || session('success'))
                                     <div class="alert-success-custom">
                                         <i class="fas fa-check-circle"></i>
@@ -946,59 +944,123 @@
                                         </ul>
                                     </div>
                                 @endif
+                              
+                                {{-- ganti bagian ini saja --}}
                                 <div>
                                     <div class="profile-section-label">
                                         Roles & Responsibility
                                     </div>
 
-                                    <div class="d-flex flex-column gap-3">
+                                    @php $employee = $user->employee; @endphp
 
-                                        <div class="field-group">
-                                            <label>
-                                                <i class="fas fa-user-tag"></i>
-                                                Role Summary
-                                            </label>
-
-                                            <textarea class="form-control" rows="6" name="roles" placeholder="Input employee roles..."
-                                                style="height:auto; padding:.75rem;">{{ old(
-                                                    'role_summary',
-                                                    // html_entity_decode(strip_tags($user->employee->structuresnew->submissionposition->role_summary ?? 'empty')),
-                                                ) }}</textarea>
+                                    @if (!$employee || $employee->position->isEmpty())
+                                        <div
+                                            style="padding: 12px 16px; background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; font-size: .825rem; color: #854d0e;">
+                                            <i class="fas fa-exclamation-circle mr-2"></i> Belum ada posisi yang di-assign.
                                         </div>
-                                        <div class="field-group">
-                                            <label>
-                                                <i class="fas fa-clipboard-check"></i>
-                                                Key Responsibility
-                                            </label>
+                                    @else
+                                        <div class="d-flex flex-column gap-3">
+                                            @foreach ($employee->position as $position)
+                                                <div
+                                                    style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
 
-                                            <textarea class="form-control" rows="6" name="roles" placeholder="Input employee roles..."
-                                                style="height:auto; padding:.75rem;">{{ old(
-                                                    'key_respon',
-                                                    // html_entity_decode(strip_tags($user->employee->structuresnew->submissionposition->key_respon ?? 'empty')),
-                                                ) }}</textarea>
+                                                    {{-- Position Header --}}
+                                                    <div
+                                                        style="background: #eff6ff; padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e2e8f0;">
+                                                        <i class="fas fa-briefcase"
+                                                            style="color: #3b82f6; font-size: .8rem;"></i>
+                                                        <span
+                                                            style="font-weight: 600; font-size: .875rem; color: #1e293b;">{{ $position->name }}</span>
+                                                        @if ($position->pivot->is_primary)
+                                                            <span
+                                                                style="margin-left: auto; background: #dbeafe; color: #1d4ed8; border-radius: 20px; padding: 2px 10px; font-size: .68rem; font-weight: 600;">
+                                                                Primary
+                                                            </span>
+                                                        @endif
+                                                    </div>
+
+                                                    <div style="padding: 16px;">
+
+                                                        {{-- Role Summary --}}
+                                                        <div class="field-group mb-3">
+                                                            <label>
+                                                                <i class="fas fa-user-tag"></i> Role Summary
+                                                            </label>
+                                                            <div
+                                                                style="background: #f8fafc; border: 1px solid #f1f5f9; border-left: 3px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: .825rem; color: #475569; line-height: 1.6; min-height: 40px;">
+                                                                {{ $position->role_summary ?? '-' }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            {{-- Key Responsibilities --}}
+                                                            <div class="col-md-6">
+                                                                <div class="field-group">
+                                                                    <label>
+                                                                        <i class="fas fa-clipboard-check"></i> Key
+                                                                        Responsibilities
+                                                                    </label>
+                                                                    @if ($position->responsibilities->isEmpty())
+                                                                        <p
+                                                                            style="font-size: .78rem; color: #94a3b8; font-style: italic; margin: 8px 0 0;">
+                                                                            Belum ada data.</p>
+                                                                    @else
+                                                                        <ul
+                                                                            style="list-style: none; padding: 0; margin: 8px 0 0;">
+                                                                            @foreach ($position->responsibilities as $item)
+                                                                                <li
+                                                                                    style="display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: .825rem; color: #475569; border-bottom: 1px solid #f1f5f9;">
+                                                                                    <span
+                                                                                        style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; margin-top: 6px;"></span>
+                                                                                    <span>{{ $item->description }}</span>
+                                                                                </li>
+                                                                            @endforeach
+                                                                        </ul>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- Qualifications --}}
+                                                            <div class="col-md-6">
+                                                                <div class="field-group">
+                                                                    <label>
+                                                                        <i class="fas fa-graduation-cap"></i> Qualifications
+                                                                    </label>
+                                                                    @if ($position->qualifications->isEmpty())
+                                                                        <p
+                                                                            style="font-size: .78rem; color: #94a3b8; font-style: italic; margin: 8px 0 0;">
+                                                                            Belum ada data.</p>
+                                                                    @else
+                                                                        <ul
+                                                                            style="list-style: none; padding: 0; margin: 8px 0 0;">
+                                                                            @foreach ($position->qualifications as $item)
+                                                                                <li
+                                                                                    style="display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: .825rem; color: #475569; border-bottom: 1px solid #f1f5f9;">
+                                                                                    <span
+                                                                                        style="width: 6px; height: 6px; border-radius: 50%; background: #6777ef; flex-shrink: 0; margin-top: 6px;"></span>
+                                                                                    <span>{{ $item->description }}</span>
+                                                                                </li>
+                                                                            @endforeach
+                                                                        </ul>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="profile-footer">
-                                {{-- <a href="{{ url()->previous() }}" class="btn btn-back">
-                                    <i class="fas fa-arrow-left"></i> Back
-                                </a> --}}
-                                 <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+                                <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i
+                                        class="fas fa-arrow-left"></i> Back</a>
                             </div>
                         </div>
                         <br>
-                        {{-- <div class="request-box">
-                            <div class="request-content">
-                                <div class="request-icon">
-                                    <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </div>
 
-                            </div>
-                        </div> --}}
 
                     </div>
                 </div>
@@ -1006,82 +1068,3 @@
         </section>
     </div>
 @endsection
-
-{{-- 
-
-"6281292405282"
-"6282341776479"
-"6287860436550"
-"6281239104068"
-"6285737330362"
-"62881037198423"
-"6285738014269"
-"6283114560860"
-"6281339060976"
-"6285274743558"
-"6281334978631"
-"6282146556300"
-"62812361312"
-"6281236555021"
-"6282145667484"
-"6282145099970"
-"6281138310552"
-"6281803344707"
-"62895632288892"
-"62895701410040"
-"6281239185983"
-"6281339203778"
-"6287761437217"
-"6287787191201"
-"6281238130873"
-"6287846816750"
-"6287701731500"
-"6282147309061"
-
-joselin
-
-Dalam rangka proses migrasi data karyawan ke sistem terbaru, seluruh karyawan diwajibkan untuk mengisi form data yang telah disediakan.
-
-Mohon untuk mengisi data dengan lengkap dan benar sesuai informasi terbaru agar proses pembaruan data dapat berjalan dengan lancar.
-
-Link Form https://docs.google.com/forms/d/e/1FAIpQLSdur90PYVlWDc1b0T_BHO2eNcH8NOp1ddcbvP6mgoOTd03BKQ/viewform?usp=header
-
-Deadline pengisian
-Senin 18 Mei 2026
-
-Diharapkan seluruh karyawan dapat segera mengisi form tersebut sebelum batas waktu yang ditentukan.
-
-Terima kasih atas perhatian dan kerja samanya
-
-
-"6287787191201"
-"622123125709"
-"6283177445771"
-"6287745123134"
-"6285935010855"
-"6282124654582"
-"6282143008583"
-"6281337325322"
-"6281910874665"
-"6287861716055"
-"6282144967450"
-"6281915602495"
-"62895622522397"
-"6281939182563"
-"628973919323"
-"6281286848254"
-"6289685864185"
-"6281339197070"
-"6281391555159"
-"6282120749998"
-"6287850387242"
-"6285718176067"
-"6281999092998"
-"6287701382936"
-"6281237603591"
-"6281910872072"
-"6281803232021"
-"6285934240615"
-"6281336512133"
-"6285792094762"
-"6281935581335" --}}

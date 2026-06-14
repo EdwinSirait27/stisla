@@ -51,14 +51,29 @@ class FingerprintrecapController extends Controller
             $storeName = $request->input('store_name');
 
             // ── 1. Ambil semua employees + status_employee ──
-            $employeesQuery = Employee::with('store:id,name')
-                ->select('id', 'employee_name', 'store_id')
-                ->whereNotNull('pin')
+    //         $employeesQuery = Employee::with('store:id,name')
+    //             ->select('id', 'employee_name', 'store_id')
+    //             ->whereNotNull('pin')
+    // ->whereIn('status', ['Active', 'Mutation', 'Pending'])
+    //             ->whereNull('deleted_at');
+    // ❌ Lama
+$employeesQuery = Employee::with('store:id,name')
+    ->select('id', 'employee_name', 'store_id')
+    ->whereNotNull('pin')
     ->whereIn('status', ['Active', 'Mutation', 'Pending'])
-                ->whereNull('deleted_at');
-            if ($storeName) {
-                $employeesQuery->whereHas('store', fn($q) => $q->where('name', $storeName));
-            }
+    ->whereNull('deleted_at');
+
+// ✅ Baru — pivot
+$employeesQuery = Employee::with([
+    'store' => fn($q) => $q->wherePivot('is_primary', true),
+])
+->select('id', 'employee_name', 'status_employee') // ← hapus store_id
+->whereNotNull('pin')
+->whereIn('status', ['Active', 'Mutation', 'Pending','On Leave','Resign'])
+->whereNull('deleted_at');
+          if ($storeName) {
+    $employeesQuery->whereHas('store', fn($q) => $q->where('stores.name', $storeName));
+}
 
             $employees = $employeesQuery->get();
 
@@ -77,7 +92,8 @@ class FingerprintrecapController extends Controller
 
                 return [
                     'employee_name'    => $employee->employee_name ?? '-',
-                    'store_name'       => optional($employee->store)->name ?? '-',
+                    // 'store_name'       => optional($employee->store)->name ?? '-',
+                    'store_name' => $employee->store->first()?->name ?? '-',
                     'total_hari'       => ($archive->total_hari_kerja ?? 0) . ' hari',
                     'total_hari_telat' => ($archive->total_hari_telat ?? 0) . ' hari',
                     'remarks'          => $archive->remarks ?? '-',

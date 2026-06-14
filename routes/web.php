@@ -450,33 +450,7 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
 
-    // ── Structures ──
-    Route::group(['middleware' => ['permission:ManageStructures']], function () {
-        Route::get('/Structures', [StructureController::class, 'index'])
-            ->name('pages.Structures');
-        Route::get('/Structures/edit/{hashedId}', [StructureController::class, 'edit'])->name('Structures.edit');
-        Route::put('/Structures/{hashedId}', [StructureController::class, 'update'])->name('Structures.update');
-        Route::get('/structures/structures', [StructureController::class, 'getStructures'])->name('structures.structures');
-    });
-
-    // ── Structures New ──
-    Route::group(['middleware' => ['permission:ManageStructuresnew']], function () {
-        Route::get('/Structuresnew', [StructuresnewController::class, 'index'])
-            ->name('pages.Structuresnew');
-        Route::get('/Structuresnew/edit/{hashedId}', [StructuresnewController::class, 'edit'])->name('Structuresnew.edit');
-        Route::get('/Structuresnew/show/{hashedId}', [StructuresnewController::class, 'show'])->name('Structuresnew.show');
-        Route::put('/Structuresnew/{hashedId}', [StructuresnewController::class, 'update'])->name('Structuresnew.update');
-        Route::get('/structuresnew/structuresnew', [StructuresnewController::class, 'getStructuresnew'])->name('structuresnew.structuresnew');
-        Route::get('/submissionsreq/submissionsreq', [StructuresnewController::class, 'getPositionreqs'])->name('submissionsreq.submissionsreq');
-        Route::get('/orgchart/orgchart', [StructuresnewController::class, 'getOrgChartData'])->name('orgchart.orgchart');
-        Route::delete('/structures/delete-bulk', [StructuresnewController::class, 'bulkDelete'])->name('structuresnew.bulkDelete');
-        Route::get('/structuresnew/available-positions', [StructuresnewController::class, 'getAvailablePositions'])
-            ->name('Structuresnew.availablePositions');
-        Route::get('/Structuresnew/see/{idHashed}', [StructuresnewController::class, 'see'])->name('Structurenew.see');
-        Route::post('/store-to-structure/{hashedId}', [StructuresnewController::class, 'storeToStructure'])
-            ->name('store.to.structure');
-        Route::get('/datastructures/datastructures', [StructuresnewController::class, 'getStructuresativities'])->name('datastructures.datastructures');
-    });
+    
 
     // ── Summaries ──
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {

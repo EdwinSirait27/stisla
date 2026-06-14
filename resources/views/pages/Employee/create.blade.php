@@ -713,13 +713,44 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
-
                                     <div class="field-group">
+                                        <label><i class="fas fa-store"></i>Grading</label>
+                                        <select name="grading_id" id="grading_id"
+                                            class="form-control select2 @error('grading_id') is-invalid @enderror">
+                                            <option value="">-- Choose Grading --</option>
+                                            @foreach ($gradings as $key => $value)
+                                                <option value="{{ $key }}"
+                                                    {{ old('grading_id') == $key ? 'selected' : '' }}>
+                                                    {{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('grading_id')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    
+                                    {{-- <div class="field-group">
                                         <label><i class="fas fa-circle-dot"></i> Status employee</label>
                                         <select name="status_employee"
                                             class="form-control @error('status_employee') is-invalid @enderror" required>
                                             <option value="">-- Choose status --</option>
                                             @foreach ($status_employee as $value)
+                                                <option value="{{ $value }}"
+                                                    {{ old('status_employee') == $value ? 'selected' : '' }}>
+                                                    {{ $value }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('status_employee')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div> --}}
+                                     <div class="field-group">
+                                        <label><i class="fas fa-water"></i> Status Employee</label>
+                                        <select name="status_employee"
+                                            class="form-control @error('status_employee') is-invalid @enderror">
+                                            <option value="">Choose Type</option>
+                                            @foreach ($employeestatuses as $value)
                                                 <option value="{{ $value }}"
                                                     {{ old('status_employee') == $value ? 'selected' : '' }}>
                                                     {{ $value }}
@@ -747,6 +778,21 @@
                                             value="{{ old('pin') }}" placeholder="Pin fingerspot"
                                             style="font-family:monospace">
                                         @error('pin')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    <div class="field-group">
+                                        <label><i class="fas fa-store"></i>Atasan</label>
+                                        <select name="atasan_id" id="atasan_id"
+                                            class="form-control select2 @error('atasan_id') is-invalid @enderror">
+                                            <option value="">Choose</option>
+                                            @foreach ($atasans as $key => $value)
+                                                <option value="{{ $key }}"
+                                                    {{ old('atasan_id') == $key ? 'selected' : '' }}>
+                                                    {{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('atasan_id')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>

@@ -16,7 +16,6 @@ use App\Exports\EmployeesExport;
 use App\Exports\EmployeesExportall;
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
-use App\Models\Structuresnew;
 use Illuminate\Support\Facades\Hash;
 use App\Rules\NoXSSInput;
 use Carbon\Carbon;
@@ -38,6 +37,7 @@ class EmployeeController extends Controller
         $countpendings = Employee::where('status', 'Pending')->count();
         $countresigns = Employee::where('status', 'Resign')->count();
         $gradings = Grading::pluck('grading_name', 'id');
+        $atasans = Employee::pluck('employee_name', 'id');
         $groups = Groups::pluck('remark', 'id');
         $companies = Company::pluck('name', 'id');
         $employeestatuses = Employee::getStatusEmployeeOptions();
@@ -50,7 +50,7 @@ class EmployeeController extends Controller
         $lasteducations = Employee::getLastEducationOptions();
         $stores = Stores::get();
         $departments = Departments::get();
-        return view('pages.Employeeall.Employeeall', compact('bloodtypes','marriages', 'genders', 'lasteducations', 'religions', 'banks', 'departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
+        return view('pages.Employeeall.Employeeall', compact('atasans','bloodtypes','marriages', 'genders', 'lasteducations', 'religions', 'banks', 'departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
     }
     public function index()
     {
@@ -129,22 +129,19 @@ class EmployeeController extends Controller
         try {
             $storeId = $request->store_id;
             $departmentId = $request->department_id;
-
-            $employees = Employee::with(['grading'])
-                ->when(
-                    $storeId && $storeId !== 'all',
-                    fn($q) =>
-                    $q->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
-                )
-                ->when(
-                    $departmentId && $departmentId !== 'all',
-                    fn($q) =>
-                    $q->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
-                )
-                ->whereHas('grading')
-                ->whereIn('status', ['Active', 'Pending'])
-                ->get()
-                ->sortBy('grading.level');
+            $employees = Employee::with(['grading', 'atasanEmployee'])
+    ->when(
+        $storeId && $storeId !== 'all',
+        fn($q) => $q->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
+    )
+    ->when(
+        $departmentId && $departmentId !== 'all',
+        fn($q) => $q->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
+    )
+    ->whereHas('grading')
+    ->whereIn('status', ['Active', 'Pending'])
+    ->get()
+    ->sortBy('grading.level');
 
             Log::info('getBagan debug', [
                 'store_id'     => $storeId,
@@ -1051,9 +1048,17 @@ $query->when(
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
+        // $allEmployees = Employee::get();
+        // $allEmployees = Employee::where('status', 'Active')->get();
+        $allEmployees = Employee::where('status', 'Active')
+    ->whereHas('grading', fn($q) =>
+        $q->where('level', '<', $employee->Employee->grading->level)
+    )
+    ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
         $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
         $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
+        $selectedAtasans = $employee->Employee->atasanList->pluck('id')->toArray();
         $primaryStoreId = $employee->Employee->store()
             ->wherePivot('is_primary', true)
             ->first()?->id;
@@ -1061,6 +1066,9 @@ $query->when(
             ->wherePivot('is_primary', true)
             ->first()?->id;
         $primaryDepartmentId = $employee->Employee->department()
+            ->wherePivot('is_primary', true)
+            ->first()?->id;
+        $primaryEmployeeId = $employee->Employee->atasanList()
             ->wherePivot('is_primary', true)
             ->first()?->id;
         $companys = Company::get();
@@ -1078,6 +1086,88 @@ $query->when(
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
         return view('pages.Employee.edit', [
+            'allEmployees' => $allEmployees,
+            'selectedAtasans' => $selectedAtasans,
+            'primaryEmployeeId' => $primaryEmployeeId,
+            'employee' => $employee,
+            'status_employee' => $status_employee,
+            'child' => $child,
+            'employees' => $employees,
+            'bloodtypes' => $bloodtypes,
+            'companys' => $companys,
+            'marriage' => $marriage,
+            'status' => $status,
+            'gender' => $gender,
+            'gradings' => $gradings,
+            'groups' => $groups,
+            'banks' => $banks,
+            'religion' => $religion,
+            'last_education' => $last_education,
+            'allStores' => $allStores,
+            'allPositions' => $allPositions,
+            'allDepartments' => $allDepartments,
+            'selectedStores' => $selectedStores,
+            'selectedDepartments' => $selectedDepartments,
+            'selectedPositions' => $selectedPositions,
+            'primaryStoreId' => $primaryStoreId,
+            'primaryDepartmentId' => $primaryDepartmentId,
+            'primaryPositionId' => $primaryPositionId,
+            'hashedId' => $hashedId,
+        ]);
+    }
+    public function show($hashedId)
+    {
+        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+        if (!$employee) {
+            abort(404, 'Employee not found.');
+        }
+        $allStores = Stores::get();
+        $allPositions = Position::get();
+        $allDepartments = Departments::get();
+        // $allEmployees = Employee::get();
+        // $allEmployees = Employee::where('status', 'Active')->get();
+        $allEmployees = Employee::where('status', 'Active')
+    ->whereHas('grading', fn($q) =>
+        $q->where('level', '<', $employee->Employee->grading->level)
+    )
+    ->get();
+        $selectedStores = $employee->Employee->store->pluck('id')->toArray();
+        $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
+        $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
+        $selectedAtasans = $employee->Employee->atasanList->pluck('id')->toArray();
+        $primaryStoreId = $employee->Employee->store()
+            ->wherePivot('is_primary', true)
+            ->first()?->id;
+        $primaryPositionId = $employee->Employee->position()
+            ->wherePivot('is_primary', true)
+            ->first()?->id;
+        $primaryDepartmentId = $employee->Employee->department()
+            ->wherePivot('is_primary', true)
+            ->first()?->id;
+        $primaryEmployeeId = $employee->Employee->atasanList()
+            ->wherePivot('is_primary', true)
+            ->first()?->id;
+        $companys = Company::get();
+        $gradings = Grading::get();
+        $groups = Groups::get();
+        $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+        $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+        $child = ['0', '1', '2', '3', '4', '5'];
+        $marriage = ['Yes', 'No'];
+        $bloodtypes = Employee::getBloodTypeOptions();
+
+        $gender = ['Male', 'Female', 'MD'];
+        $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
+        $banks = Banks::get();
+        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
+        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+        return view('pages.Employee.show', [
+            'allEmployees' => $allEmployees,
+            'selectedAtasans' => $selectedAtasans,
+            'primaryEmployeeId' => $primaryEmployeeId,
             'employee' => $employee,
             'status_employee' => $status_employee,
             'child' => $child,
@@ -1105,100 +1195,169 @@ $query->when(
         ]);
     }
 
-    public function show($hashedId)
-    {
-        $employee = User::with(
-            'Employee',
-            'Employee.store',
-            'Employee.grading',
-            'Employee.group',
-            'Employee.department',
-            'Employee.position',
-            'Employee.bank',
-            'Employee.employees'
+    // public function show($hashedId)
+    // {
+    //     $employee = User::with(
+    //         'Employee',
+    //         'Employee.store',
+    //         'Employee.grading',
+    //         'Employee.group',
+    //         'Employee.department',
+    //         'Employee.position',
+    //         'Employee.bank',
+    //         'Employee.employees'
            
-        )->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+    //     )->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
 
-        if (!$employee) {
-            abort(404, 'Employee not found.');
-        }
-        // ---------------------------
-        // Tambahkan logic aman disini
-        // ---------------------------
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //     // ---------------------------
+    //     // Tambahkan logic aman disini
+    //     // ---------------------------
 
        
-        // Data lain
-        $allStores = Stores::get();
-        $allPositions = Position::get();
-        $allDepartments = Departments::get();
-        $selectedStores = $employee->Employee->store->pluck('id')->toArray();
-        $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
-        $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
-        $primaryStoreId = $employee->Employee->store()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $primaryPositionId = $employee->Employee->position()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $primaryDepartmentId = $employee->Employee->department()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $companys = Company::get();
-        $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
-        $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-        $child = ['0', '1', '2', '3', '4', '5'];
-        $marriage = ['Yes', 'No'];
-        $gender = ['Male', 'Female', 'MD'];
-        $bloodtypes = Employee::getBloodTypeOptions();
+    //     // Data lain
+    //     $allStores = Stores::get();
+    //     $allPositions = Position::get();
+    //     $allDepartments = Departments::get();
+    //     $selectedStores = $employee->Employee->store->pluck('id')->toArray();
+    //     $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
+    //     $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
+    //     $primaryStoreId = $employee->Employee->store()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryPositionId = $employee->Employee->position()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryDepartmentId = $employee->Employee->department()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $companys = Company::get();
+    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $bloodtypes = Employee::getBloodTypeOptions();
 
-        $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
-        $banks = Banks::get();
-        $gradings = Grading::get();
-        $groups = Groups::get();
-        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
-        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+    //     $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $gradings = Grading::get();
+    //     $groups = Groups::get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
 
-        return view('pages.Employee.show', compact(
-            'employee',
-            'employees',
-            'status_employee',
-            'child',
-            'bloodtypes',
-            'companys',
-            'marriage',
-            'gender',
-            'gradings',
-            'groups',
-            'status',
-            'banks',
-            'religion',
-            'last_education',
-            'hashedId',
-            'allStores',
-            'allPositions',
-            'allDepartments',
-            'selectedStores',
-            'selectedDepartments',
-            'selectedPositions',
-            'primaryStoreId',
-            'primaryDepartmentId',
-            'primaryPositionId',
-            'isManager'
-        ));
-    }
+    //     return view('pages.Employee.show', compact(
+    //         'employee',
+    //         'employees',
+    //         'status_employee',
+    //         'child',
+    //         'bloodtypes',
+    //         'companys',
+    //         'marriage',
+    //         'gender',
+    //         'gradings',
+    //         'groups',
+    //         'status',
+    //         'banks',
+    //         'religion',
+    //         'last_education',
+    //         'hashedId',
+    //         'allStores',
+    //         'allPositions',
+    //         'allDepartments',
+    //         'selectedStores',
+    //         'selectedDepartments',
+    //         'selectedPositions',
+    //         'primaryStoreId',
+    //         'primaryDepartmentId',
+    //         'primaryPositionId',
+    //         'isManager'
+    //     ));
+    // }
+    // public function show($hashedId)
+    // {
+    //     $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //     $allStores = Stores::get();
+    //     $allPositions = Position::get();
+    //     $allDepartments = Departments::get();
+    //     $selectedStores = $employee->Employee->store->pluck('id')->toArray();
+    //     $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
+    //     $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
+    //     $primaryStoreId = $employee->Employee->store()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryPositionId = $employee->Employee->position()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryDepartmentId = $employee->Employee->department()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $companys = Company::get();
+    //     $gradings = Grading::get();
+    //     $groups = Groups::get();
+    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $bloodtypes = Employee::getBloodTypeOptions();
+
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+    //     return view('pages.Employee.show', [
+    //         'employee' => $employee,
+    //         'status_employee' => $status_employee,
+    //         'child' => $child,
+    //         'employees' => $employees,
+    //         'bloodtypes' => $bloodtypes,
+    //         'companys' => $companys,
+    //         'marriage' => $marriage,
+    //         'status' => $status,
+    //         'gender' => $gender,
+    //         'gradings' => $gradings,
+    //         'groups' => $groups,
+    //         'banks' => $banks,
+    //         'religion' => $religion,
+    //         'last_education' => $last_education,
+    //         'allStores' => $allStores,
+    //         'allPositions' => $allPositions,
+    //         'allDepartments' => $allDepartments,
+    //         'selectedStores' => $selectedStores,
+    //         'selectedDepartments' => $selectedDepartments,
+    //         'selectedPositions' => $selectedPositions,
+    //         'primaryStoreId' => $primaryStoreId,
+    //         'primaryDepartmentId' => $primaryDepartmentId,
+    //         'primaryPositionId' => $primaryPositionId,
+    //         'hashedId' => $hashedId,
+    //     ]);
+    // }
     public function create()
     {
         $employees = Employee::where('status', 'Active')
             ->pluck('employee_name', 'id');
+        $atasans = Employee::where('status', 'Active')
+            ->pluck('employee_name', 'id');
         $stores = Stores::pluck('name', 'id')->all();
         $positions = Position::pluck('name', 'id')->all();
+        $gradings = Grading::pluck('grading_name', 'id')->all();
         $departments = Departments::pluck('department_name', 'id')->all();
         $companys = Company::pluck('name', 'id')->all();
         $banks = Banks::pluck('name', 'id')->all();
         $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+        $employeestatuses = Employee::getStatusEmployeeOptions();
         $status_child = ['0', '1', '2', '3', '4', '5'];
         $status_marriage = ['Yes', 'No'];
         $status_gender = ['Male', 'Female', 'MD'];
@@ -1206,7 +1365,7 @@ $query->when(
         $bloodtypes = Employee::getBloodTypeOptions();
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        return view('pages.Employee.create', compact('employees', 'bloodtypes', 'companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
+        return view('pages.Employee.create', compact('atasans','employeestatuses','gradings','employees', 'bloodtypes', 'companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
     public function store(Request $request)
     {
@@ -1271,9 +1430,11 @@ $query->when(
             'id_card_address' => ['required', 'string', 'max:255', new NoXSSInput()],
             'institution' => ['required', 'string', 'max:255', new NoXSSInput()],
             'npwp' => ['required', 'string', 'max:50', new NoXSSInput()],
+            'grading_id' => ['required', 'exists:grading,id', new NoXSSInput()],
             'position_id' => ['required', 'exists:position_tables,id', new NoXSSInput()],
             'store_id' => ['required', 'exists:stores_tables,id', new NoXSSInput()],
             'department_id' => ['required', 'exists:departments_tables,id', new NoXSSInput()],
+            'atasan_id' => ['nullable', 'exists:employees_tables,id', new NoXSSInput()],
             'company_id' => ['required', 'exists:company_tables,id', new NoXSSInput()],
             'banks_id' => ['required', 'exists:banks_tables,id', new NoXSSInput()],
             'can_approve'       => 'nullable|boolean',
@@ -1324,15 +1485,7 @@ $query->when(
             'company_id.required' => 'The Company is required.',
             'banks_id.exists' => 'The selected banks is invalid.',
             'banks_id.required' => 'The banks is required.',
-            'foto' => [
-                'required',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:512'
-            ],
-            'photos.mimes' => 'The photo must be a file of type: jpg, jpeg, png, webp.',
-            'photos.max' => 'photos must under 512 kb.',
-
+            'grading_id.required' => 'The Grading is required.',
         ]);
         /*
     |--------------------------------------------------------------------------
@@ -1445,6 +1598,7 @@ $query->when(
                 'bank_account_number' => $validatedData['bank_account_number'] ?? '',
                 'company_id' => $validatedData['company_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
+                'grading_id' => $validatedData['grading_id'] ?? '',
                 'status_employee' => $validatedData['status_employee'] ?? '',
                 'join_date' => $validatedData['join_date'] ?? '',
                 'blood_type' => $validatedData['blood_type'] ?? '',
@@ -1470,17 +1624,26 @@ $query->when(
                 'institution' => $validatedData['institution'] ?? '',
                 'npwp' => $validatedData['npwp'] ?? '',
             ]);
-            $employees->store()->attach($validatedData['store_id'], [
-                'is_primary' => true,
-            ]);
-            $employees->position()->attach($validatedData['position_id'], [
-                'is_primary' => true,
-            ]);
+          
+            $employees->store()->attach($validatedData['store_id'], ['is_primary' => true]);
+$employees->position()->attach($validatedData['position_id'], ['is_primary' => true]);
+$employees->department()->attach($validatedData['department_id'], ['is_primary' => true]);
+$employees->atasanList()->attach($validatedData['atasan_id'], ['is_primary' => true]);
 
-            // ← Assign ke department via pivot (is_primary = true karena ini department pertama)
-            $employees->department()->attach($validatedData['department_id'], [
-                'is_primary' => true,
-            ]);
+// ← Log pivot saat create
+activity('employee')
+    ->performedOn($employees)
+    ->causedBy(auth()->user())
+    ->withProperties([
+        'attributes' => [
+            'store'      => $employees->store()->wherePivot('is_primary', true)->first()?->name ?? '-',
+            'position'   => $employees->position()->wherePivot('is_primary', true)->first()?->name ?? '-',
+            'department' => $employees->department()->wherePivot('is_primary', true)->first()?->department_name ?? '-',
+            'atasanList' => $employees->atasanList()->wherePivot('is_primary', true)->first()?->employee_name ?? '-',
+        ],
+    ])
+    ->log('Employee pivot data ' . $employees->employee_name . ' has been created.');
+
 
             if ($employees) {
                 Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
@@ -1564,6 +1727,8 @@ $query->when(
             'banks_id'                => ['required', 'exists:banks_tables,id', new NoXSSInput()],
             'stores'   => ['nullable', 'array'],
             'stores.*' => ['exists:stores_tables,id', new NoXSSInput()],
+            'atasans'   => ['nullable', 'array'],
+            'atasans.*' => ['exists:employees_tables,id', new NoXSSInput()],
             'positions'   => ['nullable', 'array'],
             'positions.*' => ['exists:position_tables,id', new NoXSSInput()],
             'departments'   => ['nullable', 'array'],
@@ -1611,83 +1776,183 @@ $query->when(
         }
 
         try {
+          
             DB::transaction(function () use ($user, &$validatedData, $oldPaths, $newPaths) {
-                $employee = $user->Employee()->lockForUpdate()->first();
+    $employee = $user->Employee()->lockForUpdate()->first();
 
-                if (!empty($validatedData['stores'])) {
-                    $currentPrimary = $employee->store()
-                        ->wherePivot('is_primary', true)
-                        ->first();
+   $oldStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
+$oldPosition   = $employee->position()->pluck('name')->sort()->values()->toArray();
+$oldDepartment = $employee->department()->pluck('department_name')->sort()->values()->toArray();
+$oldAtasan     = $employee->atasanList()->pluck('employee_name')->sort()->values()->toArray();
 
-                    // Pertahankan primary yang sudah ada, kalau tidak ada pakai index pertama
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
-                        ? $currentPrimary->id
-                        : $validatedData['stores'][0];
+    // ── Sync store ──
+     if (!empty($validatedData['stores'])) {
+    $currentPrimary = $employee->store()->wherePivot('is_primary', true)->first();
+    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
+        ? $currentPrimary->id
+        : $validatedData['stores'][0];
 
-                    $syncData = [];
-                    foreach ($validatedData['stores'] as $storeId) {
-                        $syncData[$storeId] = ['is_primary' => $storeId === $primaryId];
-                    }
+    $syncData = [];
+    foreach ($validatedData['stores'] as $storeId) {
+        $syncData[$storeId] = ['is_primary' => $storeId === $primaryId];
+    }
+    $employee->store()->sync($syncData);
+} else {
+    // Kalau kosong → hapus semua atasan
+    $employee->store()->detach();
+}
 
-                    $employee->store()->sync($syncData);
-                }
+    // if (!empty($validatedData['stores'])) {
+    //     $currentPrimary = $employee->store()->wherePivot('is_primary', true)->first();
+    //     $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
+    //         ? $currentPrimary->id
+    //         : $validatedData['stores'][0];
+
+    //     $syncData = [];
+    //     foreach ($validatedData['stores'] as $storeId) {
+    //         $syncData[$storeId] = ['is_primary' => $storeId === $primaryId];
+    //     }
+    //     $employee->store()->sync($syncData);
+    // }
+
+    // ── Sync position ──
+    // if (!empty($validatedData['positions'])) {
+    //     $currentPrimary = $employee->position()->wherePivot('is_primary', true)->first();
+    //     $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
+    //         ? $currentPrimary->id
+    //         : $validatedData['positions'][0];
+
+    //     $syncData = [];
+    //     foreach ($validatedData['positions'] as $positionId) {
+    //         $syncData[$positionId] = ['is_primary' => $positionId === $primaryId];
+    //     }
+    //     $employee->position()->sync($syncData);
+    // }
+    if (!empty($validatedData['positions'])) {
+    $currentPrimary = $employee->position()->wherePivot('is_primary', true)->first();
+    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
+        ? $currentPrimary->id
+        : $validatedData['positions'][0];
+
+    $syncData = [];
+    foreach ($validatedData['positions'] as $positionId) {
+        $syncData[$positionId] = ['is_primary' => $positionId === $primaryId];
+    }
+    $employee->position()->sync($syncData);
+} else {
+    // Kalau kosong → hapus semua atasan
+    $employee->position()->detach();
+}
+
+    // ── Sync department ──
+    // if (!empty($validatedData['departments'])) {
+    //     $currentPrimary = $employee->department()->wherePivot('is_primary', true)->first();
+    //     $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
+    //         ? $currentPrimary->id
+    //         : $validatedData['departments'][0];
+
+    //     $syncData = [];
+    //     foreach ($validatedData['departments'] as $departmentId) {
+    //         $syncData[$departmentId] = ['is_primary' => $departmentId === $primaryId];
+    //     }
+    //     $employee->department()->sync($syncData);
+    // }
+  
+    // Sync atasanList
+if (!empty($validatedData['departments'])) {
+    $currentPrimary = $employee->department()->wherePivot('is_primary', true)->first();
+    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
+        ? $currentPrimary->id
+        : $validatedData['departments'][0];
+
+    $syncData = [];
+    foreach ($validatedData['departments'] as $departmentId) {
+        $syncData[$departmentId] = ['is_primary' => $departmentId === $primaryId];
+    }
+    $employee->department()->sync($syncData);
+} else {
+    // Kalau kosong → hapus semua atasan
+    $employee->department()->detach();
+}
+if (!empty($validatedData['atasans'])) {
+    $currentPrimary = $employee->atasanList()->wherePivot('is_primary', true)->first();
+    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['atasans'])
+        ? $currentPrimary->id
+        : $validatedData['atasans'][0];
+
+    $syncData = [];
+    foreach ($validatedData['atasans'] as $atasanId) {
+        $syncData[$atasanId] = ['is_primary' => $atasanId === $primaryId];
+    }
+    $employee->atasanList()->sync($syncData);
+} else {
+    // Kalau kosong → hapus semua atasan
+    $employee->atasanList()->detach();
+}
+
+    // ── Ambil nilai baru setelah sync ──
+    $newStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
+$newPosition   = $employee->position()->pluck('name')->sort()->values()->toArray();
+$newDepartment = $employee->department()->pluck('department_name')->sort()->values()->toArray();
+$newAtasan     = $employee->atasanList()->pluck('employee_name')->sort()->values()->toArray();
 
 
+    // ── Log manual perubahan pivot ──
+    $pivotChanges = [];
+   
+    if ($oldStore !== $newStore) {
+    $pivotChanges[] = "Location: [" . implode(', ', $oldStore) . "] → [" . implode(', ', $newStore) . "]";
+}
+if ($oldPosition !== $newPosition) {
+    $pivotChanges[] = "Position: [" . implode(', ', $oldPosition) . "] → [" . implode(', ', $newPosition) . "]";
+}
+if ($oldDepartment !== $newDepartment) {
+    $pivotChanges[] = "Department: [" . implode(', ', $oldDepartment) . "] → [" . implode(', ', $newDepartment) . "]";
+}
+if ($oldAtasan !== $newAtasan) {
+    $pivotChanges[] = "Atasan: [" . implode(', ', $oldAtasan) . "] → [" . implode(', ', $newAtasan) . "]";
+}
 
-                if (!empty($validatedData['positions'])) {
-                    $currentPrimary = $employee->position()
-                        ->wherePivot('is_primary', true)
-                        ->first();
+    if (!empty($pivotChanges)) {
+        activity('employee')
+            ->performedOn($employee)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'attributes' => [
+                    'store'      => $newStore,
+                    'position'   => $newPosition,
+                    'department' => $newDepartment,
+                    'atasanList' => $newAtasan,
+                ],
+                'old' => [
+                    'store'      => $oldStore,
+                    'position'   => $oldPosition,
+                    'department' => $oldDepartment,
+                    'atasanList' => $oldAtasan,
+                ],
+            ])
+            ->log('Employee pivot data ' . $employee->employee_name . ' has been updated. Changes: ' . implode(', ', $pivotChanges));
+    }
 
-                    // Pertahankan primary yang sudah ada, kalau tidak ada pakai index pertama
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
-                        ? $currentPrimary->id
-                        : $validatedData['positions'][0];
+    // ── Hapus FK dari validatedData ──
+    unset(
+        $validatedData['stores'],
+        $validatedData['departments'],
+        $validatedData['positions'],
+        $validatedData['atasans']
+    );
 
-                    $syncData = [];
-                    foreach ($validatedData['positions'] as $positionId) {
-                        $syncData[$positionId] = ['is_primary' => $positionId === $primaryId];
-                    }
+    // ── Update employee biasa ──
+    $employee->update($validatedData);
 
-                    $employee->position()->sync($syncData);
-                }
+    // ── Hapus file lama di S3 ──
+    foreach (['photos', 'kk_photos', 'ktp_photos', 'signature'] as $key) {
+        if (isset($newPaths[$key]) && $oldPaths[$key] && Storage::disk('s3')->exists($oldPaths[$key])) {
+            Storage::disk('s3')->delete($oldPaths[$key]);
+        }
+    }
+});
 
-
-                if (!empty($validatedData['departments'])) {
-                    $currentPrimary = $employee->department()
-                        ->wherePivot('is_primary', true)
-                        ->first();
-
-                    // Pertahankan primary yang sudah ada, kalau tidak ada pakai index pertama
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
-                        ? $currentPrimary->id
-                        : $validatedData['departments'][0];
-
-                    $syncData = [];
-                    foreach ($validatedData['departments'] as $departmentId) {
-                        $syncData[$departmentId] = ['is_primary' => $departmentId === $primaryId];
-                    }
-
-                    $employee->department()->sync($syncData);
-                }
-
-
-                // Hapus dari validatedData agar tidak ikut update kolom employees
-                unset(
-                    $validatedData['stores'],
-                    $validatedData['departments'],
-                    $validatedData['positions']
-                );
-
-                $employee->update($validatedData);
-
-                // Hapus file lama di S3
-                foreach (['photos', 'kk_photos', 'ktp_photos', 'signature'] as $key) {
-                    if (isset($newPaths[$key]) && $oldPaths[$key] && Storage::disk('s3')->exists($oldPaths[$key])) {
-                        Storage::disk('s3')->delete($oldPaths[$key]);
-                    }
-                }
-            });
 
             return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
         } catch (\Throwable $th) {

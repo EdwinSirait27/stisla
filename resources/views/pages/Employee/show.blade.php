@@ -794,6 +794,34 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                  <div class="field-group">
+    <label><i class="fas fa-briefcase"></i> Atasan</label>
+    <select name="atasans[]" id="atasans"
+        class="form-control select2 @error('atasans') is-invalid @enderror"
+        multiple disabled>
+        @foreach ($allEmployees as $emp)
+            <option value="{{ $emp->id }}"
+                @if (collect(old('atasans', $selectedAtasans))->contains($emp->id)) selected @endif>
+                {{ $emp->employee_name }}
+                @if ($primaryEmployeeId === $emp->id) ★ Primary @endif
+            </option>
+        @endforeach
+    </select>
+    @error('atasans')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
+
+                                    <div class="field-group">
+    <label><i class="fas fa-check-circle"></i> Can Approve</label>
+    <div class="form-check form-switch mt-1">
+        <input class="form-check-input" type="checkbox" name="can_approve" id="can_approve"
+            value="1" {{ old('can_approve', $employee->Employee->can_approve ?? false) ? 'checked' : '' }} disabled>
+        <label class="form-check-label" for="can_approve">
+            Berikan wewenang approval
+        </label>
+    </div>
+</div>
 
                             </div>
 
@@ -987,10 +1015,6 @@
                 <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
                 Upload KTP
             </label>
-            {{-- <input type="file" name="ktp_photos" id="ktp_photos"
-                class="d-none @error('ktp_photos') is-invalid @enderror"
-                accept=".jpg,.jpeg,.png,.webp"
-                onchange="previewImage(event, 'preview-ktp-photos', 'placeholder-ktp-photos')"> --}}
             @error('ktp_photos')
                 <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
             @enderror
