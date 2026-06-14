@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Employee;
 use App\Models\Fingerprintrecap;
 use App\Models\Roster;
@@ -10,6 +11,7 @@ use App\Services\FingerprintRecapCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
+
 class FingerprintrecapController extends Controller
 {
     private const TOLERANSI_TINGGI_STORES = [
@@ -51,29 +53,29 @@ class FingerprintrecapController extends Controller
             $storeName = $request->input('store_name');
 
             // ── 1. Ambil semua employees + status_employee ──
-    //         $employeesQuery = Employee::with('store:id,name')
-    //             ->select('id', 'employee_name', 'store_id')
-    //             ->whereNotNull('pin')
-    // ->whereIn('status', ['Active', 'Mutation', 'Pending'])
-    //             ->whereNull('deleted_at');
-    // ❌ Lama
-$employeesQuery = Employee::with('store:id,name')
-    ->select('id', 'employee_name', 'store_id')
-    ->whereNotNull('pin')
-    ->whereIn('status', ['Active', 'Mutation', 'Pending'])
-    ->whereNull('deleted_at');
+            //         $employeesQuery = Employee::with('store:id,name')
+            //             ->select('id', 'employee_name', 'store_id')
+            //             ->whereNotNull('pin')
+            // ->whereIn('status', ['Active', 'Mutation', 'Pending'])
+            //             ->whereNull('deleted_at');
+            // ❌ Lama
+            $employeesQuery = Employee::with('store:id,name')
+                ->select('id', 'employee_name', 'store_id')
+                ->whereNotNull('pin')
+                ->whereIn('status', ['Active', 'Mutation', 'Pending'])
+                ->whereNull('deleted_at');
 
-// ✅ Baru — pivot
-$employeesQuery = Employee::with([
-    'store' => fn($q) => $q->wherePivot('is_primary', true),
-])
-->select('id', 'employee_name', 'status_employee') // ← hapus store_id
-->whereNotNull('pin')
-->whereIn('status', ['Active', 'Mutation', 'Pending','On Leave','Resign'])
-->whereNull('deleted_at');
-          if ($storeName) {
-    $employeesQuery->whereHas('store', fn($q) => $q->where('stores.name', $storeName));
-}
+            // ✅ Baru — pivot
+            $employeesQuery = Employee::with([
+                'store' => fn($q) => $q->wherePivot('is_primary', true),
+            ])
+                ->select('id', 'employee_name', 'status_employee') // ← hapus store_id
+                ->whereNotNull('pin')
+                ->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave', 'Resign'])
+                ->whereNull('deleted_at');
+            if ($storeName) {
+                $employeesQuery->whereHas('store', fn($q) => $q->where('stores.name', $storeName));
+            }
 
             $employees = $employeesQuery->get();
 

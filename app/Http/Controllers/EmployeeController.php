@@ -17,8 +17,10 @@ use App\Exports\EmployeesExportall;
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
 use Illuminate\Support\Facades\Hash;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Rules\NoXSSInput;
 use Carbon\Carbon;
+use App\Models\Documents;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -31,8 +33,21 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeController extends Controller
 {
+    private function isSPVOnly(): bool
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+        return $user->hasPermissionTo('ManageEmployeeSPVManager')
+            && !$user->hasPermissionTo('ManageEmployee');
+    }
+
     public function indexall()
     {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $countactives = Employee::where('status', 'Active')->count();
         $countpendings = Employee::where('status', 'Pending')->count();
         $countresigns = Employee::where('status', 'Resign')->count();
@@ -50,98 +65,92 @@ class EmployeeController extends Controller
         $lasteducations = Employee::getLastEducationOptions();
         $stores = Stores::get();
         $departments = Departments::get();
-        return view('pages.Employeeall.Employeeall', compact('atasans','bloodtypes','marriages', 'genders', 'lasteducations', 'religions', 'banks', 'departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
+        return view('pages.Employeeall.Employeeall', compact('atasans', 'bloodtypes', 'marriages', 'genders', 'lasteducations', 'religions', 'banks', 'departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
     }
-    public function index()
-    {
-        $countactives = Employee::where('status', 'Active')->count();
-        $countpendings = Employee::where('status', 'Pending')->count();
-        $countresigns = Employee::where('status', 'Resign')->count();
-        $gradings = Grading::pluck('grading_name', 'id');
-        $groups = Groups::pluck('remark', 'id');
-        $companies = Company::pluck('name', 'id');
-        $stores = Stores::get();
-        $departments = Departments::get();
-        $employeestatuses = Employee::getStatusEmployeeOptions();
-        $statuses = Employee::getStatusOptions();
-        return view('pages.Employee.Employee', compact('departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
-    }
-    // public function getBagan(Request $request)
+
+    // public function index()
     // {
-    //     try {
-    //         $storeId = $request->store_id;
-    //         $departmentId = $request->department_id;
-
-    //         $employees = Employee::with(['grading'])
-    //             ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
-    //             ->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
-    //             ->whereHas('grading')
-    //             ->whereIn('status', ['Active', 'Pending'])
-    //             ->get()
-    //             ->sortBy('grading.level');
-
-    //         Log::info('getBagan debug', [
-    //             'store_id'     => $storeId,
-    //             'department_id' => $departmentId,
-    //             'count'        => $employees->count(),
-    //         ]);
-
-    //         $bagan = $employees->map(function ($employee) {
-    //             try {
-    //                 $atasan = $employee->atasan();
-
-    //                 $photoFilename = $employee->photos
-    //                     ? basename($employee->photos)
-    //                     : null;
-
-    //                 return [
-    //                     'id'            => $employee->id,
-    //                     'name'          => $employee->employee_name,
-    //                     'position'      => $employee->primaryPosition()->first()?->name ?? '-',
-    //                     'grading'       => $employee->grading?->grading_name ?? '-',
-    //                     'grading_level' => $employee->grading?->level ?? 0,
-    //                     'photo'         => $photoFilename
-    //                                         ? route('employee.serve.photo', ['filename' => $photoFilename])
-    //                                         : null,
-    //                     'atasan_id'     => $atasan?->id ?? null,
-    //                 ];
-    //             } catch (\Throwable $e) {
-    //                 Log::error('map error employee ' . $employee->id, [
-    //                     'error' => $e->getMessage(),
-    //                     'line'  => $e->getLine(),
-    //                 ]);
-    //                 return null;
-    //             }
-    //         })->filter()->values();
-
-    //         return response()->json(['nodes' => $bagan]); // ← ini yang hilang
-
-    //     } catch (\Throwable $e) {
-    //         return response()->json([
-    //             'error' => $e->getMessage(),
-    //             'line'  => $e->getLine(),
-    //             'file'  => $e->getFile(),
-    //         ], 500);
-    //     }
+    //     $countactives = Employee::where('status', 'Active')->count();
+    //     $countpendings = Employee::where('status', 'Pending')->count();
+    //     $countresigns = Employee::where('status', 'Resign')->count();
+    //     $gradings = Grading::pluck('grading_name', 'id');
+    //     $groups = Groups::pluck('remark', 'id');
+    //     $companies = Company::pluck('name', 'id');
+    //     $stores = Stores::get();
+    //     $departments = Departments::get();
+    //     $employeestatuses = Employee::getStatusEmployeeOptions();
+    //     $statuses = Employee::getStatusOptions();
+    //     return view('pages.Employee.Employee', compact('departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
     // }
+    public function index()
+{
+    /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+
+    // ViewEmployee: hanya bisa akses route, tidak ada data tambahan
+    if ($user->hasPermissionTo('ViewEmployee') 
+        && !$user->hasPermissionTo('ManageEmployee') 
+        && !$user->hasPermissionTo('ManageEmployeeSPVManager')) {
+        return view('pages.Employee.Employee');
+    }
+
+    // Data yang bisa diakses semua role (ManageEmployee & ManageEmployeeSPVManager)
+    $countactives = Employee::where('status', 'Active')->count();
+    $countpendings = Employee::where('status', 'Pending')->count();
+    $companies = Company::pluck('name', 'id');
+    $stores = Stores::get();
+    $departments = Departments::get();
+    $employeestatuses = Employee::getStatusEmployeeOptions();
+    $statuses = Employee::getStatusOptions();
+
+    // SPV Only: hanya data terbatas
+    if ($user->hasPermissionTo('ManageEmployeeSPVManager') 
+        && !$user->hasPermissionTo('ManageEmployee')) {
+        return view('pages.Employee.Employee', compact(
+            'countactives', 'countpendings',
+            'companies', 'stores', 'departments',
+            'employeestatuses', 'statuses'
+        ));
+    }
+
+    // ManageEmployee: semua data
+    $countresigns = Employee::where('status', 'Resign')->count();
+    $gradings = Grading::pluck('grading_name', 'id');
+    $groups = Groups::pluck('remark', 'id');
+
+    return view('pages.Employee.Employee', compact(
+        'countactives', 'countpendings', 'countresigns',
+        'companies', 'stores', 'departments',
+        'employeestatuses', 'statuses',
+        'gradings', 'groups'
+    ));
+}
     public function getBagan(Request $request)
     {
+    /** @var \App\Models\User|null $user */
+
+        $user = auth()->user();
+
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
+
         try {
             $storeId = $request->store_id;
             $departmentId = $request->department_id;
-            $employees = Employee::with(['grading', 'atasanEmployee'])
-    ->when(
-        $storeId && $storeId !== 'all',
-        fn($q) => $q->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
-    )
-    ->when(
-        $departmentId && $departmentId !== 'all',
-        fn($q) => $q->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
-    )
-    ->whereHas('grading')
-    ->whereIn('status', ['Active', 'Pending'])
-    ->get()
-    ->sortBy('grading.level');
+            $employees = Employee::with(['grading', 'atasanList'])
+                ->when(
+                    $storeId && $storeId !== 'all',
+                    fn($q) => $q->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
+                )
+                ->when(
+                    $departmentId && $departmentId !== 'all',
+                    fn($q) => $q->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
+                )
+                ->whereHas('grading')
+                ->whereIn('status', ['Active', 'Pending'])
+                ->get()
+                ->sortBy('grading.level');
 
             Log::info('getBagan debug', [
                 'store_id'     => $storeId,
@@ -194,6 +203,11 @@ class EmployeeController extends Controller
     }
     public function getActivities(Request $request)
     {
+       /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         if ($request->ajax()) {
             $query = Activity::where('log_name', 'employee')
                 ->with(['causer.employee'])
@@ -237,9 +251,10 @@ class EmployeeController extends Controller
     public function getEmployeesall(Request $request)
     {
         /** @var \App\Models\User|null $user */
-        $user = auth()->user();
-        $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
-
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $query = User::query()
             ->with([
                 'employee',
@@ -312,7 +327,7 @@ class EmployeeController extends Controller
                 'employees_tables.join_date',
                 'groups_tables.remark as remark',
                 'departments_tables.department_name',
-                'stores_tables.name as store_name',  
+                'stores_tables.name as store_name',
                 'position_tables.name as position_name',
                 'banks_tables.name as bank_name',
                 'grading.grading_name',
@@ -384,26 +399,26 @@ class EmployeeController extends Controller
             $q->where('banks_tables.name', $request->filter_bank)
         );
         $query->when(
-    $request->filled('filter_join_date_from'),
-    fn($q) =>
-    $q->where('employees_tables.join_date', '>=', Carbon::parse($request->filter_join_date_from)->startOfDay())
-);
-$query->when(
-    $request->filled('filter_join_date_to'),
-    fn($q) =>
-    $q->where('employees_tables.join_date', '<=', Carbon::parse($request->filter_join_date_to)->endOfDay())
-);
+            $request->filled('filter_join_date_from'),
+            fn($q) =>
+            $q->where('employees_tables.join_date', '>=', Carbon::parse($request->filter_join_date_from)->startOfDay())
+        );
+        $query->when(
+            $request->filled('filter_join_date_to'),
+            fn($q) =>
+            $q->where('employees_tables.join_date', '<=', Carbon::parse($request->filter_join_date_to)->endOfDay())
+        );
 
-$query->when(
-    $request->filled('filter_end_date_from'),
-    fn($q) =>
-    $q->where('employees_tables.end_date', '>=', Carbon::parse($request->filter_end_date_from)->startOfDay())
-);
-$query->when(
-    $request->filled('filter_end_date_to'),
-    fn($q) =>
-    $q->where('employees_tables.end_date', '<=', Carbon::parse($request->filter_end_date_to)->endOfDay())
-);
+        $query->when(
+            $request->filled('filter_end_date_from'),
+            fn($q) =>
+            $q->where('employees_tables.end_date', '>=', Carbon::parse($request->filter_end_date_from)->startOfDay())
+        );
+        $query->when(
+            $request->filled('filter_end_date_to'),
+            fn($q) =>
+            $q->where('employees_tables.end_date', '<=', Carbon::parse($request->filter_end_date_to)->endOfDay())
+        );
 
         $query->when($request->filled('filter_los'), function ($q) use ($request) {
             $los = $request->filter_los;
@@ -429,17 +444,27 @@ $query->when(
                 $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
                 return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
             })
-            ->addColumn('action', function ($e) use ($isHeadHR) {
-                if (!$isHeadHR) return '';
-                $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-                return '
-                <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
-                    <i class="fas fa-user-edit text-secondary"></i>
-                </a>
-                <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
-                    <i class="fas fa-eye text-secondary"></i>
-                </a>';
-            })
+            // ->addColumn('action', function ($e) use ($isHeadHR) {
+            //     if (!$isHeadHR) return '';
+            //     $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+            //     return '
+            //     <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+            //         <i class="fas fa-user-edit text-secondary"></i>
+            //     </a>
+            //     <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+            //         <i class="fas fa-eye text-secondary"></i>
+            //     </a>';
+            // })
+            ->addColumn('action', function ($e) {
+    $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+    return '
+    <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+        <i class="fas fa-user-edit text-secondary"></i>
+    </a>
+    <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+        <i class="fas fa-eye text-secondary"></i>
+    </a>';
+})
             // Daftarkan kolom yang bisa di-search
             ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
             ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
@@ -502,227 +527,14 @@ $query->when(
             ->rawColumns(['action'])
             ->make(true);
     }
-    // public function getEmployeesall(Request $request)
-    // {
-    //     /** @var \App\Models\User|null $user */
-    //     $user = auth()->user();
-    //     $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
-    //     $query = User::query()
-    //         ->with([
-    //             'employee',
-    //             'employee.position',
-    //             'employee.department',
-    //             'employee.grading',
-    //             'employee.group',
-    //             'employee.store',
-    //             'employee.bank',
-    //             'employee.company'
-    //         ])
-    //         ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
-    //         ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
-    //         ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
-    //         ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
-    //         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
-    //         ->leftJoin('banks_tables', 'banks_tables.id', '=', 'employees_tables.banks_id')
-    //         ->select([
-    //             'users.*',
-    //             'employees_tables.employee_name',
-    //             'employees_tables.employee_pengenal',
-    //             'employees_tables.bank_account_number',
-    //             'employees_tables.join_date',
-    //             'employees_tables.end_date',
-    //             'employees_tables.created_at',
-    //             'employees_tables.marriage',
-    //             'employees_tables.child',
-    //             'employees_tables.telp_number',
-    //             'employees_tables.nik',
-    //             'employees_tables.gender',
-    //             'employees_tables.date_of_birth',
-    //             'employees_tables.place_of_birth',
-    //             'employees_tables.biological_mother_name',
-    //             'employees_tables.religion',
-    //             'employees_tables.current_address',
-    //             'employees_tables.id_card_address',
-    //             'employees_tables.last_education',
-    //             'employees_tables.institution',
-    //             'employees_tables.npwp',
-    //             'employees_tables.bpjs_kes',
-    //             'employees_tables.bpjs_ket',
-    //             'employees_tables.email',
-    //             'employees_tables.company_email',
-    //             'employees_tables.emergency_contact_name',
-    //             'employees_tables.pin',
-    //             'employees_tables.pending_email',
-    //             'employees_tables.pending_telp_number',
-    //             'employees_tables.status_employee',
-    //             'employees_tables.status',
-    //             'employees_tables.join_date',
-    //             'position_tables.name as position_name',
-    //             'groups_tables.remark as remark',
-    //             'stores_tables.name as name',
-    //             'banks_tables.name as bank_name',
-    //             'departments_tables.department_name',
-    //             'grading.grading_name',
-    //             'company_tables.name as name_company',
-    //         ]);
-    //     $query->when(
-    //         $request->filled('filter_company'),
-    //         fn($q) =>
-    //         $q->where('company_tables.name', $request->filter_company)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_department'),
-    //         fn($q) =>
-    //         $q->where('departments_tables.department_name', $request->filter_department)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_group'),
-    //         fn($q) =>
-    //         $q->where('groups_tables.remark', $request->filter_group)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_grading'),
-    //         fn($q) =>
-    //         $q->where('grading.grading_name', $request->filter_grading)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_store'),
-    //         fn($q) =>
-    //         $q->where('stores_tables.name', $request->filter_store)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_emp_status'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.status_employee', $request->filter_emp_status)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_status'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.status', $request->filter_status)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_religion'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.religion', $request->filter_religion)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_marriage'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.marriage', $request->filter_marriage)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_last_education'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.last_education', $request->filter_last_education)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_gender'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.gender', $request->filter_gender)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_bank'),
-    //         fn($q) =>
-    //         $q->where('banks_tables.name', $request->filter_bank)
-    //     );
-    //     $query->when($request->filled('filter_los'), function ($q) use ($request) {
-    //         $los = $request->filter_los;
-
-    //         if ($los === 'under3months') {
-    //             // Khusus kurang dari 3 bulan, operator berbeda
-    //             $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
-    //         } else {
-    //             $date = match ($los) {
-    //                 '1year'  => Carbon::now()->subYear(),
-    //                 '3years' => Carbon::now()->subYears(3),
-    //                 '5years' => Carbon::now()->subYears(5),
-    //                 default  => null,
-    //             };
-    //             if ($date) {
-    //                 $q->where('employees_tables.join_date', '<=', $date);
-    //             }
-    //         }
-    //     });
-    //     return DataTables::of($query)
-    //         ->addColumn('length_of_service', function ($e) {
-    //             if (!$e->join_date) return 'Empty';
-    //             $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
-    //             return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
-    //         })
-    //         ->addColumn('action', function ($e) use ($isHeadHR) {
-    //             if (!$isHeadHR) return '';
-    //             $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-    //             return '
-    //             <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
-    //                 <i class="fas fa-user-edit text-secondary"></i>
-    //             </a>
-    //             <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
-    //                 <i class="fas fa-eye text-secondary"></i>
-    //             </a>';
-    //         })
-    //         // Daftarkan kolom yang bisa di-search
-    //         ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
-    //         ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
-    //         ->filterColumn('bank_account_number', fn($q, $k) => $q->where('employees_tables.bank_account_number', 'like', "%$k%"))
-    //         ->filterColumn('join_date', fn($q, $k) => $q->where('employees_tables.join_date', 'like', "%$k%"))
-    //         ->filterColumn('end_date', fn($q, $k) => $q->where('employees_tables.end_date', 'like', "%$k%"))
-    //         ->filterColumn('marriage', fn($q, $k) => $q->where('employees_tables.marriage', 'like', "%$k%"))
-    //         ->filterColumn('child', fn($q, $k) => $q->where('employees_tables.child', 'like', "%$k%"))
-    //         ->filterColumn('telp_number', fn($q, $k) => $q->where('employees_tables.telp_number', 'like', "%$k%"))
-    //         ->filterColumn('nik', fn($q, $k) => $q->where('employees_tables.nik', 'like', "%$k%"))
-    //         ->filterColumn('gender', fn($q, $k) => $q->where('employees_tables.gender', 'like', "%$k%"))
-    //         ->filterColumn('date_of_birth', fn($q, $k) => $q->where('employees_tables.date_of_birth', 'like', "%$k%"))
-    //         ->filterColumn('place_of_birth', fn($q, $k) => $q->where('employees_tables.place_of_birth', 'like', "%$k%"))
-    //         ->filterColumn('biological_mother_name', fn($q, $k) => $q->where('employees_tables.biological_mother_name', 'like', "%$k%"))
-    //         ->filterColumn('religion', fn($q, $k) => $q->where('employees_tables.religion', 'like', "%$k%"))
-    //         ->filterColumn('current_address', fn($q, $k) => $q->where('employees_tables.current_address', 'like', "%$k%"))
-    //         ->filterColumn('id_card_address', fn($q, $k) => $q->where('employees_tables.id_card_address', 'like', "%$k%"))
-    //         ->filterColumn('last_education', fn($q, $k) => $q->where('employees_tables.last_education', 'like', "%$k%"))
-    //         ->filterColumn('institution', fn($q, $k) => $q->where('employees_tables.institution', 'like', "%$k%"))
-    //         ->filterColumn('npwp', fn($q, $k) => $q->where('employees_tables.npwp', 'like', "%$k%"))
-    //         ->filterColumn('bpjs_kes', fn($q, $k) => $q->where('employees_tables.bpjs_kes', 'like', "%$k%"))
-    //         ->filterColumn('bpjs_ket', fn($q, $k) => $q->where('employees_tables.bpjs_ket', 'like', "%$k%"))
-    //         ->filterColumn('email', fn($q, $k) => $q->where('employees_tables.email', 'like', "%$k%"))
-    //         ->filterColumn('company_email', fn($q, $k) => $q->where('employees_tables.company_email', 'like', "%$k%"))
-    //         ->filterColumn('emergency_contact_name', fn($q, $k) => $q->where('employees_tables.emergency_contact_name', 'like', "%$k%"))
-    //         ->filterColumn('pin', fn($q, $k) => $q->where('employees_tables.pin', 'like', "%$k%"))
-    //         ->filterColumn('pending_email', fn($q, $k) => $q->where('employees_tables.pending_email', 'like', "%$k%"))
-    //         ->filterColumn('pending_telp_number', fn($q, $k) => $q->where('employees_tables.pending_telp_number', 'like', "%$k%"))
-    //         ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('bank_name', fn($q, $k) => $q->where('banks_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
-    //         ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
-    //         ->filterColumn('name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
-    //         ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
-    //         ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
-    //         ->editColumn('created_at', function ($e) {
-    //             return optional($e->created_at)
-    //                 ->timezone('Asia/Makassar')
-    //                 ->translatedFormat('d F Y H:i');
-    //         })
-
-    //         ->editColumn('join_date', function ($e) {
-    //             return $e->join_date
-    //                 ? Carbon::parse($e->join_date)
-    //                 ->timezone('Asia/Makassar')
-    //                 ->translatedFormat('d F Y')
-    //                 : '-';
-    //         })
-    //         ->editColumn('end_date', function ($e) {
-    //             return $e->end_date
-    //                 ? Carbon::parse($e->end_date)
-    //                 ->timezone('Asia/Makassar')
-    //                 ->translatedFormat('d F Y')
-    //                 : '-';
-    //         })
-    //         ->rawColumns(['action'])
-    //         ->make(true);
-    // }
     public function exportEmployeesall(Request $request)
     {
+        /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $filters = [
             'filter_company'    => $request->query('filter_company'),
             'filter_department' => $request->query('filter_department'),
@@ -739,9 +551,9 @@ $query->when(
             'filter_religion'        => $request->query('filter_religion'),
             'filter_last_education'        => $request->query('filter_last_education'),
             'filter_join_date_from' => $request->filter_join_date_from, // ← tambahkan
-    'filter_join_date_to'   => $request->filter_join_date_to,   // ← tambahkan
-    'filter_end_date_from'  => $request->filter_end_date_from,  // ← tambahkan
-    'filter_end_date_to'    => $request->filter_end_date_to,    // ← tambahkan
+            'filter_join_date_to'   => $request->filter_join_date_to,   // ← tambahkan
+            'filter_end_date_from'  => $request->filter_end_date_from,  // ← tambahkan
+            'filter_end_date_to'    => $request->filter_end_date_to,    // ← tambahkan
         ];
         // dd($filters); // cek dulu, hapus setelah confirmed
 
@@ -753,213 +565,326 @@ $query->when(
 
         return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
     }
-    // public function getEmployees(Request $request)
-    // {
-    //     /** @var \App\Models\User|null $user */
-    //     $user = auth()->user();
-    //     $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
-    //     $query = User::query()
-    //         ->with([
-    //             'employee',
-    //             'employee.position',
-    //             'employee.department',
-    //             'employee.grading',
-    //             'employee.group',
-    //             'employee.store',
-    //             'employee.company'
-    //         ])
-    //         ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
-    //         ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
-    //         // ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employees_tables.store_id')
-    //         // ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employees_tables.department_id')
-    //         ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
-    //         ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
-    //         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+//     public function getEmployees(Request $request)
+//     {
+//         /** @var \App\Models\User|null $user */
+//    $user = auth()->user();
+//          if (!$user->hasPermissionTo('ManageEmployee')) {
+//         abort(403);
+//     }    
 
-    //         ->select([
-    //             'users.*',
-    //             'employees_tables.employee_name',
-    //             'employees_tables.employee_pengenal',
-    //             'employees_tables.status_employee',
-    //             'employees_tables.status',
-    //             'employees_tables.join_date',
-    //             'position_tables.name as position_name',
-    //             'groups_tables.remark as remark',
-    //             'stores_tables.name as name',
-    //             'departments_tables.department_name',
-    //             'grading.grading_name',
-    //             'company_tables.name as name_company',
-    //         ]);
-    //     // Filter tetap pakai whereHas atau bisa pakai where langsung karena sudah di-join
-    //     $query->when(
-    //         $request->filled('filter_company'),
-    //         fn($q) =>
-    //         $q->where('company_tables.name', $request->filter_company)
-    //     );
+//         $query = User::query()
+//             ->with([
+//                 'employee',
+//                 'employee.position',
+//                 'employee.department',
+//                 'employee.grading',
+//                 'employee.group',
+//                 'employee.store',
+//                 'employee.company'
+//             ])
+//             ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+//             ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+//             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
 
-    //     $query->when(
-    //         $request->filled('filter_department'),
-    //         fn($q) =>
-    //         $q->where('departments_tables.department_name', $request->filter_department)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_group'),
-    //         fn($q) =>
-    //         $q->where('groups_tables.remark', $request->filter_group)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_grading'),
-    //         fn($q) =>
-    //         $q->where('grading.grading_name', $request->filter_grading)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_store'),
-    //         fn($q) =>
-    //         $q->where('stores_tables.name', $request->filter_store)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_emp_status'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.status_employee', $request->filter_emp_status)
-    //     );
-    //     $query->when(
-    //         $request->filled('filter_status'),
-    //         fn($q) =>
-    //         $q->where('employees_tables.status', $request->filter_status)
-    //     );
-    //     $query->when($request->filled('filter_los'), function ($q) use ($request) {
-    //         $los = $request->filter_los;
+//             // ← Join pivot + tabel stores untuk primary store
+//             ->leftJoin('employee_stores', function ($join) {
+//                 $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+//                     ->where('employee_stores.is_primary', true);
+//             })
+//             ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+//             ->leftJoin('employee_positions', function ($join) {
+//                 $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+//                     ->where('employee_positions.is_primary', true);
+//             })
+//             ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
 
-    //         if ($los === 'under3months') {
-    //             // Khusus kurang dari 3 bulan, operator berbeda
-    //             $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
-    //         } else {
-    //             $date = match ($los) {
-    //                 '1year'  => Carbon::now()->subYear(),
-    //                 '3years' => Carbon::now()->subYears(3),
-    //                 '5years' => Carbon::now()->subYears(5),
-    //                 default  => null,
-    //             };
-    //             if ($date) {
-    //                 $q->where('employees_tables.join_date', '<=', $date);
-    //             }
+//             // ← Join pivot + tabel departments untuk primary department
+//             ->leftJoin('employee_departments', function ($join) {
+//                 $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+//                     ->where('employee_departments.is_primary', true);
+//             })
+//             ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
+
+//             ->select([
+//                 'users.*',
+//                 'employees_tables.employee_name',
+//                 'employees_tables.employee_pengenal',
+//                 'employees_tables.status_employee',
+//                 'employees_tables.status',
+//                 'employees_tables.join_date',
+//                 'position_tables.name as position_name',
+//                 'groups_tables.remark as remark',
+//                 'stores_tables.name as store_name',           
+//                 'departments_tables.department_name',
+//                 'grading.grading_name',
+//                 'company_tables.name as name_company',
+//             ]);
+
+//         $query->when(
+//             $request->filled('filter_company'),
+//             fn($q) => $q->where('company_tables.name', $request->filter_company)
+//         );
+//         $query->when(
+//             $request->filled('filter_department'),
+//             fn($q) => $q->where('departments_tables.department_name', $request->filter_department)
+//         );
+//         $query->when(
+//             $request->filled('filter_group'),
+//             fn($q) => $q->where('groups_tables.remark', $request->filter_group)
+//         );
+//         $query->when(
+//             $request->filled('filter_grading'),
+//             fn($q) => $q->where('grading.grading_name', $request->filter_grading)
+//         );
+//         $query->when(
+//             $request->filled('filter_store'),
+//             fn($q) => $q->where('stores_tables.name', $request->filter_store)
+//         );
+//         $query->when(
+//             $request->filled('filter_emp_status'),
+//             fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status)
+//         );
+//         $query->when(
+//             $request->filled('filter_status'),
+//             fn($q) => $q->where('employees_tables.status', $request->filter_status)
+//         );
+//         $query->when($request->filled('filter_los'), function ($q) use ($request) {
+//             $los = $request->filter_los;
+//             if ($los === 'under3months') {
+//                 $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+//             } else {
+//                 $date = match ($los) {
+//                     '1year'  => Carbon::now()->subYear(),
+//                     '3years' => Carbon::now()->subYears(3),
+//                     '5years' => Carbon::now()->subYears(5),
+//                     default  => null,
+//                 };
+//                 if ($date) {
+//                     $q->where('employees_tables.join_date', '<=', $date);
+//                 }
+//             }
+//         });
+
+//         return DataTables::of($query)
+//             ->addColumn('length_of_service', function ($e) {
+//                 if (!$e->join_date) return 'Empty';
+//                 $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+//                 return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+//             })
+           
+//                ->addColumn('action', function ($e) {
+//     $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+//     return '
+//     <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+//         <i class="fas fa-user-edit text-secondary"></i>
+//     </a>
+//     <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+//         <i class="fas fa-eye text-secondary"></i>
+//     </a>';
+// })
+
+//             ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+//             ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+//             ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+//             ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+//             ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+//             ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%")) // ← ganti alias
+//             ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+//             ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+//             ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+//             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+//             ->rawColumns(['action'])
+//             ->make(true);
+//     }
+public function getEmployees(Request $request)
+{
+    /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+
+    $canManage     = $user->hasPermissionTo('ManageEmployee');
+    $canSpvManager = $user->hasPermissionTo('ManageEmployeeSPVManager');
+    $canView       = $user->hasPermissionTo('ViewEmployee');
+
+    if (!$canManage && !$canSpvManager && !$canView) {
+        abort(403);
+    }
+
+    // ← with berbeda berdasarkan permission
+    $withRelations = $canManage ? [
+        'employee',
+        'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+        'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+        'employee.grading',
+        'employee.group',
+        'employee.documents.companydocumentconfigs.documenttypes',
+        'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+        'employee.company'
+    ] : [
+        'employee' => fn($q) => $q->select('id', 'employee_name', 'employee_pengenal', 'status', 'company_id'),
+    'employee.position' => fn($q) => $q->wherePivot('is_primary', true)->select('position_tables.id', 'position_tables.name'),
+    'employee.department' => fn($q) => $q->wherePivot('is_primary', true)->select('departments_tables.id', 'departments_tables.department_name'),
+    'employee.store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
+    'employee.company' => fn($q) => $q->select('id', 'name'),
+    ];
+
+    $query = User::query()
+        ->with($withRelations)
+        ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+        ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+        ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+        ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+        ->leftJoin('employee_stores', function ($join) {
+            $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+                ->where('employee_stores.is_primary', true);
+        })
+        ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+        ->leftJoin('employee_positions', function ($join) {
+            $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+                ->where('employee_positions.is_primary', true);
+        })
+        ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+        ->leftJoin('employee_departments', function ($join) {
+            $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+                ->where('employee_departments.is_primary', true);
+        })
+        ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id');
+
+    if ($canManage) {
+        $query->select([
+            'users.*',
+            'employees_tables.employee_name',
+            'employees_tables.employee_pengenal',
+            'employees_tables.status_employee',
+            'employees_tables.status',
+            'employees_tables.join_date',
+            'position_tables.name as position_name',
+            'groups_tables.remark as remark',
+            'stores_tables.name as store_name',
+            'departments_tables.department_name',
+            'grading.grading_name',
+            'company_tables.name as name_company',
+        ]);
+    } else {
+        $query->select([
+            'users.id',
+            'users.employee_id',
+            'employees_tables.employee_name',
+            'employees_tables.employee_pengenal',
+            'employees_tables.status',
+            'position_tables.name as position_name',
+            'stores_tables.name as store_name',
+            'departments_tables.department_name',
+            'company_tables.name as name_company',
+        ]);
+    }
+if (!$canManage) {
+    $employee = $user->employee;
+    $companyId = $employee->company_id; // ← ambil company_id employee yang login
+
+    // ← Filter wajib berdasarkan company_id
+    $query->where('employees_tables.company_id', $companyId);
+
+    if ($canSpvManager) {
+        $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
+        $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+        if (empty($storeIds) || empty($departmentIds)) {
+            return DataTables::of(collect())->make(true);
+        }
+
+        $query->whereExists(function ($q) use ($storeIds) {
+            $q->select(DB::raw(1))
+                ->from('employee_stores')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->whereIn('employee_stores.store_id', $storeIds);
+        })
+        ->whereExists(function ($q) use ($departmentIds) {
+            $q->select(DB::raw(1))
+                ->from('employee_departments')
+                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                ->whereIn('employee_departments.department_id', $departmentIds);
+        });
+
+    } elseif ($canView) {
+        $storeId = $employee->primaryStore()->first()?->id;
+        $departmentId = $employee->primaryDepartment()->first()?->id;
+
+        if (!$storeId || !$departmentId) {
+            return DataTables::of(collect())->make(true);
+        }
+
+        $query->whereExists(function ($q) use ($storeId) {
+            $q->select(DB::raw(1))
+                ->from('employee_stores')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->where('employee_stores.store_id', $storeId)
+                ->where('employee_stores.is_primary', true);
+        })
+        ->whereExists(function ($q) use ($departmentId) {
+            $q->select(DB::raw(1))
+                ->from('employee_departments')
+                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                ->where('employee_departments.department_id', $departmentId)
+                ->where('employee_departments.is_primary', true);
+        });
+    }
+}
+    // if (!$canManage) {
+    //     $employee = $user->employee;
+
+    //     if ($canSpvManager) {
+    //         $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
+    //         $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+    //         if (empty($storeIds) || empty($departmentIds)) {
+    //             return DataTables::of(collect())->make(true);
     //         }
-    //     });
-    //     return DataTables::of($query)
-    //         ->addColumn('length_of_service', function ($e) {
-    //             if (!$e->join_date) return 'Empty';
-    //             $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
-    //             return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+
+    //         $query->whereExists(function ($q) use ($storeIds) {
+    //             $q->select(DB::raw(1))
+    //                 ->from('employee_stores')
+    //                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+    //                 ->whereIn('employee_stores.store_id', $storeIds);
     //         })
-    //         ->addColumn('action', function ($e) use ($isHeadHR) {
-    //             if (!$isHeadHR) return '';
-    //             $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-    //             return '
-    //             <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
-    //                 <i class="fas fa-user-edit text-secondary"></i>
-    //             </a>
-    //             <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
-    //                 <i class="fas fa-eye text-secondary"></i>
-    //             </a>';
+    //         ->whereExists(function ($q) use ($departmentIds) {
+    //             $q->select(DB::raw(1))
+    //                 ->from('employee_departments')
+    //                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+    //                 ->whereIn('employee_departments.department_id', $departmentIds);
+    //         });
+
+    //     } elseif ($canView) {
+    //         $storeId = $employee->primaryStore()->first()?->id;
+    //         $departmentId = $employee->primaryDepartment()->first()?->id;
+
+    //         if (!$storeId || !$departmentId) {
+    //             return DataTables::of(collect())->make(true);
+    //         }
+
+    //         $query->whereExists(function ($q) use ($storeId) {
+    //             $q->select(DB::raw(1))
+    //                 ->from('employee_stores')
+    //                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+    //                 ->where('employee_stores.store_id', $storeId)
+    //                 ->where('employee_stores.is_primary', true);
     //         })
-    //         // Daftarkan kolom yang bisa di-search
-    //         ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
-    //         ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
-    //         ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
-    //         ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
-    //         ->filterColumn('name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
-    //         ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
-    //         ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
-    //         ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
-    //         ->rawColumns(['action'])
-    //         ->make(true);
+    //         ->whereExists(function ($q) use ($departmentId) {
+    //             $q->select(DB::raw(1))
+    //                 ->from('employee_departments')
+    //                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+    //                 ->where('employee_departments.department_id', $departmentId)
+    //                 ->where('employee_departments.is_primary', true);
+    //         });
+    //     }
     // }
-    public function getEmployees(Request $request)
-    {
-        /** @var \App\Models\User|null $user */
-        $user = auth()->user();
-        $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
 
-        $query = User::query()
-            ->with([
-                'employee',
-                'employee.position',
-                'employee.department',
-                'employee.grading',
-                'employee.group',
-                'employee.store',
-                'employee.company'
-            ])
-            ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
-            ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
-            ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
-            ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
-
-            // ← Join pivot + tabel stores untuk primary store
-            ->leftJoin('employee_stores', function ($join) {
-                $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
-                    ->where('employee_stores.is_primary', true);
-            })
-            ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
-            ->leftJoin('employee_positions', function ($join) {
-                $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
-                    ->where('employee_positions.is_primary', true);
-            })
-            ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
-
-            // ← Join pivot + tabel departments untuk primary department
-            ->leftJoin('employee_departments', function ($join) {
-                $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
-                    ->where('employee_departments.is_primary', true);
-            })
-            ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
-
-            ->select([
-                'users.*',
-                'employees_tables.employee_name',
-                'employees_tables.employee_pengenal',
-                'employees_tables.status_employee',
-                'employees_tables.status',
-                'employees_tables.join_date',
-                'position_tables.name as position_name',
-                'groups_tables.remark as remark',
-                'stores_tables.name as store_name',           // ← ganti alias jadi store_name
-                'departments_tables.department_name',
-                'grading.grading_name',
-                'company_tables.name as name_company',
-            ]);
-
-        $query->when(
-            $request->filled('filter_company'),
-            fn($q) => $q->where('company_tables.name', $request->filter_company)
-        );
-        $query->when(
-            $request->filled('filter_department'),
-            fn($q) => $q->where('departments_tables.department_name', $request->filter_department)
-        );
-        $query->when(
-            $request->filled('filter_group'),
-            fn($q) => $q->where('groups_tables.remark', $request->filter_group)
-        );
-        $query->when(
-            $request->filled('filter_grading'),
-            fn($q) => $q->where('grading.grading_name', $request->filter_grading)
-        );
-        $query->when(
-            $request->filled('filter_store'),
-            fn($q) => $q->where('stores_tables.name', $request->filter_store)
-        );
-        $query->when(
-            $request->filled('filter_emp_status'),
-            fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status)
-        );
-        $query->when(
-            $request->filled('filter_status'),
-            fn($q) => $q->where('employees_tables.status', $request->filter_status)
-        );
+    if ($canManage) {
+        $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
+        $query->when($request->filled('filter_grading'), fn($q) => $q->where('grading.grading_name', $request->filter_grading));
+        $query->when($request->filled('filter_emp_status'), fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status));
         $query->when($request->filled('filter_los'), function ($q) use ($request) {
             $los = $request->filter_los;
             if ($los === 'under3months') {
@@ -971,49 +896,227 @@ $query->when(
                     '5years' => Carbon::now()->subYears(5),
                     default  => null,
                 };
-                if ($date) {
-                    $q->where('employees_tables.join_date', '<=', $date);
-                }
+                if ($date) $q->where('employees_tables.join_date', '<=', $date);
             }
         });
-
-        return DataTables::of($query)
-            ->addColumn('length_of_service', function ($e) {
-                if (!$e->join_date) return 'Empty';
-                $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
-                return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
-            })
-            ->addColumn('action', function ($e) use ($isHeadHR) {
-                if (!$isHeadHR) return '';
-                $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-                return '
-            <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
-                <i class="fas fa-user-edit text-secondary"></i>
-            </a>
-            <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
-                <i class="fas fa-eye text-secondary"></i>
-            </a>';
-            })
-            ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
-            ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
-            ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
-            ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
-            ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
-            ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%")) // ← ganti alias
-            ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
-            ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
-            ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
-            ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
-            ->rawColumns(['action'])
-            ->make(true);
     }
+
+    $query->when($request->filled('filter_company'), fn($q) => $q->where('company_tables.name', $request->filter_company));
+    $query->when($request->filled('filter_department'), fn($q) => $q->where('departments_tables.department_name', $request->filter_department));
+    $query->when($request->filled('filter_store'), fn($q) => $q->where('stores_tables.name', $request->filter_store));
+    $query->when($request->filled('filter_status'), fn($q) => $q->where('employees_tables.status', $request->filter_status));
+
+    $dt = DataTables::of($query);
+
+    // ← Sembunyikan data sensitif dari response untuk non-ManageEmployee
+    if (!$canManage) {
+        $sensitiveFields = [
+            'nik', 'telp_number', 'email', 'bank_account_number',
+            'bpjs_kes', 'bpjs_ket', 'npwp', 'pin', 'date_of_birth',
+            'place_of_birth', 'biological_mother_name', 'current_address',
+            'id_card_address', 'marriage', 'child', 'gender', 'religion',
+            'last_education', 'institution', 'kk_photos', 'ktp_photos',
+            'signature', 'join_date', 'end_date', 'can_approve',
+            'grading_id', 'banks_id', 'structure_id', 'group_id',
+            'level_id', 'is_manager', 'is_manager_store', 'photos',
+            'remaining', 'approved', 'pending', 'total',
+            'position_id', 'store_id', 'department_id',
+        ];
+
+        $dt->addColumn('employee', function ($row) use ($sensitiveFields) {
+            if (!$row->employee) return null;
+            return $row->employee->makeHidden($sensitiveFields);
+        });
+    }
+
+    if ($canManage) {
+        $dt->addColumn('length_of_service', function ($e) {
+            if (!$e->join_date) return 'Empty';
+            $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+            return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+        });
+    }
+
+    $dt->addColumn('action', function ($e) use ($canManage) {
+        $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+        $actions = '<a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+            <i class="fas fa-eye text-secondary"></i>
+        </a>';
+        if ($canManage) {
+            $actions .= '<a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+                <i class="fas fa-user-edit text-secondary"></i>
+            </a>';
+        }
+        return $actions;
+    });
+
+    $dt->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+        ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+        ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+        ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+        ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+        ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+        ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"));
+
+    if ($canManage) {
+        $dt->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+            ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+            ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"));
+    }
+
+    return $dt->rawColumns(['action'])->make(true);
+}
+// public function getEmployees(Request $request)
+// {
+//     /** @var \App\Models\User|null $user */
+//     $user = auth()->user();
+
+//     $canManage     = $user->hasPermissionTo('ManageEmployee');
+//     $canSpvManager = $user->hasPermissionTo('ManageEmployeeSPVManager');
+//     $canView       = $user->hasPermissionTo('ViewEmployee');
+
+//     if (!$canManage && !$canSpvManager && !$canView) {
+//         abort(403);
+//     }
+
+//     $query = User::query()
+//         ->with([
+//             'employee',
+//             'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.grading',
+//             'employee.group',
+//             'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.company'
+//         ])
+//         ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+//         ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//         ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+//         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+//         ->leftJoin('employee_stores', function ($join) {
+//             $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+//                 ->where('employee_stores.is_primary', true);
+//         })
+//         ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+//         ->leftJoin('employee_positions', function ($join) {
+//             $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+//                 ->where('employee_positions.is_primary', true);
+//         })
+//         ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+//         ->leftJoin('employee_departments', function ($join) {
+//             $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+//                 ->where('employee_departments.is_primary', true);
+//         })
+//         ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
+//         ->select([
+//             'users.*',
+//             'employees_tables.employee_name',
+//             'employees_tables.employee_pengenal',
+//             'employees_tables.status_employee',
+//             'employees_tables.status',
+//             'employees_tables.join_date',
+//             'position_tables.name as position_name',
+//             'groups_tables.remark as remark',
+//             'stores_tables.name as store_name',
+//             'departments_tables.department_name',
+//             'grading.grading_name',
+//             'company_tables.name as name_company',
+//         ]);
+
+//     // ← ManageEmployeeSPVManager: semua store dan department kepunyaan (pivot)
+//     if ($canSpvManager && !$canManage) {
+//         $employee = $user->employee;
+//         $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
+//         $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+//         $query->whereHas('employee.store', fn($q) =>
+//             $q->whereIn('stores_tables.id', $storeIds)
+//         )
+//         ->whereHas('employee.department', fn($q) =>
+//             $q->whereIn('departments_tables.id', $departmentIds)
+//         );
+//     }
+
+//     // ← ViewEmployee: hanya primary store dan department
+//     if ($canView && !$canManage && !$canSpvManager) {
+//         $employee = $user->employee;
+//         $storeId = $employee->primaryStore()->first()?->id;
+//         $departmentId = $employee->primaryDepartment()->first()?->id;
+
+//         $query->whereHas('employee.store', fn($q) =>
+//             $q->where('stores_tables.id', $storeId)
+//               ->where('employee_stores.is_primary', true)
+//         )
+//         ->whereHas('employee.department', fn($q) =>
+//             $q->where('departments_tables.id', $departmentId)
+//               ->where('employee_departments.is_primary', true)
+//         );
+//     }
+
+//     // Filter
+//     $query->when($request->filled('filter_company'), fn($q) => $q->where('company_tables.name', $request->filter_company));
+//     $query->when($request->filled('filter_department'), fn($q) => $q->where('departments_tables.department_name', $request->filter_department));
+//     $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
+//     $query->when($request->filled('filter_grading'), fn($q) => $q->where('grading.grading_name', $request->filter_grading));
+//     $query->when($request->filled('filter_store'), fn($q) => $q->where('stores_tables.name', $request->filter_store));
+//     $query->when($request->filled('filter_emp_status'), fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status));
+//     $query->when($request->filled('filter_status'), fn($q) => $q->where('employees_tables.status', $request->filter_status));
+//     $query->when($request->filled('filter_los'), function ($q) use ($request) {
+//         $los = $request->filter_los;
+//         if ($los === 'under3months') {
+//             $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+//         } else {
+//             $date = match ($los) {
+//                 '1year'  => Carbon::now()->subYear(),
+//                 '3years' => Carbon::now()->subYears(3),
+//                 '5years' => Carbon::now()->subYears(5),
+//                 default  => null,
+//             };
+//             if ($date) $q->where('employees_tables.join_date', '<=', $date);
+//         }
+//     });
+
+//     return DataTables::of($query)
+//         ->addColumn('length_of_service', function ($e) {
+//             if (!$e->join_date) return 'Empty';
+//             $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+//             return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+//         })
+//         ->addColumn('action', function ($e) use ($canManage) {
+//             $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+//             $actions = '<a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+//                 <i class="fas fa-eye text-secondary"></i>
+//             </a>';
+//             if ($canManage) {
+//                 $actions .= '<a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+//                     <i class="fas fa-user-edit text-secondary"></i>
+//                 </a>';
+//             }
+//             return $actions;
+//         })
+//         ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+//         ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+//         ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+//         ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+//         ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+//         ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+//         ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+//         ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+//         ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+//         ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+//         ->rawColumns(['action'])
+//         ->make(true);
+// }
+
 
     public function exportEmployees(Request $request)
     {
-        // ❌ Masalah - only() kadang tidak baca query string
-        // $filters = $request->only([...]);
-
-        // ✅ Ambil manual dari query string
+        /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
+          // ✅ Ambil manual dari query string
         $filters = [
             'filter_company'    => $request->query('filter_company'),
             'filter_department' => $request->query('filter_department'),
@@ -1038,6 +1141,11 @@ $query->when(
 
     public function edit($hashedId)
     {
+        /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
@@ -1051,10 +1159,12 @@ $query->when(
         // $allEmployees = Employee::get();
         // $allEmployees = Employee::where('status', 'Active')->get();
         $allEmployees = Employee::where('status', 'Active')
-    ->whereHas('grading', fn($q) =>
-        $q->where('level', '<', $employee->Employee->grading->level)
-    )
-    ->get();
+            ->whereHas(
+                'grading',
+                fn($q) =>
+                $q->where('level', '<', $employee->Employee->grading->level)
+            )
+            ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
         $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
         $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
@@ -1117,6 +1227,7 @@ $query->when(
     }
     public function show($hashedId)
     {
+        
         $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
@@ -1127,13 +1238,13 @@ $query->when(
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
-        // $allEmployees = Employee::get();
-        // $allEmployees = Employee::where('status', 'Active')->get();
         $allEmployees = Employee::where('status', 'Active')
-    ->whereHas('grading', fn($q) =>
-        $q->where('level', '<', $employee->Employee->grading->level)
-    )
-    ->get();
+            ->whereHas(
+                'grading',
+                fn($q) =>
+                $q->where('level', '<', $employee->Employee->grading->level)
+            )
+            ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
         $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
         $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
@@ -1164,7 +1275,15 @@ $query->when(
         $banks = Banks::get();
         $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+        // Tambahkan sebelum return view
+$documents = Documents::with([
+    'companydocumentconfigs.documenttypes',
+    'companydocumentconfigs.company',
+])
+->where('employee_id', $employee->Employee->id)
+->get();
         return view('pages.Employee.show', [
+            'documents' => $documents,
             'allEmployees' => $allEmployees,
             'selectedAtasans' => $selectedAtasans,
             'primaryEmployeeId' => $primaryEmployeeId,
@@ -1195,157 +1314,13 @@ $query->when(
         ]);
     }
 
-    // public function show($hashedId)
-    // {
-    //     $employee = User::with(
-    //         'Employee',
-    //         'Employee.store',
-    //         'Employee.grading',
-    //         'Employee.group',
-    //         'Employee.department',
-    //         'Employee.position',
-    //         'Employee.bank',
-    //         'Employee.employees'
-           
-    //     )->get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-
-    //     if (!$employee) {
-    //         abort(404, 'Employee not found.');
-    //     }
-    //     // ---------------------------
-    //     // Tambahkan logic aman disini
-    //     // ---------------------------
-
-       
-    //     // Data lain
-    //     $allStores = Stores::get();
-    //     $allPositions = Position::get();
-    //     $allDepartments = Departments::get();
-    //     $selectedStores = $employee->Employee->store->pluck('id')->toArray();
-    //     $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
-    //     $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
-    //     $primaryStoreId = $employee->Employee->store()
-    //         ->wherePivot('is_primary', true)
-    //         ->first()?->id;
-    //     $primaryPositionId = $employee->Employee->position()
-    //         ->wherePivot('is_primary', true)
-    //         ->first()?->id;
-    //     $primaryDepartmentId = $employee->Employee->department()
-    //         ->wherePivot('is_primary', true)
-    //         ->first()?->id;
-    //     $companys = Company::get();
-    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
-    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-    //     $child = ['0', '1', '2', '3', '4', '5'];
-    //     $marriage = ['Yes', 'No'];
-    //     $gender = ['Male', 'Female', 'MD'];
-    //     $bloodtypes = Employee::getBloodTypeOptions();
-
-    //     $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
-    //     $banks = Banks::get();
-    //     $gradings = Grading::get();
-    //     $groups = Groups::get();
-    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
-    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-
-    //     return view('pages.Employee.show', compact(
-    //         'employee',
-    //         'employees',
-    //         'status_employee',
-    //         'child',
-    //         'bloodtypes',
-    //         'companys',
-    //         'marriage',
-    //         'gender',
-    //         'gradings',
-    //         'groups',
-    //         'status',
-    //         'banks',
-    //         'religion',
-    //         'last_education',
-    //         'hashedId',
-    //         'allStores',
-    //         'allPositions',
-    //         'allDepartments',
-    //         'selectedStores',
-    //         'selectedDepartments',
-    //         'selectedPositions',
-    //         'primaryStoreId',
-    //         'primaryDepartmentId',
-    //         'primaryPositionId',
-    //         'isManager'
-    //     ));
-    // }
-    // public function show($hashedId)
-    // {
-    //     $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
-    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-    //         return $expectedHash === $hashedId;
-    //     });
-    //     if (!$employee) {
-    //         abort(404, 'Employee not found.');
-    //     }
-    //     $allStores = Stores::get();
-    //     $allPositions = Position::get();
-    //     $allDepartments = Departments::get();
-    //     $selectedStores = $employee->Employee->store->pluck('id')->toArray();
-    //     $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
-    //     $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
-    //     $primaryStoreId = $employee->Employee->store()
-    //         ->wherePivot('is_primary', true)
-    //         ->first()?->id;
-    //     $primaryPositionId = $employee->Employee->position()
-    //         ->wherePivot('is_primary', true)
-    //         ->first()?->id;
-    //     $primaryDepartmentId = $employee->Employee->department()
-    //         ->wherePivot('is_primary', true)
-    //         ->first()?->id;
-    //     $companys = Company::get();
-    //     $gradings = Grading::get();
-    //     $groups = Groups::get();
-    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
-    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-    //     $child = ['0', '1', '2', '3', '4', '5'];
-    //     $marriage = ['Yes', 'No'];
-    //     $bloodtypes = Employee::getBloodTypeOptions();
-
-    //     $gender = ['Male', 'Female', 'MD'];
-    //     $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
-    //     $banks = Banks::get();
-    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
-    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-    //     return view('pages.Employee.show', [
-    //         'employee' => $employee,
-    //         'status_employee' => $status_employee,
-    //         'child' => $child,
-    //         'employees' => $employees,
-    //         'bloodtypes' => $bloodtypes,
-    //         'companys' => $companys,
-    //         'marriage' => $marriage,
-    //         'status' => $status,
-    //         'gender' => $gender,
-    //         'gradings' => $gradings,
-    //         'groups' => $groups,
-    //         'banks' => $banks,
-    //         'religion' => $religion,
-    //         'last_education' => $last_education,
-    //         'allStores' => $allStores,
-    //         'allPositions' => $allPositions,
-    //         'allDepartments' => $allDepartments,
-    //         'selectedStores' => $selectedStores,
-    //         'selectedDepartments' => $selectedDepartments,
-    //         'selectedPositions' => $selectedPositions,
-    //         'primaryStoreId' => $primaryStoreId,
-    //         'primaryDepartmentId' => $primaryDepartmentId,
-    //         'primaryPositionId' => $primaryPositionId,
-    //         'hashedId' => $hashedId,
-    //     ]);
-    // }
     public function create()
     {
+        /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $employees = Employee::where('status', 'Active')
             ->pluck('employee_name', 'id');
         $atasans = Employee::where('status', 'Active')
@@ -1365,10 +1340,15 @@ $query->when(
         $bloodtypes = Employee::getBloodTypeOptions();
         $status_religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
         $status_last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        return view('pages.Employee.create', compact('atasans','employeestatuses','gradings','employees', 'bloodtypes', 'companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
+        return view('pages.Employee.create', compact('atasans', 'employeestatuses', 'gradings', 'employees', 'bloodtypes', 'companys', 'stores', 'banks', 'status_marriage', 'positions', 'departments', 'status_employee', 'status_child', 'status_gender', 'status_religion', 'status_last_education', 'status'));
     }
     public function store(Request $request)
     {
+        /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $validatedData = $request->validate([
             'password' => ['nullable', 'string', 'min:7', 'max:30', new NoXSSInput()],
             'username' => [
@@ -1624,25 +1604,25 @@ $query->when(
                 'institution' => $validatedData['institution'] ?? '',
                 'npwp' => $validatedData['npwp'] ?? '',
             ]);
-          
-            $employees->store()->attach($validatedData['store_id'], ['is_primary' => true]);
-$employees->position()->attach($validatedData['position_id'], ['is_primary' => true]);
-$employees->department()->attach($validatedData['department_id'], ['is_primary' => true]);
-$employees->atasanList()->attach($validatedData['atasan_id'], ['is_primary' => true]);
 
-// ← Log pivot saat create
-activity('employee')
-    ->performedOn($employees)
-    ->causedBy(auth()->user())
-    ->withProperties([
-        'attributes' => [
-            'store'      => $employees->store()->wherePivot('is_primary', true)->first()?->name ?? '-',
-            'position'   => $employees->position()->wherePivot('is_primary', true)->first()?->name ?? '-',
-            'department' => $employees->department()->wherePivot('is_primary', true)->first()?->department_name ?? '-',
-            'atasanList' => $employees->atasanList()->wherePivot('is_primary', true)->first()?->employee_name ?? '-',
-        ],
-    ])
-    ->log('Employee pivot data ' . $employees->employee_name . ' has been created.');
+            $employees->store()->attach($validatedData['store_id'], ['is_primary' => true]);
+            $employees->position()->attach($validatedData['position_id'], ['is_primary' => true]);
+            $employees->department()->attach($validatedData['department_id'], ['is_primary' => true]);
+            $employees->atasanList()->attach($validatedData['atasan_id'], ['is_primary' => true]);
+
+            // ← Log pivot saat create
+            activity('employee')
+                ->performedOn($employees)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'attributes' => [
+                        'store'      => $employees->store()->wherePivot('is_primary', true)->first()?->name ?? '-',
+                        'position'   => $employees->position()->wherePivot('is_primary', true)->first()?->name ?? '-',
+                        'department' => $employees->department()->wherePivot('is_primary', true)->first()?->department_name ?? '-',
+                        'atasanList' => $employees->atasanList()->wherePivot('is_primary', true)->first()?->employee_name ?? '-',
+                    ],
+                ])
+                ->log('Employee pivot data ' . $employees->employee_name . ' has been created.');
 
 
             if ($employees) {
@@ -1676,6 +1656,11 @@ activity('employee')
 
     public function update(Request $request, $hashedId)
     {
+        /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+         if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
         $user = User::with('Employee')
             ->get()
             ->first(function ($u) use ($hashedId) {
@@ -1776,182 +1761,142 @@ activity('employee')
         }
 
         try {
-          
+
             DB::transaction(function () use ($user, &$validatedData, $oldPaths, $newPaths) {
-    $employee = $user->Employee()->lockForUpdate()->first();
+                $employee = $user->Employee()->lockForUpdate()->first();
 
-   $oldStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
-$oldPosition   = $employee->position()->pluck('name')->sort()->values()->toArray();
-$oldDepartment = $employee->department()->pluck('department_name')->sort()->values()->toArray();
-$oldAtasan     = $employee->atasanList()->pluck('employee_name')->sort()->values()->toArray();
+                $oldStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
+                $oldPosition   = $employee->position()->pluck('name')->sort()->values()->toArray();
+                $oldDepartment = $employee->department()->pluck('department_name')->sort()->values()->toArray();
+                $oldAtasan     = $employee->atasanList()->pluck('employee_name')->sort()->values()->toArray();
 
-    // ── Sync store ──
-     if (!empty($validatedData['stores'])) {
-    $currentPrimary = $employee->store()->wherePivot('is_primary', true)->first();
-    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
-        ? $currentPrimary->id
-        : $validatedData['stores'][0];
+                // ── Sync store ──
+                if (!empty($validatedData['stores'])) {
+                    $currentPrimary = $employee->store()->wherePivot('is_primary', true)->first();
+                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
+                        ? $currentPrimary->id
+                        : $validatedData['stores'][0];
 
-    $syncData = [];
-    foreach ($validatedData['stores'] as $storeId) {
-        $syncData[$storeId] = ['is_primary' => $storeId === $primaryId];
-    }
-    $employee->store()->sync($syncData);
-} else {
-    // Kalau kosong → hapus semua atasan
-    $employee->store()->detach();
-}
-
-    // if (!empty($validatedData['stores'])) {
-    //     $currentPrimary = $employee->store()->wherePivot('is_primary', true)->first();
-    //     $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
-    //         ? $currentPrimary->id
-    //         : $validatedData['stores'][0];
-
-    //     $syncData = [];
-    //     foreach ($validatedData['stores'] as $storeId) {
-    //         $syncData[$storeId] = ['is_primary' => $storeId === $primaryId];
-    //     }
-    //     $employee->store()->sync($syncData);
-    // }
-
-    // ── Sync position ──
-    // if (!empty($validatedData['positions'])) {
-    //     $currentPrimary = $employee->position()->wherePivot('is_primary', true)->first();
-    //     $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
-    //         ? $currentPrimary->id
-    //         : $validatedData['positions'][0];
-
-    //     $syncData = [];
-    //     foreach ($validatedData['positions'] as $positionId) {
-    //         $syncData[$positionId] = ['is_primary' => $positionId === $primaryId];
-    //     }
-    //     $employee->position()->sync($syncData);
-    // }
-    if (!empty($validatedData['positions'])) {
-    $currentPrimary = $employee->position()->wherePivot('is_primary', true)->first();
-    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
-        ? $currentPrimary->id
-        : $validatedData['positions'][0];
-
-    $syncData = [];
-    foreach ($validatedData['positions'] as $positionId) {
-        $syncData[$positionId] = ['is_primary' => $positionId === $primaryId];
-    }
-    $employee->position()->sync($syncData);
-} else {
-    // Kalau kosong → hapus semua atasan
-    $employee->position()->detach();
-}
-
-    // ── Sync department ──
-    // if (!empty($validatedData['departments'])) {
-    //     $currentPrimary = $employee->department()->wherePivot('is_primary', true)->first();
-    //     $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
-    //         ? $currentPrimary->id
-    //         : $validatedData['departments'][0];
-
-    //     $syncData = [];
-    //     foreach ($validatedData['departments'] as $departmentId) {
-    //         $syncData[$departmentId] = ['is_primary' => $departmentId === $primaryId];
-    //     }
-    //     $employee->department()->sync($syncData);
-    // }
-  
-    // Sync atasanList
-if (!empty($validatedData['departments'])) {
-    $currentPrimary = $employee->department()->wherePivot('is_primary', true)->first();
-    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
-        ? $currentPrimary->id
-        : $validatedData['departments'][0];
-
-    $syncData = [];
-    foreach ($validatedData['departments'] as $departmentId) {
-        $syncData[$departmentId] = ['is_primary' => $departmentId === $primaryId];
-    }
-    $employee->department()->sync($syncData);
-} else {
-    // Kalau kosong → hapus semua atasan
-    $employee->department()->detach();
-}
-if (!empty($validatedData['atasans'])) {
-    $currentPrimary = $employee->atasanList()->wherePivot('is_primary', true)->first();
-    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['atasans'])
-        ? $currentPrimary->id
-        : $validatedData['atasans'][0];
-
-    $syncData = [];
-    foreach ($validatedData['atasans'] as $atasanId) {
-        $syncData[$atasanId] = ['is_primary' => $atasanId === $primaryId];
-    }
-    $employee->atasanList()->sync($syncData);
-} else {
-    // Kalau kosong → hapus semua atasan
-    $employee->atasanList()->detach();
-}
-
-    // ── Ambil nilai baru setelah sync ──
-    $newStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
-$newPosition   = $employee->position()->pluck('name')->sort()->values()->toArray();
-$newDepartment = $employee->department()->pluck('department_name')->sort()->values()->toArray();
-$newAtasan     = $employee->atasanList()->pluck('employee_name')->sort()->values()->toArray();
+                    $syncData = [];
+                    foreach ($validatedData['stores'] as $storeId) {
+                        $syncData[$storeId] = ['is_primary' => $storeId === $primaryId];
+                    }
+                    $employee->store()->sync($syncData);
+                } else {
+                    // Kalau kosong → hapus semua atasan
+                    $employee->store()->detach();
+                }
 
 
-    // ── Log manual perubahan pivot ──
-    $pivotChanges = [];
-   
-    if ($oldStore !== $newStore) {
-    $pivotChanges[] = "Location: [" . implode(', ', $oldStore) . "] → [" . implode(', ', $newStore) . "]";
-}
-if ($oldPosition !== $newPosition) {
-    $pivotChanges[] = "Position: [" . implode(', ', $oldPosition) . "] → [" . implode(', ', $newPosition) . "]";
-}
-if ($oldDepartment !== $newDepartment) {
-    $pivotChanges[] = "Department: [" . implode(', ', $oldDepartment) . "] → [" . implode(', ', $newDepartment) . "]";
-}
-if ($oldAtasan !== $newAtasan) {
-    $pivotChanges[] = "Atasan: [" . implode(', ', $oldAtasan) . "] → [" . implode(', ', $newAtasan) . "]";
-}
+                if (!empty($validatedData['positions'])) {
+                    $currentPrimary = $employee->position()->wherePivot('is_primary', true)->first();
+                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
+                        ? $currentPrimary->id
+                        : $validatedData['positions'][0];
 
-    if (!empty($pivotChanges)) {
-        activity('employee')
-            ->performedOn($employee)
-            ->causedBy(auth()->user())
-            ->withProperties([
-                'attributes' => [
-                    'store'      => $newStore,
-                    'position'   => $newPosition,
-                    'department' => $newDepartment,
-                    'atasanList' => $newAtasan,
-                ],
-                'old' => [
-                    'store'      => $oldStore,
-                    'position'   => $oldPosition,
-                    'department' => $oldDepartment,
-                    'atasanList' => $oldAtasan,
-                ],
-            ])
-            ->log('Employee pivot data ' . $employee->employee_name . ' has been updated. Changes: ' . implode(', ', $pivotChanges));
-    }
+                    $syncData = [];
+                    foreach ($validatedData['positions'] as $positionId) {
+                        $syncData[$positionId] = ['is_primary' => $positionId === $primaryId];
+                    }
+                    $employee->position()->sync($syncData);
+                } else {
+                    // Kalau kosong → hapus semua atasan
+                    $employee->position()->detach();
+                }
+                // Sync atasanList
+                if (!empty($validatedData['departments'])) {
+                    $currentPrimary = $employee->department()->wherePivot('is_primary', true)->first();
+                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
+                        ? $currentPrimary->id
+                        : $validatedData['departments'][0];
 
-    // ── Hapus FK dari validatedData ──
-    unset(
-        $validatedData['stores'],
-        $validatedData['departments'],
-        $validatedData['positions'],
-        $validatedData['atasans']
-    );
+                    $syncData = [];
+                    foreach ($validatedData['departments'] as $departmentId) {
+                        $syncData[$departmentId] = ['is_primary' => $departmentId === $primaryId];
+                    }
+                    $employee->department()->sync($syncData);
+                } else {
+                    // Kalau kosong → hapus semua atasan
+                    $employee->department()->detach();
+                }
+                if (!empty($validatedData['atasans'])) {
+                    $currentPrimary = $employee->atasanList()->wherePivot('is_primary', true)->first();
+                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['atasans'])
+                        ? $currentPrimary->id
+                        : $validatedData['atasans'][0];
 
-    // ── Update employee biasa ──
-    $employee->update($validatedData);
+                    $syncData = [];
+                    foreach ($validatedData['atasans'] as $atasanId) {
+                        $syncData[$atasanId] = ['is_primary' => $atasanId === $primaryId];
+                    }
+                    $employee->atasanList()->sync($syncData);
+                } else {
+                    // Kalau kosong → hapus semua atasan
+                    $employee->atasanList()->detach();
+                }
 
-    // ── Hapus file lama di S3 ──
-    foreach (['photos', 'kk_photos', 'ktp_photos', 'signature'] as $key) {
-        if (isset($newPaths[$key]) && $oldPaths[$key] && Storage::disk('s3')->exists($oldPaths[$key])) {
-            Storage::disk('s3')->delete($oldPaths[$key]);
-        }
-    }
-});
+                // ── Ambil nilai baru setelah sync ──
+                $newStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
+                $newPosition   = $employee->position()->pluck('name')->sort()->values()->toArray();
+                $newDepartment = $employee->department()->pluck('department_name')->sort()->values()->toArray();
+                $newAtasan     = $employee->atasanList()->pluck('employee_name')->sort()->values()->toArray();
+
+
+                // ── Log manual perubahan pivot ──
+                $pivotChanges = [];
+
+                if ($oldStore !== $newStore) {
+                    $pivotChanges[] = "Location: [" . implode(', ', $oldStore) . "] → [" . implode(', ', $newStore) . "]";
+                }
+                if ($oldPosition !== $newPosition) {
+                    $pivotChanges[] = "Position: [" . implode(', ', $oldPosition) . "] → [" . implode(', ', $newPosition) . "]";
+                }
+                if ($oldDepartment !== $newDepartment) {
+                    $pivotChanges[] = "Department: [" . implode(', ', $oldDepartment) . "] → [" . implode(', ', $newDepartment) . "]";
+                }
+                if ($oldAtasan !== $newAtasan) {
+                    $pivotChanges[] = "Atasan: [" . implode(', ', $oldAtasan) . "] → [" . implode(', ', $newAtasan) . "]";
+                }
+
+                if (!empty($pivotChanges)) {
+                    activity('employee')
+                        ->performedOn($employee)
+                        ->causedBy(auth()->user())
+                        ->withProperties([
+                            'attributes' => [
+                                'store'      => $newStore,
+                                'position'   => $newPosition,
+                                'department' => $newDepartment,
+                                'atasanList' => $newAtasan,
+                            ],
+                            'old' => [
+                                'store'      => $oldStore,
+                                'position'   => $oldPosition,
+                                'department' => $oldDepartment,
+                                'atasanList' => $oldAtasan,
+                            ],
+                        ])
+                        ->log('Employee pivot data ' . $employee->employee_name . ' has been updated. Changes: ' . implode(', ', $pivotChanges));
+                }
+
+                // ── Hapus FK dari validatedData ──
+                unset(
+                    $validatedData['stores'],
+                    $validatedData['departments'],
+                    $validatedData['positions'],
+                    $validatedData['atasans']
+                );
+
+                // ── Update employee biasa ──
+                $employee->update($validatedData);
+
+                // ── Hapus file lama di S3 ──
+                foreach (['photos', 'kk_photos', 'ktp_photos', 'signature'] as $key) {
+                    if (isset($newPaths[$key]) && $oldPaths[$key] && Storage::disk('s3')->exists($oldPaths[$key])) {
+                        Storage::disk('s3')->delete($oldPaths[$key]);
+                    }
+                }
+            });
 
 
             return redirect()->route('pages.Employee')->with('success', 'Employee Updated Successfully.');
@@ -1972,56 +1917,56 @@ if ($oldAtasan !== $newAtasan) {
         }
     }
 
-    public function transferAllToPayroll(Request $request)
-    {
-        try {
-            $month_year = $request->input('month_year', date('Y-m-d'));
+    // public function transferAllToPayroll(Request $request)
+    // {
+    //     try {
+    //         $month_year = $request->input('month_year', date('Y-m-d'));
 
-            $month = date('m', strtotime($month_year));
-            $year = date('Y', strtotime($month_year));
+    //         $month = date('m', strtotime($month_year));
+    //         $year = date('Y', strtotime($month_year));
 
-            $employeeIds = User::whereNotNull('employee_id')
-                ->whereHas('employee', function ($query) {
-                    $query->whereIn('status', ['Mutation', 'Active', 'On Leave']);
-                })
-                ->pluck('employee_id')
-                ->toArray();
+    //         $employeeIds = User::whereNotNull('employee_id')
+    //             ->whereHas('employee', function ($query) {
+    //                 $query->whereIn('status', ['Mutation', 'Active', 'On Leave']);
+    //             })
+    //             ->pluck('employee_id')
+    //             ->toArray();
 
-            $transferred = 0;
-            $skipped = 0;
+    //         $transferred = 0;
+    //         $skipped = 0;
 
-            foreach ($employeeIds as $employeeId) {
-                $exists = Payrolls::where('employee_id', $employeeId)
-                    ->whereMonth('month_year', $month)
-                    ->whereYear('month_year', $year)
-                    ->exists();
+    //         foreach ($employeeIds as $employeeId) {
+    //             $exists = Payrolls::where('employee_id', $employeeId)
+    //                 ->whereMonth('month_year', $month)
+    //                 ->whereYear('month_year', $year)
+    //                 ->exists();
 
-                if (!$exists) {
-                    Payrolls::create([
-                        'employee_id' => $employeeId,
-                        'month_year' => $month_year,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                    $transferred++;
-                } else {
-                    $skipped++;
-                }
-            }
-            $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) .
-                ", $skipped employee(s) skipped (already exist for this month)";
+    //             if (!$exists) {
+    //                 Payrolls::create([
+    //                     'employee_id' => $employeeId,
+    //                     'month_year' => $month_year,
+    //                     'created_at' => now(),
+    //                     'updated_at' => now(),
+    //                 ]);
+    //                 $transferred++;
+    //             } else {
+    //                 $skipped++;
+    //             }
+    //         }
+    //         $message = "Transfer completed: $transferred employee(s) transferred for period " . date('F Y', strtotime($month_year)) .
+    //             ", $skipped employee(s) skipped (already exist for this month)";
 
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'transferred' => $transferred,
-                'skipped' => $skipped,
-                'period' => date('F Y', strtotime($month_year))
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => $message,
+    //             'transferred' => $transferred,
+    //             'skipped' => $skipped,
+    //             'period' => date('F Y', strtotime($month_year))
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['success' => false, 'message' => 'Failed to transfer: ' . $e->getMessage()]);
+    //     }
+    // }
 
     private function serveFile(string $filename, string $folder, string $column): \Illuminate\Http\Response
     {
@@ -2098,8 +2043,640 @@ if ($oldAtasan !== $newAtasan) {
     {
         return $this->serveFile($filename, 'employees-kk-photos', 'kk_photos');
     }
-}
+   public function downloadDocument(string $hashedId, string $documentId)
+{
+    /** @var \App\Models\User|null $user */
+    $user = auth()->user();
 
+    if (!$user->hasPermissionTo('ManageEmployee')) {
+        abort(403);
+    }
+
+    if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $documentId)) {
+        abort(400, 'Invalid ID');
+    }
+
+    $targetUser = User::with('Employee')
+        ->get()
+        ->first(function ($u) use ($hashedId) {
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            return $expectedHash === $hashedId;
+        });
+
+    if (!$targetUser) {
+        abort(404, 'Employee not found');
+    }
+
+    $document = Documents::with([
+        'employee.position',
+        'issued.position',
+        'companydocumentconfigs.company',
+        'companydocumentconfigs.documenttypes',
+    ])
+        ->where('employee_id', $targetUser->employee_id)
+        ->findOrFail($documentId);
+
+    if (!$document->companydocumentconfigs || !$document->companydocumentconfigs->documenttypes) {
+        abort(404, 'Document configuration not found');
+    }
+
+    $viewName = $document->companydocumentconfigs->documenttypes->view_name;
+
+    $allowedViews = [
+        'documents.types.SPK',
+        'documents.types.SPPRP',
+    ];
+
+    if (!in_array($viewName, $allowedViews)) {
+        abort(403, 'Invalid document view');
+    }
+
+    $signatureData = null;
+    if ($document->issued && $document->issued->signature) {
+        $path = 'employees-signatures-photos/' . basename($document->issued->signature);
+        if (Storage::disk('s3')->exists($path)) {
+            $signatureData = 'data:image/png;base64,' . base64_encode(
+                Storage::disk('s3')->get($path)
+            );
+        }
+    }
+
+    $pdf = Pdf::loadView($viewName, [
+        'document'      => $document,
+        'employee'      => $document->employee,
+        'issued'        => $document->issued,
+        'config'        => $document->companydocumentconfigs,
+        'company'       => $document->companydocumentconfigs->company,
+        'signatureData' => $signatureData,
+    ])->setPaper('a4');
+
+    $password = Carbon::parse(
+        $targetUser->employee->date_of_birth
+    )->format('Ymd');
+
+    $domPdf = $pdf->getDomPDF();
+    $canvas = $domPdf->getCanvas();
+
+    if (method_exists($canvas, 'get_cpdf')) {
+        $cpdf = $canvas->get_cpdf();
+        $cpdf->setEncryption($password, $password);
+    }
+
+    $filename = str_replace('/', '-', $document->document_number) . '.pdf';
+    return $pdf->download($filename);
+}
+}
+ // public function getBagan(Request $request)
+    // {
+    //     try {
+    //         $storeId = $request->store_id;
+    //         $departmentId = $request->department_id;
+
+    //         $employees = Employee::with(['grading'])
+    //             ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
+    //             ->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
+    //             ->whereHas('grading')
+    //             ->whereIn('status', ['Active', 'Pending'])
+    //             ->get()
+    //             ->sortBy('grading.level');
+
+    //         Log::info('getBagan debug', [
+    //             'store_id'     => $storeId,
+    //             'department_id' => $departmentId,
+    //             'count'        => $employees->count(),
+    //         ]);
+
+    //         $bagan = $employees->map(function ($employee) {
+    //             try {
+    //                 $atasan = $employee->atasan();
+
+    //                 $photoFilename = $employee->photos
+    //                     ? basename($employee->photos)
+    //                     : null;
+
+    //                 return [
+    //                     'id'            => $employee->id,
+    //                     'name'          => $employee->employee_name,
+    //                     'position'      => $employee->primaryPosition()->first()?->name ?? '-',
+    //                     'grading'       => $employee->grading?->grading_name ?? '-',
+    //                     'grading_level' => $employee->grading?->level ?? 0,
+    //                     'photo'         => $photoFilename
+    //                                         ? route('employee.serve.photo', ['filename' => $photoFilename])
+    //                                         : null,
+    //                     'atasan_id'     => $atasan?->id ?? null,
+    //                 ];
+    //             } catch (\Throwable $e) {
+    //                 Log::error('map error employee ' . $employee->id, [
+    //                     'error' => $e->getMessage(),
+    //                     'line'  => $e->getLine(),
+    //                 ]);
+    //                 return null;
+    //             }
+    //         })->filter()->values();
+
+    //         return response()->json(['nodes' => $bagan]); // ← ini yang hilang
+
+    //     } catch (\Throwable $e) {
+    //         return response()->json([
+    //             'error' => $e->getMessage(),
+    //             'line'  => $e->getLine(),
+    //             'file'  => $e->getFile(),
+    //         ], 500);
+    //     }
+    // }
+// public function getEmployees(Request $request)
+    // {
+    //     /** @var \App\Models\User|null $user */
+    //     $user = auth()->user();
+    //     $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
+
+    //     $query = User::query()
+    //         ->with([
+    //             'employee',
+    //             'employee.position',
+    //             'employee.department',
+    //             'employee.grading',
+    //             'employee.group',
+    //             'employee.store',
+    //             'employee.company'
+    //         ])
+    //         ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+    //         ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
+    //         // ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employees_tables.store_id')
+    //         // ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employees_tables.department_id')
+    //         ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+    //         ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+    //         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+
+    //         ->select([
+    //             'users.*',
+    //             'employees_tables.employee_name',
+    //             'employees_tables.employee_pengenal',
+    //             'employees_tables.status_employee',
+    //             'employees_tables.status',
+    //             'employees_tables.join_date',
+    //             'position_tables.name as position_name',
+    //             'groups_tables.remark as remark',
+    //             'stores_tables.name as name',
+    //             'departments_tables.department_name',
+    //             'grading.grading_name',
+    //             'company_tables.name as name_company',
+    //         ]);
+    //     // Filter tetap pakai whereHas atau bisa pakai where langsung karena sudah di-join
+    //     $query->when(
+    //         $request->filled('filter_company'),
+    //         fn($q) =>
+    //         $q->where('company_tables.name', $request->filter_company)
+    //     );
+
+    //     $query->when(
+    //         $request->filled('filter_department'),
+    //         fn($q) =>
+    //         $q->where('departments_tables.department_name', $request->filter_department)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_group'),
+    //         fn($q) =>
+    //         $q->where('groups_tables.remark', $request->filter_group)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_grading'),
+    //         fn($q) =>
+    //         $q->where('grading.grading_name', $request->filter_grading)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_store'),
+    //         fn($q) =>
+    //         $q->where('stores_tables.name', $request->filter_store)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_emp_status'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.status_employee', $request->filter_emp_status)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_status'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.status', $request->filter_status)
+    //     );
+    //     $query->when($request->filled('filter_los'), function ($q) use ($request) {
+    //         $los = $request->filter_los;
+
+    //         if ($los === 'under3months') {
+    //             // Khusus kurang dari 3 bulan, operator berbeda
+    //             $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+    //         } else {
+    //             $date = match ($los) {
+    //                 '1year'  => Carbon::now()->subYear(),
+    //                 '3years' => Carbon::now()->subYears(3),
+    //                 '5years' => Carbon::now()->subYears(5),
+    //                 default  => null,
+    //             };
+    //             if ($date) {
+    //                 $q->where('employees_tables.join_date', '<=', $date);
+    //             }
+    //         }
+    //     });
+    //     return DataTables::of($query)
+    //         ->addColumn('length_of_service', function ($e) {
+    //             if (!$e->join_date) return 'Empty';
+    //             $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+    //             return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+    //         })
+    //         ->addColumn('action', function ($e) use ($isHeadHR) {
+    //             if (!$isHeadHR) return '';
+    //             $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+    //             return '
+    //             <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+    //                 <i class="fas fa-user-edit text-secondary"></i>
+    //             </a>
+    //             <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+    //                 <i class="fas fa-eye text-secondary"></i>
+    //             </a>';
+    //         })
+    //         // Daftarkan kolom yang bisa di-search
+    //         ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+    //         ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+    //         ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+    //         ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+    //         ->filterColumn('name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+    //         ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+    //         ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
+
+    // public function show($hashedId)
+    // {
+    //     $employee = User::with(
+    //         'Employee',
+    //         'Employee.store',
+    //         'Employee.grading',
+    //         'Employee.group',
+    //         'Employee.department',
+    //         'Employee.position',
+    //         'Employee.bank',
+    //         'Employee.employees'
+           
+    //     )->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //     // ---------------------------
+    //     // Tambahkan logic aman disini
+    //     // ---------------------------
+
+       
+    //     // Data lain
+    //     $allStores = Stores::get();
+    //     $allPositions = Position::get();
+    //     $allDepartments = Departments::get();
+    //     $selectedStores = $employee->Employee->store->pluck('id')->toArray();
+    //     $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
+    //     $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
+    //     $primaryStoreId = $employee->Employee->store()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryPositionId = $employee->Employee->position()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryDepartmentId = $employee->Employee->department()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $companys = Company::get();
+    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $bloodtypes = Employee::getBloodTypeOptions();
+
+    //     $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $gradings = Grading::get();
+    //     $groups = Groups::get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+
+    //     return view('pages.Employee.show', compact(
+    //         'employee',
+    //         'employees',
+    //         'status_employee',
+    //         'child',
+    //         'bloodtypes',
+    //         'companys',
+    //         'marriage',
+    //         'gender',
+    //         'gradings',
+    //         'groups',
+    //         'status',
+    //         'banks',
+    //         'religion',
+    //         'last_education',
+    //         'hashedId',
+    //         'allStores',
+    //         'allPositions',
+    //         'allDepartments',
+    //         'selectedStores',
+    //         'selectedDepartments',
+    //         'selectedPositions',
+    //         'primaryStoreId',
+    //         'primaryDepartmentId',
+    //         'primaryPositionId',
+    //         'isManager'
+    //     ));
+    // }
+    // public function show($hashedId)
+    // {
+    //     $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$employee) {
+    //         abort(404, 'Employee not found.');
+    //     }
+    //     $allStores = Stores::get();
+    //     $allPositions = Position::get();
+    //     $allDepartments = Departments::get();
+    //     $selectedStores = $employee->Employee->store->pluck('id')->toArray();
+    //     $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
+    //     $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
+    //     $primaryStoreId = $employee->Employee->store()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryPositionId = $employee->Employee->position()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $primaryDepartmentId = $employee->Employee->department()
+    //         ->wherePivot('is_primary', true)
+    //         ->first()?->id;
+    //     $companys = Company::get();
+    //     $gradings = Grading::get();
+    //     $groups = Groups::get();
+    //     $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
+    //     $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
+    //     $child = ['0', '1', '2', '3', '4', '5'];
+    //     $marriage = ['Yes', 'No'];
+    //     $bloodtypes = Employee::getBloodTypeOptions();
+
+    //     $gender = ['Male', 'Female', 'MD'];
+    //     $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
+    //     $banks = Banks::get();
+    //     $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
+    //     $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
+    //     return view('pages.Employee.show', [
+    //         'employee' => $employee,
+    //         'status_employee' => $status_employee,
+    //         'child' => $child,
+    //         'employees' => $employees,
+    //         'bloodtypes' => $bloodtypes,
+    //         'companys' => $companys,
+    //         'marriage' => $marriage,
+    //         'status' => $status,
+    //         'gender' => $gender,
+    //         'gradings' => $gradings,
+    //         'groups' => $groups,
+    //         'banks' => $banks,
+    //         'religion' => $religion,
+    //         'last_education' => $last_education,
+    //         'allStores' => $allStores,
+    //         'allPositions' => $allPositions,
+    //         'allDepartments' => $allDepartments,
+    //         'selectedStores' => $selectedStores,
+    //         'selectedDepartments' => $selectedDepartments,
+    //         'selectedPositions' => $selectedPositions,
+    //         'primaryStoreId' => $primaryStoreId,
+    //         'primaryDepartmentId' => $primaryDepartmentId,
+    //         'primaryPositionId' => $primaryPositionId,
+    //         'hashedId' => $hashedId,
+    //     ]);
+    // }
+// public function getEmployeesall(Request $request)
+    // {
+    //     /** @var \App\Models\User|null $user */
+    //     $user = auth()->user();
+    //     $isHeadHR = $user->hasAnyRole(['HeadHR', 'HR', 'Admin']);
+
+    //     $query = User::query()
+    //         ->with([
+    //             'employee',
+    //             'employee.position',
+    //             'employee.department',
+    //             'employee.grading',
+    //             'employee.group',
+    //             'employee.store',
+    //             'employee.bank',
+    //             'employee.company'
+    //         ])
+    //         ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+    //         ->leftJoin('position_tables', 'position_tables.id', '=', 'employees_tables.position_id')
+    //         ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+    //         ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+    //         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+    //         ->leftJoin('banks_tables', 'banks_tables.id', '=', 'employees_tables.banks_id')
+    //         ->select([
+    //             'users.*',
+    //             'employees_tables.employee_name',
+    //             'employees_tables.employee_pengenal',
+    //             'employees_tables.bank_account_number',
+    //             'employees_tables.join_date',
+    //             'employees_tables.end_date',
+    //             'employees_tables.created_at',
+    //             'employees_tables.marriage',
+    //             'employees_tables.child',
+    //             'employees_tables.telp_number',
+    //             'employees_tables.nik',
+    //             'employees_tables.gender',
+    //             'employees_tables.date_of_birth',
+    //             'employees_tables.place_of_birth',
+    //             'employees_tables.biological_mother_name',
+    //             'employees_tables.religion',
+    //             'employees_tables.current_address',
+    //             'employees_tables.id_card_address',
+    //             'employees_tables.last_education',
+    //             'employees_tables.institution',
+    //             'employees_tables.npwp',
+    //             'employees_tables.bpjs_kes',
+    //             'employees_tables.bpjs_ket',
+    //             'employees_tables.email',
+    //             'employees_tables.company_email',
+    //             'employees_tables.emergency_contact_name',
+    //             'employees_tables.pin',
+    //             'employees_tables.pending_email',
+    //             'employees_tables.pending_telp_number',
+    //             'employees_tables.status_employee',
+    //             'employees_tables.status',
+    //             'employees_tables.join_date',
+    //             'position_tables.name as position_name',
+    //             'groups_tables.remark as remark',
+    //             'stores_tables.name as name',
+    //             'banks_tables.name as bank_name',
+    //             'departments_tables.department_name',
+    //             'grading.grading_name',
+    //             'company_tables.name as name_company',
+    //         ]);
+    //     $query->when(
+    //         $request->filled('filter_company'),
+    //         fn($q) =>
+    //         $q->where('company_tables.name', $request->filter_company)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_department'),
+    //         fn($q) =>
+    //         $q->where('departments_tables.department_name', $request->filter_department)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_group'),
+    //         fn($q) =>
+    //         $q->where('groups_tables.remark', $request->filter_group)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_grading'),
+    //         fn($q) =>
+    //         $q->where('grading.grading_name', $request->filter_grading)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_store'),
+    //         fn($q) =>
+    //         $q->where('stores_tables.name', $request->filter_store)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_emp_status'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.status_employee', $request->filter_emp_status)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_status'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.status', $request->filter_status)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_religion'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.religion', $request->filter_religion)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_marriage'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.marriage', $request->filter_marriage)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_last_education'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.last_education', $request->filter_last_education)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_gender'),
+    //         fn($q) =>
+    //         $q->where('employees_tables.gender', $request->filter_gender)
+    //     );
+    //     $query->when(
+    //         $request->filled('filter_bank'),
+    //         fn($q) =>
+    //         $q->where('banks_tables.name', $request->filter_bank)
+    //     );
+    //     $query->when($request->filled('filter_los'), function ($q) use ($request) {
+    //         $los = $request->filter_los;
+
+    //         if ($los === 'under3months') {
+    //             // Khusus kurang dari 3 bulan, operator berbeda
+    //             $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+    //         } else {
+    //             $date = match ($los) {
+    //                 '1year'  => Carbon::now()->subYear(),
+    //                 '3years' => Carbon::now()->subYears(3),
+    //                 '5years' => Carbon::now()->subYears(5),
+    //                 default  => null,
+    //             };
+    //             if ($date) {
+    //                 $q->where('employees_tables.join_date', '<=', $date);
+    //             }
+    //         }
+    //     });
+    //     return DataTables::of($query)
+    //         ->addColumn('length_of_service', function ($e) {
+    //             if (!$e->join_date) return 'Empty';
+    //             $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+    //             return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+    //         })
+    //         ->addColumn('action', function ($e) use ($isHeadHR) {
+    //             if (!$isHeadHR) return '';
+    //             $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+    //             return '
+    //             <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+    //                 <i class="fas fa-user-edit text-secondary"></i>
+    //             </a>
+    //             <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+    //                 <i class="fas fa-eye text-secondary"></i>
+    //             </a>';
+    //         })
+    //         // Daftarkan kolom yang bisa di-search
+    //         ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+    //         ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+    //         ->filterColumn('bank_account_number', fn($q, $k) => $q->where('employees_tables.bank_account_number', 'like', "%$k%"))
+    //         ->filterColumn('join_date', fn($q, $k) => $q->where('employees_tables.join_date', 'like', "%$k%"))
+    //         ->filterColumn('end_date', fn($q, $k) => $q->where('employees_tables.end_date', 'like', "%$k%"))
+    //         ->filterColumn('marriage', fn($q, $k) => $q->where('employees_tables.marriage', 'like', "%$k%"))
+    //         ->filterColumn('child', fn($q, $k) => $q->where('employees_tables.child', 'like', "%$k%"))
+    //         ->filterColumn('telp_number', fn($q, $k) => $q->where('employees_tables.telp_number', 'like', "%$k%"))
+    //         ->filterColumn('nik', fn($q, $k) => $q->where('employees_tables.nik', 'like', "%$k%"))
+    //         ->filterColumn('gender', fn($q, $k) => $q->where('employees_tables.gender', 'like', "%$k%"))
+    //         ->filterColumn('date_of_birth', fn($q, $k) => $q->where('employees_tables.date_of_birth', 'like', "%$k%"))
+    //         ->filterColumn('place_of_birth', fn($q, $k) => $q->where('employees_tables.place_of_birth', 'like', "%$k%"))
+    //         ->filterColumn('biological_mother_name', fn($q, $k) => $q->where('employees_tables.biological_mother_name', 'like', "%$k%"))
+    //         ->filterColumn('religion', fn($q, $k) => $q->where('employees_tables.religion', 'like', "%$k%"))
+    //         ->filterColumn('current_address', fn($q, $k) => $q->where('employees_tables.current_address', 'like', "%$k%"))
+    //         ->filterColumn('id_card_address', fn($q, $k) => $q->where('employees_tables.id_card_address', 'like', "%$k%"))
+    //         ->filterColumn('last_education', fn($q, $k) => $q->where('employees_tables.last_education', 'like', "%$k%"))
+    //         ->filterColumn('institution', fn($q, $k) => $q->where('employees_tables.institution', 'like', "%$k%"))
+    //         ->filterColumn('npwp', fn($q, $k) => $q->where('employees_tables.npwp', 'like', "%$k%"))
+    //         ->filterColumn('bpjs_kes', fn($q, $k) => $q->where('employees_tables.bpjs_kes', 'like', "%$k%"))
+    //         ->filterColumn('bpjs_ket', fn($q, $k) => $q->where('employees_tables.bpjs_ket', 'like', "%$k%"))
+    //         ->filterColumn('email', fn($q, $k) => $q->where('employees_tables.email', 'like', "%$k%"))
+    //         ->filterColumn('company_email', fn($q, $k) => $q->where('employees_tables.company_email', 'like', "%$k%"))
+    //         ->filterColumn('emergency_contact_name', fn($q, $k) => $q->where('employees_tables.emergency_contact_name', 'like', "%$k%"))
+    //         ->filterColumn('pin', fn($q, $k) => $q->where('employees_tables.pin', 'like', "%$k%"))
+    //         ->filterColumn('pending_email', fn($q, $k) => $q->where('employees_tables.pending_email', 'like', "%$k%"))
+    //         ->filterColumn('pending_telp_number', fn($q, $k) => $q->where('employees_tables.pending_telp_number', 'like', "%$k%"))
+    //         ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('bank_name', fn($q, $k) => $q->where('banks_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+    //         ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+    //         ->filterColumn('name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+    //         ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+    //         ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+    //         ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+    //         ->editColumn('created_at', function ($e) {
+    //             return optional($e->created_at)
+    //                 ->timezone('Asia/Makassar')
+    //                 ->translatedFormat('d F Y H:i');
+    //         })
+
+    //         ->editColumn('join_date', function ($e) {
+    //             return $e->join_date
+    //                 ? Carbon::parse($e->join_date)
+    //                 ->timezone('Asia/Makassar')
+    //                 ->translatedFormat('d F Y')
+    //                 : '-';
+    //         })
+    //         ->editColumn('end_date', function ($e) {
+    //             return $e->end_date
+    //                 ? Carbon::parse($e->end_date)
+    //                 ->timezone('Asia/Makassar')
+    //                 ->translatedFormat('d F Y')
+    //                 : '-';
+    //         })
+    //         ->rawColumns(['action'])
+    //         ->make(true);
+    // }
     // public function update(Request $request, $hashedId)
     // {
     //     $user = User::with('Employee')

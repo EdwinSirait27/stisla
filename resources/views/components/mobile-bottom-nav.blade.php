@@ -417,7 +417,7 @@
             <i class="fas fa-tachometer-alt"></i> Employee
         </a>
         @endcan
-    @can('RequestPosition')
+    {{-- @can('RequestPosition')
         <a href="{{ route('pages.Positionrequest') }}" class="drawer-item">
             <i class="fas fa-tachometer-alt"></i> Position Request
         </a>
@@ -426,8 +426,7 @@
         <a href="{{ route('pages.Positionreqlist') }}" class="drawer-item">
             <i class="fas fa-tachometer-alt"></i> Position Request List
         </a>
-        @endcan
-    
+        @endcan --}}
     @can('ManageSummaries')
         <a href="{{ route('pages.Summaries') }}" class="drawer-item">
             <i class="fas fa-tachometer-alt"></i> Leave List

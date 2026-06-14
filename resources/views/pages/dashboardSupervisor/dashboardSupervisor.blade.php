@@ -845,31 +845,31 @@
                     <div class="row align-items-center">
                         <div class="col-lg-8">
                             <div class="d-flex align-items-center gap-4">
-                                <img src="{{ Auth::user()->employee->photos
-                                    ? asset('storage/' . Auth::user()->employee->photos)
+                                 <img src="{{ Auth::user()->employee->photos
+                                    ? route('useremployee.photo', basename(Auth::user()->employee->photos))
                                     : asset('img/avatar/avatar-1.png') }}"
-                                    alt="Profile" class="profile-avatar-large">
-                                <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
-                                    <div class="profile-meta">
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-briefcase"></i>
-                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-id-badge"></i>
-                                            <span>{{ Auth::user()->employee->employee_pengenal ?? 'Edwin Sirait' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ now()->format('l, F d, Y') }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                    alt="Profile" class="profile-avatar-large no-drag">
+                               <div class="profile-info">
+    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
+    <div class="profile-meta">
+        <div class="profile-meta-item">
+            <i class="fas fa-briefcase"></i>
+            <span>{{ Auth::user()->employee->position->first()?->name ?? '-' }}</span>
+        </div>
+        <div class="profile-meta-item">
+            <i class="fas fa-building"></i>
+            <span>{{ Auth::user()->employee->department->first()?->department_name ?? '-' }}</span>
+        </div>
+        <div class="profile-meta-item">
+            <i class="fas fa-id-badge"></i>
+            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
+        </div>
+        <div class="profile-meta-item">
+            <i class="fas fa-calendar-alt"></i>
+            <span>{{ now()->format('l, F d, Y') }}</span>
+        </div>
+    </div>
+</div>
                             </div>
                         </div>
                     </div>
@@ -932,7 +932,7 @@
                                 data-content="{{ str_replace('&nbsp;', ' ', $a->content) }}"
                                 data-publish="{{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}"
                                 data-end="{{ \Carbon\Carbon::parse($a->end_date)->format('d M Y') }}"
-                                data-employee="{{ $a->user->Employee->department->department_name ?? 'Unknown' }}">
+                                data-employee="{{ $a->user->Employee->department->first()?->department_name ?? 'Unknown' }}">
                                 <div class="announcement-title">
                                     <i class="fas fa-star text-warning"></i>
                                     {{ $a->title }}
@@ -1600,7 +1600,7 @@
                     if (!confirm(`Setujui cuti ${name}?`)) return;
 
                     this.disabled = true;
-                    this.innerHTML = '⏳ Proses...';
+                    this.innerHTML = 'Proses...';
 
                     fetch(url, {
                             method: 'POST',

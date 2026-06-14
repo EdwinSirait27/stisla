@@ -421,6 +421,7 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
         #filter-emp-status+.select2-container .select2-selection--multiple {
             min-height: 32px !important;
             height: auto !important;
@@ -492,13 +493,15 @@
                             <span class="stat-dot" style="background:#1d4ed8"></span> All companies
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Active</div>
-                        <div class="stat-card-value green" id="stat-active">{{ $countactives }}</div>
-                        <div class="stat-card-sub">
-                            <span class="stat-dot" style="background:#16a34a"></span> Currently active
+                    @can('ManageEmployee')
+                        <div class="stat-card">
+                            <div class="stat-card-label">Active</div>
+                            <div class="stat-card-value green" id="stat-active">{{ $countactives }}</div>
+                            <div class="stat-card-sub">
+                                <span class="stat-dot" style="background:#16a34a"></span> Currently active
+                            </div>
                         </div>
-                    </div>
+                    @endcan
                     <div class="stat-card">
                         <div class="stat-card-label">Pending</div>
                         <div class="stat-card-value amber" id="stat-leave">{{ $countpendings }}</div>
@@ -506,13 +509,15 @@
                             <span class="stat-dot" style="background:#d97706"></span> Employee Pending
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Resigned</div>
-                        <div class="stat-card-value red" id="stat-resign">{{ $countresigns }}</div>
-                        <div class="stat-card-sub">
-                            <span class="stat-dot" style="background:#dc2626"></span> No longer active
+                    @can('ManageEmployee')
+                        <div class="stat-card">
+                            <div class="stat-card-label">Resigned</div>
+                            <div class="stat-card-value red" id="stat-resign">{{ $countresigns }}</div>
+                            <div class="stat-card-sub">
+                                <span class="stat-dot" style="background:#dc2626"></span> No longer active
+                            </div>
                         </div>
-                    </div>
+                    @endcan
                 </div>
 
                 {{-- ── Employee Table Card ── --}}
@@ -526,6 +531,7 @@
 
                     </div>
                     {{-- ── Filter Bar ── --}}
+                    @can('ManageEmployee')
                     <div class="dt-filter-bar"
                         style="
     padding: .75rem 1.25rem;
@@ -544,34 +550,21 @@
                             @endforeach
                         </select>
                         <select id="filter-department" class="select2 form-select form-select-sm"
-    style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-    <option value="">All Departments</option>
-    @foreach ($departments as $dept)
-        <option value="{{ $dept->department_name }}">{{ $dept->department_name }}</option>
-    @endforeach
-</select>
-
-                        {{-- <select id="filter-department" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Departments</option>
-                            @foreach ($departments as $department)
-                                <option value="{{ $department }}">{{ $department }}</option>
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->department_name }}">{{ $dept->department_name }}</option>
                             @endforeach
-                        </select> --}}
-                        {{-- <select id="filter-store" class="select2 form-select form-select-sm"
+                        </select>
+
+                        
+                        <select id="filter-store" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Locations</option>
-                            @foreach ($stores as $location)
-                                <option value="{{ $location }}">{{ $location }}</option>
+                            @foreach ($stores as $store)
+                                <option value="{{ $store->name }}">{{ $store->name }}</option>
                             @endforeach
-                        </select> --}}
-                        <select id="filter-store" class="select2 form-select form-select-sm"
-    style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-    <option value="">All Locations</option>
-    @foreach ($stores as $store)
-        <option value="{{ $store->name }}">{{ $store->name }}</option>
-    @endforeach
-</select>
+                        </select>
 
                         <select id="filter-emp-status" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
@@ -581,30 +574,30 @@
                             @endforeach
 
                         </select>
-                        <select id="filter-grading" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Grd</option>
-                            @foreach ($gradings as $grading)
-                                <option value="{{ $grading }}">{{ $grading }}</option>
-                            @endforeach
+                            <select id="filter-grading" class="select2 form-select form-select-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                                <option value="">All Grd</option>
+                                @foreach ($gradings as $grading)
+                                    <option value="{{ $grading }}">{{ $grading }}</option>
+                                @endforeach
 
-                        </select>
-                        <select id="filter-group" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Groups</option>
-                            @foreach ($groups as $group)
-                                <option value="{{ $group }}">{{ $group }}</option>
-                            @endforeach
+                            </select>
+                            <select id="filter-group" class="select2 form-select form-select-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                                <option value="">All Groups</option>
+                                @foreach ($groups as $group)
+                                    <option value="{{ $group }}">{{ $group }}</option>
+                                @endforeach
 
-                        </select>
+                            </select>
 
-                        <select id="filter-los" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All LOS</option>
-                            <option value="under3months">Under 3 Months</option>
-                            <option value="1year">1+ Year</option>
-                            <option value="3years">3+ Years</option>
-                            <option value="5years">5+ Years</option>
+                            <select id="filter-los" class="select2 form-select form-select-sm"
+                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                                <option value="">All LOS</option>
+                                <option value="under3months">Under 3 Months</option>
+                                <option value="1year">1+ Year</option>
+                                <option value="3years">3+ Years</option>
+                                <option value="5years">5+ Years</option>
 
                         </select>
 
@@ -628,6 +621,7 @@
                             <i class="fas fa-file-csv"></i> Export CSV
                         </a>
                     </div>
+                    @endcan
                     <div class="table-responsive">
 
                         <table id="employees-table" class="table">
@@ -639,10 +633,12 @@
                                     <th class="text-center">Department</th>
                                     <th class="text-center">Location</th>
                                     <th class="text-center">Position</th>
+                                    @can('ManageEmployee')
                                     <th class="text-center">Grade</th>
                                     <th class="text-center">Group</th>
                                     <th class="text-center">Emp. status</th>
                                     <th class="text-center">LOS</th>
+                                    @endcan
                                     <th class="text-center">Status</th>
                                     <th class="text-center">Action</th>
                                 </tr>
@@ -662,141 +658,115 @@
                     </div>
                 </div>
 
+                @can('ManageEmployee')
 
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h4 class="card-title">Bagan Organisasi</h4>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex gap-3 flex-wrap mb-4 align-items-end">
-                                        <div>
-                                            <label class="form-label text-muted" style="font-size:13px">Locations</label>
-                                            <select id="sel-store" class="form-control select2" style="min-width:180px">
-                                                <option value="all">All Locations</option>
-                                                @foreach ($stores as $store)
-                                                    <option value="{{ $store->id }}">{{ $store->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="form-label text-muted" style="font-size:13px">Department</label>
-                                            <select id="sel-dept" class="form-control select2" style="min-width:180px">
-                                                <option value="all">All Departments</option>
-                                                @foreach ($departments as $dept)
-                                                    <option value="{{ $dept->id }}">{{ $dept->department_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <button id="btn-load" class="btn btn-primary">
-                                            <i class="fas fa-sitemap"></i> Tampilkan Bagan
-                                        </button>
-                                      
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Bagan Organisasi</h4>
                                     </div>
-
-                                    {{-- Legend --}}
-                                    <div class="d-flex gap-3 flex-wrap mb-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div style="width:12px;height:12px;border-radius:50%;background:#534AB7"></div>
-                                            <small class="text-muted">Director / GM</small>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div style="width:12px;height:12px;border-radius:50%;background:#1D9E75"></div>
-                                            <small class="text-muted">Manager</small>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div style="width:12px;height:12px;border-radius:50%;background:#D85A30"></div>
-                                            <small class="text-muted">Asst. Manager / Supervisor</small>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div style="width:12px;height:12px;border-radius:50%;background:#888780"></div>
-                                            <small class="text-muted">Staff</small>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div style="width:12px;height:12px;border-radius:50%;background:#a69833"></div>
-                                            <small class="text-muted">DW</small>
-                                        </div>
-                                    </div>
-
-                                    {{-- Chart Area --}}
-                                  
-                                    {{-- Zoom Controls --}}
-                                    <div class="d-flex gap-2 mb-2">
-                                        <button id="btn-zoom-in" class="btn btn-sm btn-outline-secondary"
-                                            title="Zoom In">
-                                            <i class="fas fa-search-plus"></i>
-                                        </button>
-                                        <button id="btn-zoom-out" class="btn btn-sm btn-outline-secondary"
-                                            title="Zoom Out">
-                                            <i class="fas fa-search-minus"></i>
-                                        </button>
-                                        <button id="btn-fit" class="btn btn-sm btn-outline-secondary"
-                                            title="Fit to Screen">
-                                            <i class="fas fa-compress-arrows-alt"></i> Fit
-                                        </button>
-                                        <button id="btn-reset-zoom" class="btn btn-sm btn-outline-secondary"
-                                            title="Reset">
-                                            <i class="fas fa-undo"></i> Reset
-                                        </button>
-                                        <span id="zoom-label" class="align-self-center text-muted"
-                                            style="font-size:12px">100%</span>
-                                    </div>
-
-                                    {{-- Chart Area --}}
-                                    <div id="chart-area"
-                                        style="overflow:hidden;min-height:500px;height:600px;border:1px solid #e9ecef;border-radius:8px;position:relative;cursor:grab;">
-                                        <div id="chart-placeholder"
-                                            class="d-flex align-items-center justify-content-center" style="height:100%">
-                                            <div class="text-center text-muted">
-                                                <i class="fas fa-sitemap fa-3x mb-3 d-block"></i>
-                                                <p>Pilih store dan department untuk menampilkan bagan</p>
+                                    <div class="card-body">
+                                        <div class="d-flex gap-3 flex-wrap mb-4 align-items-end">
+                                            <div>
+                                                <label class="form-label text-muted" style="font-size:13px">Locations</label>
+                                                <select id="sel-store" class="form-control select2" style="min-width:180px">
+                                                    <option value="all">All Locations</option>
+                                                    @foreach ($stores as $store)
+                                                        <option value="{{ $store->id }}">{{ $store->name }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
-                                        </div>
-                                        <svg id="svg-chart"
-                                            style="display:none;position:absolute;top:0;left:0;transform-origin:0 0;"></svg>
-                                    </div>
+                                            <div>
+                                                <label class="form-label text-muted" style="font-size:13px">Department</label>
+                                                <select id="sel-dept" class="form-control select2" style="min-width:180px">
+                                                    <option value="all">All Departments</option>
+                                                    @foreach ($departments as $dept)
+                                                        <option value="{{ $dept->id }}">{{ $dept->department_name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <button id="btn-load" class="btn btn-primary">
+                                                <i class="fas fa-sitemap"></i> Tampilkan Bagan
+                                            </button>
+                                            <button id="btn-toggle-lines" class="btn btn-outline-secondary">
+                                                <i class="fas fa-project-diagram"></i> Sembunyikan Garis
+                                            </button>
+                                            <button id="btn-reset-filter" class="btn btn-outline-secondary">
+                                                <i class="fas fa-undo"></i> Reset
+                                            </button>
 
+                                        </div>
+
+
+
+                                        {{-- Zoom Controls --}}
+                                        <div class="d-flex gap-2 mb-2">
+                                            <button id="btn-zoom-in" class="btn btn-sm btn-outline-secondary"
+                                                title="Zoom In">
+                                                <i class="fas fa-search-plus"></i>
+                                            </button>
+                                            <button id="btn-zoom-out" class="btn btn-sm btn-outline-secondary"
+                                                title="Zoom Out">
+                                                <i class="fas fa-search-minus"></i>
+                                            </button>
+                                            <button id="btn-fit" class="btn btn-sm btn-outline-secondary"
+                                                title="Fit to Screen">
+                                                <i class="fas fa-compress-arrows-alt"></i> Fit
+                                            </button>
+                                            <button id="btn-reset-zoom" class="btn btn-sm btn-outline-secondary"
+                                                title="Reset">
+                                                <i class="fas fa-undo"></i> Reset
+                                            </button>
+                                            <span id="zoom-label" class="align-self-center text-muted"
+                                                style="font-size:12px">100%</span>
+                                        </div>
+
+                                        {{-- Chart Area --}}
+                                        <div id="chart-area"
+                                            style="overflow:hidden;min-height:500px;height:600px;border:1px solid #e9ecef;border-radius:8px;position:relative;cursor:grab;">
+                                            <div id="chart-placeholder"
+                                                class="d-flex align-items-center justify-content-center" style="height:100%">
+                                                <div class="text-center text-muted">
+                                                    <i class="fas fa-sitemap fa-3x mb-3 d-block"></i>
+                                                    <p>Pilih store dan department untuk menampilkan bagan</p>
+                                                </div>
+                                            </div>
+                                            <svg id="svg-chart"
+                                                style="display:none;position:absolute;top:0;left:0;transform-origin:0 0;"></svg>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-
-
-
-
-
-
-
-
-
-                {{-- ── Activity History Card ── --}}
-                <div class="emp-card">
-                    <div class="emp-card-header">
-                        <div class="emp-card-header-icon green">
-                            <i class="fas fa-clock-rotate-left"></i>
+                    {{-- ── Activity History Card ── --}}
+                    <div class="emp-card">
+                        <div class="emp-card-header">
+                            <div class="emp-card-header-icon green">
+                                <i class="fas fa-clock-rotate-left"></i>
+                            </div>
+                            <span class="emp-card-header-title">Employee activity history</span>
                         </div>
-                        <span class="emp-card-header-title">Employee activity history</span>
-                    </div>
 
-                    <div class="table-responsive">
-                        <table id="activityTable" class="table">
-                            <thead>
-                                <tr>
-                                    <th class="text-center" style="width:50px">No.</th>
-                                    <th>Description</th>
-                                    <th class="text-center">By</th>
-                                    <th class="text-center">Date</th>
-                                </tr>
-                            </thead>
-                            {{-- tbody filled by DataTables --}}
-                        </table>
+                        <div class="table-responsive">
+                            <table id="activityTable" class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width:50px">No.</th>
+                                        <th>Description</th>
+                                        <th class="text-center">By</th>
+                                        <th class="text-center">Date</th>
+                                    </tr>
+                                </thead>
+                                {{-- tbody filled by DataTables --}}
+                            </table>
+                        </div>
                     </div>
-                </div>
+                @endcan
 
             </div>
         </section>
@@ -876,6 +846,10 @@
 
         /* ── Employee DataTable ── */
         $(function() {
+         const canManage = @json(auth()->user()->hasPermissionTo('ManageEmployee'));
+    const canSpvManager = @json(auth()->user()->hasPermissionTo('ManageEmployeeSPVManager'));
+    const canView = @json(auth()->user()->hasPermissionTo('ViewEmployee'));
+
             var empTable = $('#employees-table').DataTable({
 
                 processing: true,
@@ -921,75 +895,149 @@
                         next: '›'
                     }
                 },
-                columns: [
+                // columns: [
 
-                    {
-                        data: 'employee_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'employee_pengenal',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'name_company',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'department_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'store_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'position_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'grading_name',
-                        className: 'text-center',
-                        render: d => d ? `<strong>${d}</strong>` : '-'
-                    },
-                    {
-                        data: 'remark',
-                        className: 'text-center',
-                        render: d => d ? `<strong>${d}</strong>` : '-'
-                    },
-                    {
-                        data: 'status_employee',
-                        className: 'text-center',
-                        render: d => statusBadge(d, EMP_STATUS_BADGE)
-                    },
-                    {
-                        data: 'length_of_service',
-                        className: 'text-center',
-                        render: d => d ? `<span style="color:#64748b;font-size:.775rem">${d}</span>` :
-                            '-'
-                    },
-                    {
-                        data: 'status',
-                        className: 'text-center',
-                        render: d => statusBadge(d, STATUS_BADGE)
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        /* action HTML is returned from controller — we just ensure it gets proper classes */
-                        render: function(data) {
-                            return `<div class="action-wrap">${data}</div>`;
-                        }
-                    }
-                ],
+                //     {
+                //         data: 'employee_name',
+                //         className: 'text-center',
+                //         render: d => d || '-'
+                //     },
+                //     {
+                //         data: 'employee_pengenal',
+                //         className: 'text-center',
+                //         render: d => d || '-'
+                //     },
+                //     {
+                //         data: 'name_company',
+                //         className: 'text-center',
+                //         render: d => d || '-'
+                //     },
+                //     {
+                //         data: 'department_name',
+                //         className: 'text-center',
+                //         render: d => d || '-'
+                //     },
+                //     {
+                //         data: 'store_name',
+                //         className: 'text-center',
+                //         render: d => d || '-'
+                //     },
+                //     {
+                //         data: 'position_name',
+                //         className: 'text-center',
+                //         render: d => d || '-'
+                //     },
+                //      (canManage ? [
+
+                //     {
+                //         data: 'grading_name',
+                //         className: 'text-center',
+                //         render: d => d ? `<strong>${d}</strong>` : '-'
+                //     },
+                //     {
+                //         data: 'remark',
+                //         className: 'text-center',
+                //         render: d => d ? `<strong>${d}</strong>` : '-'
+                //     },
+                //     {
+                //         data: 'status_employee',
+                //         className: 'text-center',
+                //         render: d => statusBadge(d, EMP_STATUS_BADGE)
+                //     },
+                //     {
+                //         data: 'length_of_service',
+                //         className: 'text-center',
+                //         render: d => d ? `<span style="color:#64748b;font-size:.775rem">${d}</span>` :
+                //             '-'
+                //     },
+                //      ] : []),
+                //     {
+                //         data: 'status',
+                //         className: 'text-center',
+                //         render: d => statusBadge(d, STATUS_BADGE)
+                //     },
+                //     {
+                //         data: 'action',
+                //         orderable: false,
+                //         searchable: false,
+                //         className: 'text-center',
+                //         /* action HTML is returned from controller — we just ensure it gets proper classes */
+                //         render: function(data) {
+                //             return `<div class="action-wrap">${data}</div>`;
+                //         }
+                //     }
+                // ],
+                columns: [
+    {
+        data: 'employee_name',
+        className: 'text-center',
+        render: d => d || '-'
+    },
+    {
+        data: 'employee_pengenal',
+        className: 'text-center',
+        render: d => d || '-'
+    },
+    {
+        data: 'name_company',
+        className: 'text-center',
+        render: d => d || '-'
+    },
+    {
+        data: 'department_name',
+        className: 'text-center',
+        render: d => d || '-'
+    },
+    {
+        data: 'store_name',
+        className: 'text-center',
+        render: d => d || '-'
+    },
+    {
+        data: 'position_name',
+        className: 'text-center',
+        render: d => d || '-'
+    },
+
+    // ← spread operator untuk kolom ManageEmployee saja
+    ...(canManage ? [
+        {
+            data: 'grading_name',
+            className: 'text-center',
+            render: d => d ? `<strong>${d}</strong>` : '-'
+        },
+        {
+            data: 'remark',
+            className: 'text-center',
+            render: d => d ? `<strong>${d}</strong>` : '-'
+        },
+        {
+            data: 'status_employee',
+            className: 'text-center',
+            render: d => statusBadge(d, EMP_STATUS_BADGE)
+        },
+        {
+            data: 'length_of_service',
+            className: 'text-center',
+            render: d => d ? `<span style="color:#64748b;font-size:.775rem">${d}</span>` : '-'
+        },
+    ] : []),
+
+    {
+        data: 'status',
+        className: 'text-center',
+        render: d => statusBadge(d, STATUS_BADGE)
+    },
+    {
+        data: 'action',
+        orderable: false,
+        searchable: false,
+        className: 'text-center',
+        render: function(data) {
+            return `<div class="action-wrap">${data}</div>`;
+        }
+    }
+],
                 drawCallback: function(settings) {
                     const info = settings.json;
                     if (info && info.recordsTotal !== undefined) {
@@ -1132,6 +1180,445 @@
     </script>
     {{-- untuk abgan --}}
     <script>
+        $('#sel-store, #sel-dept').select2({
+            width: 'resolve'
+        });
+
+        const BAGAN_URL = '{{ route('employee.bagan') }}';
+
+        let scale = 1,
+            panX = 0,
+            panY = 0;
+        let isPanning = false,
+            startX = 0,
+            startY = 0,
+            startPanX = 0,
+            startPanY = 0;
+        let totalW = 0,
+            totalH = 0;
+        let linesVisible = true; // ← state garis
+
+        function applyTransform() {
+            const svg = document.getElementById('svg-chart');
+            svg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
+        }
+
+        function fitToScreen() {
+            const area = document.getElementById('chart-area');
+            const areaW = area.clientWidth - 32;
+            const areaH = area.clientHeight - 32;
+            if (!totalW || !totalH) return;
+            scale = Math.min(areaW / totalW, areaH / totalH, 1);
+            panX = (areaW - totalW * scale) / 2 + 16;
+            panY = 16;
+            applyTransform();
+        }
+
+        document.getElementById('btn-zoom-in').addEventListener('click', () => {
+            scale = Math.min(scale + 0.1, 3);
+            applyTransform();
+        });
+        document.getElementById('btn-zoom-out').addEventListener('click', () => {
+            scale = Math.max(scale - 0.1, 0.1);
+            applyTransform();
+        });
+        document.getElementById('btn-fit').addEventListener('click', fitToScreen);
+        document.getElementById('btn-reset-zoom').addEventListener('click', () => {
+            scale = 1;
+            panX = 0;
+            panY = 0;
+            applyTransform();
+        });
+
+        // ← Toggle garis
+        document.getElementById('btn-toggle-lines').addEventListener('click', function() {
+            linesVisible = !linesVisible;
+            document.querySelectorAll('.connector-line').forEach(path => {
+                path.style.display = linesVisible ? '' : 'none';
+            });
+            this.innerHTML = linesVisible ?
+                '<i class="fas fa-project-diagram"></i> Sembunyikan Garis' :
+                '<i class="fas fa-project-diagram"></i> Tampilkan Garis';
+        });
+
+        document.getElementById('chart-area').addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.08 : 0.08;
+            const newScale = Math.min(Math.max(scale + delta, 0.1), 3);
+            const rect = this.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            panX = mouseX - (mouseX - panX) * (newScale / scale);
+            panY = mouseY - (mouseY - panY) * (newScale / scale);
+            scale = newScale;
+            applyTransform();
+        }, {
+            passive: false
+        });
+
+        const chartArea = document.getElementById('chart-area');
+        chartArea.addEventListener('mousedown', function(e) {
+            if (e.target.closest('svg')) {
+                isPanning = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startPanX = panX;
+                startPanY = panY;
+                this.style.cursor = 'grabbing';
+            }
+        });
+        document.addEventListener('mousemove', function(e) {
+            if (!isPanning) return;
+            panX = startPanX + (e.clientX - startX);
+            panY = startPanY + (e.clientY - startY);
+            applyTransform();
+        });
+        document.addEventListener('mouseup', function() {
+            isPanning = false;
+            chartArea.style.cursor = 'grab';
+        });
+        chartArea.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                isPanning = true;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                startPanX = panX;
+                startPanY = panY;
+            }
+        }, {
+            passive: true
+        });
+        chartArea.addEventListener('touchmove', function(e) {
+            if (!isPanning || e.touches.length !== 1) return;
+            panX = startPanX + (e.touches[0].clientX - startX);
+            panY = startPanY + (e.touches[0].clientY - startY);
+            applyTransform();
+        }, {
+            passive: true
+        });
+        chartArea.addEventListener('touchend', () => {
+            isPanning = false;
+        });
+
+        function gradingColor(level) {
+            if (level <= 1) return {
+                fill: '#EEEDFE',
+                stroke: '#534AB7',
+                text: '#3C3489'
+            };
+            if (level <= 2) return {
+                fill: '#E1F5EE',
+                stroke: '#1D9E75',
+                text: '#085041'
+            };
+            if (level <= 3) return {
+                fill: '#FAECE7',
+                stroke: '#D85A30',
+                text: '#712B13'
+            };
+            if (level <= 4) return {
+                fill: '#E0F7FA',
+                stroke: '#00ACC1',
+                text: '#006064'
+            };
+            if (level <= 5) return {
+                fill: '#FFF3E0',
+                stroke: '#FB8C00',
+                text: '#E65100'
+            };
+            if (level <= 6) return {
+                fill: '#FFF8E1',
+                stroke: '#FBC02D',
+                text: '#F57F17'
+            };
+            if (level <= 7) return {
+                fill: '#FFFDE7',
+                stroke: '#C0CA33',
+                text: '#827717'
+            };
+            if (level <= 8) return {
+                fill: '#F1F8E9',
+                stroke: '#7CB342',
+                text: '#33691E'
+            };
+            if (level <= 9) return {
+                fill: '#EDE7F6',
+                stroke: '#673AB7',
+                text: '#311B92'
+            };
+            if (level <= 10) return {
+                fill: '#F3E5F5',
+                stroke: '#8E24AA',
+                text: '#4A148C'
+            };
+            if (level <= 11) return {
+                fill: '#FCE4EC',
+                stroke: '#D81B60',
+                text: '#880E4F'
+            };
+            return {
+                fill: '#F1EFE8',
+                stroke: '#888780',
+                text: '#444441'
+            };
+        }
+
+        function initials(name) {
+            return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+        }
+
+        function truncate(str, max) {
+            return str.length > max ? str.substring(0, max - 1) + '…' : str;
+        }
+
+        function showDetail(node) {
+            Swal.fire({
+                title: 'Detail Karyawan',
+                html: `
+                <b>${node.name}</b><br>
+                <small>
+                    <b>Company:</b> ${node.company_name}<br>
+                    <b>Grading:</b> ${node.grading}<br>
+                    <b>Position:</b> ${node.all_positions}<br>
+                    <b>Store:</b> ${node.all_stores}<br>
+                    <b>Department:</b> ${node.all_departments}
+                </small>`,
+                icon: 'info',
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#534AB7',
+            });
+        }
+
+        function drawEmpty(message) {
+            const svg = document.getElementById('svg-chart');
+            const placeholder = document.getElementById('chart-placeholder');
+            svg.style.display = 'none';
+            placeholder.classList.remove('d-none');
+            placeholder.classList.add('d-flex');
+            placeholder.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                <p>${message}</p>
+            </div>`;
+        }
+
+        function drawChart(nodes) {
+            const placeholder = document.getElementById('chart-placeholder');
+            const svg = document.getElementById('svg-chart');
+            placeholder.classList.remove('d-flex');
+            placeholder.classList.add('d-none');
+            svg.style.display = 'block';
+            svg.innerHTML = '';
+
+            const nodeW = 180,
+                nodeH = 76,
+                hGap = 28,
+                vGap = 64;
+
+            const byLevel = {};
+            nodes.forEach(n => {
+                if (!byLevel[n.grading_level]) byLevel[n.grading_level] = [];
+                byLevel[n.grading_level].push(n);
+            });
+            const levels = Object.keys(byLevel).map(Number).sort((a, b) => a - b);
+            const maxInRow = Math.max(...levels.map(l => byLevel[l].length));
+            totalW = Math.max(700, maxInRow * (nodeW + hGap) + hGap * 2);
+            totalH = levels.length * (nodeH + vGap) + vGap + 20;
+
+            svg.setAttribute('width', totalW);
+            svg.setAttribute('height', totalH);
+
+            const posMap = {};
+            levels.forEach((level, li) => {
+                const row = byLevel[level];
+                const rowW = row.length * nodeW + (row.length - 1) * hGap;
+                const startX = (totalW - rowW) / 2;
+                const y = vGap + li * (nodeH + vGap);
+                row.forEach((node, ni) => {
+                    const x = startX + ni * (nodeW + hGap);
+                    posMap[node.id] = {
+                        x,
+                        y,
+                        cx: x + nodeW / 2,
+                        cy: y + nodeH / 2
+                    };
+                });
+            });
+
+            const ns = 'http://www.w3.org/2000/svg';
+            const defs = document.createElementNS(ns, 'defs');
+            const marker = document.createElementNS(ns, 'marker');
+            marker.setAttribute('id', 'arrow');
+            marker.setAttribute('markerWidth', '6');
+            marker.setAttribute('markerHeight', '6');
+            marker.setAttribute('refX', '5');
+            marker.setAttribute('refY', '3');
+            marker.setAttribute('orient', 'auto');
+            const mpath = document.createElementNS(ns, 'path');
+            mpath.setAttribute('d', 'M0,0 L0,6 L6,3 z');
+            mpath.setAttribute('fill', '#B4B2A9');
+            marker.appendChild(mpath);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+
+            // ← Gambar garis dengan class connector-line
+            nodes.forEach(node => {
+                if (!node.atasan_id || !posMap[node.atasan_id]) return;
+                const from = posMap[node.atasan_id];
+                const to = posMap[node.id];
+                const midY = from.y + nodeH + (to.y - from.y - nodeH) / 2;
+                const path = document.createElementNS(ns, 'path');
+                path.setAttribute('d',
+                    `M${from.cx},${from.y + nodeH} L${from.cx},${midY} L${to.cx},${midY} L${to.cx},${to.y}`);
+                path.setAttribute('stroke', '#B4B2A9');
+                path.setAttribute('stroke-width', '1.5');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('marker-end', 'url(#arrow)');
+                path.setAttribute('class', 'connector-line'); // ← tambah class
+                if (!linesVisible) path.style.display = 'none'; // ← pertahankan state
+                svg.appendChild(path);
+            });
+
+            // ← Gambar node dengan satu click handler di g
+            nodes.forEach(node => {
+                const pos = posMap[node.id];
+                const c = gradingColor(node.grading_level);
+                const g = document.createElementNS(ns, 'g');
+                g.style.cursor = 'pointer';
+                g.addEventListener('click', () => showDetail(node)); // ← satu click handler saja
+
+                const rect = document.createElementNS(ns, 'rect');
+                rect.setAttribute('x', pos.x);
+                rect.setAttribute('y', pos.y);
+                rect.setAttribute('width', nodeW);
+                rect.setAttribute('height', nodeH);
+                rect.setAttribute('rx', 8);
+                rect.setAttribute('fill', c.fill);
+                rect.setAttribute('stroke', c.stroke);
+                rect.setAttribute('stroke-width', '1');
+                g.appendChild(rect);
+
+                const avatarCx = pos.x + 28;
+                const avatarCy = pos.y + nodeH / 2;
+                const circle = document.createElementNS(ns, 'circle');
+                circle.setAttribute('cx', avatarCx);
+                circle.setAttribute('cy', avatarCy);
+                circle.setAttribute('r', 20);
+                circle.setAttribute('fill', c.stroke);
+                g.appendChild(circle);
+
+                if (node.photo) {
+                    const clipId = 'clip-' + node.id;
+                    const clipPath = document.createElementNS(ns, 'clipPath');
+                    clipPath.setAttribute('id', clipId);
+                    const clipCircle = document.createElementNS(ns, 'circle');
+                    clipCircle.setAttribute('cx', avatarCx);
+                    clipCircle.setAttribute('cy', avatarCy);
+                    clipCircle.setAttribute('r', 20);
+                    clipPath.appendChild(clipCircle);
+                    defs.appendChild(clipPath);
+                    const img = document.createElementNS(ns, 'image');
+                    img.setAttribute('href', node.photo);
+                    img.setAttribute('x', avatarCx - 20);
+                    img.setAttribute('y', avatarCy - 20);
+                    img.setAttribute('width', 40);
+                    img.setAttribute('height', 40);
+                    img.setAttribute('clip-path', `url(#${clipId})`);
+                    g.appendChild(img);
+                } else {
+                    const avatarText = document.createElementNS(ns, 'text');
+                    avatarText.setAttribute('x', avatarCx);
+                    avatarText.setAttribute('y', avatarCy + 5);
+                    avatarText.setAttribute('text-anchor', 'middle');
+                    avatarText.setAttribute('font-size', '12');
+                    avatarText.setAttribute('font-weight', '500');
+                    avatarText.setAttribute('fill', '#fff');
+                    avatarText.textContent = initials(node.name);
+                    g.appendChild(avatarText);
+                }
+
+                const nameText = document.createElementNS(ns, 'text');
+                nameText.setAttribute('x', pos.x + 56);
+                nameText.setAttribute('y', pos.y + 24);
+                nameText.setAttribute('font-size', '12');
+                nameText.setAttribute('font-weight', '500');
+                nameText.setAttribute('fill', c.text);
+                nameText.textContent = truncate(node.name, 20);
+                g.appendChild(nameText);
+
+                const posText = document.createElementNS(ns, 'text');
+                posText.setAttribute('x', pos.x + 56);
+                posText.setAttribute('y', pos.y + 42);
+                posText.setAttribute('font-size', '11');
+                posText.setAttribute('fill', c.stroke);
+                posText.textContent = truncate(node.position, 22);
+                g.appendChild(posText);
+
+                const gradText = document.createElementNS(ns, 'text');
+                gradText.setAttribute('x', pos.x + 56);
+                gradText.setAttribute('y', pos.y + 58);
+                gradText.setAttribute('font-size', '10');
+                gradText.setAttribute('fill', c.text);
+                gradText.setAttribute('opacity', '0.7');
+                gradText.textContent = node.grading;
+                g.appendChild(gradText);
+
+                svg.appendChild(g);
+            });
+
+            setTimeout(fitToScreen, 50);
+        }
+
+        document.getElementById('btn-load').addEventListener('click', function() {
+            const storeId = $('#sel-store').val();
+            const deptId = $('#sel-dept').val();
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
+
+            fetch(`${BAGAN_URL}?store_id=${storeId}&department_id=${deptId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        drawEmpty('Error: ' + data.error);
+                        return;
+                    }
+                    if (!data.nodes || !data.nodes.length) {
+                        drawEmpty('Tidak ada karyawan di store dan department ini.');
+                    } else {
+                        drawChart(data.nodes);
+                    }
+                })
+                .catch(err => {
+                    drawEmpty('Gagal memuat data: ' + err.message);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sitemap"></i> Tampilkan Bagan';
+                });
+        });
+
+        document.getElementById('btn-reset-filter').addEventListener('click', function() {
+            $('#sel-store').val('all').trigger('change');
+            $('#sel-dept').val('all').trigger('change');
+            const svg = document.getElementById('svg-chart');
+            svg.style.display = 'none';
+            const placeholder = document.getElementById('chart-placeholder');
+            placeholder.classList.remove('d-none');
+            placeholder.classList.add('d-flex');
+            placeholder.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-sitemap fa-3x mb-3 d-block"></i>
+                <p>Pilih store dan department untuk menampilkan bagan</p>
+            </div>`;
+            scale = 1;
+            panX = 0;
+            panY = 0;
+            applyTransform();
+        });
+    </script>
+    {{-- <script>
         $('#sel-store, #sel-dept').select2({
             width: 'resolve'
         });
@@ -1683,5 +2170,5 @@ g.addEventListener('click', function() {
                 });
         });
   
-    </script>
+    </script> --}}
 @endpush

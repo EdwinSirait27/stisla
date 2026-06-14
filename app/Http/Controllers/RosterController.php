@@ -198,14 +198,7 @@ class RosterController extends Controller
 
 
         $myEmployee  = optional($user->employee);
-        // $myStoreId   = $myEmployee->store_id;
-        // $myStoreName = optional($myEmployee->store)->name;
-        // $myDepartmentId = $myEmployee->department_id;
-//         $myStore        = $myEmployee->store?->wherePivot('is_primary', true)->first();
-// $myStoreId      = $myStore?->id;
-// $myStoreName    = $myStore?->name;
-// $myDepartment   = $myEmployee->department?->wherePivot('is_primary', true)->first();
-// $myDepartmentId = $myDepartment?->id;
+ 
 if ($myEmployee) {
     $myStore        = $myEmployee->store()->wherePivot('is_primary', true)->first();
     $myStoreId      = $myStore?->id;
@@ -231,14 +224,6 @@ if ($myEmployee) {
         }
 
         if (!$canManageAll && $canManageSPV) {
-            // Guard store_id
-            // if ($request->store_id && $request->store_id !== $myStoreId) {
-            //     return redirect()->route('roster.index', [
-            //         'store_id'   => $myStoreId,
-            //         'start_date' => $request->start_date,
-            //         'end_date'   => $request->end_date,
-            //     ]);
-            // }
             if ($request->store_id && $request->store_id !== $myStoreId) {
     return redirect()->route('roster.index', [
                 'store_id'   => $myStoreId,
@@ -282,19 +267,31 @@ if ($myEmployee) {
         $dates     = [];
 
         if ($storeId) {
-            // $employeeQuery = Employee::with([
-            //     'position:id,name',
-            //     'store:id,name',
-            //     'department:id,department_name',
-            //     'rosters' => fn($q) => $q
-            //         ->whereBetween('date', [$startDate, $endDate])
-            //         ->with('shift:id,shift_name,start_time,end_time'),
-            // ])
-            //     ->select('id', 'employee_name', 'store_id', 'status_employee', 'status', 'company_id', 'department_id', 'position_id')
-            //     ->whereNull('deleted_at')
-            //     ->where('store_id', $storeId)
-            //     ->orderBy('employee_name');
-            $employeeQuery = Employee::with([
+         
+//             $employeeQuery = Employee::with([
+//     'store'      => fn($q) => $q->wherePivot('is_primary', true),
+//     'position'   => fn($q) => $q->wherePivot('is_primary', true),
+//     'department' => fn($q) => $q->wherePivot('is_primary', true),
+//     'rosters'    => fn($q) => $q
+//         ->whereBetween('date', [$startDate, $endDate])
+//         ->with('shift:id,shift_name,start_time,end_time'),
+// ])
+// ->select('id', 'employee_name', 'status_employee', 'status', 'company_id') // ← hapus FK columns
+// ->whereNull('deleted_at')
+// ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId)) // ← filter via pivot
+// ->orderBy('employee_name');
+
+
+//             if ($canManageAll) {
+//                 $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
+//             } elseif ($canManageSPV) {
+//                 $employeeQuery->where('status', 'Active');
+//             } elseif ($canView) {
+//                 $employeeQuery->where('id', $myEmployee->id);
+//             } else {
+//                 return abort(403, 'Unauthorized');
+//             }
+$employeeQuery = Employee::with([
     'store'      => fn($q) => $q->wherePivot('is_primary', true),
     'position'   => fn($q) => $q->wherePivot('is_primary', true),
     'department' => fn($q) => $q->wherePivot('is_primary', true),
@@ -302,21 +299,28 @@ if ($myEmployee) {
         ->whereBetween('date', [$startDate, $endDate])
         ->with('shift:id,shift_name,start_time,end_time'),
 ])
-->select('id', 'employee_name', 'status_employee', 'status', 'company_id') // ← hapus FK columns
+->select('id', 'employee_name', 'status_employee', 'status', 'company_id')
 ->whereNull('deleted_at')
-->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId)) // ← filter via pivot
+->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
 ->orderBy('employee_name');
 
+if ($canManageAll) {
+    $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
 
-            if ($canManageAll) {
-                $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
-            } elseif ($canManageSPV) {
-                $employeeQuery->where('status', 'Active');
-            } elseif ($canView) {
-                $employeeQuery->where('id', $myEmployee->id);
-            } else {
-                return abort(403, 'Unauthorized');
-            }
+} elseif ($canManageSPV) {
+    $employeeQuery
+        ->where('status', 'Active')
+        ->where('company_id', $myEmployee->company_id) // ← filter company
+        ->whereHas('department', fn($q) =>              // ← filter department
+            $q->where('departments_tables.id', $myDepartmentId)
+        );
+
+} elseif ($canView) {
+    $employeeQuery->where('id', $myEmployee->id);
+
+} else {
+    return abort(403, 'Unauthorized');
+}
 
             $employees = $employeeQuery->get();
 
@@ -372,7 +376,6 @@ if ($myEmployee) {
             'shifts',
             'stores',
             'dates',
-
             'startDate',
             'endDate',
             'storeId',

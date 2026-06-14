@@ -367,8 +367,9 @@
             <tr>
                 <td class="col-label">Jabatan</td>
                 <td class="col-sep">:</td>
-                {{-- <td>{{ $issued->position->name ?? '-' }}</td> --}}
-                {{ $issued->position->first()->name ?? '-'}}
+                   <td>{{ $issued->position->first()?->name ?? '-' }}</td>
+
+                
                 
             </tr>
         </table>
@@ -558,10 +559,7 @@
                         <div style="padding-top: 4px; margin: 0 10px;">
                             <strong>{{ $issued->employee_name }}</strong><br>
                             <span style="font-size: 9.5pt;">
-                                {{-- {{ $issued->position->name ?? '-' }} --}}
                                   {{ $issued->position->first()->name ?? '-'}}
-
-                                
                             </span>
                         </div>
                     </td>
