@@ -762,8 +762,10 @@ Route::prefix('payroll')->name('payroll.')->group(function () {
         Route::post('/destroy',      [RosterController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-assign',  [RosterController::class, 'bulkAssign'])->name('bulkAssign');
         Route::post('/bulk-delete',  [RosterController::class, 'bulkDelete'])->name('bulkDelete');
+        Route::get('/template', [RosterController::class, 'downloadTemplate'])->name('template');
+        Route::post('/import',       [RosterController::class, 'importExcel'])->name('import');
         
-       
+        Route::get('/ph-carryovers', [RosterController::class, 'availablePhCarryovers'])->name('phCarryovers');
         Route::get('activities', [RosterController::class, 'getActivities'])->name('activities');
        
     });

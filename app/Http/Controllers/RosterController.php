@@ -10,13 +10,18 @@ use App\Models\Shifts;
 use App\Models\Stores;
 use App\Models\RosterSetting;
 use App\Models\PublicHoliday;
+use App\Models\RosterPhCarryover;
 use Yajra\DataTables\DataTables;
 use Spatie\Activitylog\Models\Activity;
 use App\Models\ToilLeaveRequests;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RosterTemplateExport;
+use App\Imports\RosterImport;
 use App\Exports\RosterHistoryExport;
 
 class RosterController extends Controller
@@ -30,14 +35,14 @@ class RosterController extends Controller
     {
         $status = strtoupper($statusEmployee ?? '');
         if ($status === 'DW') {
-            return ['Work', 'Off'];
+            return ['Work', 'Off', 'TOIL Off'];
         }
 
         if (str_contains($status, 'JOB TRAINING')) {
-            return ['Work', 'Off', 'Public Holiday'];
+            return ['Work', 'Off', 'Public Holiday', 'Sick', 'TOIL Off'];
         }
 
-        return ['Work', 'Off', 'Public Holiday', 'Leave', 'Cuti Melahirkan'];
+        return ['Work', 'Off', 'Public Holiday', 'Leave', 'Cuti Melahirkan', 'Sick', 'TOIL Off'];
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -75,10 +80,10 @@ class RosterController extends Controller
 
         if ($roster) {
             if ($roster->day_type === 'TOIL Off') {
-                $badgeClass = 'r-badge r-off';
+                $badgeClass = 'r-badge r-toiloff';
                 $badgeName  = 'TOIL Off';
                 $cellType   = 'toiloff';
-            }elseif ($roster->day_type === 'Off') {
+            } elseif ($roster->day_type === 'Off') {
                 $badgeClass = 'r-badge r-off';
                 $badgeName  = 'Off';
                 $cellType   = 'off';
@@ -94,6 +99,10 @@ class RosterController extends Controller
                 $badgeClass = 'r-badge r-leave';
                 $badgeName  = 'Leave';
                 $cellType   = 'leave';
+            } elseif ($roster->day_type === 'Sick') {
+                $badgeClass = 'r-badge r-sick';
+                $badgeName  = 'Sick';
+                $cellType   = 'sick';
             } elseif ($roster->shift) {
                 $badgeClass = 'r-badge r-work';
                 $badgeName  = $roster->shift->shift_name;
@@ -330,12 +339,16 @@ class RosterController extends Controller
         $isRosterOpen = $this->isSPVOnly() ? $this->checkRosterWindow() : true;
         $canViewOnly = $canView && !$canManageAll && !$canManageSPV;
 
+        // Tambah sebelum return view(...)
+        $currentStoreName = $storeId
+            ? optional($stores->firstWhere('id', $storeId))->name ?? ''
+            : '';
+
         return view('pages.Roster.Roster', compact(
             'employees',
             'shifts',
             'stores',
             'dates',
-
             'startDate',
             'endDate',
             'storeId',
@@ -347,6 +360,7 @@ class RosterController extends Controller
             'canManageAll',
             'canManageSPV',
             'canViewOnly',
+            'currentStoreName', // ← tambahkan ini
             'user'
         ));
     }
@@ -358,21 +372,26 @@ class RosterController extends Controller
 
     {
 
-
         if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Periode pengisian roster sedang ditutup.',
             ], 403);
         }
+
+        if ($request->shift_id === '') {
+            $request->merge(['shift_id' => null]);
+        }
         $request->validate([
             'employee_id' => 'required|exists:employees_tables,id',
             'shift_id'    => 'nullable|exists:shifts_tables,id',
             'date'        => 'required|date',
-            'day_type'    => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
+            'day_type'    => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan,Sick,TOIL Off',
+            'ph_carryover_id' => 'nullable|exists:roster_ph_carryovers,id',
         ]);
 
-        $employee = Employee::select('id', 'status_employee', 'religion')
+        $employee = Employee::with('store:id,name')
+            ->select('id', 'status_employee', 'religion', 'employee_name', 'store_id')
             ->find($request->employee_id);
 
         $allowed = $this->allowedDayTypes($employee?->status_employee);
@@ -400,10 +419,35 @@ class RosterController extends Controller
         $phMap = $this->getPublicHolidaysMap($request->date, $request->date);
         $isPH  = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
 
-        if ($isPH && $request->day_type !== 'Public Holiday') {
+        // PH di Minggu HANGUS untuk store statis → anggap bukan PH
+        $storeName = optional($employee?->store)->name;
+        if ($isPH && $this->isPhVoidedOnSunday($request->date, $storeName)) {
+            $isPH = false;
+        }
+
+        // ── PH TUKAR: kalau hari ini PH tapi HR set Work → SIMPAN saldo PH ──
+        // (guard lama "harus Public Holiday" DILONGGARKAN untuk kasus Work)
+        if ($isPH && $request->day_type === 'Work') {
+            $phName = $this->getPublicHolidayRemark($phMap, $request->date) ?? 'Public Holiday';
+
+            // Anti-duplikat: 1 PH per karyawan per tanggal asal
+            RosterPhCarryover::firstOrCreate(
+                [
+                    'employee_id' => $request->employee_id,
+                    'ph_date'     => $request->date,
+                ],
+                [
+                    'ph_name'    => $phName,
+                    'expired_at' => $this->phCarryoverExpiry($request->date)->toDateString(),
+                    'status'     => 'available',
+                ]
+            );
+        }
+        // Kalau bukan Work dan bukan Public Holiday, baru tolak (PH wajib diakui)
+        elseif ($isPH && $request->day_type !== 'Public Holiday') {
             return response()->json([
                 'success' => false,
-                'message' => "Tanggal ini adalah Public Holiday untuk karyawan ini. Day type harus \"Public Holiday\".",
+                'message' => "Tanggal ini adalah Public Holiday. Pilih \"Work\" (PH disimpan) atau \"Public Holiday\".",
             ], 422);
         }
 
@@ -416,12 +460,66 @@ class RosterController extends Controller
             }
         }
 
+        // ── Sick: bukti WAJIB, upload ke S3 ──
+        $sickAttachmentPath = null;
+        if ($request->day_type === 'Sick') {
+            $request->validate([
+                'sick_attachment' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            ], [
+                'sick_attachment.required' => 'Bukti sakit wajib di-upload untuk day type Sick.',
+                'sick_attachment.mimes'    => 'File harus JPG, PNG, atau PDF.',
+                'sick_attachment.max'      => 'Ukuran file maksimal 5MB.',
+            ]);
+
+            $file     = $request->file('sick_attachment');
+            $ext      = strtolower($file->getClientOriginalExtension());
+            $safeName = Str::slug($employee?->employee_name ?? 'employee');
+            $fileName = $safeName . '-' . now()->timestamp . '-sick.' . $ext;
+            $folder   = 'employee-sickness';
+
+            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+            $sickAttachmentPath = $folder . '/' . $fileName;
+
+            Log::info('[SICK] Upload selesai', [
+                'path'   => $sickAttachmentPath,
+                'exists' => Storage::disk('s3')->exists($sickAttachmentPath),
+            ]);
+        }
+
+        // ── PH TUKAR: kalau HR memilih saldo PH untuk dipakai di hari ini ──
+        // Hari pengganti = day_type "Public Holiday" + ph_carryover_id dipilih.
+        if ($request->day_type === 'Public Holiday' && $request->filled('ph_carryover_id')) {
+            $carryover = RosterPhCarryover::where('id', $request->ph_carryover_id)
+                ->where('employee_id', $request->employee_id)
+                ->where('status', 'available')
+                ->first();
+
+            if (!$carryover) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai.',
+                ], 422);
+            }
+
+            // Tandai terpakai, catat di tanggal mana dipakai
+            $carryover->update([
+                'status'    => 'used',
+                'used_date' => $request->date,
+            ]);
+
+            // Pakai nama PH simpanan sebagai notes (kalau notes kosong)
+            if (empty($notes)) {
+                $notes = $carryover->ph_name;
+            }
+        }
+
         $roster = Roster::updateOrCreate(
             ['employee_id' => $request->employee_id, 'date' => $request->date],
             [
                 'shift_id' => $request->day_type === 'Work' ? $request->shift_id : null,
                 'day_type' => $request->day_type,
                 'notes'    => $notes,
+                'sick_attachment' => $sickAttachmentPath,
             ]
         );
 
@@ -432,6 +530,36 @@ class RosterController extends Controller
             'roster_time' => $roster->shift
                 ? substr($roster->shift->start_time, 0, 5) . '-' . substr($roster->shift->end_time, 0, 5)
                 : '',
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  AMBIL daftar saldo PH tukar yang masih tersedia utk 1 karyawan
+    //  Dipakai dropdown di modal cell.
+    // ─────────────────────────────────────────────────────────────
+    public function availablePhCarryovers(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees_tables,id',
+            'date'        => 'required|date',
+        ]);
+
+        // Hanya saldo: milik karyawan ini, status available, belum kedaluwarsa
+        // (kedaluwarsa = expired_at >= tanggal hari pengganti yang dipilih)
+        $items = RosterPhCarryover::where('employee_id', $request->employee_id)
+            ->where('status', 'available')
+            ->whereDate('expired_at', '>=', $request->date)
+            ->orderBy('ph_date')
+            ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $items->map(fn($it) => [
+                'id'         => $it->id,
+                'ph_name'    => $it->ph_name,
+                'ph_date'    => Carbon::parse($it->ph_date)->toDateString(),
+                'expired_at' => Carbon::parse($it->expired_at)->toDateString(),
+            ]),
         ]);
     }
     // ─────────────────────────────────────────────────────────────
@@ -474,6 +602,12 @@ class RosterController extends Controller
         Log::info('Rosters found: ' . $rosters->count());
         Log::info($rosters->pluck('id')->toArray());
 
+        // ── REFUND PH TUKAR: kalau cell ini memakai saldo PH, kembalikan ──
+        RosterPhCarryover::where('employee_id', $request->employee_id)
+            ->where('status', 'used')
+            ->whereDate('used_date', $request->date)
+            ->update(['status' => 'available', 'used_date' => null]);
+
         foreach ($rosters as $roster) {
             $roster->delete();
         }
@@ -485,6 +619,97 @@ class RosterController extends Controller
         return ($religion === 'Hindu')
             ? ['Hindu', 'All']
             : ['Non Hindu', 'All'];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  HELPER: Public Holiday map untuk rentang tanggal
+    // ─────────────────────────────────────────────────────────────
+    private function getPublicHolidaysMap(string $startDate, string $endDate): array
+    {
+        $holidays = PublicHoliday::whereBetween('date', [$startDate, $endDate])->get();
+
+        $map = [];
+        foreach ($holidays as $ph) {
+            $dateStr = Carbon::parse($ph->date)->toDateString();
+            $map[$dateStr][] = [
+                'type'   => $ph->type,    // 'Hindu' | 'Non Hindu' | 'All'
+                'remark' => $ph->remark,
+            ];
+        }
+        return $map;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  HELPER: Cek apakah store termasuk "store statis"
+    //  (Head Office / Holding / Distribution Center)
+    // ─────────────────────────────────────────────────────────────
+    private function isStaticStore(?string $storeName): bool
+    {
+        $staticStoreNames = ['Head Office', 'Holding', 'Distribution Center'];
+        return in_array($storeName ?? '', $staticStoreNames);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  HELPER: Hitung akhir periode roster (tgl 25) untuk tanggal tertentu
+    //  Periode roster: 26 bulan lalu → 25 bulan ini.
+    //  Contoh: 17 Feb → akhir periode = 25 Feb.
+    // ─────────────────────────────────────────────────────────────
+    private function periodEndFor(Carbon $date): Carbon
+    {
+        // Kalau tanggal >= 26, periode berakhir tgl 25 BULAN BERIKUTNYA.
+        // Kalau tanggal <= 25, periode berakhir tgl 25 BULAN INI.
+        if ($date->day >= 26) {
+            return $date->copy()->addMonth()->day(25);
+        }
+        return $date->copy()->day(25);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  HELPER: Tanggal kedaluwarsa saldo PH tukar
+    //  = akhir periode +2 dari periode tanggal PH asal.
+    //  Contoh: PH 17 Feb → periode berakhir 25 Feb → +2 periode → 25 Apr.
+    // ─────────────────────────────────────────────────────────────
+    private function phCarryoverExpiry(string $phDate): Carbon
+    {
+        $end = $this->periodEndFor(Carbon::parse($phDate)); // 25 Feb
+        return $end->copy()->addMonths(2);                   // 25 Apr
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  HELPER: PH HANGUS jika jatuh di Minggu DAN store statis
+    //  → untuk store statis, Minggu sudah Off, jadi PH tidak berlaku
+    // ─────────────────────────────────────────────────────────────
+    private function isPhVoidedOnSunday(string $date, ?string $storeName): bool
+    {
+        return Carbon::parse($date)->isSunday() && $this->isStaticStore($storeName);
+    }
+
+    // Cek apakah tanggal ini PH yang relevan untuk agama karyawan
+    private function isPublicHolidayForEmployee(array $phMap, string $date, ?string $religion): bool
+    {
+        $dateStr = Carbon::parse($date)->toDateString();
+        if (!isset($phMap[$dateStr])) {
+            return false;
+        }
+
+        $relevantTypes = $this->resolveRelevantPhTypes($religion); // ['Hindu','All'] atau ['Non Hindu','All']
+
+        foreach ($phMap[$dateStr] as $ph) {
+            if (in_array($ph['type'], $relevantTypes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Ambil remark PH pertama di tanggal tsb (untuk auto-isi notes)
+    private function getPublicHolidayRemark(array $phMap, string $date): ?string
+    {
+        $dateStr = Carbon::parse($date)->toDateString();
+        if (!isset($phMap[$dateStr]) || empty($phMap[$dateStr])) {
+            return null;
+        }
+        return $phMap[$dateStr][0]['remark'] ?? null;
     }
 
 
@@ -520,19 +745,15 @@ class RosterController extends Controller
             'shift_id'          => 'nullable|exists:shifts_tables,id',
             'start_date'        => 'required|date',
             'end_date'          => 'required|date|after_or_equal:start_date',
-            'day_type'          => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan',
+            'day_type'          => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan,Sick,TOIL Off',
             'skip_weekend'      => 'boolean',
             'saturday_shift'    => 'boolean',
             'saturday_shift_id' => 'nullable|exists:shifts_tables,id',
         ]);
 
 
-        $employees = Employee::select(
-            'id',
-            'employee_name',
-            'status_employee',
-            'religion'
-        )
+        $employees = Employee::with('store:id,name')
+            ->select('id', 'employee_name', 'status_employee', 'religion', 'store_id')
             ->whereIn('id', $request->employee_ids)
             ->get()
             ->keyBy('id');
@@ -650,9 +871,9 @@ class RosterController extends Controller
                 if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $empId, 'date' => $dateStr],
-                        ['shift_id' => null, 'day_type' => 'Off', 'notes' => null]
+                        ['shift_id' => null, 'day_type' => 'TOIL Off', 'notes' => null]
                     );
-                    $phCount++;
+                    $skippedCount++;
                     continue;
                 }
 
@@ -661,7 +882,8 @@ class RosterController extends Controller
                         fn($ph) => in_array($ph->type, $relevantPhTypes)
                     );
 
-                    if ($matchingPH) {
+                    // PH hangus kalau Minggu + store statis → jangan jadikan PH
+                    if ($matchingPH && !$this->isPhVoidedOnSunday($dateStr, optional($emp->store)->name)) {
                         Log::info('Public Holiday Match', [
                             'employee' => $emp->employee_name,
                             'date'     => $dateStr,
@@ -671,7 +893,7 @@ class RosterController extends Controller
 
                         $resolvedDayType = 'Public Holiday';
                         $resolvedShiftId = null;
-                        $resolvedNotes   = $matchingPH->remark;  // ← PH remark → Roster notes
+                        $resolvedNotes   = $matchingPH->remark;
                     }
                 }
 
@@ -717,13 +939,86 @@ class RosterController extends Controller
 
         if ($skippedCount > 0) {
             $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
-
         }
 
         return response()->json([
             'success' => true,
             'message' => $message,
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+//  DOWNLOAD TEMPLATE Excel untuk Import (terisi karyawan + tanggal)
+// ─────────────────────────────────────────────────────────────
+public function downloadTemplate(Request $request)
+{
+    $request->validate([
+        'store_id'   => 'required|exists:stores_tables,id',
+        'start_date' => 'required|date',
+        'end_date'   => 'required|date|after_or_equal:start_date',
+    ]);
+
+    $storeName = Stores::find($request->store_id)?->name ?? 'store';
+    $filename  = 'template-roster-' . str($storeName)->slug() . '-'
+        . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+    return Excel::download(
+        new RosterTemplateExport(
+            $request->store_id,
+            $request->start_date,
+            $request->end_date
+        ),
+        $filename
+    );
+}
+
+    // ─────────────────────────────────────────────────────────────
+    //  IMPORT EXCEL (matriks: baris=karyawan, kolom=tanggal)
+    // ─────────────────────────────────────────────────────────────
+    public function importExcel(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
+        if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode pengisian roster sedang ditutup.',
+            ], 403);
+        }
+
+        $request->validate([
+            'store_id'   => 'required|exists:stores_tables,id',
+            'start_date' => 'required|date',
+            'file'       => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ], [
+            'file.required' => 'File Excel wajib di-upload.',
+            'file.mimes'    => 'File harus .xlsx, .xls, atau .csv.',
+            'file.max'      => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        try {
+            $import = new RosterImport($request->store_id, $request->start_date);
+            Excel::import($import, $request->file('file'));
+
+            $message = "Import selesai. {$import->created} jadwal tersimpan.";
+            if (!empty($import->errors)) {
+                $message .= " " . count($import->errors) . " baris dilewati.";
+            }
+
+            return response()->json([
+                'success'  => true,
+                'message'  => $message,
+                'created'  => $import->created,
+                'errors'   => $import->errors,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[ROSTER IMPORT] Gagal', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses file: ' . $e->getMessage(),
+            ], 422);
+        }
     }
     // ─────────────────────────────────────────────────────────────
     //  BULK DELETE
@@ -838,7 +1133,8 @@ class RosterController extends Controller
 
         $employeeIds = $sourceRosters->pluck('employee_id')->unique()->toArray();
 
-        $employees = Employee::select('id', 'religion')
+        $employees = Employee::with('store:id,name')
+            ->select('id', 'religion', 'store_id')
             ->whereIn('id', $employeeIds)
             ->get()
             ->keyBy('id');
@@ -885,7 +1181,10 @@ class RosterController extends Controller
                             ['shift_id' => null, 'day_type' => 'TOIL Off']
                         );
                         $toilCount++;
-                    } elseif ($this->isPublicHolidayForEmployee($phMap, $dateStr, $religion)) {
+                    } elseif (
+                        $this->isPublicHolidayForEmployee($phMap, $dateStr, $religion)
+                        && !$this->isPhVoidedOnSunday($dateStr, optional($employees[$empId]?->store)->name)
+                    ) {
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
                             [
@@ -921,7 +1220,10 @@ class RosterController extends Controller
                         ['shift_id' => null, 'day_type' => 'TOIL Off']
                     );
                     $toilCount++;
-                } elseif ($this->isPublicHolidayForEmployee($phMap, $newDate, $religion)) {
+                } elseif (
+                    $this->isPublicHolidayForEmployee($phMap, $newDate, $religion)
+                    && !$this->isPhVoidedOnSunday($newDate, optional($employees[$src->employee_id]?->store)->name)
+                ) {
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
                         [

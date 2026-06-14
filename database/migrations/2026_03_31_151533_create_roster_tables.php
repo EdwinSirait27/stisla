@@ -19,7 +19,6 @@ return new class extends Migration
             $table->enum('day_type', ['Work', 'Off', 'Holiday', 'Leave'])->default('Work');
             $table->text('notes')->nullable();
             $table->timestamps();
-            $table->softDeletes();
 
             $table->foreign('employee_id')
                 ->references('id')

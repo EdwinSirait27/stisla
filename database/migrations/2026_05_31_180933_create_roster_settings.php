@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('roster_settings', function (Blueprint $table) {
             $table->charset = 'utf8mb4';                    // ← tambah ini
             $table->collation = 'utf8mb4_unicode_ci';       // ← tambah ini
-                       $table->id();
+            $table->id();
             $table->unsignedTinyInteger('open_day');   // tanggal buka, misal 20
             $table->unsignedTinyInteger('close_day');  // tanggal tutup, misal 28
             $table->boolean('is_active')->default(true);
