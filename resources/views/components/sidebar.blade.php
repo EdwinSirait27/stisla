@@ -93,21 +93,34 @@
                             <a class="nav-link" href="{{ url('Teamfingerprint') }}">Team Fingerprints</a>
                         </li>
                     @endcan --}}
+                    
+                   
                     {{-- @can('Positionapprovals')
                         <li class="{{ Request::is('Positionapprovals') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionapprovals') }}">Position Approvals</a>
                         </li>
                     @endcan --}}
-                    @canany(['ManageEmployee','ManageEmployeeSPVManager','ViewEmployee'])
-                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
-                        </li>
-                    @endcanany
                     {{-- @can('ManageStructuresnew')
                         <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
                         </li>
                     @endcan --}}
+                     {{-- @canany(['ManageEmployee','ManageEmployeeSPVManager','ViewEmployee']) --}}
+                     @can('ManageEmployee')
+                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
+                        </li>
+                    @endcan
+                     @can('ManageEmployeeSPVManager')
+                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
+                        </li>
+                    @endcan
+                     @can('ViewEmployee')
+                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
+                        </li>
+                    @endcan
                     @can('ManageSummaries')
                         <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Summaries') }}">Leaves List</a>

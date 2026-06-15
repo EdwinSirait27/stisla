@@ -33,6 +33,7 @@ class FingerprintrecapController extends Controller
     }
     public function getData(Request $request)
     {
+        
 
         Log::info('FingerprintRecap@getData dipanggil', [
             'start_date' => $request->input('start_date'),

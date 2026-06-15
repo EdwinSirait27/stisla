@@ -522,6 +522,15 @@
                             </div>
                         </div>
                     @endcan
+                    @can('ManageEmployee')
+                        <div class="stat-card">
+                            <div class="stat-card-label">Pending</div>
+                            <div class="stat-card-value blue" id="stat-resign">{{ $countpendings }}</div>
+                            <div class="stat-card-sub">
+                                <span class="stat-dot" style="background:#2735cf"></span> Pending
+                            </div>
+                        </div>
+                    @endcan
                 </div>
                 {{-- ── Employee Table Card ── --}}
                 <div class="emp-card">
