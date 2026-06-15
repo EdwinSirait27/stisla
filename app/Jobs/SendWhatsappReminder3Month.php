@@ -80,8 +80,8 @@ private function buildMessage($users): string
         $name         = $employee?->employee_name ?? $user->name ?? 'Tidak diketahui';
         $pengenal         = $employee?->employee_pengenal ?? $user->name ?? 'Tidak diketahui';
         $company         = $employee?->company->name ?? $user->name ?? 'Tidak diketahui';
-        $department         = $employee?->department->department_name ?? $user->name ?? 'Tidak diketahui';
-        $location         = $employee?->store->name ?? $user->name ?? 'Tidak diketahui';
+        $department         = $employee?->department?->first()->department_name ?? $user->username ?? 'Tidak diketahui';
+        $location         = $employee?->store?->first()->name ?? $user->username ?? 'Tidak diketahui';
         $statusEmp    = $employee?->status_employee ?? '-'; // PKWT / DW / On Job Training
         $status       = $employee?->status ?? '-';          // Active / Inactive / dll
         $createdAt    = Carbon::parse($user->created_at);

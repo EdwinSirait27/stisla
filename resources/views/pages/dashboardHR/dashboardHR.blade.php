@@ -1463,6 +1463,7 @@
                 </div>
                 <div class="row mb-4">
                     {{-- Payroll Status --}}
+                    @can('ManageEmployeeSalary')
                     <div class="col-lg-4 col-md-6 col-12 mb-4">
                         <div class="dash-card h-100">
                             <div class="dash-card-header">
@@ -1521,6 +1522,7 @@
                             </div>
                         </div>
                     </div>
+                    @endcan
 
                     {{-- Contract Expiry --}}
                     <div class="col-lg-4 col-md-6 col-12 mb-4">
