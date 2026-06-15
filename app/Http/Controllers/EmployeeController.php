@@ -1238,6 +1238,7 @@ if (!$canManage) {
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
+        
         $allEmployees = Employee::where('status', 'Active')
             ->whereHas(
                 'grading',

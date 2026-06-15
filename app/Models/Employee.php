@@ -511,7 +511,7 @@ public function bawahanList()
     }
     
     public function atasanStruktur()
-{
+    {
     $atasanManual = $this->atasanList()->first();
     if ($atasanManual) return $atasanManual;
 
