@@ -349,11 +349,15 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
             Route::get('/shift-list', [ManualRecapController::class, 'shiftList'])->name('shift-list');
             Route::post('/',          [ManualRecapController::class, 'store'])->name('store');
         });
+
+    Route::group(['middleware' => ['permission:ManageFingerspotRecap']], function () {
+
         // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
         Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
             Route::get('/',       [FingerprintRecapController::class, 'index'])->name('index');
             Route::post('/data',  [FingerprintRecapController::class, 'getData'])->name('data');
             Route::post('/recap', [FingerprintRecapController::class, 'recap'])->name('recap');
+        });
         });
     });
 
