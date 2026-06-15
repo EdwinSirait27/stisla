@@ -1162,7 +1162,7 @@ if (!$canManage) {
             ->whereHas(
                 'grading',
                 fn($q) =>
-                $q->where('level', '<', $employee->Employee->grading->level)
+                $q->where('level', '<', $employee->Employee->grading?->level)
             )
             ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
@@ -1242,7 +1242,7 @@ if (!$canManage) {
             ->whereHas(
                 'grading',
                 fn($q) =>
-                $q->where('level', '<', $employee->Employee->grading->level)
+                $q->where('level', '<', $employee->Employee->grading?->level)
             )
             ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
