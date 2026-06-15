@@ -1156,15 +1156,23 @@ if (!$canManage) {
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
-        // $allEmployees = Employee::get();
-        // $allEmployees = Employee::where('status', 'Active')->get();
+
+        // $allEmployees = Employee::where('status', 'Active')
+        //     ->whereHas(
+        //         'grading',
+        //         fn($q) =>
+        //         $q->where('level', '<', $employee->Employee->grading?->level)
+        //     )
+        //     ->get();
+        $gradingLevel = $employee->Employee?->grading?->level;
+
         $allEmployees = Employee::where('status', 'Active')
-            ->whereHas(
-                'grading',
-                fn($q) =>
-                $q->where('level', '<', $employee->Employee->grading?->level)
-            )
-            ->get();
+    ->when($gradingLevel, function ($query) use ($gradingLevel) {
+        $query->whereHas('grading', function ($q) use ($gradingLevel) {
+            $q->where('level', '<', $gradingLevel);
+        });
+    })
+    ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
         $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
         $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
@@ -1238,13 +1246,22 @@ if (!$canManage) {
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
+        // $allEmployees = Employee::where('status', 'Active')
+        //     ->whereHas(
+        //         'grading',
+        //         fn($q) =>
+        //         $q->where('level', '<', $employee->Employee->grading?->level)
+        //     )
+        //     ->get();
+        $gradingLevel = $employee->Employee?->grading?->level;
+
         $allEmployees = Employee::where('status', 'Active')
-            ->whereHas(
-                'grading',
-                fn($q) =>
-                $q->where('level', '<', $employee->Employee->grading?->level)
-            )
-            ->get();
+    ->when($gradingLevel, function ($query) use ($gradingLevel) {
+        $query->whereHas('grading', function ($q) use ($gradingLevel) {
+            $q->where('level', '<', $gradingLevel);
+        });
+    })
+    ->get();
         $selectedStores = $employee->Employee->store->pluck('id')->toArray();
         $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
         $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
