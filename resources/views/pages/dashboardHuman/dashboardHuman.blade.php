@@ -871,19 +871,23 @@
                     <div class="row align-items-center">
                         <div class="col-lg-8">
                             <div class="d-flex align-items-center gap-4">
-                                <img src="{{ asset('img/avatar/avatar-1.png') }}" alt="Profile"
-                                    class="profile-avatar-large">
+                                 <img src="{{ Auth::user()->employee->photos
+                                    ? route('useremployee.photo', basename(Auth::user()->employee->photos))
+                                    : asset('img/avatar/avatar-1.png') }}"
+                                    alt="Profile" class="profile-avatar-large no-drag">
                                 <div class="profile-info">
                                     <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
                                     <div class="profile-meta">
                                         <div class="profile-meta-item">
                                             <i class="fas fa-briefcase"></i>
-                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
+                                                        <span>{{ Auth::user()->employee->position->first()?->name ?? '-' }}</span>
+
                                             {{-- <span>{{ $employee->position ?? 'Software Engineer' }}</span> --}}
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
+                                                        <span>{{ Auth::user()->employee->department->first()?->department_name ?? '-' }}</span>
+
                                             {{-- <span>{{ $employee->department ?? 'Engineering' }}</span> --}}
                                         </div>
                                         <div class="profile-meta-item">

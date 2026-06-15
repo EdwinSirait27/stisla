@@ -640,7 +640,7 @@
                                 <div class="form-section-label">Employment</div>
                                 <div class="field-grid">
 
- <div class="field-group">
+                                    <div class="field-group">
                                         <label><i class="fas fa-users"></i> Company</label>
                                         <select name="company_id" id="company_id"
                                             class="form-control select2 @error('company_id') is-invalid @enderror">
@@ -667,7 +667,9 @@
                                                 <option value="{{ $department->id }}"
                                                     @if (collect(old('department', $selectedDepartments))->contains($department->id)) selected @endif>
                                                     {{ $department->department_name }}
-                @if ($primaryDepartmentId === $department->id) ★ Primary @endif
+                                                    @if ($primaryDepartmentId === $department->id)
+                                                        ★ Primary
+                                                    @endif
 
                                                 </option>
                                             @endforeach
@@ -686,7 +688,9 @@
                                                 <option value="{{ $position->id }}"
                                                     @if (collect(old('positions', $selectedPositions))->contains($position->id)) selected @endif>
                                                     {{ $position->name }}
-                @if ($primaryPositionId === $position->id) ★ Primary @endif
+                                                    @if ($primaryPositionId === $position->id)
+                                                        ★ Primary
+                                                    @endif
 
                                                 </option>
                                             @endforeach
@@ -695,10 +699,7 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
-
-
-
-                                    {{-- <div class="field-group">
+                                    <div class="field-group">
                                         <label><i class="fas fa-store"></i> Location</label>
                                         <select name="stores[]" id="stores"
                                             class="form-control select2 @error('stores') is-invalid @enderror" multiple>
@@ -706,29 +707,16 @@
                                                 <option value="{{ $store->id }}"
                                                     @if (collect(old('stores', $selectedStores))->contains($store->id)) selected @endif>
                                                     {{ $store->name }}
+                                                    @if ($primaryStoreId === $store->id)
+                                                        ★ Primary
+                                                    @endif
                                                 </option>
                                             @endforeach
                                         </select>
                                         @error('stores')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
-                                    </div> --}}
-                                    <div class="field-group">
-    <label><i class="fas fa-store"></i> Location</label>
-    <select name="stores[]" id="stores"
-        class="form-control select2 @error('stores') is-invalid @enderror" multiple>
-        @foreach ($allStores as $store)
-            <option value="{{ $store->id }}"
-                @if (collect(old('stores', $selectedStores))->contains($store->id)) selected @endif>
-                {{ $store->name }}
-                @if ($primaryStoreId === $store->id) ★ Primary @endif
-            </option>
-        @endforeach
-    </select>
-    @error('stores')
-        <span class="invalid-feedback">{{ $message }}</span>
-    @enderror
-</div>
+                                    </div>
 
                                     <div class="field-group">
                                         <label><i class="fas fa-circle-dot"></i> Status employee</label>
@@ -808,28 +796,6 @@
                                         @enderror
                                     </div>
 
-                                   
-                                     {{-- <select name="employee_id" id="employee_id"
-                                    class="select2-employee w-100 @error('employee_id') is-invalid @enderror" required>
-                                    <option value="">-- Cari Employee --</option>
-                                    @foreach($employees as $emp)
-                                        <option value="{{ $emp->id }}"
-                                            data-status="{{ $emp->status_employee }}"
-                                            data-name="{{ $emp->employee_name }}"
-                                            {{ old('employee_id') == $emp->id ? 'selected' : '' }}>
-                                            {{ $emp->employee_pengenal }} — {{ $emp->employee_name }} — {{ $emp->status_employee }} - {{ $emp->status }} 
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('employee_id')
-                                    <span class="invalid-feedback d-block">{{ $message }}</span>
-                                @enderror --}}
-
-
-
-
-
-
                                     <div class="field-group">
                                         <label><i class="fas fa-fingerprint"></i> Pin fingerspot</label>
                                         <input type="text" name="pin" id="pin"
@@ -840,7 +806,7 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                     <div class="field-group">
+                                    <div class="field-group">
                                         <label><i class="fas fa-users"></i> Group class</label>
                                         <select name="group_id" id="group_id"
                                             class="form-control select2 @error('group_id') is-invalid @enderror">
@@ -856,34 +822,36 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                 <div class="field-group">
-    <label><i class="fas fa-briefcase"></i> Atasan</label>
-    <select name="atasans[]" id="atasans"
-        class="form-control select2 @error('atasans') is-invalid @enderror"
-        multiple>
-        @foreach ($allEmployees as $emp)
-            <option value="{{ $emp->id }}"
-                @if (collect(old('atasans', $selectedAtasans))->contains($emp->id)) selected @endif>
-                {{ $emp->employee_name }}
-                @if ($primaryEmployeeId === $emp->id) ★ Primary @endif
-            </option>
-        @endforeach
-    </select>
-    @error('atasans')
-        <span class="invalid-feedback">{{ $message }}</span>
-    @enderror
-</div>
+                                    <div class="field-group">
+                                        <label><i class="fas fa-briefcase"></i> Atasan</label>
+                                        <select name="atasans[]" id="atasans"
+                                            class="form-control select2 @error('atasans') is-invalid @enderror" multiple>
+                                            @foreach ($allEmployees as $emp)
+                                                <option value="{{ $emp->id }}"
+                                                    @if (collect(old('atasans', $selectedAtasans))->contains($emp->id)) selected @endif>
+                                                    {{ $emp->employee_name }}
+                                                    @if ($primaryEmployeeId === $emp->id)
+                                                        ★ Primary
+                                                    @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('atasans')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
 
                                     <div class="field-group">
-    <label><i class="fas fa-check-circle"></i> Can Approve</label>
-    <div class="form-check form-switch mt-1">
-        <input class="form-check-input" type="checkbox" name="can_approve" id="can_approve"
-            value="1" {{ old('can_approve', $employee->Employee->can_approve ?? false) ? 'checked' : '' }}>
-        <label class="form-check-label" for="can_approve">
-            Berikan wewenang approval
-        </label>
-    </div>
-</div>
+                                        <label><i class="fas fa-check-circle"></i> Can Approve</label>
+                                        <div class="form-check form-switch mt-1">
+                                            <input class="form-check-input" type="checkbox" name="can_approve"
+                                                id="can_approve" value="1"
+                                                {{ old('can_approve', $employee->Employee->can_approve ?? false) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="can_approve">
+                                                Berikan wewenang approval
+                                            </label>
+                                        </div>
+                                    </div>
 
                                 </div>
 
@@ -1027,7 +995,7 @@
                             </div>
 
                             {{-- ── Section 5: Profile photo ── --}}
-                            
+
                             {{-- ==================== PROFILE PHOTO ==================== --}}
                             <div class="form-section">
                                 <div class="form-section-label">Profile Photo</div>
@@ -1167,6 +1135,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
 
                             {{-- Note --}}
                             <div class="note-box">
@@ -1202,7 +1171,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-      
         // ✅ Reusable untuk semua preview (photos, ktp, kk, signature)
         function previewImage(event, previewId, placeholderId) {
             const file = event.target.files[0];

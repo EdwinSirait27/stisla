@@ -17,7 +17,7 @@
         .emp-form-card {
             border: none;
             border-radius: .625rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,.07);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .07);
             background: #fff;
             overflow: hidden;
         }
@@ -151,7 +151,7 @@
 
         .field-group .form-control:focus {
             border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
             outline: none;
         }
 
@@ -288,7 +288,10 @@
             margin-bottom: 1.25rem;
         }
 
-        .alert-danger-custom ul { margin: 0; padding-left: 1rem; }
+        .alert-danger-custom ul {
+            margin: 0;
+            padding-left: 1rem;
+        }
 
         .alert-success-custom {
             display: flex;
@@ -351,7 +354,10 @@
             color: #475569;
         }
 
-        .btn-back:hover { background: #f8fafc; color: #1e293b; }
+        .btn-back:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
 
         .btn-save {
             background: #1d4ed8;
@@ -359,51 +365,61 @@
             color: #fff;
         }
 
-        .btn-save:hover { background: #1e40af; color: #fff; }
+        .btn-save:hover {
+            background: #1e40af;
+            color: #fff;
+        }
 
         /* ─── Responsive ─────────────────────────────────────── */
         @media (max-width: 576px) {
-            .form-body { padding: 1rem; }
-            .emp-form-footer { padding: .75rem 1rem; }
-            .field-grid { grid-template-columns: 1fr; }
+            .form-body {
+                padding: 1rem;
+            }
+
+            .emp-form-footer {
+                padding: .75rem 1rem;
+            }
+
+            .field-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 @endpush
 
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <div>
-                <div style="font-size:.72rem;color:#94a3b8;margin-bottom:3px">
-                    Dashboard /
-                    <a href="{{ route('pages.Employee') }}" style="color:#64748b;text-decoration:none">Employees</a> /
-                    <span style="color:#1e293b">Show</span>
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <div style="font-size:.72rem;color:#94a3b8;margin-bottom:3px">
+                        Dashboard /
+                        <a href="{{ route('pages.Employee') }}" style="color:#64748b;text-decoration:none">Employees</a> /
+                        <span style="color:#1e293b">Show</span>
+                    </div>
+                    <h1>Show employee</h1>
                 </div>
-                <h1>Show employee</h1>
+                <div class="section-header-breadcrumb" style="display:none">{{-- hidden, handled above --}}</div>
             </div>
-            <div class="section-header-breadcrumb" style="display:none">{{-- hidden, handled above --}}</div>
-        </div>
 
-        <div class="section-body">
-            <div class="emp-form-card">
+            <div class="section-body">
+                <div class="emp-form-card">
 
-                {{-- Card header --}}
-                <div class="emp-form-header">
-                    <div class="emp-form-header-icon">
-                        <i class="fas fa-user-pen"></i>
-                    </div>
-                    <span class="emp-form-header-title">Show employee data</span>
-                    <div class="emp-name-pill">
-                        <div class="emp-name-pill-avatar">
-                            {{ collect(explode(' ', $employee->employee->employee_name ?? 'U'))
-                                ->take(2)->map(fn($w) => strtoupper($w[0]))->implode('') }}
+                    {{-- Card header --}}
+                    <div class="emp-form-header">
+                        <div class="emp-form-header-icon">
+                            <i class="fas fa-user-pen"></i>
                         </div>
-                        <span>{{ $employee->employee->employee_name ?? 'Employee' }}</span>
+                        <span class="emp-form-header-title">Show employee data</span>
+                        <div class="emp-name-pill">
+                            <div class="emp-name-pill-avatar">
+                                {{ collect(explode(' ', $employee->employee->employee_name ?? 'U'))->take(2)->map(fn($w) => strtoupper($w[0]))->implode('') }}
+                            </div>
+                            <span>{{ $employee->employee->employee_name ?? 'Employee' }}</span>
+                        </div>
                     </div>
-                </div>
 
-              
+
 
                     <div class="form-body">
 
@@ -440,19 +456,22 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @can('ManageEmployee')
                                 <div class="field-group">
                                     <label><i class="fas fa-id-card"></i> NIK</label>
                                     <input type="text" name="nik" id="nik"
                                         class="form-control @error('nik') is-invalid @enderror"
-                                        value="{{ old('nik', $employee->Employee->nik ?? '') }}"
-                                        placeholder="NIK" maxlength="30" disabled>
+                                        value="{{ old('nik', $employee->Employee->nik ?? '') }}" placeholder="NIK"
+                                        maxlength="30" disabled>
                                     @error('nik')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @endcan
                                 <div class="field-group">
                                     <label><i class="fas fa-mosque"></i> Religion</label>
-                                    <select name="religion" class="form-control @error('religion') is-invalid @enderror" disabled>
+                                    <select name="religion" class="form-control @error('religion') is-invalid @enderror"
+                                        disabled>
                                         <option value="">-- Choose religion --</option>
                                         @foreach ($religion as $value)
                                             <option value="{{ $value }}"
@@ -467,7 +486,8 @@
                                 </div>
                                 <div class="field-group">
                                     <label><i class="fas fa-venus-mars"></i> Gender</label>
-                                    <select name="gender" class="form-control @error('gender') is-invalid @enderror" disabled>
+                                    <select name="gender" class="form-control @error('gender') is-invalid @enderror"
+                                        disabled>
                                         <option value="">-- Choose gender --</option>
                                         @foreach ($gender as $value)
                                             <option value="{{ $value }}"
@@ -491,6 +511,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @can('ManageEmployee')
 
                                 <div class="field-group">
                                     <label><i class="fas fa-calendar"></i> Date of birth</label>
@@ -502,6 +523,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                
 
                                 <div class="field-group">
                                     <label><i class="fas fa-user"></i> Biological mother name</label>
@@ -516,7 +538,8 @@
 
                                 <div class="field-group">
                                     <label><i class="fas fa-ring"></i> Marital status</label>
-                                    <select name="marriage" class="form-control @error('marriage') is-invalid @enderror" disabled>
+                                    <select name="marriage" class="form-control @error('marriage') is-invalid @enderror"
+                                        disabled>
                                         <option value="">-- Choose marital status --</option>
                                         @foreach ($marriage as $value)
                                             <option value="{{ $value }}"
@@ -532,7 +555,8 @@
 
                                 <div class="field-group">
                                     <label><i class="fas fa-baby"></i> Child</label>
-                                    <select name="child" class="form-control @error('child') is-invalid @enderror" disabled>
+                                    <select name="child" class="form-control @error('child') is-invalid @enderror"
+                                        disabled>
                                         <option value="">-- Number of children --</option>
                                         @foreach ($child as $value)
                                             <option value="{{ $value }}"
@@ -581,7 +605,8 @@
 
                                 <div class="field-group">
                                     <label><i class="fas fa-graduation-cap"></i> Last education</label>
-                                    <select name="last_education" class="form-control @error('last_education') is-invalid @enderror" disabled>
+                                    <select name="last_education"
+                                        class="form-control @error('last_education') is-invalid @enderror" disabled>
                                         <option value="">-- Choose education --</option>
                                         @foreach ($last_education as $value)
                                             <option value="{{ $value }}"
@@ -605,9 +630,11 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
-                                 <div class="field-group">
+                                @endcan
+                                <div class="field-group">
                                     <label><i class="fas fa-graduation-cap"></i>Blood Type</label>
-                                    <select name="blood_type" class="form-control @error('blood_type') is-invalid @enderror" disabled>
+                                    <select name="blood_type"
+                                        class="form-control @error('blood_type') is-invalid @enderror" disabled>
                                         <option value="">-- Choose Blood --</option>
                                         @foreach ($bloodtypes as $value)
                                             <option value="{{ $value }}"
@@ -628,7 +655,7 @@
                         <div class="form-section">
                             <div class="form-section-label">Employment</div>
                             <div class="field-grid">
-                               
+
                                 <div class="field-group">
                                     <label><i class="fas fa-layer-group"></i> Company</label>
                                     <select name="company_id" id="company_id"
@@ -647,66 +674,75 @@
                                 </div>
 
                                 <div class="field-group">
-                                        <label><i class="fas fa-briefcase"></i> Departments </label>
-                                        <select name="departments[]" id="departments"
-                                            class="form-control select2 @error('departments') is-invalid @enderror"
-                                            multiple disabled>
-                                            @foreach ($allDepartments as $department)
-                                                <option value="{{ $department->id }}"
-                                                    @if (collect(old('department', $selectedDepartments))->contains($department->id)) selected @endif>
-                                                    {{ $department->department_name }}
-                @if ($primaryDepartmentId === $department->id) ★ Primary @endif
+                                    <label><i class="fas fa-briefcase"></i> Departments </label>
+                                    <select name="departments[]" id="departments"
+                                        class="form-control select2 @error('departments') is-invalid @enderror" multiple
+                                        disabled>
+                                        @foreach ($allDepartments as $department)
+                                            <option value="{{ $department->id }}"
+                                                @if (collect(old('department', $selectedDepartments))->contains($department->id)) selected @endif>
+                                                {{ $department->department_name }}
+                                                @if ($primaryDepartmentId === $department->id)
+                                                    ★ Primary
+                                                @endif
 
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('departments')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('departments')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
 
-                                    <div class="field-group">
-                                        <label><i class="fas fa-briefcase"></i> Position</label>
-                                        <select name="positions[]" id="positions"
-                                            class="form-control select2 @error('positions') is-invalid @enderror" multiple
-                                            disabled>
-                                            @foreach ($allPositions as $position)
-                                                <option value="{{ $position->id }}"
-                                                    @if (collect(old('positions', $selectedPositions))->contains($position->id)) selected @endif>
-                                                    {{ $position->name }}
-                @if ($primaryPositionId === $position->id) ★ Primary @endif
+                                <div class="field-group">
+                                    <label><i class="fas fa-briefcase"></i> Position</label>
+                                    <select name="positions[]" id="positions"
+                                        class="form-control select2 @error('positions') is-invalid @enderror" multiple
+                                        disabled>
+                                        @foreach ($allPositions as $position)
+                                            <option value="{{ $position->id }}"
+                                                @if (collect(old('positions', $selectedPositions))->contains($position->id)) selected @endif>
+                                                {{ $position->name }}
+                                                @if ($primaryPositionId === $position->id)
+                                                    ★ Primary
+                                                @endif
 
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('positions')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('positions')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
 
 
 
-                                  
-                                    <div class="field-group">
-    <label><i class="fas fa-store"></i> Location</label>
-    <select name="stores[]" id="stores"
-        class="form-control select2 @error('stores') is-invalid @enderror" multiple disabled>
-        @foreach ($allStores as $store)
-            <option value="{{ $store->id }}"
-                @if (collect(old('stores', $selectedStores))->contains($store->id)) selected @endif>
-                {{ $store->name }}
-                @if ($primaryStoreId === $store->id) ★ Primary @endif
-            </option>
-        @endforeach
-    </select>
-    @error('stores')
-        <span class="invalid-feedback">{{ $message }}</span>
-    @enderror
-</div>
+
+                                <div class="field-group">
+                                    <label><i class="fas fa-store"></i> Location</label>
+                                    <select name="stores[]" id="stores"
+                                        class="form-control select2 @error('stores') is-invalid @enderror" multiple
+                                        disabled>
+                                        @foreach ($allStores as $store)
+                                            <option value="{{ $store->id }}"
+                                                @if (collect(old('stores', $selectedStores))->contains($store->id)) selected @endif>
+                                                {{ $store->name }}
+                                                @if ($primaryStoreId === $store->id)
+                                                    ★ Primary
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('stores')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
+@can('ManageEmployee')
 
                                 <div class="field-group">
                                     <label><i class="fas fa-circle-dot"></i> Status employee</label>
-                                    <select name="status_employee" class="form-control @error('status_employee') is-invalid @enderror" disabled>
+                                    <select name="status_employee"
+                                        class="form-control @error('status_employee') is-invalid @enderror" disabled>
                                         <option value="">-- Choose status --</option>
                                         @foreach ($status_employee as $value)
                                             <option value="{{ $value }}"
@@ -719,7 +755,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
-
+@endcan
                                 <div class="field-group">
                                     <label><i class="fas fa-calendar-check"></i> Join date</label>
                                     <input type="date" name="join_date"
@@ -746,6 +782,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+@can('ManageEmployee')
 
                                 <div class="field-group">
                                     <label><i class="fas fa-layer-group"></i> Grading</label>
@@ -780,48 +817,54 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @endcan
 
-                               
+
 
                                 <div class="field-group">
                                     <label><i class="fas fa-fingerprint"></i> Pin fingerspot</label>
                                     <input type="text" name="pin" id="pin"
                                         class="form-control @error('pin') is-invalid @enderror"
                                         value="{{ old('pin', $employee->Employee->pin ?? '') }}"
-                                        placeholder="Pin fingerspot"
-                                        style="font-family:monospace" disabled>
+                                        placeholder="Pin fingerspot" style="font-family:monospace" disabled>
                                     @error('pin')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
-                                  <div class="field-group">
-    <label><i class="fas fa-briefcase"></i> Atasan</label>
-    <select name="atasans[]" id="atasans"
-        class="form-control select2 @error('atasans') is-invalid @enderror"
-        multiple disabled>
-        @foreach ($allEmployees as $emp)
-            <option value="{{ $emp->id }}"
-                @if (collect(old('atasans', $selectedAtasans))->contains($emp->id)) selected @endif>
-                {{ $emp->employee_name }}
-                @if ($primaryEmployeeId === $emp->id) ★ Primary @endif
-            </option>
-        @endforeach
-    </select>
-    @error('atasans')
-        <span class="invalid-feedback">{{ $message }}</span>
-    @enderror
-</div>
+                                @can('ManageEmployee')
+                                <div class="field-group">
+                                    <label><i class="fas fa-briefcase"></i> Atasan</label>
+                                    <select name="atasans[]" id="atasans"
+                                        class="form-control select2 @error('atasans') is-invalid @enderror" multiple
+                                        disabled>
+                                        @foreach ($allEmployees as $emp)
+                                            <option value="{{ $emp->id }}"
+                                                @if (collect(old('atasans', $selectedAtasans))->contains($emp->id)) selected @endif>
+                                                {{ $emp->employee_name }}
+                                                @if ($primaryEmployeeId === $emp->id)
+                                                    ★ Primary
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('atasans')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
 
-                                    <div class="field-group">
-    <label><i class="fas fa-check-circle"></i> Can Approve</label>
-    <div class="form-check form-switch mt-1">
-        <input class="form-check-input" type="checkbox" name="can_approve" id="can_approve"
-            value="1" {{ old('can_approve', $employee->Employee->can_approve ?? false) ? 'checked' : '' }} disabled>
-        <label class="form-check-label" for="can_approve">
-            Berikan wewenang approval
-        </label>
-    </div>
-</div>
+                                <div class="field-group">
+                                    <label><i class="fas fa-check-circle"></i> Can Approve</label>
+                                    <div class="form-check form-switch mt-1">
+                                        <input class="form-check-input" type="checkbox" name="can_approve"
+                                            id="can_approve" value="1"
+                                            {{ old('can_approve', $employee->Employee->can_approve ?? false) ? 'checked' : '' }}
+                                            disabled>
+                                        <label class="form-check-label" for="can_approve">
+                                            Berikan wewenang approval
+                                        </label>
+                                    </div>
+                                </div>
+                                @endcan
 
                             </div>
 
@@ -831,6 +874,8 @@
                                     <i class="fas fa-triangle-exclamation"></i>
                                     disabled when status is "Resign" or "On Leave"
                                 </div>
+@can('ManageEmployee')
+                                
                                 <div class="field-grid">
                                     <div class="field-group">
                                         <label><i class="fas fa-calendar-xmark"></i> End date</label>
@@ -852,6 +897,7 @@
                                         @enderror
                                     </div>
                                 </div>
+                                @endcan
                             </div>
                         </div>
 
@@ -859,13 +905,14 @@
                         <div class="form-section">
                             <div class="form-section-label">Documents & identity numbers</div>
                             <div class="field-grid">
+@can('ManageEmployee')
 
                                 <div class="field-group">
                                     <label><i class="fas fa-file-invoice"></i> NPWP</label>
                                     <input type="text" name="npwp"
                                         class="form-control @error('npwp') is-invalid @enderror"
-                                        value="{{ old('npwp', $employee->Employee->npwp ?? '') }}"
-                                        placeholder="NPWP" disabled>
+                                        value="{{ old('npwp', $employee->Employee->npwp ?? '') }}" placeholder="NPWP"
+                                        disabled>
                                     @error('npwp')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -892,6 +939,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @endcan
 
                             </div>
                         </div>
@@ -900,10 +948,12 @@
                         <div class="form-section">
                             <div class="form-section-label">Bank & contact</div>
                             <div class="field-grid">
+@can('ManageEmployee')
 
                                 <div class="field-group">
                                     <label><i class="fas fa-building-columns"></i> Bank name</label>
-                                    <select name="banks_id" class="form-control @error('banks_id') is-invalid @enderror" disabled>
+                                    <select name="banks_id" class="form-control @error('banks_id') is-invalid @enderror"
+                                        disabled>
                                         @foreach ($banks as $bank)
                                             <option value="{{ $bank->id }}"
                                                 {{ $employee->Employee->banks_id == $bank->id ? 'selected' : '' }}>
@@ -921,8 +971,7 @@
                                     <input type="text" name="bank_account_number"
                                         class="form-control @error('bank_account_number') is-invalid @enderror"
                                         value="{{ old('bank_account_number', $employee->Employee->bank_account_number ?? '') }}"
-                                        placeholder="Bank account number"
-                                        style="font-family:monospace" disabled>
+                                        placeholder="Bank account number" style="font-family:monospace" disabled>
                                     @error('bank_account_number')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -938,6 +987,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @endcan
 
                                 <div class="field-group">
                                     <label><i class="fas fa-envelope-circle-check"></i> Company email</label>
@@ -949,6 +999,7 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+@can('ManageEmployee')
 
                                 <div class="field-group">
                                     <label><i class="fas fa-phone"></i> Phone number</label>
@@ -960,129 +1011,181 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
-
+@endcan
                             </div>
                         </div>
+@can('ManageEmployee')
 
                         {{-- ── Section 5: Profile photo ── --}}
                         <div class="form-section">
-    <div class="form-section-label">Profile Photo</div>
-    <div class="photo-upload-wrap">
-        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-photos').src)">
-            @if (!empty($employee->employee->photos))
-                <img id="preview-photos"
-                    src="{{ route('employee.photo', basename($employee->employee->photos)) }}"
-                    alt="Preview">
-            @else
-                <img id="preview-photos" src="" alt="" style="display:none;">
-                <i class="fas fa-user" id="placeholder-photos"></i>
-            @endif
-        </div>
-        <div>
-            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
-            <label for="photos" class="photo-upload-btn">
-                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                Upload Photo
-            </label>
-            {{-- <input type="file" name="photos" id="photos"
+                            <div class="form-section-label">Profile Photo</div>
+                            <div class="photo-upload-wrap">
+                                <div class="photo-thumb"
+                                    onclick="showImageSwal(document.getElementById('preview-photos').src)">
+                                    @if (!empty($employee->employee->photos))
+                                        <img id="preview-photos"
+                                            src="{{ route('employee.photo', basename($employee->employee->photos)) }}"
+                                            alt="Preview">
+                                    @else
+                                        <img id="preview-photos" src="" alt="" style="display:none;">
+                                        <i class="fas fa-user" id="placeholder-photos"></i>
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview
+                                        full size.</div>
+                                    <label for="photos" class="photo-upload-btn">
+                                        <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                                        Upload Photo
+                                    </label>
+                                    {{-- <input type="file" name="photos" id="photos"
                 class="d-none @error('photos') is-invalid @enderror"
                 accept=".jpg,.jpeg,.png,.webp"
                 onchange="previewImage(event, 'preview-photos', 'placeholder-photos')"> --}}
-            @error('photos')
-                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
-            @enderror
-        </div>
-    </div>
-</div>
+                                    @error('photos')
+                                        <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">
+                                            {{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
 
-{{-- ==================== KTP PHOTO ==================== --}}
-<div class="form-section">
-    <div class="form-section-label">KTP Photo</div>
-    <div class="photo-upload-wrap">
-        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-ktp-photos').src)">
-            @if (!empty($employee->employee->ktp_photos))
-                <img id="preview-ktp-photos"
-                    src="{{ route('employee.ktp', basename($employee->employee->ktp_photos)) }}"
-                    alt="Preview">
-            @else
-                <img id="preview-ktp-photos" src="" alt="" style="display:none;">
-                <i class="fas fa-id-card" id="placeholder-ktp-photos"></i>
-            @endif
-        </div>
-        <div>
-            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
-            <label for="ktp_photos" class="photo-upload-btn">
-                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                Upload KTP
-            </label>
-            @error('ktp_photos')
-                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
-            @enderror
-        </div>
-    </div>
-</div>
+                        {{-- ==================== KTP PHOTO ==================== --}}
+                        <div class="form-section">
+                            <div class="form-section-label">KTP Photo</div>
+                            <div class="photo-upload-wrap">
+                                <div class="photo-thumb"
+                                    onclick="showImageSwal(document.getElementById('preview-ktp-photos').src)">
+                                    @if (!empty($employee->employee->ktp_photos))
+                                        <img id="preview-ktp-photos"
+                                            src="{{ route('employee.ktp', basename($employee->employee->ktp_photos)) }}"
+                                            alt="Preview">
+                                    @else
+                                        <img id="preview-ktp-photos" src="" alt=""
+                                            style="display:none;">
+                                        <i class="fas fa-id-card" id="placeholder-ktp-photos"></i>
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview
+                                        full size.</div>
+                                    <label for="ktp_photos" class="photo-upload-btn">
+                                        <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                                        Upload KTP
+                                    </label>
+                                    @error('ktp_photos')
+                                        <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">
+                                            {{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
 
-{{-- ==================== KK PHOTO ==================== --}}
-<div class="form-section">
-    <div class="form-section-label">KK Photo</div>
-    <div class="photo-upload-wrap">
-        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-kk-photos').src)">
-            @if (!empty($employee->employee->kk_photos))
-                <img id="preview-kk-photos"
-                    src="{{ route('employee.kk', basename($employee->employee->kk_photos)) }}"
-                    alt="Preview">
-            @else
-                <img id="preview-kk-photos" src="" alt="" style="display:none;">
-                <i class="fas fa-users" id="placeholder-kk-photos"></i>
-            @endif
-        </div>
-        <div>
-            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
-            <label for="kk_photos" class="photo-upload-btn">
-                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                Upload KK
-            </label>
-            {{-- <input type="file" name="kk_photos" id="kk_photos"
+                        {{-- ==================== KK PHOTO ==================== --}}
+                        <div class="form-section">
+                            <div class="form-section-label">KK Photo</div>
+                            <div class="photo-upload-wrap">
+                                <div class="photo-thumb"
+                                    onclick="showImageSwal(document.getElementById('preview-kk-photos').src)">
+                                    @if (!empty($employee->employee->kk_photos))
+                                        <img id="preview-kk-photos"
+                                            src="{{ route('employee.kk', basename($employee->employee->kk_photos)) }}"
+                                            alt="Preview">
+                                    @else
+                                        <img id="preview-kk-photos" src="" alt="" style="display:none;">
+                                        <i class="fas fa-users" id="placeholder-kk-photos"></i>
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview
+                                        full size.</div>
+                                    <label for="kk_photos" class="photo-upload-btn">
+                                        <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                                        Upload KK
+                                    </label>
+                                    {{-- <input type="file" name="kk_photos" id="kk_photos"
                 class="d-none @error('kk_photos') is-invalid @enderror"
                 accept=".jpg,.jpeg,.png,.webp"
                 onchange="previewImage(event, 'preview-kk-photos', 'placeholder-kk-photos')"> --}}
-            @error('kk_photos')
-                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
-            @enderror
-        </div>
+                                    @error('kk_photos')
+                                        <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">
+                                            {{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        {{-- @can('ManageEmployee')
+                        <div>
+    <div class="profile-section-label-ktp">Documents Pengantar Pembukaan Payroll</div>
+    <div class="photo-upload-wrap-ktp">
+        @if ($employee->Employee && $employee->Employee->documents && $employee->Employee->documents->isNotEmpty())
+            @foreach ($employee->Employee->documents as $doc)
+                @can('ManageEmployee')
+                    <a href="{{ route('Employee.document.download', ['hashedId' => $hashedId, 'documentId' => $doc->id]) }}"
+                        class="photo-upload-btn-ktp mt-1"
+                        style="display:inline-block; text-decoration:none;">
+                        <i class="fas fa-file-pdf" style="font-size:.7rem"></i>
+                        {{ $doc->document_number }}
+                    </a>
+                @endcan
+            @endforeach
+        @endif
     </div>
 </div>
+@endcan --}}
+@can('ManageEmployee')
+<div>
+                                        <div class="profile-section-label-ktp">Documents Pengantar Pembukaan Payroll</div>
+                                        <div class="photo-upload-wrap-ktp">
+                                            @if ($employee->Employee && $employee->Employee->documents && $employee->Employee->documents->isNotEmpty())
+            @foreach ($employee->Employee->documents as $doc)
+                                                    <a href="{{ route('Employee.document.download', ['hashedId' => $hashedId, 'documentId' => $doc->id]) }}"
+                                                        class="photo-upload-btn-ktp mt-1"
+                                                        style="display:inline-block; text-decoration:none;">
+                                                        <i class="fas fa-file-pdf" style="font-size:.7rem"></i>
+                                                        {{ $doc->document_number }}
+                                                    </a>
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endcan
+                                    <br>
+                                    
 
-{{-- ==================== SIGNATURE ==================== --}}
-<div class="form-section">
-    <div class="form-section-label">Signature</div>
-    <div class="photo-upload-wrap">
-        <div class="photo-thumb" onclick="showImageSwal(document.getElementById('preview-signature').src)">
-            @if (!empty($employee->employee->signature))
-                <img id="preview-signature"
-                    src="{{ route('employee.signature', basename($employee->employee->signature)) }}"
-                    alt="Preview">
-            @else
-                <img id="preview-signature" src="" alt="" style="display:none;">
-                <i class="fas fa-signature" id="placeholder-signature"></i>
-            @endif
-        </div>
-        <div>
-            <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview full size.</div>
-            <label for="signature_file" class="photo-upload-btn">
-                <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                Upload Signature
-            </label>
-            {{-- <input type="file" name="signature_file" id="signature_file"
+                        {{-- ==================== SIGNATURE ==================== --}}
+                        <div class="form-section">
+                            <div class="form-section-label">Signature</div>
+                            <div class="photo-upload-wrap">
+                                <div class="photo-thumb"
+                                    onclick="showImageSwal(document.getElementById('preview-signature').src)">
+                                    @if (!empty($employee->employee->signature))
+                                        <img id="preview-signature"
+                                            src="{{ route('employee.signature', basename($employee->employee->signature)) }}"
+                                            alt="Preview">
+                                    @else
+                                        <img id="preview-signature" src="" alt="" style="display:none;">
+                                        <i class="fas fa-signature" id="placeholder-signature"></i>
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="photo-upload-hint">JPG, PNG, or WEBP — max 512KB. Click image to preview
+                                        full size.</div>
+                                    <label for="signature_file" class="photo-upload-btn">
+                                        <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
+                                        Upload Signature
+                                    </label>
+                                    {{-- <input type="file" name="signature_file" id="signature_file"
                 class="d-none @error('signature_file') is-invalid @enderror"
                 accept=".jpg,.jpeg,.png,.webp"
                 onchange="previewImage(event, 'preview-signature', 'placeholder-signature')"> --}}
-            @error('signature_file')
-                <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">{{ $message }}</div>
-            @enderror
-        </div>
-    </div>
-</div>
+                                    @error('signature_file')
+                                        <div class="invalid-feedback d-block mt-1" style="font-size:.72rem">
+                                            {{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
 
                         {{-- Note --}}
                         <div class="note-box">
@@ -1094,6 +1197,7 @@
                                 Please double-check for duplicate records before saving.
                             </div>
                         </div>
+                        @endcan
 
                     </div>{{-- /.form-body --}}
 
@@ -1101,13 +1205,13 @@
                         <a href="{{ route('pages.Employee') }}" class="btn btn-back">
                             <i class="fas fa-arrow-left"></i> Back to employees
                         </a>
-                     
+
                     </div>
 
-            </div>{{-- /.emp-form-card --}}
-        </div>
-    </section>
-</div>
+                </div>{{-- /.emp-form-card --}}
+            </div>
+        </section>
+    </div>
 @endsection
 
 @push('scripts')
@@ -1115,65 +1219,71 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-    /* ── Photo preview ── */
-    function previewPhoto(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const url  = URL.createObjectURL(file);
-        const img  = document.getElementById('preview-image');
-        const ph   = document.getElementById('photo-placeholder');
-        img.src    = url;
-        img.style.display = 'block';
-        if (ph) ph.style.display = 'none';
-    }
-
-    function showImageSwal(src) {
-        if (!src || src.includes('placeholder')) return;
-        Swal.fire({ imageUrl: src, imageAlt: 'Employee photo', showConfirmButton: false });
-    }
-
-    $(function () {
-        /* ── Select2 ── */
-        $('.select2').select2({ width: '100%' });
-
-        /* ── Conditional status fields ── */
-        const INACTIVE_STATUSES = ['Resign', 'On Leave'];
-
-        function toggleConditionalFields() {
-            const val = $('#status').val();
-            const $section = $('#conditional-status-fields');
-            if (INACTIVE_STATUSES.includes(val)) {
-                $section.addClass('visible');
-            } else {
-                $section.removeClass('visible');
-                $('#notes').val('');
-                $('#end_date').val('');
-            }
+        /* ── Photo preview ── */
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            const img = document.getElementById('preview-image');
+            const ph = document.getElementById('photo-placeholder');
+            img.src = url;
+            img.style.display = 'block';
+            if (ph) ph.style.display = 'none';
         }
 
-        toggleConditionalFields();
-        $('#status').on('change', toggleConditionalFields);
-
-        /* ── Session flash ── */
-        @if (session('success'))
+        function showImageSwal(src) {
+            if (!src || src.includes('placeholder')) return;
             Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#1d4ed8',
-                timer: 3000,
-                timerProgressBar: true
+                imageUrl: src,
+                imageAlt: 'Employee photo',
+                showConfirmButton: false
             });
-        @endif
+        }
 
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#dc2626'
+        $(function() {
+            /* ── Select2 ── */
+            $('.select2').select2({
+                width: '100%'
             });
-        @endif
-    });
+
+            /* ── Conditional status fields ── */
+            const INACTIVE_STATUSES = ['Resign', 'On Leave'];
+
+            function toggleConditionalFields() {
+                const val = $('#status').val();
+                const $section = $('#conditional-status-fields');
+                if (INACTIVE_STATUSES.includes(val)) {
+                    $section.addClass('visible');
+                } else {
+                    $section.removeClass('visible');
+                    $('#notes').val('');
+                    $('#end_date').val('');
+                }
+            }
+
+            toggleConditionalFields();
+            $('#status').on('change', toggleConditionalFields);
+
+            /* ── Session flash ── */
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#1d4ed8',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#dc2626'
+                });
+            @endif
+        });
     </script>
 @endpush

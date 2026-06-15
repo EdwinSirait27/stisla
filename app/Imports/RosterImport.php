@@ -68,11 +68,11 @@ class RosterImport implements ToArray, WithCalculatedFormulas
             }
 
             // ── Loop kolom shift (index 2 = kolom C = tanggal mulai) ──
-            for ($col = 3; $col < count($row); $col++) {
+            for ($col = 2; $col < count($row); $col++) {
                 $raw = strtoupper(trim((string)($row[$col] ?? '')));
                 if ($raw === '') continue;
 
-                $date = $start->copy()->addDays($col - 3)->toDateString();
+                $date = $start->copy()->addDays($col - 2)->toDateString();
 
                 // Sick ditolak (butuh bukti)
                 if ($raw === 'SICK') {

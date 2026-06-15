@@ -19,95 +19,163 @@ use App\Models\Banks;
 use App\Models\Grading;
 class DashboardSupervisorController extends Controller
 {
-    private function getSubStructureIds($id)
-    {
-        $children = Structuresnew::where('parent_id', $id)->pluck('id')->toArray();
-        $all = $children;
+    
+    //  public function index()
+    // {
+    //        /** @var \App\Models\User|null $user */
+    //     $user = auth()->user();
+    //     if (!$user->hasPermissionTo('dashboardSupervisor')) {
+    //     abort(403);
+    // }
+    //     $announcements = Announcement::with('user')
+    //         ->orderBy('publish_date', 'desc')
+    //         ->paginate(10);
 
-        foreach ($children as $childId) {
-            $all = array_merge($all, $this->getSubStructureIds($childId));
-        }
+    //     $employee = Auth::user()->employee;
+    //     $companyId = $employee->company_id;
+    //     $departmentId = $employee->department_id;
 
-        return $all;
+    //     // Ambil multi store user
+    //     $multiStores = $employee->structureNew?->stores?->pluck('id')->toArray();
+    //     $storeIds = !empty($multiStores) ? $multiStores : [$employee->store_id];
+
+    //     // Hitung total karyawan
+    //     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+    //         ->where('company_id', $companyId)
+    //         ->where('department_id', $departmentId)
+    //         ->whereIn('store_id', $storeIds)
+    //         ->count();
+
+    //     $totalEmployeespending = Employee::where('status', 'Pending')
+    //         ->where('company_id', $companyId)
+    //         ->where('department_id', $departmentId)
+    //         ->whereIn('store_id', $storeIds)
+    //         ->count();
+
+    //     $employeeLogin = auth()->user()->employee;
+    //     $pin = $employeeLogin->pin;
+    //     $today = now()->format('Y-m-d');
+    //     $lastWeek = now()->subDays(7)->format('Y-m-d');
+
+    //     $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
+    //         ->where('inoutmode', 1)
+    //         ->where('pin', $pin)
+    //         ->distinct('scan_date')
+    //         ->count();
+
+    //     $employeelogin = $employee->id;
+    //     $leavebalance = Leavebalance::with(['employees', 'leaves'])
+    //         ->where('employee_id', $employeelogin)
+    //         ->get();
+
+    //     $myStructureId           = $employee->structure_id;
+    //     $subordinateStructureIds = $myStructureId
+    //         ? $this->getSubStructureIds($myStructureId)  
+    //         : [];
+ 
+    //     $subordinateEmployeeIds = Employee::whereIn('structure_id', $subordinateStructureIds)
+    //         ->pluck('id')
+    //         ->toArray();
+ 
+    //     $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
+    //         ->pluck('id')
+    //         ->toArray();
+ 
+    //     $pendingLeaves = Leaverequest::with([
+    //             'leavebalance.employees',
+    //             'leavebalance.leaves',
+    //         ])
+    //         ->whereIn('leave_balance_id', $subordinateBalanceIds)
+    //         ->whereIn('status', ['Pending', 'Sent'])
+    //         ->orderBy('created_at', 'desc')
+    //         ->take(5)
+    //         ->get();
+
+    //     return view('pages.dashboardSupervisor.dashboardSupervisor', compact(
+    //         'presentCount',
+    //         'announcements',
+    //         'totalEmployees',
+    //         'leavebalance',
+    //         'totalEmployeespending',
+    //         'pendingLeaves'
+    //     ));
+    // }
+    public function index()
+{
+    /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+    if (!$user->hasPermissionTo('dashboardSupervisor')) {
+        abort(403);
     }
 
-   
-     public function index()
-    {
-        $announcements = Announcement::with('user')
-            ->orderBy('publish_date', 'desc')
-            ->paginate(10);
+    $announcements = Announcement::with('user')
+        ->orderBy('publish_date', 'desc')
+        ->paginate(10);
 
-        $employee = Auth::user()->employee;
-        $companyId = $employee->company_id;
-        $departmentId = $employee->department_id;
+    $employee = Auth::user()->employee;
+    $companyId = $employee->company_id;
 
-        // Ambil multi store user
-        $multiStores = $employee->structureNew?->stores?->pluck('id')->toArray();
-        $storeIds = !empty($multiStores) ? $multiStores : [$employee->store_id];
+    // ← Ambil primary department dan store lewat pivot
+    $primaryDepartment = $employee->primaryDepartment()->first();
+    $primaryStore = $employee->primaryStore()->first();
+    $departmentId = $primaryDepartment?->id;
+    $storeId = $primaryStore?->id;
 
-        // Hitung total karyawan
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
-            ->where('company_id', $companyId)
-            ->where('department_id', $departmentId)
-            ->whereIn('store_id', $storeIds)
-            ->count();
+    // ← Hitung total karyawan lewat pivot
+    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+        ->where('company_id', $companyId)
+        ->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
+        ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
+        ->count();
 
-        $totalEmployeespending = Employee::where('status', 'Pending')
-            ->where('company_id', $companyId)
-            ->where('department_id', $departmentId)
-            ->whereIn('store_id', $storeIds)
-            ->count();
+    $totalEmployeespending = Employee::where('status', 'Pending')
+        ->where('company_id', $companyId)
+        ->whereHas('department', fn($q) => $q->where('departments_tables.id', $departmentId))
+        ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
+        ->count();
 
-        $employeeLogin = auth()->user()->employee;
-        $pin = $employeeLogin->pin;
-        $today = now()->format('Y-m-d');
-        $lastWeek = now()->subDays(7)->format('Y-m-d');
+    $employeeLogin = auth()->user()->employee;
+    $pin = $employeeLogin->pin;
+    $today = now()->format('Y-m-d');
+    $lastWeek = now()->subDays(7)->format('Y-m-d');
 
-        $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
-            ->where('inoutmode', 1)
-            ->where('pin', $pin)
-            ->distinct('scan_date')
-            ->count();
+    $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
+        ->where('inoutmode', 1)
+        ->where('pin', $pin)
+        ->distinct('scan_date')
+        ->count();
 
-        $employeelogin = $employee->id;
-        $leavebalance = Leavebalance::with(['employees', 'leaves'])
-            ->where('employee_id', $employeelogin)
-            ->get();
+    $employeelogin = $employee->id;
+    $leavebalance = Leavebalance::with(['employees', 'leaves'])
+        ->where('employee_id', $employeelogin)
+        ->get();
 
-        // Ambil pending leave dari bawahan berdasarkan tree struktur
-        $myStructureId           = $employee->structure_id;
-        $subordinateStructureIds = $myStructureId
-            ? $this->getSubStructureIds($myStructureId)  // method ini sudah ada di controller
-            : [];
- 
-        $subordinateEmployeeIds = Employee::whereIn('structure_id', $subordinateStructureIds)
-            ->pluck('id')
-            ->toArray();
- 
-        $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
-            ->pluck('id')
-            ->toArray();
- 
-        $pendingLeaves = Leaverequest::with([
-                'leavebalance.employees',
-                'leavebalance.leaves',
-            ])
-            ->whereIn('leave_balance_id', $subordinateBalanceIds)
-            ->whereIn('status', ['Pending', 'Sent'])
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
+    // ← Bawahan lewat pivot atasanList
+    $subordinateEmployeeIds = $employee->bawahan()->pluck('id')->toArray();
 
-        return view('pages.dashboardSupervisor.dashboardSupervisor', compact(
-            'presentCount',
-            'announcements',
-            'totalEmployees',
-            'leavebalance',
-            'totalEmployeespending',
-            'pendingLeaves'
-        ));
-    }
+    $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
+        ->pluck('id')
+        ->toArray();
+
+    $pendingLeaves = Leaverequest::with([
+            'leavebalance.employees',
+            'leavebalance.leaves',
+        ])
+        ->whereIn('leave_balance_id', $subordinateBalanceIds)
+        ->whereIn('status', ['Pending', 'Sent'])
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get();
+
+    return view('pages.dashboardSupervisor.dashboardSupervisor', compact(
+        'presentCount',
+        'announcements',
+        'totalEmployees',
+        'leavebalance',
+        'totalEmployeespending',
+        'pendingLeaves'
+    ));
+}
 }
  //  public function index()
     // {

@@ -1006,7 +1006,7 @@
                                             <div class="field-group">
                                                 <label><i class="fas fa-store"></i> Location</label>
                                                 <div class="field-readonly">
-                                                    {{ $user->store->name ?? '-' }}
+                                                    {{ $user->Employee->store->first()->name ?? '-'}}
                                                 </div>
                                             </div>
                                             <div class="field-group">
@@ -1324,16 +1324,6 @@
                                     @endif
                                 </div>
                             </div>
-
-
-
-
-
-
-
-
-
-
                         </div>
                         <br>
                         <div class="request-box">

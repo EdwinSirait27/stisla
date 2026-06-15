@@ -1,132 +1,4 @@
 <style>
-   
-    /* .mobile-drawer-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0);
-        z-index: 1040;
-        transition: background 0.25s ease;
-    }
-
-    .mobile-drawer-overlay.open {
-        display: block;
-        background: rgba(0, 0, 0, 0.45);
-    }
-
-    .mobile-bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 64px;
-        background: #ffffff;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        z-index: 1030;
-        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.07);
-        padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .mobile-bottom-nav .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        padding: 8px 16px;
-        min-width: 56px;
-        min-height: 44px;
-        border: none;
-        background: none;
-        color: #6b7280;
-        font-size: 10px;
-        font-weight: 500;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: color 0.15s ease, background 0.15s ease;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .mobile-bottom-nav .nav-item i {
-        font-size: 20px;
-        line-height: 1;
-    }
-
-    .mobile-bottom-nav .nav-item:hover,
-    .mobile-bottom-nav .nav-item.active {
-        color: #4f46e5;
-        background: #ede9fe;
-    }
-
-    .mobile-more-drawer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #ffffff;
-        border-radius: 20px 20px 0 0;
-        z-index: 1050;
-        max-height: 75vh;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: calc(16px + env(safe-area-inset-bottom));
-
-        transform: translateY(100%);
-        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    .mobile-more-drawer.open {
-        transform: translateY(0);
-    }
-
-    .drawer-handle {
-        width: 40px;
-        height: 4px;
-        background: #d1d5db;
-        border-radius: 2px;
-        margin: 12px auto 6px;
-        flex-shrink: 0;
-    }
-
-    .drawer-section-title {
-        font-size: 11px;
-        font-weight: 600;
-        color: #9ca3af;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        padding: 12px 20px 4px;
-    }
-
-    .drawer-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 13px 20px;
-        font-size: 15px;
-        color: #111827;
-        text-decoration: none;
-        transition: background 0.12s ease;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .drawer-item:hover,
-    .drawer-item:active {
-        background: #f3f4f6;
-        color: #111827;
-        text-decoration: none;
-    }
-
-    .drawer-item i {
-        font-size: 18px;
-        color: #6b7280;
-        width: 22px;
-        text-align: center;
-        flex-shrink: 0;
-    } */
       .mobile-drawer-overlay {
         display: none;
         position: fixed;
@@ -287,10 +159,47 @@
         </a>
       
     @endcan
+   
     @can('DashboardSupervisor')
         <a href="{{ route('pages.dashboardSupervisor') }}" class="nav-item" aria-label="Home">
             <i class="fas fa-home"></i>
             <span>Home</span>
+        </a>
+    @endcan
+    @can('ManageEmployeeSPVManager')
+        <a href="{{ route('pages.Employee') }}" class="nav-item" aria-label="Home">
+            <i class="fas fa-user-tie"></i>
+            <span>Employee</span>
+        </a>
+    @endcan
+    @can('ViewEmployee')
+        <a href="{{ route('pages.Employee') }}" class="nav-item" aria-label="Home">
+            <i class="fas fa-user-tie"></i>
+            <span>Employee</span>
+        </a>
+    @endcan
+    @can('ManageFingerspotSPVManager')
+        <a href="{{ route('pages.Fingerprints') }}" class="nav-item" aria-label="Home">
+            <i class="fas fa-calendar-check"></i>
+            <span>Fingerprint</span>
+        </a>
+    @endcan
+    @can('ViewFingerspot')
+        <a href="{{ route('pages.Fingerprints') }}" class="nav-item" aria-label="Home">
+            <i class="fas fa-calendar-check"></i>
+            <span>Fingerprint</span>
+        </a>
+    @endcan
+    @can('ManageRosterSPVManager')
+        <a href="{{ route('roster.index') }}" class="nav-item" aria-label="Home">
+            <i class="fas fa-file-signature"></i>
+            <span>Roster</span>
+        </a>
+    @endcan
+    @can('ViewRoster')
+        <a href="{{ route('roster.index') }}" class="nav-item" aria-label="Home">
+            <i class="fas fa-file-signature"></i>
+            <span>Roster</span>
         </a>
     @endcan
     @can('dashboardSupervisor')
@@ -417,17 +326,7 @@
             <i class="fas fa-tachometer-alt"></i> Employee
         </a>
         @endcan
-    @can('RequestPosition')
-        <a href="{{ route('pages.Positionrequest') }}" class="drawer-item">
-            <i class="fas fa-tachometer-alt"></i> Position Request
-        </a>
-        @endcan
-    @can('RequestPositionList')
-        <a href="{{ route('pages.Positionreqlist') }}" class="drawer-item">
-            <i class="fas fa-tachometer-alt"></i> Position Request List
-        </a>
-        @endcan
-    
+   
     @can('ManageSummaries')
         <a href="{{ route('pages.Summaries') }}" class="drawer-item">
             <i class="fas fa-tachometer-alt"></i> Leave List

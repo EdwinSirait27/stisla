@@ -370,7 +370,6 @@
             <tr>
                 <td class="col-label">Jabatan</td>
                 <td class="col-sep">:</td>
-                {{-- <td>{{ $employee->position->name ?? '-' }}</td> --}}
                                   <td>{{ $employee->position->first()->name ?? '-'}}</td>
 
             </tr>

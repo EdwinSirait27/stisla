@@ -173,20 +173,24 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
     });
 
     // ── Employee ──
-    Route::group(['middleware' => ['permission:ManageEmployee']], function () {
-        Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
+    Route::group(['middleware' => ['permission:ManageEmployee|ManageEmployeeSPVManager|ViewEmployee']], function () {
         Route::get('/Employee', [EmployeeController::class, 'index'])
             ->name('pages.Employee');
-        Route::get('bagan/data', [EmployeeController::class, 'getBagan'])->name('employee.bagan');
-
-        Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
-        Route::post('/Employee', [EmployeeController::class, 'store'])->name('Employee.store');
-        Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
-        Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
-        Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
+            Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
         Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
+       
+    });
+    Route::group(['middleware' => ['permission:ManageEmployee']], function () {
+
+    Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
+        Route::post('/Employee', [EmployeeController::class, 'store'])->name('Employee.store');
+        Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
+
+        Route::get('bagan/data', [EmployeeController::class, 'getBagan'])->name('employee.bagan');
+ Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
+        Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
         Route::get('/employees/export', [EmployeeController::class, 'exportEmployees'])->name('Employee.export');
-        Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
+        // Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
 
         Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
             ->name('pages.Employeeall');
@@ -206,31 +210,50 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
         Route::get('/employee-kk/{filename}',       [EmployeeController::class, 'serveKkPhoto'])->name('employee.kk');
         Route::get('/employee-signature/{filename}', [EmployeeController::class, 'serveSignature'])->name('employee.signature');
         Route::get('employee/photo/{filename}', [EmployeeController::class, 'servePhoto'])
-            ->name('employee.serve.photo')
-            ->middleware('auth');
+            ->name('employee.serve.photo');
+          Route::get('Employee/{hashedId}/document/{documentId}/download', [EmployeeController::class, 'downloadDocument'])
+    ->name('Employee.document.download')
+    ->middleware(['auth', 'permission:ManageEmployee']);
     });
 
-    // ── Payrolls ──
-    // Route::group(['middleware' => ['permission:ManagePayrolls']], function () {
-    //     Route::get('/Payrolls', [PayrollsController::class, 'index'])
-    //         ->name('pages.Payrolls');
-    //     Route::get('/Payrolls/edit/{hashedId}', [PayrollsController::class, 'edit'])->name('Payrolls.edit');
-    //     Route::put('/Payrolls/{hashedId}', [PayrollsController::class, 'update'])->name('Payrolls.update');
-    //     Route::get('/payrolls/payrolls', [PayrollsController::class, 'getPayrolls'])->name('payrolls.payrolls');
-    //     Route::get('/Payrolls/show/{hashedId}', [PayrollsController::class, 'show'])->name('Payrolls.show');
-    //     Route::delete('/payrolls/delete-bulk', [PayrollsController::class, 'bulkDelete'])->name('payrolls.bulkDelete');
-    //     Route::get('/email', [PayrollEmailController::class, 'index'])->name('payroll.email.index');
-    //     Route::post('/email/send', [PayrollEmailController::class, 'send'])->name('payroll.email.send');
-    //     Route::get('/email/preview/{payroll}', [PayrollEmailController::class, 'preview'])->name('payroll.email.preview');
-    //     Route::get('/payrolls/{hashedId}/generate', [PayrollsController::class, 'generate'])->name('payrolls.generate');
-    //     Route::get('/Importpayroll', [PayrollsController::class, 'indexpayrolls'])
-    //         ->name('pages.Importpayroll');
-    //     Route::post('/Importpayroll', [PayrollsController::class, 'Importpayrolls'])->name('Importpayroll.payrolls');
-    //     Route::post('/Payrolls/generate-all', [PayrollsController::class, 'generateAll'])->name('Payrolls.generateAll');
-    //     Route::get('/Payrolls/downloadpayrolls/{filename}', [PayrollsController::class, 'downloadpayrolls'])->name('Payrolls.downloadpayrolls');
-    //     Route::get('/payroll/export', [PayrollsController::class, 'export'])->name('payroll.export');
+    // Route::group(['middleware' => ['permission:ManageEmployee']], function () {
+    //     Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
+    //     Route::get('/Employee', [EmployeeController::class, 'index'])
+    //         ->name('pages.Employee');
+    //     Route::get('bagan/data', [EmployeeController::class, 'getBagan'])->name('employee.bagan');
+
+    //     Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
+    //     Route::post('/Employee', [EmployeeController::class, 'store'])->name('Employee.store');
+    //     Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
+    //     Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
+    //     Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
+    //     Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
+    //     Route::get('/employees/export', [EmployeeController::class, 'exportEmployees'])->name('Employee.export');
+    //     // Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
+
+    //     Route::get('/Employeeall', [EmployeeController::class, 'indexall'])
+    //         ->name('pages.Employeeall');
+    //     Route::match(['GET', 'POST'], '/employeesall/employeesall', [EmployeeController::class, 'getEmployeesall'])->name('employeesall.employeesall');
+    //     Route::get('/employeesall/exportall', [EmployeeController::class, 'exportEmployeesall'])->name('Employeeall.exportall');
+
+    //     Route::get('/Import', [EmployeeImportController::class, 'index'])
+    //         ->name('pages.Import');
+    //     Route::post('/Import', [EmployeeImportController::class, 'import'])->name('Import.employee');
+    //     Route::get('/Importuser', [EmployeeImportController::class, 'indexuser'])
+    //         ->name('pages.Importuser');
+    //     Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
+
+
+    //     Route::get('/employee-photo/{filename}',    [EmployeeController::class, 'servePhoto'])->name('employee.photo');
+    //     Route::get('/employee-ktp/{filename}',      [EmployeeController::class, 'serveKtpPhoto'])->name('employee.ktp');
+    //     Route::get('/employee-kk/{filename}',       [EmployeeController::class, 'serveKkPhoto'])->name('employee.kk');
+    //     Route::get('/employee-signature/{filename}', [EmployeeController::class, 'serveSignature'])->name('employee.signature');
+    //     Route::get('employee/photo/{filename}', [EmployeeController::class, 'servePhoto'])
+    //         ->name('employee.serve.photo')
+    //         ->middleware('auth');
     // });
 
+  
 
     Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
         Route::get('/datacontracts/datacontracts', [ContractController::class, 'getActivities'])->name('datacontracts.datacontracts');

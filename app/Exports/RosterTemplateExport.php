@@ -44,8 +44,8 @@ class RosterTemplateExport implements WithEvents, WithTitle
 
                 // Kolom: A=pengenal, B=nama, C=store, D dst=tanggal
                 // Tanggal dimulai di kolom ke-4 (D)
-                $firstDateColIndex = 4;
-                $totalCols    = 3 + count($dates);
+                $firstDateColIndex = 3;
+                $totalCols    = 2 + count($dates);
                 $lastColLetter = $this->colLetter($totalCols);
 
                 // ── Baris 1: Judul ──
@@ -68,8 +68,8 @@ class RosterTemplateExport implements WithEvents, WithTitle
 
                 // ── Baris 3: HEADER (A WAJIB 'employee_pengenal' agar import menemukannya) ──
                 $sheet->setCellValue('A3', 'employee_pengenal');
-                $sheet->setCellValue('B3', 'nama');
-                $sheet->setCellValue('C3', 'store');
+                $sheet->setCellValue('B3', 'store');
+    
                 foreach ($dates as $i => $date) {
                     $col = $this->colLetter($firstDateColIndex + $i);
                     $sheet->setCellValue("{$col}3", $date->day);
@@ -100,13 +100,12 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 $rowNum = 5;
                 foreach ($employees as $emp) {
                     $sheet->setCellValue("A{$rowNum}", $emp->employee_pengenal ?? '');
-                    $sheet->setCellValue("B{$rowNum}", $emp->employee_name ?? '');
-                    $sheet->setCellValue("C{$rowNum}", $storeName);
+                    $sheet->setCellValue("B{$rowNum}", $storeName);
 
                     // Kolom pengenal+nama+store: latar kuning muda biar beda dari sel isian
-                    $sheet->getStyle("A{$rowNum}:C{$rowNum}")->applyFromArray([
+                   $sheet->getStyle("A{$rowNum}:B{$rowNum}")->applyFromArray([
                         'font' => ['bold' => true],
-                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']]
                     ]);
 
                     // Sel tanggal: kosong, Minggu ditandai kuning agar HR sadar
@@ -138,14 +137,14 @@ class RosterTemplateExport implements WithEvents, WithTitle
 
                 // ── Lebar kolom ──
                 $sheet->getColumnDimension('A')->setWidth(20);
-                $sheet->getColumnDimension('B')->setWidth(26);
-                $sheet->getColumnDimension('C')->setWidth(14);
+                $sheet->getColumnDimension('B')->setWidth(14);
+            
                 foreach ($dates as $i => $_) {
                     $sheet->getColumnDimension($this->colLetter($firstDateColIndex + $i))->setWidth(5);
                 }
 
                 // ── Freeze pane: kunci 3 kolom kiri + 4 baris atas ──
-                $sheet->freezePane('D5');
+                $sheet->freezePane('C5');
             },
         ];
     }

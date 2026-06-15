@@ -96,11 +96,11 @@ class FingerprintsController extends Controller
             ? Stores::select('id', 'name')->whereNotNull('name')->distinct()->pluck('name')
             : collect();
 
-        // Locked store untuk SPVManager (ViewOwn tidak pakai dropdown sama sekali)
+        
         $lockedStore = null;
-        if ($canSpvManager && !$canManage) {
-            $lockedStore = $user->employee->store->name ?? null;
-        }
+if ($canSpvManager && !$canManage) {
+    $lockedStore = $user->employee->primaryStore()->first()?->name ?? null;
+}
         return view('pages.Fingerprints.Fingerprints', compact(
             'stores',
             'defaultStartDate',
@@ -384,35 +384,77 @@ class FingerprintsController extends Controller
             ->values()
             ->toArray();
 
-        $employeesQuery = Employee::with(['position:id,name', 'store:id,name'])
-            ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee')
-            ->whereNotNull('pin');
+//         $employeesQuery = Employee::with(['position:id,name', 'store:id,name'])
+//             ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee')
+//             ->whereNotNull('pin');
 
-        // if ($canViewOwn && !$canManage && !$canSpvManager) {
-        //     $employeesQuery->where('pin', $user->employee->pin);
-        // } elseif ($canSpvManager && !$canManage) {
-        //     $employeesQuery->where('store_id', $user->employee->store_id);
-        // } else {
-        //     if ($storeName) {
-        //         $employeesQuery->whereHas('store', fn($q) => $q->where('name', $storeName));
-        //     }
-        // }
-        if ($canViewOwn && !$canManage && !$canSpvManager) {
+        
+// if ($canViewOwn && !$canManage && !$canSpvManager) {
+//     $employeesQuery->where('pin', $user->employee->pin);
+// } elseif ($canSpvManager && !$canManage) {
+//     // Ambil store primary user
+//     $userStoreIds = $user->employee->store()
+//         ->wherePivot('is_primary', true)
+//         ->pluck('stores_tables.id');
+
+//     $employeesQuery->whereHas('store', fn($q) =>
+//         $q->whereIn('stores_tables.id', $userStoreIds)
+//           ->where('employee_stores.is_primary', true)
+//     );
+// } else {
+//     if ($storeName) {
+//         $employeesQuery->whereHas('store', fn($q) =>
+//             $q->where('stores_tables.name', $storeName)
+//         );
+//     }
+// }
+$employeesQuery = Employee::with(['position' => fn($q) => $q->wherePivot('is_primary', true), 'store' => fn($q) => $q->wherePivot('is_primary', true)])
+    ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee', 'company_id')
+    ->whereNotNull('pin');
+
+if ($canViewOwn && !$canManage && !$canSpvManager) {
+    // ← ViewFingerspot: hanya data sendiri
     $employeesQuery->where('pin', $user->employee->pin);
-} elseif ($canSpvManager && !$canManage) {
-    // Ambil store primary user
-    $userStoreIds = $user->employee->store()
-        ->wherePivot('is_primary', true)
-        ->pluck('stores.id');
 
-    $employeesQuery->whereHas('store', fn($q) =>
-        $q->wherePivot('is_primary', true)
-          ->whereIn('stores.id', $userStoreIds)
-    );
-} else {
+} elseif ($canSpvManager && !$canManage) {
+    // ← ManageFingerspotSPVManager: filter company + store kepunyaan
+    $userEmployee  = $user->employee;
+    $companyId     = $userEmployee->company_id;
+    $userStoreIds  = $userEmployee->store()->pluck('stores_tables.id')->toArray();
+    $userDeptIds   = $userEmployee->department()->pluck('departments_tables.id')->toArray();
+
+    if (empty($userStoreIds) || empty($userDeptIds)) {
+        return collect();
+    }
+
+    
+
+    $employeesQuery
+        ->where('company_id', $companyId)
+        ->whereExists(function ($q) use ($userStoreIds) {
+            $q->select(DB::raw(1))
+                ->from('employee_stores')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->whereIn('employee_stores.store_id', $userStoreIds);
+        })
+        ->whereExists(function ($q) use ($userDeptIds) {
+            $q->select(DB::raw(1))
+                ->from('employee_departments')
+                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                ->whereIn('employee_departments.department_id', $userDeptIds);
+        });
+
     if ($storeName) {
         $employeesQuery->whereHas('store', fn($q) =>
-            $q->where('stores.name', $storeName)
+            $q->where('stores_tables.name', $storeName)
+        );
+    }
+
+} else {
+    // ← ManageFingerspot: bebas filter store
+    if ($storeName) {
+        $employeesQuery->whereHas('store', fn($q) =>
+            $q->where('stores_tables.name', $storeName)
         );
     }
 }
@@ -488,8 +530,6 @@ class FingerprintsController extends Controller
                 'employee_name'     => $employee->employee_name     ?? '-',
                 'status_employee'   => $employee->status_employee   ?? '-',
                 'employee_pengenal' => $employee->employee_pengenal ?? '-',
-                // 'name'              => $employee->store->name       ?? '-',
-                // 'position_name'     => $employee->position->name   ?? '-',
                 'name'              => $employee->store->first()?->name      ?? '-', // ← fix
     'position_name'     => $employee->position->first()?->name   ?? '-', // ← fix
                 'device_name'       => $deviceNames->get($first->sn) ?? '-',
@@ -719,7 +759,7 @@ class FingerprintsController extends Controller
         //     $employeesQuery->whereHas('store', fn($q) => $q->where('name', $storeName));
         // }
         if ($storeName) {
-    $employeesQuery->whereHas('store', fn($q) => $q->where('stores.name', $storeName));
+    $employeesQuery->whereHas('store', fn($q) => $q->where('stores_tables.name', $storeName));
 }
 
         $employees   = $employeesQuery->get()->keyBy('pin');

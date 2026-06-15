@@ -81,218 +81,459 @@ class DashManagerController extends Controller
         ));
     }
 
+    // public function index(Request $request)
+    // {
+    //     $announcements = Announcement::with('user')
+    //         ->orderBy('publish_date', 'desc')
+    //         ->paginate(10);
+
+    //     $employee = Auth::user()->employee;
+    //     $companyId = $employee->company_id;
+    //     $departmentId = $employee->department_id;
+
+    //     // Ambil multi store user
+    //     $multiStores = $employee->structureNew?->stores?->pluck('id')->toArray();
+    //     $storeIds = !empty($multiStores) ? $multiStores : [$employee->store_id];
+
+    //     // Hitung total karyawan
+    //     $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+    //         ->where('company_id', $companyId)
+    //         ->where('department_id', $departmentId)
+    //         ->whereIn('store_id', $storeIds)
+    //         ->count();
+
+    //     $totalEmployeespending = Employee::where('status', 'Pending')
+    //         ->where('company_id', $companyId)
+    //         ->where('department_id', $departmentId)
+    //         ->whereIn('store_id', $storeIds)
+    //         ->count();
+
+    //     $employeeLogin = auth()->user()->employee;
+    //     $pin = $employeeLogin->pin;
+    //     $today = now()->format('Y-m-d');
+    //     $lastWeek = now()->subDays(7)->format('Y-m-d');
+
+    //     $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
+    //         ->where('inoutmode', 1)
+    //         ->where('pin', $pin)
+    //         ->distinct('scan_date')
+    //         ->count();
+
+    //     $employeelogin = $employee->id;
+    //     $leavebalance = Leavebalance::with(['employees', 'leaves'])
+    //         ->where('employee_id', $employeelogin)
+    //         ->get();
+
+    //     // ─── Annual Leave untuk card Leave Balance (manager sendiri) ───
+    //     $annualLeave = Leavebalance::with('leaves')
+    //         ->where('employee_id', $employee->id)
+    //         ->where('year', date('Y'))
+    //         ->whereHas('leaves', fn($q) => $q->where('name', 'Annual Leave'))
+    //         ->first();
+
+    //     $isNewbie = $employee->join_date
+    //         ? \Carbon\Carbon::parse($employee->join_date)->diffInYears(now()) < 1
+    //         : false;
+
+    //     // Total hari pengajuan PENDING milik manager sendiri
+    //     $myPendingDays = Leaverequest::whereHas('leavebalance', fn($q) =>
+    //     $q->where('employee_id', $employee->id))
+    //         ->where('status', 'Pending')
+    //         ->sum('total_days');
+
+    //     // Saldo tampil = balance_days − hari pending
+    //     $displayBalance = $annualLeave
+    //         ? max(0, (float) $annualLeave->balance_days - (float) $myPendingDays)
+    //         : 0;
+
+    //     // Ambil pending leave dari bawahan berdasarkan tree struktur
+    //     $myStructureId           = $employee->structure_id;
+    //     $subordinateStructureIds = $myStructureId
+    //         ? $this->getSubStructureIds($myStructureId)
+    //         : [];
+
+    //     $subordinateEmployeeIds = Employee::whereIn('structure_id', $subordinateStructureIds)
+    //         ->pluck('id')
+    //         ->toArray();
+
+    //     $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
+    //         ->pluck('id')
+    //         ->toArray();
+
+    //     // ─── Query $pendingLeaves sebelum di-map ───
+    //     $pendingLeaves = Leaverequest::whereIn('leave_balance_id', $subordinateBalanceIds)
+    //         ->where('status', 'Pending')
+    //         ->with(['leavebalance.employees', 'leavebalance.leaves'])
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     $colors = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
+    //     $typeMap = [
+    //         'sakit'      => ['bg' => '#FFF3CD', 'text' => '#856404'],
+    //         'tahunan'    => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
+    //         'annual'     => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
+    //         'melahirkan' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
+    //         'darurat'    => ['bg' => '#F8D7DA', 'text' => '#721C24'],
+    //         'toil'       => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
+    //     ];
+
+    //     $pendingLeaves = $pendingLeaves->map(function ($leave) use ($colors, $typeMap) {
+    //         $balance   = $leave->leavebalance;
+    //         $employee  = $balance?->employees;
+    //         $leaveType = $balance?->leaves;
+
+    //         $employeeName  = $employee?->employee_name ?? $employee?->name ?? '-';
+    //         $leaveTypeName = $leaveType?->name ?? $leaveType?->leave_type_name ?? 'Cuti';
+
+    //         $bgColor = $colors[abs(crc32($employeeName)) % count($colors)];
+    //         $initial = strtoupper(substr($employeeName, 0, 1));
+
+    //         $key       = strtolower($leaveTypeName);
+    //         $typeStyle = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k))
+    //             ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
+
+    //         $start = \Carbon\Carbon::parse($leave->start_date);
+    //         $dateLabel = $start->format('d M Y');
+    //         if ($leave->end_date && $leave->end_date !== $leave->start_date) {
+    //             $dateLabel .= ' – ' . \Carbon\Carbon::parse($leave->end_date)->format('d M Y');
+    //         }
+
+    //         return [
+    //             'id'             => $leave->id,
+    //             'employeeName'   => $employeeName,
+    //             'leaveTypeName'  => $leaveTypeName,
+    //             'bgColor'        => $bgColor,
+    //             'initial'        => $initial,
+    //             'typeBg'         => $typeStyle['bg'],
+    //             'typeText'       => $typeStyle['text'],
+    //             'dateLabel'      => $dateLabel,
+    //             'ago'            => \Carbon\Carbon::parse($leave->created_at)->diffForHumans(),
+    //             'employeeReason' => $leave->employee_reason,
+    //             'approveUrl'     => route('leaverequest.approve', $leave->id),
+    //             'rejectUrl'      => route('leaverequest.reject', $leave->id),
+    //         ];
+    //     });
+
+    //     // ─── Roster manager (yang login) untuk Attendance History ───
+    //     $employeeId = $employee->id;
+
+    //     $month  = (int) $request->query('month', now()->month);
+    //     $year   = (int) $request->query('year', now()->year);
+    //     $cursor = \Carbon\Carbon::createFromDate($year, $month, 1);
+
+    //     $rosters = \App\Models\Roster::with('shift')
+    //         ->where('employee_id', $employeeId)
+    //         ->whereYear('date', $year)
+    //         ->whereMonth('date', $month)
+    //         ->get()
+    //         ->keyBy(fn ($r) => \Carbon\Carbon::parse($r->date)->day);
+
+    //     $today     = \Carbon\Carbon::today();
+    //     $daysInMon = $cursor->daysInMonth;
+    //     $leadBlank = $cursor->copy()->startOfMonth()->dayOfWeek;
+
+    //     $calendarDays = [];
+
+    //     for ($i = 0; $i < $leadBlank; $i++) {
+    //         $calendarDays[] = ['empty' => true];
+    //     }
+
+    //     for ($d = 1; $d <= $daysInMon; $d++) {
+    //         $dateObj = $cursor->copy()->day($d);
+    //         $dow     = $dateObj->dayOfWeek;
+    //         $roster  = $rosters[$d] ?? null;
+
+    //         if ($roster) {
+    //             $type = strtolower($roster->day_type);
+    //             $cssClass = match (true) {
+    //                 str_contains($type, 'work')    => 'present',
+    //                 str_contains($type, 'off')     => 'weekend',
+    //                 str_contains($type, 'holiday') => 'leave',
+    //                 str_contains($type, 'leave')   => 'absent',
+    //                 str_contains($type, 'melahirkan')    => 'absent',
+    //                 default                         => '',
+    //             };
+    //             $label = $roster->day_type;
+    //             $remark  = (str_contains($type, 'holiday') || str_contains($type, 'toil')) ? ($roster->notes ?? '') : '';
+    //         } else {
+    //             $cssClass = in_array($dow, [0, 6]) ? 'weekend' : '';
+    //             $label    = '';
+    //             $remark   = '';
+    //         }
+
+    //         $calendarDays[] = [
+    //             'empty'    => false,
+    //             'day'      => $d,
+    //             'cssClass' => $cssClass,
+    //             'label'    => $label,
+    //             'remark'   => $remark,
+    //             'isToday'  => $dateObj->isSameDay($today),
+    //         ];
+    //     }
+
+    //     $prev = $cursor->copy()->subMonth();
+    //     $next = $cursor->copy()->addMonth();
+
+    //     $calendarLabel = $cursor->translatedFormat('F Y');
+    //     $prevMonth     = ['month' => $prev->month, 'year' => $prev->year];
+    //     $nextMonth     = ['month' => $next->month, 'year' => $next->year];
+
+    //     // ─── Cabang AJAX untuk navigasi panah (ganti bulan tanpa reload) ───
+    //     if ($request->ajax()) {
+    //         return view('pages.dashboardManager.calendar', compact(
+    //             'calendarDays',
+    //             'calendarLabel',
+    //             'prevMonth',
+    //             'nextMonth',
+    //         ));
+    //     }
+
+    //     return view('pages.dashboardManager.dashboardManager', compact(
+    //         'announcements',
+    //         'totalEmployees',
+    //         'totalEmployeespending',
+    //         'presentCount',
+    //         'leavebalance',
+    //         'annualLeave',
+    //         'isNewbie',
+    //         'displayBalance',
+    //         'pendingLeaves',
+    //         'calendarDays',
+    //         'calendarLabel',
+    //         'prevMonth',
+    //         'nextMonth',
+    //     ));
+    // }
     public function index(Request $request)
-    {
-        $announcements = Announcement::with('user')
-            ->orderBy('publish_date', 'desc')
-            ->paginate(10);
+{
+    $announcements = Announcement::with('user')
+        ->orderBy('publish_date', 'desc')
+        ->paginate(10);
 
-        $employee  = Auth::user()->employee;
-        $companyId = $employee->company_id;
+    $employee  = Auth::user()->employee;
+    $companyId = $employee->company_id;
 
-        // Pakai primaryStore() dari Employee.php
-        $storeIds = $employee->primaryStore()->pluck('stores_tables.id')->toArray();
-        if (empty($storeIds)) {
-            $storeIds = [$employee->store_id];
+    // ← Ambil primary store dan department lewat pivot
+    $primaryStore      = $employee->primaryStore()->first();
+    $primaryDepartment = $employee->primaryDepartment()->first();
+    $storeId           = $primaryStore?->id;
+    $departmentId      = $primaryDepartment?->id;
+
+    // ← Hitung total karyawan lewat pivot
+    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+        ->where('company_id', $companyId)
+        ->whereExists(function ($q) use ($storeId) {
+            $q->select(\DB::raw(1))
+                ->from('employee_stores')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->where('employee_stores.store_id', $storeId);
+        })
+        ->whereExists(function ($q) use ($departmentId) {
+            $q->select(\DB::raw(1))
+                ->from('employee_departments')
+                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                ->where('employee_departments.department_id', $departmentId);
+        })
+        ->count();
+
+    $totalEmployeespending = Employee::where('status', 'Pending')
+        ->where('company_id', $companyId)
+        ->whereExists(function ($q) use ($storeId) {
+            $q->select(\DB::raw(1))
+                ->from('employee_stores')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->where('employee_stores.store_id', $storeId);
+        })
+        ->whereExists(function ($q) use ($departmentId) {
+            $q->select(\DB::raw(1))
+                ->from('employee_departments')
+                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                ->where('employee_departments.department_id', $departmentId);
+        })
+        ->count();
+
+    $pin           = $employeeLogin->pin;
+    $today         = now()->format('Y-m-d');
+    $lastWeek      = now()->subDays(7)->format('Y-m-d');
+
+
+    $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
+        ->where('inoutmode', 1)
+        ->where('pin', $pin)
+        ->distinct('scan_date')
+        ->count();
+
+    $employeelogin = $employee->id;
+    $leavebalance  = Leavebalance::with(['employees', 'leaves'])
+        ->where('employee_id', $employeelogin)
+        ->get();
+
+    $annualLeave = Leavebalance::with('leaves')
+        ->where('employee_id', $employee->id)
+        ->where('year', date('Y'))
+        ->whereHas('leaves', fn($q) => $q->where('name', 'Annual Leave'))
+        ->first();
+
+    $isNewbie = $employee->join_date
+        ? \Carbon\Carbon::parse($employee->join_date)->diffInYears(now()) < 1
+        : false;
+
+    $myPendingDays = Leaverequest::whereHas('leavebalance', fn($q) =>
+        $q->where('employee_id', $employee->id))
+        ->where('status', 'Pending')
+        ->sum('total_days');
+
+    $displayBalance = $annualLeave
+        ? max(0, (float) $annualLeave->balance_days - (float) $myPendingDays)
+        : 0;
+
+    // ← Bawahan lewat pivot atasanList
+    $subordinateEmployeeIds = $employee->bawahan()->pluck('id')->toArray();
+
+    $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
+        ->pluck('id')
+        ->toArray();
+
+    $pendingLeaves = Leaverequest::whereIn('leave_balance_id', $subordinateBalanceIds)
+        ->where('status', 'Pending')
+        ->with(['leavebalance.employees', 'leavebalance.leaves'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    $colors  = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
+    $typeMap = [
+        'sakit'      => ['bg' => '#FFF3CD', 'text' => '#856404'],
+        'tahunan'    => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
+        'annual'     => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
+        'melahirkan' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
+        'darurat'    => ['bg' => '#F8D7DA', 'text' => '#721C24'],
+        'toil'       => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
+    ];
+
+    $pendingLeaves = $pendingLeaves->map(function ($leave) use ($colors, $typeMap) {
+        $balance       = $leave->leavebalance;
+        $employee      = $balance?->employees;
+        $leaveType     = $balance?->leaves;
+        $employeeName  = $employee?->employee_name ?? $employee?->name ?? '-';
+        $leaveTypeName = $leaveType?->name ?? $leaveType?->leave_type_name ?? 'Cuti';
+        $bgColor       = $colors[abs(crc32($employeeName)) % count($colors)];
+        $initial       = strtoupper(substr($employeeName, 0, 1));
+        $key           = strtolower($leaveTypeName);
+        $typeStyle     = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k))
+            ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
+
+        $start     = \Carbon\Carbon::parse($leave->start_date);
+        $dateLabel = $start->format('d M Y');
+        if ($leave->end_date && $leave->end_date !== $leave->start_date) {
+            $dateLabel .= ' – ' . \Carbon\Carbon::parse($leave->end_date)->format('d M Y');
         }
 
-        // Pakai primaryDepartment() dari Employee.php
-        $departmentIds = $employee->primaryDepartment()->pluck('departments_tables.id')->toArray();
-        $departmentId  = $departmentIds[0] ?? $employee->department_id;
+        return [
+            'id'             => $leave->id,
+            'employeeName'   => $employeeName,
+            'leaveTypeName'  => $leaveTypeName,
+            'bgColor'        => $bgColor,
+            'initial'        => $initial,
+            'typeBg'         => $typeStyle['bg'],
+            'typeText'       => $typeStyle['text'],
+            'dateLabel'      => $dateLabel,
+            'ago'            => \Carbon\Carbon::parse($leave->created_at)->diffForHumans(),
+            'employeeReason' => $leave->employee_reason,
+            'approveUrl'     => route('leaverequest.approve', $leave->id),
+            'rejectUrl'      => route('leaverequest.reject', $leave->id),
 
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
-            ->where('company_id', $companyId)
-            ->whereIn('store_id', $storeIds)
-            ->count();
-
-        $totalEmployeespending = Employee::where('status', 'Pending')
-            ->where('company_id', $companyId)
-            ->whereIn('store_id', $storeIds)
-            ->count();
-
-        $pin      = $employee->pin;
-        $today    = now()->format('Y-m-d');
-        $lastWeek = now()->subDays(7)->format('Y-m-d');
-
-        $presentCount = Fingerprints::whereBetween('scan_date', [$lastWeek, $today])
-            ->where('inoutmode', 1)
-            ->where('pin', $pin)
-            ->distinct('scan_date')
-            ->count();
-
-        $leavebalance = Leavebalance::with(['employees', 'leaves'])
-            ->where('employee_id', $employee->id)
-            ->get();
-
-        // Annual Leave card (manager sendiri)
-        $annualLeave = Leavebalance::with('leaves')
-            ->where('employee_id', $employee->id)
-            ->where('year', date('Y'))
-            ->whereHas('leaves', fn ($q) => $q->where('name', 'Annual Leave'))
-            ->first();
-
-        $isNewbie = $employee->join_date
-            ? Carbon::parse($employee->join_date)->diffInYears(now()) < 1
-            : false;
-
-        $myPendingDays = Leaverequest::whereHas('leavebalance', fn ($q) =>
-            $q->where('employee_id', $employee->id))
-            ->where('status', 'Pending')
-            ->sum('total_days');
-
-        $displayBalance = $annualLeave
-            ? max(0, (float) $annualLeave->balance_days - (float) $myPendingDays)
-            : 0;
-
-        // Pending leave bawahan — pakai bawahanList() dari Employee.php
-        $subordinateEmployeeIds = $employee->bawahanList()->pluck('id')->toArray();
-
-        $subordinateBalanceIds = Leavebalance::whereIn('employee_id', $subordinateEmployeeIds)
-            ->pluck('id')
-            ->toArray();
-
-        $pendingLeavesRaw = Leaverequest::whereIn('leave_balance_id', $subordinateBalanceIds)
-            ->where('status', 'Pending')
-            ->with(['leavebalance.employees', 'leavebalance.leaves'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $colors  = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
-        $typeMap = [
-            'sakit'      => ['bg' => '#FFF3CD', 'text' => '#856404'],
-            'tahunan'    => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
-            'annual'     => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
-            'melahirkan' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
-            'darurat'    => ['bg' => '#F8D7DA', 'text' => '#721C24'],
-            'toil'       => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
         ];
+    });
 
-        $pendingLeaves = $pendingLeavesRaw->map(function ($leave) use ($colors, $typeMap) {
-            $balance       = $leave->leavebalance;
-            $emp           = $balance?->employees;
-            $leaveType     = $balance?->leaves;
 
-            $employeeName  = $emp?->employee_name ?? $emp?->name ?? '-';
-            $leaveTypeName = $leaveType?->name ?? $leaveType?->leave_type_name ?? 'Cuti';
+    $employeeId = $employee->id;
+    $month      = (int) $request->query('month', now()->month);
+    $year       = (int) $request->query('year', now()->year);
+    $cursor     = \Carbon\Carbon::createFromDate($year, $month, 1);
 
-            $bgColor   = $colors[abs(crc32($employeeName)) % count($colors)];
-            $initial   = strtoupper(substr($employeeName, 0, 1));
+    $rosters = \App\Models\Roster::with('shift')
+        ->where('employee_id', $employeeId)
+        ->whereYear('date', $year)
+        ->whereMonth('date', $month)
+        ->get()
+        ->keyBy(fn($r) => \Carbon\Carbon::parse($r->date)->day);
 
-            $key       = strtolower($leaveTypeName);
-            $typeStyle = collect($typeMap)->first(fn ($v, $k) => str_contains($key, $k))
-                ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
+    $today      = \Carbon\Carbon::today();
+    $daysInMon  = $cursor->daysInMonth;
+    $leadBlank  = $cursor->copy()->startOfMonth()->dayOfWeek;
+    $calendarDays = [];
 
-            $start     = Carbon::parse($leave->start_date);
-            $dateLabel = $start->format('d M Y');
-            if ($leave->end_date && $leave->end_date !== $leave->start_date) {
-                $dateLabel .= ' – ' . Carbon::parse($leave->end_date)->format('d M Y');
-            }
+    for ($i = 0; $i < $leadBlank; $i++) {
+        $calendarDays[] = ['empty' => true];
+    }
 
-            return [
-                'id'             => $leave->id,
-                'employeeName'   => $employeeName,
-                'leaveTypeName'  => $leaveTypeName,
-                'bgColor'        => $bgColor,
-                'initial'        => $initial,
-                'typeBg'         => $typeStyle['bg'],
-                'typeText'       => $typeStyle['text'],
-                'dateLabel'      => $dateLabel,
-                'ago'            => Carbon::parse($leave->created_at)->diffForHumans(),
-                'employeeReason' => $leave->employee_reason,
-                'approveUrl'     => route('leaverequest.approve', $leave->id),
-                'rejectUrl'      => route('leaverequest.reject', $leave->id),
-            ];
-        });
+    for ($d = 1; $d <= $daysInMon; $d++) {
+        $dateObj = $cursor->copy()->day($d);
+        $dow     = $dateObj->dayOfWeek;
+        $roster  = $rosters[$d] ?? null;
 
-        // Roster kalender
-        $employeeId = $employee->id;
-        $month      = (int) $request->query('month', now()->month);
-        $year       = (int) $request->query('year', now()->year);
-        $cursor     = Carbon::createFromDate($year, $month, 1);
+        if ($roster) {
+            $type     = strtolower($roster->day_type);
+            $cssClass = match (true) {
+                str_contains($type, 'work')      => 'present',
+                str_contains($type, 'off')       => 'weekend',
+                str_contains($type, 'holiday')   => 'leave',
+                str_contains($type, 'leave')     => 'absent',
+                str_contains($type, 'melahirkan') => 'absent',
+                default                          => '',
+            };
+            $label  = $roster->day_type;
+            $remark = (str_contains($type, 'holiday') || str_contains($type, 'toil'))
+                ? ($roster->notes ?? '')
+                : '';
+        } else {
+            $cssClass = in_array($dow, [0, 6]) ? 'weekend' : '';
+            $label    = '';
+            $remark   = '';
 
-        $rosters = \App\Models\Roster::with('shift')
-            ->where('employee_id', $employeeId)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
-            ->get()
-            ->keyBy(fn ($r) => Carbon::parse($r->date)->day);
-
-        $today     = Carbon::today();
-        $daysInMon = $cursor->daysInMonth;
-        $leadBlank = $cursor->copy()->startOfMonth()->dayOfWeek;
-
-        $calendarDays = [];
-
-        for ($i = 0; $i < $leadBlank; $i++) {
-            $calendarDays[] = ['empty' => true];
         }
 
-        for ($d = 1; $d <= $daysInMon; $d++) {
-            $dateObj = $cursor->copy()->day($d);
-            $dow     = $dateObj->dayOfWeek;
-            $roster  = $rosters[$d] ?? null;
+        $calendarDays[] = [
+            'empty'    => false,
+            'day'      => $d,
+            'cssClass' => $cssClass,
+            'label'    => $label,
+            'remark'   => $remark,
+            'isToday'  => $dateObj->isSameDay($today),
+        ];
+    }
 
-            if ($roster) {
-                $type     = strtolower($roster->day_type);
-                $cssClass = match (true) {
-                    str_contains($type, 'work')       => 'present',
-                    str_contains($type, 'off')        => 'weekend',
-                    str_contains($type, 'holiday')    => 'leave',
-                    str_contains($type, 'leave')      => 'absent',
-                    str_contains($type, 'melahirkan') => 'absent',
-                    default                           => '',
-                };
-                $label  = $roster->day_type;
-                $remark = (str_contains($type, 'holiday') || str_contains($type, 'toil'))
-                    ? ($roster->notes ?? '')
-                    : '';
-            } else {
-                $cssClass = in_array($dow, [0, 6]) ? 'weekend' : '';
-                $label    = '';
-                $remark   = '';
-            }
+    $prev          = $cursor->copy()->subMonth();
+    $next          = $cursor->copy()->addMonth();
+    $calendarLabel = $cursor->translatedFormat('F Y');
+    $prevMonth     = ['month' => $prev->month, 'year' => $prev->year];
+    $nextMonth     = ['month' => $next->month, 'year' => $next->year];
 
-            $calendarDays[] = [
-                'empty'    => false,
-                'day'      => $d,
-                'cssClass' => $cssClass,
-                'label'    => $label,
-                'remark'   => $remark,
-                'isToday'  => $dateObj->isSameDay($today),
-            ];
-        }
-
-        $prev          = $cursor->copy()->subMonth();
-        $next          = $cursor->copy()->addMonth();
-        $calendarLabel = $cursor->translatedFormat('F Y');
-        $prevMonth     = ['month' => $prev->month, 'year' => $prev->year];
-        $nextMonth     = ['month' => $next->month, 'year' => $next->year];
-
-        if ($request->ajax()) {
-            return view('pages.dashboardManager.calendar', compact(
-                'calendarDays',
-                'calendarLabel',
-                'prevMonth',
-                'nextMonth',
-            ));
-        }
-
-        return view('pages.dashboardManager.dashboardManager', compact(
-            'announcements',
-            'totalEmployees',
-            'totalEmployeespending',
-            'presentCount',
-            'leavebalance',
-            'annualLeave',
-            'isNewbie',
-            'displayBalance',
-            'pendingLeaves',
+    if ($request->ajax()) {
+        return view('pages.dashboardManager.calendar', compact(
             'calendarDays',
             'calendarLabel',
             'prevMonth',
             'nextMonth',
         ));
     }
+
+    return view('pages.dashboardManager.dashboardManager', compact(
+        'announcements',
+        'totalEmployees',
+        'totalEmployeespending',
+        'presentCount',
+        'leavebalance',
+        'annualLeave',
+        'isNewbie',
+        'displayBalance',
+        'pendingLeaves',
+        'calendarDays',
+        'calendarLabel',
+        'prevMonth',
+        'nextMonth',
+    ));
+}
 
     public function team()
     {
@@ -459,7 +700,7 @@ class DashManagerController extends Controller
         $employeesQuery = Employee::with([
             'primaryStore:id,name',
             'primaryPosition:id,name',
-            'primaryDepartment:id,department_name.',
+            'primaryDepartment:id,department_name',
         ])
             ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'department_id', 'store_id', 'status_employee')
             ->whereNotNull('pin')

@@ -17,9 +17,9 @@
                     <li class="{{ Request::is('rnr') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('rnr') }}">Roles & Responsibilities</a>
                     </li>
-                    <li class="{{ Request::is('documents') ? 'active' : '' }}">
+                    {{-- <li class="{{ Request::is('documents') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('documents') }}">Document</a>
-                    </li>
+                    </li> --}}
 
                 </ul>
             </li>
@@ -78,7 +78,7 @@
                             <a class="nav-link" href="{{ url('Team') }}">Team List</a>
                         </li>
                     @endcan
-                    @can('RequestPosition')
+                    {{-- @can('RequestPosition')
                         <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionrequest') }}">Position Request</a>
                         </li>
@@ -87,17 +87,17 @@
                         <li class="{{ Request::is('Positionreqlist') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionreqlist') }}">Position Req List</a>
                         </li>
-                    @endcan
-                    @can('ManageTeamfingerprint')
+                    @endcan --}}
+                    {{-- @can('ManageTeamfingerprint')
                         <li class="{{ Request::is('Teamfingerprint') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Teamfingerprint') }}">Team Fingerprints</a>
                         </li>
-                    @endcan
-                    @can('Positionapprovals')
+                    @endcan --}}
+                    {{-- @can('Positionapprovals')
                         <li class="{{ Request::is('Positionapprovals') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionapprovals') }}">Position Approvals</a>
                         </li>
-                    @endcan
+                    @endcan --}}
                     @canany(['ManageEmployee','ManageEmployeeSPVManager','ViewEmployee'])
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
