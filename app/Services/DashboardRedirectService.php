@@ -12,6 +12,7 @@ class DashboardRedirectService
             'dashboardAdmin'      => 'pages.dashboardAdmin',
             'dashboardHuman'      => 'pages.dashboardHuman',
             'dashboardSupervisor' => 'pages.dashboardSupervisor',
+            'dashboardManager'    => 'pages.dashboardManager',
             'dashboardTeam'       => 'pages.dashboardTeam',
             'dashboardDirector'   => 'pages.dashboardDirector',
             'dashboardHR'         => 'pages.dashboardHR',

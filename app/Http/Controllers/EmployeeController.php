@@ -176,7 +176,6 @@ class EmployeeController extends Controller
                         'photo'         => $photoFilename
                             ? route('employee.serve.photo', ['filename' => $photoFilename])
                             : null,
-                        // 'atasan_id'     => $atasan?->id ?? null,
                         'atasan_id' => $employee->atasanStruktur()?->id ?? null,
 
                         'all_positions'   => $employee->position->pluck('name')->join(', '),
@@ -191,7 +190,7 @@ class EmployeeController extends Controller
                     return null;
                 }
             })->filter()->values();
-            return response()->json(['nodes' => $bagan]); // ← ini yang hilang
+            return response()->json(['nodes' => $bagan]); 
 
         } catch (\Throwable $e) {
             return response()->json([
@@ -832,54 +831,7 @@ if (!$canManage) {
         });
     }
 }
-    // if (!$canManage) {
-    //     $employee = $user->employee;
-
-    //     if ($canSpvManager) {
-    //         $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
-    //         $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
-
-    //         if (empty($storeIds) || empty($departmentIds)) {
-    //             return DataTables::of(collect())->make(true);
-    //         }
-
-    //         $query->whereExists(function ($q) use ($storeIds) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_stores')
-    //                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-    //                 ->whereIn('employee_stores.store_id', $storeIds);
-    //         })
-    //         ->whereExists(function ($q) use ($departmentIds) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_departments')
-    //                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-    //                 ->whereIn('employee_departments.department_id', $departmentIds);
-    //         });
-
-    //     } elseif ($canView) {
-    //         $storeId = $employee->primaryStore()->first()?->id;
-    //         $departmentId = $employee->primaryDepartment()->first()?->id;
-
-    //         if (!$storeId || !$departmentId) {
-    //             return DataTables::of(collect())->make(true);
-    //         }
-
-    //         $query->whereExists(function ($q) use ($storeId) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_stores')
-    //                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-    //                 ->where('employee_stores.store_id', $storeId)
-    //                 ->where('employee_stores.is_primary', true);
-    //         })
-    //         ->whereExists(function ($q) use ($departmentId) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_departments')
-    //                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-    //                 ->where('employee_departments.department_id', $departmentId)
-    //                 ->where('employee_departments.is_primary', true);
-    //         });
-    //     }
-    // }
+    
 
     if ($canManage) {
         $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
@@ -1246,14 +1198,6 @@ if (!$canManage) {
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
-
-        // $allEmployees = Employee::where('status', 'Active')
-        //     ->whereHas(
-        //         'grading',
-        //         fn($q) =>
-        //         $q->where('level', '<', $employee->Employee->grading?->level)
-        //     )
-        //     ->get();
         $gradingLevel = $employee->Employee?->grading?->level;
         $allEmployees = Employee::where('status', 'Active')
     ->when($gradingLevel, function ($query) use ($gradingLevel) {

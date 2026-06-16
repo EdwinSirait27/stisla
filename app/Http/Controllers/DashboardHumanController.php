@@ -20,12 +20,12 @@ class DashboardHumanController extends Controller
             ->where('year', date('Y'))
             ->where('balance_days', '>', 0)
             ->get();
-        
+
         // ─── Annual Leave untuk card Leave Balance ───────────────
         $annualLeave = Leavebalance::with('leaves')
             ->where('employee_id', Auth::user()->employee_id)
             ->where('year', date('Y'))
-            ->whereHas('leaves', fn ($q) => $q->where('name', 'Annual Leave'))
+            ->whereHas('leaves', fn($q) => $q->where('name', 'Annual Leave'))
             ->first();
 
         // cek apakah karyawan belum genap 1 tahun
@@ -35,24 +35,23 @@ class DashboardHumanController extends Controller
             : false;
 
         $announcements = Announcement::with('user')
-    ->where(function ($q) {
-        $q->whereNull('end_date')->orWhere('end_date', '>=', Carbon::today());
-    })
-    ->orderBy('created_at', 'desc')
-    ->take(5)
-    ->get();
-        
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', Carbon::today());
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         // ─── Submissions (riwayat pengajuan) milik employee ──────
         $submissionsRaw = Leaverequest::with('leavebalance.leaves')
-            ->whereHas('leavebalance', fn ($q) =>
-                $q->where('employee_id', Auth::user()->employee_id))
+            ->whereHas('leavebalance', fn($q) =>
+            $q->where('employee_id', Auth::user()->employee_id))
             ->latest()
             ->get();
 
-        $pendingDays = $submissionsRaw->where('status', 'Pending')->sum('total_days');
 
         $displayBalance = $annualLeave
-            ? max(0, (float) $annualLeave->balance_days - (float) $pendingDays)
+            ? (float) $annualLeave->balance_days
             : 0;
 
         $hasPending = $submissionsRaw->where('status', 'Pending')->isNotEmpty();
@@ -95,7 +94,7 @@ class DashboardHumanController extends Controller
                 'approverReason' => $sub->approver_reason,
             ];
         });
-        
+
         // ─── Roster karyawan login untuk kalender ────────────────
         $employeeId = Auth::user()->employee_id;
 
@@ -108,7 +107,7 @@ class DashboardHumanController extends Controller
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->get()
-            ->keyBy(fn ($r) => Carbon::parse($r->date)->day);
+            ->keyBy(fn($r) => Carbon::parse($r->date)->day);
 
         $today     = Carbon::today();
         $daysInMon = $cursor->daysInMonth;

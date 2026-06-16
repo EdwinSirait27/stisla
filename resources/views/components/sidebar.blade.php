@@ -110,6 +110,9 @@
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
+ <li class="{{ Request::is('employees/bulk') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('employees/bulk') }}">Bulk</a>
+                        </li>
                     @endcan
                      @can('ManageEmployeeSPVManager')
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
