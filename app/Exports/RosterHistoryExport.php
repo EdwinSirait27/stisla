@@ -33,35 +33,7 @@ class RosterHistoryExport implements WithEvents, ShouldAutoSize
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-                // ── Ambil data roster ──
-//                 $query = Roster::with([
-//                     'employee:id,employee_name,department_id,position_id,store_id,status_employee',
-//                     'employee.department:id,department_name',
-//                     'employee.position:id,name',
-//                     'shift:id,shift_name,start_time,end_time',
-//                 ])
-//                     ->whereBetween('date', [$this->startDate, $this->endDate])
-             
-//                     ->whereHas('employee', function ($q) {
-//     $q->whereNull('deleted_at');
-
-//     if ($this->search) {
-//         $q->where('employee_name', 'like', '%' . $this->search . '%');
-//     }
-
-//     if ($this->employeeIdFilter) {
-//         // ViewRoster: hanya data diri sendiri
-//         $q->where('id', $this->employeeIdFilter);
-//     } elseif ($this->canManageAll) {
-//         if ($this->storeId) $q->where('store_id', $this->storeId);
-//     } else {
-//         // SPV
-//         $q->where('store_id', $this->myStoreId);
-//     }
-// })
-//                     ->orderBy('employee_id')
-//                     ->orderBy('date')
-//                     ->get();
+               
 $query = Roster::with([
     'employee:id,employee_name,status_employee,company_id',
     'employee.department:id,department_name',
@@ -70,7 +42,8 @@ $query = Roster::with([
 ])
 ->whereBetween('date', [$this->startDate, $this->endDate])
 ->whereHas('employee', function ($q) {
-    $q->whereNull('deleted_at');
+    $q->whereNull('deleted_at')
+    ->where('status', 'Active');
 
     if ($this->search) {
         $q->where('employee_name', 'like', '%' . $this->search . '%');

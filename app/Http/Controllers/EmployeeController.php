@@ -176,7 +176,6 @@ class EmployeeController extends Controller
                         'photo'         => $photoFilename
                             ? route('employee.serve.photo', ['filename' => $photoFilename])
                             : null,
-                        // 'atasan_id'     => $atasan?->id ?? null,
                         'atasan_id' => $employee->atasanStruktur()?->id ?? null,
 
                         'all_positions'   => $employee->position->pluck('name')->join(', '),
@@ -191,7 +190,7 @@ class EmployeeController extends Controller
                     return null;
                 }
             })->filter()->values();
-            return response()->json(['nodes' => $bagan]); // ← ini yang hilang
+            return response()->json(['nodes' => $bagan]); 
 
         } catch (\Throwable $e) {
             return response()->json([
@@ -1246,13 +1245,7 @@ if (!$canManage) {
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
-        // $allEmployees = Employee::where('status', 'Active')
-        //     ->whereHas(
-        //         'grading',
-        //         fn($q) =>
-        //         $q->where('level', '<', $employee->Employee->grading?->level)
-        //     )
-        //     ->get();
+      
         $gradingLevel = $employee->Employee?->grading?->level;
 
         $allEmployees = Employee::where('status', 'Active')
