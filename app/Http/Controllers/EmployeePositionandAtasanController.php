@@ -35,7 +35,7 @@ public function bulkIndex()
         ->orderBy('employee_name')
         ->get(['id', 'employee_name', 'employee_pengenal']);
  
-    return view('Pages.Bulk.index', compact('companies','stores','positions', 'atasanList'));
+    return view('pages.Bulk.index', compact('companies','stores','positions', 'atasanList'));
 }
 
 
