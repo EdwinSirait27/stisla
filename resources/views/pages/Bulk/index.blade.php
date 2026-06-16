@@ -288,6 +288,10 @@ $(function () {
             { data: 'company_name',          name: 'company_name' },
             { data: 'status',                name: 'status' },
         ],
+         lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'All']
+                ],
         order: [[2, 'asc']],
         language: {
             processing : '<i class="fas fa-spinner fa-spin fa-2x fa-fw text-primary"></i>',
