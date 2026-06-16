@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Leavebalance;
 use App\Models\Roster;
 use App\Models\Leaverequest;
+use App\Models\Announcement;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -176,6 +177,6 @@ class DashboardController extends Controller
             return view('pages.Dashboard.calendar', $viewData);
         }
 
-        return view('pages.Dashboard.Dashboard', $viewData);
+        return view('pages.dashboardHuman.dashboardHuman', compact('announcements', 'submissions'));
     }
 }

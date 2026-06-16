@@ -75,7 +75,7 @@ class FingerprintrecapController extends Controller
                 ->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave', 'Resign'])
                 ->whereNull('deleted_at');
             if ($storeName) {
-                $employeesQuery->whereHas('store', fn($q) => $q->where('stores.name', $storeName));
+                $employeesQuery->whereHas('store', fn($q) => $q->where('stores_tables.name', $storeName));
             }
 
             $employees = $employeesQuery->get();
