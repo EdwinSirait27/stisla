@@ -67,6 +67,7 @@ use App\Http\Controllers\UserrnrController;
 use App\Http\Controllers\EmployeeSalaryController;
 use App\Http\Controllers\PayrollPeriodController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Models\Contract;
 /*
 |--------------------------------------------------------------------------
@@ -212,9 +213,31 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
         Route::get('employee/photo/{filename}', [EmployeeController::class, 'servePhoto'])
             ->name('employee.serve.photo');
           Route::get('Employee/{hashedId}/document/{documentId}/download', [EmployeeController::class, 'downloadDocument'])
-    ->name('Employee.document.download')
-    ->middleware(['auth', 'permission:ManageEmployee']);
+    ->name('Employee.document.download');
+
     });
+
+Route::prefix('employees')->name('Employee.')->group(function () {
+
+    Route::get('/bulk', [EmployeePositionandAtasanController::class, 'bulkIndex'])
+        ->name('bulk');
+
+    Route::get('/position-atasans', [EmployeePositionandAtasanController::class, 'getEmployeePositionandAtasans'])
+        ->name('positionAtasans');
+
+    Route::post('/bulk-assign-position', [EmployeePositionandAtasanController::class, 'bulkAssignPosition'])
+        ->name('bulkAssignPosition');
+    Route::post('/bulk-delete-position', [EmployeePositionandAtasanController::class, 'bulkDeletePosition'])
+        ->name('bulkDeletePosition');
+
+    Route::post('/bulk-assign-atasan', [EmployeePositionandAtasanController::class, 'bulkAssignAtasan'])
+        ->name('bulkAssignAtasan');
+    Route::post('/bulk-delete-atasan', [EmployeePositionandAtasanController::class, 'bulkDeleteAtasan'])
+        ->name('bulkDeleteAtasan');
+
+});
+
+
 
     // Route::group(['middleware' => ['permission:ManageEmployee']], function () {
     //     Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');

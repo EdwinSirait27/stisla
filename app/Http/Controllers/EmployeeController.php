@@ -831,54 +831,7 @@ if (!$canManage) {
         });
     }
 }
-    // if (!$canManage) {
-    //     $employee = $user->employee;
-
-    //     if ($canSpvManager) {
-    //         $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
-    //         $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
-
-    //         if (empty($storeIds) || empty($departmentIds)) {
-    //             return DataTables::of(collect())->make(true);
-    //         }
-
-    //         $query->whereExists(function ($q) use ($storeIds) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_stores')
-    //                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-    //                 ->whereIn('employee_stores.store_id', $storeIds);
-    //         })
-    //         ->whereExists(function ($q) use ($departmentIds) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_departments')
-    //                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-    //                 ->whereIn('employee_departments.department_id', $departmentIds);
-    //         });
-
-    //     } elseif ($canView) {
-    //         $storeId = $employee->primaryStore()->first()?->id;
-    //         $departmentId = $employee->primaryDepartment()->first()?->id;
-
-    //         if (!$storeId || !$departmentId) {
-    //             return DataTables::of(collect())->make(true);
-    //         }
-
-    //         $query->whereExists(function ($q) use ($storeId) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_stores')
-    //                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-    //                 ->where('employee_stores.store_id', $storeId)
-    //                 ->where('employee_stores.is_primary', true);
-    //         })
-    //         ->whereExists(function ($q) use ($departmentId) {
-    //             $q->select(DB::raw(1))
-    //                 ->from('employee_departments')
-    //                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-    //                 ->where('employee_departments.department_id', $departmentId)
-    //                 ->where('employee_departments.is_primary', true);
-    //         });
-    //     }
-    // }
+    
 
     if ($canManage) {
         $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
