@@ -148,12 +148,11 @@ class ToilLeaveRequestsController extends Controller
     {
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees_tables,id',
-            'hours_used'  => 'required|numeric|min:0.5|max:8',
+            'hours_used'  => 'required|numeric|in:8',
             'leave_date'  => 'required|date|after_or_equal:today',
             'reason'      => 'required|string|min:10|max:1000',
         ], [
-            'hours_used.min'            => 'Minimal 0.5 jam.',
-            'hours_used.max'            => 'Maksimal 8 jam (= 1 hari) per request.',
+            'hours_used.in'            => 'TOIL Leave hanya bisa ditukar 1 hari penuh (8 jam).',
             'leave_date.after_or_equal' => 'Tanggal libur tidak boleh masa lalu.',
             'reason.min'                => 'Alasan minimal 10 karakter.',
         ]);
