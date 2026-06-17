@@ -10,7 +10,7 @@ use App\Models\Shifts;
 use App\Models\Stores;
 use App\Models\RosterSetting;
 use App\Models\PublicHoliday;
-use App\Models\RosterPhCarryover;
+use App\Models\RosterPHCarryover;
 use Yajra\DataTables\DataTables;
 use Spatie\Activitylog\Models\Activity;
 use App\Models\ToilLeaveRequests;
@@ -489,7 +489,7 @@ if ($canManageAll) {
             $phName = $this->getPublicHolidayRemark($phMap, $request->date) ?? 'Public Holiday';
 
             // Anti-duplikat: 1 PH per karyawan per tanggal asal
-            RosterPhCarryover::firstOrCreate(
+            RosterPHCarryover::firstOrCreate(
                 [
                     'employee_id' => $request->employee_id,
                     'ph_date'     => $request->date,
@@ -547,7 +547,7 @@ if ($canManageAll) {
         // ── PH TUKAR: kalau HR memilih saldo PH untuk dipakai di hari ini ──
         // Hari pengganti = day_type "Public Holiday" + ph_carryover_id dipilih.
         if ($request->day_type === 'Public Holiday' && $request->filled('ph_carryover_id')) {
-            $carryover = RosterPhCarryover::where('id', $request->ph_carryover_id)
+            $carryover = RosterPHCarryover::where('id', $request->ph_carryover_id)
                 ->where('employee_id', $request->employee_id)
                 ->where('status', 'available')
                 ->first();
@@ -604,7 +604,7 @@ if ($canManageAll) {
 
         // Hanya saldo: milik karyawan ini, status available, belum kedaluwarsa
         // (kedaluwarsa = expired_at >= tanggal hari pengganti yang dipilih)
-        $items = RosterPhCarryover::where('employee_id', $request->employee_id)
+        $items = RosterPHCarryover::where('employee_id', $request->employee_id)
             ->where('status', 'available')
             ->whereDate('expired_at', '>=', $request->date)
             ->orderBy('ph_date')
@@ -661,7 +661,7 @@ if ($canManageAll) {
         Log::info($rosters->pluck('id')->toArray());
 
         // ── REFUND PH TUKAR: kalau cell ini memakai saldo PH, kembalikan ──
-        RosterPhCarryover::where('employee_id', $request->employee_id)
+        RosterPHCarryover::where('employee_id', $request->employee_id)
             ->where('status', 'used')
             ->whereDate('used_date', $request->date)
             ->update(['status' => 'available', 'used_date' => null]);
