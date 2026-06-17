@@ -378,7 +378,9 @@ Route::prefix('employees')->name('Employee.')->group(function () {
         // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
         Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
             Route::get('/',       [FingerprintRecapController::class, 'index'])->name('index');
-            Route::post('/data',  [FingerprintRecapController::class, 'getData'])->name('data');
+            // Route::post('/data',  [FingerprintRecapController::class, 'getData'])->name('data');
+        Route::match(['GET', 'POST'], '/data', [FingerprintRecapController::class, 'getData'])->name('data');
+
             Route::post('/recap', [FingerprintRecapController::class, 'recap'])->name('recap');
         });
         });
