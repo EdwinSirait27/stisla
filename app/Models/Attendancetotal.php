@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Attendancetotal extends Model
 {
     use HasFactory;
-    use HasFactory;
      protected $table = 'attendancetotal'; 
    protected $fillable = [
         'attendance_id',

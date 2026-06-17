@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Fingerprintrecap;
 use App\Models\Roster;
 use App\Models\Stores;
+use App\Models\FingerprintRecaparchive;
 use Carbon\Carbon;
 use App\Services\FingerprintRecapCalculator;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class FingerprintrecapController extends Controller
     }
     public function getData(Request $request)
     {
-        
+
 
         Log::info('FingerprintRecap@getData dipanggil', [
             'start_date' => $request->input('start_date'),
@@ -81,7 +82,7 @@ class FingerprintrecapController extends Controller
             $employees = $employeesQuery->get();
 
             // ── Ambil arsip untuk periode ini, key by employee_id ──
-            $archives = \App\Models\FingerprintRecapArchive::where('period_start', $startDate)
+            $archives = FingerprintRecaparchive::where('period_start', $startDate)
                 ->where('period_end', $endDate)
                 ->get()
                 ->keyBy('employee_id');

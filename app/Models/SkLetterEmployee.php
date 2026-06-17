@@ -52,15 +52,7 @@ class SkLetterEmployee extends Pivot
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
 
-    public function previousStructure()
-    {
-        return $this->belongsTo(Structuresnew::class, 'previous_structure_id', 'id');
-    }
-
-    public function newStructure()
-    {
-        return $this->belongsTo(Structuresnew::class, 'new_structure_id', 'id');
-    }
+  
 
     public function position()
     {
