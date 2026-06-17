@@ -1749,8 +1749,13 @@
             <label class="f-label">Tanggal Mulai <span style="color:#ef4444">*</span>
                 <small style="color:#94a3b8;font-weight:400">(kolom shift pertama di Excel)</small>
             </label>
+            @can('ManageRoster')
             <input type="date" id="importStartDate" class="f-control mb-3" value="{{ $startDate }}">
-
+@endcan
+@can('ManageRosterSPVManager')
+            <input type="date" id="importStartDate" class="f-control mb-3" value="{{ $startDate }}" min="{{ $startDate }}"
+                                        max="{{ \Carbon\Carbon::parse($startDate)->addMonth()->toDateString() }}">
+@endcan
             <label class="f-label">File Excel <span style="color:#ef4444">*</span>
                 <small style="color:#94a3b8;font-weight:400">(.xlsx/.xls/.csv, maks 5MB)</small>
             </label>

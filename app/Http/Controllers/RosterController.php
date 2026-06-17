@@ -285,29 +285,6 @@ if ($myEmployee) {
 
         if ($storeId) {
          
-//             $employeeQuery = Employee::with([
-//     'store'      => fn($q) => $q->wherePivot('is_primary', true),
-//     'position'   => fn($q) => $q->wherePivot('is_primary', true),
-//     'department' => fn($q) => $q->wherePivot('is_primary', true),
-//     'rosters'    => fn($q) => $q
-//         ->whereBetween('date', [$startDate, $endDate])
-//         ->with('shift:id,shift_name,start_time,end_time'),
-// ])
-// ->select('id', 'employee_name', 'status_employee', 'status', 'company_id') // ← hapus FK columns
-// ->whereNull('deleted_at')
-// ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId)) // ← filter via pivot
-// ->orderBy('employee_name');
-
-
-//             if ($canManageAll) {
-//                 $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
-//             } elseif ($canManageSPV) {
-//                 $employeeQuery->where('status', 'Active');
-//             } elseif ($canView) {
-//                 $employeeQuery->where('id', $myEmployee->id);
-//             } else {
-//                 return abort(403, 'Unauthorized');
-//             }
 $employeeQuery = Employee::with([
     'store'      => fn($q) => $q->wherePivot('is_primary', true),
     'position'   => fn($q) => $q->wherePivot('is_primary', true),
