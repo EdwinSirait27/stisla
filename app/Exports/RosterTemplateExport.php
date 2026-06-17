@@ -106,7 +106,7 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 //     ->get(['employee_pengenal', 'employee_name', 'religion']);
                 $employees = Employee::where('store_id', $this->storeId)
     ->whereNull('deleted_at')
-    ->whereIn('status_employee', [
+    ->whereIn('status', [
         'Active',
         'On Leave',
         'Pending'
