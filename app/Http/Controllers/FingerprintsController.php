@@ -14,7 +14,7 @@ use App\Models\Fingerprintrecap;
 use App\Exports\FingerprintsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Devicefingerprint;
-use App\Models\FingerprintRecaparchive;
+use App\Models\Fingerprintrecaparchive;
 use App\Services\FingerprintRecapCalculator;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
@@ -327,14 +327,14 @@ if ($canSpvManager && !$canManage) {
             DB::transaction(function () use ($archiveRows, $startDate, $endDate) {
                 foreach ($archiveRows as $row) {
                     // Timpa: hapus arsip lama untuk (karyawan + store + periode) ini
-                    FingerprintRecaparchive::where('employee_id', $row['employee_id'])
+                    Fingerprintrecaparchive::where('employee_id', $row['employee_id'])
                         ->where('store_name', $row['store_name'])
                         ->where('period_start', $startDate->toDateString())
                         ->where('period_end', $endDate->toDateString())
                         ->delete();
 
                     // Tulis arsip baru
-                    FingerprintRecaparchive::create([
+                    Fingerprintrecaparchive::create([
                         'employee_id'      => $row['employee_id'],
                         'employee_name'    => $row['employee_name'],
                         'store_name'       => $row['store_name'],

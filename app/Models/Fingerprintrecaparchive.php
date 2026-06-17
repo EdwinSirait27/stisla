@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
-class FingerprintRecaparchive extends Model
+class Fingerprintrecaparchive extends Model
 {
     use HasFactory;
 

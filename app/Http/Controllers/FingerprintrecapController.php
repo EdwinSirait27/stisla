@@ -6,7 +6,7 @@ use App\Models\Employee;
 use App\Models\Fingerprintrecap;
 use App\Models\Roster;
 use App\Models\Stores;
-use App\Models\FingerprintRecaparchive;
+use App\Models\Fingerprintrecaparchive;
 use Carbon\Carbon;
 use App\Services\FingerprintRecapCalculator;
 use Illuminate\Http\Request;
@@ -82,7 +82,7 @@ class FingerprintrecapController extends Controller
             $employees = $employeesQuery->get();
 
             // ── Ambil arsip untuk periode ini, key by employee_id ──
-            $archives = FingerprintRecaparchive::where('period_start', $startDate)
+            $archives = Fingerprintrecaparchive::where('period_start', $startDate)
                 ->where('period_end', $endDate)
                 ->get()
                 ->keyBy('employee_id');
