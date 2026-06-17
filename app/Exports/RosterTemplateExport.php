@@ -100,10 +100,23 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 ]);
 
                 // ── Baris 5+: data karyawan (ambil religion untuk filter PH) ──
+                // $employees = Employee::where('store_id', $this->storeId)
+                //     ->whereNull('deleted_at')
+                //     ->orderBy('employee_name')
+                //     ->get(['employee_pengenal', 'employee_name', 'religion']);
                 $employees = Employee::where('store_id', $this->storeId)
-                    ->whereNull('deleted_at')
-                    ->orderBy('employee_name')
-                    ->get(['employee_pengenal', 'employee_name', 'religion']);
+    ->whereNull('deleted_at')
+    ->whereIn('status_employee', [
+        'Active',
+        'On Leave',
+        'Pending'
+    ])
+    ->orderBy('employee_name')
+    ->get([
+        'employee_pengenal',
+        'employee_name',
+        'religion'
+    ]);
 
                 $rowNum = 5;
                 foreach ($employees as $emp) {
