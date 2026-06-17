@@ -163,11 +163,33 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group mb-2">
+                                <label class="text-sm font-weight-bold">Location</label>
+                                <select id="filterLocation" class="form-control form-control-sm select2" style="width:100%">
+                                    <option value="">Semua Location</option>
+                                    @foreach($stores ?? [] as $store)
+                                        <option value="{{ $store->name }}">{{ $store->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-2">
+                                <label class="text-sm font-weight-bold">Department</label>
+                                <select id="filterDepartment" class="form-control form-control-sm select2" style="width:100%">
+                                    <option value="">Semua Department</option>
+                                    @foreach($departments ?? [] as $department)
+                                        <option value="{{ $department->department_name }}">{{ $department->department_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-2">
                                 <label class="text-sm font-weight-bold">Status</label>
                                 <select id="filterStatus" class="form-control form-control-sm select2" style="width:100%">
                                     <option value="">Semua Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
                                 </select>
                             </div>
                         </div>
@@ -276,6 +298,8 @@ $(function () {
             data: function (d) {
                 d.filter_company = $('#filterCompany').val();
                 d.filter_status  = $('#filterStatus').val();
+                d.filter_store  = $('#filterLocation').val();
+                d.filter_department  = $('#filterDepartment').val();
             }
         },
         columns: [
@@ -350,7 +374,7 @@ $(function () {
     $('#btnFilter').on('click', function () { table.ajax.reload(); });
 
     $('#btnResetFilter').on('click', function () {
-        $('#filterCompany, #filterStatus').val(null).trigger('change');
+        $('#filterCompany, #filterStatus, #filterLocation, #filterDepartment').val(null).trigger('change');
         table.ajax.reload();
     });
 
