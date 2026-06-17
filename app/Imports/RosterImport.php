@@ -74,9 +74,17 @@ class RosterImport implements ToArray, WithCalculatedFormulas
             $pengenal = trim((string)($row[0] ?? ''));
             if ($pengenal === '') continue;
 
+            // $employee = Employee::where('employee_pengenal', $pengenal)
+            //     ->where('store_id', $this->storeId)
+            //     ->first();
             $employee = Employee::where('employee_pengenal', $pengenal)
-                ->where('store_id', $this->storeId)
-                ->first();
+    ->where('store_id', $this->storeId)
+    ->whereIn('status', [
+        'Active',
+        'On Leave',
+        'Pending'
+    ])
+    ->first();
 
             if (!$employee) {
                 $this->errors[] = "Pengenal '{$pengenal}' tidak ditemukan di store ini.";
