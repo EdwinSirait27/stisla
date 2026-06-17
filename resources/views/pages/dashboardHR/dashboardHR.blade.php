@@ -1138,11 +1138,13 @@
                                     <div class="profile-meta">
                                         <div class="profile-meta-item">
                                             <i class="fas fa-briefcase"></i>
+
                                             <span>{{ Auth::user()->employee->position->first()->name ?? '-' }}</span>
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-building"></i>
                                             <span>{{ Auth::user()->employee->department->first()->department_name ?? '-' }}</span>
+
                                         </div>
                                         <div class="profile-meta-item">
                                             <i class="fas fa-id-badge"></i>

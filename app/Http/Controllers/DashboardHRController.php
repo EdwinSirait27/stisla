@@ -396,6 +396,7 @@ foreach ($employees as $employee) {
             });
 
         return DataTables::of($announcements)
+
             ->addColumn('employee_name', function ($announcement) {
                 return !empty($announcement->user->Employee->department) && !empty($announcement->user->Employee->department->first()->department_name)
                     ? $announcement->user->Employee->department->first()->department_name

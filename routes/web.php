@@ -786,12 +786,18 @@ Route::prefix('employees')->name('Employee.')->group(function () {
 
     Route::prefix('roster')->name('roster.')->group(function () {
 
+
         // ── Akses: Admin + SPV/Manager ──
         Route::middleware(['auth', 'permission:ManageRoster|ManageRosterSPVManager'])->group(function () {
             Route::post('/store',        [RosterController::class, 'store'])->name('store');
             Route::post('/destroy',      [RosterController::class, 'destroy'])->name('destroy');
             Route::post('/bulk-assign',  [RosterController::class, 'bulkAssign'])->name('bulkAssign');
             Route::post('/bulk-delete',  [RosterController::class, 'bulkDelete'])->name('bulkDelete');
+
+            Route::post('/import', [RosterController::class, 'importExcel'])->name('import');
+            Route::get('/ph-carryovers', [RosterController::class, 'availablePhCarryovers'])->name('phCarryovers');
+
+            Route::get('/template', [RosterController::class, 'downloadTemplate'])->name('template');
 
 
             Route::get('activities', [RosterController::class, 'getActivities'])->name('activities');
@@ -800,6 +806,7 @@ Route::prefix('employees')->name('Employee.')->group(function () {
             Route::get('/',              [RosterController::class, 'index'])->name('index');
             Route::get('/history', [RosterController::class, 'history'])->name('history');
             Route::get('/history/export', [RosterController::class, 'historyExport'])->name('history.export');
+
         });
         Route::middleware(['auth', 'permission:ManageRoster'])->group(function () {
 

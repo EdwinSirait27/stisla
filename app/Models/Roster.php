@@ -26,6 +26,7 @@ class Roster extends Model
         'date',
         'day_type',
         'notes',
+        'sick_attachment'
     ];
 
 

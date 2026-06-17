@@ -4,126 +4,187 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Leavebalance;
+use App\Models\Roster;
 use App\Models\Leaverequest;
-use App\Models\Announcment;
+use App\Models\Announcement;
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Auth;
+
 class DashboardHumanController extends Controller
 {
-    //   public function index()
-    // {
-    //         $user = auth()->user();
+    public function index(Request $request)
+    {
+        // ─── Saldo cuti milik user yang login ────────────────────
+        $leaveBalances = Leavebalance::with('leaves')
+            ->where('employee_id', Auth::user()->employee_id)
+            ->where('year', date('Y'))
+            ->where('balance_days', '>', 0)
+            ->get();
 
-    //     $leaveBalances = Leavebalance::with('leaves')
-    //         ->where('employee_id', Auth::user()->employee_id)
-    //         ->where('year', date('Y'))
-    //         ->where('balance_days', '>', 0)
-    //         ->get();
+        // ─── Annual Leave untuk card Leave Balance ───────────────
+        $annualLeave = Leavebalance::with('leaves')
+            ->where('employee_id', Auth::user()->employee_id)
+            ->where('year', date('Y'))
+            ->whereHas('leaves', fn($q) => $q->where('name', 'Annual Leave'))
+            ->first();
 
-    //          $announcements = Announcment::with('user')
-    //         ->where(function($query) {
-    //             $query->whereNull('end_date')
-    //                   ->orWhere('end_date', '>=', Carbon::today());
-    //         })
-    //         ->orderBy('created_at', 'desc')
-    //         ->take(5)
-    //         ->get();
-    //         $submissions = collect();
+        // cek apakah karyawan belum genap 1 tahun
+        $employee = Auth::user()->employee;
+        $isNewbie = $employee && $employee->join_date
+            ? Carbon::parse($employee->join_date)->diffInYears(now()) < 1
+            : false;
 
-    // if ($user->employee_id) {
-    //     $leaveBalanceIds = Leavebalance::where('employee_id', $user->employee_id)
-    //         ->pluck('id');
-
-    //     $submissions = Leaverequest::with([
-    //             'leavebalance.leaves',
-    //             'approver',
-    //         ])
-    //         ->whereIn('leave_balance_id', $leaveBalanceIds)
-    //         ->orderBy('created_at', 'desc')
-    //         ->take(5)
-    //         ->get();
-    // }
-           
-    //     return view('pages.dashboardHuman.dashboardHuman', compact('leaveBalances','announcements','submissions'));
-    // }
-    public function index()
-{
-    $user = auth()->user();
-
-    // Announcements
-    $announcements = Announcment::with('user')
-        ->where(function ($q) {
-            $q->whereNull('end_date')
-              ->orWhere('end_date', '>=', Carbon::today());
-        })
-        ->orderBy('created_at', 'desc')
-        ->take(5)
-        ->get();
-
-    // My Submissions
-    $submissions = collect();
-
-    if ($user->employee_id) {
-        $leaveBalanceIds = Leavebalance::where('employee_id', $user->employee_id)
-            ->pluck('id');
-
-        $submissions = Leaverequest::with([
-                'leavebalance.leaves',
-                'approver',
-            ])
-            ->whereIn('leave_balance_id', $leaveBalanceIds)
+        $announcements = Announcement::with('user')
+            ->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', Carbon::today());
+            })
             ->orderBy('created_at', 'desc')
             ->take(5)
+            ->get();
+
+        // ─── Submissions (riwayat pengajuan) milik employee ──────
+        $submissionsRaw = Leaverequest::with('leavebalance.leaves')
+            ->whereHas('leavebalance', fn($q) =>
+            $q->where('employee_id', Auth::user()->employee_id))
+            ->latest()
+            ->get();
+
+
+        $displayBalance = $annualLeave
+            ? (float) $annualLeave->balance_days
+            : 0;
+
+        $hasPending = $submissionsRaw->where('status', 'Pending')->isNotEmpty();
+
+        /// bentuk data siap-tampil (semua logika di controller, view tinggal loop)
+        $submissions = $submissionsRaw->map(function ($sub) {
+            $statusLower = strtolower($sub->status);
+            $statusClass = match (true) {
+                str_contains($statusLower, 'pending')  => 'pending',
+                str_contains($statusLower, 'approved') => 'approved',
+                str_contains($statusLower, 'rejected') => 'rejected',
+                default                                 => 'pending',
+            };
+            $statusIcon = match ($statusClass) {
+                'approved' => 'fa-check-circle',
+                'rejected' => 'fa-times-circle',
+                default    => 'fa-clock',
+            };
+
+            $start = Carbon::parse($sub->start_date);
+            $end   = Carbon::parse($sub->end_date);
+
+            $dateLabel = $start->isSameDay($end)
+                ? $start->format('M d, Y')
+                : $start->format('M d, Y') . ' - ' . $end->format('M d, Y');
+
+            $isRejected = $statusClass === 'rejected';
+
+            return [
+                'leave_name'  => $sub->leavebalance->leaves->name ?? 'Leave',
+                'status'      => $sub->status,
+                'statusClass' => $statusClass,
+                'statusIcon'  => $statusIcon,
+                'dateLabel'   => $dateLabel,
+                'totalDays'   => $sub->total_days,
+                'ago'         => Carbon::parse($sub->created_at)->diffForHumans(),
+                'isRejected'  => $isRejected,
+                'reason'      => $isRejected ? $sub->approver_reason : $sub->employee_reason,
+                'employeeReason' => $sub->employee_reason,
+                'approverReason' => $sub->approver_reason,
+            ];
+        });
+
+        // ─── Roster karyawan login untuk kalender ────────────────
+        $employeeId = Auth::user()->employee_id;
+
+        $month  = (int) $request->query('month', now()->month);
+        $year   = (int) $request->query('year', now()->year);
+        $cursor = Carbon::createFromDate($year, $month, 1);
+
+        $rosters = Roster::with('shift')
+            ->where('employee_id', $employeeId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
             ->get()
-            ->map(function ($submission) {
-                $leaveType = optional($submission->leavebalance)->leaves;
-                $typeName  = optional($leaveType)->name ?? 'Leave';
-                $typeSlug  = strtolower(str_replace(' ', '-', $typeName));
+            ->keyBy(fn($r) => Carbon::parse($r->date)->day);
 
-                $start    = Carbon::parse($submission->start_date);
-                $end      = Carbon::parse($submission->end_date);
-                $duration = $start->diffInDays($end) + 1;
+        $today     = Carbon::today();
+        $daysInMon = $cursor->daysInMonth;
+        $leadBlank = $cursor->copy()->startOfMonth()->dayOfWeek; // 0=Sun..6=Sat
 
-                $typeIcons = [
-                    'annual leave' => 'fa-umbrella-beach',
-                    'sick leave'   => 'fa-hospital',
-                    'overtime'     => 'fa-clock',
-                    'maternity'    => 'fa-baby',
-                    'paternity'    => 'fa-baby-carriage',
-                ];
+        $calendarDays = [];
 
-                $statusConfig = [
-                    'Pending'  => ['class' => 'Pending',  'icon' => 'fa-clock',       'label' => 'Pending Review'],
-                    'Approved' => ['class' => 'Approved', 'icon' => 'fa-check-circle', 'label' => 'Approved'],
-                    'Rejected' => ['class' => 'Rejected', 'icon' => 'fa-times-circle', 'label' => 'Rejected'],
-                    'Cancelled' => ['class' => 'Cancelled', 'icon' => 'fa-times-circle', 'label' => 'Cancelled'],
-                ];
+        // kotak kosong sebelum tanggal 1
+        for ($i = 0; $i < $leadBlank; $i++) {
+            $calendarDays[] = ['empty' => true];
+        }
 
-                $statusKey = $submission->status ?? 'Pending';
+        // isi tanggal
+        for ($d = 1; $d <= $daysInMon; $d++) {
+            $dateObj = $cursor->copy()->day($d);
+            $dow     = $dateObj->dayOfWeek;
+            $roster  = $rosters[$d] ?? null;
 
-                return (object) [
-                    'id'            => $submission->id,
-                    'type_name'     => $typeName,
-                    'type_slug'     => $typeSlug,
-                    'type_icon'     => $typeIcons[strtolower($typeName)] ?? 'fa-file-alt',
-                    'status_class'  => $statusConfig[$statusKey]['class'],
-                    'status_icon'   => $statusConfig[$statusKey]['icon'],
-                    'status_label'  => $statusConfig[$statusKey]['label'],
-                    'status'        => $statusKey,
-                    'start'         => $start->format('M d, Y'),
-                    'end'           => $end->format('M d, Y'),
-                    'is_same_day'   => $start->isSameDay($end),
-                    'duration'      => $duration,
-                    'duration_label'=> $duration > 1 ? "{$duration} days" : "{$duration} day",
-                    'posted_ago'    => $submission->created_at->diffForHumans(),
-                    'note'          => $submission->employee_reason ?? '-',
-                    'reject_reason' => $submission->approver_reason ?? null,
-                    'approver_name' => optional($submission->approver)->name,
-                ];
-            });
+            if ($roster) {
+                $type = strtolower($roster->day_type);
+                $cssClass = match (true) {
+                    str_contains($type, 'work')           => 'present',
+                    str_contains($type, 'off')            => 'weekend',
+                    str_contains($type, 'holiday')        => 'leave',
+                    str_contains($type, 'leave')          => 'absent',
+                    str_contains($type, 'melahirkan')     => 'absent',
+                    default                               => '',
+                };
+                $label = $roster->day_type;
+                $remark  = (str_contains($type, 'holiday') || str_contains($type, 'toil')) ? ($roster->notes ?? '') : '';
+                $tooltip = $roster->day_type
+                    . ($roster->shift ? ' • ' . $roster->shift->shift_name : '')
+                    . ($roster->notes ? ' • ' . $roster->notes : '');
+            } else {
+                $cssClass = in_array($dow, [0, 6]) ? 'weekend' : '';
+                $label    = '';
+                $remark   = '';
+                $tooltip  = 'No roster';
+            }
+
+            $calendarDays[] = [
+                'empty'    => false,
+                'day'      => $d,
+                'cssClass' => $cssClass,
+                'label'    => $label,
+                'remark'   => $remark,
+                'isToday'  => $dateObj->isSameDay($today),
+                'tooltip'  => $tooltip,
+                'dateStr'  => $dateObj->toDateString(),
+            ];
+        }
+
+        $prev = $cursor->copy()->subMonth();
+        $next = $cursor->copy()->addMonth();
+
+        $calendarLabel = $cursor->translatedFormat('F Y');
+        $prevMonth     = ['month' => $prev->month, 'year' => $prev->year];
+        $nextMonth     = ['month' => $next->month, 'year' => $next->year];
+
+        $viewData = compact(
+            'leaveBalances',
+            'annualLeave',
+            'isNewbie',
+            'announcements',
+            'submissions',
+            'displayBalance',
+            'hasPending',
+            'calendarDays',
+            'calendarLabel',
+            'prevMonth',
+            'nextMonth',
+        );
+
+        if ($request->ajax()) {
+            return view('pages.Dashboard.calendar', $viewData);
+        }
+
+        return view('pages.dashboardHuman.dashboardHuman', $viewData);
     }
-
-    return view('pages.dashboardHuman.dashboardHuman', compact('announcements', 'submissions'));
-}
 }

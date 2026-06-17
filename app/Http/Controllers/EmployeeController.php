@@ -1198,9 +1198,7 @@ if (!$canManage) {
         $allStores = Stores::get();
         $allPositions = Position::get();
         $allDepartments = Departments::get();
-      
         $gradingLevel = $employee->Employee?->grading?->level;
-
         $allEmployees = Employee::where('status', 'Active')
     ->when($gradingLevel, function ($query) use ($gradingLevel) {
         $query->whereHas('grading', function ($q) use ($gradingLevel) {

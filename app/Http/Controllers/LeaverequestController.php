@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Leaverequest;
 use App\Models\Leavebalance;
 use App\Models\Roster;
+use App\Models\ToilLeaveRequests;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Carbon\Carbon;
@@ -166,6 +167,10 @@ class LeaverequestController extends Controller
             'employee_reason'  => $validated['employee_reason'],
         ]);
 
+        // 8. Potong saldo saat pengajuan (Pending)
+        $balance->balance_days -= $totalDays;
+        $balance->save();
+
         return response()->json([
             'status'  => 'success',
             'message' => 'Leave request created successfully',
@@ -209,6 +214,14 @@ class LeaverequestController extends Controller
             ], 403);
         }
 
+        // Cegah double-process: hanya Pending yang boleh di-approve
+        if ($leaveRequest->status !== 'Pending') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Pengajuan ini sudah diproses sebelumnya.',
+            ],      422);
+        }
+
         // Validasi alasan wajib
         $reason = trim((string) $request->input('approver_reason'));
         if ($reason === '') {
@@ -219,16 +232,20 @@ class LeaverequestController extends Controller
         }
 
         $balance = $leaveRequest->leavebalance;
+        $rosterEmployeeId = $balance->employee_id;
 
-        if ($balance->balance_days < $leaveRequest->total_days) {
+        // GUARD masalah 1: tolak kalau ada TOIL Leave approved di rentang cuti
+        $toilClash = \App\Models\ToilLeaveRequests::where('employee_id', $rosterEmployeeId)
+            ->where('status', 'Approved')
+            ->whereBetween('leave_date', [$leaveRequest->start_date, $leaveRequest->end_date])
+            ->exists();
+
+        if ($toilClash) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Insufficient leave balance',
-            ], 400);
+                'message' => 'Ada TOIL Leave yang sudah Approved di rentang tanggal cuti ini. Cancel TOIL leave dulu sebelum approve cuti.',
+            ], 422);
         }
-
-        $balance->balance_days -= $leaveRequest->total_days;
-        $balance->save();
 
         $leaveRequest->update([
             'status'      => 'Approved',
@@ -281,6 +298,14 @@ class LeaverequestController extends Controller
             ], 403);
         }
 
+        // Cegah double-process: hanya Pending yang boleh di-reject
+        if ($leaveRequest->status !== 'Pending') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Pengajuan ini sudah diproses sebelumnya.',
+            ], 422);
+        }
+
         // Validasi alasan wajib
         $reason = trim((string) $request->input('approver_reason'));
         if ($reason === '') {
@@ -290,31 +315,18 @@ class LeaverequestController extends Controller
             ], 422);
         }
 
+        // Kembalikan saldo (dipotong sejak Pending)
+        $balance = $leaveRequest->leavebalance;
+        $balance->balance_days += $leaveRequest->total_days;
+        $balance->save();
+
         $leaveRequest->update([
             'status'          => 'Rejected',
             'approved_by'     => $employeeId,
             'approver_reason' => $reason,
         ]);
 
-        $balance          = $leaveRequest->leavebalance;
-        $rosterEmployeeId = $balance?->employee_id;
-
-        if ($rosterEmployeeId) {
-            $current = Carbon::parse($leaveRequest->start_date);
-            $end     = Carbon::parse($leaveRequest->end_date);
-
-            while ($current->lte($end)) {
-                Roster::where('employee_id', $rosterEmployeeId)
-                    ->where('date', $current->toDateString())
-                    ->whereIn('day_type', ['Leave', 'Cuti Melahirkan'])
-                    ->update([
-                        'shift_id' => null,
-                        'day_type' => 'Off',
-                        'notes'    => 'Auto: Leave rejected #' . $leaveRequest->id,
-                    ]);
-                $current->addDay();
-            }
-        }
+        // TIDAK ada restore roster — roster belum pernah jadi Leave saat Pending.
 
         return response()->json([
             'status'  => 'success',

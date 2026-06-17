@@ -307,8 +307,9 @@
                                     <div class="form-group">
                                         <label>Hours Claimed <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" name="hours_used" id="hours_used"
-                                            step="0.5" min="0.5" max="8" required>
-                                        <small class="form-text text-muted">Min 0.5 hours, max 8 hours (= 1 day)</small>
+                                            value="8" min="8" max="8" step="8" readonly required
+                                            style="background:#f1f5f9; cursor:not-allowed;">
+                                        <small class="form-text text-muted">TOIL Leave = 1 hari penuh (8 jam). Tidak bisa diubah.</small>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -325,7 +326,7 @@
                                             <button type="reset" class="btn btn-secondary btn-sm mr-2" id="btn-form-reset">
                                                 <i class="fas fa-undo"></i> Reset
                                             </button>
-                                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1" id="btn-submit">
+                                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1" id="btn-submit" disabled>
                                                 <i class="fas fa-paper-plane"></i> Submit & Approve
                                             </button>
                                         </div>
@@ -510,6 +511,7 @@
                 $('#saldo-display').text('Select an employee first').addClass('text-muted');
                 $('#saldo-info').text('System will deduct from the oldest balance first (FIFO).');
                 $('#hours_used').attr('max', 8);
+                $('#btn-submit').prop('disabled', true);
             });
 
             // ── Load TOTAL TOIL balance saat pilih karyawan ──
@@ -521,7 +523,8 @@
                 if (!employeeId) {
                     $saldoDisplay.text('Select an employee first').addClass('text-muted');
                     $saldoInfo.text('System will deduct from the oldest balance first (FIFO).');
-                    $('#hours_used').attr('max', 8);
+                    $('#hours_used').val(8);
+                    $('#btn-submit').prop('disabled', true);   // ← belum pilih karyawan
                     return;
                 }
 
@@ -534,7 +537,8 @@
                         $saldoDisplay.removeClass('text-muted')
                             .html('<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> No active TOIL balance</span>');
                         $saldoInfo.text('This employee has no TOIL balance to claim.');
-                        $('#hours_used').attr('max', 8);
+                        $('#hours_used').val(8);
+                        $('#btn-submit').prop('disabled', true);   // ← saldo kosong, tidak boleh submit
                         return;
                     }
 
@@ -543,9 +547,16 @@
                         .html('<strong>' + res.total_remaining + ' hours</strong> available (' +
                               res.count + ' record' + (res.count > 1 ? 's' : '') + ')' + nearest);
 
-                    var maxClaim = Math.min(total, 8);
-                    $('#hours_used').attr('max', maxClaim);
-                    $saldoInfo.text('Maximum claimable: ' + maxClaim + ' hours (oldest balance deducted first).');
+                   // Aturan: TOIL Leave selalu 8 jam (1 hari). Cek saldo cukup atau tidak.
+                    if (total < 8) {
+                        $saldoInfo.html('<span class="text-danger">Saldo belum cukup untuk 1 hari penuh (butuh 8 jam, tersedia ' + total + ' jam).</span>');
+                        $('#hours_used').val(8);
+                        $('#btn-submit').prop('disabled', true);
+                    } else {
+                        $saldoInfo.text('Saldo cukup. Akan dipotong 8 jam (FIFO, saldo tertua dulu).');
+                        $('#hours_used').val(8);
+                        $('#btn-submit').prop('disabled', false);
+                    }
 
                 }).fail(function (xhr) {
                     var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to load balance';
@@ -697,6 +708,7 @@
                             $('#saldo-display').text('Select an employee first').addClass('text-muted');
                             $('#saldo-info').text('System will deduct from the oldest balance first (FIFO).');
                             $('#hours_used').attr('max', 8);
+                            $('#btn-submit').prop('disabled', true);
                             table.ajax.reload();
                         },
                         error: function (xhr) {

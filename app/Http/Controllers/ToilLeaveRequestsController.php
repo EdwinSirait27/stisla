@@ -31,13 +31,9 @@ class ToilLeaveRequestsController extends Controller
         $user    = Auth::user();
         $manager = $user->employee;
 
-        // Strict: Manager harus punya structure_id
-        if (!$manager || !$manager->structure_id) {
-            return redirect()->back()->with(
-                'error',
-                'Anda harus terdaftar di struktur organisasi (structuresnew) untuk akses halaman ini.'
-            );
-        }
+    if (!$manager) {
+    return redirect()->back()->with('error', 'Data karyawan tidak ditemukan.');
+}
 
         // Ambil daftar bawahan untuk dropdown form
         $subordinates = $this->getSubordinates($manager);
@@ -152,12 +148,11 @@ class ToilLeaveRequestsController extends Controller
     {
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees_tables,id',
-            'hours_used'  => 'required|numeric|min:0.5|max:8',
+            'hours_used'  => 'required|numeric|in:8',
             'leave_date'  => 'required|date|after_or_equal:today',
             'reason'      => 'required|string|min:10|max:1000',
         ], [
-            'hours_used.min'            => 'Minimal 0.5 jam.',
-            'hours_used.max'            => 'Maksimal 8 jam (= 1 hari) per request.',
+            'hours_used.in'            => 'TOIL Leave hanya bisa ditukar 1 hari penuh (8 jam).',
             'leave_date.after_or_equal' => 'Tanggal libur tidak boleh masa lalu.',
             'reason.min'                => 'Alasan minimal 10 karakter.',
         ]);
@@ -165,13 +160,9 @@ class ToilLeaveRequestsController extends Controller
         $user    = Auth::user();
         $manager = $user->employee;
 
-        // Manager harus terdaftar di struktur
-        if (!$manager || !$manager->structure_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda harus terdaftar di struktur organisasi.',
-            ], 403);
-        }
+        if (!$manager) {
+    return response()->json(['success' => false, 'message' => 'Data karyawan tidak ditemukan.'], 403);
+}
 
         // Karyawan harus bawahan manager
         $subordinateIds = $this->getSubordinates($manager)->pluck('id')->toArray();
@@ -384,48 +375,13 @@ class ToilLeaveRequestsController extends Controller
     }
 
     // ════════════════════════════════════════════════════════════════
-    //   SUBORDINATES (STRICT STRUCTURESNEW)
+    //   SUBORDINATES (ambil relasi dari employee.php)
     // ════════════════════════════════════════════════════════════════
 
-    /**
-     * Ambil bawahan manager via tree structuresnew.
-     */
     private function getSubordinates(Employee $manager): \Illuminate\Database\Eloquent\Collection
-    {
-        if (!$manager->structure_id) {
-            return new \Illuminate\Database\Eloquent\Collection();
-        }
-
-        $structure = \App\Models\Structuresnew::with([
-            'allChildren.employee' => function ($q) use ($manager) {
-                $q->where('status', 'Active')
-                    ->where('id', '!=', $manager->id)
-                    ->select('id', 'employee_name', 'pin', 'store_id', 'department_id', 'structure_id');
-            },
-        ])
-            ->find($manager->structure_id);
-
-        if (!$structure) {
-            return new \Illuminate\Database\Eloquent\Collection();
-        }
-
-        return $this->flattenEmployeesFromStructure($structure);
-    }
-
-    private function flattenEmployeesFromStructure($structure): \Illuminate\Database\Eloquent\Collection
-    {
-        $employees = new \Illuminate\Database\Eloquent\Collection();
-
-        foreach ($structure->allChildren ?? [] as $child) {
-            if ($child->employee && $child->employee->isNotEmpty()) {
-                $employees = $employees->merge($child->employee);
-            }
-            $deeperEmployees = $this->flattenEmployeesFromStructure($child);
-            $employees = $employees->merge($deeperEmployees);
-        }
-
-        return $employees;
-    }
+{
+    return $manager->bawahanList()->get();
+}
 
     // ════════════════════════════════════════════════════════════════
     //   ROSTER RESTORE
