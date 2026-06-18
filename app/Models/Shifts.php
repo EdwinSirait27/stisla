@@ -32,6 +32,10 @@ class Shifts extends Model
         'is_holiday',
         
     ];
+    public function setShiftNameAttribute($value)
+    {
+        $this->attributes['shift_name'] = strtoupper($value);
+    }
     public function store()
     {
         return $this->belongsTo(Stores::class, 'store_id', 'id');

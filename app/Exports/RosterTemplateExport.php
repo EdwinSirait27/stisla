@@ -55,7 +55,7 @@ class RosterTemplateExport implements WithEvents, WithTitle
 
                 // Kolom: A=pengenal, B=store, C dst=tanggal
                 $firstDateColIndex = 4;
-                $totalCols    = 2 + count($dates);
+                $totalCols    = 3 + count($dates);
                 $lastColLetter = $this->colLetter($totalCols);
 
                 // ── Baris 1: Judul ──
@@ -77,8 +77,8 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 ]);
 
                 // ── Baris 3: HEADER (A WAJIB 'employee_pengenal' agar import menemukannya) ──
-                $sheet->setCellValue('A3', 'employee_name');
-                $sheet->setCellValue('B3', 'employee_pengenal');
+                $sheet->setCellValue('A3', 'employee_pengenal');
+                $sheet->setCellValue('B3', 'employee_name');
                 $sheet->setCellValue('C3', 'store');
 
                 foreach ($dates as $i => $date) {
@@ -115,8 +115,8 @@ class RosterTemplateExport implements WithEvents, WithTitle
 
                 $rowNum = 5;
                 foreach ($employees as $emp) {
-                    $sheet->setCellValue("A{$rowNum}", $emp->employee_name ?? '');
-                    $sheet->setCellValue("B{$rowNum}", $emp->employee_pengenal ?? '');
+                    $sheet->setCellValue("A{$rowNum}", $emp->employee_pengenal ?? '');
+                    $sheet->setCellValue("B{$rowNum}", $emp->employee_name ?? '');
                     $sheet->setCellValue("C{$rowNum}", $storeName);
 
                     // Kolom pengenal+store: latar kuning muda
