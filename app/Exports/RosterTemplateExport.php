@@ -54,7 +54,7 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 }
 
                 // Kolom: A=pengenal, B=store, C dst=tanggal
-                $firstDateColIndex = 3;
+                $firstDateColIndex = 4;
                 $totalCols    = 2 + count($dates);
                 $lastColLetter = $this->colLetter($totalCols);
 
@@ -77,8 +77,9 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 ]);
 
                 // ── Baris 3: HEADER (A WAJIB 'employee_pengenal' agar import menemukannya) ──
-                $sheet->setCellValue('A3', 'employee_pengenal');
-                $sheet->setCellValue('B3', 'store');
+                $sheet->setCellValue('A3', 'employee_name');
+                $sheet->setCellValue('B3', 'employee_pengenal');
+                $sheet->setCellValue('C3', 'store');
 
                 foreach ($dates as $i => $date) {
                     $col = $this->colLetter($firstDateColIndex + $i);
@@ -98,12 +99,6 @@ class RosterTemplateExport implements WithEvents, WithTitle
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFF00']],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
-
-                // ── Baris 5+: data karyawan (ambil religion untuk filter PH) ──
-                // $employees = Employee::where('store_id', $this->storeId)
-                //     ->whereNull('deleted_at')
-                //     ->orderBy('employee_name')
-                //     ->get(['employee_pengenal', 'employee_name', 'religion']);
                 $employees = Employee::where('store_id', $this->storeId)
     ->whereNull('deleted_at')
     ->whereIn('status', [
@@ -120,11 +115,12 @@ class RosterTemplateExport implements WithEvents, WithTitle
 
                 $rowNum = 5;
                 foreach ($employees as $emp) {
-                    $sheet->setCellValue("A{$rowNum}", $emp->employee_pengenal ?? '');
-                    $sheet->setCellValue("B{$rowNum}", $storeName);
+                    $sheet->setCellValue("A{$rowNum}", $emp->employee_name ?? '');
+                    $sheet->setCellValue("B{$rowNum}", $emp->employee_pengenal ?? '');
+                    $sheet->setCellValue("C{$rowNum}", $storeName);
 
                     // Kolom pengenal+store: latar kuning muda
-                    $sheet->getStyle("A{$rowNum}:B{$rowNum}")->applyFromArray([
+                    $sheet->getStyle("A{$rowNum}:C{$rowNum}")->applyFromArray([
                         'font' => ['bold' => true],
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']]
                     ]);
@@ -169,19 +165,18 @@ class RosterTemplateExport implements WithEvents, WithTitle
                 ]);
 
                 // ── Lebar kolom ──
-                $sheet->getColumnDimension('A')->setWidth(20);
-                $sheet->getColumnDimension('B')->setWidth(14);
+                $sheet->getColumnDimension('A')->setWidth(25);
+                $sheet->getColumnDimension('B')->setWidth(20);
+                $sheet->getColumnDimension('C')->setWidth(14);
 
                 foreach ($dates as $i => $_) {
                     $sheet->getColumnDimension($this->colLetter($firstDateColIndex + $i))->setWidth(5);
                 }
-
                 // ── Freeze pane ──
-                $sheet->freezePane('C5');
+                $sheet->freezePane('D5');
             },
         ];
     }
-
     /**
      * Cek apakah tanggal adalah PH untuk agama karyawan tertentu.
      */
