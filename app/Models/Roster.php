@@ -28,8 +28,6 @@ class Roster extends Model
         'notes',
         'sick_attachment'
     ];
-
-
 public function getActivitylogOptions(): LogOptions
 {
     return LogOptions::defaults()
@@ -49,18 +47,50 @@ public function getActivitylogOptions(): LogOptions
         });
 }
 
+// public function tapActivity(Activity $activity, string $eventName): void
+// {
+//     // Ambil shift_name dari relasi
+//     $shiftName = $this->shift?->shift_name ?? '-';
+//     $employeeName = $this->employee?->employee_name ?? '-';
+
+//     $attributes = [
+//         'employee name' => $employeeName,
+//         'shift name'  => $shiftName,
+//         'date'        => $this->date?->toDateString(),
+//         'day type'    => $this->day_type,
+//         'notes'       => $this->notes ?? 'empty',
+//     ];
+
+//     if ($eventName === 'created') {
+//         $activity->properties = $activity->properties->merge([
+//             'attributes' => $attributes,
+//         ]);
+//     }
+
+//     if ($eventName === 'updated') {
+//         $activity->properties = $activity->properties->merge([
+//             'attributes' => $attributes,
+//         ]);
+//     }
+
+//     if ($eventName === 'deleted') {
+//         $activity->properties = $activity->properties->merge([
+//             'attributes' => $attributes,
+//             'old'        => $attributes,
+//         ]);
+//     }
+// }
 public function tapActivity(Activity $activity, string $eventName): void
 {
-    // Ambil shift_name dari relasi
-    $shiftName = $this->shift?->shift_name ?? '-';
+    $shiftName    = $this->shift?->shift_name ?? '-';
     $employeeName = $this->employee?->employee_name ?? '-';
 
     $attributes = [
         'employee name' => $employeeName,
-        'shift name'  => $shiftName,
-        'date'        => $this->date?->toDateString(),
-        'day type'    => $this->day_type,
-        'notes'       => $this->notes ?? 'empty',
+        'shift name'    => $shiftName,
+        'date'          => $this->date?->toDateString(),
+        'day type'      => $this->day_type,
+        'notes'         => $this->notes ?? 'empty',
     ];
 
     if ($eventName === 'created') {
@@ -70,8 +100,23 @@ public function tapActivity(Activity $activity, string $eventName): void
     }
 
     if ($eventName === 'updated') {
+        // Ambil old values dari getOriginal()
+        $oldShiftId   = $this->getOriginal('shift_id');
+        $oldShift     = $oldShiftId ? \App\Models\Shifts::find($oldShiftId) : null;
+
+        $old = [
+            'employee name' => $employeeName, // employee tidak berubah
+            'shift name'    => $oldShift?->shift_name ?? '-',
+            'date'          => isset($this->getOriginal()['date'])
+                                ? \Carbon\Carbon::parse($this->getOriginal('date'))->toDateString()
+                                : '-',
+            'day type'      => $this->getOriginal('day_type') ?? '-',
+            'notes'         => $this->getOriginal('notes') ?? 'empty',
+        ];
+
         $activity->properties = $activity->properties->merge([
-            'attributes' => $attributes,
+            'old'        => $old,        // ← state sebelum update
+            'attributes' => $attributes, // ← state sesudah update
         ]);
     }
 
@@ -104,22 +149,3 @@ public function tapActivity(Activity $activity, string $eventName): void
             ->whereColumn('fingerprint_recaps.date', 'roster.date');
     }
 }
-// public function getActivitylogOptions(): LogOptions
-// {
-//     return LogOptions::defaults()
-//         ->logOnly([
-//             'employee_id',
-//             'shift.shift_name', 
-//             'date',
-//             'day_type',
-//             'notes',
-//         ])
-//         ->logOnlyDirty()
-//         ->dontSubmitEmptyLogs()
-//         ->setDescriptionForEvent(fn(string $eventName) => match($eventName) {
-//             'created' => 'Roster was created',
-//             'updated' => 'Roster was updated',
-//             'deleted' => 'Roster was deleted',
-//             default   => "Roster {$eventName}",
-//         });
-// }

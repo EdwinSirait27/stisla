@@ -1626,11 +1626,28 @@ if ($canManageAll) {
                 return optional($row->causer->employee)->employee_name ?? $row->causer->name ?? 'System';
             })
             ->addColumn('properties', function ($row) {
+                // $properties = $row->properties;
                 $properties = $row->properties;
+
+    $formatValue = function ($val) {
+        if (is_null($val)) return '-';
+
+        // Coba parse sebagai datetime (ISO 8601 atau Y-m-d)
+        if (is_string($val) && preg_match('/^\d{4}-\d{2}-\d{2}/', $val)) {
+            try {
+                return \Carbon\Carbon::parse($val)->format('d M Y');
+            } catch (\Exception $e) {
+                return $val;
+            }
+        }
+
+        return $val;
+    };
 
                 if ($row->event === 'created') {
                     return collect($properties->get('attributes', []))
-                        ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+                        // ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+                        ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
                         ->implode('<br>');
                 }
 
@@ -1639,13 +1656,15 @@ if ($canManageAll) {
                     $attributes = $properties->get('attributes', []);
 
                     return collect($attributes)
-                        ->map(fn($val, $key) => "<b>{$key}</b>: " . ($old[$key] ?? '-') . " → {$val}")
+                        // ->map(fn($val, $key) => "<b>{$key}</b>: " . ($old[$key] ?? '-') . " → {$val}")
+                        ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($old[$key] ?? null) . " → " . $formatValue($val))
                         ->implode('<br>');
                 }
 
                 if ($row->event === 'deleted') {
                     return collect($properties->get('attributes', []))
-                        ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+                        // ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+                        ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
                         ->implode('<br>');
                 }
 
