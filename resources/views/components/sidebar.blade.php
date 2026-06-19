@@ -293,7 +293,7 @@
                     <span>TOIL</span>
                 </a>
                 <ul class="dropdown-menu">
-                    @can('tiol')
+                    @can('toil')
                         <li class="{{ Request::is('toil/balance') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('toil.balance') }}">Balance</a>
                         </li>
@@ -311,17 +311,19 @@
                         </li>
                     @endcan
 
-                    <li class="{{ Request::is('toil/assignment*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('toil.assignment.index') }}">
-                            Overtime Assignment
-                        </a>
-                    </li>
-                    <li class="{{ Request::is('toil/approval*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('toil.approval.index') }}">
-                            Approval
-                        </a>
-                    </li>
-
+                    {{-- Manager Only: Assignment Lembur & Approval TOIL --}}
+                    @can('assignment')
+                        <li class="{{ Request::is('toil/assignment*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('toil.assignment.index') }}">
+                                Overtime Assignment
+                            </a>
+                        </li>
+                        <li class="{{ Request::is('toil/approval*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('toil.approval.index') }}">
+                                Approval
+                            </a>
+                        </li>
+                    @endcan
                 </ul>
             </li>
 
