@@ -60,7 +60,7 @@ class Leaverequest extends Model
             return collect();
         }
 
-        return $employee->atasanList()->pluck('id');
+        return $employee->atasanList()->pluck('employees_tables.id');
     }
 
     public function canBeApprovedBy($employeeId)

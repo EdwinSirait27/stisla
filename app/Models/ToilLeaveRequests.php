@@ -27,11 +27,13 @@ class ToilLeaveRequests extends Model
     protected $table = 'toil_leave_requests_tables';
 
     protected $fillable = [
+        'batch_id',
         'employee_id',
         'toil_balance_id',
         'approver_id',
         'hours_used',
         'original_shift_id',
+        'original_day_type',
         'leave_date',
         'reason',
         'status',           // 'Pending' | 'Approved' | 'Rejected' | 'Cancelled'

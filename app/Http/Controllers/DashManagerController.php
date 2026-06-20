@@ -546,7 +546,7 @@ $pendingLeaves = \App\Models\Leaverequest::whereIn('leave_balance_id', $balanceI
         $loggedEmployee = auth()->user()->employee;
 
         // Pakai bawahanList() dari Employee.php
-        $subordinateIds = $loggedEmployee->bawahanList()->pluck('id')->toArray();
+        $subordinateIds = $loggedEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
 
         $employees = User::with([
             'Employee.company',
@@ -700,7 +700,7 @@ $pendingLeaves = \App\Models\Leaverequest::whereIn('leave_balance_id', $balanceI
         $employeeLogin = auth()->user()->employee;
 
         // Pakai bawahanList() dari Employee.php
-        $subordinateIds = $employeeLogin->bawahanList()->pluck('id')->toArray();
+        $subordinateIds = $employeeLogin->bawahanList()->pluck('employees_tables.id')->toArray();
 
         $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()))->startOfDay();
         $endDate   = Carbon::parse($request->input('end_date', now()))->endOfDay();
