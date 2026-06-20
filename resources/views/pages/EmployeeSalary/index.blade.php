@@ -476,6 +476,7 @@
                                 <th class="text-center">Location</th>
                                 <th class="text-center">Grading</th>
                                 <th class="text-center">Position</th>
+                                <th class="text-center">Emp .Status</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center num">Basic Salary</th>
                                 <th class="text-center num">Position Allowance</th>
@@ -689,6 +690,11 @@
                             };
                             return map[data] ?? `<span class="status-badge">${data}</span>`;
                         }
+                    },
+                     {
+                        data: 'status',
+                        className: 'text-center',
+                        defaultContent: '-'
                     },
                     {
                         data: 'basic_salary',

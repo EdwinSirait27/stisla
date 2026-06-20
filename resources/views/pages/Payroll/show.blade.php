@@ -286,14 +286,15 @@
                     <h1>Detail Payroll</h1>
                 </div>
                 <div class="page-actions">
+                   <a href="{{ route('payroll.index', $payroll->payroll_period_id) }}" class="btn btn-light">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </a>
                     @if ($payroll->status === 'draft')
                         <a href="{{ route('payroll.edit', $payroll->id) }}" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Edit
                         </a>
                     @endif
-                    <a href="{{ route('payroll.index', $payroll->payroll_period_id) }}" class="btn btn-light">
-                        <i class="fas fa-arrow-left"></i> Kembali
-                    </a>
+                   
                 </div>
             </div>
 
@@ -321,8 +322,8 @@
                     <div class="emp-header-name">{{ $emp->employee_name ?? '-' }}</div>
                     <div class="emp-header-sub">
                         {{ $emp->employee_pengenal ?? '-' }}
-                        &nbsp;·&nbsp; {{ $emp->store->name ?? '-' }}
-                        &nbsp;·&nbsp; {{ $emp->position->position_name ?? '-' }}
+                        &nbsp;·&nbsp; {{ $emp->store?->first()->name ?? '-' }}
+                        &nbsp;·&nbsp; {{ $emp->position?->first()->position_name ?? '-' }}
                     </div>
                 </div>
                 <div class="emp-header-right">
@@ -368,7 +369,7 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">Bank</span>
-                            <span class="info-value">{{ $emp->bank->bank_name ?? '-' }}</span>
+                            <span class="info-value">{{ $emp->bank->name ?? '-' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">No. Rekening</span>
@@ -397,21 +398,21 @@
                         <span class="detail-card-title">Info Absensi</span>
                     </div>
                     <div class="detail-card-body">
-                        <div class="info-row">
+                        {{-- <div class="info-row">
                             <span class="info-label">Working Days</span>
                             <span class="info-value">{{ $payroll->working_days }} hari</span>
-                        </div>
+                        </div> --}}
                         <div class="info-row">
                             <span class="info-label">Attendance Days</span>
                             <span class="info-value green">{{ $payroll->attendance_days }} hari</span>
                         </div>
-                        <div class="info-row">
+                        {{-- <div class="info-row">
                             <span class="info-label">Absent Days</span>
                             <span class="info-value {{ $payroll->absent_days > 0 ? 'red' : 'muted' }}">
                                 {{ $payroll->absent_days }} hari
                             </span>
-                        </div>
-                        @if ($payroll->is_prorate)
+                        </div> --}}
+                        {{-- @if ($payroll->is_prorate)
                             <div class="info-row">
                                 <span class="info-label">Prorate Days</span>
                                 <span class="info-value amber">{{ $payroll->prorate_days }} hari</span>
@@ -420,7 +421,7 @@
                                 <span class="info-label">Prorate Ratio</span>
                                 <span class="info-value amber">{{ round($payroll->prorate_ratio * 100, 2) }}%</span>
                             </div>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
 
@@ -451,16 +452,16 @@
                                 <span class="info-value">Rp
                                     {{ number_format($payroll->position_allowance, 0, ',', '.') }}</span>
                             </div>
-                            <div class="info-row">
+                            {{-- <div class="info-row">
                                 <span class="info-label">Allowance</span>
                                 <span class="info-value">Rp {{ number_format($payroll->allowance, 0, ',', '.') }}</span>
-                            </div>
-                            @if ($payroll->is_prorate)
+                            </div> --}}
+                            {{-- @if ($payroll->is_prorate)
                                 <div class="info-row">
                                     <span class="info-label">Prorate Ratio</span>
                                     <span class="info-value amber">× {{ round($payroll->prorate_ratio * 100, 2) }}%</span>
                                 </div>
-                            @endif
+                            @endif --}}
                         @endif
                         <div class="summary-box">
                             <div class="summary-row">

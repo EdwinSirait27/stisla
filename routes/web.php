@@ -678,6 +678,8 @@ Route::prefix('employees')->name('Employee.')->group(function () {
             Route::post('/{id}/approve',           [PayrollController::class, 'approve'])->name('approve');
             Route::post('/approve-bulk',           [PayrollController::class, 'approveBulk'])->name('approveBulk');
             Route::post('/{id}/paid',              [PayrollController::class, 'paid'])->name('paid');
+            Route::post('/{periodId}/import-attendance',      [PayrollController::class, 'importAttendance'])->name('importAttendance');
+Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'downloadAttendanceTemplate'])->name('attendanceTemplate');
         });
     });
 

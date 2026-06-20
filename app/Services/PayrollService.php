@@ -79,68 +79,27 @@ class PayrollService
         // ════════════════════════════════════════
         // STEP 2 — Hitung working_days dari Roster
         // ════════════════════════════════════════
+       
         $workingDays = 0;
 
-        if ($statusEmp !== 'DW') {
-            $workingDays = Roster::where('employee_id', $employee->id)
-                ->whereBetween('date', [$period->period_start, $period->period_end])
-                ->whereIn('day_type', ['Work', 'Public Holiday', 'Leave', 'Cuti Melahirkan'])
-                ->count();
+// if ($statusEmp !== 'DW') {
+//     $workingDays = Roster::where('employee_id', $employee->id)
+//         ->whereBetween('date', [$period->period_start, $period->period_end])
+//         ->whereIn('day_type', ['Work', 'Public Holiday', 'Leave', 'Cuti Melahirkan'])
+//         ->count();
 
-            if ($workingDays === 0) {
-                Log::warning("PayrollService: no roster for {$employee->employee_name}");
-                return 'skipped';
-            }
-        }
+//     if ($workingDays === 0) {
+//         Log::warning("PayrollService: no roster for {$employee->employee_name}");
+//         return 'skipped';
+//     }
+// }
 
         // ════════════════════════════════════════
         // STEP 3 — Hitung attendance_days dari Fingerprint
         // ════════════════════════════════════════
-        $eligibleForPH   = $statusEmp !== 'DW';
-        $eligibleForCuti = !in_array($statusEmp, ['DW', 'ON JOB TRAINING']);
-
-        // Ambil semua recap dalam periode
-        $recaps = Fingerprintrecap::where('employee_id', $employee->id)
-            ->whereBetween('date', [$period->period_start, $period->period_end])
-            ->get();
-
-        // Ambil roster dalam periode
-        $rosters = Roster::where('employee_id', $employee->id)
-            ->whereBetween('date', [$period->period_start, $period->period_end])
-            ->whereIn('day_type', ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'])
-            ->get()
-            ->keyBy(fn($r) => Carbon::parse($r->date)->toDateString());
-
-        // Tanggal cuti
-        $cutiDates = $eligibleForCuti
-            ? $rosters->filter(fn($r) => in_array($r->day_type, ['Leave', 'Cuti Melahirkan']))
-                ->keys()->toArray()
-            : [];
-
-        // Tanggal PH
-        $phDates = $eligibleForPH
-            ? $rosters->filter(fn($r) => $r->day_type === 'Public Holiday')
-                ->keys()->toArray()
-            : [];
-
-        // Tanggal hadir dari fingerprint
-        $countedDates = $recaps
-            ->where('is_counted', 1)
-            ->map(fn($r) => Carbon::parse($r->date)->toDateString())
-            ->filter(fn($date) => isset($rosters[$date]))
-            ->values()
-            ->toArray();
-
-        // Gabung semua
-        $allAttendanceDates = array_unique(array_merge($countedDates, $phDates, $cutiDates));
-        $attendanceDays     = count($allAttendanceDates);
-
-        // Absent days (catatan)
-        $rosterWorkDates = $rosters
-            ->filter(fn($r) => $r->day_type === 'Work')
-            ->keys()->toArray();
-
-        $absentDays = count(array_diff($rosterWorkDates, $countedDates, $cutiDates));
+       
+        $attendanceDays = 0;
+$absentDays     = 0;
 
         // ════════════════════════════════════════
         // STEP 4 — Cek Prorate
@@ -196,34 +155,47 @@ class PayrollService
         // ════════════════════════════════════════
         // STEP 5 — Hitung Gross Salary
         // ════════════════════════════════════════
-        $basicSalary       = (float) $salary->basic_salary;
-        $positionAllowance = (float) $salary->position_allowance;
-        $dailyRate         = (float) $salary->daily_rate;
+       
+        $basicSalary        = (float) $salary->basic_salary;
+$positionAllowance  = (float) $salary->position_allowance;
+$mealAllowance      = (float) $salary->meal_allowance;
+$houseAllowance     = (float) $salary->house_allowance;
+$transportAllowance = (float) $salary->transport_allowance;
+$dailyRate          = (float) $salary->daily_rate;
 
-        if ($statusEmp === 'DW') {
-            // DW: harian × attendance
-            $grossSalary = round($dailyRate * $attendanceDays, 2);
+if ($statusEmp === 'DW') {
+    // DW: 0 dulu, akan diupdate setelah import attendance
+    $grossSalary = 0;
 
-        } elseif ($isProrate) {
-            // PKWT/OJT prorate: base × ratio
-            $base        = $basicSalary + $positionAllowance;
-            $grossSalary = round($base * $prorateRatio, 2);
+} elseif ($isProrate) {
+    $base        = $basicSalary + $positionAllowance 
+                 + $mealAllowance + $houseAllowance + $transportAllowance;
+    $grossSalary = round($base * $prorateRatio, 2);
 
-        } else {
-            // PKWT/OJT full
-            $grossSalary = $basicSalary + $positionAllowance;
-        }
+} else {
+    // PKWT/OJT full — tidak peduli attendance
+    $grossSalary = $basicSalary + $positionAllowance 
+                 + $mealAllowance + $houseAllowance + $transportAllowance;
+}
 
         // ════════════════════════════════════════
         // STEP 6 — Simpan ke DB (dalam transaction)
         // ════════════════════════════════════════
+        // DB::transaction(function () use (
+        //     $period, $employee, $salary,
+        //     $workingDays, $attendanceDays, $absentDays,
+        //     $isProrate, $prorateDays, $prorateRatio,
+        //     $basicSalary, $positionAllowance, $dailyRate,
+        //     $grossSalary, $statusEmp
         DB::transaction(function () use (
-            $period, $employee, $salary,
-            $workingDays, $attendanceDays, $absentDays,
-            $isProrate, $prorateDays, $prorateRatio,
-            $basicSalary, $positionAllowance, $dailyRate,
-            $grossSalary, $statusEmp
-        ) {
+    $period, $employee, $salary,                              // ← $salary ada
+    $workingDays, $attendanceDays, $absentDays,
+    $isProrate, $prorateDays, $prorateRatio,
+    $basicSalary, $positionAllowance,
+    $mealAllowance, $houseAllowance, $transportAllowance,    // ← tambah
+    $dailyRate, $grossSalary, $statusEmp
+        ) 
+        {
             // Simpan header payroll
             $payroll = Payroll::create([
                 'employee_id'        => $employee->id,
@@ -233,16 +205,19 @@ class PayrollService
                 'period_start'       => $period->period_start,
                 'period_end'         => $period->period_end,
 
-                'working_days'       => $workingDays,
+                // 'working_days'       => $workingDays,
                 'attendance_days'    => $attendanceDays,
-                'absent_days'        => $absentDays,
+                // 'absent_days'        => $absentDays,
 
-                'is_prorate'         => $isProrate,
-                'prorate_days'       => $prorateDays,
-                'prorate_ratio'      => $prorateRatio,
+                // 'is_prorate'         => $isProrate,
+                // 'prorate_days'       => $prorateDays,
+                // 'prorate_ratio'      => $prorateRatio,
 
                 'basic_salary'       => $basicSalary,
                 'position_allowance' => $positionAllowance,
+                'meal_allowance'      => $mealAllowance,      // ← tambah
+    'house_allowance'     => $houseAllowance,     // ← tambah
+    'transport_allowance' => $transportAllowance, // ← tambah
                 'daily_rate'         => $dailyRate,
 
                 'gross_salary'       => $grossSalary,
@@ -259,11 +234,17 @@ class PayrollService
             foreach ($fixedComponents as $component) {
                 // Hitung amount BPJS otomatis
                 $amount = $this->calculateComponentAmount(
-                    $component,
-                    $grossSalary,
-                    $basicSalary,
-                    $statusEmp
-                );
+                //     $component,
+                //     $grossSalary,
+                //     $basicSalary,
+                //     $statusEmp
+                // );
+                 $component,
+    $grossSalary,
+    $basicSalary,
+    $statusEmp,
+    $salary // ← tambah
+);
 
                 PayrollDetail::create([
                     'payroll_id'           => $payroll->id,
@@ -284,25 +265,36 @@ class PayrollService
     // ════════════════════════════════════════
     // Helper — Hitung amount komponen BPJS
     // ════════════════════════════════════════
-    private function calculateComponentAmount(
-        PayrollComponents $component,
-        float $grossSalary,
-        float $basicSalary,
-        string $statusEmp
-    ): float {
-        // DW tidak kena BPJS
-        if ($statusEmp === 'DW') return 0;
+    // private function calculateComponentAmount(
+    //     PayrollComponents $component,
+    //     float $grossSalary,
+    //     float $basicSalary,
+    //     string $statusEmp
+    // ): float {
+    //     // DW tidak kena BPJS
+    //     if ($statusEmp === 'DW') return 0;
 
-        return match($component->component_name) {
-            'BPJS KESEHATAN KARYAWAN'    => round($grossSalary * 0.01, 2),  // 1%
-            'BPJS KESEHATAN PERUSAHAAN'  => round($grossSalary * 0.04, 2),  // 4%
-            'BPJS JHT KARYAWAN'          => round($grossSalary * 0.02, 2),  // 2%
-            'BPJS JHT PERUSAHAAN'        => round($grossSalary * 0.037, 2), // 3.7%
-            'BPJS JKK'                   => round($grossSalary * 0.0024, 2),// 0.24%
-            'BPJS JKM'                   => round($grossSalary * 0.003, 2), // 0.3%
-            default                      => 0, // komponen lain input manual
-        };
-    }
+    //     return match($component->component_name) {
+    //         'BPJS KESEHATAN'    => round($grossSalary * 0.01, 2),  // 1%
+    //         'BPJS KETENAGAKERJAAN'  => round($grossSalary * 0.04, 2),  // 4%
+    //         default                      => 0, // komponen lain input manual
+    //     };
+    // }
+    private function calculateComponentAmount(
+    PayrollComponents $component,
+    float $grossSalary,
+    float $basicSalary,
+    string $statusEmp,
+    EmployeeSalary $salary // ← tambah parameter
+): float {
+    if ($statusEmp === 'DW') return 0;
+
+    return match($component->component_name) {
+        'BPJS KESEHATAN'       => (float) ($salary->bpjs_kesehatan       ?? 0), // ← dari salary
+        'BPJS KETENAGAKERJAAN' => (float) ($salary->bpjs_ketenagakerjaan ?? 0), // ← dari salary
+        default                => 0,
+    };
+}
 
     // ════════════════════════════════════════
     // Helper — Recalculate net salary
@@ -335,3 +327,86 @@ class PayrollService
         ]);
     }
 }
+
+
+// step 2
+ // $workingDays = 0;
+
+        // if ($statusEmp !== 'DW') {
+        //     $workingDays = Roster::where('employee_id', $employee->id)
+        //         ->whereBetween('date', [$period->period_start, $period->period_end])
+        //         ->whereIn('day_type', ['Work', 'Public Holiday', 'Leave', 'Cuti Melahirkan'])
+        //         ->count();
+
+        //     if ($workingDays === 0) {
+        //         Log::warning("PayrollService: no roster for {$employee->employee_name}");
+        //         return 'skipped';
+        //     }
+        // }
+
+        // step3
+         // $eligibleForPH   = $statusEmp !== 'DW';
+        // $eligibleForCuti = !in_array($statusEmp, ['DW', 'ON JOB TRAINING']);
+
+        // // Ambil semua recap dalam periode
+        // $recaps = Fingerprintrecap::where('employee_id', $employee->id)
+        //     ->whereBetween('date', [$period->period_start, $period->period_end])
+        //     ->get();
+
+        // // Ambil roster dalam periode
+        // $rosters = Roster::where('employee_id', $employee->id)
+        //     ->whereBetween('date', [$period->period_start, $period->period_end])
+        //     ->whereIn('day_type', ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'])
+        //     ->get()
+        //     ->keyBy(fn($r) => Carbon::parse($r->date)->toDateString());
+
+        // // Tanggal cuti
+        // $cutiDates = $eligibleForCuti
+        //     ? $rosters->filter(fn($r) => in_array($r->day_type, ['Leave', 'Cuti Melahirkan']))
+        //         ->keys()->toArray()
+        //     : [];
+
+        // // Tanggal PH
+        // $phDates = $eligibleForPH
+        //     ? $rosters->filter(fn($r) => $r->day_type === 'Public Holiday')
+        //         ->keys()->toArray()
+        //     : [];
+
+        // // Tanggal hadir dari fingerprint
+        // $countedDates = $recaps
+        //     ->where('is_counted', 1)
+        //     ->map(fn($r) => Carbon::parse($r->date)->toDateString())
+        //     ->filter(fn($date) => isset($rosters[$date]))
+        //     ->values()
+        //     ->toArray();
+
+        // // Gabung semua
+        // $allAttendanceDates = array_unique(array_merge($countedDates, $phDates, $cutiDates));
+        // $attendanceDays     = count($allAttendanceDates);
+
+        // // Absent days (catatan)
+        // $rosterWorkDates = $rosters
+        //     ->filter(fn($r) => $r->day_type === 'Work')
+        //     ->keys()->toArray();
+
+        // $absentDays = count(array_diff($rosterWorkDates, $countedDates, $cutiDates));
+
+
+        // step 5 
+         // $basicSalary       = (float) $salary->basic_salary;
+        // $positionAllowance = (float) $salary->position_allowance;
+        // $dailyRate         = (float) $salary->daily_rate;
+
+        // if ($statusEmp === 'DW') {
+        //     // DW: harian × attendance
+        //     $grossSalary = round($dailyRate * $attendanceDays, 2);
+
+        // } elseif ($isProrate) {
+        //     // PKWT/OJT prorate: base × ratio
+        //     $base        = $basicSalary + $positionAllowance;
+        //     $grossSalary = round($base * $prorateRatio, 2);
+
+        // } else {
+        //     // PKWT/OJT full
+        //     $grossSalary = $basicSalary + $positionAllowance;
+        // }

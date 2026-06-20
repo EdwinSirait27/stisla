@@ -309,6 +309,21 @@
 
                         {{-- Section 2: Income Tambahan --}}
                         <div class="form-section">
+                            <div class="form-section-label">Attendance</div>
+                            <div class="field-grid">
+                                <div class="field-group">
+                                    <label><i class="fas fa-clock"></i> Attendance</label>
+                                    <input type="number" name="attendance_days"
+                                        class="form-control @error('attendance_days') is-invalid @enderror"
+                                        value="{{ old('attendance_days', $payroll->attendance_days) }}" min="0"
+                                        placeholder="0">
+                                    @error('attendance_days')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
                             <div class="form-section-label">Income Tambahan</div>
                             <div class="field-grid">
                                 <div class="field-group">
@@ -362,7 +377,7 @@
                         </div>
 
                         {{-- Section 4: Prorate --}}
-                        @if (strtoupper($payroll->employee->status_employee) !== 'DW')
+                        {{-- @if (strtoupper($payroll->employee->status_employee) !== 'DW')
                             <div class="form-section">
                                 <div class="form-section-label">Prorate</div>
                                 <div class="prorate-section">
@@ -406,7 +421,7 @@
                                     </div>
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
 
                         {{-- Note --}}
                         <div class="form-section">

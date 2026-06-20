@@ -6,7 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Jobs\GeneratePayrollIntroLetterJob;
 use App\Jobs\GenerateSuratPengantarKaryawan;
-use App\Jobs\SendWhatsappReminder3Month;;
+use App\Jobs\SendWhatsappReminder3Month;
 
 class Kernel extends ConsoleKernel
 {

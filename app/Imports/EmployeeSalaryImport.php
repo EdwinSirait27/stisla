@@ -60,6 +60,8 @@ class EmployeeSalaryImport implements ToCollection, WithHeadingRow, WithValidati
                 'transport_allowance' => (float) ($row['transport_allowance'] ?? 0),
                 'bpjs_kesehatan' => (float) ($row['bpjs_kesehatan'] ?? 0),
                 'bpjs_ketenagakerjaan' => (float) ($row['bpjs_ketenagakerjaan'] ?? 0),
+    //              'bpjs_kesehatan'       => $status === 'DW' ? 0 : (float) ($row['bpjs_kesehatan']       ?? 0), // ← DW = 0
+    // 'bpjs_ketenagakerjaan' => $status === 'DW' ? 0 : (float) ($row['bpjs_ketenagakerjaan'] ?? 0), // ← DW = 0
                 'created_by'         => $this->createdBy,
             ]);
         }

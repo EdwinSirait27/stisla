@@ -54,7 +54,7 @@ class EmployeeSalaryController extends Controller
         }
        
         $query = EmployeeSalary::with([
-    'employee:id,employee_name,employee_pengenal,status_employee,grading_id,company_id,store_id,department_id',
+    'employee:id,employee_name,employee_pengenal,status_employee,grading_id,company_id,store_id,department_id,status',
     'employee.grading:id,grading_name',
     'employee.company:id,name',
     'employee.department:id,department_name',
@@ -99,6 +99,13 @@ class EmployeeSalaryController extends Controller
                 $q->where('status_employee', $request->status_employee)
             );
         }
+        if ($request->filled('status')) {
+            $query->whereHas(
+                'employee',
+                fn($q) =>
+                $q->where('status', $request->status)
+            );
+        }
         if ($request->filled('effective_date')) {
             $query->where('effective_date', $request->effective_date);
         }
@@ -107,6 +114,7 @@ class EmployeeSalaryController extends Controller
             ->addColumn('employee_name', fn($row) => $row->employee->employee_name ?? '-')
             ->addColumn('employee_pengenal', fn($row) => $row->employee->employee_pengenal ?? '-')
             ->addColumn('status_employee', fn($row) => $row->employee->status_employee ?? '-')
+            ->addColumn('status', fn($row) => $row->employee->status ?? '-')
             ->addColumn('grading_name', fn($row) => $row->employee->grading->grading_name ?? '-')
             ->addColumn('company_name', fn($row) => $row->employee->company->name ?? '-')
             ->addColumn('basic_salary_fmt', fn($row) => number_format($row->basic_salary, 0, ',', '.'))
@@ -124,6 +132,7 @@ class EmployeeSalaryController extends Controller
             ->filterColumn('employee_name', fn($q, $k) => $q->whereHas('employee', fn($q2) => $q2->where('employee_name', 'like', "%$k%")))
             ->filterColumn('employee_pengenal', fn($q, $k) => $q->whereHas('employee', fn($q2) => $q2->where('employee_pengenal', 'like', "%$k%")))
             ->filterColumn('status_employee', fn($q, $k) => $q->whereHas('employee', fn($q2) => $q2->where('status_employee', 'like', "%$k%")))
+            ->filterColumn('status', fn($q, $k) => $q->whereHas('employee', fn($q2) => $q2->where('status', 'like', "%$k%")))
             ->filterColumn('store_name', fn($q, $k) => $q->whereHas('employee.store', fn($q2) => $q2->where('name', 'like', "%$k%")))
             ->filterColumn('grading_name', fn($q, $k) => $q->whereHas('employee.grading', fn($q2) => $q2->where('grading_name', 'like', "%$k%")))
             ->filterColumn('company_name', fn($q, $k) => $q->whereHas('employee.company', fn($q2) => $q2->where('name', 'like', "%$k%")))

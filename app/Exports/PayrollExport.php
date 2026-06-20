@@ -21,13 +21,17 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
         protected ?string $status         = null,
         protected ?string $statusEmployee = null,
         protected ?string $storeName      = null,
+        protected ?string $positionName      = null,
+        protected ?string $companyName      = null,
+        protected ?string $gradingName      = null,
+        protected ?string $departmentName      = null,
     ) {}
 
     public function query()
     {
         $query = Payroll::with([
             'employee:id,employee_name,employee_pengenal,status_employee,store_id,banks_id,bank_account_number',
-            'employee.store:id,name','employee.bank:id,name',
+            'employee.store:id,name','employee.company:id,name','employee.grading:id,grading_name','employee.department:id,department_name','employee.bank:id,name',
         ])->where('payroll_period_id', $this->period->id);
 
         if ($this->status) {
@@ -45,6 +49,21 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
                 $q->where('name', $this->storeName)
             );
         }
+        if ($this->companyName) {
+            $query->whereHas('employee.company', fn($q) =>
+                $q->where('name', $this->companyName)
+            );
+        }
+        if ($this->departmentName) {
+            $query->whereHas('employee.department', fn($q) =>
+                $q->where('department_name', $this->departmentName)
+            );
+        }
+        if ($this->gradingName) {
+            $query->whereHas('employee.grading', fn($q) =>
+                $q->where('grading_name', $this->gradingName)
+            );
+        }
 
         return $query->orderBy('created_at');
     }
@@ -60,13 +79,17 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
             'No',
             'NIP',
             'Nama Karyawan',
-            'Store',
+            'Company',
+            'Department',
+            'Grading',
+            'Location',
+            'Position',
             'Status',
             'Bank',
             'No Rekening',
-            'Working Days',
+            // 'Working Days',
             'Attendance Days',
-            'Absent Days',
+            // 'Absent Days',
             'Prorate',
             'Basic Salary',
             'Position Allowance',
@@ -88,13 +111,17 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
             $no,
             $row->employee->employee_pengenal   ?? '-',
             $row->employee->employee_name        ?? '-',
-            $row->employee->store->name          ?? '-',
+            $row->employee->company->name          ?? '-',
+            $row->employee->department?->first()->department_name          ?? '-',
+            $row->employee->grading->grading_name          ?? '-',
+            $row->employee->store?->first()->name          ?? '-',
+            $row->employee->position?->first()->name          ?? '-',
             $row->employee->status_employee      ?? '-',
             $row->employee->bank->name            ?? '-',
             $row->employee->bank_account_number         ?? '-',
-            $row->working_days,
+            // $row->working_days,
             $row->attendance_days,
-            $row->absent_days,
+            // $row->absent_days,
             $row->is_prorate
                 ? 'Ya (' . ($row->prorate_ratio * 100) . '%)'
                 : 'Tidak',
