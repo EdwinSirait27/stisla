@@ -70,6 +70,8 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeTrainingController;
+use Illuminate\Support\Facades\DB;
+
 use App\Models\Contract;
 /*
 |--------------------------------------------------------------------------
@@ -355,25 +357,52 @@ Route::prefix('employees')->name('Employee.')->group(function () {
             ->name('fingerprints.manual-added');
 
         // ── Endpoint list employees untuk dropdown Add Recap ──
+        // Route::get('/fingerprints/employee-list', function (\Illuminate\Http\Request $request) {
+        //     $query = \App\Models\Employee::with('store:id,name')
+        //         ->select('id', 'employee_name', 'pin', 'store_id')
+        //         ->whereNotNull('pin')
+        //         ->whereNull('deleted_at');
+
+        //     if ($request->store_name) {
+        //         $query->whereHas('store', fn($q) => $q->where('name', $request->store_name));
+        //     }
+
+        //     return response()->json([
+        //         'data' => $query->orderBy('employee_name')->get()->map(fn($e) => [
+        //             'id'    => $e->id,
+        //             'name'  => $e->employee_name,
+        //             'pin'   => $e->pin,
+        //             'store' => $e->store->name ?? '-',
+        //         ])
+        //     ]);
+        // })->name('fingerprints.employee-list');
         Route::get('/fingerprints/employee-list', function (\Illuminate\Http\Request $request) {
-            $query = \App\Models\Employee::with('store:id,name')
-                ->select('id', 'employee_name', 'pin', 'store_id')
-                ->whereNotNull('pin')
-                ->whereNull('deleted_at');
+    $query = \App\Models\Employee::with([
+            'store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
+        ])
+        ->select('id', 'employee_name', 'pin')
+        ->whereNotNull('pin')
+        ->whereNull('deleted_at');
 
-            if ($request->store_name) {
-                $query->whereHas('store', fn($q) => $q->where('name', $request->store_name));
-            }
+    if ($request->store_name) {
+        $query->whereExists(function ($q) use ($request) {
+            $q->select(DB::raw(1))
+                ->from('employee_stores')
+                ->join('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->where('stores_tables.name', $request->store_name);
+        });
+    }
 
-            return response()->json([
-                'data' => $query->orderBy('employee_name')->get()->map(fn($e) => [
-                    'id'    => $e->id,
-                    'name'  => $e->employee_name,
-                    'pin'   => $e->pin,
-                    'store' => $e->store->name ?? '-',
-                ])
-            ]);
-        })->name('fingerprints.employee-list');
+    return response()->json([
+        'data' => $query->orderBy('employee_name')->get()->map(fn($e) => [
+            'id'    => $e->id,
+            'name'  => $e->employee_name,
+            'pin'   => $e->pin,
+            'store' => $e->store->first()?->name ?? '-', // ← pivot returns collection
+        ])
+    ]);
+})->name('fingerprints.employee-list');
 
         // ── Edited Fingerprints ──
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])

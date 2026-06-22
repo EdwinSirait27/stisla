@@ -126,30 +126,32 @@ private function applyLosFilter($query, $los)
 
     private $rowNumber = 0;
 
+    
     public function map($e): array
-    {
-        $this->rowNumber++;
+{
+    $this->rowNumber++;
 
-        $los = 'Empty';
-        if ($e->join_date) {
-            $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
-            $los  = sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
-        }
-        return [
-            $this->rowNumber,
-            $e->employee_name  ?? 'Empty',
-            $e->employee_pengenal  ?? 'Empty',
-            $e->name_company   ?? 'Empty',
-            $e->department_name ?? 'Empty',
-            $e->store_name     ?? 'Empty',
-            $e->position_name  ?? 'Empty',
-            $e->grading_name   ?? 'Empty',
-            $e->remark         ?? 'Empty',
-            $e->status_employee ?? 'Empty',
-            $los,
-            $e->status         ?? 'Empty',
-        ];
+    $los = 'EMPTY';
+    if ($e->join_date) {
+        $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+        $los  = strtoupper(sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d));
     }
+
+    return [
+        $this->rowNumber,
+        strtoupper($e->employee_name   ?? 'EMPTY'),
+        strtoupper($e->employee_pengenal ?? 'EMPTY'),
+        strtoupper($e->name_company    ?? 'EMPTY'),
+        strtoupper($e->department_name ?? 'EMPTY'),
+        strtoupper($e->store_name      ?? 'EMPTY'),
+        strtoupper($e->position_name   ?? 'EMPTY'),
+        strtoupper($e->grading_name    ?? 'EMPTY'),
+        strtoupper($e->remark          ?? 'EMPTY'),
+        strtoupper($e->status_employee ?? 'EMPTY'),
+        $los,
+        strtoupper($e->status          ?? 'EMPTY'),
+    ];
+}
 
     public function styles(Worksheet $sheet)
     {
@@ -169,3 +171,27 @@ private function applyLosFilter($query, $los)
     return parent::bindValue($cell, $value);
 }
 }
+// public function map($e): array
+    // {
+    //     $this->rowNumber++;
+
+    //     $los = 'Empty';
+    //     if ($e->join_date) {
+    //         $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+    //         $los  = sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+    //     }
+    //     return [
+    //         $this->rowNumber,
+    //         $e->employee_name  ?? 'Empty',
+    //         $e->employee_pengenal  ?? 'Empty',
+    //         $e->name_company   ?? 'Empty',
+    //         $e->department_name ?? 'Empty',
+    //         $e->store_name     ?? 'Empty',
+    //         $e->position_name  ?? 'Empty',
+    //         $e->grading_name   ?? 'Empty',
+    //         $e->remark         ?? 'Empty',
+    //         $e->status_employee ?? 'Empty',
+    //         $los,
+    //         $e->status         ?? 'Empty',
+    //     ];
+    // }

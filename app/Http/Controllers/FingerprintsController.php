@@ -146,23 +146,47 @@ if ($canSpvManager && !$canManage) {
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate   = Carbon::parse($request->end_date)->endOfDay();
 
-        $employeesQuery = Employee::with('store:id,name')
-            ->select('id', 'pin', 'store_id')
-            ->whereNotNull('pin')
-            ->whereNull('deleted_at');
+        // $employeesQuery = Employee::with('store:id,name')
+        //     ->select('id', 'pin', 'store_id')
+        //     ->whereNotNull('pin')
+        //     ->whereNull('deleted_at');
+         $employeesQuery = Employee::with([
+            'store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
+        ])
+        ->select('id', 'pin')
+        ->whereNotNull('pin')
+        ->whereNull('deleted_at');
 
-        if ($request->store_name) {
-            $employeesQuery->whereHas('store', fn($q) => $q->where('name', $request->store_name));
-        }
+        // if ($request->store_name) {
+        //     $employeesQuery->whereHas('store', fn($q) => $q->where('name', $request->store_name));
+        // }
+         if ($request->store_name) {
+        $employeesQuery->whereExists(function ($q) use ($request) {
+            $q->select(DB::raw(1))
+                ->from('employee_stores')
+                ->join('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                ->where('stores_tables.name', $request->store_name);
+        });
+    }
 
-        $employees = $employeesQuery->get()->keyBy(fn($e) => (string) $e->pin);
 
-        if ($employees->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'There are no employees with registered PINs.',
-            ], 422);
-        }
+        // $employees = $employeesQuery->get()->keyBy(fn($e) => (string) $e->pin);
+
+        // if ($employees->isEmpty()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'There are no employees with registered PINs.',
+        //     ], 422);
+        // }
+         $employees = $employeesQuery->get()->keyBy(fn($e) => (string) $e->pin);
+
+    if ($employees->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'There are no employees with registered PINs.',
+        ], 422);
+    }
 
         $pins        = $employees->keys()->toArray();
         $employeeIds = $employees->pluck('id')->toArray();
