@@ -248,7 +248,6 @@ if ($request->filled('grading_name')) {
             return back()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
-
     // ── Show detail ──
     public function show(string $id)
     {

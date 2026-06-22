@@ -68,6 +68,7 @@ use App\Http\Controllers\EmployeeSalaryController;
 use App\Http\Controllers\PayrollPeriodController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EmployeePositionandAtasanController;
+use App\Http\Controllers\DocumentController;
 use App\Models\Contract;
 /*
 |--------------------------------------------------------------------------
@@ -385,16 +386,19 @@ Route::prefix('employees')->name('Employee.')->group(function () {
         });
         });
     });
-
-    // ── Shifts ──
-    Route::group(['middleware' => ['permission:ManageShifts']], function () {
-        Route::get('/Shifts', [ShiftsController::class, 'index'])->name('pages.Shifts');
-        Route::post('/shifts/data', [ShiftsController::class, 'getData'])->name('shifts.data');
-        Route::post('/shifts', [ShiftsController::class, 'store'])->name('shifts.store');
+ Route::group(['middleware' => ['permission:ManageShifts']], function () {
+       Route::post('/shifts', [ShiftsController::class, 'store'])->name('shifts.store');
         Route::put('/shifts/{id}', [ShiftsController::class, 'update'])->name('shifts.update');
         Route::delete('/shifts/{id}', [ShiftsController::class, 'destroy'])->name('shifts.destroy');
     });
 
+    // ── Shifts ──
+    Route::group(['middleware' => ['permission:ManageShifts|ManageShiftsSPVManager|ViewShifts']], function () {
+        Route::get('/Shifts', [ShiftsController::class, 'index'])->name('pages.Shifts');
+        Route::match(['GET', 'POST'], '/shifts/data', [ShiftsController::class, 'getData'])->name('shifts.data');
+       
+    });
+   
     // ── Position ──
     Route::group(['middleware' => ['permission:ManagePositions']], function () {
         Route::get('/Position', [PositionController::class, 'index'])
@@ -484,19 +488,33 @@ Route::prefix('employees')->name('Employee.')->group(function () {
         Route::post('/Department', [DepartmentController::class, 'store'])->name('Department.store');
         Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
         Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
-        Route::get('/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
+        Route::match(['GET', 'POST'], '/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
+
+    });
+    Route::group(['middleware' => ['permission:ManageDocument']], function () {
+        Route::get('/document', [DocumentController::class, 'index'])
+            ->name('document.index');
+        Route::match(['GET', 'POST'], '/documents/documents', [DocumentController::class, 'getDocuments'])->name('documents.documents');
+        Route::get(
+    '/documents/download/{document}',
+    [DocumentController::class, 'downloadDocument']
+)->name('documents.download');
     });
 
     // ── Public Holidays ──
-    Route::group(['middleware' => ['permission:ManagePH']], function () {
+    Route::group(['middleware' => ['permission:ManagePH|ManagePHSPVManager|ViewPH']], function () {
         Route::get('/Pubholi', [PHController::class, 'index'])
             ->name('pages.Pubholi');
-        Route::get('Pubholi/create', [PHController::class, 'create'])->name('Pubholi.create');
+        
+        Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
+       
+    });
+    Route::group(['middleware' => ['permission:ManagePH']], function () {
+       Route::get('Pubholi/create', [PHController::class, 'create'])->name('Pubholi.create');
         Route::post('/Pubholi', [PHController::class, 'store'])->name('Pubholi.store');
         Route::get('/Pubholi/edit/{hashedId}', [PHController::class, 'edit'])->name('Pubholi.edit');
         Route::put('/Pubholi/{hashedId}', [PHController::class, 'update'])->name('Pubholi.update');
-        Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
-        Route::get('/ImportPH', [PHController::class, 'indexphs'])
+         Route::get('/ImportPH', [PHController::class, 'indexphs'])
             ->name('pages.ImportPH');
         Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');

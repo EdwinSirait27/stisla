@@ -209,7 +209,7 @@
                                           @method('PUT')
 
                                           {{-- Position Name --}}
-                                          <div class="row">
+                                          {{-- <div class="row">
                                               <div class="col-md-6">
                                                   <div class="form-group">
                                                       <label for="name" class="form-control-label">
@@ -226,9 +226,127 @@
                                                       @enderror
                                                   </div>
                                               </div>
+                                          </div> --}}
+                                          <div class="row">
+
+                                              <div class="col-md-6">
+                                                  <div class="form-group">
+                                                      <label for="name" class="form-control-label">
+                                                          <i class="fas fa-briefcase"></i> {{ __('Position Name') }}
+                                                      </label>
+
+                                                      <input type="text"
+                                                          class="form-control @error('name') is-invalid @enderror"
+                                                          id="name" name="name"
+                                                          value="{{ old('name', $position->name) }}"
+                                                          placeholder="e.g. Kasir, IT Support, HRD" required>
+
+                                                      @error('name')
+                                                          <span class="invalid-feedback">
+                                                              <strong>{{ $message }}</strong>
+                                                          </span>
+                                                      @enderror
+                                                  </div>
+                                              </div>
+
+
+                                              <div class="col-md-6">
+                                                  <div class="form-group">
+                                                      <label class="form-control-label">
+                                                          <i class="fas fa-globe"></i> {{ __('Publish Career') }}
+                                                      </label>
+
+                                                      <div class="custom-control custom-switch mt-2">
+                                                          <input type="checkbox" class="custom-control-input"
+                                                              id="publish_career" name="publish_career" value="1"
+                                                              {{ old('publish_career', $position->publish_career) == 1 ? 'checked' : '' }}>
+
+                                                          <label class="custom-control-label" for="publish_career">
+                                                              Show on Job Career
+                                                          </label>
+                                                      </div>
+                                                  </div>
+                                              </div>
+
                                           </div>
 
                                           <div class="divider"></div>
+                                          <div class="row">
+
+                                              <div class="col-md-6">
+                                                  <div class="form-group">
+                                                      <label for="career_start_date" class="form-control-label">
+                                                          <i class="fas fa-calendar-alt"></i>
+                                                          Career Start Date
+                                                      </label>
+
+                                                      <input type="date"
+                                                          class="form-control @error('career_start_date') is-invalid @enderror"
+                                                          id="career_start_date" name="career_start_date"
+                                                          value="{{ old('career_start_date', $position->career_start_date ? \Carbon\Carbon::parse($position->career_start_date)->format('Y-m-d') : '') }}">
+
+                                                      @error('career_start_date')
+                                                          <span class="invalid-feedback">
+                                                              <strong>{{ $message }}</strong>
+                                                          </span>
+                                                      @enderror
+                                                  </div>
+                                              </div>
+
+
+                                              <div class="col-md-6">
+                                                  <div class="form-group">
+                                                      <label for="career_end_date" class="form-control-label">
+                                                          <i class="fas fa-calendar-alt"></i>
+                                                          Career End Date
+                                                      </label>
+
+                                                      <input type="date"
+                                                          class="form-control @error('career_end_date') is-invalid @enderror"
+                                                          id="career_end_date" name="career_end_date"
+                                                          value="{{ old('career_end_date', $position->career_end_date ? \Carbon\Carbon::parse($position->career_end_date)->format('Y-m-d') : '') }}">
+
+                                                      @error('career_end_date')
+                                                          <span class="invalid-feedback">
+                                                              <strong>{{ $message }}</strong>
+                                                          </span>
+                                                      @enderror
+                                                  </div>
+                                              </div>
+
+                                          </div>
+
+
+
+                                          <div class="divider"></div>
+                                          <div class="row">
+
+                                              <div class="col-md-6">
+                                                  <div class="form-group">
+                                                      <label for="vacancy" class="form-control-label">
+                                                          <i class="fas fa-users"></i>
+                                                          Vacancy
+                                                      </label>
+
+                                                      <input type="number" min="1"
+                                                          class="form-control @error('vacancy') is-invalid @enderror"
+                                                          id="vacancy" name="vacancy"
+                                                          value="{{ old('vacancy', $position->vacancy ?? 1) }}"
+                                                          placeholder="e.g. 3">
+
+                                                      @error('vacancy')
+                                                          <span class="invalid-feedback">
+                                                              <strong>{{ $message }}</strong>
+                                                          </span>
+                                                      @enderror
+                                                  </div>
+                                              </div>
+
+                                          </div>
+
+                                          <div class="divider"></div>
+
+
 
                                           {{-- Role Summary --}}
                                           <div class="form-group">
@@ -259,7 +377,8 @@
                                                   @forelse($keyResponItems as $item)
                                                       <div class="responsibility-item">
                                                           <input type="text" class="form-control" name="key_respon[]"
-                                                              value="{{ $item }}" placeholder="Tanggung jawab...">
+                                                              value="{{ $item }}"
+                                                              placeholder="Tanggung jawab...">
                                                           <button type="button" class="btn-remove-item"
                                                               onclick="removeItem(this)">
                                                               <i class="fas fa-times"></i>
@@ -298,8 +417,9 @@
                                                   @endphp
                                                   @forelse($qualificationItems as $item)
                                                       <div class="responsibility-item">
-                                                          <input type="text" class="form-control" name="qualification[]"
-                                                              value="{{ $item }}" placeholder="Kualifikasi...">
+                                                          <input type="text" class="form-control"
+                                                              name="qualification[]" value="{{ $item }}"
+                                                              placeholder="Kualifikasi...">
                                                           <button type="button" class="btn-remove-item"
                                                               onclick="removeItem(this)">
                                                               <i class="fas fa-times"></i>
@@ -307,8 +427,8 @@
                                                       </div>
                                                   @empty
                                                       <div class="responsibility-item">
-                                                          <input type="text" class="form-control" name="qualification[]"
-                                                              placeholder="Kualifikasi...">
+                                                          <input type="text" class="form-control"
+                                                              name="qualification[]" placeholder="Kualifikasi...">
                                                           <button type="button" class="btn-remove-item"
                                                               onclick="removeItem(this)">
                                                               <i class="fas fa-times"></i>
@@ -323,6 +443,168 @@
                                           </div>
 
                                           <div class="divider"></div>
+
+                                          {{-- Benefit yoo --}}
+                                          <div class="form-group">
+                                              <div class="section-label">
+                                                  <i class="fas fa-graduation-cap mr-2" style="color:#6777ef"></i>
+                                                  Benefits
+                                              </div>
+                                              <div id="benefit-list">
+                                                  @php
+                                                      $benefitItems = old('benefit')
+                                                          ? collect(old('benefit'))
+                                                          : $position->benefits->pluck('description');
+                                                  @endphp
+                                                  @forelse($benefitItems as $item)
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="benefit[]"
+                                                              value="{{ $item }}"
+                                                              placeholder="keuntungan melamar...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @empty
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="benefit[]"
+                                                              placeholder="keuntungan melamar...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @endforelse
+                                              </div>
+                                              <button type="button" class="btn-add-item"
+                                                  onclick="addItem('benefit-list', 'benefit[]', 'keuntungan melamar...')">
+                                                  <i class="fas fa-plus"></i> Add Benefit
+                                              </button>
+                                          </div>
+
+                                          <div class="divider"></div>
+
+
+                                          {{-- Benefit yoo --}}
+                                          <div class="form-group">
+                                              <div class="section-label">
+                                                  <i class="fas fa-graduation-cap mr-2" style="color:#6777ef"></i>
+                                                  Requirements
+                                              </div>
+                                              <div id="requirement-list">
+                                                  @php
+                                                      $requirementItems = old('requirement')
+                                                          ? collect(old('requirement'))
+                                                          : $position->requirements->pluck('description');
+                                                  @endphp
+                                                  @forelse($requirementItems as $item)
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="requirement[]"
+                                                              value="{{ $item }}" placeholder="requirement...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @empty
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="requirement[]"
+                                                              placeholder="requirement...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @endforelse
+                                              </div>
+                                              <button type="button" class="btn-add-item"
+                                                  onclick="addItem('requirement-list', 'requirement[]', 'requirement...')">
+                                                  <i class="fas fa-plus"></i> Add Requirement
+                                              </button>
+                                          </div>
+
+                                          <div class="divider"></div>
+
+                                          <div class="form-group">
+                                              <div class="section-label">
+                                                  <i class="fas fa-graduation-cap mr-2" style="color:#6777ef"></i>
+                                                  Skills
+                                              </div>
+                                              <div id="skill-list">
+                                                  @php
+                                                      $skillItems = old('skill')
+                                                          ? collect(old('skill'))
+                                                          : $position->skills->pluck('description');
+                                                  @endphp
+                                                  @forelse($skillItems as $item)
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="skill[]"
+                                                              value="{{ $item }}" placeholder="skill...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @empty
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="skill[]"
+                                                              placeholder="skill...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @endforelse
+                                              </div>
+                                              <button type="button" class="btn-add-item"
+                                                  onclick="addItem('skill-list', 'skill[]', 'skill...')">
+                                                  <i class="fas fa-plus"></i> Add skill
+                                              </button>
+                                          </div>
+
+                                          <div class="divider"></div>
+
+                                          <div class="form-group">
+                                              <div class="section-label">
+                                                  <i class="fas fa-graduation-cap mr-2" style="color:#6777ef"></i>
+                                                  Allowances
+                                              </div>
+                                              <div id="allowance-list">
+                                                  @php
+                                                      $allowanceItems = old('allowance')
+                                                          ? collect(old('allowance'))
+                                                          : $position->allowances->pluck('description');
+                                                  @endphp
+                                                  @forelse($allowanceItems as $item)
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="allowance[]"
+                                                              value="{{ $item }}" placeholder="allowance...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @empty
+                                                      <div class="responsibility-item">
+                                                          <input type="text" class="form-control" name="allowance[]"
+                                                              placeholder="allowance...">
+                                                          <button type="button" class="btn-remove-item"
+                                                              onclick="removeItem(this)">
+                                                              <i class="fas fa-times"></i>
+                                                          </button>
+                                                      </div>
+                                                  @endforelse
+                                              </div>
+                                              <button type="button" class="btn-add-item"
+                                                  onclick="addItem('allowance-list', 'allowance[]', 'allowance...')">
+                                                  <i class="fas fa-plus"></i> Add allowance
+                                              </button>
+                                          </div>
+
+                                          <div class="divider"></div>
+
+
 
                                           <div class="d-flex justify-content-end mt-4">
                                               <a href="{{ route('pages.Position') }}" class="btn btn-secondary">

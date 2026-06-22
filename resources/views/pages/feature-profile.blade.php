@@ -991,22 +991,29 @@
                                             <div class="field-group">
                                                 <label><i class="fas fa-sitemap"></i> Department</label>
                                                 <div class="field-readonly">
-                                                  {{ $user->Employee->department->first()->department_name ?? '-'}}
-
+                                                  {{-- {{ $user->Employee->department->first()->department_name ?? '-'}} --}}
+{{ $user->Employee->department->pluck('department_name')->implode(', ') ?: '-' }}
                                                     {{-- {{ $department->department_name ?? '-' }} --}}
                                                 </div>
                                             </div>
-                                            <div class="field-group">
+                                            {{-- <div class="field-group">
                                                 <label><i class="fas fa-briefcase"></i> Position</label>
                                                 <div class="field-readonly">
                                                                                                     {{ $user->Employee->position->first()->name ?? '-'}}
 
                                                 </div>
-                                            </div>
+                                            </div> --}}
+                                            <div class="field-group">
+    <label><i class="fas fa-briefcase"></i> Position</label>
+    <div class="field-readonly">
+        {{ $user->Employee->position->pluck('name')->implode(', ') ?: '-' }}
+    </div>
+</div>
                                             <div class="field-group">
                                                 <label><i class="fas fa-store"></i> Location</label>
                                                 <div class="field-readonly">
-                                                    {{ $user->Employee->store->first()->name ?? '-'}}
+                                                    {{-- {{ $user->Employee->store->first()->name ?? '-'}} --}}
+                                                    {{ $user->Employee->store->pluck('name')->implode(', ') ?: '-' }}
                                                 </div>
                                             </div>
                                             <div class="field-group">

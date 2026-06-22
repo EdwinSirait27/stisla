@@ -323,7 +323,7 @@
                     <div class="emp-header-sub">
                         {{ $emp->employee_pengenal ?? '-' }}
                         &nbsp;·&nbsp; {{ $emp->store?->first()->name ?? '-' }}
-                        &nbsp;·&nbsp; {{ $emp->position?->first()->position_name ?? '-' }}
+                        &nbsp;·&nbsp; {{ $emp->position?->first()->name ?? '-' }}
                     </div>
                 </div>
                 <div class="emp-header-right">

@@ -6,6 +6,7 @@ use App\Models\Documents;
 use App\Models\Companydocumentconfigs;
 use App\Models\Employee;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DocumentPengantarKaryawanGeneratorService
@@ -40,29 +41,32 @@ class DocumentPengantarKaryawanGeneratorService
             ->where('status', 'Active')
             ->get();
 
-        foreach ($employees as $employee) {
-            $config = $this->resolveConfig($employee);
+       foreach ($employees as $employee) {
+    $config = $this->resolveConfig($employee);
 
-            if (!$config) {
-                continue;
-            }
+    if (!$config) {
+        continue;
+    }
 
-            $existing = Documents::where('company_document_config_id', $config->id)
-                ->where('employee_id', $employee->id)
-                ->exists();
+    DB::transaction(function () use ($employee, $config, $headHR) {
+        $existing = Documents::where('company_document_config_id', $config->id)
+            ->where('employee_id', $employee->id)
+            ->lockForUpdate()
+            ->exists();
 
-            if ($existing) {
-                continue;
-            }
-
-            Documents::create([
-                'company_document_config_id' => $config->id,
-                'employee_id'                => $employee->id,
-                'issued_by'                  => $headHR->employee_id,
-                'issued_date'                => Carbon::parse($employee->join_date)->toDateString(),
-                'status'                     => 'draft',
-            ]);
+        if ($existing) {
+            return;
         }
+
+        Documents::create([
+            'company_document_config_id' => $config->id,
+            'employee_id'                => $employee->id,
+            'issued_by'                  => $headHR->employee_id,
+            'issued_date'                => now()->toDateString(), // ← fix utama
+            'status'                     => 'draft',
+        ]);
+    });
+}
     }
 
    

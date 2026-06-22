@@ -204,6 +204,22 @@
                 </ul>
             </li>
             @endrole
+@canany(['ManageShiftSPVManager','ViewShifts','ManagePHSPVManager','ViewPH'])
+            <li class="nav-item dropdown ">
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                        class="fas fa-database"></i>
+                    <span>Master Data</span></a>
+                <ul class="dropdown-menu">
+                        <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
+                        </li>
+                        <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
+                        </li>
+                 
+                </ul>
+            </li>
+             @endcanany
                     @can('ManageContracts')
 
             <li class="nav-item dropdown ">
@@ -213,6 +229,19 @@
                 <ul class="dropdown-menu">
                         <li class="{{ Request::is('{contract}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('contract') }}">Employees Contracts</a>
+                        </li>
+                </ul>
+            </li>
+                    @endcan
+                    @can('ManageDocument')
+
+            <li class="nav-item dropdown ">
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                        class="fas fa-building"></i>
+                    <span>Documents</span></a>
+                <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{document}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('document') }}">Documents</a>
                         </li>
                 </ul>
             </li>

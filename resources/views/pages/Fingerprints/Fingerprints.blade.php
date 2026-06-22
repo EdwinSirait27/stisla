@@ -2984,6 +2984,7 @@
                                 <th>Schedule</th>
                                 <th>Position</th>
                                 <th>Emp. status</th>
+                                <th>status</th>
                                 <th>Scan date</th>
                                 <th>In</th>
                                 <th>Out</th>
@@ -3479,6 +3480,8 @@ dom: "t" +  // hanya table saja, semua kontrol dihandle manual
                         return `<span class="fp-badge ${cls}">${d}</span>`;
                     }
                 },
+                { data: 'status', className: 'text-center', render: d => d || '-' },
+
                 /* 6 — Scan date */
                 {
                     data: 'scan_date',

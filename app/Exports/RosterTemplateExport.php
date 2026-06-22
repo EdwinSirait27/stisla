@@ -15,25 +15,442 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class RosterTemplateExport implements WithEvents, WithTitle
 {
-    public function __construct(
+    // public function __construct(
+    //     private string $storeId,
+    //     private string $startDate,
+    //     private string $endDate
+    // ) {}
+
+    // public function title(): string
+    // {
+    //     return 'Template Roster';
+    // }
+
+    // public function registerEvents(): array
+    // {
+    //     return [
+    //         AfterSheet::class => function (AfterSheet $event) {
+    //             $sheet = $event->sheet->getDelegate();
+
+    //             $storeName = Stores::find($this->storeId)?->name ?? '-';
+
+    //             // ── Generate tanggal ──
+    //             $dates   = [];
+    //             $current = Carbon::parse($this->startDate);
+    //             $end     = Carbon::parse($this->endDate);
+    //             while ($current->lte($end)) {
+    //                 $dates[] = $current->copy();
+    //                 $current->addDay();
+    //             }
+
+    //             // ── Ambil Public Holiday master dalam rentang ──
+    //             // Map: [Y-m-d => ['type' => 'All'|'Hindu'|'Non Hindu', 'remark' => '...']]
+    //             $phMap = [];
+    //             $holidays = Ph::whereBetween('date', [$this->startDate, $this->endDate])
+    //                 ->get(['date', 'type', 'remark']);
+    //             foreach ($holidays as $ph) {
+    //                 $key = Carbon::parse($ph->date)->toDateString();
+    //                 $phMap[$key] = ['type' => $ph->type, 'remark' => $ph->remark];
+    //             }
+
+    //             // Kolom: A=pengenal, B=store, C dst=tanggal
+    //             $firstDateColIndex = 4;
+    //             $totalCols    = 3 + count($dates);
+    //             $lastColLetter = $this->colLetter($totalCols);
+
+    //             // ── Baris 1: Judul ──
+    //             $sheet->setCellValue('A1', 'Schedule');
+    //             $sheet->mergeCells("A1:{$lastColLetter}1");
+    //             $sheet->getStyle('A1')->applyFromArray([
+    //                 'font'      => ['bold' => true, 'size' => 14, 'color' => ['argb' => 'FFFFFFFF']],
+    //                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0F172A']],
+    //                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //             ]);
+
+    //             // ── Baris 2: Location + Periode ──
+    //             $sheet->setCellValue('A2', "Location: {$storeName}     |     Periode: {$this->startDate} s/d {$this->endDate}");
+    //             $sheet->mergeCells("A2:{$lastColLetter}2");
+    //             $sheet->getStyle('A2')->applyFromArray([
+    //                 'font'      => ['size' => 10, 'italic' => true, 'color' => ['argb' => 'FF64748B']],
+    //                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF8FAFC']],
+    //                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //             ]);
+
+    //             // ── Baris 3: HEADER (A WAJIB 'employee_pengenal' agar import menemukannya) ──
+    //             $sheet->setCellValue('A3', 'employee_pengenal');
+    //             $sheet->setCellValue('B3', 'employee_name');
+    //             $sheet->setCellValue('C3', 'store');
+
+    //             foreach ($dates as $i => $date) {
+    //                 $col = $this->colLetter($firstDateColIndex + $i);
+    //                 $sheet->setCellValue("{$col}3", $date->day);
+    //             }
+
+    //             // ── Baris 4: HARI ──
+    //             $hariMap = [0 => 'M', 1 => 'S', 2 => 'S', 3 => 'R', 4 => 'K', 5 => 'J', 6 => 'S'];
+    //             foreach ($dates as $i => $date) {
+    //                 $col = $this->colLetter($firstDateColIndex + $i);
+    //                 $sheet->setCellValue("{$col}4", $hariMap[$date->dayOfWeek]);
+    //             }
+
+    //             // Style header (baris 3) + HARI (baris 4): kuning
+    //             $sheet->getStyle("A3:{$lastColLetter}4")->applyFromArray([
+    //                 'font'      => ['bold' => true, 'color' => ['argb' => 'FF000000']],
+    //                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFF00']],
+    //                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //             ]);
+    //             $employees = Employee::where('store_id', $this->storeId)
+    // ->whereNull('deleted_at')
+    // ->whereIn('status', [
+    //     'Active',
+    //     'On Leave',
+    //     'Pending'
+    // ])
+    // ->orderBy('employee_name')
+    // ->get([
+    //     'employee_pengenal',
+    //     'employee_name',
+    //     'religion'
+    // ]);
+
+    //             $rowNum = 5;
+    //             foreach ($employees as $emp) {
+    //                 $sheet->setCellValue("A{$rowNum}", $emp->employee_pengenal ?? '');
+    //                 $sheet->setCellValue("B{$rowNum}", $emp->employee_name ?? '');
+    //                 $sheet->setCellValue("C{$rowNum}", $storeName);
+
+    //                 // Kolom pengenal+store: latar kuning muda
+    //                 $sheet->getStyle("A{$rowNum}:C{$rowNum}")->applyFromArray([
+    //                     'font' => ['bold' => true],
+    //                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']]
+    //                 ]);
+
+    //                 // Sel tanggal: isi 'PH' kalau libur untuk agama karyawan ini, selain itu kosong
+    //                 foreach ($dates as $i => $date) {
+    //                     $col     = $this->colLetter($firstDateColIndex + $i);
+    //                     $dateStr = $date->toDateString();
+
+    //                     $isPH = $this->isPublicHolidayForEmployee($phMap, $dateStr, $emp->religion);
+
+    //                     $sheet->setCellValue("{$col}{$rowNum}", $isPH ? 'PH' : '');
+
+    //                     // Warna sel: PH → oranye muda; Minggu → kuning muda
+    //                     if ($isPH) {
+    //                         $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+    //                             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFE0B2']],
+    //                             'font' => ['bold' => true, 'color' => ['argb' => 'FFB45309']],
+    //                         ]);
+    //                     } elseif ($date->isSunday()) {
+    //                         $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+    //                             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF9C3']],
+    //                         ]);
+    //                     }
+
+    //                     $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+    //                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //                     ]);
+    //                 }
+    //                 $rowNum++;
+    //             }
+
+    //             // ── Border semua (baris 3 ke bawah) ──
+    //             $dataRange = "A3:{$lastColLetter}" . ($rowNum - 1);
+    //             $sheet->getStyle($dataRange)->applyFromArray([
+    //                 'borders' => [
+    //                     'allBorders' => [
+    //                         'borderStyle' => Border::BORDER_THIN,
+    //                         'color'       => ['argb' => 'FFD1D5DB'],
+    //                     ],
+    //                 ],
+    //             ]);
+
+    //             // ── Lebar kolom ──
+    //             $sheet->getColumnDimension('A')->setWidth(25);
+    //             $sheet->getColumnDimension('B')->setWidth(20);
+    //             $sheet->getColumnDimension('C')->setWidth(14);
+
+    //             foreach ($dates as $i => $_) {
+    //                 $sheet->getColumnDimension($this->colLetter($firstDateColIndex + $i))->setWidth(5);
+    //             }
+    //             // ── Freeze pane ──
+    //             $sheet->freezePane('D5');
+    //         },
+    //     ];
+    // }
+    // /**
+    //  * Cek apakah tanggal adalah PH untuk agama karyawan tertentu.
+    //  */
+    // private function isPublicHolidayForEmployee(array $phMap, string $date, ?string $religion): bool
+    // {
+    //     if (!isset($phMap[$date])) {
+    //         return false;
+    //     }
+
+    //     $phType = $phMap[$date]['type'];
+
+    //     if ($phType === 'All') {
+    //         return true;
+    //     }
+
+    //     if (empty($religion)) {
+    //         return false;
+    //     }
+
+    //     if ($phType === 'Hindu') {
+    //         return $religion === 'Hindu';
+    //     }
+
+    //     if ($phType === 'Non Hindu') {
+    //         return $religion !== 'Hindu';
+    //     }
+
+    //     return false;
+    // }
+
+    // // Helper: nomor kolom → huruf (1=A, 27=AA, dst)
+    // private function colLetter(int $n): string
+    // {
+    //     $letter = '';
+    //     while ($n > 0) {
+    //         $n--;
+    //         $letter = chr(65 + ($n % 26)) . $letter;
+    //         $n      = intdiv($n, 26);
+    //     }
+    //     return $letter;
+    // }
+    //   public function __construct(
+    //     private string $storeId,
+    //     private string $startDate,
+    //     private string $endDate
+    // ) {}
+
+    // public function title(): string
+    // {
+    //     return 'Template Roster';
+    // }
+
+    // public function registerEvents(): array
+    // {
+    //     return [
+    //         AfterSheet::class => function (AfterSheet $event) {
+    //             $sheet = $event->sheet->getDelegate();
+
+    //             $storeName = Stores::find($this->storeId)?->name ?? '-';
+
+    //             // ── Generate tanggal ──
+    //             $dates   = [];
+    //             $current = Carbon::parse($this->startDate);
+    //             $end     = Carbon::parse($this->endDate);
+    //             while ($current->lte($end)) {
+    //                 $dates[] = $current->copy();
+    //                 $current->addDay();
+    //             }
+
+    //             // ── Ambil Public Holiday master dalam rentang ──
+    //             // Map: [Y-m-d => ['type' => 'All'|'Hindu'|'Non Hindu', 'remark' => '...']]
+    //             $phMap = [];
+    //             $holidays = Ph::whereBetween('date', [$this->startDate, $this->endDate])
+    //                 ->get(['date', 'type', 'remark']);
+    //             foreach ($holidays as $ph) {
+    //                 $key = Carbon::parse($ph->date)->toDateString();
+    //                 $phMap[$key] = ['type' => $ph->type, 'remark' => $ph->remark];
+    //             }
+
+    //             // Kolom: A=pengenal, B=store, C dst=tanggal
+    //             $firstDateColIndex = 4;
+    //             $totalCols    = 3 + count($dates);
+    //             $lastColLetter = $this->colLetter($totalCols);
+
+    //             // ── Baris 1: Judul ──
+    //             $sheet->setCellValue('A1', 'Schedule');
+    //             $sheet->mergeCells("A1:{$lastColLetter}1");
+    //             $sheet->getStyle('A1')->applyFromArray([
+    //                 'font'      => ['bold' => true, 'size' => 14, 'color' => ['argb' => 'FFFFFFFF']],
+    //                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0F172A']],
+    //                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //             ]);
+
+    //             // ── Baris 2: Location + Periode ──
+    //             $sheet->setCellValue('A2', "Location: {$storeName}     |     Periode: {$this->startDate} s/d {$this->endDate}");
+    //             $sheet->mergeCells("A2:{$lastColLetter}2");
+    //             $sheet->getStyle('A2')->applyFromArray([
+    //                 'font'      => ['size' => 10, 'italic' => true, 'color' => ['argb' => 'FF64748B']],
+    //                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF8FAFC']],
+    //                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //             ]);
+
+    //             // ── Baris 3: HEADER (A WAJIB 'employee_pengenal' agar import menemukannya) ──
+    //             $sheet->setCellValue('A3', 'employee_pengenal');
+    //             $sheet->setCellValue('B3', 'Employee');
+    //             $sheet->setCellValue('C3', 'Location');
+
+    //             foreach ($dates as $i => $date) {
+    //                 $col = $this->colLetter($firstDateColIndex + $i);
+    //                 $sheet->setCellValue("{$col}3", $date->day);
+    //             }
+
+    //             // ── Baris 4: HARI ──
+    //             $hariMap = [0 => 'M', 1 => 'S', 2 => 'S', 3 => 'R', 4 => 'K', 5 => 'J', 6 => 'S'];
+    //             foreach ($dates as $i => $date) {
+    //                 $col = $this->colLetter($firstDateColIndex + $i);
+    //                 $sheet->setCellValue("{$col}4", $hariMap[$date->dayOfWeek]);
+    //             }
+
+    //             // Style header (baris 3) + HARI (baris 4): kuning
+    //             $sheet->getStyle("A3:{$lastColLetter}4")->applyFromArray([
+    //                 'font'      => ['bold' => true, 'color' => ['argb' => 'FF000000']],
+    //                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFF00']],
+    //                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //             ]);
+
+    //             // ── Tambah status_employee ke select agar bisa cek DW ──
+    //             $employees = Employee::where('store_id', $this->storeId)
+    //                 ->whereNull('deleted_at')
+    //                 ->whereIn('status', [
+    //                     'Active',
+    //                     'On Leave',
+    //                     'Pending'
+    //                 ])
+    //                 ->orderBy('employee_name')
+    //                 ->get([
+    //                     'employee_pengenal',
+    //                     'employee_name',
+    //                     'religion',
+    //                     'status_employee', // ← tambahan
+    //                 ]);
+
+    //             $rowNum = 5;
+    //             foreach ($employees as $emp) {
+    //                 $sheet->setCellValue("A{$rowNum}", $emp->employee_pengenal ?? '');
+    //                 $sheet->setCellValue("B{$rowNum}", $emp->employee_name ?? '');
+    //                 $sheet->setCellValue("C{$rowNum}", $storeName);
+
+    //                 // Kolom pengenal+store: latar kuning muda
+    //                 $sheet->getStyle("A{$rowNum}:C{$rowNum}")->applyFromArray([
+    //                     'font' => ['bold' => true],
+    //                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']]
+    //                 ]);
+
+    //                 $isDW = $emp->status_employee === 'DW';
+
+    //                 // Sel tanggal: DW → selalu kosong; selain DW → isi 'PH' kalau libur sesuai agama
+    //                 foreach ($dates as $i => $date) {
+    //                     $col     = $this->colLetter($firstDateColIndex + $i);
+    //                     $dateStr = $date->toDateString();
+
+    //                     // DW tidak berhak PH → paksa false
+    //                     $isPH = $isDW
+    //                         ? false
+    //                         : $this->isPublicHolidayForEmployee($phMap, $dateStr, $emp->religion);
+
+    //                     $sheet->setCellValue("{$col}{$rowNum}", $isPH ? 'PH' : '');
+
+    //                     // Warna sel: PH → oranye muda; Minggu → kuning muda
+    //                     if ($isPH) {
+    //                         $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+    //                             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFE0B2']],
+    //                             'font' => ['bold' => true, 'color' => ['argb' => 'FFB45309']],
+    //                         ]);
+    //                     } elseif ($date->isSunday()) {
+    //                         $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+    //                             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF9C3']],
+    //                         ]);
+    //                     }
+
+    //                     $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
+    //                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    //                     ]);
+    //                 }
+    //                 $rowNum++;
+    //             }
+
+    //             // ── Border semua (baris 3 ke bawah) ──
+    //             $dataRange = "A3:{$lastColLetter}" . ($rowNum - 1);
+    //             $sheet->getStyle($dataRange)->applyFromArray([
+    //                 'borders' => [
+    //                     'allBorders' => [
+    //                         'borderStyle' => Border::BORDER_THIN,
+    //                         'color'       => ['argb' => 'FFD1D5DB'],
+    //                     ],
+    //                 ],
+    //             ]);
+
+    //             // ── Lebar kolom ──
+    //             $sheet->getColumnDimension('A')->setWidth(25);
+    //             $sheet->getColumnDimension('B')->setWidth(20);
+    //             $sheet->getColumnDimension('C')->setWidth(14);
+
+    //             foreach ($dates as $i => $_) {
+    //                 $sheet->getColumnDimension($this->colLetter($firstDateColIndex + $i))->setWidth(5);
+    //             }
+
+    //             // ── Freeze pane ──
+    //             $sheet->freezePane('D5');
+    //         },
+    //     ];
+    // }
+
+    // /**
+    //  * Cek apakah tanggal adalah PH untuk agama karyawan tertentu.
+    //  * DW tidak perlu dikirim ke sini karena sudah di-skip di loop atas.
+    //  */
+    // private function isPublicHolidayForEmployee(array $phMap, string $date, ?string $religion): bool
+    // {
+    //     if (!isset($phMap[$date])) {
+    //         return false;
+    //     }
+
+    //     $phType = $phMap[$date]['type'];
+
+    //     if ($phType === 'All') {
+    //         return true;
+    //     }
+
+    //     if (empty($religion)) {
+    //         return false;
+    //     }
+
+    //     if ($phType === 'Hindu') {
+    //         return $religion === 'Hindu';
+    //     }
+
+    //     if ($phType === 'Non Hindu') {
+    //         return $religion !== 'Hindu';
+    //     }
+
+    //     return false;
+    // }
+
+    // // Helper: nomor kolom → huruf (1=A, 27=AA, dst)
+    // private function colLetter(int $n): string
+    // {
+    //     $letter = '';
+    //     while ($n > 0) {
+    //         $n--;
+    //         $letter = chr(65 + ($n % 26)) . $letter;
+    //         $n      = intdiv($n, 26);
+    //     }
+    //     return $letter;
+    // }
+        public function __construct(
         private string $storeId,
         private string $startDate,
         private string $endDate
     ) {}
-
+ 
     public function title(): string
     {
         return 'Template Roster';
     }
-
+ 
     public function registerEvents(): array
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-
+ 
                 $storeName = Stores::find($this->storeId)?->name ?? '-';
-
+ 
                 // ── Generate tanggal ──
                 $dates   = [];
                 $current = Carbon::parse($this->startDate);
@@ -42,7 +459,7 @@ class RosterTemplateExport implements WithEvents, WithTitle
                     $dates[] = $current->copy();
                     $current->addDay();
                 }
-
+ 
                 // ── Ambil Public Holiday master dalam rentang ──
                 // Map: [Y-m-d => ['type' => 'All'|'Hindu'|'Non Hindu', 'remark' => '...']]
                 $phMap = [];
@@ -52,12 +469,12 @@ class RosterTemplateExport implements WithEvents, WithTitle
                     $key = Carbon::parse($ph->date)->toDateString();
                     $phMap[$key] = ['type' => $ph->type, 'remark' => $ph->remark];
                 }
-
+ 
                 // Kolom: A=pengenal, B=store, C dst=tanggal
                 $firstDateColIndex = 4;
                 $totalCols    = 3 + count($dates);
                 $lastColLetter = $this->colLetter($totalCols);
-
+ 
                 // ── Baris 1: Judul ──
                 $sheet->setCellValue('A1', 'Schedule');
                 $sheet->mergeCells("A1:{$lastColLetter}1");
@@ -66,7 +483,7 @@ class RosterTemplateExport implements WithEvents, WithTitle
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF0F172A']],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
-
+ 
                 // ── Baris 2: Location + Periode ──
                 $sheet->setCellValue('A2', "Location: {$storeName}     |     Periode: {$this->startDate} s/d {$this->endDate}");
                 $sheet->mergeCells("A2:{$lastColLetter}2");
@@ -75,65 +492,69 @@ class RosterTemplateExport implements WithEvents, WithTitle
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFF8FAFC']],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
-
+ 
                 // ── Baris 3: HEADER (A WAJIB 'employee_pengenal' agar import menemukannya) ──
                 $sheet->setCellValue('A3', 'employee_pengenal');
-                $sheet->setCellValue('B3', 'employee_name');
-                $sheet->setCellValue('C3', 'store');
-
+                $sheet->setCellValue('B3', 'Employee');
+                $sheet->setCellValue('C3', 'Location');
+ 
                 foreach ($dates as $i => $date) {
                     $col = $this->colLetter($firstDateColIndex + $i);
                     $sheet->setCellValue("{$col}3", $date->day);
                 }
-
+ 
                 // ── Baris 4: HARI ──
                 $hariMap = [0 => 'M', 1 => 'S', 2 => 'S', 3 => 'R', 4 => 'K', 5 => 'J', 6 => 'S'];
                 foreach ($dates as $i => $date) {
                     $col = $this->colLetter($firstDateColIndex + $i);
                     $sheet->setCellValue("{$col}4", $hariMap[$date->dayOfWeek]);
                 }
-
+ 
                 // Style header (baris 3) + HARI (baris 4): kuning
                 $sheet->getStyle("A3:{$lastColLetter}4")->applyFromArray([
                     'font'      => ['bold' => true, 'color' => ['argb' => 'FF000000']],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFF00']],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
-                $employees = Employee::where('store_id', $this->storeId)
-    ->whereNull('deleted_at')
-    ->whereIn('status', [
-        'Active',
-        'On Leave',
-        'Pending'
-    ])
-    ->orderBy('employee_name')
-    ->get([
-        'employee_pengenal',
-        'employee_name',
-        'religion'
-    ]);
-
+ 
+                // ── Ambil employee berdasarkan pivot store (bukan kolom store_id langsung) ──
+                $employees = Employee::whereNull('deleted_at')
+                    ->whereIn('status', ['Active', 'On Leave', 'Pending'])
+                    ->whereHas('store', fn($q) => $q->where('stores_tables.id', $this->storeId))
+                    ->orderBy('employee_name')
+                    ->get([
+                        'employee_pengenal',
+                        'employee_name',
+                        'religion',
+                        'status_employee',
+                    ]);
+ 
                 $rowNum = 5;
                 foreach ($employees as $emp) {
                     $sheet->setCellValue("A{$rowNum}", $emp->employee_pengenal ?? '');
                     $sheet->setCellValue("B{$rowNum}", $emp->employee_name ?? '');
                     $sheet->setCellValue("C{$rowNum}", $storeName);
-
+ 
                     // Kolom pengenal+store: latar kuning muda
                     $sheet->getStyle("A{$rowNum}:C{$rowNum}")->applyFromArray([
                         'font' => ['bold' => true],
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFEF9C3']]
                     ]);
-
-                    // Sel tanggal: isi 'PH' kalau libur untuk agama karyawan ini, selain itu kosong
+ 
+                    $isDW = $emp->status_employee === 'DW';
+ 
+                    // Sel tanggal: DW → selalu kosong; selain DW → isi 'PH' kalau libur sesuai agama
                     foreach ($dates as $i => $date) {
                         $col     = $this->colLetter($firstDateColIndex + $i);
                         $dateStr = $date->toDateString();
-
-                        $isPH = $this->isPublicHolidayForEmployee($phMap, $dateStr, $emp->religion);
-
+ 
+                        // DW tidak berhak PH → paksa false
+                        $isPH = $isDW
+                            ? false
+                            : $this->isPublicHolidayForEmployee($phMap, $dateStr, $emp->religion);
+ 
                         $sheet->setCellValue("{$col}{$rowNum}", $isPH ? 'PH' : '');
-
+ 
                         // Warna sel: PH → oranye muda; Minggu → kuning muda
                         if ($isPH) {
                             $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
@@ -145,14 +566,14 @@ class RosterTemplateExport implements WithEvents, WithTitle
                                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF9C3']],
                             ]);
                         }
-
+ 
                         $sheet->getStyle("{$col}{$rowNum}")->applyFromArray([
                             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                         ]);
                     }
                     $rowNum++;
                 }
-
+ 
                 // ── Border semua (baris 3 ke bawah) ──
                 $dataRange = "A3:{$lastColLetter}" . ($rowNum - 1);
                 $sheet->getStyle($dataRange)->applyFromArray([
@@ -163,50 +584,53 @@ class RosterTemplateExport implements WithEvents, WithTitle
                         ],
                     ],
                 ]);
-
+ 
                 // ── Lebar kolom ──
                 $sheet->getColumnDimension('A')->setWidth(25);
                 $sheet->getColumnDimension('B')->setWidth(20);
                 $sheet->getColumnDimension('C')->setWidth(14);
-
+ 
                 foreach ($dates as $i => $_) {
                     $sheet->getColumnDimension($this->colLetter($firstDateColIndex + $i))->setWidth(5);
                 }
+ 
                 // ── Freeze pane ──
                 $sheet->freezePane('D5');
             },
         ];
     }
+ 
     /**
      * Cek apakah tanggal adalah PH untuk agama karyawan tertentu.
+     * DW tidak perlu dikirim ke sini karena sudah di-skip di loop atas.
      */
     private function isPublicHolidayForEmployee(array $phMap, string $date, ?string $religion): bool
     {
         if (!isset($phMap[$date])) {
             return false;
         }
-
+ 
         $phType = $phMap[$date]['type'];
-
+ 
         if ($phType === 'All') {
             return true;
         }
-
+ 
         if (empty($religion)) {
             return false;
         }
-
+ 
         if ($phType === 'Hindu') {
             return $religion === 'Hindu';
         }
-
+ 
         if ($phType === 'Non Hindu') {
             return $religion !== 'Hindu';
         }
-
+ 
         return false;
     }
-
+ 
     // Helper: nomor kolom → huruf (1=A, 27=AA, dst)
     private function colLetter(int $n): string
     {
@@ -218,4 +642,5 @@ class RosterTemplateExport implements WithEvents, WithTitle
         }
         return $letter;
     }
+
 }

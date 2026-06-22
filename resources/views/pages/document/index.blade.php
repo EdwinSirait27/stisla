@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Positions')
+@section('title', 'Documents')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -166,33 +166,26 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Positions</h1>
+                <h1>Documents</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Positions</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Documents</h6>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
-                                                <th class="text-center">Name</th>
-                                                <th class="text-center">Role Summary</th>
-                                                <th class="text-center">Publish Career</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Document Number</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="button" onclick="window.location='{{ route('Position.create') }}'"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Position
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -213,7 +206,7 @@
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
-                    url: '{{ route('positions.positions') }}',
+                    url: '{{ route('documents.documents') }}',
                     type: 'GET'
                 },
                 responsive: true,
@@ -227,25 +220,15 @@
                 },
                 columns: [
                     {
-                        data: 'name',
-                        name: 'name',
+                        data: 'employee_name',
+                        name: 'employee_name',
                         className: 'text-center'
                     },
                     {
-                        data: 'role_summary',
-                        name: 'role_summary',
+                        data: 'document_number',
+                        name: 'document_number',
                         className: 'text-center'
                     },
-                    {
-    data: 'publish_career',
-    name: 'publish_career',
-    className: 'text-center',
-    render: function (data) {
-        return data == 1
-            ? '<span class="badge badge-success">Yes</span>'
-            : '<span class="badge badge-secondary">No</span>';
-    }
-},
                     {
                         data: 'action',
                         name: 'action',
@@ -267,8 +250,6 @@
                     text: '{{ session('success') }}',
                 });
             @endif
-
         });
     </script>
-   
 @endpush

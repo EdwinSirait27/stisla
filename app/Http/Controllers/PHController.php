@@ -17,23 +17,29 @@ class PHController extends Controller
 {
     public function index()
     {
+        /** @var \App\Models\User $user */
+    $user = auth()->user();
+
+    if (!$user) {
+        abort(403);
+    }
+     if ($user->hasanyPermission(['ManagePH','ManagePHSPVManager','ViewPH'])) {
+     }
         return view('pages.Pubholi.Pubholi');
     }
-    // public function getPubholidays()
-    // {
-    //     $pubholidays = Ph::select(['id', 'type', 'date', 'remark'])
-    //         ->get()
-    //         ->map(function ($pubholiday) {
-    //             return $pubholiday;
-    //         });
-
-    //     return DataTables::of($pubholidays)
-    //         ->make(true);
-    // }
+    
     
 
 public function getPubholidays(Request $request)
 {
+         /** @var \App\Models\User $user */
+    $user = auth()->user();
+
+    if (!$user) {
+        abort(403);
+    }
+    if ($user->hasanyPermission(['ManagePH','ManagePHSPVManager','ViewPH'])) {
+     }
     $query = Ph::select([
         'id',
         'type',
@@ -60,11 +66,21 @@ public function getPubholidays(Request $request)
 }
     public function indexphs()
     {
+               $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('ManagePH')) {
+            abort(403, 'Unauthorized');
+        }
         $files = Storage::disk('public')->files('templatephs');
         return view('pages.ImportPH.ImportPH', compact('files'));
     }
     public function downloadphs($filename)
     {
+              $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('ManagePH')) {
+            abort(403, 'Unauthorized');
+        }
         $path = 'templatephs/' . $filename;
 
         if (Storage::disk('public')->exists($path)) {
@@ -75,6 +91,11 @@ public function getPubholidays(Request $request)
    
     public function importPhs(Request $request)
 {
+          $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('ManagePH')) {
+            abort(403, 'Unauthorized');
+        }
     $request->validate([
         'file' => 'required|mimes:xlsx,csv,xls'
     ], [

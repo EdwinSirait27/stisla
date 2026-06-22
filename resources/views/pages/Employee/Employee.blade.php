@@ -743,7 +743,7 @@
                                                 class="d-flex align-items-center justify-content-center" style="height:100%">
                                                 <div class="text-center text-muted">
                                                     <i class="fas fa-sitemap fa-3x mb-3 d-block"></i>
-                                                    <p>Pilih store dan department untuk menampilkan bagan</p>
+                                                    <p>Choose location and department for show structures</p>
                                                 </div>
                                             </div>
                                             <svg id="svg-chart"
@@ -1393,7 +1393,7 @@
                     <b>Company:</b> ${node.company_name}<br>
                     <b>Grading:</b> ${node.grading}<br>
                     <b>Position:</b> ${node.all_positions}<br>
-                    <b>Store:</b> ${node.all_stores}<br>
+                    <b>Location:</b> ${node.all_stores}<br>
                     <b>Department:</b> ${node.all_departments}
                 </small>`,
                 icon: 'info',

@@ -29,13 +29,14 @@ class UserprofileController extends Controller
     {
         $user = User::with([
             'Employee.documents.companydocumentconfigs.documenttypes',
-                    'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),
-                    'Employee.store' => fn($q) => $q->wherePivot('is_primary', true),
-                    'Employee.department' => fn($q) => $q->wherePivot('is_primary', true),
-
+                    // 'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+                    // 'Employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+                    // 'Employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+                     'Employee.position',
+        'Employee.store',
+        'Employee.department',
             'Employee.skletters' => function ($query) {
                 $query->where('status', 'Draft');
-                // $query->where('status', 'Approved Managing Director');
             },
         ])->find(Auth::id());
         return view('pages.feature-profile', compact('user'));

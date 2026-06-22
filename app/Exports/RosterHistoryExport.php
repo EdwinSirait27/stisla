@@ -246,8 +246,10 @@ foreach ($dates as $i => $date) {
                             $fontColor = 'FFFFFFFF'; // teks putih agar kontras
                         } elseif (!$roster) {
                             // Kosong = hitam
-                            $bg        = 'FF000000';
+                            $bg        = 'FFFFFFFF';
                             $fontColor = 'FF000000';
+                            // $bg        = 'FF000000';
+                            // $fontColor = 'FF000000';
                         } else {
                             // Work = putih
                             $bg        = 'FFFFFFFF';

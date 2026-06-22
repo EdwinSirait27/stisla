@@ -14,6 +14,10 @@ class PositionResponsibility extends Model
 
     const TYPE_KEY_RESPON = 'key_respon';
     const TYPE_QUALIFICATION = 'qualification';
+    const TYPE_BENEFIT = 'benefit';
+    const TYPE_REQUIREMENT = 'requirement';
+    const TYPE_SKILL = 'skill';
+    const TYPE_ALLOWANCE = 'allowance';
 
     protected static function boot()
     {
@@ -47,5 +51,21 @@ class PositionResponsibility extends Model
     public function scopeQualification($query)
     {
         return $query->where('type', self::TYPE_QUALIFICATION);
+    }
+    public function scopeBenefit($query)
+    {
+        return $query->where('type', self::TYPE_BENEFIT);
+    }
+    public function scopeRequirement($query)
+    {
+        return $query->where('type', self::TYPE_REQUIREMENT);
+    }
+    public function scopeSkill($query)
+    {
+        return $query->where('type', self::TYPE_SKILL);
+    }
+    public function scopeAllowance($query)
+    {
+        return $query->where('type', self::TYPE_ALLOWANCE);
     }
 }

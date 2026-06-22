@@ -409,7 +409,7 @@ if ($canSpvManager && !$canManage) {
 //     }
 // }
 $employeesQuery = Employee::with(['position' => fn($q) => $q->wherePivot('is_primary', true), 'store' => fn($q) => $q->wherePivot('is_primary', true)])
-    ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee', 'company_id')
+    ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee','status', 'company_id')
     ->whereNotNull('pin');
 
 if ($canViewOwn && !$canManage && !$canSpvManager) {
@@ -529,6 +529,7 @@ if ($canViewOwn && !$canManage && !$canSpvManager) {
                 'pin'               => $pin,
                 'employee_name'     => $employee->employee_name     ?? '-',
                 'status_employee'   => $employee->status_employee   ?? '-',
+                'status'   => $employee->status   ?? '-',
                 'employee_pengenal' => $employee->employee_pengenal ?? '-',
                 'name'              => $employee->store->first()?->name      ?? '-', // ← fix
     'position_name'     => $employee->position->first()?->name   ?? '-', // ← fix

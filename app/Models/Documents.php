@@ -41,36 +41,72 @@ class Documents extends Model
         });
     }
 
+    // protected static function generateDocumentNumber(Documents $model): string
+    // {
+    //     $romanMonths = [
+    //         1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
+    //         5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
+    //         9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+    //     ];
+
+    //     $now        = now();
+    //     $year       = $now->year;
+    //     $romanMonth = $romanMonths[$now->month];
+
+    //     // Ambil data relasi
+    //     $config       = Companydocumentconfigs::with(['documenttypes', 'company'])->find($model->company_document_config_id);
+    //     $documentCode = strtoupper(str_replace(' ', '-', $config->documenttypes->nickname));
+    //     $companyNick  = strtoupper($config->company->nickname);
+
+    //     // Hitung increment — reset tiap tahun baru
+    //     $count = self::whereHas('companydocumentconfigs', function ($q) use ($config) {
+    //             $q->where('company_id', $config->company_id)
+    //               ->where('document_type_id', $config->document_type_id);
+    //         })
+    //         ->whereYear('issued_date', $year)
+    //         ->count();
+
+    //     $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+
+    //     // Format: 001/SURAT-PERINGATAN-PT-ABC/V/2026
+    //     return "{$sequence}/{$documentCode}-{$companyNick}/{$romanMonth}/{$year}";
+    // }
     protected static function generateDocumentNumber(Documents $model): string
-    {
-        $romanMonths = [
-            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
-            5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
-            9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
-        ];
+{
+    $romanMonths = [
+        1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
+        5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
+        9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+    ];
 
-        $now        = now();
-        $year       = $now->year;
-        $romanMonth = $romanMonths[$now->month];
+    $now        = now();
+    $year       = $now->year;
+    $romanMonth = $romanMonths[$now->month];
 
-        // Ambil data relasi
-        $config       = Companydocumentconfigs::with(['documenttypes', 'company'])->find($model->company_document_config_id);
-        $documentCode = strtoupper(str_replace(' ', '-', $config->documenttypes->nickname));
-        $companyNick  = strtoupper($config->company->nickname);
+    $config       = Companydocumentconfigs::with(['documenttypes', 'company'])
+                        ->find($model->company_document_config_id);
+    $documentCode = strtoupper(str_replace(' ', '-', $config->documenttypes->nickname));
+    $companyNick  = strtoupper($config->company->nickname);
 
-        // Hitung increment — reset tiap tahun baru
-        $count = self::whereHas('companydocumentconfigs', function ($q) use ($config) {
-                $q->where('company_id', $config->company_id)
-                  ->where('document_type_id', $config->document_type_id);
+    $suffix = "/{$documentCode}-{$companyNick}/{$romanMonth}/{$year}";
+
+    // Cari sequence tertinggi berdasarkan pattern document_number
+    $last = self::whereExists(function ($q) use ($config) {
+                $q->selectRaw(1)
+                  ->from('company_document_configs')
+                  ->whereColumn('company_document_configs.id', 'documents.company_document_config_id')
+                  ->where('company_document_configs.company_id', $config->company_id)
+                  ->where('company_document_configs.document_type_id', $config->document_type_id);
             })
-            ->whereYear('issued_date', $year)
-            ->count();
+            ->where('document_number', 'like', "%{$suffix}")
+            ->lockForUpdate()
+            ->orderByRaw('CAST(SUBSTRING_INDEX(document_number, "/", 1) AS UNSIGNED) DESC')
+            ->value('document_number');
 
-        $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+    $sequence = $last ? ((int) explode('/', $last)[0]) + 1 : 1;
 
-        // Format: 001/SURAT-PERINGATAN-PT-ABC/V/2026
-        return "{$sequence}/{$documentCode}-{$companyNick}/{$romanMonth}/{$year}";
-    }
+    return str_pad($sequence, 3, '0', STR_PAD_LEFT) . $suffix;
+}
 
     // Relationships
     public function companydocumentconfigs()
