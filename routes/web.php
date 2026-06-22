@@ -69,6 +69,7 @@ use App\Http\Controllers\PayrollPeriodController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EmployeeTrainingController;
 use App\Models\Contract;
 /*
 |--------------------------------------------------------------------------
@@ -93,7 +94,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor'])->group(function () {
+Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor|Training'])->group(function () {
+    Route::put('/profile/switch-role', [UserprofileController::class, 'switchRole'])->name('profile.switchRole');
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
     Route::post('/savesign', [UserprofileController::class, 'save'])->name('save.signature');
@@ -216,6 +218,17 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
           Route::get('Employee/{hashedId}/document/{documentId}/download', [EmployeeController::class, 'downloadDocument'])
     ->name('Employee.document.download');
 
+    });
+
+
+
+    // ── Employee training──
+   
+    Route::group(['middleware' => ['permission:ManageEmployeeTraining']], function () {
+    Route::get('/employee-training', [EmployeeTrainingController::class, 'index'])
+            ->name('pages.employee-training');
+        Route::get('/employeestraining/employeestraining', [EmployeeTrainingController::class, 'getEmployeeTrainings'])->name('employeestraining.employeestraining');
+        Route::get('/employeestraining/export', [EmployeeTrainingController::class, 'exportTraingingEmployees'])->name('Employeetraining.export');
     });
 
 Route::prefix('employees')->name('Employee.')->group(function () {

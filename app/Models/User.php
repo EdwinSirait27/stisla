@@ -34,6 +34,8 @@ class User extends Authenticatable
         'employee_id',
         'username',
         'password',
+        'active_role_hrx',
+        'all_roles_hrx',
     ];
     /**
      * The attributes that should be hidden for serialization.
@@ -49,6 +51,8 @@ class User extends Authenticatable
 protected $casts = [
     'created_at' => 'datetime:Y-m-d H:i:s', // Format default MySQL
     'updated_at' => 'datetime:Y-m-d H:i:s',
+    'all_roles_hrx' => 'array',
+
 ];
     /**
      * The attributes that should be cast.

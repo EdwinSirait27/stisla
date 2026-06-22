@@ -319,7 +319,7 @@
                                         <div class="row mt-3">
 
 
-                                            <div class="col-md-6">
+                                            {{-- <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="role" class="form-control-label">
                                                         <i class="fas fa-shield-alt"></i> {{ __('Role') }}
@@ -345,7 +345,36 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> --}}
+                                            <div class="col-md-6">
+    <div class="form-group">
+        <label for="roles" class="form-control-label">
+            <i class="fas fa-shield-alt"></i> {{ __('Role') }}
+        </label>
+        <div class="@error('roles') border border-danger rounded-3 @enderror">
+            <select class="form-control @error('roles') is-invalid @enderror"
+                name="roles[]"
+                id="roles"
+                multiple
+                required>
+
+                @foreach ($roles as $name => $displayName)
+                    <option value="{{ $name }}"
+                        {{ in_array($name, $selectedRoles ?? []) ? 'selected' : '' }}>
+                        {{ $displayName }}
+                    </option>
+                @endforeach
+            </select>
+
+            @error('roles')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+        </div>
+        <small class="text-muted">Tahan <kbd>Ctrl</kbd> untuk memilih lebih dari satu role.</small>
+    </div>
+</div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="pin" class="form-control-label">

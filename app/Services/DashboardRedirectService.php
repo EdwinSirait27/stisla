@@ -16,6 +16,7 @@ class DashboardRedirectService
             'dashboardTeam'       => 'pages.dashboardTeam',
             'dashboardDirector'   => 'pages.dashboardDirector',
             'dashboardHR'         => 'pages.dashboardHR',
+            'ManageEmployeeTraining'         => 'pages.employee-training',
         ];
     }
 

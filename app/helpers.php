@@ -36,6 +36,9 @@ function getDashboardRoute()
      elseif ($user->hasRole('employee')) {
         return 'employee.dashboard';
     }
+     elseif ($user->hasRole('Training')) {
+        return 'pages.employee-training';
+    }
 
     return 'dashboard'; // default fallback
 }

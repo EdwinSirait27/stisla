@@ -84,29 +84,54 @@ public function bulkUpdateRole(Request $request)
 }
 
 
+    // public function edit($hashedId)
+    // {
+    //     $user = User::with('terms', 'roles.permissions', 'Employee')->get()->first(function ($u) use ($hashedId) {
+    //         $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+    //         return $expectedHash === $hashedId;
+    //     });
+    //     if (!$user) {
+    //         abort(404, 'User not found.');
+    //     }
+    //     $userStatus = ['Active', 'Inactive'];
+    //     $selectedStatus = old('status', $user->Employee->status ?? '');
+    //     $roles = Role::pluck('name', 'name')->all();
+    //     // Change selectedRole to use name instead of id
+    //     $selectedRole = old('role', optional($user->roles->first())->name ?? '');
+    //     return view('pages.dashboardAdmin.edit', [
+    //         'user' => $user,
+    //         'hashedId' => $hashedId,
+    //         'userStatus' => $userStatus,
+    //         'selectedStatus' => $selectedStatus,
+    //         'roles' => $roles,
+    //         'selectedRole' => $selectedRole
+    //     ]);
+    // }
     public function edit($hashedId)
-    {
-        $user = User::with('terms', 'roles.permissions', 'Employee')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$user) {
-            abort(404, 'User not found.');
-        }
-        $userStatus = ['Active', 'Inactive'];
-        $selectedStatus = old('status', $user->Employee->status ?? '');
-        $roles = Role::pluck('name', 'name')->all();
-        // Change selectedRole to use name instead of id
-        $selectedRole = old('role', optional($user->roles->first())->name ?? '');
-        return view('pages.dashboardAdmin.edit', [
-            'user' => $user,
-            'hashedId' => $hashedId,
-            'userStatus' => $userStatus,
-            'selectedStatus' => $selectedStatus,
-            'roles' => $roles,
-            'selectedRole' => $selectedRole
-        ]);
+{
+    $user = User::with('terms', 'roles.permissions', 'Employee')->get()->first(function ($u) use ($hashedId) {
+        $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+        return $expectedHash === $hashedId;
+    });
+
+    if (!$user) {
+        abort(404, 'User not found.');
     }
+
+    $userStatus     = ['Active', 'Inactive'];
+    $selectedStatus = old('status', $user->Employee->status ?? '');
+    $roles          = Role::pluck('name', 'name')->all();
+    $selectedRoles  = old('roles', $user->roles->pluck('name')->toArray());
+
+    return view('pages.dashboardAdmin.edit', [
+        'user'           => $user,
+        'hashedId'       => $hashedId,
+        'userStatus'     => $userStatus,
+        'selectedStatus' => $selectedStatus,
+        'roles'          => $roles,
+        'selectedRoles'  => $selectedRoles,
+    ]);
+}
     public function update(Request $request, $hashedId)
     {
         Log::info('Masuk ke method update', ['hashedId' => $hashedId]);
@@ -123,36 +148,68 @@ public function bulkUpdateRole(Request $request)
 
         Log::info('User ditemukan', ['user_id' => $user->id]);
 
-        $validatedData = $request->validate([
-            'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-            'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-            'password' => [
-                'nullable',
-                'string',
-                'min:8',
-                'max:20',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/', // tidak boleh ada spasi
-                new NoXSSInput(),
-            ],
-            'username' => [
-                'required',
-                'string',
-                'max:20',
-                'min:8',
-                'regex:/^[a-zA-Z0-9_-]+$/',
-                Rule::unique('users')->ignore($user->id),
-                new NoXSSInput()
-            ],
-            'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
-            'pin' => ['required', 'max:4', new NoXSSInput()],
-            'role' => ['required', 'string', 'exists:roles,name'],
-            'permissions' => ['nullable'],
-        ], [
-        'password.regex' => 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol, and must not contain spaces.',
-        'password.min' => 'Password must be at least 8 characters.',
-        'password.max' => 'Password maximum 20 characters.',
+    //     $validatedData = $request->validate([
+    //         'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    //         'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    //         'password' => [
+    //             'nullable',
+    //             'string',
+    //             'min:8',
+    //             'max:20',
+    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/', // tidak boleh ada spasi
+    //             new NoXSSInput(),
+    //         ],
+    //         'username' => [
+    //             'required',
+    //             'string',
+    //             'max:20',
+    //             'min:8',
+    //             'regex:/^[a-zA-Z0-9_-]+$/',
+    //             Rule::unique('users')->ignore($user->id),
+    //             new NoXSSInput()
+    //         ],
+    //         'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
+    //         'pin' => ['required', 'max:4', new NoXSSInput()],
+    //         'role' => ['required', 'string', 'exists:roles,name'],
+    //         'permissions' => ['nullable'],
+    //     ], [
+    //     'password.regex' => 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol, and must not contain spaces.',
+    //     'password.min' => 'Password must be at least 8 characters.',
+    //     'password.max' => 'Password maximum 20 characters.',
         
-    ]);
+    // ]);
+    $validatedData = $request->validate([
+    'device_lan_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    'device_wifi_mac' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+    'password' => [
+        'nullable',
+        'string',
+        'min:8',
+        'max:20',
+        'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/',
+        new NoXSSInput(),
+    ],
+    'username' => [
+        'required',
+        'string',
+        'max:20',
+        'min:8',
+        'regex:/^[a-zA-Z0-9_-]+$/',
+        Rule::unique('users')->ignore($user->id),
+        new NoXSSInput()
+    ],
+    'status' => ['nullable', 'string', 'in:Active,Inactive,Pending,Mutation', new NoXSSInput()],
+    'pin'    => ['required', 'max:4', new NoXSSInput()],
+    'roles'  => ['required', 'array', 'min:1'],
+    'roles.*' => ['string', 'exists:roles,name'],
+    'permissions' => ['nullable'],
+], [
+    'password.regex' => 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol, and must not contain spaces.',
+    'password.min'   => 'Password must be at least 8 characters.',
+    'password.max'   => 'Password maximum 20 characters.',
+    'roles.required' => 'Minimal satu role harus dipilih.',
+    'roles.min'      => 'Minimal satu role harus dipilih.',
+]);
 
         Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
 
@@ -185,8 +242,14 @@ public function bulkUpdateRole(Request $request)
 
             // Ambil role dan permission
             // Assign role saja, tanpa manual sync permission
-            $role = Role::findByName($validatedData['role']);
-            $user->syncRoles($role);
+            // $role = Role::findByName($validatedData['role']);
+            // $user->syncRoles($role);
+             $roles = Role::whereIn('name', $validatedData['roles'])->get();
+    $user->syncRoles($roles);
+     $user->update([
+        'active_role_hrx' => $validatedData['roles'][0],
+        'all_roles_hrx'   => $validatedData['roles'],
+    ]);
 
             DB::commit();
             Log::info('Transaksi berhasil dikommit');

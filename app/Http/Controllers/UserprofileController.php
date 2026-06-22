@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Documents;
 use App\Models\Employee;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
+
 use Carbon\Carbon;
 use App\Models\SkLetter;
 use Illuminate\Support\Str;
@@ -25,16 +27,70 @@ class UserprofileController extends Controller
         $user = Auth::user();
         return view('pages.change-password', compact('user'));
     }
+//     public function switchRole(Request $request)
+// {
+//     /** @var \App\Models\User $user */
+//     $user = Auth::user();
+
+//     $allRoles = $user->all_roles_hrx ?? [];
+
+//     $request->validate([
+//         'active_role_hrx' => ['required', 'string', 'in:' . implode(',', $allRoles)],
+//     ], [
+//         'active_role_hrx.in' => 'Role yang dipilih tidak tersedia untuk akun Anda.',
+//     ]);
+
+//     $user->update([
+//         'active_role_hrx' => $request->active_role_hrx,
+//     ]);
+
+//     Log::info('[SWITCH ROLE] Active role diubah', [
+//         'user_id'     => $user->id,
+//         'active_role' => $request->active_role_hrx,
+//     ]);
+
+//     return back()->with('status', 'Role aktif berhasil diubah.');
+// }
+public function switchRole(Request $request)
+{
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    $allRoles = $user->all_roles_hrx ?? [];
+
+    $request->validate([
+        'active_role_hrx' => ['required', 'string', 'in:' . implode(',', $allRoles)],
+    ], [
+        'active_role_hrx.in' => 'Role yang dipilih tidak tersedia untuk akun Anda.',
+    ]);
+
+    $selectedRole = $request->active_role_hrx;
+
+    $role = Role::findByName($selectedRole);
+    $user->syncRoles([$role]);
+
+    $user->update([
+        'active_role_hrx' => $selectedRole,
+    ]);
+
+    // Reset cache Spatie tanpa logout
+    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+    Log::info('[SWITCH ROLE] Active role diubah', [
+        'user_id'     => $user->id,
+        'active_role' => $selectedRole,
+    ]);
+
+    return back()->with('status', 'Role aktif berhasil diubah ke ' . $selectedRole . '.');
+}
     public function index()
     {
         $user = User::with([
             'Employee.documents.companydocumentconfigs.documenttypes',
-                    // 'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),
-                    // 'Employee.store' => fn($q) => $q->wherePivot('is_primary', true),
-                    // 'Employee.department' => fn($q) => $q->wherePivot('is_primary', true),
-                     'Employee.position',
-        'Employee.store',
-        'Employee.department',
+
+            'Employee.position',
+            'Employee.store',
+            'Employee.department',
             'Employee.skletters' => function ($query) {
                 $query->where('status', 'Draft');
             },
@@ -49,7 +105,8 @@ class UserprofileController extends Controller
             'email' => [
                 'nullable',
                 'email',
-                'max:100', 'not_regex:/[\r\n]/',
+                'max:100',
+                'not_regex:/[\r\n]/',
                 Rule::unique('employees_tables', 'email')->ignore($user->employee->id)
             ],
             'telp_number' => [
@@ -678,75 +735,76 @@ class UserprofileController extends Controller
     }
 
     public function updatePassword(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-    $user = Auth::user();
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
 
-    $validated = $request->validate([
-        'current_password' => [
-            'required',
-            'string',
-            function ($attribute, $value, $fail) use ($user) {
-                if (!Hash::check($value, $user->password)) {
-                    $fail('The current password is incorrect.');
-                }
-            },
-        ],
-        'password' => [
-            'required',
-            'string',
-            'min:8',
-            'max:20',
-            'different:current_password',
-            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/',
-            function ($attribute, $value, $fail) use ($user) {
-                if (strtolower($value) === strtolower($user->username)) {
-                    $fail('Password tidak boleh sama dengan username.');
-                }
-            },
-        ],
-    ], [], [], function ($validator) {
-        $validator->after(function ($validator) {
-            // tidak perlu tambahan logic di sini
+        $validated = $request->validate([
+            'current_password' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($user) {
+                    if (!Hash::check($value, $user->password)) {
+                        $fail('The current password is incorrect.');
+                    }
+                },
+            ],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:20',
+                'different:current_password',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/',
+                function ($attribute, $value, $fail) use ($user) {
+                    if (strtolower($value) === strtolower($user->username)) {
+                        $fail('Password tidak boleh sama dengan username.');
+                    }
+                },
+            ],
+        ], [], [], function ($validator) {
+            $validator->after(function ($validator) {
+                // tidak perlu tambahan logic di sini
+            });
         });
-    });
 
-    try {
-        $isDefaultPassword = Hash::check(strtolower($user->username), $user->password);
+        try {
+            $isDefaultPassword = Hash::check(strtolower($user->username), $user->password);
 
-        $user->password = Hash::make($validated['password']);
-        $user->save();
+            $user->password = Hash::make($validated['password']);
+            $user->save();
 
-        Log::info("User changed password", [
-            'user_id'  => $user->id,
-            'username' => $user->username,
-            'ip'       => $request->ip(),
-        ]);
+            Log::info("User changed password", [
+                'user_id'  => $user->id,
+                'username' => $user->username,
+                'ip'       => $request->ip(),
+            ]);
 
-        return redirect()->route('pages.feature-profile')
-            ->with('success', $isDefaultPassword
-                ? 'Password berhasil diubah. Selamat datang!'
-                : 'Password changed successfully.'
-            );
+            return redirect()->route('pages.feature-profile')
+                ->with(
+                    'success',
+                    $isDefaultPassword
+                        ? 'Password berhasil diubah. Selamat datang!'
+                        : 'Password changed successfully.'
+                );
+        } catch (\Exception $e) {
+            Log::error("Failed to change password", [
+                'user_id'  => $user->id,
+                'username' => $user->username,
+                'ip'       => $request->ip(),
+                'error'    => $e->getMessage(),
+            ]);
 
-    } catch (\Exception $e) {
-        Log::error("Failed to change password", [
-            'user_id'  => $user->id,
-            'username' => $user->username,
-            'ip'       => $request->ip(),
-            'error'    => $e->getMessage(),
-        ]);
-
-        return redirect()->route('pages.change-password')
-            ->with('error', 'Gagal mengubah password. Silakan coba lagi.');
+            return redirect()->route('pages.change-password')
+                ->with('error', 'Gagal mengubah password. Silakan coba lagi.');
+        }
     }
-}
     public function downloadDocument(string $id)
     {
-     
+
         if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id)) {
-    abort(400, 'Invalid ID');
-}
+            abort(400, 'Invalid ID');
+        }
         $user = Auth::user();
 
         $document = Documents::with([
@@ -770,14 +828,14 @@ class UserprofileController extends Controller
             'documents.types.SPPRP',
         ];
         $signatureData = null;
-if ($document->issued && $document->issued->signature) {
-    $path = 'employees-signatures-photos/' . basename($document->issued->signature);
-    if (Storage::disk('s3')->exists($path)) {
-        $signatureData = 'data:image/png;base64,' . base64_encode(
-            Storage::disk('s3')->get($path)
-        );
-    }
-}
+        if ($document->issued && $document->issued->signature) {
+            $path = 'employees-signatures-photos/' . basename($document->issued->signature);
+            if (Storage::disk('s3')->exists($path)) {
+                $signatureData = 'data:image/png;base64,' . base64_encode(
+                    Storage::disk('s3')->get($path)
+                );
+            }
+        }
 
         if (!in_array($viewName, $allowedViews)) {
             abort(403, 'Invalid document view');

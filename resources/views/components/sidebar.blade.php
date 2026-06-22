@@ -220,6 +220,19 @@
                 </ul>
             </li>
              @endcanany
+                    @can('ManageEmployeeTraining')
+
+            <li class="nav-item dropdown ">
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                        class="fas fa-building"></i>
+                    <span>Training</span></a>
+                <ul class="dropdown-menu">
+                        <li class="{{ Request::is('{employee-training}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('employee-training') }}">Employee</a>
+                        </li>
+                </ul>
+            </li>
+                    @endcan
                     @can('ManageContracts')
 
             <li class="nav-item dropdown ">

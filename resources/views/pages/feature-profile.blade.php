@@ -902,30 +902,67 @@
                             </div>
 
 
-                            <form action="{{ route('feature-profile.update') }}" method="POST"
-                                enctype="multipart/form-data">
-                                @csrf
-                                @method('PUT')
 
-                                <div class="profile-body">
 
-                                    {{-- Flash messages --}}
-                                    @if (session('status') || session('success'))
-                                        <div class="alert-success-custom">
-                                            <i class="fas fa-check-circle"></i>
-                                            {{ session('status') ?? session('success') }}
+
+                            <div class="profile-body">
+
+                                {{-- Flash messages --}}
+                                @if (session('status') || session('success'))
+                                    <div class="alert-success-custom">
+                                        <i class="fas fa-check-circle"></i>
+                                        {{ session('status') ?? session('success') }}
+                                    </div>
+                                @endif
+
+                                @if ($errors->any())
+                                    <div class="alert-danger-custom">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+                                {{-- Switch Active Role --}}
+                                @if (!empty(Auth::user()->all_roles_hrx) && count(Auth::user()->all_roles_hrx) > 1)
+                                    <form action="{{ route('profile.switchRole') }}" method="POST" class="mb-3">
+                                        @csrf
+                                        @method('PUT')
+
+                                        <div class="profile-section-label">Active Role</div>
+                                        <div class="field-grid">
+                                            <div class="field-group">
+                                                <label><i class="fas fa-shield-alt"></i> Switch Role</label>
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <select name="active_role_hrx" id="active_role_hrx"
+                                                        class="form-control @error('active_role_hrx') is-invalid @enderror">
+                                                        @foreach (Auth::user()->all_roles_hrx as $role)
+                                                            <option value="{{ $role }}"
+                                                                {{ Auth::user()->active_role_hrx === $role ? 'selected' : '' }}>
+                                                                {{ $role }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button type="submit" class="btn btn-primary btn-sm text-nowrap">
+                                                        <i class="fas fa-sync-alt"></i> Ganti
+                                                    </button>
+                                                </div>
+                                                @error('active_role_hrx')
+                                                    <span class="text-danger small">{{ $message }}</span>
+                                                @enderror
+                                                <small class="text-muted">
+                                                    Role aktif: <strong>{{ Auth::user()->active_role_hrx ?? '-' }}</strong>
+                                                </small>
+                                            </div>
                                         </div>
-                                    @endif
+                                    </form>
+                                @endif
+                                <form action="{{ route('feature-profile.update') }}" method="POST"
+                                    enctype="multipart/form-data">
+                                    @csrf
+                                    @method('PUT')
 
-                                    @if ($errors->any())
-                                        <div class="alert-danger-custom">
-                                            <ul>
-                                                @foreach ($errors->all() as $error)
-                                                    <li>{{ $error }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @endif
                                     <div>
                                         <div class="profile-section-label">Account</div>
                                         <div class="field-grid">
@@ -982,8 +1019,8 @@
                                             <div class="field-group">
                                                 <label><i class="fas fa-building"></i> Company</label>
                                                 <div class="field-readonly">
-                                                  {{-- {{ $user->Employee->company->pluck('name')->join(', ') }} --}}
-                                                  {{ $user->Employee->company->name }}
+                                                    {{-- {{ $user->Employee->company->pluck('name')->join(', ') }} --}}
+                                                    {{ $user->Employee->company->name }}
 
                                                     {{-- {{ $user->employee->company->name ?? '-' }} --}}
                                                 </div>
@@ -991,8 +1028,8 @@
                                             <div class="field-group">
                                                 <label><i class="fas fa-sitemap"></i> Department</label>
                                                 <div class="field-readonly">
-                                                  {{-- {{ $user->Employee->department->first()->department_name ?? '-'}} --}}
-{{ $user->Employee->department->pluck('department_name')->implode(', ') ?: '-' }}
+                                                    {{-- {{ $user->Employee->department->first()->department_name ?? '-'}} --}}
+                                                    {{ $user->Employee->department->pluck('department_name')->implode(', ') ?: '-' }}
                                                     {{-- {{ $department->department_name ?? '-' }} --}}
                                                 </div>
                                             </div>
@@ -1004,11 +1041,11 @@
                                                 </div>
                                             </div> --}}
                                             <div class="field-group">
-    <label><i class="fas fa-briefcase"></i> Position</label>
-    <div class="field-readonly">
-        {{ $user->Employee->position->pluck('name')->implode(', ') ?: '-' }}
-    </div>
-</div>
+                                                <label><i class="fas fa-briefcase"></i> Position</label>
+                                                <div class="field-readonly">
+                                                    {{ $user->Employee->position->pluck('name')->implode(', ') ?: '-' }}
+                                                </div>
+                                            </div>
                                             <div class="field-group">
                                                 <label><i class="fas fa-store"></i> Location</label>
                                                 <div class="field-readonly">
@@ -1221,15 +1258,15 @@
                                         <span class="close-modal-ktp">&times;</span>
                                         <img class="image-modal-content-ktp" id="modalPreviewImagektp">
                                     </div>
-                                </div>
-                                <div class="profile-footer">
-                                    <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i
-                                            class="fas fa-arrow-left"></i> Back</a>
+                            </div>
+                            <div class="profile-footer">
+                                <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i
+                                        class="fas fa-arrow-left"></i> Back</a>
 
-                                    <button type="submit" class="btn btn-save">
-                                        <i class="fas fa-floppy-disk"></i> Save changes
-                                    </button>
-                                </div>
+                                <button type="submit" class="btn btn-save">
+                                    <i class="fas fa-floppy-disk"></i> Save changes
+                                </button>
+                            </div>
                             </form>
 
                             <div class="profile-body" style="border-top: 1px solid #f1f5f9;">
