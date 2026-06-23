@@ -45,6 +45,11 @@ class Payroll extends Model
 
         'overtime_amount',
         'reimburse_amount',
+        
+        'punishment',
+        'punishment_so',
+        'debt',
+        'tax',
 
         'gross_salary',
         'total_income',
@@ -68,6 +73,10 @@ class Payroll extends Model
         'daily_rate'         => 'decimal:2',
         'overtime_amount'    => 'decimal:2',
         'reimburse_amount'   => 'decimal:2',
+        'punishment'   => 'decimal:2',
+        'punishment_so'   => 'decimal:2',
+        'debt'   => 'decimal:2',
+        'tax'   => 'decimal:2',
         'gross_salary'       => 'decimal:2',
         'total_income'       => 'decimal:2',
         'total_deduction'    => 'decimal:2',

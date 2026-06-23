@@ -132,6 +132,7 @@ class RosterController extends Controller
             'shift_id'    => $roster?->shift_id ?? '',
             'day_type'    => $roster?->day_type ?? 'Work',
             'notes'       => $roster?->notes ?? '',
+            'sick_attachment' => $roster?->sick_attachment ?? '',
             'date_str'    => $date->toDateString(),
         ];
     }
@@ -399,6 +400,26 @@ if ($canManageAll) {
             'user'
         ));
     }
+    public function sickAttachmentUrl(Request $request)
+{
+    $request->validate(['path' => 'required|string']);
+
+    $path = $request->input('path');
+
+    // Pastikan path tidak keluar dari folder yang diizinkan
+    if (!str_starts_with($path, 'employee-sickness/')) {
+        return response()->json(['error' => 'Invalid path'], 403);
+    }
+
+    if (!Storage::disk('s3')->exists($path)) {
+        return response()->json(['error' => 'File not found'], 404);
+    }
+
+    // Generate temporary signed URL (berlaku 5 menit)
+    $url = Storage::disk('s3')->temporaryUrl($path, now()->addMinutes(5));
+
+    return response()->json(['url' => $url]);
+}
     // ─────────────────────────────────────────────────────────────
     //  STORE (klik cell)
     // ─────────────────────────────────────────────────────────────
@@ -739,7 +760,186 @@ if ($canManageAll) {
     //     ]);
     // }
 
-    public function store(Request $request)
+//     public function store(Request $request)
+//     {
+//         if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => 'Periode pengisian roster sedang ditutup.',
+//             ], 403);
+//         }
+
+//         if ($request->shift_id === '') {
+//             $request->merge(['shift_id' => null]);
+//         }
+
+//         $request->validate([
+//             'employee_id'     => 'required|exists:employees_tables,id',
+//             'shift_id'        => 'nullable|exists:shifts_tables,id',
+//             'date'            => 'required|date',
+//             'day_type'        => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan,Sick,TOIL Off',
+//             'ph_carryover_id' => 'nullable|exists:roster_ph_carryovers,id',
+//         ]);
+
+//         $employee = Employee::with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
+//             ->select('id', 'status_employee', 'religion', 'employee_name', 'store_id')
+//             ->find($request->employee_id);
+
+//         $allowed = $this->allowedDayTypes($employee?->status_employee);
+
+//         if (!in_array($request->day_type, $allowed)) {
+//             $status = strtoupper($employee?->status_employee ?? '-');
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => "Karyawan dengan status {$status} tidak dapat di-assign day type \"{$request->day_type}\".",
+//             ], 422);
+//         }
+
+//         $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
+//             ->whereDate('leave_date', $request->date)
+//             ->where('status', 'Approved')
+//             ->exists();
+
+//         if ($toilApproved) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => "Karyawan punya TOIL Leave yang sudah Approved di tanggal ini. Cancel TOIL leave dulu via menu Approval kalau mau ubah jadwal.",
+//             ], 422);
+//         }
+
+//         // $phMap = $this->getPublicHolidaysMap($request->date, $request->date);
+//         // $isPH  = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
+// $phMap = $this->getPublicHolidaysMap($request->date, $request->date);
+// $isPH  = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
+
+// Log::info('[ROSTER STORE DEBUG]', [
+//     'date'      => $request->date,
+//     'day_type'  => $request->day_type,
+//     'religion'  => $employee?->religion,
+//     'isPH'      => $isPH,
+//     'phMap'     => $phMap,
+// ]);
+//         // PH di Minggu HANGUS untuk store statis → ambil primary store ID dari pivot
+//         $primaryStoreId = $employee?->store->first()?->id;
+//         if ($isPH && $this->isPhVoidedOnSunday($request->date, $primaryStoreId)) {
+//             $isPH = false;
+//         }
+
+//         // ── PH TUKAR: kalau hari ini PH tapi HR set Work → SIMPAN saldo PH ──
+//         if ($isPH && $request->day_type === 'Work') {
+//             $phName = $this->getPublicHolidayRemark($phMap, $request->date) ?? 'Public Holiday';
+
+//             // Anti-duplikat: 1 PH per karyawan per tanggal asal
+//             RosterPHCarryover::firstOrCreate(
+//                 [
+//                     'employee_id' => $request->employee_id,
+//                     'ph_date'     => $request->date,
+//                 ],
+//                 [
+//                     'ph_name'    => $phName,
+//                     'expired_at' => $this->phCarryoverExpiry($request->date)->toDateString(),
+//                     'status'     => 'available',
+//                 ]
+//             );
+//         }
+//         // Kalau PH asli tapi di-set Public Holiday (tidak kerja) →
+//         // batalkan carryover yang ada untuk tanggal ini karena PH dinikmati langsung
+//         elseif ($isPH && $request->day_type === 'Public Holiday') {
+//             RosterPHCarryover::where('employee_id', $request->employee_id)
+//                 ->where('ph_date', $request->date)
+//                 ->where('status', 'available')
+//                 ->update(['status' => 'cancelled']);
+//         }
+//         // Kalau bukan Work dan bukan Public Holiday, baru tolak (PH wajib diakui)
+//         elseif ($isPH && $request->day_type !== 'Public Holiday') {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => "Tanggal ini adalah Public Holiday. Pilih \"Work\" (PH disimpan) atau \"Public Holiday\".",
+//             ], 422);
+//         }
+
+//         // Kalau Public Holiday, auto-isi notes dari ph.remark (kecuali user isi notes manual)
+//         $notes = $request->notes;
+//         if ($request->day_type === 'Public Holiday') {
+//             $phRemark = $this->getPublicHolidayRemark($phMap, $request->date);
+//             if (empty($notes) && !empty($phRemark)) {
+//                 $notes = $phRemark;
+//             }
+//         }
+
+//         // ── Sick: bukti WAJIB, upload ke S3 ──
+//         $sickAttachmentPath = null;
+//         if ($request->day_type === 'Sick') {
+//             $request->validate([
+//                 'sick_attachment' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+//             ], [
+//                 'sick_attachment.required' => 'Bukti sakit wajib di-upload untuk day type Sick.',
+//                 'sick_attachment.mimes'    => 'File harus JPG, PNG, atau PDF.',
+//                 'sick_attachment.max'      => 'Ukuran file maksimal 5MB.',
+//             ]);
+
+//             $file     = $request->file('sick_attachment');
+//             $ext      = strtolower($file->getClientOriginalExtension());
+//             $safeName = Str::slug($employee?->employee_name ?? 'employee');
+//             $fileName = $safeName . '-' . now()->timestamp . '-sick.' . $ext;
+//             $folder   = 'employee-sickness';
+
+//             Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+//             $sickAttachmentPath = $folder . '/' . $fileName;
+
+//             Log::info('[SICK] Upload selesai', [
+//                 'path'   => $sickAttachmentPath,
+//                 'exists' => Storage::disk('s3')->exists($sickAttachmentPath),
+//             ]);
+//         }
+
+//         // ── PH TUKAR: kalau HR memilih saldo PH untuk dipakai di hari ini ──
+//         // Hari pengganti = day_type "Public Holiday" + ph_carryover_id dipilih.
+//         if ($request->day_type === 'Public Holiday' && $request->filled('ph_carryover_id')) {
+//             $carryover = RosterPHCarryover::where('id', $request->ph_carryover_id)
+//                 ->where('employee_id', $request->employee_id)
+//                 ->where('status', 'available')
+//                 ->first();
+
+//             if (!$carryover) {
+//                 return response()->json([
+//                     'success' => false,
+//                     'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai.',
+//                 ], 422);
+//             }
+
+//             // Tandai terpakai, catat di tanggal mana dipakai
+//             $carryover->update([
+//                 'status'    => 'used',
+//                 'used_date' => $request->date,
+//             ]);
+
+//             // Pakai nama PH simpanan sebagai notes (kalau notes kosong)
+//             if (empty($notes)) {
+//                 $notes = $carryover->ph_name;
+//             }
+//         }
+
+//         $roster = Roster::updateOrCreate(
+//             ['employee_id' => $request->employee_id, 'date' => $request->date],
+//             [
+//                 'shift_id'        => $request->day_type === 'Work' ? $request->shift_id : null,
+//                 'day_type'        => $request->day_type,
+//                 'notes'           => $notes,
+//                 'sick_attachment' => $sickAttachmentPath,
+//             ]
+//         );
+
+//         return response()->json([
+//             'success'     => true,
+//             'roster'      => $roster->load('shift'),
+//             'roster_name' => $roster->shift?->shift_name ?? $request->day_type,
+//             'roster_time' => $roster->shift
+//                 ? substr($roster->shift->start_time, 0, 5) . '-' . substr($roster->shift->end_time, 0, 5)
+//                 : '',
+//         ]);
+//     }
+ public function store(Request $request)
     {
         if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
             return response()->json([
@@ -747,11 +947,11 @@ if ($canManageAll) {
                 'message' => 'Periode pengisian roster sedang ditutup.',
             ], 403);
         }
-
+ 
         if ($request->shift_id === '') {
             $request->merge(['shift_id' => null]);
         }
-
+ 
         $request->validate([
             'employee_id'     => 'required|exists:employees_tables,id',
             'shift_id'        => 'nullable|exists:shifts_tables,id',
@@ -759,13 +959,13 @@ if ($canManageAll) {
             'day_type'        => 'required|in:Work,Off,Public Holiday,Leave,Cuti Melahirkan,Sick,TOIL Off',
             'ph_carryover_id' => 'nullable|exists:roster_ph_carryovers,id',
         ]);
-
+ 
         $employee = Employee::with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
             ->select('id', 'status_employee', 'religion', 'employee_name', 'store_id')
             ->find($request->employee_id);
-
+ 
         $allowed = $this->allowedDayTypes($employee?->status_employee);
-
+ 
         if (!in_array($request->day_type, $allowed)) {
             $status = strtoupper($employee?->status_employee ?? '-');
             return response()->json([
@@ -773,34 +973,35 @@ if ($canManageAll) {
                 'message' => "Karyawan dengan status {$status} tidak dapat di-assign day type \"{$request->day_type}\".",
             ], 422);
         }
-
+ 
         $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
             ->whereDate('leave_date', $request->date)
             ->where('status', 'Approved')
             ->exists();
-
+ 
         if ($toilApproved) {
             return response()->json([
                 'success' => false,
                 'message' => "Karyawan punya TOIL Leave yang sudah Approved di tanggal ini. Cancel TOIL leave dulu via menu Approval kalau mau ubah jadwal.",
             ], 422);
         }
-
+ 
         $phMap = $this->getPublicHolidaysMap($request->date, $request->date);
         $isPH  = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
-
+ 
         // PH di Minggu HANGUS untuk store statis → ambil primary store ID dari pivot
         $primaryStoreId = $employee?->store->first()?->id;
         if ($isPH && $this->isPhVoidedOnSunday($request->date, $primaryStoreId)) {
             $isPH = false;
         }
-
+ 
         // ── PH TUKAR: kalau hari ini PH tapi HR set Work → SIMPAN saldo PH ──
         if ($isPH && $request->day_type === 'Work') {
             $phName = $this->getPublicHolidayRemark($phMap, $request->date) ?? 'Public Holiday';
-
-            // Anti-duplikat: 1 PH per karyawan per tanggal asal
-            RosterPHCarryover::firstOrCreate(
+ 
+            // Jika sudah ada carryover (misal status cancelled karena sebelumnya di-set PH),
+            // reset kembali ke available. Jika belum ada, buat baru.
+            RosterPHCarryover::updateOrCreate(
                 [
                     'employee_id' => $request->employee_id,
                     'ph_date'     => $request->date,
@@ -827,7 +1028,14 @@ if ($canManageAll) {
                 'message' => "Tanggal ini adalah Public Holiday. Pilih \"Work\" (PH disimpan) atau \"Public Holiday\".",
             ], 422);
         }
-
+        // Kalau bukan PH asli tapi di-set Public Holiday → WAJIB pilih saldo PH tukar
+        elseif (!$isPH && $request->day_type === 'Public Holiday' && !$request->filled('ph_carryover_id')) {
+            return response()->json([
+                'success' => false,
+                'message' => "Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) untuk menjadikan hari ini sebagai pengganti PH.",
+            ], 422);
+        }
+ 
         // Kalau Public Holiday, auto-isi notes dari ph.remark (kecuali user isi notes manual)
         $notes = $request->notes;
         if ($request->day_type === 'Public Holiday') {
@@ -836,7 +1044,7 @@ if ($canManageAll) {
                 $notes = $phRemark;
             }
         }
-
+ 
         // ── Sick: bukti WAJIB, upload ke S3 ──
         $sickAttachmentPath = null;
         if ($request->day_type === 'Sick') {
@@ -847,22 +1055,22 @@ if ($canManageAll) {
                 'sick_attachment.mimes'    => 'File harus JPG, PNG, atau PDF.',
                 'sick_attachment.max'      => 'Ukuran file maksimal 5MB.',
             ]);
-
+ 
             $file     = $request->file('sick_attachment');
             $ext      = strtolower($file->getClientOriginalExtension());
             $safeName = Str::slug($employee?->employee_name ?? 'employee');
             $fileName = $safeName . '-' . now()->timestamp . '-sick.' . $ext;
             $folder   = 'employee-sickness';
-
+ 
             Storage::disk('s3')->putFileAs($folder, $file, $fileName);
             $sickAttachmentPath = $folder . '/' . $fileName;
-
+ 
             Log::info('[SICK] Upload selesai', [
                 'path'   => $sickAttachmentPath,
                 'exists' => Storage::disk('s3')->exists($sickAttachmentPath),
             ]);
         }
-
+ 
         // ── PH TUKAR: kalau HR memilih saldo PH untuk dipakai di hari ini ──
         // Hari pengganti = day_type "Public Holiday" + ph_carryover_id dipilih.
         if ($request->day_type === 'Public Holiday' && $request->filled('ph_carryover_id')) {
@@ -870,26 +1078,26 @@ if ($canManageAll) {
                 ->where('employee_id', $request->employee_id)
                 ->where('status', 'available')
                 ->first();
-
+ 
             if (!$carryover) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai.',
                 ], 422);
             }
-
+ 
             // Tandai terpakai, catat di tanggal mana dipakai
             $carryover->update([
                 'status'    => 'used',
                 'used_date' => $request->date,
             ]);
-
+ 
             // Pakai nama PH simpanan sebagai notes (kalau notes kosong)
             if (empty($notes)) {
                 $notes = $carryover->ph_name;
             }
         }
-
+ 
         $roster = Roster::updateOrCreate(
             ['employee_id' => $request->employee_id, 'date' => $request->date],
             [
@@ -899,7 +1107,7 @@ if ($canManageAll) {
                 'sick_attachment' => $sickAttachmentPath,
             ]
         );
-
+ 
         return response()->json([
             'success'     => true,
             'roster'      => $roster->load('shift'),
@@ -909,7 +1117,7 @@ if ($canManageAll) {
                 : '',
         ]);
     }
-
+ 
     // ─────────────────────────────────────────────────────────────
     //  AMBIL daftar saldo PH tukar yang masih tersedia utk 1 karyawan
     // ─────────────────────────────────────────────────────────────
@@ -919,7 +1127,7 @@ if ($canManageAll) {
             'employee_id' => 'required|exists:employees_tables,id',
             'date'        => 'required|date',
         ]);
-
+ 
         // Ambil semua carryover available milik employee ini yang belum expired
         // Status 'used' sudah di-set saat import (RosterImport) maupun saat store() via ph_carryover_id
         $items = RosterPHCarryover::where('employee_id', $request->employee_id)
@@ -927,7 +1135,7 @@ if ($canManageAll) {
             ->whereDate('expired_at', '>=', $request->date)
             ->orderBy('ph_date')
             ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
-
+ 
         return response()->json([
             'success' => true,
             'data'    => $items->map(fn($it) => [
@@ -938,11 +1146,40 @@ if ($canManageAll) {
             ]),
         ]);
     }
+
+    // ─────────────────────────────────────────────────────────────
+    //  AMBIL daftar saldo PH tukar yang masih tersedia utk 1 karyawan ini benar
+    // ─────────────────────────────────────────────────────────────
+    // public function availablePhCarryovers(Request $request)
+    // {
+    //     $request->validate([
+    //         'employee_id' => 'required|exists:employees_tables,id',
+    //         'date'        => 'required|date',
+    //     ]);
+
+    //     // Ambil semua carryover available milik employee ini yang belum expired
+    //     // Status 'used' sudah di-set saat import (RosterImport) maupun saat store() via ph_carryover_id
+    //     $items = RosterPHCarryover::where('employee_id', $request->employee_id)
+    //         ->where('status', 'available')
+    //         ->whereDate('expired_at', '>=', $request->date)
+    //         ->orderBy('ph_date')
+    //         ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data'    => $items->map(fn($it) => [
+    //             'id'         => $it->id,
+    //             'ph_name'    => $it->ph_name,
+    //             'ph_date'    => Carbon::parse($it->ph_date)->toDateString(),
+    //             'expired_at' => Carbon::parse($it->expired_at)->toDateString(),
+    //         ]),
+    //     ]);
+    // }
      
 
     // ─────────────────────────────────────────────────────────────
     //  AMBIL daftar saldo PH tukar yang masih tersedia utk 1 karyawan
-    //  Dipakai dropdown di modal cell.
+    //  Dipakai dropdown di modal cell. jangan pakai ini
     // ─────────────────────────────────────────────────────────────
     // public function availablePhCarryovers(Request $request)
     // {
@@ -999,7 +1236,56 @@ if ($canManageAll) {
     //  DESTROY (hapus 1 cell)
     // ─────────────────────────────────────────────────────────────
 
-    public function destroy(Request $request)
+    // public function destroy(Request $request)
+    // {
+    //     if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Periode pengisian roster sedang ditutup.',
+    //         ], 403);
+    //     }
+    //     $request->validate([
+    //         'employee_id' => 'required|exists:employees_tables,id',
+    //         'date'        => 'required|date',
+    //     ]);
+
+    //     $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
+    //         ->whereDate('leave_date', $request->date)
+    //         ->where('status', 'Approved')
+    //         ->exists();
+
+    //     if ($toilApproved) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Tidak bisa hapus roster — ada TOIL Leave yang sudah Approved untuk tanggal ini.',
+    //         ], 422);
+    //     }
+
+
+       
+    //     //  Sesudah - trigger Eloquent events
+    //     $rosters = Roster::where('employee_id', $request->employee_id)
+    //         ->where('date', $request->date)
+    //         ->get();
+    //     Log::info('Rosters found: ' . $rosters->count());
+    //     Log::info($rosters->pluck('id')->toArray());
+
+    //     // ── REFUND PH TUKAR: kalau cell ini memakai saldo PH, kembalikan ──
+    //     RosterPHCarryover::where('employee_id', $request->employee_id)
+    //         ->where('status', 'used')
+    //         ->whereDate('used_date', $request->date)
+    //         ->update(['status' => 'available', 'used_date' => null]);
+
+    //     foreach ($rosters as $roster) {
+    //          if ($roster->sick_attachment) {
+    //     Storage::disk('s3')->delete($roster->sick_attachment);
+    // }
+    //         $roster->delete();
+    //     }
+
+    //     return response()->json(['success' => true]);
+    // }
+     public function destroy(Request $request)
     {
         if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
             return response()->json([
@@ -1007,46 +1293,52 @@ if ($canManageAll) {
                 'message' => 'Periode pengisian roster sedang ditutup.',
             ], 403);
         }
+ 
         $request->validate([
             'employee_id' => 'required|exists:employees_tables,id',
             'date'        => 'required|date',
         ]);
-
+ 
         $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
             ->whereDate('leave_date', $request->date)
             ->where('status', 'Approved')
             ->exists();
-
+ 
         if ($toilApproved) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak bisa hapus roster — ada TOIL Leave yang sudah Approved untuk tanggal ini.',
             ], 422);
         }
-
-
-        // Roster::where('employee_id', $request->employee_id)
-        //     ->where('date', $request->date)
-        //     ->delete();
-        //  Sesudah - trigger Eloquent events
+ 
         $rosters = Roster::where('employee_id', $request->employee_id)
             ->where('date', $request->date)
             ->get();
-        Log::info('Rosters found: ' . $rosters->count());
-        Log::info($rosters->pluck('id')->toArray());
-
-        // ── REFUND PH TUKAR: kalau cell ini memakai saldo PH, kembalikan ──
+ 
+        // ── REFUND PH TUKAR: carryover 'used' di tanggal ini → available kembali ──
         RosterPHCarryover::where('employee_id', $request->employee_id)
             ->where('status', 'used')
             ->whereDate('used_date', $request->date)
             ->update(['status' => 'available', 'used_date' => null]);
-
+ 
+        // ── RESET PH ASLI: carryover 'cancelled' di ph_date ini → available kembali ──
+        // (roster PH dihapus, jadi PH belum tentu dinikmati)
+        RosterPHCarryover::where('employee_id', $request->employee_id)
+            ->where('status', 'cancelled')
+            ->where('ph_date', $request->date)
+            ->update(['status' => 'available']);
+ 
         foreach ($rosters as $roster) {
+            // Hapus file S3 jika ada sick_attachment
+            if ($roster->sick_attachment) {
+                Storage::disk('s3')->delete($roster->sick_attachment);
+            }
             $roster->delete();
         }
-
+ 
         return response()->json(['success' => true]);
     }
+ 
     private function resolveRelevantPhTypes(?string $religion): array
     {
         return ($religion === 'Hindu')
@@ -1492,58 +1784,133 @@ if ($canManageAll) {
     //  Update: protect tanggal TOIL Approved (versi AMAN, loop per karyawan)
     // ─────────────────────────────────────────────────────────────
 
+    // public function bulkDelete(Request $request)
+    // {
+    //     ini_set('memory_limit', '512M');
+    //     set_time_limit(300);
+    //     if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Periode pengisian roster sedang ditutup.',
+    //         ], 403);
+    //     }
+
+    //     $request->validate([
+    //         'employee_ids'   => 'required|array|min:1',
+    //         'employee_ids.*' => 'exists:employees_tables,id',
+    //         'start_date'     => 'required|date',
+    //         'end_date'       => 'required|date|after_or_equal:start_date',
+    //     ]);
+
+    //     $toilApprovedMap = $this->getToilApprovedDatesMap(
+    //         $request->employee_ids,
+    //         $request->start_date,
+    //         $request->end_date
+    //     );
+
+    //     $count          = 0;
+    //     $protectedCount = 0;
+
+    //     foreach ($request->employee_ids as $empId) {
+    //         $protectedDates = $toilApprovedMap[$empId] ?? [];
+
+    //         $query = Roster::where('employee_id', $empId)
+    //             ->whereBetween('date', [$request->start_date, $request->end_date]);
+
+    //         if (!empty($protectedDates)) {
+    //             $query->whereNotIn('date', $protectedDates);
+    //             $protectedCount += count($protectedDates);
+    //         }
+
+    //         //  Chunk agar tidak timeout kalau data banyak
+    //         $query->chunk(100, function ($rosters) use (&$count) {
+    //             foreach ($rosters as $roster) {
+    //                 $roster->delete(); // trigger Eloquent events → activity log tercatat
+    //                 $count++;
+    //             }
+    //         });
+    //     }
+
+    //     $message = "Berhasil menghapus {$count} jadwal.";
+    //     if ($protectedCount > 0) {
+    //         $message .= " {$protectedCount} jadwal di-protect karena ada TOIL Leave yang sudah Approved.";
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => $message,
+    //     ]);
+    // }
     public function bulkDelete(Request $request)
     {
         ini_set('memory_limit', '512M');
         set_time_limit(300);
+ 
         if ($this->isSPVOnly() && !$this->checkRosterWindow()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Periode pengisian roster sedang ditutup.',
             ], 403);
         }
-
+ 
         $request->validate([
             'employee_ids'   => 'required|array|min:1',
             'employee_ids.*' => 'exists:employees_tables,id',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date|after_or_equal:start_date',
         ]);
-
+ 
         $toilApprovedMap = $this->getToilApprovedDatesMap(
             $request->employee_ids,
             $request->start_date,
             $request->end_date
         );
-
+ 
         $count          = 0;
         $protectedCount = 0;
-
+ 
         foreach ($request->employee_ids as $empId) {
             $protectedDates = $toilApprovedMap[$empId] ?? [];
-
+ 
             $query = Roster::where('employee_id', $empId)
                 ->whereBetween('date', [$request->start_date, $request->end_date]);
-
+ 
             if (!empty($protectedDates)) {
                 $query->whereNotIn('date', $protectedDates);
                 $protectedCount += count($protectedDates);
             }
-
-            //  Chunk agar tidak timeout kalau data banyak
+ 
+            // ── REFUND PH TUKAR: carryover 'used' dalam rentang → available kembali ──
+            RosterPHCarryover::where('employee_id', $empId)
+                ->where('status', 'used')
+                ->whereBetween('used_date', [$request->start_date, $request->end_date])
+                ->when(!empty($protectedDates), fn($q) => $q->whereNotIn('used_date', $protectedDates))
+                ->update(['status' => 'available', 'used_date' => null]);
+ 
+            // ── RESET PH ASLI: carryover 'cancelled' dalam rentang → available kembali ──
+            RosterPHCarryover::where('employee_id', $empId)
+                ->where('status', 'cancelled')
+                ->whereBetween('ph_date', [$request->start_date, $request->end_date])
+                ->when(!empty($protectedDates), fn($q) => $q->whereNotIn('ph_date', $protectedDates))
+                ->update(['status' => 'available']);
+ 
+            // ── Hapus roster + file S3 ──
             $query->chunk(100, function ($rosters) use (&$count) {
                 foreach ($rosters as $roster) {
-                    $roster->delete(); // trigger Eloquent events → activity log tercatat
+                    if ($roster->sick_attachment) {
+                        Storage::disk('s3')->delete($roster->sick_attachment);
+                    }
+                    $roster->delete();
                     $count++;
                 }
             });
         }
-
+ 
         $message = "Berhasil menghapus {$count} jadwal.";
         if ($protectedCount > 0) {
             $message .= " {$protectedCount} jadwal di-protect karena ada TOIL Leave yang sudah Approved.";
         }
-
+ 
         return response()->json([
             'success' => true,
             'message' => $message,

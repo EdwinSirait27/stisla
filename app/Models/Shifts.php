@@ -26,6 +26,7 @@ class Shifts extends Model
     protected $fillable = [
         'store_id',
         'shift_name',
+        'code',
         'start_time',
         'end_time',
         'last_sync',
@@ -33,12 +34,14 @@ class Shifts extends Model
         
     ];
     public function setShiftNameAttribute($value)
-    {
-        $this->attributes['shift_name'] = strtoupper($value);
-    }
+{
+    $upper = strtoupper($value);
+    $this->attributes['shift_name'] = $upper;
+    $this->attributes['code']       = substr($upper, 0, 2);
+}
     public function store()
     {
         return $this->belongsTo(Stores::class, 'store_id', 'id');
     }
-    
+
 }

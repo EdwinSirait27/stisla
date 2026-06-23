@@ -242,9 +242,10 @@ class DashManagerController extends Controller
         $departmentIds = $employee->primaryDepartment()->pluck('departments_tables.id')->toArray();
         $departmentId  = $departmentIds[0] ?? $employee->department_id;
 
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
+        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending','On Leave'])
             ->where('company_id', $companyId)
             ->whereIn('store_id', $storeIds)
+            ->whereIn('department_id', $departmentIds)
             ->count();
 
         $totalEmployeespending = Employee::where('status', 'Pending')

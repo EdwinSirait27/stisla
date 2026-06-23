@@ -865,6 +865,8 @@ Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'do
 
 
             Route::get('activities', [RosterController::class, 'getActivities'])->name('activities');
+            Route::get('roster/sick-attachment-url', [RosterController::class, 'sickAttachmentUrl'])
+    ->name('sick-attachment-url');
         });
         Route::middleware(['auth', 'permission:ManageRoster|ManageRosterSPVManager|ViewRoster'])->group(function () {
             Route::get('/',              [RosterController::class, 'index'])->name('index');

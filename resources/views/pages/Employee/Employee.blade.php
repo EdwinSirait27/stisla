@@ -543,6 +543,32 @@
 
                     </div>
                     {{-- ── Filter Bar ── --}}
+                    @can('ManageEmployeeSPVManager')
+                    <div class="dt-filter-bar"
+                        style="
+    padding: .75rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+">
+                       
+
+                        
+                        <select id="filter-store" class="select2 form-select form-select-sm"
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
+                            <option value="">All Locations</option>
+                            @foreach ($stores as $store)
+                                <option value="{{ $store->name }}">{{ $store->name }}</option>
+                            @endforeach
+                        </select>
+
+                       
+                       
+                    </div>
+                    @endcan
                     @can('ManageEmployee')
                     <div class="dt-filter-bar"
                         style="

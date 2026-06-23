@@ -1020,7 +1020,7 @@
                                     <span class="stat-trend up"
                                         title="Employees who were pending, please contact HR Department">
                                         <i class="fas fa-arrow-up me-1"></i>
-                                        {{ $totalEmployeespending }} Pending
+                                        {{ $totalEmployees }} Pending
                                     </span>
                                 </div>
                             </div>

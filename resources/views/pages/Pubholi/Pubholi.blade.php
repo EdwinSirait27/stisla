@@ -214,12 +214,14 @@
                                         </thead>
                                     </table>
                                 </div>
+                                @can('ManagePH')
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('pages.ImportPH') }}'"
                                         class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Import Public Holidays
                                     </button>
                                 </div>
+                                @endcan
                             </div>
                         </div>
                     </div>

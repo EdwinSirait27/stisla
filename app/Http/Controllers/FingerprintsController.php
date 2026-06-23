@@ -65,52 +65,103 @@ class FingerprintsController extends Controller
     private const SYNC_STATUS_MANUAL = 'Manual';
 
 
-    public function index()
-    {
-        $user = auth()->user();
+//     public function index()
+//     {
+//         $user = auth()->user();
 
-        /** @var \App\Models\User|null $user */
+//         /** @var \App\Models\User|null $user */
 
-        $canManage     = $user->hasPermissionTo('ManageFingerspot');
-        $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
-        $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
+//         $canManage     = $user->hasPermissionTo('ManageFingerspot');
+//         $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+//         $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
 
-        if (!$canManage && !$canSpvManager && !$canViewOwn) {
-            abort(403, 'Unauthorized');
-        }
+//         if (!$canManage && !$canSpvManager && !$canViewOwn) {
+//             abort(403, 'Unauthorized');
+//         }
 
-        $today = now();
+//         $today = now();
 
-        if ($canManage) {
-            // ManageFingerspot: default range bebas (26 bulan lalu - 25 bulan ini)
-            $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
-            $defaultEndDate   = $today->copy()->day(25)->toDateString();
-        } else {
-            // SPVManager & ViewOwn: default max 1 bulan ke belakang
-            $defaultStartDate = $today->copy()->subMonth()->toDateString();
-            $defaultEndDate   = $today->toDateString();
-        }
+//         if ($canManage) {
+//             // ManageFingerspot: default range bebas (26 bulan lalu - 25 bulan ini)
+//             $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
+//             $defaultEndDate   = $today->copy()->day(25)->toDateString();
+//         } else {
+//             // SPVManager & ViewOwn: default max 1 bulan ke belakang
+//             $defaultStartDate = $today->copy()->subMonth()->toDateString();
+//             $defaultEndDate   = $today->toDateString();
+//         }
 
-        // Store list hanya untuk ManageFingerspot (bebas pilih)
-        $stores = $canManage
-            ? Stores::select('id', 'name')->whereNotNull('name')->distinct()->pluck('name')
-            : collect();
+//         // Store list hanya untuk ManageFingerspot (bebas pilih)
+//         $stores = $canManage
+//             ? Stores::select('id', 'name')->whereNotNull('name')->distinct()->pluck('name')
+//             : collect();
 
         
-        $lockedStore = null;
-if ($canSpvManager && !$canManage) {
-    $lockedStore = $user->employee->primaryStore()->first()?->name ?? null;
-}
-        return view('pages.Fingerprints.Fingerprints', compact(
-            'stores',
-            'defaultStartDate',
-            'defaultEndDate',
-            'canManage',
-            'canSpvManager',
-            'canViewOwn',
-            'lockedStore'
-        ));
+//         $lockedStore = null;
+// if ($canSpvManager && !$canManage) {
+//     $lockedStore = $user->employee->primaryStore()->first()?->name ?? null;
+// }
+//         return view('pages.Fingerprints.Fingerprints', compact(
+//             'stores',
+//             'defaultStartDate',
+//             'defaultEndDate',
+//             'canManage',
+//             'canSpvManager',
+//             'canViewOwn',
+//             'lockedStore'
+//         ));
+//     }
+public function index()
+{
+    $user = auth()->user();
+    /** @var \App\Models\User|null $user */
+
+    $canManage     = $user->hasPermissionTo('ManageFingerspot');
+    $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+    $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
+
+    if (!$canManage && !$canSpvManager && !$canViewOwn) {
+        abort(403, 'Unauthorized');
     }
+
+    $today = now();
+
+    if ($canManage) {
+        $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
+        $defaultEndDate   = $today->copy()->day(25)->toDateString();
+    } else {
+        $defaultStartDate = $today->copy()->subMonth()->toDateString();
+        $defaultEndDate   = $today->toDateString();
+    }
+
+    // ← ManageFingerspot: semua store
+    if ($canManage) {
+        $stores      = Stores::select('id', 'name')->whereNotNull('name')->orderBy('name')->pluck('name');
+        $lockedStore = null;
+
+    // ← ManageFingerspotSPVManager: hanya store kepunyaan, bisa pilih
+    } elseif ($canSpvManager) {
+        $stores      = $user->employee->store()
+            ->orderBy('stores_tables.name')
+            ->pluck('stores_tables.name');
+        $lockedStore = null; // ← tidak locked, bisa pilih dari dropdown
+
+    // ← ViewOwn: tidak ada dropdown
+    } else {
+        $stores      = collect();
+        $lockedStore = null;
+    }
+
+    return view('pages.Fingerprints.Fingerprints', compact(
+        'stores',
+        'defaultStartDate',
+        'defaultEndDate',
+        'canManage',
+        'canSpvManager',
+        'canViewOwn',
+        'lockedStore'
+    ));
+}
     /**
      * Recap Absensi: sync raw scan dari att_log ke fingerprints_recap.
      *
@@ -392,242 +443,443 @@ if ($canSpvManager && !$canManage) {
     }
 
 
-    private function buildFingerprintResult(
-        $startDate,
-        $endDate,
-        $storeName,
-        $user,
-        bool $canManage,
-        bool $canSpvManager,
-        bool $canViewOwn
-    ): \Illuminate\Support\Collection {
+//     private function buildFingerprintResult(
+//         $startDate,
+//         $endDate,
+//         $storeName,
+//         $user,
+//         bool $canManage,
+//         bool $canSpvManager,
+//         bool $canViewOwn
+//     ): \Illuminate\Support\Collection {
 
-        $editedKeys = EditedFingerprint::whereBetween('scan_date', [$startDate, $endDate])
-            ->get(['pin', 'scan_date'])
-            ->map(fn($e) => $e->pin . '_' . Carbon::parse($e->scan_date)->toDateString())
-            ->values()
-            ->toArray();
+//         $editedKeys = EditedFingerprint::whereBetween('scan_date', [$startDate, $endDate])
+//             ->get(['pin', 'scan_date'])
+//             ->map(fn($e) => $e->pin . '_' . Carbon::parse($e->scan_date)->toDateString())
+//             ->values()
+//             ->toArray();
 
-//         $employeesQuery = Employee::with(['position:id,name', 'store:id,name'])
-//             ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id', 'status_employee')
-//             ->whereNotNull('pin');
 
-        
+// $employeesQuery = Employee::with(['position' => fn($q) => $q->wherePivot('is_primary', true), 'store' => fn($q) => $q->wherePivot('is_primary', true)])
+//     ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee','status', 'company_id')
+//     ->whereNotNull('pin');
+
 // if ($canViewOwn && !$canManage && !$canSpvManager) {
+//     // ← ViewFingerspot: hanya data sendiri
 //     $employeesQuery->where('pin', $user->employee->pin);
-// } elseif ($canSpvManager && !$canManage) {
-//     // Ambil store primary user
-//     $userStoreIds = $user->employee->store()
-//         ->wherePivot('is_primary', true)
-//         ->pluck('stores_tables.id');
 
-//     $employeesQuery->whereHas('store', fn($q) =>
-//         $q->whereIn('stores_tables.id', $userStoreIds)
-//           ->where('employee_stores.is_primary', true)
-//     );
-// } else {
+// } 
+// elseif ($canSpvManager && !$canManage) {
+//     // ← ManageFingerspotSPVManager: filter company + store kepunyaan
+//     $userEmployee  = $user->employee;
+//     $companyId     = $userEmployee->company_id;
+//     $userStoreIds  = $userEmployee->store()->pluck('stores_tables.id')->toArray();
+//     $userDeptIds   = $userEmployee->department()->pluck('departments_tables.id')->toArray();
+
+//     if (empty($userStoreIds) || empty($userDeptIds)) {
+//         return collect();
+//     }
+
+
+
+//     $employeesQuery
+//         ->where('company_id', $companyId)
+//         ->whereExists(function ($q) use ($userStoreIds) {
+//             $q->select(DB::raw(1))
+//                 ->from('employee_stores')
+//                 ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+//                 ->whereIn('employee_stores.store_id', $userStoreIds);
+//         })
+//         ->whereExists(function ($q) use ($userDeptIds) {
+//             $q->select(DB::raw(1))
+//                 ->from('employee_departments')
+//                 ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+//                 ->whereIn('employee_departments.department_id', $userDeptIds);
+//         });
+
+//     if ($storeName) {
+//         $employeesQuery->whereHas('store', fn($q) =>
+//             $q->where('stores_tables.name', $storeName)
+//         );
+//     }
+
+// } 
+// else {
+//     // ← ManageFingerspot: bebas filter store
 //     if ($storeName) {
 //         $employeesQuery->whereHas('store', fn($q) =>
 //             $q->where('stores_tables.name', $storeName)
 //         );
 //     }
 // }
-$employeesQuery = Employee::with(['position' => fn($q) => $q->wherePivot('is_primary', true), 'store' => fn($q) => $q->wherePivot('is_primary', true)])
-    ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee','status', 'company_id')
+
+//         $employees   = $employeesQuery->get()->keyBy('pin');
+//         $employeeIds = $employees->pluck('id')->filter()->values()->toArray();
+
+//         $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+//             ->select('id', 'employee_id', 'shift_id', 'date', 'day_type')
+//             ->whereIn('employee_id', $employeeIds)
+//             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+//             ->get()
+//             ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
+
+//         $totalHariPerEmployee = Fingerprintrecap::select('employee_id', DB::raw('SUM(is_counted) as total_hari'))
+//             ->whereIn('employee_id', $employeeIds)
+//             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+//             ->groupBy('employee_id')
+//             ->pluck('total_hari', 'employee_id');
+
+//         $pins         = $employees->keys()->toArray();
+//         $fingerprints = Fingerprints::select(['sn', 'scan_date', 'pin', 'inoutmode'])
+//             ->whereIn('pin', $pins)
+//             ->whereBetween('scan_date', [$startDate, $endDate])
+//             ->orderBy('pin')
+//             ->orderBy('scan_date')
+//             ->get();
+
+//         $deviceNames = Devicefingerprint::select('sn', 'device_name')
+//             ->get()
+//             ->keyBy('sn')
+//             ->map(fn($d) => $d->device_name ?? '-');
+
+//         $grouped = $fingerprints
+//             ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
+
+//         return $grouped->map(function ($group, $key) use (
+//             $employees,
+//             $totalHariPerEmployee,
+//             $editedKeys,
+//             $rosters,
+//             $deviceNames,
+//             $canManage,
+//             $canSpvManager,
+//             $canViewOwn
+//         ) {
+//             $first    = $group->first();
+//             $pin      = $first->pin;
+//             $scanDate = Carbon::parse($first->scan_date)->toDateString();
+//             $employee = $employees->get($pin);
+
+//             if (!$employee) return null;
+
+//             $rosterKey  = $employee->id . '_' . $scanDate;
+//             $roster     = $rosters->get($rosterKey);
+//             $rosterName = '-';
+//             $rosterTime = '';
+
+//             if ($roster) {
+//                 if ($roster->day_type !== 'Work') {
+//                     $rosterName = $roster->day_type;
+//                 } elseif ($roster->shift) {
+//                     $rosterName = $roster->shift->shift_name;
+//                     $rosterTime = substr($roster->shift->start_time, 0, 5)
+//                         . ' - ' . substr($roster->shift->end_time, 0, 5);
+//                 }
+//             }
+
+//             $totalHari = $totalHariPerEmployee->get($employee->id, 0);
+
+//             $row = [
+//                 'pin'               => $pin,
+//                 'employee_name'     => $employee->employee_name     ?? '-',
+//                 'status_employee'   => $employee->status_employee   ?? '-',
+//                 'status'   => $employee->status   ?? '-',
+//                 'employee_pengenal' => $employee->employee_pengenal ?? '-',
+//                 'name'              => $employee->store->first()?->name      ?? '-', // ← fix
+//     'position_name'     => $employee->position->first()?->name   ?? '-', // ← fix
+//                 'device_name'       => $deviceNames->get($first->sn) ?? '-',
+//                 'scan_date'         => $scanDate,
+//                 'total_hari'        => $totalHari . ' Hari',
+//                 'roster_name'       => $rosterName,
+//                 'roster_time'       => $rosterTime,
+//             ];
+
+//             for ($i = 1; $i <= 10; $i++) {
+//                 $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
+//             }
+
+//             $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row, $deviceNames) {
+//                 if ($mode < 1 || $mode > 10) return;
+//                 $sorted  = $items->sortBy('scan_date');
+//                 $times   = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('H:i:s'))->implode(', ');
+//                 $devices = $sorted->map(fn($i) => $deviceNames->get($i->sn) ?? '')->implode(', ');
+//                 $row["in_$mode"]      = $times;
+//                 $row["device_$mode"]  = $devices;
+//                 $row["combine_$mode"] = trim($times . ' ' . $devices);
+//             });
+
+//             $times = collect(range(1, 10))
+//                 ->flatMap(fn($i) => $row["in_$i"] ? explode(', ', $row["in_$i"]) : [])
+//                 ->map(fn($t) => Carbon::parse($t))
+//                 ->sort()
+//                 ->values();
+
+//             if ($times->count() >= 2) {
+//                 $minutes         = $times->first()->diffInMinutes($times->last());
+//                 $row['duration'] = sprintf(
+//                     '%d hour%s %d minute%s',
+//                     intdiv($minutes, 60),
+//                     intdiv($minutes, 60) !== 1 ? 's' : '',
+//                     $minutes % 60,
+//                     $minutes % 60 !== 1 ? 's' : ''
+//                 );
+//             } else {
+//                 $row['duration'] = 'invalid';
+//             }
+
+//             $row['is_updated']     = in_array($key, $editedKeys);
+//             $row['updated_status'] = $row['is_updated'] ? 'Updated' : 'Original';
+//             $row['is_late_in']     = false;
+//             $row['is_late']        = false;
+//             $row['late_minutes']   = 0;
+
+//             if ($roster && $roster->day_type === 'Work' && $roster->shift && $row['in_1']) {
+//                 $firstIn = trim(explode(',', $row['in_1'])[0]);
+//                 if ($firstIn) {
+//                     $shiftStart  = Carbon::parse($scanDate . ' ' . $roster->shift->start_time);
+//                     $actualIn    = Carbon::parse($scanDate . ' ' . $firstIn);
+                 
+//                     $toleransi = in_array($employee->store->first()?->name ?? '', self::TOLERANSI_TINGGI_STORES)
+//     ? self::TOLERANSI_TINGGI_MENIT
+//     : self::TOLERANSI_NORMAL_MENIT;
+//                     $batasMasuk  = $shiftStart->copy()->addMinutes($toleransi);
+//                     $lateMinutes = max(0, $shiftStart->diffInMinutes($actualIn, false));
+
+//                     if ($actualIn->gt($batasMasuk)) {
+//                         $row['is_late_in']   = true;
+//                         $row['is_late']      = true;
+//                         $row['late_minutes'] = $lateMinutes;
+//                     }
+//                 }
+//             }
+
+//             $row['can_action'] = $canManage;
+
+//             return $row;
+//         })->filter()->values();
+//     }
+private function buildFingerprintResult(
+    $startDate,
+    $endDate,
+    $storeName,
+    $user,
+    bool $canManage,
+    bool $canSpvManager,
+    bool $canViewOwn
+): \Illuminate\Support\Collection {
+
+    $editedKeys = EditedFingerprint::whereBetween('scan_date', [$startDate, $endDate])
+        ->get(['pin', 'scan_date'])
+        ->map(fn($e) => $e->pin . '_' . Carbon::parse($e->scan_date)->toDateString())
+        ->values()
+        ->toArray();
+
+    $employeesQuery = Employee::with([
+        'position' => fn($q) => $q->wherePivot('is_primary', true),
+        'store'    => fn($q) => $q->wherePivot('is_primary', true),
+    ])
+    ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee', 'status', 'company_id')
     ->whereNotNull('pin');
 
-if ($canViewOwn && !$canManage && !$canSpvManager) {
-    // ← ViewFingerspot: hanya data sendiri
-    $employeesQuery->where('pin', $user->employee->pin);
+    if ($canViewOwn && !$canManage && !$canSpvManager) {
+        // ← ViewFingerspot: hanya data sendiri
+        $employeesQuery->where('pin', $user->employee->pin);
 
-} elseif ($canSpvManager && !$canManage) {
-    // ← ManageFingerspotSPVManager: filter company + store kepunyaan
-    $userEmployee  = $user->employee;
-    $companyId     = $userEmployee->company_id;
-    $userStoreIds  = $userEmployee->store()->pluck('stores_tables.id')->toArray();
-    $userDeptIds   = $userEmployee->department()->pluck('departments_tables.id')->toArray();
+    } elseif ($canSpvManager && !$canManage) {
+        // ← ManageFingerspotSPVManager: filter company + semua store kepunyaan
+        $userEmployee = $user->employee;
+        $companyId    = $userEmployee->company_id;
+        $userStoreIds = $userEmployee->store()->pluck('stores_tables.id')->toArray();
+        $userDeptIds  = $userEmployee->department()->pluck('departments_tables.id')->toArray();
 
-    if (empty($userStoreIds) || empty($userDeptIds)) {
-        return collect();
-    }
+        if (empty($userStoreIds) || empty($userDeptIds)) {
+            return collect();
+        }
 
-
-
-    $employeesQuery
-        ->where('company_id', $companyId)
-        ->whereExists(function ($q) use ($userStoreIds) {
-            $q->select(DB::raw(1))
-                ->from('employee_stores')
-                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                ->whereIn('employee_stores.store_id', $userStoreIds);
-        })
-        ->whereExists(function ($q) use ($userDeptIds) {
-            $q->select(DB::raw(1))
-                ->from('employee_departments')
-                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-                ->whereIn('employee_departments.department_id', $userDeptIds);
-        });
-
-    if ($storeName) {
-        $employeesQuery->whereHas('store', fn($q) =>
-            $q->where('stores_tables.name', $storeName)
-        );
-    }
-
-} else {
-    // ← ManageFingerspot: bebas filter store
-    if ($storeName) {
-        $employeesQuery->whereHas('store', fn($q) =>
-            $q->where('stores_tables.name', $storeName)
-        );
-    }
-}
-
-        $employees   = $employeesQuery->get()->keyBy('pin');
-        $employeeIds = $employees->pluck('id')->filter()->values()->toArray();
-
-        $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
-            ->select('id', 'employee_id', 'shift_id', 'date', 'day_type')
-            ->whereIn('employee_id', $employeeIds)
-            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->get()
-            ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
-
-        $totalHariPerEmployee = Fingerprintrecap::select('employee_id', DB::raw('SUM(is_counted) as total_hari'))
-            ->whereIn('employee_id', $employeeIds)
-            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->groupBy('employee_id')
-            ->pluck('total_hari', 'employee_id');
-
-        $pins         = $employees->keys()->toArray();
-        $fingerprints = Fingerprints::select(['sn', 'scan_date', 'pin', 'inoutmode'])
-            ->whereIn('pin', $pins)
-            ->whereBetween('scan_date', [$startDate, $endDate])
-            ->orderBy('pin')
-            ->orderBy('scan_date')
-            ->get();
-
-        $deviceNames = Devicefingerprint::select('sn', 'device_name')
-            ->get()
-            ->keyBy('sn')
-            ->map(fn($d) => $d->device_name ?? '-');
-
-        $grouped = $fingerprints
-            ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
-
-        return $grouped->map(function ($group, $key) use (
-            $employees,
-            $totalHariPerEmployee,
-            $editedKeys,
-            $rosters,
-            $deviceNames,
-            $canManage,
-            $canSpvManager,
-            $canViewOwn
-        ) {
-            $first    = $group->first();
-            $pin      = $first->pin;
-            $scanDate = Carbon::parse($first->scan_date)->toDateString();
-            $employee = $employees->get($pin);
-
-            if (!$employee) return null;
-
-            $rosterKey  = $employee->id . '_' . $scanDate;
-            $roster     = $rosters->get($rosterKey);
-            $rosterName = '-';
-            $rosterTime = '';
-
-            if ($roster) {
-                if ($roster->day_type !== 'Work') {
-                    $rosterName = $roster->day_type;
-                } elseif ($roster->shift) {
-                    $rosterName = $roster->shift->shift_name;
-                    $rosterTime = substr($roster->shift->start_time, 0, 5)
-                        . ' - ' . substr($roster->shift->end_time, 0, 5);
-                }
-            }
-
-            $totalHari = $totalHariPerEmployee->get($employee->id, 0);
-
-            $row = [
-                'pin'               => $pin,
-                'employee_name'     => $employee->employee_name     ?? '-',
-                'status_employee'   => $employee->status_employee   ?? '-',
-                'status'   => $employee->status   ?? '-',
-                'employee_pengenal' => $employee->employee_pengenal ?? '-',
-                'name'              => $employee->store->first()?->name      ?? '-', // ← fix
-    'position_name'     => $employee->position->first()?->name   ?? '-', // ← fix
-                'device_name'       => $deviceNames->get($first->sn) ?? '-',
-                'scan_date'         => $scanDate,
-                'total_hari'        => $totalHari . ' Hari',
-                'roster_name'       => $rosterName,
-                'roster_time'       => $rosterTime,
-            ];
-
-            for ($i = 1; $i <= 10; $i++) {
-                $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
-            }
-
-            $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row, $deviceNames) {
-                if ($mode < 1 || $mode > 10) return;
-                $sorted  = $items->sortBy('scan_date');
-                $times   = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('H:i:s'))->implode(', ');
-                $devices = $sorted->map(fn($i) => $deviceNames->get($i->sn) ?? '')->implode(', ');
-                $row["in_$mode"]      = $times;
-                $row["device_$mode"]  = $devices;
-                $row["combine_$mode"] = trim($times . ' ' . $devices);
+        $employeesQuery
+            ->where('company_id', $companyId)
+            ->whereExists(function ($q) use ($userStoreIds) {
+                $q->select(DB::raw(1))
+                    ->from('employee_stores')
+                    ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                    ->whereIn('employee_stores.store_id', $userStoreIds);
+            })
+            ->whereExists(function ($q) use ($userDeptIds) {
+                $q->select(DB::raw(1))
+                    ->from('employee_departments')
+                    ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                    ->whereIn('employee_departments.department_id', $userDeptIds);
             });
 
-            $times = collect(range(1, 10))
-                ->flatMap(fn($i) => $row["in_$i"] ? explode(', ', $row["in_$i"]) : [])
-                ->map(fn($t) => Carbon::parse($t))
-                ->sort()
-                ->values();
+        // ← Filter store yang dipilih, validasi harus kepunyaan SPVManager
+        if ($storeName) {
+            $allowedStoreNames = $userEmployee->store()
+                ->pluck('stores_tables.name')
+                ->toArray();
 
-            if ($times->count() >= 2) {
-                $minutes         = $times->first()->diffInMinutes($times->last());
-                $row['duration'] = sprintf(
-                    '%d hour%s %d minute%s',
-                    intdiv($minutes, 60),
-                    intdiv($minutes, 60) !== 1 ? 's' : '',
-                    $minutes % 60,
-                    $minutes % 60 !== 1 ? 's' : ''
+            if (in_array($storeName, $allowedStoreNames)) {
+                $employeesQuery->whereHas('store', fn($q) =>
+                    $q->where('stores_tables.name', $storeName)
                 );
-            } else {
-                $row['duration'] = 'invalid';
             }
+            // Kalau store tidak kepunyaan SPVManager, abaikan filter
+        }
 
-            $row['is_updated']     = in_array($key, $editedKeys);
-            $row['updated_status'] = $row['is_updated'] ? 'Updated' : 'Original';
-            $row['is_late_in']     = false;
-            $row['is_late']        = false;
-            $row['late_minutes']   = 0;
+    } else {
+        // ← ManageFingerspot: bebas filter store
+        if ($storeName) {
+            $employeesQuery->whereHas('store', fn($q) =>
+                $q->where('stores_tables.name', $storeName)
+            );
+        }
+    }
 
-            if ($roster && $roster->day_type === 'Work' && $roster->shift && $row['in_1']) {
-                $firstIn = trim(explode(',', $row['in_1'])[0]);
-                if ($firstIn) {
-                    $shiftStart  = Carbon::parse($scanDate . ' ' . $roster->shift->start_time);
-                    $actualIn    = Carbon::parse($scanDate . ' ' . $firstIn);
-                 
-                    $toleransi = in_array($employee->store->first()?->name ?? '', self::TOLERANSI_TINGGI_STORES)
-    ? self::TOLERANSI_TINGGI_MENIT
-    : self::TOLERANSI_NORMAL_MENIT;
-                    $batasMasuk  = $shiftStart->copy()->addMinutes($toleransi);
-                    $lateMinutes = max(0, $shiftStart->diffInMinutes($actualIn, false));
+    $employees   = $employeesQuery->get()->keyBy('pin');
+    $employeeIds = $employees->pluck('id')->filter()->values()->toArray();
 
-                    if ($actualIn->gt($batasMasuk)) {
-                        $row['is_late_in']   = true;
-                        $row['is_late']      = true;
-                        $row['late_minutes'] = $lateMinutes;
-                    }
+    $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+        ->select('id', 'employee_id', 'shift_id', 'date', 'day_type')
+        ->whereIn('employee_id', $employeeIds)
+        ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+        ->get()
+        ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
+
+    $totalHariPerEmployee = Fingerprintrecap::select('employee_id', DB::raw('SUM(is_counted) as total_hari'))
+        ->whereIn('employee_id', $employeeIds)
+        ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+        ->groupBy('employee_id')
+        ->pluck('total_hari', 'employee_id');
+
+    $pins         = $employees->keys()->toArray();
+    $fingerprints = Fingerprints::select(['sn', 'scan_date', 'pin', 'inoutmode'])
+        ->whereIn('pin', $pins)
+        ->whereBetween('scan_date', [$startDate, $endDate])
+        ->orderBy('pin')
+        ->orderBy('scan_date')
+        ->get();
+
+    $deviceNames = Devicefingerprint::select('sn', 'device_name')
+        ->get()
+        ->keyBy('sn')
+        ->map(fn($d) => $d->device_name ?? '-');
+
+    $grouped = $fingerprints
+        ->groupBy(fn($f) => $f->pin . '_' . Carbon::parse($f->scan_date)->toDateString());
+
+    return $grouped->map(function ($group, $key) use (
+        $employees,
+        $totalHariPerEmployee,
+        $editedKeys,
+        $rosters,
+        $deviceNames,
+        $canManage,
+        $canSpvManager,
+        $canViewOwn
+    ) {
+        $first    = $group->first();
+        $pin      = $first->pin;
+        $scanDate = Carbon::parse($first->scan_date)->toDateString();
+        $employee = $employees->get($pin);
+
+        if (!$employee) return null;
+
+        $rosterKey  = $employee->id . '_' . $scanDate;
+        $roster     = $rosters->get($rosterKey);
+        $rosterName = '-';
+        $rosterTime = '';
+
+        if ($roster) {
+            if ($roster->day_type !== 'Work') {
+                $rosterName = $roster->day_type;
+            } elseif ($roster->shift) {
+                $rosterName = $roster->shift->shift_name;
+                $rosterTime = substr($roster->shift->start_time, 0, 5)
+                    . ' - ' . substr($roster->shift->end_time, 0, 5);
+            }
+        }
+
+        $totalHari = $totalHariPerEmployee->get($employee->id, 0);
+
+        $row = [
+            'pin'               => $pin,
+            'employee_name'     => $employee->employee_name     ?? '-',
+            'status_employee'   => $employee->status_employee   ?? '-',
+            'status'            => $employee->status            ?? '-',
+            'employee_pengenal' => $employee->employee_pengenal ?? '-',
+            'name'              => $employee->store->first()?->name    ?? '-',
+            'position_name'     => $employee->position->first()?->name ?? '-',
+            'device_name'       => $deviceNames->get($first->sn) ?? '-',
+            'scan_date'         => $scanDate,
+            'total_hari'        => $totalHari . ' Hari',
+            'roster_name'       => $rosterName,
+            'roster_time'       => $rosterTime,
+        ];
+
+        for ($i = 1; $i <= 10; $i++) {
+            $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
+        }
+
+        $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row, $deviceNames) {
+            if ($mode < 1 || $mode > 10) return;
+            $sorted  = $items->sortBy('scan_date');
+            $times   = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('H:i:s'))->implode(', ');
+            $devices = $sorted->map(fn($i) => $deviceNames->get($i->sn) ?? '')->implode(', ');
+            $row["in_$mode"]      = $times;
+            $row["device_$mode"]  = $devices;
+            $row["combine_$mode"] = trim($times . ' ' . $devices);
+        });
+
+        $times = collect(range(1, 10))
+            ->flatMap(fn($i) => $row["in_$i"] ? explode(', ', $row["in_$i"]) : [])
+            ->map(fn($t) => Carbon::parse($t))
+            ->sort()
+            ->values();
+
+        if ($times->count() >= 2) {
+            $minutes         = $times->first()->diffInMinutes($times->last());
+            $row['duration'] = sprintf(
+                '%d hour%s %d minute%s',
+                intdiv($minutes, 60),
+                intdiv($minutes, 60) !== 1 ? 's' : '',
+                $minutes % 60,
+                $minutes % 60 !== 1 ? 's' : ''
+            );
+        } else {
+            $row['duration'] = 'invalid';
+        }
+
+        $row['is_updated']     = in_array($key, $editedKeys);
+        $row['updated_status'] = $row['is_updated'] ? 'Updated' : 'Original';
+        $row['is_late_in']     = false;
+        $row['is_late']        = false;
+        $row['late_minutes']   = 0;
+
+        if ($roster && $roster->day_type === 'Work' && $roster->shift && $row['in_1']) {
+            $firstIn = trim(explode(',', $row['in_1'])[0]);
+            if ($firstIn) {
+                $shiftStart = Carbon::parse($scanDate . ' ' . $roster->shift->start_time);
+                $actualIn   = Carbon::parse($scanDate . ' ' . $firstIn);
+
+                $toleransi = in_array($employee->store->first()?->name ?? '', self::TOLERANSI_TINGGI_STORES)
+                    ? self::TOLERANSI_TINGGI_MENIT
+                    : self::TOLERANSI_NORMAL_MENIT;
+
+                $batasMasuk  = $shiftStart->copy()->addMinutes($toleransi);
+                $lateMinutes = max(0, $shiftStart->diffInMinutes($actualIn, false));
+
+                if ($actualIn->gt($batasMasuk)) {
+                    $row['is_late_in']   = true;
+                    $row['is_late']      = true;
+                    $row['late_minutes'] = $lateMinutes;
                 }
             }
+        }
 
-            $row['can_action'] = $canManage;
+        $row['can_action'] = $canManage;
 
-            return $row;
-        })->filter()->values();
-    }
+        return $row;
+    })->filter()->values();
+}
     public function getFingerprints(Request $request)
     {
         ini_set('memory_limit', '1024M');

@@ -82,63 +82,279 @@ class EmployeeController extends Controller
     //     $statuses = Employee::getStatusOptions();
     //     return view('pages.Employee.Employee', compact('departments', 'companies', 'stores', 'employeestatuses', 'statuses', 'countactives', 'countpendings', 'countresigns', 'groups', 'gradings'));
     // }
-    public function index()
-    {
-        /** @var \App\Models\User|null $user */
-        $user = auth()->user();
+//     public function index()
+//     {
+//         /** @var \App\Models\User|null $user */
+//         $user = auth()->user();
 
-        // ViewEmployee: hanya bisa akses route, tidak ada data tambahan
-        if (
-            $user->hasPermissionTo('ViewEmployee')
-            && !$user->hasPermissionTo('ManageEmployee')
-            && !$user->hasPermissionTo('ManageEmployeeSPVManager')
-        ) {
-            return view('pages.Employee.Employee');
-        }
+//         // ViewEmployee: hanya bisa akses route, tidak ada data tambahan
+//         if (
+//             $user->hasPermissionTo('ViewEmployee')
+//             && !$user->hasPermissionTo('ManageEmployee')
+//             && !$user->hasPermissionTo('ManageEmployeeSPVManager')
+//         ) {
+//             return view('pages.Employee.Employee');
+//         }
 
-        // Data yang bisa diakses semua role (ManageEmployee & ManageEmployeeSPVManager)
-        $countactives = Employee::where('status', 'Active')->count();
-        $countpendings = Employee::where('status', 'Pending')->count();
-        $companies = Company::pluck('name', 'id');
-        $stores = Stores::get();
-        $departments = Departments::get();
-        $employeestatuses = Employee::getStatusEmployeeOptions();
-        $statuses = Employee::getStatusOptions();
+//         // Data yang bisa diakses semua role (ManageEmployee & ManageEmployeeSPVManager)
+//         $countactives = Employee::where('status', 'Active')->count();
+//         $countpendings = Employee::where('status', 'Pending')->count();
+//         $companies = Company::pluck('name', 'id');
+//         if (
+//     $user->hasPermissionTo('ManageEmployeeSPVManager')
+//     && !$user->hasPermissionTo('ManageEmployee')
+// ) {
+//     // ← Stores kepunyaan SPVManager saja, orderby name
+//     $stores = $user->employee->store()
+//         ->orderBy('stores_tables.name')
+//         ->get();
 
-        // SPV Only: hanya data terbatas
-        if (
-            $user->hasPermissionTo('ManageEmployeeSPVManager')
-            && !$user->hasPermissionTo('ManageEmployee')
-        ) {
-            return view('pages.Employee.Employee', compact(
-                'countactives',
-                'countpendings',
-                'companies',
-                'stores',
-                'departments',
-                'employeestatuses',
-                'statuses'
-            ));
-        }
+//     $departments = $user->employee->department()->get();
 
-        // ManageEmployee: semua data
-        $countresigns = Employee::where('status', 'Resign')->count();
-        $gradings = Grading::pluck('grading_name', 'id');
-        $groups = Groups::pluck('remark', 'id');
+//     return view('pages.Employee.Employee', compact(
+//         'countactives',
+//         'countpendings',
+//         'companies',
+//         'stores',
+//         'departments',
+//         'employeestatuses',
+//         'statuses'
+//     ));
+// }
+        
+//         $stores = Stores::get();
+//         $departments = Departments::get();
+//         $employeestatuses = Employee::getStatusEmployeeOptions();
+//         $statuses = Employee::getStatusOptions();
+
+//         // SPV Only: hanya data terbatas
+//         if (
+//             $user->hasPermissionTo('ManageEmployeeSPVManager')
+//             && !$user->hasPermissionTo('ManageEmployee')
+//         ) {
+//             return view('pages.Employee.Employee', compact(
+//                 'countactives',
+//                 'countpendings',
+//                 'companies',
+//                 'stores',
+//                 'departments',
+//                 'employeestatuses',
+//                 'statuses'
+//             ));
+//         }
+
+//         // ManageEmployee: semua data
+//         $countresigns = Employee::where('status', 'Resign')->count();
+//         $gradings = Grading::pluck('grading_name', 'id');
+//         $groups = Groups::pluck('remark', 'id');
+
+//         return view('pages.Employee.Employee', compact(
+//             'countactives',
+//             'countpendings',
+//             'countresigns',
+//             'companies',
+//             'stores',
+//             'departments',
+//             'employeestatuses',
+//             'statuses',
+//             'gradings',
+//             'groups'
+//         ));
+//     }
+public function index()
+{
+    /** @var \App\Models\User|null $user */
+    $user = auth()->user();
+
+    // ViewEmployee: hanya bisa akses route, tidak ada data tambahan
+    if (
+        $user->hasPermissionTo('ViewEmployee')
+        && !$user->hasPermissionTo('ManageEmployee')
+        && !$user->hasPermissionTo('ManageEmployeeSPVManager')
+    ) {
+        return view('pages.Employee.Employee');
+    }
+
+    // Data umum untuk semua permission
+    $countactives     = Employee::where('status', 'Active')->count();
+    $countpendings    = Employee::where('status', 'Pending')->count();
+    $companies        = Company::pluck('name', 'id');
+    $employeestatuses = Employee::getStatusEmployeeOptions();
+    $statuses         = Employee::getStatusOptions();
+
+    // SPV Only
+    if (
+        $user->hasPermissionTo('ManageEmployeeSPVManager')
+        && !$user->hasPermissionTo('ManageEmployee')
+    ) {
+        $stores      = $user->employee->store()->orderBy('stores_tables.name')->get();
+        $departments = $user->employee->department()->get();
 
         return view('pages.Employee.Employee', compact(
             'countactives',
             'countpendings',
-            'countresigns',
             'companies',
             'stores',
             'departments',
             'employeestatuses',
-            'statuses',
-            'gradings',
-            'groups'
+            'statuses'
         ));
     }
+
+    // ManageEmployee: semua data
+    $stores       = Stores::orderBy('name')->get();
+    $departments  = Departments::get();
+    $countresigns = Employee::where('status', 'Resign')->count();
+    $gradings     = Grading::pluck('grading_name', 'id');
+    $groups       = Groups::pluck('remark', 'id');
+
+    return view('pages.Employee.Employee', compact(
+        'countactives',
+        'countpendings',
+        'countresigns',
+        'companies',
+        'stores',
+        'departments',
+        'employeestatuses',
+        'statuses',
+        'gradings',
+        'groups'
+    ));
+}
+
+    //     public function getEmployees(Request $request)
+    //     {
+    //         /** @var \App\Models\User|null $user */
+    //    $user = auth()->user();
+    //          if (!$user->hasPermissionTo('ManageEmployee')) {
+    //         abort(403);
+    //     }    
+
+    //         $query = User::query()
+    //             ->with([
+    //                 'employee',
+    //                 'employee.position',
+    //                 'employee.department',
+    //                 'employee.grading',
+    //                 'employee.group',
+    //                 'employee.store',
+    //                 'employee.company'
+    //             ])
+    //             ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+    //             ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+    //             ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+    //             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+
+    //             // ← Join pivot + tabel stores untuk primary store
+    //             ->leftJoin('employee_stores', function ($join) {
+    //                 $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+    //                     ->where('employee_stores.is_primary', true);
+    //             })
+    //             ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+    //             ->leftJoin('employee_positions', function ($join) {
+    //                 $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+    //                     ->where('employee_positions.is_primary', true);
+    //             })
+    //             ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+
+    //             // ← Join pivot + tabel departments untuk primary department
+    //             ->leftJoin('employee_departments', function ($join) {
+    //                 $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+    //                     ->where('employee_departments.is_primary', true);
+    //             })
+    //             ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
+
+    //             ->select([
+    //                 'users.*',
+    //                 'employees_tables.employee_name',
+    //                 'employees_tables.employee_pengenal',
+    //                 'employees_tables.status_employee',
+    //                 'employees_tables.status',
+    //                 'employees_tables.join_date',
+    //                 'position_tables.name as position_name',
+    //                 'groups_tables.remark as remark',
+    //                 'stores_tables.name as store_name',           
+    //                 'departments_tables.department_name',
+    //                 'grading.grading_name',
+    //                 'company_tables.name as name_company',
+    //             ]);
+
+    //         $query->when(
+    //             $request->filled('filter_company'),
+    //             fn($q) => $q->where('company_tables.name', $request->filter_company)
+    //         );
+    //         $query->when(
+    //             $request->filled('filter_department'),
+    //             fn($q) => $q->where('departments_tables.department_name', $request->filter_department)
+    //         );
+    //         $query->when(
+    //             $request->filled('filter_group'),
+    //             fn($q) => $q->where('groups_tables.remark', $request->filter_group)
+    //         );
+    //         $query->when(
+    //             $request->filled('filter_grading'),
+    //             fn($q) => $q->where('grading.grading_name', $request->filter_grading)
+    //         );
+    //         $query->when(
+    //             $request->filled('filter_store'),
+    //             fn($q) => $q->where('stores_tables.name', $request->filter_store)
+    //         );
+    //         $query->when(
+    //             $request->filled('filter_emp_status'),
+    //             fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status)
+    //         );
+    //         $query->when(
+    //             $request->filled('filter_status'),
+    //             fn($q) => $q->where('employees_tables.status', $request->filter_status)
+    //         );
+    //         $query->when($request->filled('filter_los'), function ($q) use ($request) {
+    //             $los = $request->filter_los;
+    //             if ($los === 'under3months') {
+    //                 $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+    //             } else {
+    //                 $date = match ($los) {
+    //                     '1year'  => Carbon::now()->subYear(),
+    //                     '3years' => Carbon::now()->subYears(3),
+    //                     '5years' => Carbon::now()->subYears(5),
+    //                     default  => null,
+    //                 };
+    //                 if ($date) {
+    //                     $q->where('employees_tables.join_date', '<=', $date);
+    //                 }
+    //             }
+    //         });
+
+    //         return DataTables::of($query)
+    //             ->addColumn('length_of_service', function ($e) {
+    //                 if (!$e->join_date) return 'Empty';
+    //                 $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+    //                 return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+    //             })
+
+    //                ->addColumn('action', function ($e) {
+    //     $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+    //     return '
+    //     <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+    //         <i class="fas fa-user-edit text-secondary"></i>
+    //     </a>
+    //     <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+    //         <i class="fas fa-eye text-secondary"></i>
+    //     </a>';
+    // })
+
+    //             ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
+    //             ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+    //             ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+    //             ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+    //             ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+    //             ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%")) // ← ganti alias
+    //             ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+    //             ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+    //             ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
+    //             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
+    //             ->rawColumns(['action'])
+    //             ->make(true);
+    //     }
     public function getBagan(Request $request)
     {
         /** @var \App\Models\User|null $user */
@@ -578,388 +794,525 @@ class EmployeeController extends Controller
         return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
     }
 
-    //     public function getEmployees(Request $request)
-    //     {
-    //         /** @var \App\Models\User|null $user */
-    //    $user = auth()->user();
-    //          if (!$user->hasPermissionTo('ManageEmployee')) {
-    //         abort(403);
-    //     }    
+//     public function getEmployees(Request $request)
+//     {
+//         /** @var \App\Models\User|null $user */
+//         $user = auth()->user();
 
-    //         $query = User::query()
-    //             ->with([
-    //                 'employee',
-    //                 'employee.position',
-    //                 'employee.department',
-    //                 'employee.grading',
-    //                 'employee.group',
-    //                 'employee.store',
-    //                 'employee.company'
-    //             ])
-    //             ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
-    //             ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
-    //             ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
-    //             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+//         $canManage     = $user->hasPermissionTo('ManageEmployee');
+//         $canSpvManager = $user->hasPermissionTo('ManageEmployeeSPVManager');
+//         $canView       = $user->hasPermissionTo('ViewEmployee');
 
-    //             // ← Join pivot + tabel stores untuk primary store
-    //             ->leftJoin('employee_stores', function ($join) {
-    //                 $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
-    //                     ->where('employee_stores.is_primary', true);
-    //             })
-    //             ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
-    //             ->leftJoin('employee_positions', function ($join) {
-    //                 $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
-    //                     ->where('employee_positions.is_primary', true);
-    //             })
-    //             ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+//         if (!$canManage && !$canSpvManager && !$canView) {
+//             abort(403);
+//         }
 
-    //             // ← Join pivot + tabel departments untuk primary department
-    //             ->leftJoin('employee_departments', function ($join) {
-    //                 $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
-    //                     ->where('employee_departments.is_primary', true);
-    //             })
-    //             ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
+//         // ← with berbeda berdasarkan permission
+//         $withRelations = $canManage ? [
+//             'employee',
+//             'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.grading',
+//             'employee.group',
+//             'employee.documents.companydocumentconfigs.documenttypes',
+//             'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.company'
+//         ] : [
+//             'employee' => fn($q) => $q->select('id', 'employee_name', 'employee_pengenal', 'status', 'company_id'),
+//             'employee.position' => fn($q) => $q->wherePivot('is_primary', true)->select('position_tables.id', 'position_tables.name'),
+//             'employee.department' => fn($q) => $q->wherePivot('is_primary', true)->select('departments_tables.id', 'departments_tables.department_name'),
+//             'employee.store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
+//             'employee.company' => fn($q) => $q->select('id', 'name'),
+//         ];
 
-    //             ->select([
-    //                 'users.*',
-    //                 'employees_tables.employee_name',
-    //                 'employees_tables.employee_pengenal',
-    //                 'employees_tables.status_employee',
-    //                 'employees_tables.status',
-    //                 'employees_tables.join_date',
-    //                 'position_tables.name as position_name',
-    //                 'groups_tables.remark as remark',
-    //                 'stores_tables.name as store_name',           
-    //                 'departments_tables.department_name',
-    //                 'grading.grading_name',
-    //                 'company_tables.name as name_company',
-    //             ]);
+//         $query = User::query()
+//             ->with($withRelations)
+//             ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+//             ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+//             ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+//             ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+//             ->leftJoin('employee_stores', function ($join) {
+//                 $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+//                     ->where('employee_stores.is_primary', true);
+//             })
+//             ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+//             ->leftJoin('employee_positions', function ($join) {
+//                 $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+//                     ->where('employee_positions.is_primary', true);
+//             })
+//             ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+//             ->leftJoin('employee_departments', function ($join) {
+//                 $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+//                     ->where('employee_departments.is_primary', true);
+//             })
+//             ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id');
 
-    //         $query->when(
-    //             $request->filled('filter_company'),
-    //             fn($q) => $q->where('company_tables.name', $request->filter_company)
-    //         );
-    //         $query->when(
-    //             $request->filled('filter_department'),
-    //             fn($q) => $q->where('departments_tables.department_name', $request->filter_department)
-    //         );
-    //         $query->when(
-    //             $request->filled('filter_group'),
-    //             fn($q) => $q->where('groups_tables.remark', $request->filter_group)
-    //         );
-    //         $query->when(
-    //             $request->filled('filter_grading'),
-    //             fn($q) => $q->where('grading.grading_name', $request->filter_grading)
-    //         );
-    //         $query->when(
-    //             $request->filled('filter_store'),
-    //             fn($q) => $q->where('stores_tables.name', $request->filter_store)
-    //         );
-    //         $query->when(
-    //             $request->filled('filter_emp_status'),
-    //             fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status)
-    //         );
-    //         $query->when(
-    //             $request->filled('filter_status'),
-    //             fn($q) => $q->where('employees_tables.status', $request->filter_status)
-    //         );
-    //         $query->when($request->filled('filter_los'), function ($q) use ($request) {
-    //             $los = $request->filter_los;
-    //             if ($los === 'under3months') {
-    //                 $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
-    //             } else {
-    //                 $date = match ($los) {
-    //                     '1year'  => Carbon::now()->subYear(),
-    //                     '3years' => Carbon::now()->subYears(3),
-    //                     '5years' => Carbon::now()->subYears(5),
-    //                     default  => null,
-    //                 };
-    //                 if ($date) {
-    //                     $q->where('employees_tables.join_date', '<=', $date);
-    //                 }
-    //             }
-    //         });
+//         if ($canManage) {
+//             $query->select([
+//                 'users.*',
+//                 'employees_tables.employee_name',
+//                 'employees_tables.employee_pengenal',
+//                 'employees_tables.status_employee',
+//                 'employees_tables.status',
+//                 'employees_tables.join_date',
+//                 'position_tables.name as position_name',
+//                 'groups_tables.remark as remark',
+//                 'stores_tables.name as store_name',
+//                 'departments_tables.department_name',
+//                 'grading.grading_name',
+//                 'company_tables.name as name_company',
+//             ]);
+//         } else {
+//             $query->select([
+//                 'users.id',
+//                 'users.employee_id',
+//                 'employees_tables.employee_name',
+//                 'employees_tables.employee_pengenal',
+//                 'employees_tables.status',
+//                 'position_tables.name as position_name',
+//                 'stores_tables.name as store_name',
+//                 'departments_tables.department_name',
+//                 'company_tables.name as name_company',
+//             ]);
+//         }
+//         if (!$canManage) {
+//             $employee = $user->employee;
+//             $companyId = $employee->company_id; // ← ambil company_id employee yang login
 
-    //         return DataTables::of($query)
-    //             ->addColumn('length_of_service', function ($e) {
-    //                 if (!$e->join_date) return 'Empty';
-    //                 $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
-    //                 return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
-    //             })
+//             // ← Filter wajib berdasarkan company_id
+//             $query->where('employees_tables.company_id', $companyId);
 
-    //                ->addColumn('action', function ($e) {
-    //     $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-    //     return '
-    //     <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
-    //         <i class="fas fa-user-edit text-secondary"></i>
-    //     </a>
-    //     <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
-    //         <i class="fas fa-eye text-secondary"></i>
-    //     </a>';
-    // })
+//             if ($canSpvManager) {
+//                 $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
+//                 $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
 
-    //             ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
-    //             ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
-    //             ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
-    //             ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
-    //             ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
-    //             ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%")) // ← ganti alias
-    //             ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
-    //             ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
-    //             ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
-    //             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
-    //             ->rawColumns(['action'])
-    //             ->make(true);
-    //     }
+//                 if (empty($storeIds) || empty($departmentIds)) {
+//                     return DataTables::of(collect())->make(true);
+//                 }
+
+//                 $query->whereExists(function ($q) use ($storeIds) {
+//                     $q->select(DB::raw(1))
+//                         ->from('employee_stores')
+//                         ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+//                         ->whereIn('employee_stores.store_id', $storeIds);
+//                 })
+//                     ->whereExists(function ($q) use ($departmentIds) {
+//                         $q->select(DB::raw(1))
+//                             ->from('employee_departments')
+//                             ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+//                             ->whereIn('employee_departments.department_id', $departmentIds);
+//                     });
+//             } elseif ($canView) {
+//                 $storeId = $employee->primaryStore()->first()?->id;
+//                 $departmentId = $employee->primaryDepartment()->first()?->id;
+//                 if (!$storeId || !$departmentId) {
+//                     return DataTables::of(collect())->make(true);
+//                 }
+//                 $query->whereExists(function ($q) use ($storeId) {
+//                     $q->select(DB::raw(1))
+//                         ->from('employee_stores')
+//                         ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+//                         ->where('employee_stores.store_id', $storeId)
+//                         ->where('employee_stores.is_primary', true);
+//                 })
+//                     ->whereExists(function ($q) use ($departmentId) {
+//                         $q->select(DB::raw(1))
+//                             ->from('employee_departments')
+//                             ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+//                             ->where('employee_departments.department_id', $departmentId)
+//                             ->where('employee_departments.is_primary', true);
+//                     });
+//             }
+//         }
+//         if ($canManage) {
+//             $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
+//             $query->when($request->filled('filter_grading'), fn($q) => $q->where('grading.grading_name', $request->filter_grading));
+//             $query->when($request->filled('filter_emp_status'), fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status));
+//             $query->when($request->filled('filter_los'), function ($q) use ($request) {
+//                 $los = $request->filter_los;
+//                 if ($los === 'under3months') {
+//                     $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+//                 } else {
+//                     $date = match ($los) {
+//                         '1year'  => Carbon::now()->subYear(),
+//                         '3years' => Carbon::now()->subYears(3),
+//                         '5years' => Carbon::now()->subYears(5),
+//                         default  => null,
+//                     };
+//                     if ($date) $q->where('employees_tables.join_date', '<=', $date);
+//                 }
+//             });
+//         }
+//         $query->when($request->filled('filter_company'), fn($q) => $q->where('company_tables.name', $request->filter_company));
+//         $query->when($request->filled('filter_department'), fn($q) => $q->where('departments_tables.department_name', $request->filter_department));
+//         $query->when($request->filled('filter_store'), fn($q) => $q->where('stores_tables.name', $request->filter_store));
+//         $query->when($request->filled('filter_status'), fn($q) => $q->where('employees_tables.status', $request->filter_status));
+//         $dt = DataTables::of($query);
+//         // ← Sembunyikan data sensitif dari response untuk non-ManageEmployee
+//         if (!$canManage) {
+//             $sensitiveFields = [
+//                 'nik',
+//                 'telp_number',
+//                 'email',
+//                 'bank_account_number',
+//                 'bpjs_kes',
+//                 'bpjs_ket',
+//                 'npwp',
+//                 'pin',
+//                 'date_of_birth',
+//                 'place_of_birth',
+//                 'biological_mother_name',
+//                 'current_address',
+//                 'id_card_address',
+//                 'marriage',
+//                 'child',
+//                 'gender',
+//                 'religion',
+//                 'last_education',
+//                 'institution',
+//                 'kk_photos',
+//                 'ktp_photos',
+//                 'signature',
+//                 'join_date',
+//                 'end_date',
+//                 'can_approve',
+//                 'grading_id',
+//                 'banks_id',
+//                 'structure_id',
+//                 'group_id',
+//                 'level_id',
+//                 'is_manager',
+//                 'is_manager_store',
+//                 'photos',
+//                 'remaining',
+//                 'approved',
+//                 'pending',
+//                 'total',
+//                 'position_id',
+//                 'store_id',
+//                 'department_id',
+//             ];
+
+//             $dt->addColumn('employee', function ($row) use ($sensitiveFields) {
+//                 if (!$row->employee) return null;
+//                 return $row->employee->makeHidden($sensitiveFields);
+//             });
+//         }
+
+//         if ($canManage) {
+//             $dt->addColumn('length_of_service', function ($e) {
+//                 if (!$e->join_date) return 'Empty';
+//                 $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+//                 return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+//             });
+//         }
+
+//         $dt->addColumn('action', function ($e) use ($canManage) {
+//             $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+//             $actions = '<a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+//             <i class="fas fa-eye text-secondary"></i>
+//         </a>';
+//             if ($canManage) {
+//                 $actions .= '<a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+//                 <i class="fas fa-user-edit text-secondary"></i>
+//             </a>';
+//             }
+//             return $actions;
+//         });
+
+//         $dt->filterColumn('employee_name', function ($q, $k) {
+//     $keywords = array_filter(explode(' ', trim($k)));
+//     $q->where(function ($sub) use ($keywords) {
+//         foreach ($keywords as $word) {
+//             $sub->where('employees_tables.employee_name', 'like', "%{$word}%");
+//         }
+//     });
+// })
+//             ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+//             ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+//             ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+//             ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+//             ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+//             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"));
+
+//         if ($canManage) {
+//             $dt->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+//                 ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+//                 ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"));
+//         }
+
+//         return $dt->rawColumns(['action'])->make(true);
+//     }
     public function getEmployees(Request $request)
-    {
-        /** @var \App\Models\User|null $user */
-        $user = auth()->user();
+{
+    /** @var \App\Models\User|null $user */
+    $user = auth()->user();
 
-        $canManage     = $user->hasPermissionTo('ManageEmployee');
-        $canSpvManager = $user->hasPermissionTo('ManageEmployeeSPVManager');
-        $canView       = $user->hasPermissionTo('ViewEmployee');
+    $canManage     = $user->hasPermissionTo('ManageEmployee');
+    $canSpvManager = $user->hasPermissionTo('ManageEmployeeSPVManager');
+    $canView       = $user->hasPermissionTo('ViewEmployee');
 
-        if (!$canManage && !$canSpvManager && !$canView) {
-            abort(403);
-        }
+    if (!$canManage && !$canSpvManager && !$canView) {
+        abort(403);
+    }
 
-        // ← with berbeda berdasarkan permission
-        $withRelations = $canManage ? [
+    // ← with berbeda berdasarkan permission
+    if ($canManage) {
+        $withRelations = [
             'employee',
-            'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.position'   => fn($q) => $q->wherePivot('is_primary', true),
             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
             'employee.grading',
             'employee.group',
             'employee.documents.companydocumentconfigs.documenttypes',
-            'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.store'      => fn($q) => $q->wherePivot('is_primary', true),
             'employee.company'
-        ] : [
-            'employee' => fn($q) => $q->select('id', 'employee_name', 'employee_pengenal', 'status', 'company_id'),
-            'employee.position' => fn($q) => $q->wherePivot('is_primary', true)->select('position_tables.id', 'position_tables.name'),
-            'employee.department' => fn($q) => $q->wherePivot('is_primary', true)->select('departments_tables.id', 'departments_tables.department_name'),
-            'employee.store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
-            'employee.company' => fn($q) => $q->select('id', 'name'),
         ];
+    } elseif ($canSpvManager) {
+        $withRelations = [
+            'employee'            => fn($q) => $q->select('id', 'employee_name', 'employee_pengenal', 'status', 'company_id'),
+            'employee.position'   => fn($q) => $q->wherePivot('is_primary', true)->select('position_tables.id', 'position_tables.name'),
+            'employee.department' => fn($q) => $q->wherePivot('is_primary', true)->select('departments_tables.id', 'departments_tables.department_name'),
+            // ← Semua store untuk SPVManager (tidak filter is_primary)
+            'employee.store'      => fn($q) => $q->select('stores_tables.id', 'stores_tables.name'),
+            'employee.company'    => fn($q) => $q->select('id', 'name'),
+        ];
+    } else {
+        // ViewEmployee — primary saja
+        $withRelations = [
+            'employee'            => fn($q) => $q->select('id', 'employee_name', 'employee_pengenal', 'status', 'company_id'),
+            'employee.position'   => fn($q) => $q->wherePivot('is_primary', true)->select('position_tables.id', 'position_tables.name'),
+            'employee.department' => fn($q) => $q->wherePivot('is_primary', true)->select('departments_tables.id', 'departments_tables.department_name'),
+            'employee.store'      => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
+            'employee.company'    => fn($q) => $q->select('id', 'name'),
+        ];
+    }
 
-        $query = User::query()
-            ->with($withRelations)
-            ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
-            ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
-            ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
-            ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
-            ->leftJoin('employee_stores', function ($join) {
-                $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+    $query = User::query()
+        ->with($withRelations)
+        ->leftJoin('employees_tables', 'users.employee_id', '=', 'employees_tables.id')
+        ->leftJoin('grading', 'grading.id', '=', 'employees_tables.grading_id')
+        ->leftJoin('groups_tables', 'groups_tables.id', '=', 'employees_tables.group_id')
+        ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+        ->leftJoin('employee_stores', function ($join) {
+            $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
+                ->where('employee_stores.is_primary', true);
+        })
+        ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+        ->leftJoin('employee_positions', function ($join) {
+            $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
+                ->where('employee_positions.is_primary', true);
+        })
+        ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+        ->leftJoin('employee_departments', function ($join) {
+            $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+                ->where('employee_departments.is_primary', true);
+        })
+        ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id');
+
+    if ($canManage) {
+        $query->select([
+            'users.*',
+            'employees_tables.employee_name',
+            'employees_tables.employee_pengenal',
+            'employees_tables.status_employee',
+            'employees_tables.status',
+            'employees_tables.join_date',
+            'position_tables.name as position_name',
+            'groups_tables.remark as remark',
+            'stores_tables.name as store_name',
+            'departments_tables.department_name',
+            'grading.grading_name',
+            'company_tables.name as name_company',
+        ]);
+    } else {
+        $query->select([
+            'users.id',
+            'users.employee_id',
+            'employees_tables.employee_name',
+            'employees_tables.employee_pengenal',
+            'employees_tables.status',
+            'position_tables.name as position_name',
+            'stores_tables.name as store_name',
+            'departments_tables.department_name',
+            'company_tables.name as name_company',
+        ]);
+    }
+
+    if (!$canManage) {
+        $employee  = $user->employee;
+        $companyId = $employee->company_id;
+
+        $query->where('employees_tables.company_id', $companyId);
+
+        // if ($canSpvManager) {
+        //     // ← Ambil SEMUA store pivot (bukan hanya primary)
+        //     $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
+        //     $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+        //     if (empty($storeIds) || empty($departmentIds)) {
+        //         return DataTables::of(collect())->make(true);
+        //     }
+
+        //     $query->whereExists(function ($q) use ($storeIds) {
+        //         $q->select(DB::raw(1))
+        //             ->from('employee_stores')
+        //             ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+        //             ->whereIn('employee_stores.store_id', $storeIds);
+        //     })
+        //     ->whereExists(function ($q) use ($departmentIds) {
+        //         $q->select(DB::raw(1))
+        //             ->from('employee_departments')
+        //             ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+        //             ->whereIn('employee_departments.department_id', $departmentIds);
+        //     });
+
+        // } 
+      if ($canSpvManager) {
+    $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
+    $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+    if (empty($storeIds) || empty($departmentIds)) {
+        return DataTables::of(collect())->make(true);
+    }
+
+    $query->whereExists(function ($q) use ($storeIds) {
+        $q->select(DB::raw(1))
+            ->from('employee_stores')
+            ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+            ->whereIn('employee_stores.store_id', $storeIds);
+    })
+    ->whereExists(function ($q) use ($departmentIds) {
+        $q->select(DB::raw(1))
+            ->from('employee_departments')
+            ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+            ->whereIn('employee_departments.department_id', $departmentIds);
+    });
+
+    // ← Log setelah whereExists ditambahkan
+    Log::info('SPV QUERY SQL', [
+        'sql'      => $query->toSql(),
+        'bindings' => $query->getBindings(),
+        'store_ids' => $storeIds,
+        'dept_ids'  => $departmentIds,
+    ]);
+}
+        elseif ($canView) {
+            $storeId      = $employee->primaryStore()->first()?->id;
+            $departmentId = $employee->primaryDepartment()->first()?->id;
+
+            if (!$storeId || !$departmentId) {
+                return DataTables::of(collect())->make(true);
+            }
+
+            $query->whereExists(function ($q) use ($storeId) {
+                $q->select(DB::raw(1))
+                    ->from('employee_stores')
+                    ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                    ->where('employee_stores.store_id', $storeId)
                     ->where('employee_stores.is_primary', true);
             })
-            ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
-            ->leftJoin('employee_positions', function ($join) {
-                $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
-                    ->where('employee_positions.is_primary', true);
-            })
-            ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
-            ->leftJoin('employee_departments', function ($join) {
-                $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
+            ->whereExists(function ($q) use ($departmentId) {
+                $q->select(DB::raw(1))
+                    ->from('employee_departments')
+                    ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                    ->where('employee_departments.department_id', $departmentId)
                     ->where('employee_departments.is_primary', true);
-            })
-            ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id');
-
-        if ($canManage) {
-            $query->select([
-                'users.*',
-                'employees_tables.employee_name',
-                'employees_tables.employee_pengenal',
-                'employees_tables.status_employee',
-                'employees_tables.status',
-                'employees_tables.join_date',
-                'position_tables.name as position_name',
-                'groups_tables.remark as remark',
-                'stores_tables.name as store_name',
-                'departments_tables.department_name',
-                'grading.grading_name',
-                'company_tables.name as name_company',
-            ]);
-        } else {
-            $query->select([
-                'users.id',
-                'users.employee_id',
-                'employees_tables.employee_name',
-                'employees_tables.employee_pengenal',
-                'employees_tables.status',
-                'position_tables.name as position_name',
-                'stores_tables.name as store_name',
-                'departments_tables.department_name',
-                'company_tables.name as name_company',
-            ]);
+            });
         }
-        if (!$canManage) {
-            $employee = $user->employee;
-            $companyId = $employee->company_id; // ← ambil company_id employee yang login
+    }
 
-            // ← Filter wajib berdasarkan company_id
-            $query->where('employees_tables.company_id', $companyId);
-
-            if ($canSpvManager) {
-                $storeIds = $employee->store()->pluck('stores_tables.id')->toArray();
-                $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
-
-                if (empty($storeIds) || empty($departmentIds)) {
-                    return DataTables::of(collect())->make(true);
-                }
-
-                $query->whereExists(function ($q) use ($storeIds) {
-                    $q->select(DB::raw(1))
-                        ->from('employee_stores')
-                        ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                        ->whereIn('employee_stores.store_id', $storeIds);
-                })
-                    ->whereExists(function ($q) use ($departmentIds) {
-                        $q->select(DB::raw(1))
-                            ->from('employee_departments')
-                            ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-                            ->whereIn('employee_departments.department_id', $departmentIds);
-                    });
-            } elseif ($canView) {
-                $storeId = $employee->primaryStore()->first()?->id;
-                $departmentId = $employee->primaryDepartment()->first()?->id;
-                if (!$storeId || !$departmentId) {
-                    return DataTables::of(collect())->make(true);
-                }
-                $query->whereExists(function ($q) use ($storeId) {
-                    $q->select(DB::raw(1))
-                        ->from('employee_stores')
-                        ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                        ->where('employee_stores.store_id', $storeId)
-                        ->where('employee_stores.is_primary', true);
-                })
-                    ->whereExists(function ($q) use ($departmentId) {
-                        $q->select(DB::raw(1))
-                            ->from('employee_departments')
-                            ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-                            ->where('employee_departments.department_id', $departmentId)
-                            ->where('employee_departments.is_primary', true);
-                    });
+    if ($canManage) {
+        $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
+        $query->when($request->filled('filter_grading'), fn($q) => $q->where('grading.grading_name', $request->filter_grading));
+        $query->when($request->filled('filter_emp_status'), fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status));
+        $query->when($request->filled('filter_los'), function ($q) use ($request) {
+            $los = $request->filter_los;
+            if ($los === 'under3months') {
+                $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
+            } else {
+                $date = match ($los) {
+                    '1year'  => Carbon::now()->subYear(),
+                    '3years' => Carbon::now()->subYears(3),
+                    '5years' => Carbon::now()->subYears(5),
+                    default  => null,
+                };
+                if ($date) $q->where('employees_tables.join_date', '<=', $date);
             }
-        }
-        if ($canManage) {
-            $query->when($request->filled('filter_group'), fn($q) => $q->where('groups_tables.remark', $request->filter_group));
-            $query->when($request->filled('filter_grading'), fn($q) => $q->where('grading.grading_name', $request->filter_grading));
-            $query->when($request->filled('filter_emp_status'), fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status));
-            $query->when($request->filled('filter_los'), function ($q) use ($request) {
-                $los = $request->filter_los;
-                if ($los === 'under3months') {
-                    $q->where('employees_tables.join_date', '>=', Carbon::now()->subMonths(3));
-                } else {
-                    $date = match ($los) {
-                        '1year'  => Carbon::now()->subYear(),
-                        '3years' => Carbon::now()->subYears(3),
-                        '5years' => Carbon::now()->subYears(5),
-                        default  => null,
-                    };
-                    if ($date) $q->where('employees_tables.join_date', '<=', $date);
-                }
-            });
-        }
-        $query->when($request->filled('filter_company'), fn($q) => $q->where('company_tables.name', $request->filter_company));
-        $query->when($request->filled('filter_department'), fn($q) => $q->where('departments_tables.department_name', $request->filter_department));
-        $query->when($request->filled('filter_store'), fn($q) => $q->where('stores_tables.name', $request->filter_store));
-        $query->when($request->filled('filter_status'), fn($q) => $q->where('employees_tables.status', $request->filter_status));
-        $dt = DataTables::of($query);
-        // ← Sembunyikan data sensitif dari response untuk non-ManageEmployee
-        if (!$canManage) {
-            $sensitiveFields = [
-                'nik',
-                'telp_number',
-                'email',
-                'bank_account_number',
-                'bpjs_kes',
-                'bpjs_ket',
-                'npwp',
-                'pin',
-                'date_of_birth',
-                'place_of_birth',
-                'biological_mother_name',
-                'current_address',
-                'id_card_address',
-                'marriage',
-                'child',
-                'gender',
-                'religion',
-                'last_education',
-                'institution',
-                'kk_photos',
-                'ktp_photos',
-                'signature',
-                'join_date',
-                'end_date',
-                'can_approve',
-                'grading_id',
-                'banks_id',
-                'structure_id',
-                'group_id',
-                'level_id',
-                'is_manager',
-                'is_manager_store',
-                'photos',
-                'remaining',
-                'approved',
-                'pending',
-                'total',
-                'position_id',
-                'store_id',
-                'department_id',
-            ];
+        });
+    }
 
-            $dt->addColumn('employee', function ($row) use ($sensitiveFields) {
-                if (!$row->employee) return null;
-                return $row->employee->makeHidden($sensitiveFields);
-            });
-        }
+    $query->when($request->filled('filter_company'), fn($q) => $q->where('company_tables.name', $request->filter_company));
+    $query->when($request->filled('filter_department'), fn($q) => $q->where('departments_tables.department_name', $request->filter_department));
+    $query->when($request->filled('filter_store'), fn($q) => $q->where('stores_tables.name', $request->filter_store));
+    $query->when($request->filled('filter_status'), fn($q) => $q->where('employees_tables.status', $request->filter_status));
 
-        if ($canManage) {
-            $dt->addColumn('length_of_service', function ($e) {
-                if (!$e->join_date) return 'Empty';
-                $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
-                return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
-            });
-        }
+    $dt = DataTables::of($query);
 
-        $dt->addColumn('action', function ($e) use ($canManage) {
-            $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-            $actions = '<a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
+    if (!$canManage) {
+        $sensitiveFields = [
+            'nik', 'telp_number', 'email', 'bank_account_number',
+            'bpjs_kes', 'bpjs_ket', 'npwp', 'pin', 'date_of_birth',
+            'place_of_birth', 'biological_mother_name', 'current_address',
+            'id_card_address', 'marriage', 'child', 'gender', 'religion',
+            'last_education', 'institution', 'kk_photos', 'ktp_photos',
+            'signature', 'join_date', 'end_date', 'can_approve',
+            'grading_id', 'banks_id', 'structure_id', 'group_id',
+            'level_id', 'is_manager', 'is_manager_store', 'photos',
+            'remaining', 'approved', 'pending', 'total',
+            'position_id', 'store_id', 'department_id',
+        ];
+
+        $dt->addColumn('employee', function ($row) use ($sensitiveFields) {
+            if (!$row->employee) return null;
+            return $row->employee->makeHidden($sensitiveFields);
+        });
+    }
+
+    if ($canManage) {
+        $dt->addColumn('length_of_service', function ($e) {
+            if (!$e->join_date) return 'Empty';
+            $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
+            return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
+        });
+    }
+
+    $dt->addColumn('action', function ($e) use ($canManage) {
+        $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
+        $actions   = '<a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
             <i class="fas fa-eye text-secondary"></i>
         </a>';
-            if ($canManage) {
-                $actions .= '<a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
+        if ($canManage) {
+            $actions .= '<a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
                 <i class="fas fa-user-edit text-secondary"></i>
             </a>';
-            }
-            return $actions;
-        });
-
-        $dt->filterColumn('employee_name', function ($q, $k) {
-    $keywords = array_filter(explode(' ', trim($k)));
-    $q->where(function ($sub) use ($keywords) {
-        foreach ($keywords as $word) {
-            $sub->where('employees_tables.employee_name', 'like', "%{$word}%");
         }
+        return $actions;
     });
-})
-            ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
-            ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
-            ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
-            ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
-            ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
-            ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"));
 
-        if ($canManage) {
-            $dt->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
-                ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
-                ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"));
-        }
+    $dt->filterColumn('employee_name', function ($q, $k) {
+        $keywords = array_filter(explode(' ', trim($k)));
+        $q->where(function ($sub) use ($keywords) {
+            foreach ($keywords as $word) {
+                $sub->where('employees_tables.employee_name', 'like', "%{$word}%");
+            }
+        });
+    })
+    ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
+    ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
+    ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
+    ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
+    ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
+    ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"));
 
-        return $dt->rawColumns(['action'])->make(true);
+    if ($canManage) {
+        $dt->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+            ->filterColumn('grading_name', fn($q, $k) => $q->where('grading.grading_name', 'like', "%$k%"))
+            ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"));
     }
+
+    return $dt->rawColumns(['action'])->make(true);
+}
     public function exportEmployees(Request $request)
     {
         /** @var \App\Models\User|null $user */

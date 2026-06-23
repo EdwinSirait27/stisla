@@ -1034,13 +1034,7 @@
                                                     {{-- {{ $department->department_name ?? '-' }} --}}
                                                 </div>
                                             </div>
-                                            {{-- <div class="field-group">
-                                                <label><i class="fas fa-briefcase"></i> Position</label>
-                                                <div class="field-readonly">
-                                                                                                    {{ $user->Employee->position->first()->name ?? '-'}}
-
-                                                </div>
-                                            </div> --}}
+                                           
                                             <div class="field-group">
                                                 <label><i class="fas fa-briefcase"></i> Position</label>
                                                 <div class="field-readonly">

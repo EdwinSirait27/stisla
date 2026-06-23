@@ -24,12 +24,15 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
+                     @can('ManageShifts')
+
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h6><i class="fas fa-clock"></i> List Shifts</h6>
                             <button class="btn btn-primary btn-sm" onclick="openAdd()">
                                 <i class="fas fa-plus"></i> Add new shift
                             </button>
                         </div>
+                        @endcan
                         <div class="card-body">
                             <div class="row mb-3">
                                 <div class="col-md-3">

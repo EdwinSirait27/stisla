@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
             Schema::table('payrolls', function (Blueprint $table) {
-                      $table->decimal('punishment', 15, 2)->default(0);
-                      $table->decimal('punishment_so', 15, 2)->default(0);
-                      $table->decimal('debt', 15, 2)->default(0);
-                      $table->decimal('tax', 15, 2)->default(0);
+                      $table->decimal('punishment', 15, 2)->default(0)->after('reimburse_amount');
+                      $table->decimal('punishment_so', 15, 2)->default(0)->after('punishment');
+                      $table->decimal('debt', 15, 2)->default(0)->default(0)->after('punishment_so');
+                      $table->decimal('tax', 15, 2)->default(0)->default(0)->after('debt');
 
         });
     }
