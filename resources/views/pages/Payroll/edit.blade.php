@@ -296,10 +296,10 @@
                                     <span>Gross Salary</span>
                                     <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span>
                                 </div>
-                                <div class="info-box-row">
+                                {{-- <div class="info-box-row">
                                     <span>Working Days</span>
                                     <span>{{ $payroll->working_days }} hari</span>
-                                </div>
+                                </div> --}}
                                 <div class="info-box-row">
                                     <span>Attendance Days</span>
                                     <span>{{ $payroll->attendance_days }} hari</span>

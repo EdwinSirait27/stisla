@@ -944,15 +944,16 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    <button type="submit" class="btn btn-primary btn-sm text-nowrap">
-                                                        <i class="fas fa-sync-alt"></i> Ganti
+                                                    {{-- <button type="submit" class="btn btn-primary btn-sm text-nowrap"> --}}
+                                                        <button type="submit" class="btn btn-primary btn-sm text-nowrap ms-6">
+                                                        <i class="fas fa-sync-alt"></i> Switch
                                                     </button>
                                                 </div>
                                                 @error('active_role_hrx')
                                                     <span class="text-danger small">{{ $message }}</span>
                                                 @enderror
                                                 <small class="text-muted">
-                                                    Role aktif: <strong>{{ Auth::user()->active_role_hrx ?? '-' }}</strong>
+                                                    Active Role : <strong>{{ Auth::user()->active_role_hrx ?? '-' }}</strong>
                                                 </small>
                                             </div>
                                         </div>

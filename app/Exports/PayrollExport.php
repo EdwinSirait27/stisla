@@ -13,8 +13,11 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting; 
+// class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
 
-class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize
+class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithTitle, ShouldAutoSize, WithColumnFormatting
 {
     public function __construct(
         protected PayrollPeriod $period,
@@ -30,7 +33,7 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
     public function query()
     {
         $query = Payroll::with([
-            'employee:id,employee_name,employee_pengenal,status_employee,store_id,banks_id,bank_account_number',
+            'employee:id,employee_name,employee_pengenal,status_employee,grading_id,company_id,banks_id,bank_account_number',
             'employee.store:id,name','employee.company:id,name','employee.grading:id,grading_name','employee.department:id,department_name','employee.bank:id,name',
         ])->where('payroll_period_id', $this->period->id);
 
@@ -102,6 +105,60 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
         ];
     }
 
+    // public function map($row): array
+    // {
+    //     static $no = 0;
+    //     $no++;
+
+    //     return [
+    //         $no,
+    //         $row->employee->employee_pengenal   ?? '-',
+    //         $row->employee->employee_name        ?? '-',
+    //         $row->employee->company->name          ?? '-',
+    //         $row->employee->department?->first()->department_name          ?? '-',
+    //         $row->employee->grading->grading_name          ?? '-',
+    //         $row->employee->store?->first()->name          ?? '-',
+    //         $row->employee->position?->first()->name          ?? '-',
+    //         $row->employee->status_employee      ?? '-',
+    //         $row->employee->bank->name            ?? '-',
+    //         $row->employee->bank_account_number         ?? '-',
+    //         // $row->working_days,
+    //         $row->attendance_days,
+    //         // $row->absent_days,
+    //         $row->is_prorate
+    //             ? 'Ya (' . ($row->prorate_ratio * 100) . '%)'
+    //             : 'Tidak',
+    //         $row->basic_salary,
+    //         $row->position_allowance,
+    //         $row->daily_rate,
+            
+    //         $row->gross_salary,
+    //         $row->total_income,
+    //         $row->total_deduction,
+    //         $row->net_salary,
+    //         ucfirst($row->status),
+    //     ];
+    // }
+
+    // public function styles(Worksheet $sheet): array
+    // {
+    //     return [
+    //         // Header row
+    //         1 => [
+    //             'font' => [
+    //                 'bold'  => true,
+    //                 'color' => ['rgb' => 'FFFFFF'],
+    //             ],
+    //             'fill' => [
+    //                 'fillType'   => Fill::FILL_SOLID,
+    //                 'startColor' => ['rgb' => '1d4ed8'],
+    //             ],
+    //             'alignment' => [
+    //                 'horizontal' => Alignment::HORIZONTAL_CENTER,
+    //             ],
+    //         ],
+    //     ];
+    // }
     public function map($row): array
     {
         static $no = 0;
@@ -118,29 +175,45 @@ class PayrollExport implements FromQuery, WithHeadings, WithMapping, WithStyles,
             $row->employee->position?->first()->name          ?? '-',
             $row->employee->status_employee      ?? '-',
             $row->employee->bank->name            ?? '-',
-            $row->employee->bank_account_number         ?? '-',
-            // $row->working_days,
+            // ↓ Cast ke string agar tidak jadi scientific notation
+            (string) ($row->employee->bank_account_number ?? '-'),
             $row->attendance_days,
-            // $row->absent_days,
             $row->is_prorate
                 ? 'Ya (' . ($row->prorate_ratio * 100) . '%)'
                 : 'Tidak',
-            $row->basic_salary,
-            $row->position_allowance,
-            $row->daily_rate,
-            
-            $row->gross_salary,
-            $row->total_income,
-            $row->total_deduction,
-            $row->net_salary,
+            // ↓ Cast ke int/float agar column formatting bekerja
+            (int) $row->basic_salary,
+            (int) $row->position_allowance,
+            (int) $row->daily_rate,
+            (int) $row->gross_salary,
+            (int) $row->total_income,
+            (int) $row->total_deduction,
+            (int) $row->net_salary,
             ucfirst($row->status),
+        ];
+    }
+
+    /**
+     * Format kolom: nomor rekening → @text, salary → number dengan separator ribuan
+     * Kolom dihitung dari index 1 (A=1, B=2, dst)
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'K' => NumberFormat::FORMAT_TEXT,           // No Rekening → plain text
+            'N' => '#,##0',                             // Basic Salary
+            'O' => '#,##0',                             // Position Allowance
+            'P' => '#,##0',                             // Daily Rate
+            'Q' => '#,##0',                             // Gross Salary
+            'R' => '#,##0',                             // Total Income
+            'S' => '#,##0',                             // Total Deduction
+            'T' => '#,##0',                             // Net Salary
         ];
     }
 
     public function styles(Worksheet $sheet): array
     {
         return [
-            // Header row
             1 => [
                 'font' => [
                     'bold'  => true,
