@@ -7,7 +7,7 @@ use App\Models\Shifts;
 use App\Models\Roster;
 use App\Models\Stores;
 use App\Models\PublicHoliday;
-use App\Models\RosterPhCarryover;
+use App\Models\RosterPHCarryover;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToArray;
 use Illuminate\Support\Facades\Log;
@@ -2045,7 +2045,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas
  
                             // Batalkan carryover lama jika ada (misal dari import sebelumnya
                             // employee kerja di tanggal ini, sekarang diubah jadi PH)
-                            RosterPhCarryover::where('employee_id', $employee->id)
+                            RosterPHCarryover::where('employee_id', $employee->id)
                                 ->where('ph_date', $date)
                                 ->where('status', 'available')
                                 ->update(['status' => 'cancelled']);
@@ -2062,7 +2062,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas
  
                             // Tandai carryover yang matching sebagai 'used'
                             if ($notes) {
-                                $carryover = RosterPhCarryover::where('employee_id', $employee->id)
+                                $carryover = RosterPHCarryover::where('employee_id', $employee->id)
                                     ->where('status', 'available')
                                     ->where('ph_name', $notes)
                                     ->whereDate('expired_at', '>=', $date)
@@ -2107,7 +2107,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas
                     // Simpan ke pending agar bisa dipakai tanggal pengganti
                     $pendingPhRemarks[] = $phName;
  
-                    RosterPhCarryover::firstOrCreate(
+                    RosterPHCarryover::firstOrCreate(
                         ['employee_id' => $employee->id, 'ph_date' => $date],
                         [
                             'ph_name'    => $phName,
