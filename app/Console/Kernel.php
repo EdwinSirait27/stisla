@@ -33,6 +33,12 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->name('generate-pengantar-karyawan-intro-letter')
             ->withoutOverlapping();
+        $schedule->command('sync:primary-position')
+            ->everyFiveMinutes();
+        $schedule->command('sync:primary-department')
+            ->everyFiveMinutes();
+        $schedule->command('sync:primary-store')
+            ->everyFiveMinutes();
     }
     /**
      * Register the commands for the application.
