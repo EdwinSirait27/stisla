@@ -2158,94 +2158,67 @@ function closeSickPreview() {
     }
 }
 
-        //     function saveRoster() {
+       
+        // function saveRoster() {
         //     const btn = document.getElementById('mSaveBtn');
         //     const dayType = document.getElementById('mDayType').value;
         //     const sickFile = document.getElementById('mSickFile').files[0];
         //     const hasExisting = document.getElementById('mSickExisting').style.display === 'block';
 
-        //     // Sick wajib ada file (kecuali sudah punya bukti sebelumnya)
+
+           
         //     if (dayType === 'Sick' && !sickFile && !hasExisting) {
         //         toast('Bukti sakit wajib di-upload.', false);
         //         return;
         //     }
 
-        //     btn.disabled = true;
-        //     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-
-        //     const fd = new FormData();
-        //     fd.append('employee_id', document.getElementById('mEmpId').value);
-        //     fd.append('shift_id', document.getElementById('mShiftId').value || '');
-        //     fd.append('date', document.getElementById('mDate').textContent);
-        //     fd.append('day_type', dayType);
-        //     fd.append('notes', document.getElementById('mNotes').value);
-        //     if (sickFile) fd.append('sick_attachment', sickFile);
-
-        //     // PH Tukar: kirim id saldo kalau dipilih (hanya saat Public Holiday)
+        //     // Public Holiday di tanggal bukan PH asli → WAJIB pilih saldo PH tukar
+        //     // Cek: jika ada note "Tidak ada PH simpanan" berarti tanggal ini bukan PH asli
+        //     // dan tidak ada saldo → tolak
         //     const phCarryId = document.getElementById('mPhCarryover').value;
-        //     if (dayType === 'Public Holiday' && phCarryId) {
-        //     fd.append('ph_carryover_id', phCarryId);
-        // }
+        //     const phCarrySelect = document.getElementById('mPhCarryover');
+        //     const isActualPH = phCarrySelect?.dataset.isActualPh === '1';
+        //     const hasCarryOptions = phCarrySelect && phCarrySelect.options.length > 1; // lebih dari 1 = ada saldo
 
-        //     fetch('{{ route('roster.store') }}', {
-        //         method: 'POST',
-        //         headers: {
-        //             'X-CSRF-TOKEN': CSRF
-        //         },
-        //         body: fd,
-        //     })
-        //         .then(r => r.json())
-        //         .then(data => {
-        //             if (data.success) {
-        //                 btn.innerHTML = '<i class="fas fa-check"></i> Berhasil!';
-        //                 toast('Schedule saved!');
-        //                 closeModal('modalCell');
-        //                 setTimeout(() => location.reload(), 700);
-        //             } else {
-        //                 toast('' + (data.message || 'Failed to save data.'), false);
-        //                 btn.disabled = false;
-        //                 btn.innerHTML = '<i class="fas fa-save"></i> Save';
-        //             }
-        //         })
-        //         .catch(() => {
-        //             toast('Terjadi kesalahan.', false);
-        //             btn.disabled = false;
-        //             btn.innerHTML = '<i class="fas fa-save"></i> Save';
-        //         });
-        // }
+        //     if (dayType === 'Public Holiday' && !isActualPH && !phCarryId) {
+        //         if (!hasCarryOptions) {
+        //             toast('Tanggal ini bukan Public Holiday dan tidak ada saldo PH Tukar tersedia.', false);
+        //         } else {
+        //             toast('Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) terlebih dahulu.', false);
+        //         }
+        //         return;
+        //     }
         function saveRoster() {
-            const btn = document.getElementById('mSaveBtn');
-            const dayType = document.getElementById('mDayType').value;
-            const sickFile = document.getElementById('mSickFile').files[0];
-            const hasExisting = document.getElementById('mSickExisting').style.display === 'block';
+    const btn = document.getElementById('mSaveBtn');
+    const dayType = document.getElementById('mDayType').value;
+    const shiftId = document.getElementById('mShiftId').value;
+    const sickFile = document.getElementById('mSickFile').files[0];
+    const hasExisting = document.getElementById('mSickExisting').style.display === 'block';
 
+    // ← Validasi shift wajib dipilih saat Work
+    if (dayType === 'Work' && !shiftId) {
+        toast('Shift wajib dipilih untuk tipe Work.', false);
+        return;
+    }
 
-            // Sick wajib ada file (kecuali sudah punya bukti sebelumnya)
-            // if (dayType === 'Sick' && !sickFile && !hasExisting) {
-            //     toast('Bukti sakit wajib di-upload.', false);
-            //     return;
-            // }
-            if (dayType === 'Sick' && !sickFile && !hasExisting) {
-                toast('Bukti sakit wajib di-upload.', false);
-                return;
-            }
+    if (dayType === 'Sick' && !sickFile && !hasExisting) {
+        toast('Bukti sakit wajib di-upload.', false);
+        return;
+    }
 
-            // Public Holiday di tanggal bukan PH asli → WAJIB pilih saldo PH tukar
-            // Cek: jika ada note "Tidak ada PH simpanan" berarti tanggal ini bukan PH asli
-            // dan tidak ada saldo → tolak
-            const phCarryId = document.getElementById('mPhCarryover').value;
-            const phCarrySelect = document.getElementById('mPhCarryover');
-            const isActualPH = phCarrySelect?.dataset.isActualPh === '1';
-            const hasCarryOptions = phCarrySelect && phCarrySelect.options.length > 1; // lebih dari 1 = ada saldo
+    const phCarryId = document.getElementById('mPhCarryover').value;
+    const phCarrySelect = document.getElementById('mPhCarryover');
+    const isActualPH = phCarrySelect?.dataset.isActualPh === '1';
+    const hasCarryOptions = phCarrySelect && phCarrySelect.options.length > 1;
 
-            if (dayType === 'Public Holiday' && !isActualPH && !phCarryId) {
-                if (!hasCarryOptions) {
-                    toast('Tanggal ini bukan Public Holiday dan tidak ada saldo PH Tukar tersedia.', false);
-                } else {
-                    toast('Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) terlebih dahulu.', false);
-                }
-                return;
-            }
+    if (dayType === 'Public Holiday' && !isActualPH && !phCarryId) {
+        if (!hasCarryOptions) {
+            toast('Tanggal ini bukan Public Holiday dan tidak ada saldo PH Tukar tersedia.', false);
+        } else {
+            toast('Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) terlebih dahulu.', false);
+        }
+        return;
+    }
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
