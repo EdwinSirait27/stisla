@@ -576,8 +576,8 @@
         }
 
         /* ══════════════════════════════════════════════════════
-                                   AUTO ROSTER OTHER STORE — Step Indicator
-                                   ══════════════════════════════════════════════════════ */
+                                           AUTO ROSTER OTHER STORE — Step Indicator
+                                           ══════════════════════════════════════════════════════ */
         .aro-step-wrap {
             display: flex;
             align-items: center;
@@ -1230,23 +1230,23 @@
                         </select>
                     </div>
 
-                  
+
                     <div id="sickWrap" style="display:none">
                         <label class="f-label">Bukti Sakit <span style="color:#ef4444">*</span>
                             <small style="color:#94a3b8;font-weight:400">(JPG/PNG/PDF, maks 5MB)</small>
                         </label>
                         <input type="file" id="mSickFile" class="f-control mb-3" accept=".jpg,.jpeg,.png,.pdf">
                     </div>
-                      
-                       <div id="mSickExisting"
-    style="font-size:11px;color:#16a34a;margin-top:-8px;margin-bottom:10px;display:none">
-    <i class="fas fa-check-circle"></i> Sudah ada bukti tersimpan.
-    <button type="button" id="mSickLihatBtn"
-        style="margin-left:6px;background:none;border:none;color:#0369a1;font-weight:600;cursor:pointer;font-size:11px;padding:0">
-        <i class="fas fa-eye"></i> Lihat
-    </button>
-</div>
-  {{-- <div id="mSickExisting"
+
+                    <div id="mSickExisting"
+                        style="font-size:11px;color:#16a34a;margin-top:-8px;margin-bottom:10px;display:none">
+                        <i class="fas fa-check-circle"></i> Sudah ada bukti tersimpan.
+                        <button type="button" id="mSickLihatBtn"
+                            style="margin-left:6px;background:none;border:none;color:#0369a1;font-weight:600;cursor:pointer;font-size:11px;padding:0">
+                            <i class="fas fa-eye"></i> Lihat
+                        </button>
+                    </div>
+                    {{-- <div id="mSickExisting"
         style="font-size:11px;color:#16a34a;margin-top:-8px;margin-bottom:10px;display:none">
         <i class="fas fa-check-circle"></i> Sudah ada bukti tersimpan.
         <a id="mSickPreviewLink" href="#" target="_blank"
@@ -1284,7 +1284,7 @@
         </div>
     </div>
 
-    
+
 
     {{-- ════════════════════════════════════════════════════
      MODAL: Bulk Assign
@@ -1789,27 +1789,6 @@
 
     <div id="rosterToast"></div>
 
-
-
-    {{-- modal preview sick --}}
-    {{-- <div class="m-overlay" id="modalSickPreview" style="display:none">
-        <div class="m-box" style="width:600px;max-height:85vh;display:flex;flex-direction:column">
-            <div class="m-head">
-                <span>Bukti Sakit</span>
-                <button onclick="closeModal('modalSickPreview')">×</button>
-            </div>
-            <div class="m-body"
-                style="flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:10px">
-                <div id="sickPreviewContent" style="width:100%;text-align:center"></div>
-            </div>
-            <div class="m-foot">
-                <a id="sickPreviewDownload" href="#" target="_blank" class="btn-secondary-r">
-                    <i class="fas fa-download"></i> Download
-                </a>
-                <button class="btn-primary-r" onclick="closeModal('modalSickPreview')">Tutup</button>
-            </div>
-        </div>
-    </div> --}}
 @endsection
 
 @push('scripts')
@@ -1989,127 +1968,90 @@
         // ════════════════════════════════════════════════════════
         //  CELL MODAL
         // ════════════════════════════════════════════════════════
-        // function openCellModal(cell) {
-        //     document.getElementById('mEmpId').value = cell.dataset.empId;
-        //     document.getElementById('mEmpName').textContent = cell.dataset.empName;
-        //     document.getElementById('mDate').textContent = cell.dataset.date;
-        //     document.getElementById('mNotes').value = cell.dataset.notes || '';
-        //     document.getElementById('mDeleteBtn').style.display = cell.dataset.hasRoster === '1' ? 'block' : 'none';
 
-        //     const select = document.getElementById('mDayType');
-        //     const noteEl = document.getElementById('mDayTypeNote');
-        //     const status = cell.dataset.empStatus || '';
+        let _currentSickUrl = null;
+        let _currentSickPath = null;
 
-        //     // ── Filter opsi berdasarkan status karyawan ──
-        //     applyDayTypeFilter(status, select, noteEl);
+        function openCellModal(cell) {
+            document.getElementById('mEmpId').value = cell.dataset.empId;
+            document.getElementById('mEmpName').textContent = cell.dataset.empName;
+            document.getElementById('mDate').textContent = cell.dataset.date;
+            document.getElementById('mNotes').value = cell.dataset.notes || '';
+            document.getElementById('mDeleteBtn').style.display = cell.dataset.hasRoster === '1' ? 'block' : 'none';
 
-        //     // Set nilai setelah filter
-        //     const currentDayType = cell.dataset.dayType || 'Work';
-        //     const targetOpt = Array.from(select.options).find(o => o.value === currentDayType && o.style.display !==
-        //         'none');
-        //     select.value = targetOpt ? currentDayType : 'Work';
+            const select = document.getElementById('mDayType');
+            const noteEl = document.getElementById('mDayTypeNote');
+            const status = cell.dataset.empStatus || '';
 
-        //     document.getElementById('mShiftId').value = cell.dataset.shiftId || '';
+            applyDayTypeFilter(status, select, noteEl);
 
-        //     document.getElementById('mSickFile').value = '';
-        //     document.getElementById('mSickExisting').style.display =
-        //         (cell.dataset.dayType === 'Sick' && cell.dataset.hasRoster === '1') ? 'block' : 'none';
+            const currentDayType = cell.dataset.dayType || 'Work';
+            const targetOpt = Array.from(select.options).find(o => o.value === currentDayType && o.style.display !==
+                'none');
+            select.value = targetOpt ? currentDayType : 'Work';
 
-        //     const saveBtn = document.getElementById('mSaveBtn');
-        //     saveBtn.disabled = false;
-        //     saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+            document.getElementById('mShiftId').value = cell.dataset.shiftId || '';
 
-        //     const delBtn = document.getElementById('mDeleteBtn');
-        //     delBtn.disabled = false;
-        //     delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+            // ── Sick attachment ──
+            document.getElementById('mSickFile').value = '';
+            _currentSickUrl = null;
+            _currentSickPath = null;
 
-        //     // Load PH simpanan untuk dropdown PH Tukar
-        //     loadPhCarryovers(cell.dataset.empId, cell.dataset.date);
+            const sickPath = cell.dataset.sickAttachment || '';
+            const sickExisting = document.getElementById('mSickExisting');
+            const lihatBtn = document.getElementById('mSickLihatBtn');
 
-        //     toggleShift();
-        //     openModal('modalCell');
-        // }
-     let _currentSickUrl  = null;
-let _currentSickPath = null;
+            console.log('[SICK] dayType:', cell.dataset.dayType, '| hasRoster:', cell.dataset.hasRoster, '| sickPath:',
+                sickPath);
 
-function openCellModal(cell) {
-    document.getElementById('mEmpId').value = cell.dataset.empId;
-    document.getElementById('mEmpName').textContent = cell.dataset.empName;
-    document.getElementById('mDate').textContent = cell.dataset.date;
-    document.getElementById('mNotes').value = cell.dataset.notes || '';
-    document.getElementById('mDeleteBtn').style.display = cell.dataset.hasRoster === '1' ? 'block' : 'none';
+            if (cell.dataset.dayType === 'Sick' && cell.dataset.hasRoster === '1' && sickPath) {
+                _currentSickPath = sickPath;
+                sickExisting.style.display = 'block';
 
-    const select = document.getElementById('mDayType');
-    const noteEl = document.getElementById('mDayTypeNote');
-    const status = cell.dataset.empStatus || '';
+                // Set onclick via JS langsung agar tidak tertimpa event lain
+                lihatBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    previewSickAttachment();
+                };
+            } else {
+                sickExisting.style.display = 'none';
+                lihatBtn.onclick = null;
+            }
 
-    applyDayTypeFilter(status, select, noteEl);
+            const saveBtn = document.getElementById('mSaveBtn');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
 
-    const currentDayType = cell.dataset.dayType || 'Work';
-    const targetOpt = Array.from(select.options).find(o => o.value === currentDayType && o.style.display !== 'none');
-    select.value = targetOpt ? currentDayType : 'Work';
+            const delBtn = document.getElementById('mDeleteBtn');
+            delBtn.disabled = false;
+            delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
 
-    document.getElementById('mShiftId').value = cell.dataset.shiftId || '';
+            loadPhCarryovers(cell.dataset.empId, cell.dataset.date);
+            toggleShift();
+            openModal('modalCell');
+        }
 
-    // ── Sick attachment ──
-    document.getElementById('mSickFile').value = '';
-    _currentSickUrl  = null;
-    _currentSickPath = null;
+        function previewSickAttachment() {
+            if (!_currentSickPath) {
+                toast('Tidak ada bukti sakit tersimpan.', false);
+                return;
+            }
 
-    const sickPath     = cell.dataset.sickAttachment || '';
-    const sickExisting = document.getElementById('mSickExisting');
-    const lihatBtn     = document.getElementById('mSickLihatBtn');
+            // Simpan isi body asli
+            const mBody = document.querySelector('#modalCell .m-body');
+            const mFoot = document.querySelector('#modalCell .m-foot');
+            _savedModalBody = mBody.innerHTML;
+            _savedModalFoot = mFoot.innerHTML;
 
-    console.log('[SICK] dayType:', cell.dataset.dayType, '| hasRoster:', cell.dataset.hasRoster, '| sickPath:', sickPath);
-
-    if (cell.dataset.dayType === 'Sick' && cell.dataset.hasRoster === '1' && sickPath) {
-        _currentSickPath = sickPath;
-        sickExisting.style.display = 'block';
-
-        // Set onclick via JS langsung agar tidak tertimpa event lain
-        lihatBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            previewSickAttachment();
-        };
-    } else {
-        sickExisting.style.display = 'none';
-        lihatBtn.onclick = null;
-    }
-
-    const saveBtn = document.getElementById('mSaveBtn');
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
-
-    const delBtn = document.getElementById('mDeleteBtn');
-    delBtn.disabled = false;
-    delBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
-
-    loadPhCarryovers(cell.dataset.empId, cell.dataset.date);
-    toggleShift();
-    openModal('modalCell');
-}
-
-function previewSickAttachment() {
-    if (!_currentSickPath) {
-        toast('Tidak ada bukti sakit tersimpan.', false);
-        return;
-    }
-
-    // Simpan isi body asli
-    const mBody = document.querySelector('#modalCell .m-body');
-    const mFoot = document.querySelector('#modalCell .m-foot');
-    _savedModalBody = mBody.innerHTML;
-    _savedModalFoot = mFoot.innerHTML;
-
-    // Tampilkan loading
-    mBody.innerHTML = `
+            // Tampilkan loading
+            mBody.innerHTML = `
         <div style="text-align:center;padding:10px">
             <i class="fas fa-spinner fa-spin" style="font-size:24px;color:#64748b"></i>
             <p style="color:#64748b;margin-top:8px">Memuat bukti sakit...</p>
         </div>`;
 
-    mFoot.innerHTML = `
+            mFoot.innerHTML = `
         <button class="btn-secondary-r" onclick="closeSickPreview()">
             <i class="fas fa-arrow-left"></i> Kembali
         </button>
@@ -2117,121 +2059,145 @@ function previewSickAttachment() {
             <i class="fas fa-download"></i> Download
         </a>`;
 
-    fetch(`{{ route('roster.sick-attachment-url') }}?path=${encodeURIComponent(_currentSickPath)}`, {
-        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (!data.url) {
-            mBody.innerHTML = '<p style="color:#ef4444;text-align:center">Gagal memuat bukti sakit.</p>';
-            return;
+            fetch(`{{ route('roster.sick-attachment-url') }}?path=${encodeURIComponent(_currentSickPath)}`, {
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.url) {
+                        mBody.innerHTML = '<p style="color:#ef4444;text-align:center">Gagal memuat bukti sakit.</p>';
+                        return;
+                    }
+                    document.getElementById('sickPreviewDownload').href = data.url;
+                    const isPdf = _currentSickPath.toLowerCase().endsWith('.pdf');
+                    if (isPdf) {
+                        mBody.innerHTML =
+                            `<iframe src="${data.url}" style="width:100%;height:450px;border:none;border-radius:6px"></iframe>`;
+                    } else {
+                        mBody.innerHTML =
+                            `<img src="${data.url}" style="max-width:100%;max-height:450px;border-radius:6px;object-fit:contain">`;
+                    }
+                })
+                .catch(() => {
+                    mBody.innerHTML = '<p style="color:#ef4444;text-align:center">Terjadi kesalahan.</p>';
+                });
         }
-        document.getElementById('sickPreviewDownload').href = data.url;
-        const isPdf = _currentSickPath.toLowerCase().endsWith('.pdf');
-        if (isPdf) {
-            mBody.innerHTML = `<iframe src="${data.url}" style="width:100%;height:450px;border:none;border-radius:6px"></iframe>`;
-        } else {
-            mBody.innerHTML = `<img src="${data.url}" style="max-width:100%;max-height:450px;border-radius:6px;object-fit:contain">`;
+
+        let _savedModalBody = null;
+        let _savedModalFoot = null;
+
+        function closeSickPreview() {
+            if (_savedModalBody) {
+                document.querySelector('#modalCell .m-body').innerHTML = _savedModalBody;
+                document.querySelector('#modalCell .m-foot').innerHTML = _savedModalFoot;
+                _savedModalBody = null;
+                _savedModalFoot = null;
+
+                // Re-attach event listeners yang hilang setelah innerHTML di-replace
+                document.getElementById('mSickLihatBtn').onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    previewSickAttachment();
+                };
+            }
         }
-    })
-    .catch(() => {
-        mBody.innerHTML = '<p style="color:#ef4444;text-align:center">Terjadi kesalahan.</p>';
-    });
-}
 
-let _savedModalBody = null;
-let _savedModalFoot = null;
-
-function closeSickPreview() {
-    if (_savedModalBody) {
-        document.querySelector('#modalCell .m-body').innerHTML = _savedModalBody;
-        document.querySelector('#modalCell .m-foot').innerHTML = _savedModalFoot;
-        _savedModalBody = null;
-        _savedModalFoot = null;
-
-        // Re-attach event listeners yang hilang setelah innerHTML di-replace
-        document.getElementById('mSickLihatBtn').onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            previewSickAttachment();
-        };
-    }
-}
-
-       
-        // function saveRoster() {
-        //     const btn = document.getElementById('mSaveBtn');
-        //     const dayType = document.getElementById('mDayType').value;
-        //     const sickFile = document.getElementById('mSickFile').files[0];
-        //     const hasExisting = document.getElementById('mSickExisting').style.display === 'block';
-
-
-           
-        //     if (dayType === 'Sick' && !sickFile && !hasExisting) {
-        //         toast('Bukti sakit wajib di-upload.', false);
-        //         return;
-        //     }
-
-        //     // Public Holiday di tanggal bukan PH asli → WAJIB pilih saldo PH tukar
-        //     // Cek: jika ada note "Tidak ada PH simpanan" berarti tanggal ini bukan PH asli
-        //     // dan tidak ada saldo → tolak
-        //     const phCarryId = document.getElementById('mPhCarryover').value;
-        //     const phCarrySelect = document.getElementById('mPhCarryover');
-        //     const isActualPH = phCarrySelect?.dataset.isActualPh === '1';
-        //     const hasCarryOptions = phCarrySelect && phCarrySelect.options.length > 1; // lebih dari 1 = ada saldo
-
-        //     if (dayType === 'Public Holiday' && !isActualPH && !phCarryId) {
-        //         if (!hasCarryOptions) {
-        //             toast('Tanggal ini bukan Public Holiday dan tidak ada saldo PH Tukar tersedia.', false);
-        //         } else {
-        //             toast('Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) terlebih dahulu.', false);
-        //         }
-        //         return;
-        //     }
         function saveRoster() {
-    const btn = document.getElementById('mSaveBtn');
-    const dayType = document.getElementById('mDayType').value;
-    const shiftId = document.getElementById('mShiftId').value;
-    const sickFile = document.getElementById('mSickFile').files[0];
-    const hasExisting = document.getElementById('mSickExisting').style.display === 'block';
+            const btn = document.getElementById('mSaveBtn');
+            const dayType = document.getElementById('mDayType').value;
+            const empId = document.getElementById('mEmpId').value;
+            const date = document.getElementById('mDate').textContent;
+            const phCarryId = document.getElementById('mPhCarryover').value;
 
-    // ← Validasi shift wajib dipilih saat Work
-    if (dayType === 'Work' && !shiftId) {
-        toast('Shift wajib dipilih untuk tipe Work.', false);
-        return;
-    }
+            // Jika Public Holiday + ada carryover dipilih → validasi ulang ketersediaan
+            if (dayType === 'Public Holiday' && phCarryId) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memvalidasi...';
 
-    if (dayType === 'Sick' && !sickFile && !hasExisting) {
-        toast('Bukti sakit wajib di-upload.', false);
-        return;
-    }
+                // Re-fetch carryover untuk pastikan masih available
+                fetch(`{{ route('roster.phCarryovers') }}?employee_id=${empId}&date=${date}`, {
+                        headers: {
+                            'X-CSRF-TOKEN': CSRF,
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        const stillAvailable = data.success && data.data.some(it => it.id === phCarryId);
+                        if (!stillAvailable) {
+                            toast('Saldo PH tukar sudah tidak tersedia. Silakan pilih ulang.', false);
+                            // Refresh dropdown
+                            loadPhCarryovers(empId, date);
+                            document.getElementById('mPhCarryover').value = '';
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                            return;
+                        }
+                        // Lanjut submit
+                        submitRoster(btn, dayType, phCarryId);
+                    })
+                    .catch(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                        toast('Gagal validasi saldo PH.', false);
+                    });
+                return;
+            }
 
-    const phCarryId = document.getElementById('mPhCarryover').value;
-    const phCarrySelect = document.getElementById('mPhCarryover');
-    const isActualPH = phCarrySelect?.dataset.isActualPh === '1';
-    const hasCarryOptions = phCarrySelect && phCarrySelect.options.length > 1;
-
-    if (dayType === 'Public Holiday' && !isActualPH && !phCarryId) {
-        if (!hasCarryOptions) {
-            toast('Tanggal ini bukan Public Holiday dan tidak ada saldo PH Tukar tersedia.', false);
-        } else {
-            toast('Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) terlebih dahulu.', false);
+            submitRoster(btn, dayType, phCarryId);
         }
-        return;
-    }
+
+        function submitRoster(btn, dayType, phCarryId) {
+            const sickFile = document.getElementById('mSickFile').files[0];
+            const hasExisting = document.getElementById('mSickExisting').style.display === 'block';
+            const shiftId = document.getElementById('mShiftId').value;
+
+            // ── Validasi shift wajib saat Work ──
+            if (dayType === 'Work' && !shiftId) {
+                toast('Shift wajib dipilih untuk tipe Work.', false);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                return;
+            }
+
+            // ── Validasi sick attachment ──
+            if (dayType === 'Sick' && !sickFile && !hasExisting) {
+                toast('Bukti sakit wajib di-upload.', false);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                return;
+            }
+
+            // ── Validasi PH tanpa carryover ──
+            const phCarrySelect = document.getElementById('mPhCarryover');
+            const hasCarryOptions = phCarrySelect && phCarrySelect.options.length > 1;
+
+            if (dayType === 'Public Holiday' && !phCarryId) {
+                if (!hasCarryOptions) {
+                    toast('Tanggal ini bukan Public Holiday dan tidak ada saldo PH Tukar tersedia.', false);
+                } else {
+                    toast('Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) terlebih dahulu.', false);
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                return;
+            }
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
 
             const fd = new FormData();
             fd.append('employee_id', document.getElementById('mEmpId').value);
-            fd.append('shift_id', document.getElementById('mShiftId').value || '');
+            fd.append('shift_id', shiftId || '');
             fd.append('date', document.getElementById('mDate').textContent);
             fd.append('day_type', dayType);
             fd.append('notes', document.getElementById('mNotes').value);
             if (sickFile) fd.append('sick_attachment', sickFile);
 
-            // PH Tukar: kirim id saldo kalau dipilih (hanya saat Public Holiday)
+            // PH Tukar: kirim id saldo kalau dipilih
             if (dayType === 'Public Holiday' && phCarryId) {
                 fd.append('ph_carryover_id', phCarryId);
             }
@@ -2268,6 +2234,8 @@ function closeSickPreview() {
                     btn.innerHTML = '<i class="fas fa-save"></i> Save';
                 });
         }
+
+
 
         function deleteRoster() {
             if (!confirm('Delete this schedule?')) return;
@@ -3419,161 +3387,18 @@ function closeSickPreview() {
             });
 
             // 1. Cek element ada
-console.log(document.getElementById('mSickLihatBtn'))
+            console.log(document.getElementById('mSickLihatBtn'))
 
-// 2. Cek onclick ter-set
-console.log(document.getElementById('mSickLihatBtn').onclick)
+            // 2. Cek onclick ter-set
+            console.log(document.getElementById('mSickLihatBtn').onclick)
 
-// 3. Cek _currentSickPath
-console.log(_currentSickPath)
+            // 3. Cek _currentSickPath
+            console.log(_currentSickPath)
 
-// 4. Trigger manual
-document.getElementById('mSickLihatBtn').dispatchEvent(new MouseEvent('click', {bubbles: true}))
+            // 4. Trigger manual
+            document.getElementById('mSickLihatBtn').dispatchEvent(new MouseEvent('click', {
+                bubbles: true
+            }))
         </script>
     @endif
 @endpush
-{{-- ════════════════════════════════════════════════════
-     MODAL: Set Jadwal (klik cell)
-     ════════════════════════════════════════════════════ --}}
-{{-- <div class="m-overlay" id="modalCell">
-        <div class="m-box">
-            <div class="m-head">
-                <span>Set Schedule</span>
-                <button onclick="closeModal('modalCell')">×</button>
-            </div>
-            <div class="m-body">
-                <div style="font-weight:700;color:#0f172a;margin-bottom:2px" id="mEmpName"></div>
-                <div style="font-size:12px;color:#64748b;margin-bottom:14px" id="mDate"></div>
-                <input type="hidden" id="mEmpId">
-
-                <label class="f-label">Day Type</label>
-                <select id="mDayType" class="f-control mb-3" onchange="toggleShift()">
-                    <option value="Work">Work (Kerja)</option>
-                    <option value="Off">Off (Libur)</option>
-                    <option value="Public Holiday" class="opt-ph">Public Holiday</option>
-                    <option value="Leave" class="opt-cuti">Leave (Cuti)</option>
-                    <option value="Cuti Melahirkan" class="opt-cuti">Cuti Melahirkan</option>
-                </select>
-                <small id="mDayTypeNote"
-                    style="display:none;color:#92400e;font-size:11px;margin-top:-8px;margin-bottom:10px;display:block"></small>
-
-                <div id="shiftWrap">
-                    <label class="f-label">Shift</label>
-                    <select id="mShiftId" class="f-control mb-3">
-                        <option value="">-- Choose Shift --</option>
-                        @foreach ($shifts as $shift)
-                            <option value="{{ $shift->id }}">
-{{ $shift->shift_name }}
-({{ substr($shift->start_time, 0, 5) }} - {{ substr($shift->end_time, 0, 5) }})
-</option>
-@endforeach
-</select>
-</div>
-
-<label class="f-label">Notes</label>
-<input type="text" id="mNotes" class="f-control" placeholder="optional note...">
-</div>
-<div class="m-foot">
-    <button class="btn-danger-r" id="mDeleteBtn" style="display:none" onclick="deleteRoster()">
-        <i class="fas fa-trash"></i> Delete
-    </button>
-    <button class="btn-secondary-r" onclick="closeModal('modalCell')">Cancel</button>
-    <button class="btn-primary-r" id="mSaveBtn" onclick="saveRoster()">
-        <i class="fas fa-save"></i> Save
-    </button>
-</div>
-</div>
-</div> --}}
-{{-- <div class="section-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <h1>Roster & Schedule</h1>
-                @if ($isSupervisorOrManager && !$isRosterOpen)
-                    <div class="alert alert-warning">
-                        <i class="fas fa-lock"></i> Periode pengisian roster sedang ditutup.
-                    </div>
-                @endif
-                @if ($storeId)
-                    <div class="d-flex" style="gap:16px">
-                        @php
-                            $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
-                            $currentStoreName = optional($stores->firstWhere('id', $storeId))->name ?? '';
-                            $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
-                        @endphp
-                        @can('ManageRoster')
-                            @if ($showAutoGenerate)
-                                <button class="btn-success-r" onclick="confirmAutoGenerate()" style="padding:8px 24px"
-                                    title="Auto generate roster untuk periode yang dipilih">
-                                    <i class="fas fa-magic"></i> Auto Generate Roster
-                                </button>
-                            @else
-                                <button class="btn-success-r" onclick="openAroModal()" style="padding:8px 24px"
-                                    title="Auto generate roster mingguan dengan pola kustom">
-                                    <i class="fas fa-calendar-week"></i> Auto Generate Roster
-                                </button>
-                                <button class="btn-secondary-r" onclick="confirmCopyRoster()" style="padding:8px 24px">
-                                    <i class="fas fa-copy"></i> Copy Roster
-                                </button>
-                            @endif
-                        @endcan
-                        <button class="btn-primary-r" onclick="openModal('modalBulk')" style="padding:8px 24px">
-                            <i class="fas fa-calendar-plus"></i> Bulk Assign
-                        </button>
-
-                        <button class="btn-danger-r" onclick="openModal('modalBulkDelete')"
-                            style="padding:8px 24px;font-size:13px">
-                            <i class="fas fa-trash"></i> Bulk Delete
-                        </button>
-                    </div>
-                @endif
-            </div> --}}
-{{-- <div class="section-header">
-    <div class="d-flex align-items-center justify-content-between flex-wrap mb-2">
-        <h1 class="mb-0">Roster & Schedule</h1>
-    </div>
-
-    @if ($isSupervisorOrManager && !$isRosterOpen)
-        <div class="alert alert-warning py-2 mb-2">
-            <i class="fas fa-lock"></i> Periode pengisian roster sedang ditutup.
-        </div>
-    @endif
-
-    @if ($storeId)
-        @php
-            $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
-            $currentStoreName = optional($stores->firstWhere('id', $storeId))->name ?? '';
-            $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
-        @endphp
-        <div class="d-flex flex-wrap" style="gap: 8px;">
-            @can('ManageRoster')
-                @if ($showAutoGenerate)
-                    <button class="btn-success-r" onclick="confirmAutoGenerate()"
-                        title="Auto generate roster untuk periode yang dipilih">
-                        <i class="fas fa-magic"></i>
-                        <span class="d-none d-sm-inline"> Auto Generate Roster</span>
-                        <span class="d-inline d-sm-none"> Auto Generate</span>
-                    </button>
-                @else
-                    <button class="btn-success-r" onclick="openAroModal()"
-                        title="Auto generate roster mingguan dengan pola kustom">
-                        <i class="fas fa-calendar-week"></i>
-                        <span class="d-none d-sm-inline"> Auto Generate Roster</span>
-                        <span class="d-inline d-sm-none"> Auto Generate</span>
-                    </button>
-                    <button class="btn-secondary-r" onclick="confirmCopyRoster()">
-                        <i class="fas fa-copy"></i>
-                        <span class="d-none d-sm-inline"> Copy Roster</span>
-                    </button>
-                @endif
-            @endcan
-
-            <button class="btn-primary-r" onclick="openImportModal()">
-                <i class="fas fa-calendar-plus"></i>
-                <span class="d-none d-sm-inline"> Bulk Assign</span>
-            </button>
-
-            <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
-                <i class="fas fa-trash"></i>
-                <span class="d-none d-sm-inline"> Bulk Delete</span>
-            </button>
-        </div>
-    @endif
-</div> --}}

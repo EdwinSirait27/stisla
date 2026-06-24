@@ -9,25 +9,25 @@ use Yajra\DataTables\DataTables;
 
 class AttendancetotalController extends Controller
 {
-     public function index()
+    public function index()
     {
-        
+
         return view('pages.Attendancetotal.Attendancetotal');
     }
-     public function getAttendancetotals(Request $request)
+    public function getAttendancetotals(Request $request)
     {
-    
+
         $totalattendances = Attendancetotal::with([
             'attendance',
             'attendance.employee',
-            
+
         ])
             ->select([
                 'id',
                 'attendance_id',
                 'month',
                 'total'
-                
+
             ])
             ->get();
         return DataTables::of($totalattendances)
@@ -36,5 +36,4 @@ class AttendancetotalController extends Controller
             ->rawColumns(['employee_name'])
             ->make(true);
     }
-    
 }

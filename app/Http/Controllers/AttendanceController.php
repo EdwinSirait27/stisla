@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Attendances;
 use App\Models\Stores;
 use App\Models\Attendancetotal;
@@ -11,12 +13,13 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
+
 class AttendanceController extends Controller
 {
- 
+
     public function getAttendances(Request $request)
     {
-        
+
         $attendances = Attendances::with([
             'Employee.position',
             'Employee.department',
@@ -75,62 +78,62 @@ class AttendanceController extends Controller
         return view('pages.Attendance.Attendance', compact('kantors'));
     }
 
-public function storeAttendanceSummary(Request $request)
-{
- 
+    public function storeAttendanceSummary(Request $request)
+    {
 
-    $month = Carbon::parse($request->start_date)->startOfMonth()->format('Y-m-d');
 
-    // Ambil semua data attendance sesuai filter
-    $attendances = Attendances::select('id', 'employee_id', 'tanggal', 'kantor')
-        ->when($request->kantor, function ($query) use ($request) {
-            $query->where('kantor', $request->kantor);
-        })
-        ->when($request->start_date && $request->end_date, function ($query) use ($request) {
-            $query->whereBetween('tanggal', [
-                $request->start_date,
-                $request->end_date,
-            ]);
-        })
-        ->get();
+        $month = Carbon::parse($request->start_date)->startOfMonth()->format('Y-m-d');
 
-    // Hitung jumlah kehadiran per employee_id
-    $grouped = $attendances->groupBy('employee_id');
-    $rekapList = [];
+        // Ambil semua data attendance sesuai filter
+        $attendances = Attendances::select('id', 'employee_id', 'tanggal', 'kantor')
+            ->when($request->kantor, function ($query) use ($request) {
+                $query->where('kantor', $request->kantor);
+            })
+            ->when($request->start_date && $request->end_date, function ($query) use ($request) {
+                $query->whereBetween('tanggal', [
+                    $request->start_date,
+                    $request->end_date,
+                ]);
+            })
+            ->get();
 
-    foreach ($grouped as $employeeId => $items) {
-        $attendanceId = $items->first()->id;
-        $total = $items->count();
+        // Hitung jumlah kehadiran per employee_id
+        $grouped = $attendances->groupBy('employee_id');
+        $rekapList = [];
 
-        $rekap = Attendancetotal::updateOrCreate(
-            [
-                'month' => $month,
-                'attendance_id' => $attendanceId,
-            ],
-            [
-                'id' => Str::uuid(),
+        foreach ($grouped as $employeeId => $items) {
+            $attendanceId = $items->first()->id;
+            $total = $items->count();
+
+            $rekap = Attendancetotal::updateOrCreate(
+                [
+                    'month' => $month,
+                    'attendance_id' => $attendanceId,
+                ],
+                [
+                    'id' => Str::uuid(),
+                    'total' => $total,
+                ]
+            );
+
+            $rekapList[] = [
+                'employee_id' => $employeeId,
                 'total' => $total,
-            ]
-        );
+                'attendance_id' => $attendanceId,
+                'rekap_id' => $rekap->id,
+            ];
+        }
 
-        $rekapList[] = [
-            'employee_id' => $employeeId,
-            'total' => $total,
-            'attendance_id' => $attendanceId,
-            'rekap_id' => $rekap->id,
-        ];
+
+        return response()->json([
+            'message' => 'Attendance total per employee saved successfully.',
+            'month' => Carbon::parse($month)->format('Y-m'),
+            'rekap' => $rekapList
+        ]);
     }
 
-   
-    return response()->json([
-        'message' => 'Attendance total per employee saved successfully.',
-        'month' => Carbon::parse($month)->format('Y-m'),
-        'rekap' => $rekapList
-    ]);
-}
 
-
- public function indexattendance()
+    public function indexattendance()
     {
         $stores = Stores::select('id', 'name')
             ->whereNotNull('name')
@@ -138,170 +141,168 @@ public function storeAttendanceSummary(Request $request)
             ->pluck('name');
         return view('pages.Attendanceall.Attendanceall', compact('stores'));
     }
-public function getAttendancealls(Request $request)
-{
-    ini_set('memory_limit', '1024M');
-    
-    $user = auth()->user(); // Ambil user login
+    public function getAttendancealls(Request $request)
+    {
+        ini_set('memory_limit', '1024M');
 
-    $storeName = $request->input('store_name');
-    $startDate = $request->input('start_date', '2025-07-01');
-    $endDate = $request->input('end_date', now()->toDateString());
+        $user = auth()->user(); // Ambil user login
 
-    // Ambil data edited
-    $edited = EditedFingerprint::select('pin', 'scan_date')->get()
-        ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
-        ->toArray();
+        $storeName = $request->input('store_name');
+        $startDate = $request->input('start_date', '2025-07-01');
+        $endDate = $request->input('end_date', now()->toDateString());
 
-    // Ambil PIN milik user login (jika punya relasi employee)
-    $userPin = optional($user->employee)->pin;
+        // Ambil data edited
+        $edited = EditedFingerprint::select('pin', 'scan_date')->get()
+            ->map(fn($item) => $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString())
+            ->toArray();
 
-    // Query employee
-    $employeesQuery = Employee::with('position', 'store')
-        ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id');
+        // Ambil PIN milik user login (jika punya relasi employee)
+        $userPin = optional($user->employee)->pin;
 
-    if ($storeName) {
-        $employeesQuery->whereHas('store', function ($q) use ($storeName) {
-            $q->where('name', $storeName);
-        });
-    }
+        // Query employee
+        $employeesQuery = Employee::with('position', 'store')
+            ->select('pin', 'employee_name', 'employee_pengenal', 'position_id', 'store_id');
 
-    // Jika user hanya boleh melihat datanya sendiri
-    if ($userPin) {
-        $employeesQuery->where('pin', $userPin);
-    }
+        if ($storeName) {
+            $employeesQuery->whereHas('store', function ($q) use ($storeName) {
+                $q->where('name', $storeName);
+            });
+        }
 
-    $employees = $employeesQuery->get()->keyBy('pin');
+        // Jika user hanya boleh melihat datanya sendiri
+        if ($userPin) {
+            $employeesQuery->where('pin', $userPin);
+        }
 
-    // Ambil fingerprint sesuai PIN & tanggal
-    $fingerprintQuery = Fingerprints::with('devicefingerprints')
-        ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
-        ->whereBetween('scan_date', [$startDate, $endDate]);
+        $employees = $employeesQuery->get()->keyBy('pin');
 
-    if ($userPin) {
-        $fingerprintQuery->where('pin', $userPin);
-    }
+        // Ambil fingerprint sesuai PIN & tanggal
+        $fingerprintQuery = Fingerprints::with('devicefingerprints')
+            ->select(['sn', 'scan_date', 'pin', 'inoutmode'])
+            ->whereBetween('scan_date', [$startDate, $endDate]);
 
-    $fingerprints = $fingerprintQuery
-        ->orderBy('scan_date')
-        ->get();
+        if ($userPin) {
+            $fingerprintQuery->where('pin', $userPin);
+        }
 
-    // Lanjutkan kode seperti biasa...
-    // Grouping berdasarkan pin_tanggal
-    $grouped = $fingerprints->groupBy(function ($item) {
-        return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
-    });
+        $fingerprints = $fingerprintQuery
+            ->orderBy('scan_date')
+            ->get();
 
-    // Hitung total hari per pin
-    $totalHariPerPin = $fingerprints
-        ->groupBy(function ($item) {
+        // Lanjutkan kode seperti biasa...
+        // Grouping berdasarkan pin_tanggal
+        $grouped = $fingerprints->groupBy(function ($item) {
             return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
-        })
-        ->map(function ($items) {
-            $first = $items->first();
-            return [
-                'pin' => $first->pin,
-                'date' => Carbon::parse($first->scan_date)->toDateString()
-            ];
-        })
-        ->groupBy('pin')
-        ->map(fn($items) => collect($items)->pluck('date')->unique()->count());
+        });
 
-    $result = [];
+        // Hitung total hari per pin
+        $totalHariPerPin = $fingerprints
+            ->groupBy(function ($item) {
+                return $item->pin . '_' . Carbon::parse($item->scan_date)->toDateString();
+            })
+            ->map(function ($items) {
+                $first = $items->first();
+                return [
+                    'pin' => $first->pin,
+                    'date' => Carbon::parse($first->scan_date)->toDateString()
+                ];
+            })
+            ->groupBy('pin')
+            ->map(fn($items) => collect($items)->pluck('date')->unique()->count());
 
-    foreach ($grouped as $group) {
-        $first = $group->first();
-        $pin = $first->pin;
-        $scanDate = Carbon::parse($first->scan_date)->toDateString();
-        $employee = $employees->get($pin);
-        if (!$employee) {
-            continue;
-        }
+        $result = [];
 
-        $totalHari = $totalHariPerPin[$pin] ?? 0;
-
-        $row = [
-            'pin' => $pin,
-            'employee_name' => $employee->employee_name ?? 'No Data',
-            'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
-            'name' => $employee->store->name ?? 'No Data',
-            'position_name' => optional($employee->position)->name ?? '-',
-            'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
-            'scan_date' => $scanDate,
-        ];
-
-        // Inisialisasi in_1 - in_10
-        for ($i = 1; $i <= 10; $i++) {
-            $row['in_' . $i] = null;
-        }
-
-        $byMode = $group->groupBy('inoutmode');
-
-        foreach ($byMode as $mode => $items) {
-            if ($mode >= 1 && $mode <= 10) {
-                $earliest = $items->sortBy('scan_date')->first();
-
-                $row['in_' . $mode] = $earliest ? Carbon::parse($earliest->scan_date)->format('H:i:s') : '';
-                $row['device_' . $mode] = optional($earliest->devicefingerprints)->device_name ?? '';
+        foreach ($grouped as $group) {
+            $first = $group->first();
+            $pin = $first->pin;
+            $scanDate = Carbon::parse($first->scan_date)->toDateString();
+            $employee = $employees->get($pin);
+            if (!$employee) {
+                continue;
             }
+
+            $totalHari = $totalHariPerPin[$pin] ?? 0;
+
+            $row = [
+                'pin' => $pin,
+                'employee_name' => $employee->employee_name ?? 'No Data',
+                'employee_pengenal' => $employee->employee_pengenal ?? 'No Data',
+                'name' => $employee->store->name ?? 'No Data',
+                'position_name' => optional($employee->position)->name ?? '-',
+                'device_name' => optional($first->devicefingerprints)->device_name ?? '-',
+                'scan_date' => $scanDate,
+            ];
+
+            // Inisialisasi in_1 - in_10
+            for ($i = 1; $i <= 10; $i++) {
+                $row['in_' . $i] = null;
+            }
+
+            $byMode = $group->groupBy('inoutmode');
+
+            foreach ($byMode as $mode => $items) {
+                if ($mode >= 1 && $mode <= 10) {
+                    $earliest = $items->sortBy('scan_date')->first();
+
+                    $row['in_' . $mode] = $earliest ? Carbon::parse($earliest->scan_date)->format('H:i:s') : '';
+                    $row['device_' . $mode] = optional($earliest->devicefingerprints)->device_name ?? '';
+                }
+            }
+
+            for ($i = 1; $i <= 10; $i++) {
+                $jam = $row['in_' . $i] ?? '';
+                $device = $row['device_' . $i] ?? '';
+                $row['combine_' . $i] = $jam . ' ' . $device;
+            }
+
+            $scanTimes = collect(range(1, 10))
+                ->map(fn($i) => $row['in_' . $i])
+                ->filter()
+                ->sort()
+                ->values();
+
+            if ($scanTimes->count() >= 2) {
+                $start = Carbon::parse($scanTimes->first());
+                $end = Carbon::parse($scanTimes->last());
+                $diffInMinutes = $start->diffInMinutes($end);
+                $hours = floor($diffInMinutes / 60);
+                $minutes = $diffInMinutes % 60;
+
+                $row['duration'] = ($hours ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
+                    ($minutes ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
+                $row['duration'] = trim($row['duration']) ?: '0 minutes';
+            } else {
+                $row['duration'] = 'invalid';
+            }
+
+            $isUpdated = in_array($pin . '_' . $scanDate, $edited);
+            $row['updated'] = $isUpdated ? '✔️ Updated' : '❌ Original';
+            $row['is_updated'] = $isUpdated;
+
+            $result[] = $row;
         }
 
-        for ($i = 1; $i <= 10; $i++) {
-            $jam = $row['in_' . $i] ?? '';
-            $device = $row['device_' . $i] ?? '';
-            $row['combine_' . $i] = $jam . ' ' . $device;
-        }
+        $result = collect($result)->sortBy('scan_date')->values();
 
-        $scanTimes = collect(range(1, 10))
-            ->map(fn($i) => $row['in_' . $i])
-            ->filter()
-            ->sort()
-            ->values();
+        return DataTables::of($result)
+            ->addColumn('action', function ($row) {
+                $editBtn = $row['is_updated']
+                    ? '<button class="btn btn-sm btn-secondary" disabled>Edited</button>'
+                    : '<a href="' . route('pages.Fingerprints.edit', [
+                        'pin' => $row['pin'],
+                        'scan_date' => $row['scan_date'],
+                    ]) . '" class="btn btn-sm btn-primary me-1">Edit</a>';
 
-        if ($scanTimes->count() >= 2) {
-            $start = Carbon::parse($scanTimes->first());
-            $end = Carbon::parse($scanTimes->last());
-            $diffInMinutes = $start->diffInMinutes($end);
-            $hours = floor($diffInMinutes / 60);
-            $minutes = $diffInMinutes % 60;
-
-            $row['duration'] = ($hours ? $hours . ' hour' . ($hours > 1 ? 's' : '') : '') .
-                ($minutes ? ' ' . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '');
-            $row['duration'] = trim($row['duration']) ?: '0 minutes';
-        } else {
-            $row['duration'] = 'invalid';
-        }
-
-        $isUpdated = in_array($pin . '_' . $scanDate, $edited);
-        $row['updated'] = $isUpdated ? '✔️ Updated' : '❌ Original';
-        $row['is_updated'] = $isUpdated;
-
-        $result[] = $row;
-    }
-
-    $result = collect($result)->sortBy('scan_date')->values();
-
-    return DataTables::of($result)
-        ->addColumn('action', function ($row) {
-            $editBtn = $row['is_updated']
-                ? '<button class="btn btn-sm btn-secondary" disabled>Edited</button>'
-                : '<a href="' . route('pages.Fingerprints.edit', [
-                    'pin' => $row['pin'],
-                    'scan_date' => $row['scan_date'],
-                ]) . '" class="btn btn-sm btn-primary me-1">Edit</a>';
-
-            $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
+                $lihatBtn = '<button class="btn btn-sm btn-info lihat-total"
                             data-pin="' . $row['pin'] . '"
                             data-employee="' . e($row['employee_name']) . '">
                             Lihat Total
                         </button>';
 
-            return $editBtn . $lihatBtn;
-        })
-        ->addColumn('updated_status', fn($row) => $row['updated'])
-        ->rawColumns(['action', 'updated_status'])
-        ->make(true);
-}
-
-
+                return $editBtn . $lihatBtn;
+            })
+            ->addColumn('updated_status', fn($row) => $row['updated'])
+            ->rawColumns(['action', 'updated_status'])
+            ->make(true);
+    }
 }

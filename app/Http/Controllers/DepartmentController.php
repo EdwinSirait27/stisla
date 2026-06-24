@@ -16,46 +16,46 @@ class DepartmentController extends Controller
     {
         return view('pages.Department.Department');
     }
-   
+
     public function getDepartments()
-{
-    // Ambil department dengan employee yang is_manager = 1
-    $departments = Departments::with(['employees' => function ($query) {
+    {
+        // Ambil department dengan employee yang is_manager = 1
+        $departments = Departments::with(['employees' => function ($query) {
             $query->where('is_manager', 1);
         }])
-        ->select(['id', 'department_name','nickname'])
-        ->get()
-        ->map(function ($department) {
-            $department->id_hashed = substr(hash('sha256', $department->id . env('APP_KEY')), 0, 8);
-            $department->action = '
+            ->select(['id', 'department_name', 'nickname'])
+            ->get()
+            ->map(function ($department) {
+                $department->id_hashed = substr(hash('sha256', $department->id . env('APP_KEY')), 0, 8);
+                $department->action = '
                 <a href="' . route('Department.edit', $department->id_hashed) . '" class="mx-3" 
                    data-bs-toggle="tooltip" 
                    data-bs-original-title="Edit Department"
                    title="Edit Department: ' . e($department->department_name) . '">
                     <i class="fas fa-user-edit text-secondary"></i>
                 </a>';
-            return $department;
-        });
+                return $department;
+            });
 
-    return DataTables::of($departments)
-        ->addColumn('employee_name', function ($department) {
-            if (!empty($department->employees) && $department->employees->count() > 0) {
-                // Bisa ada lebih dari satu manager, ambil nama-namanya
-                return $department->employees->pluck('employee_name')->join(', ');
-            }
-            return 'Empty';
-        })
-        ->addColumn('company_name', function ($department) {
-            if (!empty($department->employees) && $department->employees->count() > 0) {
-                // Ambil company pertama manager
-                $manager = $department->employees->first();
-                return !empty($manager->company) ? $manager->company->name : 'Empty';
-            }
-            return 'Empty';
-        })
-        ->rawColumns(['action', 'employee_name', 'company_name'])
-        ->make(true);
-}
+        return DataTables::of($departments)
+            ->addColumn('employee_name', function ($department) {
+                if (!empty($department->employees) && $department->employees->count() > 0) {
+                    // Bisa ada lebih dari satu manager, ambil nama-namanya
+                    return $department->employees->pluck('employee_name')->join(', ');
+                }
+                return 'Empty';
+            })
+            ->addColumn('company_name', function ($department) {
+                if (!empty($department->employees) && $department->employees->count() > 0) {
+                    // Ambil company pertama manager
+                    $manager = $department->employees->first();
+                    return !empty($manager->company) ? $manager->company->name : 'Empty';
+                }
+                return 'Empty';
+            })
+            ->rawColumns(['action', 'employee_name', 'company_name'])
+            ->make(true);
+    }
 
     public function edit($hashedId)
     {
@@ -93,13 +93,13 @@ class DepartmentController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
-           
+
         ], [
             'department_name.required' => 'Department name is required.',
             'department_name.string' => 'Department name must be a string.',
             'department_name.max' => 'Department name may not be greater than 255 characters.',
             'department_name.unique' => 'Department name must be unique or already exists.',
-           ]);
+        ]);
         try {
             DB::beginTransaction();
             $department = Departments::create([
@@ -138,7 +138,7 @@ class DepartmentController extends Controller
                 'max:255',
                 new NoXSSInput()
             ],
-           
+
         ], [
             'department_name.required' => 'name wajib diisi.',
             'nickname.string' => 'name hanya boleh berupa teks.',
@@ -146,7 +146,7 @@ class DepartmentController extends Controller
         $departmentData = [
             'department_name' => $validatedData['department_name'],
             'nickname' => $validatedData['nickname'],
-            
+
         ];
         DB::beginTransaction();
         $department->update($departmentData);

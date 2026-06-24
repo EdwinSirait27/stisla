@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Log;
 class Roster extends Model
 {
     use HasUuids, LogsActivity;
-
     protected $table = 'roster';
-
     public function uniqueIds(): array
     {
         return ['id'];
@@ -115,8 +113,8 @@ public function tapActivity(Activity $activity, string $eventName): void
         ];
 
         $activity->properties = $activity->properties->merge([
-            'old'        => $old,        // ← state sebelum update
-            'attributes' => $attributes, // ← state sesudah update
+            'old'        => $old,        
+            'attributes' => $attributes, 
         ]);
     }
 
@@ -127,8 +125,6 @@ public function tapActivity(Activity $activity, string $eventName): void
         ]);
     }
 }
-
-
     protected $casts = [
         'date' => 'date',
     ];

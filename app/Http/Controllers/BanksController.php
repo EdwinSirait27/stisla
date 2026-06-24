@@ -28,14 +28,14 @@ class BanksController extends Controller
                 return $bank;
             });
         return DataTables::of($banks)
-        
+
             ->rawColumns(['action'])
             ->make(true);
     }
     public function edit($hashedId)
     {
         $bank = Banks::get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
+            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
 
@@ -46,13 +46,13 @@ class BanksController extends Controller
         return view('pages.Banks.edit', [
             'bank' => $bank,
             'hashedId' => $hashedId,
-            
+
         ]);
     }
- 
+
     public function create()
     {
-        
+
         return view('pages.Banks.create');
     }
 
@@ -61,20 +61,25 @@ class BanksController extends Controller
         // dd($request->all());
 
         $validatedData = $request->validate([
-            'name' => ['required', 'string','max:255', 'unique:banks_tables,name',
-                new NoXSSInput()],
-            
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:banks_tables,name',
+                new NoXSSInput()
+            ],
+
         ], [
             'name.required' => 'name wajib diisi.',
             'name.string' => 'name hanya boleh berupa teks.',
             'name.unique' => 'name harus unique .',
-            
+
         ]);
         try {
             DB::beginTransaction();
             $bank = Banks::create([
-                'name' => $validatedData['name'], 
-                  
+                'name' => $validatedData['name'],
+
             ]);
             DB::commit();
             return redirect()->route('pages.Banks')->with('success', 'Banks created Succesfully!');
@@ -95,19 +100,24 @@ class BanksController extends Controller
             return redirect()->route('pages.Banks')->with('error', 'ID tidak valid.');
         }
         $validatedData = $request->validate([
-            'name' => ['required', 'string', 'max:255',Rule::unique('banks_tables')->ignore($bank->id),
-            new NoXSSInput()],
-            
-    ], [
-        'name.required' => 'name wajib diisi.',
-        'name.string' => 'name hanya boleh berupa teks.',
-        'name.unique' => 'name sudah dipakai pakai yang unik bozzz.',
-        
-    ]);
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('banks_tables')->ignore($bank->id),
+                new NoXSSInput()
+            ],
+
+        ], [
+            'name.required' => 'name wajib diisi.',
+            'name.string' => 'name hanya boleh berupa teks.',
+            'name.unique' => 'name sudah dipakai pakai yang unik bozzz.',
+
+        ]);
 
         $bankData = [
             'name' => $validatedData['name'],
-            
+
         ];
         DB::beginTransaction();
         $bank->update($bankData);
