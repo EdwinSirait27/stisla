@@ -87,4 +87,5 @@ class ManualRecapLog extends Model
     {
         return $this->mime_type && str_starts_with($this->mime_type, 'image/');
     }
+    
 }

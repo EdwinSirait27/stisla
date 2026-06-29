@@ -12,7 +12,6 @@ use App\Models\User;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\DataTables;
 use App\Models\Stores;
-use App\Models\Structuresnew;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\Groups;
@@ -28,7 +27,6 @@ class ContractController extends Controller
         $contractstatuses = Contract::getContractStatusOptions();
         $contracttypes = Contract::getContractTypeOptions();
         $employeestatuses = Employee::getStatusOptions();
-        $structures = Structuresnew::with('submissionposition')->where('', 'Active');
         $gradings = Grading::pluck('grading_name', 'id');
         $groups = Groups::pluck('remark', 'id');
         $companies = Company::pluck('name', 'id');
@@ -112,7 +110,6 @@ class ContractController extends Controller
                 'contract.created_at',
                 'c.name as company_name',
             ]);
-
         $query->when(
             $request->filled('filter_company'),
             fn($q) => $q->where('c.name', $request->filter_company)

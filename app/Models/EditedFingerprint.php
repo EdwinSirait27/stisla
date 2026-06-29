@@ -22,6 +22,15 @@ class EditedFingerprint extends Model
         'in_8', 'device_8',
         'in_9', 'device_9',
         'in_10', 'device_10',
-        'attachment',];
+        // 'attachment',
+        'approved_by',
+        'approved_at',
+        'notes',
+        'rejection_note',
+        'status',];
+        public function attachments()
+{
+    return $this->hasMany(EditedFingerprintAttachment::class);
+}
 }
   

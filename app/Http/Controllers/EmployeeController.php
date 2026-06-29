@@ -404,7 +404,7 @@ public function index()
                         'grading'       => $employee->grading?->grading_name ?? '-',
                         'grading_level' => $employee->grading?->level ?? 0,
                         'photo'         => $photoFilename
-                            ? route('employee.serve.photo', ['filename' => $photoFilename])
+                            ? route('useremployee.photo', ['filename' => $photoFilename])
                             : null,
                         'atasan_id' => $employee->atasanStruktur()?->id ?? null,
 
@@ -531,6 +531,7 @@ public function index()
                 'employees_tables.blood_type',
                 'employees_tables.telp_number',
                 'employees_tables.nik',
+                'employees_tables.kk_number',
                 'employees_tables.gender',
                 'employees_tables.date_of_birth',
                 'employees_tables.place_of_birth',
@@ -672,17 +673,7 @@ public function index()
                 $diff = Carbon::parse($e->join_date)->diff(Carbon::now());
                 return sprintf('%d year %d month %d days', $diff->y, $diff->m, $diff->d);
             })
-            // ->addColumn('action', function ($e) use ($isHeadHR) {
-            //     if (!$isHeadHR) return '';
-            //     $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
-            //     return '
-            //     <a href="' . route('Employee.edit', $id_hashed) . '" class="mx-2">
-            //         <i class="fas fa-user-edit text-secondary"></i>
-            //     </a>
-            //     <a href="' . route('Employee.show', $id_hashed) . '" class="mx-2">
-            //         <i class="fas fa-eye text-secondary"></i>
-            //     </a>';
-            // })
+         
             ->addColumn('action', function ($e) {
                 $id_hashed = substr(hash('sha256', $e->id . env('APP_KEY')), 0, 8);
                 return '
@@ -696,7 +687,7 @@ public function index()
             // Daftarkan kolom yang bisa di-search
             ->filterColumn('employee_name', fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
             ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
-            ->filterColumn('bank_account_number', fn($q, $k) => $q->where('employees_tables.bank_account_number', 'like', "%$k%"))
+            // ->filterColumn('bank_account_number', fn($q, $k) => $q->where('employees_tables.bank_account_number', 'like', "%$k%"))
             ->filterColumn('join_date', fn($q, $k) => $q->where('employees_tables.join_date', 'like', "%$k%"))
             ->filterColumn('end_date', fn($q, $k) => $q->where('employees_tables.end_date', 'like', "%$k%"))
             ->filterColumn('marriage', fn($q, $k) => $q->where('employees_tables.marriage', 'like', "%$k%"))
@@ -704,28 +695,29 @@ public function index()
             ->filterColumn('blood_type', fn($q, $k) => $q->where('employees_tables.blood_type', 'like', "%$k%"))
             ->filterColumn('telp_number', fn($q, $k) => $q->where('employees_tables.telp_number', 'like', "%$k%"))
             ->filterColumn('nik', fn($q, $k) => $q->where('employees_tables.nik', 'like', "%$k%"))
+            ->filterColumn('kk_number', fn($q, $k) => $q->where('employees_tables.kk_number', 'like', "%$k%"))
             ->filterColumn('gender', fn($q, $k) => $q->where('employees_tables.gender', 'like', "%$k%"))
             ->filterColumn('date_of_birth', fn($q, $k) => $q->where('employees_tables.date_of_birth', 'like', "%$k%"))
             ->filterColumn('place_of_birth', fn($q, $k) => $q->where('employees_tables.place_of_birth', 'like', "%$k%"))
-            ->filterColumn('biological_mother_name', fn($q, $k) => $q->where('employees_tables.biological_mother_name', 'like', "%$k%"))
+            // ->filterColumn('biological_mother_name', fn($q, $k) => $q->where('employees_tables.biological_mother_name', 'like', "%$k%"))
             ->filterColumn('religion', fn($q, $k) => $q->where('employees_tables.religion', 'like', "%$k%"))
-            ->filterColumn('current_address', fn($q, $k) => $q->where('employees_tables.current_address', 'like', "%$k%"))
-            ->filterColumn('id_card_address', fn($q, $k) => $q->where('employees_tables.id_card_address', 'like', "%$k%"))
-            ->filterColumn('last_education', fn($q, $k) => $q->where('employees_tables.last_education', 'like', "%$k%"))
-            ->filterColumn('institution', fn($q, $k) => $q->where('employees_tables.institution', 'like', "%$k%"))
+            // ->filterColumn('current_address', fn($q, $k) => $q->where('employees_tables.current_address', 'like', "%$k%"))
+            // ->filterColumn('id_card_address', fn($q, $k) => $q->where('employees_tables.id_card_address', 'like', "%$k%"))
+            // ->filterColumn('last_education', fn($q, $k) => $q->where('employees_tables.last_education', 'like', "%$k%"))
+            // ->filterColumn('institution', fn($q, $k) => $q->where('employees_tables.institution', 'like', "%$k%"))
             ->filterColumn('npwp', fn($q, $k) => $q->where('employees_tables.npwp', 'like', "%$k%"))
             ->filterColumn('bpjs_kes', fn($q, $k) => $q->where('employees_tables.bpjs_kes', 'like', "%$k%"))
             ->filterColumn('bpjs_ket', fn($q, $k) => $q->where('employees_tables.bpjs_ket', 'like', "%$k%"))
             ->filterColumn('email', fn($q, $k) => $q->where('employees_tables.email', 'like', "%$k%"))
             ->filterColumn('company_email', fn($q, $k) => $q->where('employees_tables.company_email', 'like', "%$k%"))
-            ->filterColumn('emergency_contact_name', fn($q, $k) => $q->where('employees_tables.emergency_contact_name', 'like', "%$k%"))
+            // ->filterColumn('emergency_contact_name', fn($q, $k) => $q->where('employees_tables.emergency_contact_name', 'like', "%$k%"))
             ->filterColumn('pin', fn($q, $k) => $q->where('employees_tables.pin', 'like', "%$k%"))
-            ->filterColumn('can_approve', fn($q, $k) => $q->where('employees_tables.can_approve', 'like', "%$k%"))
-            ->filterColumn('pending_email', fn($q, $k) => $q->where('employees_tables.pending_email', 'like', "%$k%"))
-            ->filterColumn('pending_telp_number', fn($q, $k) => $q->where('employees_tables.pending_telp_number', 'like', "%$k%"))
+            // ->filterColumn('can_approve', fn($q, $k) => $q->where('employees_tables.can_approve', 'like', "%$k%"))
+            // ->filterColumn('pending_email', fn($q, $k) => $q->where('employees_tables.pending_email', 'like', "%$k%"))
+            // ->filterColumn('pending_telp_number', fn($q, $k) => $q->where('employees_tables.pending_telp_number', 'like', "%$k%"))
             ->filterColumn('position_name', fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
             ->filterColumn('bank_name', fn($q, $k) => $q->where('banks_tables.name', 'like', "%$k%"))
-            ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
+            // ->filterColumn('remark', fn($q, $k) => $q->where('groups_tables.remark', 'like', "%$k%"))
             ->filterColumn('department_name', fn($q, $k) => $q->where('departments_tables.department_name', 'like', "%$k%"))
             ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
             ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
@@ -1073,7 +1065,6 @@ public function index()
             'employee'            => fn($q) => $q->select('id', 'employee_name', 'employee_pengenal', 'status', 'company_id'),
             'employee.position'   => fn($q) => $q->wherePivot('is_primary', true)->select('position_tables.id', 'position_tables.name'),
             'employee.department' => fn($q) => $q->wherePivot('is_primary', true)->select('departments_tables.id', 'departments_tables.department_name'),
-            // ← Semua store untuk SPVManager (tidak filter is_primary)
             'employee.store'      => fn($q) => $q->select('stores_tables.id', 'stores_tables.name'),
             'employee.company'    => fn($q) => $q->select('id', 'name'),
         ];
@@ -1143,7 +1134,7 @@ public function index()
         $employee  = $user->employee;
         $companyId = $employee->company_id;
 
-        $query->where('employees_tables.company_id', $companyId);
+        // $query->where('employees_tables.company_id', $companyId);
 
         // if ($canSpvManager) {
         //     // ← Ambil SEMUA store pivot (bukan hanya primary)
@@ -1168,34 +1159,72 @@ public function index()
         //     });
 
         // } 
-      if ($canSpvManager) {
+//       if ($canSpvManager) {
+//     $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
+//     $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+//     if (empty($storeIds) || empty($departmentIds)) {
+//         return DataTables::of(collect())->make(true);
+//     }
+
+//     $query->whereExists(function ($q) use ($storeIds) {
+//         $q->select(DB::raw(1))
+//             ->from('employee_stores')
+//             ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+//             ->whereIn('employee_stores.store_id', $storeIds);
+//     })
+//     ->whereExists(function ($q) use ($departmentIds) {
+//         $q->select(DB::raw(1))
+//             ->from('employee_departments')
+//             ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+//             ->whereIn('employee_departments.department_id', $departmentIds);
+//     });
+
+//     // ← Log setelah whereExists ditambahkan
+//     Log::info('SPV QUERY SQL', [
+//         'sql'      => $query->toSql(),
+//         'bindings' => $query->getBindings(),
+//         'store_ids' => $storeIds,
+//         'dept_ids'  => $departmentIds,
+//     ]);
+// }
+if ($canSpvManager) {
     $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
     $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
 
+    // ← Ambil bawahan langsung dari pivot employee_atasans
+    $bawahanIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
+
     if (empty($storeIds) || empty($departmentIds)) {
-        return DataTables::of(collect())->make(true);
+        // Kalau tidak punya store/department, hanya tampilkan bawahan langsung
+        if (empty($bawahanIds)) {
+            return DataTables::of(collect())->make(true);
+        }
+        $query->whereIn('employees_tables.id', $bawahanIds);
+    } else {
+        $query->where(function ($q) use ($storeIds, $departmentIds, $bawahanIds) {
+            // ← Kondisi 1: employee di store + department yang sama
+            $q->where(function ($q1) use ($storeIds, $departmentIds) {
+                $q1->whereExists(function ($sq) use ($storeIds) {
+                    $sq->select(DB::raw(1))
+                        ->from('employee_stores')
+                        ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                        ->whereIn('employee_stores.store_id', $storeIds);
+                })
+                ->whereExists(function ($sq) use ($departmentIds) {
+                    $sq->select(DB::raw(1))
+                        ->from('employee_departments')
+                        ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                        ->whereIn('employee_departments.department_id', $departmentIds);
+                });
+            });
+
+            // ← Kondisi 2: bawahan langsung via pivot (beda company/store/department sekalipun)
+            if (!empty($bawahanIds)) {
+                $q->orWhereIn('employees_tables.id', $bawahanIds);
+            }
+        });
     }
-
-    $query->whereExists(function ($q) use ($storeIds) {
-        $q->select(DB::raw(1))
-            ->from('employee_stores')
-            ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-            ->whereIn('employee_stores.store_id', $storeIds);
-    })
-    ->whereExists(function ($q) use ($departmentIds) {
-        $q->select(DB::raw(1))
-            ->from('employee_departments')
-            ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-            ->whereIn('employee_departments.department_id', $departmentIds);
-    });
-
-    // ← Log setelah whereExists ditambahkan
-    Log::info('SPV QUERY SQL', [
-        'sql'      => $query->toSql(),
-        'bindings' => $query->getBindings(),
-        'store_ids' => $storeIds,
-        'dept_ids'  => $departmentIds,
-    ]);
 }
         elseif ($canView) {
             $storeId      = $employee->primaryStore()->first()?->id;
@@ -1251,7 +1280,7 @@ public function index()
 
     if (!$canManage) {
         $sensitiveFields = [
-            'nik', 'telp_number', 'email', 'bank_account_number',
+            'nik','kk_number', 'telp_number', 'email', 'bank_account_number',
             'bpjs_kes', 'bpjs_ket', 'npwp', 'pin', 'date_of_birth',
             'place_of_birth', 'biological_mother_name', 'current_address',
             'id_card_address', 'marriage', 'child', 'gender', 'religion',
@@ -1613,6 +1642,7 @@ public function index()
             'telp_number' => ['required', 'numeric', 'digits_between:10,13', 'unique:employees_tables,telp_number', new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik' => ['required', 'max:20', 'unique:employees_tables,nik', new NoXSSInput()],
+            'kk_number' => ['required', 'max:20', new NoXSSInput()],
             'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
             'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -1660,6 +1690,8 @@ public function index()
             'status_employee.required' => 'The employee status is required.',
             'nik.required' => 'The NIK is required.',
             'nik.max' => 'The NIK may not be greater than 20 characters.',
+            'kk_number.required' => 'The kk_number is required.',
+            'kk_number.max' => 'The kk_number may not be greater than 20 characters.',
             'bank_account_number.required' => 'The bank account number is required.',
             'bank_account_number.max' => 'The bank account number may not be greater than 20 characters.',
             'employee_pengenal.max' => 'The employee ID may not be greater than 30 characters.',
@@ -1788,6 +1820,7 @@ public function index()
                 'employee_pengenal' => $employeeId,
                 'employee_name' => $validatedData['employee_name'] ?? '',
                 'nik' => $validatedData['nik'] ?? '',
+                'kk_number' => $validatedData['kk_number'] ?? '',
                 'bank_account_number' => $validatedData['bank_account_number'] ?? '',
                 'company_id' => $validatedData['company_id'] ?? '',
                 'banks_id' => $validatedData['banks_id'] ?? '',
@@ -1909,6 +1942,7 @@ public function index()
             'telp_number'             => ['required', 'numeric', 'digits_between:10,13', Rule::unique('employees_tables', 'telp_number')->ignore($user->Employee->id), new NoXSSInput()],
             'status_employee'         => ['required', 'string', 'max:255', new NoXSSInput()],
             'nik'                     => ['required', 'max:20', Rule::unique('employees_tables', 'nik')->ignore($user->Employee->id), new NoXSSInput()],
+            'kk_number'                     => ['required', 'max:20', new NoXSSInput()],
             'bank_account_number'     => ['required', 'max:20', new NoXSSInput()],
             'last_education'          => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion'                => ['required', 'string', new NoXSSInput()],
@@ -2131,81 +2165,81 @@ public function index()
     }
 
 
-    private function serveFile(string $filename, string $folder, string $column): \Illuminate\Http\Response
-    {
-        // 1. Autentikasi
-        if (!auth()->check()) {
-            abort(401);
-        }
+    // private function serveFile(string $filename, string $folder, string $column): \Illuminate\Http\Response
+    // {
+    //     // 1. Autentikasi
+    //     if (!auth()->check()) {
+    //         abort(401);
+    //     }
 
-        // 2. Validasi format filename
-        if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
-            abort(400, 'Invalid filename');
-        }
+    //     // 2. Validasi format filename
+    //     if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
+    //         abort(400, 'Invalid filename');
+    //     }
 
-        // 3. Basename untuk mencegah path traversal
-        $filename = basename($filename);
+    //     // 3. Basename untuk mencegah path traversal
+    //     $filename = basename($filename);
 
-        // 4. Whitelist ekstensi
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    //     // 4. Whitelist ekstensi
+    //     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    //     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
-        if (!in_array($extension, $allowedExtensions)) {
-            abort(400, 'File type not allowed');
-        }
-        /** @var \App\Models\User|null $user */
-        $user = auth()->user();
-        // 5. ✅ Hanya user dengan permission yang bisa akses
-        if (!$user->can('ManageEmployee')) {
-            abort(403, 'Forbidden: You are not allowed to access this file');
-        }
+    //     if (!in_array($extension, $allowedExtensions)) {
+    //         abort(400, 'File type not allowed');
+    //     }
+    //     /** @var \App\Models\User|null $user */
+    //     $user = auth()->user();
+    //     // 5. ✅ Hanya user dengan permission yang bisa akses
+    //     if (!$user->can('ManageEmployee')) {
+    //         abort(403, 'Forbidden: You are not allowed to access this file');
+    //     }
 
-        $fullPath = $folder . '/' . $filename;
+    //     $fullPath = $folder . '/' . $filename;
 
-        // 6. Cek file exists di S3
-        if (!Storage::disk('s3')->exists($fullPath)) {
-            abort(404);
-        }
+    //     // 6. Cek file exists di S3
+    //     if (!Storage::disk('s3')->exists($fullPath)) {
+    //         abort(404);
+    //     }
 
-        $file = Storage::disk('s3')->get($fullPath);
+    //     $file = Storage::disk('s3')->get($fullPath);
 
-        // 7. MIME type dari whitelist
-        $mimeTypes = [
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png'  => 'image/png',
-            'gif'  => 'image/gif',
-            'webp' => 'image/webp',
-        ];
+    //     // 7. MIME type dari whitelist
+    //     $mimeTypes = [
+    //         'jpg'  => 'image/jpeg',
+    //         'jpeg' => 'image/jpeg',
+    //         'png'  => 'image/png',
+    //         'gif'  => 'image/gif',
+    //         'webp' => 'image/webp',
+    //     ];
 
-        return response($file, 200)
-            ->header('Content-Type', $mimeTypes[$extension])
-            ->header('Content-Security-Policy', "default-src 'none'")
-            ->header('X-Content-Type-Options', 'nosniff')
-            ->header('Cache-Control', 'private, max-age=3600');
-    }
-    // ============================================================
-    // PUBLIC: masing-masing file punya route sendiri
-    // ============================================================
-    public function serveSignature($filename)
-    {
-        return $this->serveFile($filename, 'employees-signatures-photos', 'signature');
-    }
+    //     return response($file, 200)
+    //         ->header('Content-Type', $mimeTypes[$extension])
+    //         ->header('Content-Security-Policy', "default-src 'none'")
+    //         ->header('X-Content-Type-Options', 'nosniff')
+    //         ->header('Cache-Control', 'private, max-age=3600');
+    // }
+    // // ============================================================
+    // // PUBLIC: masing-masing file punya route sendiri
+    // // ============================================================
+    // public function serveSignature($filename)
+    // {
+    //     return $this->serveFile($filename, 'employees-signatures-photos', 'signature');
+    // }
 
-    public function servePhoto($filename)
-    {
-        return $this->serveFile($filename, 'employees-photos', 'photos');
-    }
+    // public function servePhoto($filename)
+    // {
+    //     return $this->serveFile($filename, 'employees-photos', 'photos');
+    // }
 
-    public function serveKtpPhoto($filename)
-    {
-        return $this->serveFile($filename, 'employees-ktp-photos', 'ktp_photos');
-    }
+    // public function serveKtpPhoto($filename)
+    // {
+    //     return $this->serveFile($filename, 'employees-ktp-photos', 'ktp_photos');
+    // }
 
-    public function serveKkPhoto($filename)
-    {
-        return $this->serveFile($filename, 'employees-kk-photos', 'kk_photos');
-    }
+    // public function serveKkPhoto($filename)
+    // {
+    //     return $this->serveFile($filename, 'employees-kk-photos', 'kk_photos');
+    // }
     public function downloadDocument(string $hashedId, string $documentId)
     {
         /** @var \App\Models\User|null $user */

@@ -42,61 +42,153 @@ class ToilController extends Controller
         ]);
     }
 
-    /**
-     * GET /toil/balance/data
-     * AJAX: detail saldo aktif (untuk DataTable).
-     */
-    public function getDataActive(Request $request)
-    {
-        $user     = Auth::user();
-        $employee = $user->employee;
+//     public function getDataActive(Request $request)
+// {
+//     $user     = Auth::user();
+//     $employee = $user->employee;
 
-        $balances = Toilbalances::with('overtimeSubmission')
-            ->where('employee_id', $employee->id)
-            ->where('status', 'active')
-            ->where('expires_at', '>=', today())
-            ->orderBy('expires_at', 'asc')
-            ->get();
+   
+//     $query = Toilbalances::with('overtimeSubmission')
+//     ->where('employee_id', $employee->id)
+//     ->whereIn('status', ['active', 'fully_used','expired','cancelled','paid'])
+//     ->where('expires_at', '>=', today());
 
-        $data = $balances->map(function ($balance) {
-            $sub = $balance->overtimeSubmission;
-            return [
-                'id'                => $balance->id,
-                'date'              => $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
-                'compensation_type' => $sub->compensation_type ?? '-',
-                'earned_hours'      => number_format($balance->earned_hours, 2),
-                'used_hours'        => number_format($balance->used_hours, 2),
-                'remaining_hours'   => number_format($balance->remaining_hours, 2),
-                'expires_at'        => $balance->expires_at->format('d M Y'),
-                'days_left'         => $balance->days_until_expired,
-                'status'            => $balance->status,
-                'reason'            => $sub->reason ?? '-',
-            ];
-        });
+//     // ── Filter date ──
+//     if ($request->filled('start_date')) {
+//         $query->whereHas('overtimeSubmission', fn($q) =>
+//             $q->where('date', '>=', $request->start_date)
+//         );
+//     }
+//     if ($request->filled('end_date')) {
+//         $query->whereHas('overtimeSubmission', fn($q) =>
+//             $q->where('date', '<=', $request->end_date)
+//         );
+//     }
 
-        // ── Ambil SEMUA saldo (tanpa filter) untuk perhitungan summary kartu ──
-        $allBalances = Toilbalances::with('overtimeSubmission')
-            ->where('employee_id', $employee->id)
-            ->get();
+//     // ── Filter compensation_type ──
+//     if ($request->filled('compensation_type')) {
+//         $query->whereHas('overtimeSubmission', fn($q) =>
+//             $q->where('compensation_type', $request->compensation_type)
+//         );
+//     }
 
-        $summary = [
-            'total_cash' => $allBalances
-                ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Cash' && $b->status === 'active')
-                ->sum('remaining_hours'),
-            'total_toil_remaining' => $allBalances
-                ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Toil' && $b->status === 'active')
-                ->sum('remaining_hours'),
-            'total_used' => $allBalances->sum('used_hours'),
-            'total_expired' => $allBalances
-                ->filter(fn($b) => $b->status === 'expired')
-                ->sum('remaining_hours'),
-        ];
+//     // ── Filter status ──
+//     if ($request->filled('status')) {
+//         $query->where('status', $request->status);
+//     }
 
-        return response()->json([
-            'data'    => $data,
-            'summary' => $summary,
-        ]);
+//     $balances = $query->orderBy('expires_at', 'asc')->get();
+
+//     $data = $balances->map(function ($balance) {
+//         $sub = $balance->overtimeSubmission;
+//         return [
+//             'id'                => $balance->id,
+//             'date'              => $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
+//             'compensation_type' => $sub->compensation_type ?? '-',
+//             'earned_hours'      => number_format($balance->earned_hours, 2),
+//             'used_hours'        => number_format($balance->used_hours, 2),
+//             'remaining_hours'   => number_format($balance->remaining_hours, 2),
+//             'expires_at'        => $balance->expires_at->format('d M Y'),
+//             'days_left'         => $balance->days_until_expired,
+//             'status'            => $balance->status,
+//             'reason'            => $sub->reason ?? '-',
+//         ];
+//     });
+
+//     // ── Summary tetap dari semua saldo tanpa filter ──
+//     $allBalances = Toilbalances::with('overtimeSubmission')
+//         ->where('employee_id', $employee->id)
+//         ->get();
+
+//     $summary = [
+//         'total_cash' => $allBalances
+//             ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Cash' && $b->status === 'active')
+//             ->sum('remaining_hours'),
+//         'total_toil_remaining' => $allBalances
+//             ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Toil' && $b->status === 'active')
+//             ->sum('remaining_hours'),
+//         'total_used'    => $allBalances->sum('used_hours'),
+//         'total_expired' => $allBalances->filter(fn($b) => $b->status === 'expired')->sum('remaining_hours'),
+//     ];
+
+//     return response()->json([
+//         'data'    => $data,
+//         'summary' => $summary,
+//     ]);
+// }
+public function getDataActive(Request $request)
+{
+    $user     = Auth::user();
+    $employee = $user->employee;
+
+    $query = Toilbalances::with('overtimeSubmission')
+        ->where('employee_id', $employee->id)
+        ->whereIn('status', ['active', 'fully_used', 'expired', 'cancelled', 'paid']);
+        // ← hapus where expires_at karena memblokir status selain active
+
+    // ── Filter date dari relasi overtimeSubmission ──
+    if ($request->filled('start_date')) {
+        $query->whereHas('overtimeSubmission', fn($q) =>
+            $q->where('date', '>=', $request->start_date)
+        );
     }
+    if ($request->filled('end_date')) {
+        $query->whereHas('overtimeSubmission', fn($q) =>
+            $q->where('date', '<=', $request->end_date)
+        );
+    }
+
+    // ── Filter compensation_type dari relasi overtimeSubmission ──
+    if ($request->filled('compensation_type')) {
+        $query->whereHas('overtimeSubmission', fn($q) =>
+            $q->where('compensation_type', $request->compensation_type)
+        );
+    }
+
+    // ── Filter status ──
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    $balances = $query->orderBy('expires_at', 'asc')->get();
+
+    $data = $balances->map(function ($balance) {
+        $sub = $balance->overtimeSubmission;
+        return [
+            'id'                => $balance->id,
+            'date'              => $sub ? Carbon::parse($sub->date)->format('d M Y') : '-',
+            'compensation_type' => $sub->compensation_type ?? '-',
+            'earned_hours'      => number_format($balance->earned_hours, 2),
+            'used_hours'        => number_format($balance->used_hours, 2),
+            'remaining_hours'   => number_format($balance->remaining_hours, 2),
+            'expires_at'        => $balance->expires_at?->format('d M Y') ?? '-', // ← nullable
+            'days_left'         => $balance->days_until_expired,
+            'status'            => $balance->status,
+            'reason'            => $sub->reason ?? '-',
+        ];
+    });
+
+    // ── Summary tetap dari semua saldo tanpa filter ──
+    $allBalances = Toilbalances::with('overtimeSubmission')
+        ->where('employee_id', $employee->id)
+        ->get();
+
+    $summary = [
+        'total_cash' => $allBalances
+            ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Cash' && $b->status === 'active')
+            ->sum('remaining_hours'),
+        'total_toil_remaining' => $allBalances
+            ->filter(fn($b) => optional($b->overtimeSubmission)->compensation_type === 'Toil' && $b->status === 'active')
+            ->sum('remaining_hours'),
+        'total_used'    => $allBalances->sum('used_hours'),
+        'total_expired' => $allBalances->filter(fn($b) => $b->status === 'expired')->sum('remaining_hours'),
+    ];
+
+    return response()->json([
+        'data'    => $data,
+        'summary' => $summary,
+    ]);
+}
 
     /**
      * GET /toil/history
@@ -235,7 +327,7 @@ class ToilController extends Controller
     {
         $query = Toilbalances::query()
             ->with([
-                'employee:id,employee_name,pin,store_id,department_id',
+                'employee:id,employee_name,employee_pengenal',
                 'employee.primaryStore:id,name',
                 'employee.primaryDepartment:id,department_name',
                 'overtimeSubmission:id,date,compensation_type',
@@ -262,7 +354,7 @@ class ToilController extends Controller
         if ($request->filled('employee_search')) {
             $query->whereHas('employee', function ($q) use ($request) {
                 $q->where('employee_name', 'like', '%' . $request->employee_search . '%');
-            });
+                });
         }
 
         // Filter by status
@@ -299,6 +391,7 @@ class ToilController extends Controller
             return [
                 'id'                => $balance->id,
                 'employee_name'     => $emp->employee_name ?? '-',
+                'employee_pengenal'     => $emp->employee_pengenal ?? '-',
                 'employee_pin'      => $emp->pin ?? '-',
                 'store'             => $emp->primaryStore->first()?->name ?? '-',
                 'department'        => $emp->primaryDepartment->first()?->department_name ?? '-',

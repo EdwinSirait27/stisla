@@ -68,6 +68,7 @@ class EmployeesExportall extends DefaultValueBinder implements FromQuery, WithHe
                 'employees_tables.blood_type',
                 'employees_tables.telp_number',
                 'employees_tables.nik',
+                'employees_tables.kk_number',
                 'employees_tables.gender',
                 'employees_tables.date_of_birth',
                 'employees_tables.place_of_birth',
@@ -142,7 +143,7 @@ class EmployeesExportall extends DefaultValueBinder implements FromQuery, WithHe
     {
         return [
             'No', 'Status', 'Employee', 'NIP', 'P.Finger', 'Can Approve',
-            'NIK', 'Religion', 'Gender', 'Date of Birth', 'Plc. of Birth',
+            'NIK', 'KK Number', 'Religion', 'Gender', 'Date of Birth', 'Plc. of Birth',
             'Moth. Name', 'Crnt. Address', 'ID Card Address', 'Lst. Education',
             'Institution', 'Marriage', 'Child', 'Blood Type', 'Emer. Contact',
             'Email', 'Pend. Email', 'Comp. Email', 'Phone', 'Pend. Phone',
@@ -182,6 +183,7 @@ class EmployeesExportall extends DefaultValueBinder implements FromQuery, WithHe
             $e->pin                         ?? 'EMPTY',
             $e->can_approve                 ?? 0,
             $e->nik                         ?? 'EMPTY',
+            $e->kk_number                         ?? 'EMPTY',
             $this->up($e->religion),
             $this->up($e->gender),
             $this->formatDate($e->date_of_birth),

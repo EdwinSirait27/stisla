@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Summaries')
+@section('title', 'Leaves')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -58,7 +58,7 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -168,14 +168,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Summaries</h1>
+                <h1>Leaves</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Summaries</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Leaves</h6>
                             </div>
 
                             <div class="card-body">
@@ -189,7 +189,7 @@
                                                 <th class="text-center">Pending</th>
                                                 <th class="text-center">Approved</th>
                                                 <th class="text-center">Remaining</th>
-                                                <th class="text-center">TOIL Total</th>
+                                                {{-- <th class="text-center">TOIL Total</th> --}}
                                             </tr>
                                         </thead>
                                     </table>
@@ -263,12 +263,12 @@
                         name: 'remaining',
                         className: 'text-center',
                         defaultContent: 'Empty'
-                    },
-                    {
-                        data: 'total_toil',
-                        name: 'total_toil',
-                        className: 'text-center'
                     }
+                    // {
+                    //     data: 'total_toil',
+                    //     name: 'total_toil',
+                    //     className: 'text-center'
+                    // }
                 ],
                 initComplete: function() {
                     // $('.dataTables_filter input').addClass('form-control');

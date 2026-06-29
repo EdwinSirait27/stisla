@@ -467,6 +467,15 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
+                                    <div class="field-group">
+                                        <label><i class="fas fa-id-card"></i> KK Number</label>
+                                        <input type="number" name="kk_number" id="kk_number"
+                                            class="form-control @error('kk_number') is-invalid @enderror"
+                                            value="{{ old('kk_number') }}" placeholder="KK Number" maxlength="30" required>
+                                        @error('kk_number')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
 
                                     <div class="field-group">
                                         <label><i class="fas fa-mosque"></i> Religion</label>

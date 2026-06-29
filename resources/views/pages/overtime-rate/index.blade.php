@@ -1,12 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Employee Details')
+@section('title', 'Employee Overtime Rates')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-    <!-- Tambahkan setelah datatables js yang sudah ada -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 
     <style>
         /* ─── Page header ────────────────────────────────────── */
@@ -385,34 +383,6 @@
             padding: .75rem 1.25rem 1rem;
         }
 
-        /* untuk fixedclolom */
-        /* Agar fixed columns menyatu dengan tema */
-        table.dataTable tbody tr.odd>.dtfc-fixed-left {
-            background: #fff;
-        }
-
-        table.dataTable tbody tr.even>.dtfc-fixed-left {
-            background: #f8fafc;
-        }
-
-        table.dataTable tbody tr:hover>.dtfc-fixed-left {
-            background: #f8fafc;
-        }
-
-        .dtfc-fixed-left {
-            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1);
-            z-index: 3;
-        }
-
-        /* Pastikan wrapper tidak overflow hidden agar fixed columns kelihatan */
-        .dataTables_scrollBody {
-            overflow-x: auto !important;
-        }
-
-
-
-
-
         .dt-buttons .btn {
             height: 32px;
             font-size: .775rem;
@@ -451,6 +421,42 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        #filter-emp-status+.select2-container .select2-selection--multiple {
+            min-height: 32px !important;
+            height: auto !important;
+            /* expand otomatis */
+            font-size: .775rem !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: .4rem !important;
+            min-width: 125px;
+            max-width: 250px;
+            /* biar tidak terlalu lebar */
+            padding: 2px 4px;
+        }
+
+        #filter-emp-status+.select2-container .select2-selection__choice {
+            font-size: .7rem !important;
+            padding: 1px 6px !important;
+            margin: 2px !important;
+            border-radius: .3rem !important;
+            background-color: #4f46e5 !important;
+            /* sesuaikan warna badge */
+            border: none !important;
+            color: #fff !important;
+        }
+
+        #filter-emp-status+.select2-container .select2-selection__choice__remove {
+            color: #fff !important;
+            margin-right: 4px;
+        }
+
+        #filter-emp-status+.select2-container .select2-selection__rendered {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            padding: 2px !important;
+            gap: 2px;
+        }
     </style>
 @endpush
 
@@ -464,52 +470,14 @@
                     <div style="font-size:.72rem;color:#94a3b8;margin-bottom:3px">
                         Dashboard / <span style="color:#64748b">Employees</span>
                     </div>
-                    <h1>Employee Details</h1>
+                    <h1>Employees</h1>
                 </div>
-                <div class="page-actions">
-                    <a href="{{ route('pages.Employee') }}" class="btn btn-danger">
-                        <i class="fas fa-users"></i> Back to employees
-                    </a>
-                    <a href="{{ route('Employee.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create employee
-                    </a>
 
-                </div>
             </div>
 
             <div class="section-body">
 
                 {{-- ── Stat Cards ── --}}
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <div class="stat-card-label">Total employees</div>
-                        <div class="stat-card-value" id="stat-total">–</div>
-                        <div class="stat-card-sub">
-                            <span class="stat-dot" style="background:#1d4ed8"></span> All companies
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Active</div>
-                        <div class="stat-card-value green" id="stat-active">{{ $countactives }}</div>
-                        <div class="stat-card-sub">
-                            <span class="stat-dot" style="background:#16a34a"></span> Currently active
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Pending</div>
-                        <div class="stat-card-value amber" id="stat-leave">{{ $countpendings }}</div>
-                        <div class="stat-card-sub">
-                            <span class="stat-dot" style="background:#d97706"></span> Employee Pending
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-label">Resigned</div>
-                        <div class="stat-card-value red" id="stat-resign">{{ $countresigns }}</div>
-                        <div class="stat-card-sub">
-                            <span class="stat-dot" style="background:#dc2626"></span> No longer active
-                        </div>
-                    </div>
-                </div>
 
                 {{-- ── Employee Table Card ── --}}
                 <div class="emp-card">
@@ -522,6 +490,7 @@
 
                     </div>
                     {{-- ── Filter Bar ── --}}
+
                     <div class="dt-filter-bar"
                         style="
     padding: .75rem 1.25rem;
@@ -532,48 +501,6 @@
     gap: .5rem;
     flex-wrap: wrap;
 ">
-                        <select id="filter-bank" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Banks</option>
-                            @foreach ($banks as $bank)
-                                <option value="{{ $bank }}">{{ $bank }}</option>
-                            @endforeach
-                        </select>
-                        <select id="filter-gender" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Genders</option>
-                            @foreach ($genders as $gender)
-                                <option value="{{ $gender }}">{{ $gender }}</option>
-                            @endforeach
-                        </select>
-                        <select id="filter-marriage" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">Is Marriage?</option>
-                            @foreach ($marriages as $marriage)
-                                <option value="{{ $marriage }}">{{ $marriage }}</option>
-                            @endforeach
-                        </select>
-                        <select id="filter-blood-type" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Blood Types?</option>
-                            @foreach ($bloodtypes as $bloodtype)
-                                <option value="{{ $bloodtype }}">{{ $bloodtype }}</option>
-                            @endforeach
-                        </select>
-                        <select id="filter-religion" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Religions</option>
-                            @foreach ($religions as $religion)
-                                <option value="{{ $religion }}">{{ $religion }}</option>
-                            @endforeach
-                        </select>
-                        <select id="filter-last-education" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Educations</option>
-                            @foreach ($lasteducations as $lasteducation)
-                                <option value="{{ $lasteducation }}">{{ $lasteducation }}</option>
-                            @endforeach
-                        </select>
                         <select id="filter-company" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Companies</option>
@@ -581,8 +508,6 @@
                                 <option value="{{ $company }}">{{ $company }}</option>
                             @endforeach
                         </select>
-
-
                         <select id="filter-department" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Departments</option>
@@ -590,6 +515,8 @@
                                 <option value="{{ $dept->department_name }}">{{ $dept->department_name }}</option>
                             @endforeach
                         </select>
+
+
                         <select id="filter-store" class="select2 form-select form-select-sm"
                             style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Locations</option>
@@ -623,98 +550,55 @@
 
                         </select>
 
-                        <select id="filter-los" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All LOS</option>
-                            <option value="under3months">Under 3 Months</option>
-                            <option value="1year">1+ Year</option>
-                            <option value="3years">3+ Years</option>
-                            <option value="5years">5+ Years</option>
 
-                        </select>
 
-                        {{-- <select id="filter-status" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Status</option>
-                            @foreach ($statuses as $status)
-                                <option value="{{ $status }}">{{ $status }}</option>
-                            @endforeach
-                        </select> --}}
                         <select id="filter-status" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;max-width:150px;">
+                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
                             <option value="">All Status</option>
                             @foreach ($statuses as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
                             @endforeach
                         </select>
-
-                        {{-- Join Date Range --}}
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="font-size:.72rem;color:#64748b;white-space:nowrap;font-weight:500;">Join</span>
-                            <input type="date" id="filter-join-date-from" class="form-control form-control-sm"
-                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
-                            <span style="font-size:.75rem;color:#94a3b8;">–</span>
-                            <input type="date" id="filter-join-date-to" class="form-control form-control-sm"
-                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
-                        </div>
-
-                        {{-- End Date Range --}}
-                        <div class="d-flex align-items-center gap-1">
-                            <span style="font-size:.72rem;color:#64748b;white-space:nowrap;font-weight:500;">End</span>
-                            <input type="date" id="filter-end-date-from" class="form-control form-control-sm"
-                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
-                            <span style="font-size:.75rem;color:#94a3b8;">–</span>
-                            <input type="date" id="filter-end-date-to" class="form-control form-control-sm"
-                                style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;width:145px;">
-                        </div>
 
                         <button id="btn-reset-filter" class="btn btn-sm btn-light"
                             style="height:32px;font-size:.775rem;padding:0 .75rem;display:inline-flex;align-items:center;gap:.35rem;border-radius:.4rem;border:1px solid #e2e8f0">
                             <i class="fas fa-rotate-left"></i> Reset
                         </button>
-                        <a id="btn-export-excel" href="{{ route('Employee.export') }}" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Export Excel
-                        </a>
-                        <a id="btn-export-csv" href="{{ route('Employee.export') }}?type=csv" class="btn btn-info">
-                            <i class="fas fa-file-csv"></i> Export CSV
-                        </a>
+
+                    </div>
+
+
+                    {{-- Bulk assign rate --}}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-end" style="gap:12px">
+                                <div>
+                                    <label class="small text-muted d-block mb-1">Rate per Jam (Rp)</label>
+                                    <input type="number" id="bulk-rate" class="form-control form-control-sm"
+                                        placeholder="Contoh: 50000" min="0" style="width:200px">
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary btn-sm" id="btn-bulk-assign">
+                                        <i class="fas fa-save"></i> Set Rate ke Terpilih
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm ms-1" id="btn-select-all">
+                                        <i class="fas fa-check-square"></i> Pilih Semua
+                                    </button>
+                                </div>
+                                <small class="text-muted align-self-end">
+                                    <span id="selected-count">0</span> karyawan dipilih
+                                </small>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-responsive">
 
                         <table id="employees-table" class="table">
                             <thead>
                                 <tr>
-                                    <th class="text-center">Action</th>
-                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Check</th>
                                     <th class="text-center">Employee</th>
                                     <th class="text-center">NIP</th>
-                                    <th class="text-center">P.Finger</th>
-                                    <th class="text-center">Approve</th>
-                                    <th class="text-center">NIK</th>
-                                    <th class="text-center">KK Number</th>
-                                    <th class="text-center">Religion</th>
-                                    <th class="text-center">Gender</th>
-                                    <th class="text-center">Date of Birth</th>
-                                    <th class="text-center">Plc. of Birth</th>
-                                    <th class="text-center">Moth. Name</th>
-                                    <th class="text-center">Crnt. Address</th>
-                                    <th class="text-center">ID Card Address</th>
-                                    <th class="text-center">Lst. Education</th>
-                                    <th class="text-center">Institution</th>
-                                    <th class="text-center">Marriage</th>
-                                    <th class="text-center">Child</th>
-                                    <th class="text-center">Bld. Type</th>
-                                    <th class="text-center">Emer. Contact</th>
-                                    <th class="text-center">Email</th>
-                                    <th class="text-center">Pend. Email</th>
-                                    <th class="text-center">Comp. Email</th>
-                                    <th class="text-center">Phone</th>
-                                    <th class="text-center">Pend. Phone</th>
-                                    <th class="text-center">BPJS Kes.</th>
-                                    <th class="text-center">BPJS Ket.</th>
-                                    <th class="text-center">NPWP</th>
-                                    <th class="text-center">Bank</th>
-                                    <th class="text-center">Bank Acc. Number</th>
                                     <th class="text-center">Company</th>
                                     <th class="text-center">Department</th>
                                     <th class="text-center">Location</th>
@@ -722,22 +606,13 @@
                                     <th class="text-center">Grade</th>
                                     <th class="text-center">Group</th>
                                     <th class="text-center">Emp. status</th>
-                                    <th class="text-center">LOS</th>
-                                    <th class="text-center">Join Date</th>
-                                    <th class="text-center">End Date</th>
-                                    <th class="text-center">Acc. Created</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Rate</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                             </thead>
+                            {{-- tbody filled by DataTables --}}
                         </table>
-                    </div>
-
-                    <div class="hint-bar">
-                        <div class="hint-item">
-                            <i class="fas fa-user-edit text-secondary"></i> Click edit to modify employee data
-                        </div>
-                        <div class="hint-item">
-                            <i class="fas fa-eye text-secondary"></i>Click edit to show employee data
-                        </div>
                     </div>
                 </div>
             </div>
@@ -753,11 +628,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
-
     <script>
-        $('.select2').select2({
-            width: 'resolve' // atau bisa dihapus saja
+        $(function() {
+            $('#filter-emp-status').select2({
+                placeholder: 'All Emp. Status',
+                allowClear: true,
+                width: 'resolve'
+            });
         });
     </script>
     <script>
@@ -816,41 +693,25 @@
 
         /* ── Employee DataTable ── */
         $(function() {
+
             var empTable = $('#employees-table').DataTable({
 
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
-                scrollX: true,
-                scrollCollapse: true,
-                fixedColumns: {
-                    left: 4 // freeze: Action, Status, Employee (kolom 0,1,2)
-                },
-
                 dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
                 ajax: {
-                    url: '{{ route('employeesall.employeesall') }}',
+                    url: '{{ route('overtimerates.overtimerates') }}',
                     data: function(d) {
                         d.filter_company = $('#filter-company').val();
                         d.filter_department = $('#filter-department').val();
                         d.filter_emp_status = $('#filter-emp-status').val();
-                        d.filter_blood_type = $('#filter-blood-type').val();
                         d.filter_status = $('#filter-status').val();
                         d.filter_store = $('#filter-store').val();
-                        d.filter_los = $('#filter-los').val();
                         d.filter_group = $('#filter-group').val();
                         d.filter_grading = $('#filter-grading').val();
-                        d.filter_bank = $('#filter-bank').val();
-                        d.filter_gender = $('#filter-gender').val();
-                        d.filter_marriage = $('#filter-marriage').val();
-                        d.filter_religion = $('#filter-religion').val();
-                        d.filter_last_education = $('#filter-last-education').val();
-                        d.filter_join_date_from = $('#filter-join-date-from').val();
-                        d.filter_join_date_to = $('#filter-join-date-to').val();
-                        d.filter_end_date_from = $('#filter-end-date-from').val();
-                        d.filter_end_date_to = $('#filter-end-date-to').val();
                     },
                     error: function() {
                         Swal.fire({
@@ -877,21 +738,16 @@
                         next: '›'
                     }
                 },
+
                 columns: [{
-                        data: 'action',
+                        data: 'employee_id',
                         orderable: false,
                         searchable: false,
                         className: 'text-center',
                         render: function(data) {
-                            return `<div class="action-wrap">${data}</div>`;
+                            return `<input type="checkbox" class="chk-employee" value="${data}">`;
                         }
                     },
-                    {
-                        data: 'status',
-                        className: 'text-center',
-                        render: d => statusBadge(d, STATUS_BADGE)
-                    },
-                  
                     {
                         data: 'employee_name',
                         className: 'text-center',
@@ -902,149 +758,6 @@
                         className: 'text-center',
                         render: d => d || '-'
                     },
-                    {
-                        data: 'pin',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-    data: 'can_approve',
-    className: 'text-center',
-    render: function(data, type, row) {
-        if (data == 1) {
-            return 'Yes';
-        } else if (data == 0) {
-            return 'No';
-        }
-        return '-';
-    }
-},
-                    {
-                        data: 'nik',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'kk_number',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'religion',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'gender',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'date_of_birth',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'place_of_birth',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'biological_mother_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'current_address',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'id_card_address',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'last_education',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'institution',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'marriage',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'child',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'blood_type',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'emergency_contact_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'email',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'pending_email',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'company_email',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'telp_number',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'pending_telp_number',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'bpjs_kes',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'bpjs_ket',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'npwp',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'bank_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'bank_account_number',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-
                     {
                         data: 'name_company',
                         className: 'text-center',
@@ -1081,27 +794,24 @@
                         render: d => statusBadge(d, EMP_STATUS_BADGE)
                     },
                     {
-                        data: 'length_of_service',
+                        data: 'status',
                         className: 'text-center',
-                        render: d => d ? `<span style="color:#64748b;font-size:.775rem">${d}</span>` :
-                            '-'
+                        render: d => statusBadge(d, STATUS_BADGE)
                     },
                     {
-                        data: 'join_date',
+                        data: 'rate_display',
                         className: 'text-center',
-                        render: d => statusBadge(d, EMP_STATUS_BADGE)
+                        render: d => d || '-'
                     },
                     {
-                        data: 'end_date',
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
                         className: 'text-center',
-                        render: d => statusBadge(d, EMP_STATUS_BADGE)
-                    },
-                    {
-                        data: 'created_at',
-                        className: 'text-center',
-                        render: d => statusBadge(d, EMP_STATUS_BADGE)
+                        render: function(data) {
+                            return `<div class="action-wrap">${data}</div>`;
+                        }
                     }
-
                 ],
                 drawCallback: function(settings) {
                     const info = settings.json;
@@ -1115,93 +825,100 @@
                         $('#stat-resign').text(info.stats.resign ?? '–');
                     }
                 },
-                // initComplete: function() {
-                //     $('.dataTables_filter input').addClass('form-control form-control-sm');
-                //     $('.dataTables_length select').addClass('form-select form-select-sm');
-                // }
                 initComplete: function() {
                     $('.dataTables_filter input').addClass('form-control form-control-sm');
                     $('.dataTables_length select').addClass('form-select form-select-sm');
                 }
             });
-            $('#filter-blood-type,#filter-company, #filter-department, #filter-emp-status, #filter-status, #filter-los, #filter-store, #filter-grading, #filter-group,#filter-bank,#filter-gender,#filter-marriage,#filter-religion,#filter-last-education,#filter-join-date-from,#filter-join-date-to,#filter-end-date-from,#filter-end-date-to')
+            $('#filter-company, #filter-department, #filter-emp-status, #filter-status, #filter-store, #filter-grading, #filter-group')
                 .on('change', function() {
                     empTable.ajax.reload();
                     updateExportLinks(); // ← tambahkan di sini
                 });
-
             /* ── Reset filter ── */
             $('#btn-reset-filter').on('click', function() {
-
-                $('#filter-blood-type').val('').trigger('change');
                 $('#filter-company').val('').trigger('change');
                 $('#filter-department').val('').trigger('change');
                 $('#filter-emp-status').val('').trigger('change');
                 $('#filter-status').val('').trigger('change');
                 $('#filter-store').val('').trigger('change');
-                $('#filter-los').val('').trigger('change');
                 $('#filter-group').val('').trigger('change');
                 $('#filter-grading').val('').trigger('change');
-                $('#filter-bank').val('').trigger('change');
-                $('#filter-gender').val('').trigger('change');
-                $('#filter-marriage').val('').trigger('change');
-                $('#filter-religion').val('').trigger('change');
-                $('#filter-last-education').val('').trigger('change');
-                $('#filter-join-date-from').val('').trigger('change');
-                $('#filter-join-date-to').val('').trigger('change');
-                $('#filter-end-date-from').val('').trigger('change');
-                $('#filter-end-date-to').val('').trigger('change');
                 empTable.ajax.reload();
             });
-            // Setiap kali filter berubah, update href tombol export
-            function updateExportLinks() {
-                const params = new URLSearchParams({
-                    filter_blood_type: $('#filter-blood-type').val(),
-                    filter_company: $('#filter-company').val(),
-                    filter_department: $('#filter-department').val(),
-                    filter_group: $('#filter-group').val(),
-                    filter_grading: $('#filter-grading').val(),
-                    filter_store: $('#filter-store').val(),
-                    filter_emp_status: $('#filter-emp-status').val(),
-                    filter_status: $('#filter-status').val(),
-                    filter_los: $('#filter-los').val(),
-                    filter_bank: $('#filter-bank').val(),
-                    filter_gender: $('#filter-gender').val(),
-                    filter_marriage: $('#filter-marriage').val(),
-                    filter_religion: $('#filter-religion').val(),
-                    filter_last_education: $('#filter-last-education').val(),
-                    filter_join_date_from: $('#filter-join-date-from').val(),
-                    filter_join_date_to: $('#filter-join-date-to').val(),
-                    filter_end_date_from: $('#filter-end-date-from').val(),
-                    filter_end_date_to: $('#filter-end-date-to').val(),
-                });
 
-                const baseUrl = "{{ route('Employeeall.exportall') }}";
-                $('#btn-export-excel').attr('href', `${baseUrl}?${params}`);
-                $('#btn-export-csv').attr('href', `${baseUrl}?${params}&type=csv`);
-            }
-            // Panggil setiap filter berubah
-            updateExportLinks();
-            /* ── Session flash ── */
-            @if (session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: '{{ session('success') }}',
-                    confirmButtonColor: '#1d4ed8',
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            @endif
+        
 
-            @if (session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: '{{ session('error') }}',
-                    confirmButtonColor: '#dc2626'
-                });
-            @endif
+        // ── Checkbox per row ──
+        $(document).on('change', '.chk-employee', function() {
+            const count = $('.chk-employee:checked').length;
+            $('#selected-count').text(count);
         });
+
+        // ── Select all ──
+        $('#btn-select-all').on('click', function() {
+            const allChecked = $('.chk-employee:checked').length === $('.chk-employee').length;
+            $('.chk-employee').prop('checked', !allChecked);
+            $('#selected-count').text(!allChecked ? $('.chk-employee').length : 0);
+        });
+
+        // ── Bulk assign ──
+        $('#btn-bulk-assign').on('click', function() {
+            const ids = $('.chk-employee:checked').map(function() {
+                return $(this).val();
+            }).get();
+            const rate = $('#bulk-rate').val();
+
+            if (!ids.length) return Swal.fire('Info', 'Pilih minimal 1 karyawan.', 'info');
+            if (!rate) return Swal.fire('Info', 'Masukkan rate per jam.', 'info');
+
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: `Set rate Rp ${Number(rate).toLocaleString('id-ID')} untuk ${ids.length} karyawan?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, set',
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                $.post('{{ route('overtime-rate.store') }}', {
+                        _token: '{{ csrf_token() }}',
+                        employee_ids: ids,
+                        rate_per_hour: rate,
+                    })
+                   .done(res => {
+    empTable.ajax.reload(); // ← ganti table ke empTable
+    Swal.fire('Berhasil!', res.message, 'success');
+})
+                    .fail(xhr => Swal.fire('Gagal!', xhr.responseJSON?.message ?? 'Error', 'error'));
+            });
+        });
+
+        // ── Reset checkbox saat reload ──
+        empTable.on('draw', function() { // ← ganti table ke empTable
+        $('#selected-count').text(0);
+    });
+
+    // ── Session flash ──
+    @if (session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: '{{ session('success') }}',
+            confirmButtonColor: '#1d4ed8',
+            timer: 3000,
+            timerProgressBar: true
+        });
+    @endif
+
+    @if (session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '{{ session('error') }}',
+            confirmButtonColor: '#dc2626'
+        });
+    @endif
+    });
     </script>
 @endpush

@@ -239,16 +239,18 @@ class RosterController extends Controller
 
         if (!$canManageAll && $canManageSPV) {
 
-            $myStoreIds = $this->userStoreIds($user);
+                $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray(); // ← semua store
+
 
             // Guard store_id
-            if ($request->store_id && !in_array($request->store_id, $myStoreIds)) {
-                return redirect()->route('roster.index', [
-                    'store_id'   => $myStoreIds[0] ?? $myStoreId,
-                    'start_date' => $request->start_date,
-                    'end_date'   => $request->end_date,
-                ]);
-            }
+          
+             if ($request->store_id && !in_array($request->store_id, $myStoreIds)) {
+        return redirect()->route('roster.index', [
+            'store_id'   => $myStoreIds[0] ?? $myStoreId,
+            'start_date' => $request->start_date,
+            'end_date'   => $request->end_date,
+        ]);
+    }
 
             // Guard date range
             $maxStartDate = Carbon::parse($defaultStartDate)->addMonth();
@@ -281,85 +283,150 @@ class RosterController extends Controller
             ->get();
 
         $employees = collect();
-        $shifts    = collect();
-        $dates     = [];
+$shifts    = collect();
+$dates     = [];
+$dateHeaders = [];
 
-        if ($storeId) {
+$hasStore = $storeId || ($canManageSPV && !$canManageAll);
 
-            $employeeQuery = Employee::with([
-                'store'      => fn($q) => $q->wherePivot('is_primary', true),
-                'position'   => fn($q) => $q->wherePivot('is_primary', true),
-                'department' => fn($q) => $q->wherePivot('is_primary', true),
-                'rosters'    => fn($q) => $q
-                    ->whereBetween('date', [$startDate, $endDate])
-                    ->with('shift:id,shift_name,start_time,end_time'),
-            ])
-                ->select('id', 'employee_name', 'status_employee', 'status', 'company_id')
-                ->whereNull('deleted_at')
-                ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
-                ->orderBy('employee_name');
+if ($hasStore) {
+    // ── Ambil data SPV sekali saja ──
+    $myStoreIds = [];
+    $myDeptIds  = [];
+    $bawahanIds = [];
 
-            if ($canManageAll) {
-                $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
-            } elseif ($canManageSPV) {
-                $employeeQuery
-                    ->whereIn('status', ['Active', 'Pending', 'On Leave'])
-                    ->where('company_id', $myEmployee->company_id) // ← filter company
-                    ->whereHas(
-                        'department',
-                        fn($q) =>              // ← filter department
-                        $q->where('departments_tables.id', $myDepartmentId)
+    if ($canManageSPV && !$canManageAll) {
+        $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray();
+        $myDeptIds  = $myEmployee->department()->pluck('departments_tables.id')->toArray();
+        $bawahanIds = $myEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
+    }
+
+    $employeeQuery = Employee::with([
+        'store'      => fn($q) => $q->wherePivot('is_primary', true),
+        'position'   => fn($q) => $q->wherePivot('is_primary', true),
+        'department' => fn($q) => $q->wherePivot('is_primary', true),
+        'rosters'    => fn($q) => $q
+            ->whereBetween('date', [$startDate, $endDate])
+            ->with('shift:id,shift_name,start_time,end_time'),
+    ])
+        ->select('id', 'employee_name', 'status_employee', 'status', 'company_id')
+        ->whereNull('deleted_at')
+        ->orderBy('employee_name');
+
+    // ── Filter store ──
+    if ($storeId) {
+        // Pilih store tertentu
+        $employeeQuery->whereHas('store', fn($q) =>
+            $q->where('stores_tables.id', $storeId)
+        );
+    } elseif ($canManageSPV && !$canManageAll) {
+        // All Location — semua store SPV + bawahan
+        $employeeQuery->where(function ($q) use ($myStoreIds, $bawahanIds) {
+            $q->whereHas('store', fn($sq) =>
+                $sq->whereIn('stores_tables.id', $myStoreIds)
+            );
+            if (!empty($bawahanIds)) {
+                $q->orWhereIn('id', $bawahanIds);
+            }
+        });
+    }
+
+    // ── Filter permission ──
+    if ($canManageAll) {
+        $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
+
+    } 
+   elseif ($canManageSPV) {
+    $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray();
+    $myDeptIds  = $myEmployee->department()->pluck('departments_tables.id')->toArray();
+    $bawahanIds = $myEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
+
+    $employeeQuery
+        ->whereIn('status', ['Active', 'Pending', 'On Leave'])
+        ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds, $storeId) {
+            
+            // ← Karyawan reguler: filter store + department
+            $q->where(function ($q1) use ($myStoreIds, $myDeptIds, $storeId) {
+                // Store filter
+                if ($storeId) {
+                    $q1->whereHas('store', fn($sq) =>
+                        $sq->where('stores_tables.id', $storeId)
                     );
-            } elseif ($canView) {
-                $employeeQuery->where('id', $myEmployee->id);
-            } else {
-                return abort(403, 'Unauthorized');
-            }
-
-            $employees = $employeeQuery->get();
-
-            $shifts = Shifts::where('store_id', $storeId)
-                ->orderBy('shift_name')
-                ->get();
-
-
-            $start   = Carbon::parse($startDate);
-            $end     = Carbon::parse($endDate);
-            $current = $start->copy();
-
-            while ($current->lte($end)) {
-                $dates[] = $current->copy();
-                $current->addDay();
-            }
-
-            // Pre-compute per employee
-            foreach ($employees as $employee) {
-                $employee->status_class = $this->getStatusClass($employee->status_employee);
-
-                $rosterByDate = $employee->rosters->keyBy(
-                    fn($r) => Carbon::parse($r->date)->toDateString()
-                );
-
-                $cells = [];
-                foreach ($dates as $carbon) {
-                    $dateStr = $carbon->toDateString();
-                    $roster  = $rosterByDate->get($dateStr);
-                    $cells[$dateStr] = $this->buildCellData($roster, $carbon);
+                } else {
+                    $q1->whereHas('store', fn($sq) =>
+                        $sq->whereIn('stores_tables.id', $myStoreIds)
+                    );
                 }
-                $employee->cells = $cells;
-            }
+                // Department filter
+                $q1->whereHas('department', fn($dq) =>
+                    $dq->whereIn('departments_tables.id', $myDeptIds)
+                );
+            });
 
-            // Pre-compute date headers
-            foreach ($dates as $carbon) {
-                $dateHeaders[] = [
-                    'carbon'     => $carbon,
-                    'day_label'  => $carbon->format('D'),
-                    'date_label' => $carbon->format('d/m'),
-                    'is_weekend' => $carbon->isWeekend(),
-                    'is_today'   => $carbon->isToday(),
-                ];
+            // ← Bawahan langsung: bypass semua filter store/department/company
+            if (!empty($bawahanIds)) {
+                $q->orWhereIn('id', $bawahanIds);
             }
+        });
+}
+    elseif ($canView) {
+        $employeeQuery->where('id', $myEmployee->id);
+
+    } else {
+        return abort(403, 'Unauthorized');
+    }
+
+    $employees = $employeeQuery->get();
+
+    // ── Shifts — handle All Location ──
+    if ($storeId) {
+        $shifts = Shifts::where('store_id', $storeId)
+            ->orderBy('shift_name')
+            ->get();
+    } elseif ($canManageSPV && !$canManageAll && !empty($myStoreIds)) {
+        $shifts = Shifts::whereIn('store_id', $myStoreIds)
+            ->orderBy('shift_name')
+            ->get();
+    }
+
+    // ── Build dates ──
+    $start   = Carbon::parse($startDate);
+    $end     = Carbon::parse($endDate);
+    $current = $start->copy();
+
+    while ($current->lte($end)) {
+        $dates[] = $current->copy();
+        $current->addDay();
+    }
+
+    // ── Pre-compute per employee ──
+    foreach ($employees as $employee) {
+        $employee->status_class = $this->getStatusClass($employee->status_employee);
+
+        $rosterByDate = $employee->rosters->keyBy(
+            fn($r) => Carbon::parse($r->date)->toDateString()
+        );
+
+        $cells = [];
+        foreach ($dates as $carbon) {
+            $dateStr         = $carbon->toDateString();
+            $roster          = $rosterByDate->get($dateStr);
+            $cells[$dateStr] = $this->buildCellData($roster, $carbon);
         }
+        $employee->cells = $cells;
+    }
+
+    // ── Pre-compute date headers ──
+    foreach ($dates as $carbon) {
+        $dateHeaders[] = [
+            'carbon'     => $carbon,
+            'day_label'  => $carbon->format('D'),
+            'date_label' => $carbon->format('d/m'),
+            'is_weekend' => $carbon->isWeekend(),
+            'is_today'   => $carbon->isToday(),
+        ];
+    }
+}
 
         $isSupervisorOrManager = $canManageSPV && !$canManageAll;
         $isRosterOpen = $this->isSPVOnly() ? $this->checkRosterWindow() : true;
@@ -370,13 +437,14 @@ class RosterController extends Controller
 
         // Daftar store untuk dropdown SPV (hanya store miliknya)
         $myStores = collect();
+       
         if (!$canManageAll && $canManageSPV) {
-            $myStoreIds = $this->userStoreIds($user);
-            $myStores = Stores::select('id', 'name')
-                ->whereIn('id', $myStoreIds)
-                ->orderBy('name')
-                ->get();
-        }
+    $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray(); // ← hapus wherePivot is_primary
+    $myStores = Stores::select('id', 'name')
+        ->whereIn('id', $myStoreIds)
+        ->orderBy('name')
+        ->get();
+}
 
         return view('pages.Roster.Roster', compact(
             'employees',
@@ -399,6 +467,229 @@ class RosterController extends Controller
             'user'
         ));
     }
+//     public function index(Request $request)
+//     {
+//         /** @var \App\Models\User|null $user */
+//         $user = auth()->user();
+
+//         $myStores  = collect();
+//         $myStoreId = null;
+//         $myStoreName = null;
+
+//         $canManageAll = $user->hasPermissionTo('ManageRoster');
+//         $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+//         $canView      = $user->hasPermissionTo('ViewRoster');
+
+
+//         if (!$canManageAll && !$canManageSPV && !$canView) {
+//             return abort(403, 'Unauthorized');
+//         }
+
+
+//         $myEmployee  = optional($user->employee);
+
+//         if ($myEmployee) {
+//             $myStore        = $myEmployee->store()->wherePivot('is_primary', true)->first();
+//             $myStoreId      = $myStore?->id;
+//             $myStoreName    = $myStore?->name;
+//             $myDepartment   = $myEmployee->department()->wherePivot('is_primary', true)->first();
+//             $myDepartmentId = $myDepartment?->id;
+//         } else {
+//             $myStore        = null;
+//             $myStoreId      = null;
+//             $myStoreName    = null;
+//             $myDepartment   = null;
+//             $myDepartmentId = null;
+//         }
+
+//         $today            = now();
+//         $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
+//         $defaultEndDate   = $today->copy()->day(25)->toDateString();
+
+//         if ($canView && !$canManageAll && !$canManageSPV) {
+//             $storeId = $myStoreId;
+//         } else {
+//             // $storeId = $request->store_id;
+//         }
+
+//         if (!$canManageAll && $canManageSPV) {
+
+//             // $myStoreIds = $this->userStoreIds($user);
+//                 $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray(); // ← semua store
+
+
+//             // Guard store_id
+//             // if ($request->store_id && !in_array($request->store_id, $myStoreIds)) {
+//             //     return redirect()->route('roster.index', [
+//             //         'store_id'   => $myStoreIds[0] ?? $myStoreId,
+//             //         'start_date' => $request->start_date,
+//             //         'end_date'   => $request->end_date,
+//             //     ]);
+//             // }
+//              if ($request->store_id && !in_array($request->store_id, $myStoreIds)) {
+//         return redirect()->route('roster.index', [
+//             'store_id'   => $myStoreIds[0] ?? $myStoreId,
+//             'start_date' => $request->start_date,
+//             'end_date'   => $request->end_date,
+//         ]);
+//     }
+
+//             // Guard date range
+//             $maxStartDate = Carbon::parse($defaultStartDate)->addMonth();
+//             $maxEndDate   = Carbon::parse($defaultEndDate)->addMonth();
+
+//             if ($request->start_date && Carbon::parse($request->start_date)->gt($maxStartDate)) {
+//                 return redirect()->route('roster.index', [
+//                     'store_id'   => $request->store_id,
+//                     'start_date' => $defaultStartDate,
+//                     'end_date'   => $request->end_date,
+//                 ]);
+//             }
+
+//             if ($request->end_date && Carbon::parse($request->end_date)->gt($maxEndDate)) {
+//                 return redirect()->route('roster.index', [
+//                     'store_id'   => $request->store_id,
+//                     'start_date' => $request->start_date,
+//                     'end_date'   => $defaultEndDate,
+//                 ]);
+//             }
+//         }
+
+//         $startDate = $request->start_date ?? $defaultStartDate;
+//         $endDate   = $request->end_date   ?? $defaultEndDate;
+//         $storeId   = $request->store_id;
+
+//         $stores = Stores::select('id', 'name')
+//             ->whereNotNull('name')
+//             ->orderBy('name')
+//             ->get();
+
+//         $employees = collect();
+//         $shifts    = collect();
+//         $dates     = [];
+
+//         if ($storeId) {
+
+//             $employeeQuery = Employee::with([
+//                 'store'      => fn($q) => $q->wherePivot('is_primary', true),
+//                 'position'   => fn($q) => $q->wherePivot('is_primary', true),
+//                 'department' => fn($q) => $q->wherePivot('is_primary', true),
+//                 'rosters'    => fn($q) => $q
+//                     ->whereBetween('date', [$startDate, $endDate])
+//                     ->with('shift:id,shift_name,start_time,end_time'),
+//             ])
+//                 ->select('id', 'employee_name', 'status_employee', 'status', 'company_id')
+//                 ->whereNull('deleted_at')
+//                 ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
+//                 ->orderBy('employee_name');
+
+//             if ($canManageAll) {
+//                 $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
+//             } elseif ($canManageSPV) {
+//                 $employeeQuery
+//                     ->whereIn('status', ['Active', 'Pending', 'On Leave'])
+//                     ->where('company_id', $myEmployee->company_id) // ← filter company
+//                     ->whereHas(
+//                         'department',
+//                         fn($q) =>              // ← filter department
+//                         $q->where('departments_tables.id', $myDepartmentId)
+//                     );
+//             } elseif ($canView) {
+//                 $employeeQuery->where('id', $myEmployee->id);
+//             } else {
+//                 return abort(403, 'Unauthorized');
+//             }
+
+//             $employees = $employeeQuery->get();
+
+//             $shifts = Shifts::where('store_id', $storeId)
+//                 ->orderBy('shift_name')
+//                 ->get();
+
+
+//             $start   = Carbon::parse($startDate);
+//             $end     = Carbon::parse($endDate);
+//             $current = $start->copy();
+
+//             while ($current->lte($end)) {
+//                 $dates[] = $current->copy();
+//                 $current->addDay();
+//             }
+
+//             // Pre-compute per employee
+//             foreach ($employees as $employee) {
+//                 $employee->status_class = $this->getStatusClass($employee->status_employee);
+
+//                 $rosterByDate = $employee->rosters->keyBy(
+//                     fn($r) => Carbon::parse($r->date)->toDateString()
+//                 );
+
+//                 $cells = [];
+//                 foreach ($dates as $carbon) {
+//                     $dateStr = $carbon->toDateString();
+//                     $roster  = $rosterByDate->get($dateStr);
+//                     $cells[$dateStr] = $this->buildCellData($roster, $carbon);
+//                 }
+//                 $employee->cells = $cells;
+//             }
+
+//             // Pre-compute date headers
+//             foreach ($dates as $carbon) {
+//                 $dateHeaders[] = [
+//                     'carbon'     => $carbon,
+//                     'day_label'  => $carbon->format('D'),
+//                     'date_label' => $carbon->format('d/m'),
+//                     'is_weekend' => $carbon->isWeekend(),
+//                     'is_today'   => $carbon->isToday(),
+//                 ];
+//             }
+//         }
+
+//         $isSupervisorOrManager = $canManageSPV && !$canManageAll;
+//         $isRosterOpen = $this->isSPVOnly() ? $this->checkRosterWindow() : true;
+//         $canViewOnly = $canView && !$canManageAll && !$canManageSPV;
+//         $currentStoreName = $storeId
+//             ? optional($stores->firstWhere('id', $storeId))->name ?? ''
+//             : '';
+
+//         // Daftar store untuk dropdown SPV (hanya store miliknya)
+//         $myStores = collect();
+//         // if (!$canManageAll && $canManageSPV) {
+//         //     $myStoreIds = $this->userStoreIds($user);
+//         //     $myStores = Stores::select('id', 'name')
+//         //         ->whereIn('id', $myStoreIds)
+//         //         ->orderBy('name')
+//         //         ->get();
+//         // }
+//         if (!$canManageAll && $canManageSPV) {
+//     $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray(); // ← hapus wherePivot is_primary
+//     $myStores = Stores::select('id', 'name')
+//         ->whereIn('id', $myStoreIds)
+//         ->orderBy('name')
+//         ->get();
+// }
+
+//         return view('pages.Roster.Roster', compact(
+//             'employees',
+//             'shifts',
+//             'stores',
+//             'dates',
+//             'startDate',
+//             'endDate',
+//             'storeId',
+//             'myStoreId',
+//             'isRosterOpen',
+//             'myStoreName',
+//             'isSupervisorOrManager',
+//             'canView',
+//             'canManageAll',
+//             'canManageSPV',
+//             'canViewOnly',
+//             'currentStoreName',
+//             'myStores',
+//             'user'
+//         ));
+//     }
     public function sickAttachmentUrl(Request $request)
     {
         $request->validate(['path' => 'required|string']);
@@ -1127,56 +1418,115 @@ class RosterController extends Controller
     //  DOWNLOAD TEMPLATE Excel (terisi karyawan + tanggal)
     // ─────────────────────────────────────────────────────────────
     public function downloadTemplate(Request $request)
-    {
-        $request->validate([
-            'store_id'   => 'required|exists:stores_tables,id',
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-        ]);
+{
+    $request->validate([
+        'store_id'   => 'required|exists:stores_tables,id',
+        'start_date' => 'required|date',
+        'end_date'   => 'required|date|after_or_equal:start_date',
+    ]);
 
-        /** @var \App\Models\User $user */
-        $user         = auth()->user();
-        $canManageAll = $user->hasPermissionTo('ManageRoster');
-        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+    /** @var \App\Models\User $user */
+    $user         = auth()->user();
+    $canManageAll = $user->hasPermissionTo('ManageRoster');
+    $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
 
-        // SPV (bukan admin): hanya boleh store yang ada di daftar miliknya
-        if ($canManageSPV && !$canManageAll) {
-            $myStoreIds = $this->userStoreIds($user);
-            if (!in_array($request->store_id, $myStoreIds)) {
-                abort(403, 'Anda tidak punya akses ke store ini.');
-            }
+    $myDeptIds  = [];
+    $bawahanIds = [];
+
+    if ($canManageSPV && !$canManageAll) {
+        $myEmployee = $user->employee;
+        $myStoreIds = $this->userStoreIds($user);
+
+        if (!in_array($request->store_id, $myStoreIds)) {
+            abort(403, 'Anda tidak punya akses ke store ini.');
         }
 
-        $storeName = Stores::find($request->store_id)?->name ?? 'store';
-        $filename  = 'template-roster-' . str($storeName)->slug() . '-'
-            . $request->start_date . '-to-' . $request->end_date . '.xlsx';
-
-        return Excel::download(
-            new RosterTemplateExport($request->store_id, $request->start_date, $request->end_date),
-            $filename
-        );
+        $myDeptIds  = $myEmployee->department()->pluck('departments_tables.id')->toArray();
+        $bawahanIds = $myEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
     }
+
+    $storeName = Stores::find($request->store_id)?->name ?? 'store';
+    $filename  = 'template-roster-' . str($storeName)->slug() . '-'
+        . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+    return Excel::download(
+        new RosterTemplateExport(
+            storeId:      $request->store_id,
+            startDate:    $request->start_date,
+            endDate:      $request->end_date,
+            canManageAll: $canManageAll,
+            myDeptIds:    $myDeptIds,
+            bawahanIds:   $bawahanIds,
+        ),
+        $filename
+    );
+}
+    // public function downloadTemplate(Request $request)
+    // {
+    //     $request->validate([
+    //         'store_id'   => 'required|exists:stores_tables,id',
+    //         'start_date' => 'required|date',
+    //         'end_date'   => 'required|date|after_or_equal:start_date',
+    //     ]);
+
+    //     /** @var \App\Models\User $user */
+    //     $user         = auth()->user();
+    //     $canManageAll = $user->hasPermissionTo('ManageRoster');
+    //     $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+
+    //     // SPV (bukan admin): hanya boleh store yang ada di daftar miliknya
+    //     if ($canManageSPV && !$canManageAll) {
+    //         $myStoreIds = $this->userStoreIds($user);
+    //         if (!in_array($request->store_id, $myStoreIds)) {
+    //             abort(403, 'Anda tidak punya akses ke store ini.');
+    //         }
+    //     }
+
+    //     $storeName = Stores::find($request->store_id)?->name ?? 'store';
+    //     $filename  = 'template-roster-' . str($storeName)->slug() . '-'
+    //         . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+    //     return Excel::download(
+    //         new RosterTemplateExport($request->store_id, $request->start_date, $request->end_date),
+    //         $filename
+    //     );
+    // }
 
     // ─────────────────────────────────────────────────────────────
     //  HELPER: Daftar store_id milik user (multi-store).
     //  Utamakan pivot employee_stores; fallback ke kolom store_id
     //  tunggal kalau pivot belum diisi.
     // ─────────────────────────────────────────────────────────────
+    // private function userStoreIds($user): array
+    // {
+    //     $employee = $user->employee;
+    //     if (!$employee) return [];
+
+    //     // Dari relasi multi-store (pivot employee_stores)
+    //     $ids = $employee->store->pluck('id')->toArray();
+
+    //     // Fallback: pivot kosong → pakai kolom store_id tunggal
+    //     if (empty($ids) && $employee->store_id) {
+    //         $ids = [$employee->store_id];
+    //     }
+
+    //     return $ids;
+    // }
     private function userStoreIds($user): array
-    {
-        $employee = $user->employee;
-        if (!$employee) return [];
+{
+    $employee = $user->employee;
+    if (!$employee) return [];
 
-        // Dari relasi multi-store (pivot employee_stores)
-        $ids = $employee->store->pluck('id')->toArray();
+    // Pakai query langsung — ambil semua pivot store tanpa filter is_primary
+    $ids = $employee->store()->pluck('stores_tables.id')->toArray();
 
-        // Fallback: pivot kosong → pakai kolom store_id tunggal
-        if (empty($ids) && $employee->store_id) {
-            $ids = [$employee->store_id];
-        }
-
-        return $ids;
+    // Fallback: pivot kosong → pakai kolom store_id tunggal
+    if (empty($ids) && $employee->store_id) {
+        $ids = [$employee->store_id];
     }
+
+    return $ids;
+}
 
     // ─────────────────────────────────────────────────────────────
     //  IMPORT EXCEL (matriks: baris=karyawan, kolom=tanggal)
@@ -1429,7 +1779,7 @@ class RosterController extends Controller
         if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
             return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
         }
-        $myStoreId = $myEmployee->store_id;
+        // $myStoreId = $myEmployee->store_id;
 
 
         $query = Roster::with([
@@ -1440,7 +1790,7 @@ class RosterController extends Controller
             'shift:id,shift_name,start_time,end_time',
         ])
             ->whereBetween('date', [$request->start_date, $request->end_date])
-            ->whereHas('employee', function ($q) use ($request, $myEmployee, $myStoreId, $canManageAll, $canManageSPV, $canViewOwn) {
+            ->whereHas('employee', function ($q) use ($request, $myEmployee, $canManageAll, $canManageSPV, $canViewOwn) {
                 $q->whereNull('deleted_at');
 
                 if ($request->search) {
@@ -1448,14 +1798,51 @@ class RosterController extends Controller
                 }
 
                 if ($canManageAll) {
-                    if ($request->store_id) {
-                        $q->where('store_id', $request->store_id);
-                    }
-                } elseif ($canManageSPV) {
-                    $q->where('store_id', $myStoreId);
-                } elseif ($canViewOwn) {
-                    $q->where('id', $myEmployee->id);
+    if ($request->store_id) {
+        $q->whereHas('store', fn($sq) =>
+            $sq->where('stores_tables.id', $request->store_id)
+        );
+    }
+}
+ elseif ($canManageSPV) {
+    $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray();
+    $myDeptIds  = $myEmployee->department()->pluck('departments_tables.id')->toArray();
+    $bawahanIds = $myEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
+
+    $q->where(function ($q2) use ($myStoreIds, $myDeptIds, $bawahanIds, $request) {
+
+        // ← Karyawan reguler: filter store + department
+        $q2->where(function ($q3) use ($myStoreIds, $myDeptIds, $request) {
+            // Store filter
+            if ($request->store_id) {
+                // Pilih store tertentu — pastikan milik SPV
+                if (in_array($request->store_id, $myStoreIds)) {
+                    $q3->whereHas('store', fn($sq) =>
+                        $sq->where('stores_tables.id', $request->store_id)
+                    );
                 }
+            } else {
+                // All Location
+                $q3->whereHas('store', fn($sq) =>
+                    $sq->whereIn('stores_tables.id', $myStoreIds)
+                );
+            }
+            // Department filter
+            $q3->whereHas('department', fn($dq) =>
+                $dq->whereIn('departments_tables.id', $myDeptIds)
+            );
+        });
+
+        // ← Bawahan langsung: bypass semua filter
+        if (!empty($bawahanIds)) {
+            $q2->orWhereIn('id', $bawahanIds);
+        }
+    });
+}
+elseif ($canViewOwn) {
+    $q->where('id', $myEmployee->id);
+}
+
             })
             ->orderBy('date')
             ->orderBy('employee_id');
@@ -1484,152 +1871,329 @@ class RosterController extends Controller
             })->values(),
         ]);
     }
+    // public function historyExport(Request $request)
+    // {
+    //     ini_set('memory_limit', '512M');
+    //     set_time_limit(300);
+    //     $request->validate([
+    //         'start_date' => 'required|date',
+    //         'end_date'   => 'required|date|after_or_equal:start_date',
+    //         'store_id'   => 'nullable',
+    //         'search'     => 'nullable|string',
+    //     ]);
+
+    //     $user         = auth()->user();
+    //     /** @var \App\Models\User|null $user */
+    //     $canManageAll = $user->hasPermissionTo('ManageRoster');
+    //     $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+    //     $canViewOwn   = $user->hasPermissionTo('ViewRoster');
+    //     $myEmployee   = optional($user->employee);
+    //     // $myStoreId    = $myEmployee->store_id;
+
+    //     $myStore      = $myEmployee->store()->wherePivot('is_primary', true)->first();
+    //     $myStoreId    = $myStore?->id;
+    //     $myDepartment   = $myEmployee->department()->wherePivot('is_primary', true)->first();
+    //     $myDepartmentId = $myDepartment?->id;
+    //     $myCompanyId    = $myEmployee->company_id;
+
+
+    //     // Tidak punya permission apapun → 403
+    //     if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
+    //         abort(403, 'Unauthorized.');
+    //     }
+
+    //     // ViewRoster: paksa export hanya data diri sendiri
+    //     $employeeIdFilter = null;
+    //     if ($canViewOwn && !$canManageAll && !$canManageSPV) {
+    //         $employeeIdFilter = $myEmployee->id;
+    //     }
+
+    //     // Nama file
+    //     $filename = $employeeIdFilter
+    //         ? 'roster-' . str($myEmployee->employee_name ?? 'employee')->slug() . '-' . $request->start_date . '-to-' . $request->end_date . '.xlsx'
+    //         : 'roster-history-' . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+    //     $storeName = $request->store_id
+    //         ? Stores::find($request->store_id)?->name
+    //         : ($employeeIdFilter
+    //             ? ($myEmployee->store_id ? Stores::find($myEmployee->store_id)?->name : null)
+    //             : 'All Locations');
+
+    //     return Excel::download(
+    //         new RosterHistoryExport(
+    //             startDate: $request->start_date,
+    //             endDate: $request->end_date,
+    //             storeId: $request->store_id,
+    //             search: $request->search,
+    //             canManageAll: $canManageAll,
+    //             myStoreId: $canManageSPV && !$canManageAll ? $myStoreId : null,
+    //             storeName: $storeName,
+    //             employeeIdFilter: $employeeIdFilter,
+    //             myDepartmentId: $canManageSPV && !$canManageAll ? $myDepartmentId : null,
+    //             myCompanyId: $canManageSPV && !$canManageAll ? $myCompanyId : null,
+    //         ),
+    //         $filename
+    //     );
+    // }
     public function historyExport(Request $request)
-    {
-        ini_set('memory_limit', '512M');
-        set_time_limit(300);
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-            'store_id'   => 'nullable',
-            'search'     => 'nullable|string',
-        ]);
+{
+    ini_set('memory_limit', '512M');
+    set_time_limit(300);
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date'   => 'required|date|after_or_equal:start_date',
+        'store_id'   => 'nullable',
+        'search'     => 'nullable|string',
+    ]);
 
-        $user         = auth()->user();
-        /** @var \App\Models\User|null $user */
-        $canManageAll = $user->hasPermissionTo('ManageRoster');
-        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
-        $canViewOwn   = $user->hasPermissionTo('ViewRoster');
-        $myEmployee   = optional($user->employee);
-        // $myStoreId    = $myEmployee->store_id;
+    $user         = auth()->user();
+    /** @var \App\Models\User|null $user */
+    $canManageAll = $user->hasPermissionTo('ManageRoster');
+    $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+    $canViewOwn   = $user->hasPermissionTo('ViewRoster');
+    $myEmployee   = optional($user->employee);
 
-        $myStore      = $myEmployee->store()->wherePivot('is_primary', true)->first();
-        $myStoreId    = $myStore?->id;
-        $myDepartment   = $myEmployee->department()->wherePivot('is_primary', true)->first();
-        $myDepartmentId = $myDepartment?->id;
+    if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
+        abort(403, 'Unauthorized.');
+    }
+
+    // ── Data SPV ──
+    $myStoreIds     = [];
+    $myDeptIds      = [];
+    $bawahanIds     = [];
+    $myStoreId      = null;
+    $myDepartmentId = null;
+    $myCompanyId    = null;
+
+    if ($canManageSPV && !$canManageAll) {
+        $myStoreIds     = $myEmployee->store()->pluck('stores_tables.id')->toArray();
+        $myDeptIds      = $myEmployee->department()->pluck('departments_tables.id')->toArray();
+        $bawahanIds     = $myEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
+        $myStoreId      = $myEmployee->store()->wherePivot('is_primary', true)->first()?->id;
+        $myDepartmentId = $myEmployee->department()->wherePivot('is_primary', true)->first()?->id;
         $myCompanyId    = $myEmployee->company_id;
-
-
-        // Tidak punya permission apapun → 403
-        if (!$canManageAll && !$canManageSPV && !$canViewOwn) {
-            abort(403, 'Unauthorized.');
-        }
-
-        // ViewRoster: paksa export hanya data diri sendiri
-        $employeeIdFilter = null;
-        if ($canViewOwn && !$canManageAll && !$canManageSPV) {
-            $employeeIdFilter = $myEmployee->id;
-        }
-
-        // Nama file
-        $filename = $employeeIdFilter
-            ? 'roster-' . str($myEmployee->employee_name ?? 'employee')->slug() . '-' . $request->start_date . '-to-' . $request->end_date . '.xlsx'
-            : 'roster-history-' . $request->start_date . '-to-' . $request->end_date . '.xlsx';
-
-        $storeName = $request->store_id
-            ? Stores::find($request->store_id)?->name
-            : ($employeeIdFilter
-                ? ($myEmployee->store_id ? Stores::find($myEmployee->store_id)?->name : null)
-                : 'All Locations');
-
-        return Excel::download(
-            new RosterHistoryExport(
-                startDate: $request->start_date,
-                endDate: $request->end_date,
-                storeId: $request->store_id,
-                search: $request->search,
-                canManageAll: $canManageAll,
-                myStoreId: $canManageSPV && !$canManageAll ? $myStoreId : null,
-                storeName: $storeName,
-                employeeIdFilter: $employeeIdFilter,
-                myDepartmentId: $canManageSPV && !$canManageAll ? $myDepartmentId : null,
-                myCompanyId: $canManageSPV && !$canManageAll ? $myCompanyId : null,
-            ),
-            $filename
-        );
     }
+
+    // ── ViewRoster: hanya data diri sendiri ──
+    $employeeIdFilter = null;
+    if ($canViewOwn && !$canManageAll && !$canManageSPV) {
+        $employeeIdFilter = $myEmployee->id;
+    }
+
+    // ── Nama file ──
+    $filename = $employeeIdFilter
+        ? 'roster-' . str($myEmployee->employee_name ?? 'employee')->slug() . '-' . $request->start_date . '-to-' . $request->end_date . '.xlsx'
+        : 'roster-history-' . $request->start_date . '-to-' . $request->end_date . '.xlsx';
+
+    // ── Store name untuk header export ──
+    $storeName = $request->store_id
+        ? Stores::find($request->store_id)?->name
+        : ($employeeIdFilter
+            ? ($myEmployee->store()->wherePivot('is_primary', true)->first()?->name)
+            : 'All Locations');
+
+    return Excel::download(
+        new RosterHistoryExport(
+            startDate:        $request->start_date,
+            endDate:          $request->end_date,
+            storeId:          $request->store_id,
+            search:           $request->search,
+            canManageAll:     $canManageAll,
+            myStoreId:        $myStoreId,
+            myStoreIds:       $myStoreIds,       // ← semua store SPV
+            myDeptIds:        $myDeptIds,        // ← semua dept SPV
+            bawahanIds:       $bawahanIds,       // ← bawahan langsung
+            storeName:        $storeName,
+            employeeIdFilter: $employeeIdFilter,
+            myDepartmentId:   $myDepartmentId,
+            myCompanyId:      $myCompanyId,
+        ),
+        $filename
+    );
+}
+    // public function getActivities(Request $request)
+    // {
+    //     /** @var \App\Models\User|null $user */
+    //     $user         = auth()->user();
+    //     $canManageAll = $user->hasPermissionTo('ManageRoster');
+    //     $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+
+    //     if (!$canManageAll && !$canManageSPV) {
+    //         return response()->json(['message' => 'Unauthorized'], 403);
+    //     }
+
+    //     $query = Activity::with('causer.employee')
+    //         ->where('subject_type', Roster::class)
+    //         ->orderBy('created_at', 'desc');
+
+
+    //     if (!$canManageAll && $canManageSPV) {
+    //         $storeId = $user->employee->store_id;
+    //         $query->whereHas('causer.employee', function ($q) use ($storeId) {
+    //             $q->where('store_id', $storeId);
+    //         });
+    //     }
+
+    //     return DataTables::of($query)
+    //         ->addIndexColumn()
+    //         ->addColumn('causer_name', function ($row) {
+    //             if (!$row->causer) return 'System';
+    //             return optional($row->causer->employee)->employee_name ?? $row->causer->name ?? 'System';
+    //         })
+    //         ->addColumn('properties', function ($row) {
+    //             // $properties = $row->properties;
+    //             $properties = $row->properties;
+
+    //             $formatValue = function ($val) {
+    //                 if (is_null($val)) return '-';
+
+    //                 // Coba parse sebagai datetime (ISO 8601 atau Y-m-d)
+    //                 if (is_string($val) && preg_match('/^\d{4}-\d{2}-\d{2}/', $val)) {
+    //                     try {
+    //                         return \Carbon\Carbon::parse($val)->format('d M Y');
+    //                     } catch (\Exception $e) {
+    //                         return $val;
+    //                     }
+    //                 }
+
+    //                 return $val;
+    //             };
+
+    //             if ($row->event === 'created') {
+    //                 return collect($properties->get('attributes', []))
+    //                     // ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+    //                     ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
+    //                     ->implode('<br>');
+    //             }
+
+    //             if ($row->event === 'updated') {
+    //                 $old        = $properties->get('old', []);
+    //                 $attributes = $properties->get('attributes', []);
+
+    //                 return collect($attributes)
+    //                     // ->map(fn($val, $key) => "<b>{$key}</b>: " . ($old[$key] ?? '-') . " → {$val}")
+    //                     ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($old[$key] ?? null) . " → " . $formatValue($val))
+    //                     ->implode('<br>');
+    //             }
+
+    //             if ($row->event === 'deleted') {
+    //                 return collect($properties->get('attributes', []))
+    //                     // ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
+    //                     ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
+    //                     ->implode('<br>');
+    //             }
+
+    //             return '-';
+    //         })
+    //         ->addColumn('event_badge', fn($row) => match ($row->event) {
+    //             'created' => '<span class="badge bg-success">Created</span>',
+    //             'updated' => '<span class="badge bg-warning text-dark">Updated</span>',
+    //             'deleted' => '<span class="badge bg-danger">Deleted</span>',
+    //             default   => '<span class="badge bg-secondary">' . $row->event . '</span>',
+    //         })
+    //         ->addColumn('created_at_formatted', fn($row) => $row->created_at->format('d M Y, H:i'))
+    //         ->rawColumns(['properties', 'event_badge'])
+    //         ->make(true);
+    // }
     public function getActivities(Request $request)
-    {
-        /** @var \App\Models\User|null $user */
-        $user         = auth()->user();
-        $canManageAll = $user->hasPermissionTo('ManageRoster');
-        $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
+{
+    /** @var \App\Models\User|null $user */
+    $user         = auth()->user();
+    $canManageAll = $user->hasPermissionTo('ManageRoster');
+    $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
 
-        if (!$canManageAll && !$canManageSPV) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $query = Activity::with('causer.employee')
-            ->where('subject_type', Roster::class)
-            ->orderBy('created_at', 'desc');
-
-
-        if (!$canManageAll && $canManageSPV) {
-            $storeId = $user->employee->store_id;
-            $query->whereHas('causer.employee', function ($q) use ($storeId) {
-                $q->where('store_id', $storeId);
-            });
-        }
-
-        return DataTables::of($query)
-            ->addIndexColumn()
-            ->addColumn('causer_name', function ($row) {
-                if (!$row->causer) return 'System';
-                return optional($row->causer->employee)->employee_name ?? $row->causer->name ?? 'System';
-            })
-            ->addColumn('properties', function ($row) {
-                // $properties = $row->properties;
-                $properties = $row->properties;
-
-                $formatValue = function ($val) {
-                    if (is_null($val)) return '-';
-
-                    // Coba parse sebagai datetime (ISO 8601 atau Y-m-d)
-                    if (is_string($val) && preg_match('/^\d{4}-\d{2}-\d{2}/', $val)) {
-                        try {
-                            return \Carbon\Carbon::parse($val)->format('d M Y');
-                        } catch (\Exception $e) {
-                            return $val;
-                        }
-                    }
-
-                    return $val;
-                };
-
-                if ($row->event === 'created') {
-                    return collect($properties->get('attributes', []))
-                        // ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
-                        ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
-                        ->implode('<br>');
-                }
-
-                if ($row->event === 'updated') {
-                    $old        = $properties->get('old', []);
-                    $attributes = $properties->get('attributes', []);
-
-                    return collect($attributes)
-                        // ->map(fn($val, $key) => "<b>{$key}</b>: " . ($old[$key] ?? '-') . " → {$val}")
-                        ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($old[$key] ?? null) . " → " . $formatValue($val))
-                        ->implode('<br>');
-                }
-
-                if ($row->event === 'deleted') {
-                    return collect($properties->get('attributes', []))
-                        // ->map(fn($val, $key) => "<b>{$key}</b>: {$val}")
-                        ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
-                        ->implode('<br>');
-                }
-
-                return '-';
-            })
-            ->addColumn('event_badge', fn($row) => match ($row->event) {
-                'created' => '<span class="badge bg-success">Created</span>',
-                'updated' => '<span class="badge bg-warning text-dark">Updated</span>',
-                'deleted' => '<span class="badge bg-danger">Deleted</span>',
-                default   => '<span class="badge bg-secondary">' . $row->event . '</span>',
-            })
-            ->addColumn('created_at_formatted', fn($row) => $row->created_at->format('d M Y, H:i'))
-            ->rawColumns(['properties', 'event_badge'])
-            ->make(true);
+    if (!$canManageAll && !$canManageSPV) {
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
+
+    $query = Activity::with('causer.employee')
+        ->where('subject_type', Roster::class)
+        ->orderBy('created_at', 'desc');
+
+    // ── Filter SPV: hanya log kepunyaan store + dept + bawahan ──
+    if (!$canManageAll && $canManageSPV) {
+        $myEmployee = $user->employee;
+        $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray();
+        $myDeptIds  = $myEmployee->department()->pluck('departments_tables.id')->toArray();
+        $bawahanIds = $myEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
+
+        $query->whereHas('causer.employee', function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds) {
+            $q->where(function ($q2) use ($myStoreIds, $myDeptIds, $bawahanIds) {
+                // Karyawan reguler: store + department sama
+                $q2->where(function ($q3) use ($myStoreIds, $myDeptIds) {
+                    $q3->whereHas('store', fn($sq) =>
+                        $sq->whereIn('stores_tables.id', $myStoreIds)
+                    )->whereHas('department', fn($dq) =>
+                        $dq->whereIn('departments_tables.id', $myDeptIds)
+                    );
+                });
+                // Atau bawahan langsung
+                if (!empty($bawahanIds)) {
+                    $q2->orWhereIn('id', $bawahanIds);
+                }
+            });
+        });
+    }
+
+    return DataTables::of($query)
+        ->addIndexColumn()
+        ->addColumn('causer_name', function ($row) {
+            if (!$row->causer) return 'System';
+            return optional($row->causer->employee)->employee_name ?? $row->causer->name ?? 'System';
+        })
+        // ── Search causer_name ──
+        ->filterColumn('causer_name', function ($query, $keyword) {
+            $query->whereHas('causer.employee', fn($q) =>
+                $q->where('employee_name', 'like', "%{$keyword}%")
+            )->orWhereHas('causer', fn($q) =>
+                $q->where('username', 'like', "%{$keyword}%")
+            );
+        })
+        ->addColumn('properties', function ($row) {
+            $properties = $row->properties;
+
+            $formatValue = function ($val) {
+                if (is_null($val)) return '-';
+                if (is_string($val) && preg_match('/^\d{4}-\d{2}-\d{2}/', $val)) {
+                    try {
+                        return \Carbon\Carbon::parse($val)->format('d M Y');
+                    } catch (\Exception $e) {
+                        return $val;
+                    }
+                }
+                return $val;
+            };
+
+            if ($row->event === 'created') {
+                return collect($properties->get('attributes', []))
+                    ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
+                    ->implode('<br>');
+            }
+
+            if ($row->event === 'updated') {
+                $old        = $properties->get('old', []);
+                $attributes = $properties->get('attributes', []);
+                return collect($attributes)
+                    ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($old[$key] ?? null) . " → " . $formatValue($val))
+                    ->implode('<br>');
+            }
+
+            if ($row->event === 'deleted') {
+                return collect($properties->get('attributes', []))
+                    ->map(fn($val, $key) => "<b>{$key}</b>: " . $formatValue($val))
+                    ->implode('<br>');
+            }
+
+            return '-';
+        })
+        ->addColumn('event_badge', fn($row) => match ($row->event) {
+            'created' => '<span class="badge bg-success">Created</span>',
+            'updated' => '<span class="badge bg-warning text-dark">Updated</span>',
+            'deleted' => '<span class="badge bg-danger">Deleted</span>',
+            default   => '<span class="badge bg-secondary">' . $row->event . '</span>',
+        })
+        ->addColumn('created_at_formatted', fn($row) => $row->created_at->format('d M Y, H:i'))
+        ->rawColumns(['properties', 'event_badge'])
+        ->make(true);
+}
 }

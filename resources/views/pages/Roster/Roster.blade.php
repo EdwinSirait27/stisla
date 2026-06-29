@@ -812,16 +812,16 @@
                                         <span class="d-inline d-sm-none"> Auto Generate</span>
                                     </button>
                                 @else
-                                    <button class="btn-success-r" onclick="openAroModal()"
+                                    {{-- <button class="btn-success-r" onclick="openAroModal()"
                                         title="Auto generate roster mingguan dengan pola kustom">
                                         <i class="fas fa-calendar-week"></i>
                                         <span class="d-none d-sm-inline"> Auto Generate Roster</span>
                                         <span class="d-inline d-sm-none"> Auto Generate</span>
-                                    </button>
-                                    <button class="btn-secondary-r" onclick="confirmCopyRoster()">
+                                    </button> --}}
+                                    {{-- <button class="btn-secondary-r" onclick="confirmCopyRoster()">
                                         <i class="fas fa-copy"></i>
                                         <span class="d-none d-sm-inline"> Copy Roster</span>
-                                    </button>
+                                    </button> --}}
                                 @endif
 
                                 <button class="btn-secondary-r" onclick="downloadTemplate()">
@@ -863,6 +863,80 @@
                         </div>
 
                     @endif
+                    {{-- Tombol hanya muncul kalau ada storeId ATAU SPV All Location --}}
+{{-- @if ($storeId || ($canManageSPV && !$canManageAll))
+
+    @php
+        $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
+        $currentStoreName = $storeId
+            ? (optional($stores->firstWhere('id', $storeId))->name ?? '')
+            : '';
+        $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
+    @endphp
+
+    <div class="d-flex flex-wrap ml-auto" style="gap: 8px;">
+        @can('ManageRoster')
+            @if ($showAutoGenerate)
+                <button class="btn-success-r" onclick="confirmAutoGenerate()"
+                    title="Auto generate roster untuk periode yang dipilih">
+                    <i class="fas fa-magic"></i>
+                    <span class="d-none d-sm-inline"> Auto Generate Roster</span>
+                    <span class="d-inline d-sm-none"> Auto Generate</span>
+                </button>
+            @else
+                <button class="btn-success-r" onclick="openAroModal()"
+                    title="Auto generate roster mingguan dengan pola kustom">
+                    <i class="fas fa-calendar-week"></i>
+                    <span class="d-none d-sm-inline"> Auto Generate Roster</span>
+                    <span class="d-inline d-sm-none"> Auto Generate</span>
+                </button>
+                <button class="btn-secondary-r" onclick="confirmCopyRoster()">
+                    <i class="fas fa-copy"></i>
+                    <span class="d-none d-sm-inline"> Copy Roster</span>
+                </button>
+            @endif
+
+            <button class="btn-secondary-r" onclick="downloadTemplate()">
+                <i class="fas fa-download"></i>
+                <span class="d-none d-sm-inline"> Download Template</span>
+            </button>
+
+            <button class="btn-primary-r" onclick="openImportModal()">
+                <i class="fas fa-file-import"></i>
+                <span class="d-none d-sm-inline"> Import Excel</span>
+            </button>
+
+            <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
+                <i class="fas fa-trash"></i>
+                <span class="d-none d-sm-inline"> Bulk Delete</span>
+            </button>
+        @endcan
+
+        @can('ManageRosterSPVManager')
+            @if ($isSupervisorOrManager && $isRosterOpen)
+                @if($storeId)
+                    <button class="btn-secondary-r" onclick="downloadTemplate()">
+                        <i class="fas fa-download"></i>
+                        <span class="d-none d-sm-inline"> Download Template</span>
+                    </button>
+
+                    <button class="btn-primary-r" onclick="openImportModal()">
+                        <i class="fas fa-file-import"></i>
+                        <span class="d-none d-sm-inline"> Import Excel</span>
+                    </button>
+                @endif
+
+                <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
+                    <i class="fas fa-trash"></i>
+                    <span class="d-none d-sm-inline"> Bulk Delete</span>
+                </button>
+            @else
+                <span class="d-none d-sm-inline">Closed</span>
+            @endif
+        @endcan
+    </div>
+
+@endif --}}
 
                 </div>
             </div>
@@ -879,7 +953,7 @@
                                 <span style="color:#ef4444">*</span>
                                 <small style="color:#94a3b8;font-weight:400">(Required)</small>
                             </label>
-                            @can('ManageRoster')
+                            {{-- @can('ManageRoster')
                                 <select name="store_id" class="f-control select2" style="min-width:180px" required>
                                     <option value="">Choose Location</option>
                                     @foreach ($stores as $store)
@@ -902,7 +976,88 @@
                                     <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
                                         style="min-width:180px; background:#f1f5f9;">
                                 @endif
-                            @endcan
+                            @endcan --}}
+                            @can('ManageRoster')
+    <select name="store_id" class="f-control select2" style="min-width:180px" required>
+        <option value="">Choose Location</option>
+        @foreach ($stores as $store)
+            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                {{ $store->name }}
+            </option>
+        @endforeach
+    </select>
+{{-- @elsecan('ManageRosterSPVManager')
+    @if($myStores->count() > 1)
+        <select name="store_id" class="f-control select2" style="min-width:180px" required>
+            <option value="">Choose Location</option>
+            @foreach ($myStores as $store)
+                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                    {{ $store->name }}
+                </option>
+            @endforeach
+        </select>
+    @else
+        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+            style="min-width:180px;background:#f1f5f9;">
+    @endif --}}
+    {{-- @elsecan('ManageRosterSPVManager')
+    @if($myStores->count() > 1)
+        <select name="store_id" class="f-control select2" style="min-width:180px">
+            <option value="">All Location</option> 
+            @foreach ($myStores as $store)
+                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                    {{ $store->name }}
+                </option>
+            @endforeach
+        </select>
+    @else
+        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+            style="min-width:180px;background:#f1f5f9;">
+    @endif --}}
+    {{-- @elsecan('ManageRosterSPVManager')
+    @if($myStores->count() > 1)
+        <select name="store_id" class="f-control select2" style="min-width:180px">
+            <option value="">All Location</option>
+            @foreach ($myStores as $store)
+                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                    {{ $store->name }}
+                </option>
+            @endforeach
+        </select>
+    @else
+        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+            style="min-width:180px;background:#f1f5f9;">
+    @endif
+@else
+    <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+    <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+        style="min-width:180px;background:#f1f5f9;">
+@endcan --}}
+@elsecan('ManageRosterSPVManager')
+    @if($myStores->count() >= 1)  {{-- ← ganti > 1 jadi >= 1 --}}
+        <select name="store_id" class="f-control select2" style="min-width:180px">
+            <option value="">All Location</option>
+            @foreach ($myStores as $store)
+                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                    {{ $store->name }}
+                </option>
+            @endforeach
+        </select>
+    @else
+        {{-- Tidak punya store sama sekali — fixed primary store --}}
+        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+            style="min-width:180px;background:#f1f5f9;">
+    @endif
+@else
+    {{-- ViewRoster — fixed store sendiri --}}
+    <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+    <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
+        style="min-width:180px;background:#f1f5f9;">
+@endcan
                         </div>
                         @can('ManageRoster')
                             <div class="filter-item-date">
@@ -939,7 +1094,7 @@
                     </form>
                 </div>
 
-                @if (!$storeId)
+                {{-- @if (!$storeId)
                     <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
                         <div class="card-body">
                             <div class="empty-state">
@@ -950,7 +1105,19 @@
                             </div>
                         </div>
                     </div>
-                @else
+                @else --}}
+                @if (!$storeId && !($canManageSPV && !$canManageAll))
+    <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="fas fa-store"></i>
+                <h5>Choose Location First</h5>
+                <p>Please select location in the top filter then click <strong>Filter</strong> untuk
+                    menampilkan data roster.</p>
+            </div>
+        </div>
+    </div>
+@else
                     {{-- ── Legend Checkbox Filter ── --}}
                     <div class="legend">
                         <label class="legend-item">
@@ -1013,6 +1180,9 @@
                                                     <div class="emp-meta">Department :
                                                         {{ $employee->department->first()?->department_name ?? '-' }}
                                                     </div>
+                                                    @if(!$storeId && $canManageSPV)
+        <div class="emp-meta">Location : {{ $employee->store->first()?->name ?? '-' }}</div>
+    @endif
                                                     <div class="emp-meta">Position :
                                                         {{ $employee->position->first()?->name ?? '-' }}
                                                     </div>
@@ -1101,8 +1271,22 @@
                                     </div>
                                 @else
                                     {{-- SPV: hidden, otomatis pakai store sendiri --}}
-                                    <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
-                                @endcan
+                                    {{-- <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
+                                @endcan --}}
+                                  @if($myStores->count() > 1)
+        <select id="historyStore" class="f-control select2" style="min-width:100px;">
+            <option value="">-- All Locations --</option>
+            @foreach ($myStores as $store)
+                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
+                    {{ $store->name }}
+                </option>
+            @endforeach
+        </select>
+    @else
+        <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
+    @endif
+@endcan
+
                                 <div>
                                     <label class="f-label">Start Date</label>
                                     <input type="date" id="historyStart" value="{{ $startDate }}"
@@ -1546,7 +1730,7 @@
     {{-- ════════════════════════════════════════════════════
      MODAL: Auto Generate Roster — Store Lain (Per Minggu)
      ════════════════════════════════════════════════════ --}}
-    <div class="m-overlay" id="modalAroOther">
+    {{-- <div class="m-overlay" id="modalAroOther">
         <div class="m-box" style="width:560px; max-width:97vw;">
             <div class="m-head" style="background:linear-gradient(135deg,#0f172a,#1e3a8a);">
                 <span>📅 Auto Generate Roster — Store Lain</span>
@@ -1741,7 +1925,7 @@
             </div>
 
         </div>
-    </div>
+    </div> --}}
 
     {{-- ════════════════════════════════════════════════════
      MODAL: Import Excel Roster

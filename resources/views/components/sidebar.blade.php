@@ -78,6 +78,11 @@
                             <a class="nav-link" href="{{ url('Team') }}">Team List</a>
                         </li>
                     @endcan
+                    @can('ManageOvertimeRate')
+                        <li class="{{ Request::is('overtime-rate') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('overtime-rate') }}">Overtime Rate</a>
+                        </li>
+                    @endcan
                     {{-- @can('RequestPosition')
                         <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Positionrequest') }}">Position Request</a>

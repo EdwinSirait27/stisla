@@ -62,12 +62,13 @@ class ManualRecapController extends Controller
 
     public function shiftList()
     {
-        $shifts = Shifts::select('id', 'shift_name', 'start_time', 'end_time')
+        $shifts = Shifts::with('store')->select('id', 'store_id','shift_name', 'start_time', 'end_time')
             ->orderBy('shift_name')
             ->get()
             ->map(fn($s) => [
                 'id'   => $s->id,
                 'name' => $s->shift_name,
+                'store_name' => $s->store->name,
                 'time' => $s->start_time . ' - ' . $s->end_time,
             ]);
 
@@ -85,9 +86,9 @@ class ManualRecapController extends Controller
             'scan_date'        => 'required|date',
             'end_date'         => 'required|date|after_or_equal:scan_date',
             'shift_id'         => 'nullable|exists:shifts_tables,id',
-            'reason'           => 'required|string|min:10|max:1000',
+            'reason'           => 'nullable|string|min:1|max:1000',
             'evidence_files'   => 'required|array|min:1',
-            'evidence_files.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx|max:5120',
+            'evidence_files.*' => 'file|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx|max:512',
         ], [
             'employee_ids.required'   => 'Pilih minimal 1 karyawan.',
             'employee_ids.array'      => 'Format daftar karyawan tidak valid.',
@@ -100,80 +101,256 @@ class ManualRecapController extends Controller
             'end_date.after_or_equal' => 'End Date tidak boleh sebelum Scan Date.',
             'reason.required'         => 'Alasan wajib diisi.',
             'reason.string'           => 'Alasan harus berupa teks.',
-            'reason.min'              => 'Alasan minimal 10 karakter.',
-            'reason.max'              => 'Alasan maksimal 1000 karakter.',
             'evidence_files.required' => 'Upload minimal 1 file bukti.',
             'evidence_files.array'    => 'Format file bukti tidak valid.',
             'evidence_files.min'      => 'Upload minimal 1 file bukti.',
             'evidence_files.*.file'   => 'File bukti tidak valid.',
             'evidence_files.*.mimes'  => 'Tipe file tidak diizinkan.',
-            'evidence_files.*.max'    => 'Ukuran file maksimal 5 MB per file.',
+            'evidence_files.*.max'    => 'Ukuran file maksimal 512 kb per file.',
         ]);
 
-        $scanDate = Carbon::parse($request->scan_date);
-        $endDate  = Carbon::parse($request->end_date);
-        $dates    = [];
-        for ($d = $scanDate->copy(); $d->lte($endDate); $d->addDay()) {
-            $dates[] = $d->toDateString();
-        }
+//         $scanDate = Carbon::parse($request->scan_date);
+//         $endDate  = Carbon::parse($request->end_date);
+//         $dates    = [];
+//         for ($d = $scanDate->copy(); $d->lte($endDate); $d->addDay()) {
+//             $dates[] = $d->toDateString();
+//         }
 
-        $totalIterations = count($request->employee_ids) * count($dates);
-        if ($totalIterations > self::MAX_BATCH_SIZE) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Batch terlalu besar (' . number_format($totalIterations) . ' entri). '
-                           . 'Maksimal ' . number_format(self::MAX_BATCH_SIZE) . ' entri per submit.',
-            ], 422);
-        }
+//         $totalIterations = count($request->employee_ids) * count($dates);
+//         if ($totalIterations > self::MAX_BATCH_SIZE) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => 'Batch terlalu besar (' . number_format($totalIterations) . ' entri). '
+//                            . 'Maksimal ' . number_format(self::MAX_BATCH_SIZE) . ' entri per submit.',
+//             ], 422);
+//         }
 
-        $userId  = Auth::id() ?? 'guest';
-        $lockKey = "manual_recap_lock_{$userId}";
+//         $userId  = Auth::id() ?? 'guest';
+//         $lockKey = "manual_recap_lock_{$userId}";
 
-        if (Cache::has($lockKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Submit sebelumnya masih diproses. Silakan tunggu sebentar.',
-            ], 429);
-        }
+//         if (Cache::has($lockKey)) {
+//             return response()->json([
+//                 'success' => false,
+//                 'message' => 'Submit sebelumnya masih diproses. Silakan tunggu sebentar.',
+//             ], 429);
+//         }
 
-        Cache::put($lockKey, true, self::LOCK_DURATION);
+//         Cache::put($lockKey, true, self::LOCK_DURATION);
 
-        $manualShiftTimeIn   = null;
-        $manualShiftTimeOut  = null;
-        $manualShiftDuration = null;
+//         $manualShiftTimeIn   = null;
+//         $manualShiftTimeOut  = null;
+//         $manualShiftDuration = null;
 
-        if ($request->shift_id) {
-            $shift = Shifts::find($request->shift_id);
-            if ($shift) {
-                $manualShiftTimeIn   = $shift->start_time;
-                $manualShiftTimeOut  = $shift->end_time;
-                $manualShiftDuration = $this->calculateShiftDuration($manualShiftTimeIn, $manualShiftTimeOut);
-            }
-        }
+//         if ($request->shift_id) {
+//             $shift = Shifts::find($request->shift_id);
+//             if ($shift) {
+//                 $manualShiftTimeIn   = $shift->start_time;
+//                 $manualShiftTimeOut  = $shift->end_time;
+//                 $manualShiftDuration = $this->calculateShiftDuration($manualShiftTimeIn, $manualShiftTimeOut);
+//             }
+//         }
 
-        // ── Upload file bukti dulu (di luar transaction) ──
-        $uploadedFiles = [];
-        try {
-            foreach ($request->file('evidence_files') as $file) {
-                $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-                $path     = $file->storeAs('manual-recap-evidences', $filename, 'public');
+//         // ── Upload file bukti dulu (di luar transaction) ──
+//         $uploadedFiles = [];
+// try {
+//     $scanDateStr = Carbon::parse($request->scan_date)->toDateString();
+//     $endDateStr  = Carbon::parse($request->end_date)->toDateString();
 
-                $uploadedFiles[] = [
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'mime_type' => $file->getMimeType(),
-                    'file_size' => $file->getSize(),
-                ];
-            }
-        } catch (\Exception $e) {
-            $this->cleanupFiles($uploadedFiles);
-            Cache::forget($lockKey);
-            Log::error('ManualRecap: upload file gagal', ['error' => $e->getMessage()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal upload file bukti: ' . $e->getMessage(),
-            ], 500);
-        }
+//     // Ambil nama employee untuk penamaan file
+//     $firstEmployeeId = $request->employee_ids[0] ?? null;
+//     $firstEmployee   = $firstEmployeeId
+//         ? Employee::select('employee_name')->find($firstEmployeeId)
+//         : null;
+//     $empSlug = $firstEmployee
+//         ? Str::slug($firstEmployee->employee_name)
+//         : 'employee';
+
+//     foreach ($request->file('evidence_files') as $index => $file) {
+//         $fileName = $empSlug . '-' . $scanDateStr . '-' . $endDateStr . '-' . ($index + 1) . '.' . $file->getClientOriginalExtension();
+//         $folder   = 'manual-recap-evidence';
+
+//         $path = Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+
+//         Log::info('[ManualRecap] Upload evidence', [
+//             'original_name' => $file->getClientOriginalName(),
+//             'file_name'     => $fileName,
+//             'path'          => $path,
+//             'size'          => $file->getSize(),
+//             'mime'          => $file->getMimeType(),
+//         ]);
+
+//         $uploadedFiles[] = [
+//             'file_name' => $file->getClientOriginalName(),
+//             'file_path' => $path,
+//             'mime_type' => $file->getMimeType(),
+//             'file_size' => $file->getSize(),
+//         ];
+//     }
+// } catch (\Exception $e) {
+//     $this->cleanupFiles($uploadedFiles);
+//     Cache::forget($lockKey);
+//     Log::error('ManualRecap: upload file gagal', ['error' => $e->getMessage()]);
+//     return response()->json([
+//         'success' => false,
+//         'message' => 'Gagal upload file bukti: ' . $e->getMessage(),
+//     ], 500);
+// }
+// 1. Generate dates
+$scanDate = Carbon::parse($request->scan_date);
+$endDate  = Carbon::parse($request->end_date);
+$dates    = [];
+for ($d = $scanDate->copy(); $d->lte($endDate); $d->addDay()) {
+    $dates[] = $d->toDateString();
+}
+
+// 2. Cek batch size
+$totalIterations = count($request->employee_ids) * count($dates);
+if ($totalIterations > self::MAX_BATCH_SIZE) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Warning (' . number_format($totalIterations) . ' entri). '
+                   . 'Maksimal ' . number_format(self::MAX_BATCH_SIZE) . ' entri per submit.',
+    ], 422);
+}
+
+// 3. Lock
+$userId  = Auth::id() ?? 'guest';
+$lockKey = "manual_recap_lock_{$userId}";
+
+if (Cache::has($lockKey)) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Submit sebelumnya masih diproses. Silakan tunggu sebentar.',
+    ], 429);
+}
+
+Cache::put($lockKey, true, self::LOCK_DURATION);
+
+// 4. Load employees
+$employees = Employee::with([
+    'store' => fn($q) => $q->wherePivot('is_primary', true),
+])
+    ->select('id', 'pin', 'employee_name', 'status_employee')
+    ->whereIn('id', $request->employee_ids)
+    ->get()
+    ->keyBy('id');
+
+if ($employees->isEmpty()) {
+    Cache::forget($lockKey);
+    return response()->json([
+        'success' => false,
+        'message' => 'Tidak ada karyawan valid yang ditemukan.',
+    ], 422);
+}
+
+$employeeIds = $employees->pluck('id')->toArray();
+
+// 5. Cek att_log SEBELUM upload
+$pinsByDate = [];
+foreach ($request->employee_ids as $employeeId) {
+    $employee = $employees->get($employeeId);
+    if (!$employee || !$employee->pin) continue;
+    foreach ($dates as $date) {
+        $pinsByDate[$date][] = $employee->pin;
+    }
+}
+
+$existingAttLogs = collect();
+foreach ($pinsByDate as $date => $pins) {
+    $found = DB::connection('mysql_second')
+        ->table('att_log')
+        ->whereIn('pin', array_unique($pins))
+        ->whereDate('scan_date', $date)
+        ->pluck('pin')
+        ->toArray();
+    foreach ($found as $pin) {
+        $existingAttLogs->push(['pin' => $pin, 'date' => $date]);
+    }
+}
+
+if ($existingAttLogs->isNotEmpty()) {
+    $pinToName = $employees->mapWithKeys(fn($emp) => [$emp->pin => $emp->employee_name]);
+    $details   = $existingAttLogs->map(fn($row) =>
+        ($pinToName[$row['pin']] ?? $row['pin']) . ' — ' . $row['date']
+    )->implode(', ');
+
+    Cache::forget($lockKey);
+    return response()->json([
+        'success' => false,
+        'message' => 'Ada karyawan sudah memiliki data absensi di tanggal tersebut: ' . $details . '.',
+    ], 422);
+}
+
+// 6. Cek fingerprintrecap SEBELUM upload
+$existingRecaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+    ->whereIn('date', $dates)
+    ->get(['employee_id', 'date']);
+
+if ($existingRecaps->isNotEmpty()) {
+    $details = $existingRecaps->map(fn($row) =>
+        ($employees->get($row->employee_id)?->employee_name ?? $row->employee_id)
+        . ' — ' . $row->date
+    )->implode(', ');
+
+    Cache::forget($lockKey);
+    return response()->json([
+        'success' => false,
+        'message' => 'Data fingerprint sudah ada untuk: ' . $details,
+    ], 422);
+}
+
+// 7. Resolve shift
+$manualShiftTimeIn   = null;
+$manualShiftTimeOut  = null;
+$manualShiftDuration = null;
+
+if ($request->shift_id) {
+    $shift = Shifts::find($request->shift_id);
+    if ($shift) {
+        $manualShiftTimeIn   = $shift->start_time;
+        $manualShiftTimeOut  = $shift->end_time;
+        $manualShiftDuration = $this->calculateShiftDuration($manualShiftTimeIn, $manualShiftTimeOut);
+    }
+}
+
+// 8. Baru upload file (semua validasi sudah lolos)
+$uploadedFiles = [];
+try {
+    $scanDateStr     = $scanDate->toDateString();
+    $endDateStr      = $endDate->toDateString();
+    $firstEmployeeId = $request->employee_ids[0] ?? null;
+    $firstEmployee   = $firstEmployeeId ? $employees->get($firstEmployeeId) : null;
+    $empSlug         = $firstEmployee ? Str::slug($firstEmployee->employee_name) : 'employee';
+
+    foreach ($request->file('evidence_files') as $index => $file) {
+        $fileName = $empSlug . '-' . $scanDateStr . '-' . $endDateStr . '-' . ($index + 1) . '.' . $file->getClientOriginalExtension();
+        $folder   = 'manual-recap-evidence';
+        $path     = Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+
+        Log::info('[ManualRecap] Upload evidence', [
+            'original_name' => $file->getClientOriginalName(),
+            'file_name'     => $fileName,
+            'path'          => $path,
+            'size'          => $file->getSize(),
+            'mime'          => $file->getMimeType(),
+        ]);
+
+        $uploadedFiles[] = [
+            'file_name' => $file->getClientOriginalName(),
+            'file_path' => $path,
+            'mime_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+        ];
+    }
+} catch (\Exception $e) {
+    $this->cleanupFiles($uploadedFiles);
+    Cache::forget($lockKey);
+    Log::error('ManualRecap: upload file gagal', ['error' => $e->getMessage()]);
+    return response()->json([
+        'success' => false,
+        'message' => 'Gagal upload file bukti: ' . $e->getMessage(),
+    ], 500);
+}
 
         // ─────────────────────────────────────────────────────────────
         //  CROSS-CONNECTION TRANSACTION TRACKING
@@ -186,8 +363,10 @@ class ManualRecapController extends Controller
 
         try {
             // ── Eager load semua data dulu ──
-            $employees = Employee::with('store:id,name')
-                ->select('id', 'pin', 'store_id', 'employee_name', 'status_employee')
+            $employees = Employee::with([
+    'store' => fn($q) => $q->wherePivot('is_primary', true), // ← pivot
+])
+                ->select('id', 'pin','employee_name', 'status_employee')
                 ->whereIn('id', $request->employee_ids)
                 ->get()
                 ->keyBy('id');
@@ -208,6 +387,70 @@ class ManualRecapController extends Controller
                 ->whereIn('date', $dates)
                 ->get()
                 ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
+
+
+                // ── Cek existing di att_log (mysql_second) ──
+$existingAttLogs = collect();
+$deletePinsByDateCheck = [];
+foreach ($request->employee_ids as $employeeId) {
+    $employee = $employees->get($employeeId);
+    if (!$employee || !$employee->pin) continue;
+    foreach ($dates as $date) {
+        $deletePinsByDateCheck[$date][] = $employee->pin;
+    }
+}
+
+foreach ($deletePinsByDateCheck as $date => $pins) {
+    $found = DB::connection('mysql_second')
+        ->table('att_log')
+        ->whereIn('pin', array_unique($pins))
+        ->whereDate('scan_date', $date)
+        ->pluck('pin')
+        ->toArray();
+
+    foreach ($found as $pin) {
+        $existingAttLogs->push(['pin' => $pin, 'date' => $date]);
+    }
+}
+
+
+
+if ($existingAttLogs->isNotEmpty()) {
+    // Cari nama employee berdasarkan pin
+    $pinToName = $employees->mapWithKeys(fn($emp) => [$emp->pin => $emp->employee_name]);
+
+    $details = $existingAttLogs->map(fn($row) =>
+        ($pinToName[$row['pin']] ?? $row['pin']) . ' — ' . $row['date']
+    )->implode(', ');
+
+    $this->cleanupFiles($uploadedFiles);
+    Cache::forget($lockKey);
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Ada karyawan sudah memiliki data absensi di tanggal tersebut: ' . $details . '.',
+    ], 422);
+}
+
+// ── Cek existing di fingerprintrecap ──
+// $existingRecaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+//     ->whereIn('date', $dates)
+//     ->get(['employee_id', 'date']);
+
+// if ($existingRecaps->isNotEmpty()) {
+//     $details = $existingRecaps->map(fn($row) =>
+//         ($employees->get($row->employee_id)?->employee_name ?? $row->employee_id)
+//         . ' — ' . $row->date
+//     )->implode(', ');
+
+//     $this->cleanupFiles($uploadedFiles);
+//     Cache::forget($lockKey);
+
+//     return response()->json([
+//         'success' => false,
+//         'message' => 'Data fingerprint sudah ada untuk: ' . $details . '. Hapus data lama terlebih dahulu.',
+//     ], 422);
+// }
 
             // ── Build data di memory ──
             $manualAddedRows  = [];
@@ -231,7 +474,14 @@ class ManualRecapController extends Controller
                 foreach ($dates as $date) {
                     $rosterKey = $employee->id . '_' . $date;
                     $roster    = $rosters->get($rosterKey);
-
+Log::info('ManualRecap debug', [
+        'employee'    => $employee->employee_name,
+        'date'        => $date,
+        'roster'      => $roster?->toArray(),
+        'day_type'    => $roster?->day_type,
+        'allowed'     => $allowedDayTypes,
+        'shift'       => $roster?->shift?->toArray(),
+    ]);
                     if (!$roster) {
                         $skippedCount++;
                         continue;
@@ -413,8 +663,7 @@ class ManualRecapController extends Controller
             return response()->json([
                 'success'   => true,
                 'message'   => "Berhasil menambah manual recap untuk {$successCount} entri "
-                             . "({$skippedCount} tanggal dilewati karena Off/Libur/tidak ada roster/status tidak diizinkan) "
-                             . "dengan {$logCount} log file bukti.",
+                             . "({$skippedCount} tanggal dilewati karena Off/Libur/tidak ada roster/status tidak diizinkan) ",
                 'count'     => $successCount,
                 'skipped'   => $skippedCount,
                 'log_count' => $logCount,
@@ -477,16 +726,28 @@ class ManualRecapController extends Controller
         }
     }
 
-    private function cleanupFiles(array $uploadedFiles): void
-    {
-        foreach ($uploadedFiles as $uf) {
-            try {
-                Storage::disk('public')->delete($uf['file_path']);
-            } catch (\Exception $e) {
-                Log::warning('ManualRecap: gagal hapus file ' . $uf['file_path'], [
-                    'error' => $e->getMessage(),
-                ]);
-            }
+   private function cleanupFiles(array $uploadedFiles): void
+{
+    foreach ($uploadedFiles as $uf) {
+        try {
+            Storage::disk('s3')->delete($uf['file_path']); // ← ganti public ke s3
+        } catch (\Exception $e) {
+            Log::warning('ManualRecap: gagal hapus file ' . $uf['file_path'], [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
+}
+public function signedUrl(Request $request)
+{
+    $request->validate(['path' => 'required|string']);
+    
+    $url = Storage::disk('s3')->temporaryUrl(
+        $request->path,
+        now()->addMinutes(30)
+    );
+
+    return response()->json(['url' => $url]);
+}
+
 }

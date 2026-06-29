@@ -937,13 +937,22 @@ class RosterTemplateExport implements WithMultipleSheets
  public function __construct(
         private string $storeId,
         private string $startDate,
-        private string $endDate
+        private string $endDate,
+        private bool   $canManageAll = true,  // ← tambah
+        private array  $myDeptIds   = [],     // ← tambah
+        private array  $bawahanIds  = [],     // ← tambah
     ) {}
  
     public function sheets(): array
     {
         return [
-            new RosterTemplateSheet($this->storeId, $this->startDate, $this->endDate),
+            new RosterTemplateSheet(
+                $this->storeId, 
+                $this->startDate, 
+                $this->endDate,
+                $this->canManageAll,  
+                $this->myDeptIds,     
+                $this->bawahanIds, ),
             new RosterTutorialSheet(),
             new RosterShiftSheet($this->storeId),
         ];
@@ -1001,7 +1010,10 @@ class RosterTemplateSheet implements WithEvents, WithTitle
     public function __construct(
         private string $storeId,
         private string $startDate,
-        private string $endDate
+        private string $endDate,
+        private bool   $canManageAll = true,  // ← tambah
+        private array  $myDeptIds   = [],     // ← tambah
+        private array  $bawahanIds  = [],     // ← tambah
     ) {}
  
     public function title(): string
@@ -1082,14 +1094,49 @@ class RosterTemplateSheet implements WithEvents, WithTitle
                 ]);
  
                 // ── Ambil employee via pivot + eager load position primary ──
-                $employees = Employee::with([
-                        'position' => fn($q) => $q->wherePivot('is_primary', true),
-                    ])
-                    ->whereNull('deleted_at')
-                    ->whereIn('status', ['Active', 'On Leave', 'Pending'])
-                    ->whereHas('store', fn($q) => $q->where('stores_tables.id', $this->storeId))
-                    ->orderBy('employee_name')
-                    ->get(['id', 'employee_pengenal', 'employee_name', 'religion', 'status_employee']);
+                // $employees = Employee::with([
+                //         'position' => fn($q) => $q->wherePivot('is_primary', true),
+                //     ])
+                //     ->whereNull('deleted_at')
+                //     ->whereIn('status', ['Active', 'On Leave', 'Pending'])
+                //     ->whereHas('store', fn($q) => $q->where('stores_tables.id', $this->storeId))
+                //     ->orderBy('employee_name')
+                //     ->get(['id', 'employee_pengenal', 'employee_name', 'religion', 'status_employee']);
+    //             $employees = Employee::with([
+    //     'position' => fn($q) => $q->wherePivot('is_primary', true),
+    // ])
+    // ->whereNull('deleted_at')
+    // ->whereIn('status', ['Active', 'On Leave', 'Pending'])
+    // ->whereHas('store', fn($q) => $q->where('stores_tables.id', $this->storeId))
+    // ->get(['id', 'employee_pengenal', 'employee_name', 'religion', 'status_employee'])
+    // // ← Sort by position name A-Z setelah get() karena relasi pivot
+    // ->sortBy(fn($emp) => $emp->position->first()?->name ?? 'edw')
+    // ->values();
+    $employeeQuery = Employee::with([
+        'position' => fn($q) => $q->wherePivot('is_primary', true),
+    ])
+    ->whereNull('deleted_at')
+    ->whereIn('status', ['Active', 'On Leave', 'Pending'])
+    ->whereHas('store', fn($q) => $q->where('stores_tables.id', $this->storeId));
+
+if (!$this->canManageAll) {
+    // SPV: filter department + bawahan
+    $employeeQuery->where(function ($q) {
+        // Karyawan reguler — department sama
+        $q->whereHas('department', fn($dq) =>
+            $dq->whereIn('departments_tables.id', $this->myDeptIds)
+        );
+        // Atau bawahan langsung
+        if (!empty($this->bawahanIds)) {
+            $q->orWhereIn('id', $this->bawahanIds);
+        }
+    });
+}
+
+$employees = $employeeQuery
+    ->get(['id', 'employee_pengenal', 'employee_name', 'religion', 'status_employee'])
+    ->sortBy(fn($emp) => $emp->position->first()?->name ?? 'ZZZZ')
+    ->values();
  
                 $rowNum = 5;
                 foreach ($employees as $emp) {

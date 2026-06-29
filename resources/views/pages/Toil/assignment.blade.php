@@ -110,6 +110,10 @@
         background-color: #d1fae5;
         color: #065f46;
     }
+    .badge-status-Approved HR{
+        background-color: #d1fae5;
+        color: #065f46;
+    }
 
     .badge-status-Pending {
         background-color: #fef3c7;
@@ -170,7 +174,6 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -394,7 +397,7 @@
                                             required>
                                             @foreach ($employees as $emp)
                                                 <option value="{{ $emp->id }}">
-                                                    {{ $emp->employee_name }} ({{ $emp->pin ?? '-' }})
+                                                    {{ $emp->employee_name }} ({{ $emp->employee_pengenal ?? '-' }} — {{ $emp->store->first()?->name ?? '-' }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -410,13 +413,15 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>Start Date <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="date" id="date" required>
+                                        <input type="date" class="form-control" name="date" id="date" min="{{ $minDate->format('Y-m-d') }}"
+       max="{{ $maxDate->format('Y-m-d') }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>End Date <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="end_date" id="end_date" required>
+                                        <input type="date" class="form-control" name="end_date" id="end_date" min="{{ $minDate->format('Y-m-d') }}"
+       max="{{ $maxDate->format('Y-m-d') }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -435,7 +440,7 @@
                                     <div class="form-group">
                                         <label>Total Hours <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" name="total_hours" id="total_hours"
-                                            step="0.5" min="0.5" max="24" required>
+                                            step="0.5" min="0.5" max="24" readonly>
                                         <small class="form-text hours-hint text-muted" id="hours-hint">
                                             0.5 - 24 hours. Auto-calculated from Start & End Time.
                                         </small>
@@ -480,7 +485,7 @@
                 {{-- ════════════════════════════════════════ --}}
                 {{-- Filter Bar                                --}}
                 {{-- ════════════════════════════════════════ --}}
-                <div class="filter-card">
+                {{-- <div class="filter-card">
                     <h6 style="font-weight: 600; color: #4a5568; margin-bottom: 1rem;">
                         <i class="fas fa-filter"></i> Filter History
                     </h6>
@@ -529,12 +534,12 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
                 {{-- ════════════════════════════════════════ --}}
                 {{-- History Assignment Table                  --}}
                 {{-- ════════════════════════════════════════ --}}
-                <div class="card card-table">
+                {{-- <div class="card card-table">
                     <div class="card-header">
                         <h6><i class="fas fa-history"></i> History Assignment</h6>
                     </div>
@@ -558,7 +563,87 @@
                             </table>
                         </div>
                     </div>
+                </div> --}}
+
+                <div class="card card-table">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h6 class="mb-2 mb-md-0">
+                <i class="fas fa-history"></i> History Assignment
+            </h6>
+
+            <div class="row w-100 mt-3 align-items-end">
+                <div class="col-md-3">
+                    <div class="form-group mb-0">
+                        <label>Start Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-start-date">
+                    </div>
                 </div>
+
+                <div class="col-md-3">
+                    <div class="form-group mb-0">
+                        <label>End Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-end-date">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="form-group mb-0">
+                        <label>Type</label>
+                        <select id="filter-type" class="form-control form-control-sm">
+                            <option value="">All</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Toil">Toil</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="form-group mb-0">
+                        <label>Status</label>
+                        <select id="filter-status" class="form-control form-control-sm">
+                            <option value="">All</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Approved HR">Approved HR</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+
+              <div class="col-md-2 d-flex align-items-end" style="gap:6px; padding-bottom:1px">
+    <button type="button" class="btn btn-secondary btn-sm flex-fill" id="btn-reset">
+        <i class="fas fa-undo"></i> Reset
+    </button>
+    <button type="button" class="btn btn-primary btn-sm flex-fill" id="btn-filter">
+        <i class="fas fa-search"></i> Apply
+    </button>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="assignment-table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th class="text-center">Overtime Date</th>
+                        <th class="text-center">Hours</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Type</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Status Balance</th>
+                        <th class="text-center">Remaining Hours</th>
+                        <th class="text-center">Expired</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
 
             </div>
         </section>
@@ -803,26 +888,52 @@
                         data: 'expires_at',
                         className: 'text-center'
                     },
+                    // {
+                    //     data: 'id',
+                    //     className: 'text-center',
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     render: function(data, type, row) {
+                    //         var buttons = '';
+                    //         if (row.status === 'Approved') {
+                    //             buttons +=
+                    //                 '<button class="btn btn-sm btn-primary btn-edit" data-id="' +
+                    //                 data + '" title="Edit">' +
+                    //                 '<i class="fas fa-edit"></i></button> ';
+                    //             buttons +=
+                    //                 '<button class="btn btn-sm btn-danger btn-cancel" data-id="' +
+                    //                 data + '" title="Cancel">' +
+                    //                 '<i class="fas fa-times"></i> Cancel</button>';
+                    //         }
+                    //         return buttons || '<span class="text-muted">-</span>';
+                    //     }
+                    // }
                     {
-                        data: 'id',
-                        className: 'text-center',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            var buttons = '';
-                            if (row.status === 'Approved') {
-                                buttons +=
-                                    '<button class="btn btn-sm btn-primary btn-edit" data-id="' +
-                                    data + '" title="Edit">' +
-                                    '<i class="fas fa-edit"></i></button> ';
-                                buttons +=
-                                    '<button class="btn btn-sm btn-danger btn-cancel" data-id="' +
-                                    data + '" title="Cancel">' +
-                                    '<i class="fas fa-times"></i> Cancel</button>';
-                            }
-                            return buttons || '<span class="text-muted">-</span>';
-                        }
-                    }
+    data: 'id',
+    className: 'text-center',
+    orderable: false,
+    searchable: false,
+    render: function(data, type, row) {
+        // ← Approved HR → hidden
+        if (row.status === 'Approved HR') {
+            return '<span class="text-muted" title="Sudah diproses ke payroll">-</span>';
+        }
+
+        var buttons = '';
+        if (row.status === 'Approved') {
+            buttons +=
+                '<button class="btn btn-sm btn-primary btn-edit" data-id="' +
+                data + '" title="Edit">' +
+                '<i class="fas fa-edit"></i></button> ';
+            buttons +=
+                '<button class="btn btn-sm btn-danger btn-cancel" data-id="' +
+                data + '" title="Cancel">' +
+                '<i class="fas fa-times"></i> Cancel</button>';
+        }
+
+        return buttons || '<span class="text-muted">-</span>';
+    }
+}
                 ]
             });
 
@@ -1014,16 +1125,13 @@
             });
 
             // ── Set min date = today ──
-            var today = new Date().toISOString().split('T')[0];
-            $('#date').attr('min', today);
-            $('#end_date').attr('min', today);
+            $('#date').on('change', function () {
+    $('#end_date').attr('min', this.value);
 
-            $('#date').on('change', function() {
-                $('#end_date').attr('min', this.value);
-                if ($('#end_date').val() && $('#end_date').val() < this.value) {
-                    $('#end_date').val(this.value);
-                }
-            });
+    if ($('#end_date').val() && $('#end_date').val() < this.value) {
+        $('#end_date').val(this.value);
+    }
+});
         });
     </script>
 @endpush

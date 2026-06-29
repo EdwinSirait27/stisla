@@ -45,6 +45,7 @@ class FingerprintsExport implements FromCollection, WithHeadings, WithStyles, Wi
             $row['combine_6']         ?? '-',
             $row['duration']          ?? '-',
             $row['updated_status']    ?? '-',
+            $row['edited_status']     ?? '-',
         ]);
     }
 
@@ -67,8 +68,52 @@ class FingerprintsExport implements FromCollection, WithHeadings, WithStyles, Wi
             'Ovt Out',
             'Duration',
             'Record Status',
+            'Approval Status',
         ];
     }
+    // public function collection(): Collection
+    // {
+    //     return $this->data->map(fn($row) => [
+    //         $row['employee_name']     ?? '-',
+    //         $row['employee_pengenal'] ?? '-',
+    //         $row['name']              ?? '-',
+    //         $row['pin']               ?? '-',
+    //         trim(($row['roster_name'] ?? '-') . ' ' . ($row['roster_time'] ?? '')),
+    //         $row['position_name']     ?? '-',
+    //         $row['status_employee']   ?? '-',
+    //         $row['scan_date']         ?? '-',
+    //         $row['combine_1']         ?? '-',
+    //         $row['combine_2']         ?? '-',
+    //         $row['combine_3']         ?? '-',
+    //         $row['combine_4']         ?? '-',
+    //         $row['combine_5']         ?? '-',
+    //         $row['combine_6']         ?? '-',
+    //         $row['duration']          ?? '-',
+    //         $row['updated_status']    ?? '-',
+    //     ]);
+    // }
+
+    // public function headings(): array
+    // {
+    //     return [
+    //         'Employee',
+    //         'NIP',
+    //         'Location',
+    //         'PIN',
+    //         'Schedule',
+    //         'Position',
+    //         'Emp. Status',
+    //         'Scan Date',
+    //         'In',
+    //         'Out',
+    //         'Break In',
+    //         'Break Out',
+    //         'Ovt In',
+    //         'Ovt Out',
+    //         'Duration',
+    //         'Record Status',
+    //     ];
+    // }
 
     public function title(): string
     {
@@ -98,7 +143,8 @@ class FingerprintsExport implements FromCollection, WithHeadings, WithStyles, Wi
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet   = $event->sheet->getDelegate();
                 $lastRow = $this->data->count() + 2;
-                $lastCol = 'P';
+                $lastCol = 'Q';
+                // $lastCol = 'P';
 
                 // ── Title row ──
                 $sheet->insertNewRowBefore(1, 1);

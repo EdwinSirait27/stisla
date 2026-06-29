@@ -33,7 +33,7 @@ return new class extends Migration
             // Detail override
             $table->time('time_in')->nullable();
             $table->time('time_out')->nullable();
-            $table->text('reason'); // min 10 char, wajib
+            $table->text('reason')->nullable(); // min 10 char, wajib
 
             // ── HR yang mengajukan (bukan user login) ──
             $table->uuid('hr_id')->nullable();           // ref ke employees_tables.id

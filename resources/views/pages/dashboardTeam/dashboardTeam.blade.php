@@ -1204,7 +1204,7 @@
                                 Quick Actions
                             </h5>
                             <div class="action-grid">
-                                <a href="{{ route('pages.Team') }}" class="action-btn">
+                                <a href="{{ route('pages.Employee') }}" class="action-btn">
                                     <i class="fas fa-users"></i>
                                     <span>My Team</span>
                                 </a>

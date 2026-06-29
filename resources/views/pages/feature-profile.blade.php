@@ -981,6 +981,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <br>
                                     <div>
                                         <div class="profile-section-label">Identity</div>
                                         <div class="field-grid">
@@ -988,6 +989,12 @@
                                                 <label><i class="fas fa-id-card"></i> NIK</label>
                                                 <div class="field-readonly">
                                                     {{ $user->employee->nik ?? '-' }}
+                                                </div>
+                                            </div>
+                                            <div class="field-group">
+                                                <label><i class="fas fa-id-card"></i> KK Number</label>
+                                                <div class="field-readonly">
+                                                    {{ $user->employee->kk_number ?? '-' }}
                                                 </div>
                                             </div>
                                             <div class="field-group">
@@ -1014,6 +1021,7 @@
                                     </div>
 
                                     {{-- ── Section: Employment ── --}}
+                                    <br>
                                     <div>
                                         <div class="profile-section-label">Employment</div>
                                         <div class="field-grid">
@@ -1064,6 +1072,7 @@
                                     </div>
 
                                     {{-- ── Section: BPJS ── --}}
+                                    <br>
                                     <div>
                                         <div class="profile-section-label">Social Insurance</div>
                                         <div class="field-grid">
@@ -1083,6 +1092,7 @@
                                     </div>
 
                                     {{-- ── Section: Contact (editable) ── --}}
+                                    <br>
                                     <div>
                                         <div class="profile-section-label">Contact</div>
                                         <div class="field-grid">
@@ -1110,7 +1120,7 @@
                                         </div>
                                     </div>
 
-
+<br>
                                     <div>
                                         <div class="profile-section-label">Profile Photo *</div>
                                         <div class="photo-upload-wrap">
@@ -1143,6 +1153,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <br>
                                     <div>
                                         <div class="profile-section-label-kk">KK Photo *</div>
                                         <div class="photo-upload-wrap-kk">
@@ -1175,6 +1186,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <br>
                                     <div>
                                         <div class="profile-section-label-ktp">KTP Photo *</div>
                                         <div class="photo-upload-wrap-ktp">
@@ -1208,9 +1220,9 @@
                                             </div>
                                         </div>
                                     </div>
-
+<br>
                                     <div>
-                                        <div class="profile-section-label-ktp">Documents Pengantar Pembukaan Payroll</div>
+                                        <div class="profile-section-label-ktp">Documents</div>
                                         <div class="photo-upload-wrap-ktp">
                                             @if ($user->employee && $user->employee->documents && $user->employee->documents->isNotEmpty())
                                                 @foreach ($user->employee->documents as $doc)
@@ -1224,6 +1236,7 @@
                                             @endif
                                         </div>
                                     </div>
+                                    <br>
                                     <div>
                                         <div class="profile-section-label-ktp">SK</div>
                                         <div class="photo-upload-wrap-ktp">

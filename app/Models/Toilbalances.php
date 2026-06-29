@@ -33,9 +33,9 @@ class Toilbalances extends Model
         'earned_hours',
         'used_hours',
         'expires_at',
-        'status',         // 'active' | 'fully_used' | 'expired' | 'cancelled'
-        'paid_at',        // (Cash) kapan masuk payroll
-        'paid_period',    // (Cash) periode payroll, misal "2026-05"
+        'status',         
+        'paid_at',        
+        'paid_period',    
     ];
 
     protected $casts = [

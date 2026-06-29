@@ -1,6 +1,5 @@
 @extends('layouts.app')
 @section('title', 'Detail Payroll')
-
 @push('styles')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -10,7 +9,6 @@
             color: #1e293b;
             margin: 0;
         }
-
         .section-header {
             display: flex;
             align-items: center;
@@ -19,12 +17,10 @@
             gap: 12px;
             margin-bottom: 1.25rem;
         }
-
         .page-actions {
             display: flex;
             gap: 8px;
         }
-
         .page-actions .btn {
             height: 36px;
             font-size: .825rem;
@@ -34,7 +30,6 @@
             gap: .4rem;
             border-radius: .5rem;
         }
-
         /* Grid layout */
         .detail-grid {
             display: grid;
@@ -42,11 +37,9 @@
             gap: 1.25rem;
             margin-bottom: 1.25rem;
         }
-
         .detail-grid-full {
             grid-column: span 2;
         }
-
         /* Card */
         .detail-card {
             background: #fff;
@@ -54,7 +47,6 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, .07);
             overflow: hidden;
         }
-
         .detail-card-header {
             background: #f8fafc;
             border-bottom: 1px solid #f1f5f9;
@@ -63,7 +55,6 @@
             align-items: center;
             gap: .6rem;
         }
-
         .detail-card-icon {
             width: 26px;
             height: 26px;
@@ -74,17 +65,14 @@
             font-size: .75rem;
             flex-shrink: 0;
         }
-
         .detail-card-title {
             font-size: .85rem;
             font-weight: 600;
             color: #334155;
         }
-
         .detail-card-body {
             padding: 1rem 1.25rem;
         }
-
         /* Info rows */
         .info-row {
             display: flex;
@@ -94,42 +82,33 @@
             border-bottom: 1px solid #f8fafc;
             font-size: .82rem;
         }
-
         .info-row:last-child {
             border-bottom: none;
         }
-
         .info-label {
             color: #64748b;
         }
-
         .info-value {
             font-weight: 600;
             color: #1e293b;
             text-align: right;
         }
-
         .info-value.green {
             color: #16a34a;
         }
-
         .info-value.red {
             color: #dc2626;
         }
-
         .info-value.blue {
             color: #1d4ed8;
         }
-
         .info-value.amber {
             color: #d97706;
         }
-
         .info-value.muted {
             color: #94a3b8;
             font-weight: 400;
         }
-
         /* Employee header */
         .emp-header {
             background: #fff;
@@ -141,7 +120,6 @@
             align-items: center;
             gap: 1rem;
         }
-
         .emp-header-avatar {
             width: 52px;
             height: 52px;
@@ -153,24 +131,20 @@
             justify-content: center;
             flex-shrink: 0;
         }
-
         .emp-header-name {
             font-size: 1rem;
             font-weight: 600;
             color: #1e293b;
         }
-
         .emp-header-sub {
             font-size: .78rem;
             color: #64748b;
             margin-top: 2px;
         }
-
         .emp-header-right {
             margin-left: auto;
             text-align: right;
         }
-
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -180,7 +154,6 @@
             font-size: .7rem;
             font-weight: 700;
         }
-
         /* Summary box */
         .summary-box {
             background: #f8fafc;
@@ -188,14 +161,12 @@
             padding: 1rem 1.25rem;
             margin-top: .75rem;
         }
-
         .summary-row {
             display: flex;
             justify-content: space-between;
             font-size: .82rem;
             padding: .3rem 0;
         }
-
         .summary-row.total {
             border-top: 1px solid #e2e8f0;
             margin-top: .5rem;
@@ -203,19 +174,16 @@
             font-weight: 700;
             font-size: .9rem;
         }
-
         .summary-row.total .summary-value {
             color: #1d4ed8;
             font-size: 1rem;
         }
-
         /* Component table */
         .comp-table {
             width: 100%;
             font-size: .8rem;
             border-collapse: collapse;
         }
-
         .comp-table th {
             background: #f8fafc;
             color: #64748b;
@@ -225,23 +193,19 @@
             text-align: left;
             border-bottom: 1px solid #f1f5f9;
         }
-
         .comp-table td {
             padding: .6rem .75rem;
             border-bottom: 1px solid #f8fafc;
             color: #334155;
             vertical-align: middle;
         }
-
         .comp-table tr:last-child td {
             border-bottom: none;
         }
-
         .num {
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
-
         /* Prorate badge */
         .prorate-badge {
             display: inline-flex;
@@ -255,23 +219,19 @@
             font-size: .75rem;
             font-weight: 600;
         }
-
         @media (max-width: 768px) {
             .detail-grid {
                 grid-template-columns: 1fr;
             }
-
             .detail-grid-full {
                 grid-column: span 1;
             }
         }
     </style>
 @endpush
-
 @section('main')
     <div class="main-content">
         <section class="section">
-
             {{-- Header --}}
             <div class="section-header">
                 <div>
@@ -283,11 +243,11 @@
                             style="color:#64748b;text-decoration:none">{{ $payroll->period->period_label }}</a> /
                         <span style="color:#1e293b">Detail</span>
                     </div>
-                    <h1>Detail Payroll</h1>
+                    <h1>Payroll Details</h1>
                 </div>
                 <div class="page-actions">
                    <a href="{{ route('payroll.index', $payroll->payroll_period_id) }}" class="btn btn-light">
-                        <i class="fas fa-arrow-left"></i> Kembali
+                        <i class="fas fa-arrow-left"></i> Back
                     </a>
                     @if ($payroll->status === 'draft')
                         <a href="{{ route('payroll.edit', $payroll->id) }}" class="btn btn-warning">
@@ -322,7 +282,10 @@
                     <div class="emp-header-name">{{ $emp->employee_name ?? '-' }}</div>
                     <div class="emp-header-sub">
                         {{ $emp->employee_pengenal ?? '-' }}
+                        &nbsp;·&nbsp; {{ $emp->company->name ?? '-' }}
                         &nbsp;·&nbsp; {{ $emp->store?->first()->name ?? '-' }}
+                        &nbsp;·&nbsp; {{ $emp->department?->first()->department_name ?? '-' }}
+                        &nbsp;·&nbsp; {{ $emp->grading->grading_name ?? '-' }}
                         &nbsp;·&nbsp; {{ $emp->position?->first()->name ?? '-' }}
                     </div>
                 </div>
@@ -352,19 +315,21 @@
                     @endif
                 </div>
             </div>
-
             <div class="detail-grid">
-
                 {{-- Info Employee --}}
                 <div class="detail-card">
                     <div class="detail-card-header">
                         <div class="detail-card-icon" style="background:#eff6ff;color:#1d4ed8"><i class="fas fa-user"></i>
                         </div>
-                        <span class="detail-card-title">Info Employee</span>
+                        <span class="detail-card-title">Employee Detail</span>
                     </div>
                     <div class="detail-card-body">
                         <div class="info-row">
-                            <span class="info-label">Status Karyawan</span>
+                            <span class="info-label">NPWP</span>
+                            <span class="info-value">{{ $emp->npwp ?? '-' }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Employee Type</span>
                             <span class="info-value">{{ $emp->status_employee ?? '-' }}</span>
                         </div>
                         <div class="info-row">
@@ -372,9 +337,10 @@
                             <span class="info-value">{{ $emp->bank->name ?? '-' }}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">No. Rekening</span>
+                            <span class="info-label">Bank Account Number</span>
                             <span class="info-value">{{ $emp->bank_account_number ?? '-' }}</span>
                         </div>
+                        
                         <div class="info-row">
                             <span class="info-label">Join Date</span>
                             <span
@@ -395,13 +361,17 @@
                     <div class="detail-card-header">
                         <div class="detail-card-icon" style="background:#f0fdf4;color:#16a34a"><i
                                 class="fas fa-calendar-check"></i></div>
-                        <span class="detail-card-title">Info Absensi</span>
+                        <span class="detail-card-title">Attendance Info</span>
                     </div>
                     <div class="detail-card-body">
                         {{-- <div class="info-row">
                             <span class="info-label">Working Days</span>
                             <span class="info-value">{{ $payroll->working_days }} hari</span>
                         </div> --}}
+                        <div class="info-row">
+                            <span class="info-label">Working Days</span>
+                            <span class="info-value green">{{ $payroll->working_days }} hari</span>
+                        </div>
                         <div class="info-row">
                             <span class="info-label">Attendance Days</span>
                             <span class="info-value green">{{ $payroll->attendance_days }} hari</span>
@@ -452,6 +422,7 @@
                                 <span class="info-value">Rp
                                     {{ number_format($payroll->position_allowance, 0, ',', '.') }}</span>
                             </div>
+                            
                             {{-- <div class="info-row">
                                 <span class="info-label">Allowance</span>
                                 <span class="info-value">Rp {{ number_format($payroll->allowance, 0, ',', '.') }}</span>
@@ -483,6 +454,41 @@
                                         {{ number_format($payroll->reimburse_amount, 0, ',', '.') }}</span>
                                 </div>
                             @endif
+                            @if ($payroll->punsihment > 0)
+                                <div class="summary-row">
+                                    <span style="color:#64748b">- Punishment</span>
+                                    <span style="color:#e8112a">Rp
+                                        {{ number_format($payroll->punishment, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            @if ($payroll->punsihment_so > 0)
+                                <div class="summary-row">
+                                    <span style="color:#64748b">- SO Punishment</span>
+                                    <span style="color:#e8112a">Rp
+                                        {{ number_format($payroll->punishment_so, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            @if ($payroll->punsihment_so > 0)
+                                <div class="summary-row">
+                                    <span style="color:#64748b">- SO Punishment</span>
+                                    <span style="color:#e8112a">Rp
+                                        {{ number_format($payroll->punishment_so, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            @if ($payroll->debt > 0)
+                                <div class="summary-row">
+                                    <span style="color:#64748b">- Debt</span>
+                                    <span style="color:#e8112a">Rp
+                                        {{ number_format($payroll->debt, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            @if ($payroll->debt > 0)
+                                <div class="summary-row">
+                                    <span style="color:#64748b">- Tax</span>
+                                    <span style="color:#e8112a">Rp
+                                        {{ number_format($payroll->tax, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -492,16 +498,16 @@
                     <div class="detail-card-header">
                         <div class="detail-card-icon" style="background:#fef2f2;color:#dc2626"><i
                                 class="fas fa-minus-circle"></i></div>
-                        <span class="detail-card-title">Komponen & Potongan</span>
+                        <span class="detail-card-title">Component</span>
                     </div>
                     <div class="detail-card-body">
                         <table class="comp-table">
                             <thead>
                                 <tr>
-                                    <th>Komponen</th>
-                                    <th>Tipe</th>
+                                    <th>Component</th>
+                                    <th>Type</th>
                                     <th class="num">Amount</th>
-                                    <th>Beban</th>
+                                    <th>Remark</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -522,7 +528,7 @@
                                             @if ($detail->component->is_employer_burden ?? false)
                                                 <span style="font-size:.7rem;color:#d97706">Perusahaan</span>
                                             @else
-                                                <span style="font-size:.7rem;color:#64748b">Karyawan</span>
+                                                <span style="font-size:.7rem;color:#64748b">Employee</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -535,13 +541,12 @@
                         </table>
                     </div>
                 </div>
-
                 {{-- Net Salary Summary --}}
                 <div class="detail-card detail-grid-full">
                     <div class="detail-card-header">
                         <div class="detail-card-icon" style="background:#eff6ff;color:#1d4ed8"><i
                                 class="fas fa-calculator"></i></div>
-                        <span class="detail-card-title">Ringkasan Gaji</span>
+                        <span class="detail-card-title">Salary Summary</span>
                     </div>
                     <div class="detail-card-body">
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
@@ -552,13 +557,13 @@
                                 </div>
                             </div>
                             <div>
-                                <div style="font-size:.7rem;color:#94a3b8;margin-bottom:4px">Total Income Tambahan</div>
+                                <div style="font-size:.7rem;color:#94a3b8;margin-bottom:4px">total Additional Income</div>
                                 <div style="font-size:1.1rem;font-weight:600;color:#16a34a">
                                     + Rp {{ number_format($payroll->total_income, 0, ',', '.') }}
                                 </div>
                             </div>
                             <div>
-                                <div style="font-size:.7rem;color:#94a3b8;margin-bottom:4px">Total Potongan</div>
+                                <div style="font-size:.7rem;color:#94a3b8;margin-bottom:4px">Deduction Total</div>
                                 <div style="font-size:1.1rem;font-weight:600;color:#dc2626">
                                     - Rp {{ number_format($payroll->total_deduction, 0, ',', '.') }}
                                 </div>
@@ -570,7 +575,7 @@
                             <div>
                                 <div style="font-size:.72rem;color:#3b82f6;font-weight:600">NET SALARY</div>
                                 <div style="font-size:.72rem;color:#64748b;margin-top:2px">
-                                    Gross + Income - Potongan Karyawan
+                                    {{-- Gross + Income - Employee Deduction --}}
                                 </div>
                             </div>
                             <div style="font-size:1.5rem;font-weight:700;color:#1d4ed8">
@@ -592,13 +597,10 @@
                         @endif
                     </div>
                 </div>
-
             </div>
-
         </section>
     </div>
 @endsection
-
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>

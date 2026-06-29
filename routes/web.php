@@ -70,6 +70,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeTrainingController;
+use App\Http\Controllers\OvertimeRateController;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Contract;
@@ -108,6 +109,22 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
         ->name('my-sk-letter.download');
 
     // routes/web.php
+    // Route::get('/employee-photos/{filename}', [UserprofileController::class, 'servePhoto'])
+    //     ->name('useremployee.photo');
+    // Route::get('/employee-signatures-photos/{filename}', [UserprofileController::class, 'serveSignature'])
+    //     ->name('useremployeesignature.photo');
+    // Route::get('/employee-kk-photos/{filename}', [UserprofileController::class, 'servePhotokk'])
+    //     ->name('useremployeekk.photo');
+    // Route::get('/employee-ktp-photos/{filename}', [UserprofileController::class, 'servePhotoktp'])
+    //     ->name('useremployeektp.photo');
+//     Route::get('/employee-photos/{filename}', [UserprofileController::class, 'servePhoto'])
+//     ->name('useremployee.photo');
+// Route::get('/employee-signatures-photos/{filename}', [UserprofileController::class, 'serveSignature'])
+//     ->name('useremployeesignature.photo');
+// Route::get('/employee-kk-photos/{filename}', [UserprofileController::class, 'servePhotokk'])
+//     ->name('useremployeekk.photo');
+// Route::get('/employee-ktp-photos/{filename}', [UserprofileController::class, 'servePhotoktp'])
+//     ->name('useremployeektp.photo');
     Route::get('/employee-photos/{filename}', [UserprofileController::class, 'servePhoto'])
         ->name('useremployee.photo');
     Route::get('/employee-signatures-photos/{filename}', [UserprofileController::class, 'serveSignature'])
@@ -182,18 +199,17 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
     Route::group(['middleware' => ['permission:ManageEmployee|ManageEmployeeSPVManager|ViewEmployee']], function () {
         Route::get('/Employee', [EmployeeController::class, 'index'])
             ->name('pages.Employee');
-            Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
+        Route::get('/Employee/show/{hashedId}', [EmployeeController::class, 'show'])->name('Employee.show');
         Route::get('/employees/employees', [EmployeeController::class, 'getEmployees'])->name('employees.employees');
-       
     });
     Route::group(['middleware' => ['permission:ManageEmployee']], function () {
 
-    Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
+        Route::get('Employee/create', [EmployeeController::class, 'create'])->name('Employee.create');
         Route::post('/Employee', [EmployeeController::class, 'store'])->name('Employee.store');
         Route::get('/data/data', [EmployeeController::class, 'getActivities'])->name('data.data');
 
         Route::get('bagan/data', [EmployeeController::class, 'getBagan'])->name('employee.bagan');
- Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
+        Route::get('/Employee/edit/{hashedId}', [EmployeeController::class, 'edit'])->name('Employee.edit');
         Route::put('/Employee/{hashedId}', [EmployeeController::class, 'update'])->name('Employee.update');
         Route::get('/employees/export', [EmployeeController::class, 'exportEmployees'])->name('Employee.export');
         // Route::post('/employees/transfer-all-to-payroll', [EmployeeController::class, 'transferAllToPayroll'])->name('employees.transferAllToPayroll');
@@ -211,47 +227,45 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
         Route::post('/Importuser', [EmployeeImportController::class, 'importuser'])->name('Importuser.user');
 
 
-        Route::get('/employee-photo/{filename}',    [EmployeeController::class, 'servePhoto'])->name('employee.photo');
-        Route::get('/employee-ktp/{filename}',      [EmployeeController::class, 'serveKtpPhoto'])->name('employee.ktp');
-        Route::get('/employee-kk/{filename}',       [EmployeeController::class, 'serveKkPhoto'])->name('employee.kk');
-        Route::get('/employee-signature/{filename}', [EmployeeController::class, 'serveSignature'])->name('employee.signature');
-        Route::get('employee/photo/{filename}', [EmployeeController::class, 'servePhoto'])
-            ->name('employee.serve.photo');
-          Route::get('Employee/{hashedId}/document/{documentId}/download', [EmployeeController::class, 'downloadDocument'])
-    ->name('Employee.document.download');
-
+        // Route::get('/employee-photos/{filename}',    [EmployeeController::class, 'servePhoto'])->name('employee.photo');
+        // Route::get('/employee-signatures-photos/{filename}', [EmployeeController::class, 'serveSignature'])->name('employee.signature');
+        // Route::get('/employee-kk-photos/{filename}',       [EmployeeController::class, 'serveKkPhoto'])->name('employee.kk');
+        // Route::get('/employee-ktp-photos/{filename}',      [EmployeeController::class, 'serveKtpPhoto'])->name('employee.ktp');
+        // Route::get('employee/photo/{filename}', [EmployeeController::class, 'servePhoto'])
+        //     ->name('employee.serve.photo');
+        Route::get('Employee/{hashedId}/document/{documentId}/download', [EmployeeController::class, 'downloadDocument'])
+            ->name('Employee.document.download');
     });
 
 
 
     // ── Employee training──
-   
+
     Route::group(['middleware' => ['permission:ManageEmployeeTraining']], function () {
-    Route::get('/employee-training', [EmployeeTrainingController::class, 'index'])
+        Route::get('/employee-training', [EmployeeTrainingController::class, 'index'])
             ->name('pages.employee-training');
         Route::get('/employeestraining/employeestraining', [EmployeeTrainingController::class, 'getEmployeeTrainings'])->name('employeestraining.employeestraining');
         Route::get('/employeestraining/export', [EmployeeTrainingController::class, 'exportTraingingEmployees'])->name('Employeetraining.export');
     });
 
-Route::prefix('employees')->name('Employee.')->group(function () {
+    Route::prefix('employees')->name('Employee.')->group(function () {
 
-    Route::get('/bulk', [EmployeePositionandAtasanController::class, 'bulkIndex'])
-        ->name('bulk');
+        Route::get('/bulk', [EmployeePositionandAtasanController::class, 'bulkIndex'])
+            ->name('bulk');
 
-    Route::get('/position-atasans', [EmployeePositionandAtasanController::class, 'getEmployeePositionandAtasans'])
-        ->name('positionAtasans');
+        Route::get('/position-atasans', [EmployeePositionandAtasanController::class, 'getEmployeePositionandAtasans'])
+            ->name('positionAtasans');
 
-    Route::post('/bulk-assign-position', [EmployeePositionandAtasanController::class, 'bulkAssignPosition'])
-        ->name('bulkAssignPosition');
-    Route::post('/bulk-delete-position', [EmployeePositionandAtasanController::class, 'bulkDeletePosition'])
-        ->name('bulkDeletePosition');
+        Route::post('/bulk-assign-position', [EmployeePositionandAtasanController::class, 'bulkAssignPosition'])
+            ->name('bulkAssignPosition');
+        Route::post('/bulk-delete-position', [EmployeePositionandAtasanController::class, 'bulkDeletePosition'])
+            ->name('bulkDeletePosition');
 
-    Route::post('/bulk-assign-atasan', [EmployeePositionandAtasanController::class, 'bulkAssignAtasan'])
-        ->name('bulkAssignAtasan');
-    Route::post('/bulk-delete-atasan', [EmployeePositionandAtasanController::class, 'bulkDeleteAtasan'])
-        ->name('bulkDeleteAtasan');
-
-});
+        Route::post('/bulk-assign-atasan', [EmployeePositionandAtasanController::class, 'bulkAssignAtasan'])
+            ->name('bulkAssignAtasan');
+        Route::post('/bulk-delete-atasan', [EmployeePositionandAtasanController::class, 'bulkDeleteAtasan'])
+            ->name('bulkDeleteAtasan');
+    });
 
 
 
@@ -292,7 +306,7 @@ Route::prefix('employees')->name('Employee.')->group(function () {
     //         ->middleware('auth');
     // });
 
-  
+
 
     Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
         Route::get('/datacontracts/datacontracts', [ContractController::class, 'getActivities'])->name('datacontracts.datacontracts');
@@ -311,15 +325,28 @@ Route::prefix('employees')->name('Employee.')->group(function () {
     Route::group(['middleware' => ['permission:ManageFingerspotSPVManager|ManageFingerspot']], function () {
         Route::get('/fingerprints/export', [FingerprintsController::class, 'exportfingerprints'])
             ->name('fingerprints.exportfingerprints');
+            Route::post('fingerprints/bulk-status', [FingerprintsController::class, 'bulkStatus'])
+    ->name('fingerprints.bulkStatus');
     });
     Route::group(['middleware' => ['permission:ManageFingerspotSPVManager|ManageFingerspot|ViewFingerspot']], function () {
         Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
             ->name('pages.Fingerprints');
         Route::match(['GET', 'POST'], '/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
-    });
+        Route::post('fingerprints/status/{id}', [FingerprintsController::class, 'updateStatus'])
+    ->name('fingerprints.updateStatus');
+      Route::get('/Fingerprints/edit/{pin}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
+     Route::get('fingerprints/show/{pin}', [FingerprintsController::class, 'showFingerprint'])
+    ->name('pages.Fingerprints.show');
 
+        Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
+        Route::delete('fingerprints/attachment', [FingerprintsController::class, 'deleteAttachment'])
+    ->name('fingerprints.deleteAttachment');
+    });
+   
 
     Route::group(['middleware' => ['permission:ManageFingerspot']], function () {
+        Route::get('fingerprints/log', [FingerprintsController::class, 'getLog'])->name('fingerprints.log');
+
         Route::get('/Fingerspot', [FingerspotController::class, 'index'])
             ->name('pages.Fingerspot');
         Route::get('/fingerspot/fingerspot', [FingerspotController::class, 'getFingerspot'])->name('fingerspot.fingerspot');
@@ -347,8 +374,7 @@ Route::prefix('employees')->name('Employee.')->group(function () {
         // Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
         //     ->name('pages.Fingerprints');
         // Route::match(['GET', 'POST'], '/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
-        Route::get('/Fingerprints/edit/{pin}', [FingerprintsController::class, 'editFingerprint'])->name('pages.Fingerprints.edit');
-        Route::put('/fingerprints/{pin}/{scan_date}', [FingerprintsController::class, 'updateFingerprint'])->name('Fingerprints.update');
+      
         Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
         Route::post('/fingerprints/recap', [FingerprintsController::class, 'recap'])->name('fingerprints.recap');
 
@@ -377,32 +403,33 @@ Route::prefix('employees')->name('Employee.')->group(function () {
         //     ]);
         // })->name('fingerprints.employee-list');
         Route::get('/fingerprints/employee-list', function (\Illuminate\Http\Request $request) {
-    $query = \App\Models\Employee::with([
-            'store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
-        ])
-        ->select('id', 'employee_name', 'pin')
-        ->whereNotNull('pin')
-        ->whereNull('deleted_at');
+            $query = \App\Models\Employee::with([
+                'store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id', 'stores_tables.name'),
+            ])
+                ->select('id', 'employee_name', 'pin','status')
+                ->whereNotNull('pin')
+                ->whereNull('deleted_at');
 
-    if ($request->store_name) {
-        $query->whereExists(function ($q) use ($request) {
-            $q->select(DB::raw(1))
-                ->from('employee_stores')
-                ->join('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
-                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                ->where('stores_tables.name', $request->store_name);
-        });
-    }
+            if ($request->store_name) {
+                $query->whereExists(function ($q) use ($request) {
+                    $q->select(DB::raw(1))
+                        ->from('employee_stores')
+                        ->join('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+                        ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                        ->where('stores_tables.name', $request->store_name);
+                });
+            }
 
-    return response()->json([
-        'data' => $query->orderBy('employee_name')->get()->map(fn($e) => [
-            'id'    => $e->id,
-            'name'  => $e->employee_name,
-            'pin'   => $e->pin,
-            'store' => $e->store->first()?->name ?? '-', // ← pivot returns collection
-        ])
-    ]);
-})->name('fingerprints.employee-list');
+            return response()->json([
+                'data' => $query->orderBy('employee_name')->get()->map(fn($e) => [
+                    'id'    => $e->id,
+                    'name'  => $e->employee_name,
+                    'status'  => $e->status,
+                    'pin'   => $e->pin,
+                    'store' => $e->store->first()?->name ?? 'empty', // ← pivot returns collection
+                ])
+            ]);
+        })->name('fingerprints.employee-list');
 
         // ── Edited Fingerprints ──
         Route::get('/Editedfinger', [Editedfingerprints::class, 'index'])
@@ -416,20 +443,29 @@ Route::prefix('employees')->name('Employee.')->group(function () {
             Route::post('/',          [ManualRecapController::class, 'store'])->name('store');
         });
 
-    Route::group(['middleware' => ['permission:ManageFingerspotRecap']], function () {
+        // Route
+Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'])
+    ->name('manual-recap.signedUrl');
 
-        // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
-        Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
-            Route::get('/',       [FingerprintRecapController::class, 'index'])->name('index');
-            // Route::post('/data',  [FingerprintRecapController::class, 'getData'])->name('data');
-        Route::match(['GET', 'POST'], '/data', [FingerprintRecapController::class, 'getData'])->name('data');
+// Controller
 
-            Route::post('/recap', [FingerprintRecapController::class, 'recap'])->name('recap');
-        });
+
+        Route::group(['middleware' => ['permission:ManageFingerspotRecap']], function () {
+
+            // ── Fingerprint Recap (rekap otomatis dari DB fingerprint) ──
+            Route::prefix('fingerprint-recap')->name('fingerprint-recap.')->middleware(['auth'])->group(function () {
+                Route::get('/',       [FingerprintRecapController::class, 'index'])->name('index');
+                // Route::post('/data',  [FingerprintRecapController::class, 'getData'])->name('data');
+                Route::match(['GET', 'POST'], '/data', [FingerprintRecapController::class, 'getData'])->name('data');
+
+                Route::post('/recap', [FingerprintRecapController::class, 'recap'])->name('recap');
+                Route::get('/fingerprint-recap/export', [FingerprintRecapController::class, 'export'])
+                    ->name('export');
+            });
         });
     });
- Route::group(['middleware' => ['permission:ManageShifts']], function () {
-       Route::post('/shifts', [ShiftsController::class, 'store'])->name('shifts.store');
+    Route::group(['middleware' => ['permission:ManageShifts']], function () {
+        Route::post('/shifts', [ShiftsController::class, 'store'])->name('shifts.store');
         Route::put('/shifts/{id}', [ShiftsController::class, 'update'])->name('shifts.update');
         Route::delete('/shifts/{id}', [ShiftsController::class, 'destroy'])->name('shifts.destroy');
     });
@@ -438,9 +474,8 @@ Route::prefix('employees')->name('Employee.')->group(function () {
     Route::group(['middleware' => ['permission:ManageShifts|ManageShiftsSPVManager|ViewShifts']], function () {
         Route::get('/Shifts', [ShiftsController::class, 'index'])->name('pages.Shifts');
         Route::match(['GET', 'POST'], '/shifts/data', [ShiftsController::class, 'getData'])->name('shifts.data');
-       
     });
-   
+
     // ── Position ──
     Route::group(['middleware' => ['permission:ManagePositions']], function () {
         Route::get('/Position', [PositionController::class, 'index'])
@@ -531,38 +566,36 @@ Route::prefix('employees')->name('Employee.')->group(function () {
         Route::get('/Department/edit/{hashedId}', [DepartmentController::class, 'edit'])->name('Department.edit');
         Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
         Route::match(['GET', 'POST'], '/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
-
     });
     Route::group(['middleware' => ['permission:ManageDocument']], function () {
         Route::get('/document', [DocumentController::class, 'index'])
             ->name('document.index');
         Route::match(['GET', 'POST'], '/documents/documents', [DocumentController::class, 'getDocuments'])->name('documents.documents');
         Route::get(
-    '/documents/download/{document}',
-    [DocumentController::class, 'downloadDocument']
-)->name('documents.download');
+            '/documents/download/{document}',
+            [DocumentController::class, 'downloadDocument']
+        )->name('documents.download');
     });
 
     // ── Public Holidays ──
     Route::group(['middleware' => ['permission:ManagePH|ManagePHSPVManager|ViewPH']], function () {
         Route::get('/Pubholi', [PHController::class, 'index'])
             ->name('pages.Pubholi');
-        
+
         Route::get('/pubholis/pubholis', [PHController::class, 'getPubholidays'])->name('pubholis.pubholis');
-       
     });
     Route::group(['middleware' => ['permission:ManagePH']], function () {
-       Route::get('Pubholi/create', [PHController::class, 'create'])->name('Pubholi.create');
+        Route::get('Pubholi/create', [PHController::class, 'create'])->name('Pubholi.create');
         Route::post('/Pubholi', [PHController::class, 'store'])->name('Pubholi.store');
         Route::get('/Pubholi/edit/{hashedId}', [PHController::class, 'edit'])->name('Pubholi.edit');
         Route::put('/Pubholi/{hashedId}', [PHController::class, 'update'])->name('Pubholi.update');
-         Route::get('/ImportPH', [PHController::class, 'indexphs'])
+        Route::get('/ImportPH', [PHController::class, 'indexphs'])
             ->name('pages.ImportPH');
         Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
         Route::get('/ImportPH/downloadphs/{filename}', [PHController::class, 'downloadphs'])->name('ImportPH.downloadphs');
     });
 
-    
+
 
     // ── Summaries ──
     Route::group(['middleware' => ['permission:ManageSummaries']], function () {
@@ -739,7 +772,9 @@ Route::prefix('employees')->name('Employee.')->group(function () {
             Route::post('/approve-bulk',           [PayrollController::class, 'approveBulk'])->name('approveBulk');
             Route::post('/{id}/paid',              [PayrollController::class, 'paid'])->name('paid');
             Route::post('/{periodId}/import-attendance',      [PayrollController::class, 'importAttendance'])->name('importAttendance');
-Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'downloadAttendanceTemplate'])->name('attendanceTemplate');
+            Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'downloadAttendanceTemplate'])->name('attendanceTemplate');
+            Route::delete('/{id}',           [PayrollController::class, 'destroy'])->name('destroy');
+Route::post('/bulk-destroy',     [PayrollController::class, 'destroyBulk'])->name('destroyBulk');
         });
     });
 
@@ -844,6 +879,14 @@ Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'do
             });
         });
 
+
+        Route::group(['middleware' => ['permission:ManageOvertimeRate']], function () {
+        Route::get('/overtime-rate', [OvertimeRateController::class, 'index'])
+            ->name('overtime.rate');
+        Route::post('/overtime-rate', [OvertimeRateController::class, 'store'])->name('overtime-rate.store');
+        Route::match(['GET', 'POST'], '/overtimerates/data', [OvertimeRateController::class, 'getOvertimeRates'])->name('overtimerates.overtimerates');
+    });
+
     // ════════════════════════════════════════════════════════════════
     //   ROSTER & RELATED (di luar grup auth+role utama)
     // ════════════════════════════════════════════════════════════════
@@ -866,13 +909,12 @@ Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'do
 
             Route::get('activities', [RosterController::class, 'getActivities'])->name('activities');
             Route::get('roster/sick-attachment-url', [RosterController::class, 'sickAttachmentUrl'])
-    ->name('sick-attachment-url');
+                ->name('sick-attachment-url');
         });
         Route::middleware(['auth', 'permission:ManageRoster|ManageRosterSPVManager|ViewRoster'])->group(function () {
             Route::get('/',              [RosterController::class, 'index'])->name('index');
             Route::get('/history', [RosterController::class, 'history'])->name('history');
             Route::get('/history/export', [RosterController::class, 'historyExport'])->name('history.export');
-
         });
         Route::middleware(['auth', 'permission:ManageRoster'])->group(function () {
 

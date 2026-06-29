@@ -254,7 +254,7 @@
             <div class="emp-form-card">
                 <div class="emp-form-header">
                     <div class="emp-form-header-icon"><i class="fas fa-edit"></i></div>
-                    <span class="emp-form-header-title">Koreksi data payroll</span>
+                    <span class="emp-form-header-title">Payroll data correction</span>
                     <div class="emp-name-pill">
                         <div class="emp-name-pill-avatar">
                             {{ collect(explode(' ', $payroll->employee->employee_name ?? 'U'))->take(2)->map(fn($w) => strtoupper($w[0]))->implode('') }}
@@ -281,7 +281,7 @@
 
                         {{-- Section 1: Info readonly --}}
                         <div class="form-section">
-                            <div class="form-section-label">Info Payroll</div>
+                            <div class="form-section-label">Payroll Info</div>
                             <div class="info-box">
                                 <div class="info-box-row">
                                     <span>Periode</span>
@@ -292,14 +292,40 @@
                                     <span>{{ $payroll->period_start->format('d/m/Y') }} —
                                         {{ $payroll->period_end->format('d/m/Y') }}</span>
                                 </div>
+                        @if (strtoupper($payroll->employee->status_employee) !== 'DW') 
+
+                                <div class="info-box-row">
+                                    <span>Basic Salary</span>
+                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                    <span>Rp {{ number_format($payroll->basic_salary, 2, ',', '.') }}</span>
+                                </div>
+                                <div class="info-box-row">
+                                    <span>Positional Allowance</span>
+                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                    <span>Rp {{ number_format($payroll->position_allowance, 2, ',', '.') }}</span>
+                                </div>
+                                @endif
+                        @if (strtoupper($payroll->employee->status_employee) == 'DW') 
+
+                                <div class="info-box-row">
+                                    <span>Daily Allowance</span>
+                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                    <span>Rp {{ number_format($payroll->daily_rate, 2, ',', '.') }}</span>
+                                </div>
+                                @endif
                                 <div class="info-box-row">
                                     <span>Gross Salary</span>
-                                    <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span>
+                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                    <span>Rp {{ number_format($payroll->gross_salary, 2, ',', '.') }}</span>
                                 </div>
                                 {{-- <div class="info-box-row">
                                     <span>Working Days</span>
                                     <span>{{ $payroll->working_days }} hari</span>
                                 </div> --}}
+                                <div class="info-box-row">
+                                    <span>Working Days</span>
+                                    <span>{{ $payroll->working_days }} hari</span>
+                                </div>
                                 <div class="info-box-row">
                                     <span>Attendance Days</span>
                                     <span>{{ $payroll->attendance_days }} hari</span>
@@ -321,15 +347,31 @@
                                         <span class="invalid-feedback d-block">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                 @if (strtoupper($payroll->employee->status_employee) !== 'DW')
+
+                                <div class="field-group">
+                                    <label><i class="fas fa-clock"></i>Working Days</label>
+                                    <input type="number" name="working_days"
+                                        class="form-control @error('working_days') is-invalid @enderror"
+                                        value="{{ old('working_days', $payroll->working_days) }}" min="0"
+                                        placeholder="0">
+                                    @error('working_days')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                        @endif
+
                             </div>
                         </div>
+                        
+                        
                         <div class="form-section">
                             <div class="form-section-label">Income Tambahan</div>
                             <div class="field-grid">
                                 <div class="field-group">
                                     <label><i class="fas fa-clock"></i> Overtime</label>
-                                    <input type="number" name="overtime_amount"
-                                        class="form-control @error('overtime_amount') is-invalid @enderror"
+                                    <input type="text" name="overtime_amount"
+                                        class="form-control currency-format @error('overtime_amount') is-invalid @enderror"
                                         value="{{ old('overtime_amount', $payroll->overtime_amount) }}" min="0"
                                         placeholder="0">
                                     @error('overtime_amount')
@@ -338,8 +380,8 @@
                                 </div>
                                 <div class="field-group">
                                     <label><i class="fas fa-receipt"></i> Reimburse</label>
-                                    <input type="number" name="reimburse_amount"
-                                        class="form-control @error('reimburse_amount') is-invalid @enderror"
+                                    <input type="text" name="reimburse_amount"
+                                        class="form-control currency-format @error('reimburse_amount') is-invalid @enderror"
                                         value="{{ old('reimburse_amount', $payroll->reimburse_amount) }}" min="0"
                                         placeholder="0">
                                     @error('reimburse_amount')
@@ -355,21 +397,41 @@
                             <div class="field-grid">
                                 <div class="field-group">
                                     <label><i class="fas fa-gavel"></i> Punishment</label>
-                                    <input type="number" name="punishment_amount"
-                                        class="form-control @error('punishment_amount') is-invalid @enderror"
-                                        value="{{ old('punishment_amount', $payroll->details->where('component.component_name', 'PUNISHMENT')->first()?->amount ?? 0) }}"
+                                    <input type="text" name="punishment"
+                                        class="form-control currency-format @error('punishment') is-invalid @enderror"
+                                        value="{{ old('punishment', $payroll->details->where('component.component_name', 'PUNISHMENT')->first()?->punishment ?? 0) }}"
                                         min="0" placeholder="0">
-                                    @error('punishment_amount')
+                                    @error('punishment')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                <div class="field-group">
+                                    <label><i class="fas fa-gavel"></i>SO Punishment</label>
+                                    <input type="text" name="punishment_so"
+                                        class="form-control currency-format @error('punishment_so') is-invalid @enderror"
+                                        value="{{ old('punishment_so', $payroll->details->where('component.component_name', 'SO PUNISHMENT')->first()?->punishment_so ?? 0) }}"
+                                        min="0" placeholder="0">
+                                    @error('punishment_so')
                                         <span class="invalid-feedback d-block">{{ $message }}</span>
                                     @enderror
                                 </div>
                                 <div class="field-group">
                                     <label><i class="fas fa-hand-holding-dollar"></i> Kasbon / Debt</label>
-                                    <input type="number" name="kasbon_amount"
-                                        class="form-control @error('kasbon_amount') is-invalid @enderror"
-                                        value="{{ old('kasbon_amount', $payroll->details->where('component.component_name', 'DEBT')->first()?->amount ?? 0) }}"
+                                    <input type="text" name="debt"
+                                        class="form-control currency-format @error('debt') is-invalid @enderror"
+                                        value="{{ old('debt', $payroll->details->where('component.component_name', 'DEBT')->first()?->debt ?? 0) }}"
                                         min="0" placeholder="0">
-                                    @error('kasbon_amount')
+                                    @error('debt')
+                                        <span class="invalid-feedback d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                <div class="field-group">
+                                    <label><i class="fas fa-hand-holding-dollar"></i> Tax / Pajak</label>
+                                    <input type="text" name="tax"
+                                        class="form-control currency-format @error('tax') is-invalid @enderror"
+                                        value="{{ old('tax', $payroll->details->where('component.component_name', 'TAX')->first()?->tax ?? 0) }}"
+                                        min="0" placeholder="0">
+                                    @error('tax')
                                         <span class="invalid-feedback d-block">{{ $message }}</span>
                                     @enderror
                                 </div>
@@ -425,7 +487,7 @@
 
                         {{-- Note --}}
                         <div class="form-section">
-                            <div class="form-section-label">Catatan</div>
+                            <div class="form-section-label">Notes</div>
                             <div class="field-group">
                                 <label><i class="fas fa-note-sticky"></i> Note</label>
                                 <textarea name="note" class="form-control" rows="3" style="height:auto" placeholder="Catatan opsional...">{{ old('note', $payroll->note) }}</textarea>
@@ -436,7 +498,7 @@
 
                     <div class="emp-form-footer">
                         <a href="{{ route('payroll.show', $payroll->id) }}" class="btn-back">
-                            <i class="fas fa-arrow-left"></i> Kembali
+                            <i class="fas fa-arrow-left"></i> Back
                         </a>
                         <button type="submit" class="btn-save">
                             <i class="fas fa-floppy-disk"></i> Save
@@ -497,5 +559,60 @@
                 });
             @endif
         });
+
+        // document.querySelectorAll('.currency-format').forEach(function(input) {
+
+        //     // Format saat halaman pertama kali dibuka
+        //     let value = input.value;
+
+        //     if (value && !isNaN(value)) {
+        //         input.value = Number(value).toLocaleString('id-ID', {
+        //             minimumFractionDigits: 2,
+        //             maximumFractionDigits: 2
+        //         });
+        //     }
+
+        //     // Format saat user mengetik
+        //     input.addEventListener('input', function(e) {
+
+        //         let value = e.target.value.replace(/[^\d]/g, '');
+
+        //         if (!value) {
+        //             e.target.value = '';
+        //             return;
+        //         }
+
+        //         value = (parseInt(value, 10) / 100).toFixed(2);
+
+        //         e.target.value = new Intl.NumberFormat('id-ID', {
+        //             minimumFractionDigits: 2,
+        //             maximumFractionDigits: 2
+        //         }).format(value);
+        //     });
+
+        // });
+        document.querySelectorAll('.currency-format').forEach(function(input) {
+    // Format awal
+    let raw = input.value;
+    if (raw && !isNaN(raw)) {
+        input.value = new Intl.NumberFormat('id-ID').format(raw);
+    }
+
+    // Format saat user mengetik
+    input.addEventListener('input', function(e) {
+        let digits = e.target.value.replace(/[^\d]/g, '');
+        if (!digits) {
+            e.target.value = '';
+            return;
+        }
+        e.target.value = new Intl.NumberFormat('id-ID').format(parseInt(digits));
+    });
+});
+        $('form').on('submit', function() {
+    $('.currency-format').each(function() {
+        let val = $(this).val().replace(/\./g, '');
+        $(this).val(parseInt(val) || 0);
+    });
+});
     </script>
 @endpush

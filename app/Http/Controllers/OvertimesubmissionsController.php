@@ -16,17 +16,57 @@ class OvertimesubmissionsController extends Controller
 {
     public function index(Request $request)
     {
-        $user    = Auth::user();
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
         $manager = $user->employee;
-
+        if (!$user->hasPermissionTo('assignment')) {
+            return redirect()->back()->with('error', 'masih bawahan gabole akses yaa.');
+        }
         if (!$manager) {
             return redirect()->back()->with('error', 'Data karyawan tidak ditemukan.');
         }
 
-        $employees = $this->getSubordinates($manager);
-        return view('pages.Toil.assignment', compact('employees', 'manager'));
-    }
+        // $employees = $this->getSubordinates($manager);
+        $myStoreIds = $manager->store()->pluck('stores_tables.id')->toArray();
+    $myDeptIds  = $manager->department()->pluck('departments_tables.id')->toArray();
+    $bawahanIds = $manager->bawahanList()->pluck('employees_tables.id')->toArray();
 
+    // ── Query employee ──
+    $employees = Employee::select('id', 'employee_name', 'employee_pengenal')
+     ->with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
+        ->whereNull('deleted_at')
+        ->whereIn('status', ['Active', 'Pending', 'On Leave'])
+        ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds) {
+            // Kepunyaan sendiri: store + department sama
+            $q->where(function ($q1) use ($myStoreIds, $myDeptIds) {
+                $q1->whereHas('store', fn($sq) =>
+                    $sq->whereIn('stores_tables.id', $myStoreIds)
+                )
+                ->whereHas('department', fn($dq) =>
+                    $dq->whereIn('departments_tables.id', $myDeptIds)
+                );
+            });
+            // Atau bawahan langsung (beda company/store tetap muncul)
+            if (!empty($bawahanIds)) {
+                $q->orWhereIn('id', $bawahanIds);
+            }
+        })
+        ->orderBy('employee_name')
+        ->get();
+        $today = now();
+
+if ($today->day >= 26) {
+    $minDate = $today->copy()->day(26);
+    $maxDate = $today->copy()->addMonth()->day(25);
+} else {
+    $minDate = $today->copy()->subMonth()->day(26);
+    $maxDate = $today->copy()->day(25);
+}
+
+
+        return view('pages.Toil.assignment', compact('employees', 'manager','minDate',
+    'maxDate'));
+    }
     public function getData(Request $request)
     {
         $user    = Auth::user();
@@ -79,8 +119,37 @@ class OvertimesubmissionsController extends Controller
         $validated = $request->validate([
             'employee_ids'      => 'required|array|min:1',
             'employee_ids.*'    => 'exists:employees_tables,id',
-            'date'              => 'required|date',
-            'end_date'          => 'required|date|after_or_equal:date',
+           
+'date' => [
+    'required',
+    'date',
+    function ($attribute, $value, $fail) {
+        $date = Carbon::parse($value);
+
+        if ($date->day < 26) {
+            $fail('Tanggal mulai harus tanggal 26 atau setelahnya.');
+        }
+    }
+],
+'end_date' => [
+    'required',
+    'date',
+    'after_or_equal:date',
+    function ($attribute, $value, $fail) use ($request) {
+
+        $start = Carbon::parse($request->date);
+        $end   = Carbon::parse($value);
+
+        $maxEnd = $start->copy()
+            ->addMonthNoOverflow()
+            ->day(25);
+
+        if ($end->gt($maxEnd)) {
+            $fail("Tanggal selesai maksimal {$maxEnd->format('d-m-Y')}.");
+        }
+    }
+],
+
             'start_time'        => 'nullable|date_format:H:i',
             'end_time'          => 'nullable|date_format:H:i',
             'total_hours'       => 'required|numeric|min:0.5|max:24',
@@ -95,10 +164,45 @@ class OvertimesubmissionsController extends Controller
             return response()->json(['success' => false, 'message' => 'Data karyawan tidak ditemukan.'], 403);
         }
 
-        $validSubordinateIds = $this->getSubordinates($manager)
-            ->where('status', 'Active')
-            ->pluck('id')
-            ->toArray();
+        // $validSubordinateIds = $this->getSubordinates($manager)
+        //     ->where('status', 'Active')
+        //     ->pluck('id')
+        //     ->toArray();
+        $myStoreIds = $manager->store()->pluck('stores_tables.id')->toArray();
+$myDeptIds  = $manager->department()->pluck('departments_tables.id')->toArray();
+$bawahanIds = $manager->bawahanList()->pluck('employees_tables.id')->toArray();
+
+$validSubordinateIds = Employee::select('id')
+    ->whereNull('deleted_at')
+    ->whereIn('status', ['Active', 'Pending', 'On Leave'])
+    ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds) {
+        $q->where(function ($q1) use ($myStoreIds, $myDeptIds) {
+            $q1->whereHas('store', fn($sq) =>
+                $sq->whereIn('stores_tables.id', $myStoreIds)
+            )
+            ->whereHas('department', fn($dq) =>
+                $dq->whereIn('departments_tables.id', $myDeptIds)
+            );
+        });
+        if (!empty($bawahanIds)) {
+            $q->orWhereIn('id', $bawahanIds);
+        }
+    })
+    ->pluck('id')
+    ->toArray();
+
+$invalidIds = array_diff($validated['employee_ids'], $validSubordinateIds);
+
+if (!empty($invalidIds)) {
+    $invalidNames = Employee::whereIn('id', $invalidIds)
+        ->pluck('employee_name')
+        ->toArray();
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Karyawan berikut tidak terdaftar sebagai bawahan Anda: ' . implode(', ', $invalidNames),
+    ], 422);
+}
 
         $invalidIds = array_diff($validated['employee_ids'], $validSubordinateIds);
 
@@ -165,6 +269,9 @@ class OvertimesubmissionsController extends Controller
         ]);
 
         $submission = Overtimesubmissions::with('balance')->findOrFail($id);
+         if ($submission->status === 'Approved HR') {
+        return back()->with('error', 'Overtime sudah diproses ke payroll, tidak bisa diedit.');
+    }
 
         $manager = Auth::user()->employee;
         if ($submission->approver_id !== $manager->id) {
@@ -208,6 +315,9 @@ class OvertimesubmissionsController extends Controller
     public function destroy($id)
     {
         $submission = Overtimesubmissions::with('balance')->findOrFail($id);
+            if ($submission->status === 'Approved HR') {
+        return back()->with('error', 'Overtime sudah diproses ke payroll, tidak bisa diedit.');
+    }
         $manager    = Auth::user()->employee;
 
         if ($submission->approver_id !== $manager->id) {

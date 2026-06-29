@@ -55,7 +55,6 @@
         font-size: 0.75rem;
         font-weight: 600;
         color: #6b7280;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 0.5rem;
     }
@@ -71,10 +70,21 @@
         color: #9ca3af;
     }
 
-    .summary-card.cash .value { color: #10b981; }
-    .summary-card.toil .value { color: #5e72e4; }
-    .summary-card.used .value { color: #f59e0b; }
-    .summary-card.expired .value { color: #ef4444; }
+    .summary-card.cash .value {
+        color: #10b981;
+    }
+
+    .summary-card.toil .value {
+        color: #5e72e4;
+    }
+
+    .summary-card.used .value {
+        color: #f59e0b;
+    }
+
+    .summary-card.expired .value {
+        color: #ef4444;
+    }
 
     /* Info Banner */
     .info-banner {
@@ -100,13 +110,40 @@
         border-radius: 0.375rem;
     }
 
-    .badge-cash { background-color: #d1fae5; color: #065f46; }
-    .badge-toil { background-color: #dbeafe; color: #1e40af; }
-    .badge-status-active { background-color: #d1fae5; color: #065f46; }
-    .badge-status-expired { background-color: #fee2e2; color: #991b1b; }
-    .badge-status-fully_used { background-color: #e5e7eb; color: #374151; }
-    .badge-status-paid { background-color: #fef3c7; color: #92400e; }
-    .badge-status-cancelled { background-color: #f3f4f6; color: #6b7280; }
+    .badge-cash {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-toil {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-status-active {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-status-expired {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-status-fully_used {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+
+    .badge-status-paid {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-status-cancelled {
+        background-color: #f3f4f6;
+        color: #6b7280;
+    }
 
     /* Table Styles */
     .table-responsive {
@@ -114,13 +151,16 @@
         overflow: hidden;
     }
 
-    .table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
 
     .table thead th {
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -145,7 +185,9 @@
         background: #fff;
     }
 
-    .text-center { text-align: center; }
+    .text-center {
+        text-align: center;
+    }
 
     table.dataTable {
         width: 100% !important;
@@ -169,15 +211,34 @@
     }
 
     /* Days left coloring */
-    .days-left-warning { color: #f59e0b; font-weight: 600; }
-    .days-left-danger { color: #ef4444; font-weight: 600; }
-    .days-left-ok { color: #10b981; font-weight: 600; }
+    .days-left-warning {
+        color: #f59e0b;
+        font-weight: 600;
+    }
+
+    .days-left-danger {
+        color: #ef4444;
+        font-weight: 600;
+    }
+
+    .days-left-ok {
+        color: #10b981;
+        font-weight: 600;
+    }
 
     /* Responsive */
     @media (max-width: 768px) {
-        .table-responsive { padding: 0 0.75rem; }
-        .card-header { padding: 1rem; }
-        .summary-card .value { font-size: 1.5rem; }
+        .table-responsive {
+            padding: 0 0.75rem;
+        }
+
+        .card-header {
+            padding: 1rem;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+        }
     }
 </style>
 
@@ -222,13 +283,50 @@
                     </div>
                 </div>
 
-                {{-- ── Tabel List Saldo ── --}}
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-list"></i> TOIL Balance Detail</h6>
-                            </div>
+                            <div class="card-header" style="display:block">
+    <h6 class="mb-3"><i class="fas fa-list"></i> TOIL Balance Detail</h6>
+    <div class="d-flex flex-wrap align-items-end" style="gap:10px">
+        <div style="width:160px">
+            <label class="small text-muted d-block mb-1">Start Date</label>
+            <input type="date" class="form-control form-control-sm" id="filter-start-date">
+        </div>
+        <div style="width:160px">
+            <label class="small text-muted d-block mb-1">End Date</label>
+            <input type="date" class="form-control form-control-sm" id="filter-end-date">
+        </div>
+        <div style="width:120px">
+            <label class="small text-muted d-block mb-1">Type</label>
+            <select id="filter-type" class="form-control form-control-sm">
+                <option value="">All</option>
+                <option value="Cash">Cash</option>
+                <option value="Toil">Toil</option>
+            </select>
+        </div>
+        <div style="width:130px">
+            <label class="small text-muted d-block mb-1">Status</label>
+            <select id="filter-status" class="form-control form-control-sm">
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="fully_used">Fully Used</option>
+                <option value="paid">Paid</option>
+            </select>
+        </div>
+        <div class="d-flex align-items-end" style="gap:6px;padding-bottom:1px">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-filter">
+                <i class="fas fa-search"></i> Apply
+            </button>
+        </div>
+    </div>
+</div>
+                         
+                          
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="balance-table">
@@ -250,6 +348,10 @@
                         </div>
                     </div>
                 </div>
+
+
+
+
 
             </div>
         </section>
@@ -277,13 +379,21 @@
                 ajax: {
                     url: '{{ route('toil.balance.data') }}',
                     type: 'GET',
+                     data: function(d) {                          // ← tambah ini
+            d.start_date        = $('#filter-start-date').val();
+            d.end_date          = $('#filter-end-date').val();
+            d.compensation_type = $('#filter-type').val();
+            d.status            = $('#filter-status').val();
+        },
                     dataSrc: function(json) {
                         updateSummary(json.summary);
                         return json.data;
                     }
                 },
-                
-                order: [[5, 'asc']],
+
+                order: [
+                    [5, 'asc']
+                ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -293,8 +403,7 @@
                     searchPlaceholder: "Search...",
                     emptyTable: "Belum ada saldo TOIL. Saldo akan otomatis terbuat saat manager assign overtime."
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'date',
                         className: 'text-center'
                     },
@@ -306,8 +415,14 @@
                             return '<span class="badge-type ' + cls + '">' + data + '</span>';
                         }
                     },
-                    { data: 'earned_hours', className: 'text-center' },
-                    { data: 'used_hours', className: 'text-center' },
+                    {
+                        data: 'earned_hours',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'used_hours',
+                        className: 'text-center'
+                    },
                     {
                         data: 'remaining_hours',
                         className: 'text-center',
@@ -315,7 +430,10 @@
                             return '<strong>' + data + '</strong>';
                         }
                     },
-                    { data: 'expires_at', className: 'text-center' },
+                    {
+                        data: 'expires_at',
+                        className: 'text-center'
+                    },
                     {
                         data: 'days_left',
                         className: 'text-center',
@@ -334,11 +452,22 @@
                         className: 'text-center',
                         render: function(data) {
                             if (!data) return '<span class="text-muted">-</span>';
-                            return '<span class="badge-type badge-status-' + data + '">' + data.toUpperCase() + '</span>';
+                            return '<span class="badge-type badge-status-' + data + '">' + data
+                                .toUpperCase() + '</span>';
                         }
                     }
                 ]
             });
+$('#btn-filter').on('click', function() {
+    table.ajax.reload();
+});
+$('#btn-reset').on('click', function() {
+    $('#filter-start-date').val('');
+    $('#filter-end-date').val('');
+    $('#filter-type').val('');
+    $('#filter-status').val('');
+    table.ajax.reload();
+});
 
             // ── Update Summary Cards ──
             function updateSummary(summary) {

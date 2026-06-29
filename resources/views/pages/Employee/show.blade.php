@@ -467,6 +467,16 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                <div class="field-group">
+                                    <label><i class="fas fa-id-card"></i> KK Number</label>
+                                    <input type="text" name="kk_number" id="kk_number"
+                                        class="form-control @error('kk_number') is-invalid @enderror"
+                                        value="{{ old('kk_number', $employee->Employee->kk_number ?? '') }}" placeholder="KK Number"
+                                        maxlength="30" disabled>
+                                    @error('kk_number')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
                                 @endcan
                                 <div class="field-group">
                                     <label><i class="fas fa-mosque"></i> Religion</label>
@@ -1024,7 +1034,8 @@
                                     onclick="showImageSwal(document.getElementById('preview-photos').src)">
                                     @if (!empty($employee->employee->photos))
                                         <img id="preview-photos"
-                                            src="{{ route('employee.photo', basename($employee->employee->photos)) }}"
+                                            {{-- src="{{ route('employee.photo', basename($employee->employee->photos)) }}" --}}
+                                            src="{{ route('useremployee.photo', basename($employee->employee->photos)) }}"
                                             alt="Preview">
                                     @else
                                         <img id="preview-photos" src="" alt="" style="display:none;">
@@ -1058,7 +1069,8 @@
                                     onclick="showImageSwal(document.getElementById('preview-ktp-photos').src)">
                                     @if (!empty($employee->employee->ktp_photos))
                                         <img id="preview-ktp-photos"
-                                            src="{{ route('employee.ktp', basename($employee->employee->ktp_photos)) }}"
+                                            {{-- src="{{ route('employee.ktp', basename($employee->employee->ktp_photos)) }}" --}}
+                                            src="{{ route('useremployeektp.photo', basename($employee->employee->ktp_photos)) }}"
                                             alt="Preview">
                                     @else
                                         <img id="preview-ktp-photos" src="" alt=""
@@ -1089,7 +1101,8 @@
                                     onclick="showImageSwal(document.getElementById('preview-kk-photos').src)">
                                     @if (!empty($employee->employee->kk_photos))
                                         <img id="preview-kk-photos"
-                                            src="{{ route('employee.kk', basename($employee->employee->kk_photos)) }}"
+                                            {{-- src="{{ route('employee.kk', basename($employee->employee->kk_photos)) }}" --}}
+                                            src="{{ route('useremployeekk.photo', basename($employee->employee->kk_photos)) }}"
                                             alt="Preview">
                                     @else
                                         <img id="preview-kk-photos" src="" alt="" style="display:none;">
@@ -1161,7 +1174,8 @@
                                     onclick="showImageSwal(document.getElementById('preview-signature').src)">
                                     @if (!empty($employee->employee->signature))
                                         <img id="preview-signature"
-                                            src="{{ route('employee.signature', basename($employee->employee->signature)) }}"
+                                            src="{{ route('useremployeesignature.photo', basename($employee->employee->signature)) }}"
+                                            {{-- src="{{ route('employee.signature', basename($employee->employee->signature)) }}" --}}
                                             alt="Preview">
                                     @else
                                         <img id="preview-signature" src="" alt="" style="display:none;">

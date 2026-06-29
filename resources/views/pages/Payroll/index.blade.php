@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Payroll — {{ $period->period_label }}')
+@section('title', 'Payroll')
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -170,23 +170,23 @@
 
         /* Toolbar */
         /* .dt-toolbar {
-            padding: .75rem 1.25rem;
-            border-bottom: 1px solid #f1f5f9;
-            background: #fafafa;
+                    padding: .75rem 1.25rem;
+                    border-bottom: 1px solid #f1f5f9;
+                    background: #fafafa;
+                    display: flex;
+                    align-items: center;
+                    gap: .5rem;
+                    flex-wrap: nowrap;
+                } */
+        .dt-toolbar {
             display: flex;
-            align-items: center;
-            gap: .5rem;
-            flex-wrap: nowrap;
-        } */
-         .dt-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  margin-bottom: 16px;
-}
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
 
         .dt-toolbar .btn {
             height: 32px;
@@ -199,67 +199,69 @@
         }
 
         /* .dt-toolbar select {
-            height: 32px;
-            font-size: .775rem;
-            border: 1px solid #e2e8f0;
-            border-radius: .4rem;
-            padding: 0 .6rem;
-        } */
-         .dt-toolbar select,
-.dt-toolbar button {
-  min-height: 38px;
-  font-size: 14px;
-  padding: 6px 10px;
-}
-.dt-toolbar select {
-  flex: 1;
-  min-width: 120px;
-}
+                    height: 32px;
+                    font-size: .775rem;
+                    border: 1px solid #e2e8f0;
+                    border-radius: .4rem;
+                    padding: 0 .6rem;
+                } */
+        .dt-toolbar select,
+        .dt-toolbar button {
+            min-height: 38px;
+            font-size: 14px;
+            padding: 6px 10px;
+        }
 
-.dt-toolbar button {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.dt-toolbar .flex-spacer {
-  flex: 1;
-}
+        .dt-toolbar select {
+            flex: 1;
+            min-width: 120px;
+        }
 
-/* Mobile: Stack everything vertically */
-@media (max-width: 768px) {
-  .dt-toolbar {
-    flex-direction: column;
-    gap: 10px;
-  }
+        .dt-toolbar button {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
 
-  .dt-toolbar select,
-  .dt-toolbar button {
-    width: 100%;
-    min-height: 44px;
-    font-size: 16px;
-  }
+        .dt-toolbar .flex-spacer {
+            flex: 1;
+        }
 
-  .dt-toolbar .flex-spacer {
-    display: none;
-  }
+        /* Mobile: Stack everything vertically */
+        @media (max-width: 768px) {
+            .dt-toolbar {
+                flex-direction: column;
+                gap: 10px;
+            }
 
-  .dt-toolbar button {
-    padding: 10px;
-  }
-}
+            .dt-toolbar select,
+            .dt-toolbar button {
+                width: 100%;
+                min-height: 44px;
+                font-size: 16px;
+            }
 
-/* Tablet: 2 columns */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .dt-toolbar select {
-    flex: 0 1 calc(50% - 4px);
-  }
-}
+            .dt-toolbar .flex-spacer {
+                display: none;
+            }
 
-/* Desktop: Original layout */
-@media (min-width: 1025px) {
-  .dt-toolbar select {
-    flex: 0 0 auto;
-  }
-}
+            .dt-toolbar button {
+                padding: 10px;
+            }
+        }
+
+        /* Tablet: 2 columns */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .dt-toolbar select {
+                flex: 0 1 calc(50% - 4px);
+            }
+        }
+
+        /* Desktop: Original layout */
+        @media (min-width: 1025px) {
+            .dt-toolbar select {
+                flex: 0 0 auto;
+            }
+        }
 
         /* Bulk action bar */
         .bulk-bar {
@@ -443,10 +445,10 @@
                             <i class="fas fa-cog"></i> Generate Payroll
                         </a>
                         <button class="btn btn-warning" data-toggle="modal" data-target="#importAttendanceModal">
-                            <i class="fas fa-file-import"></i> Import Attendance
+                            <i class="fas fa-file-import"></i> Import External Data
                         </button>
                         <a href="{{ route('payroll.attendanceTemplate', $period->id) }}" class="btn btn-light">
-                            <i class="fas fa-download"></i> Download Template Attendance
+                            <i class="fas fa-download"></i> Download Template External Data
                         </a>
                     @endif
 
@@ -514,114 +516,93 @@
                     <span class="emp-card-header-count" id="record-count">— records</span>
                 </div>
 
-                {{-- Toolbar --}}
-                {{-- <div class="dt-toolbar">
-                    <select id="filter-status" style="width:120px">
-                        <option value="">Semua Status</option>
+
+                <div class="dt-toolbar">
+                    <select id="filter-status">
+                        <option value="">All Statuses</option>
                         <option value="draft">Draft</option>
                         <option value="approved">Approved</option>
                         <option value="paid">Paid</option>
                     </select>
-                    <select id="filter-company" style="width:150px">
-                        <option value="">Semua Company</option>
+
+                    <select id="filter-company">
+                        <option value="">All Companies</option>
                         @foreach ($companies as $company)
                             <option value="{{ $company->name }}">{{ $company->name }}</option>
                         @endforeach
                     </select>
-                    <select id="filter-department" style="width:150px">
-                        <option value="">Semua Departments</option>
+
+                    <select id="filter-department">
+                        <option value="">All Departments</option>
                         @foreach ($departments as $department)
                             <option value="{{ $department->department_name }}">{{ $department->department_name }}</option>
                         @endforeach
                     </select>
-                    <select id="filter-grading" style="width:150px">
-                        <option value="">Semua Gradings</option>
+
+                    <select id="filter-grading">
+                        <option value="">All Gradings</option>
                         @foreach ($gradings as $grading)
                             <option value="{{ $grading->grading_name }}">{{ $grading->grading_name }}</option>
                         @endforeach
                     </select>
-                    <select id="filter-status-employee" style="width:150px">
-                        <option value="">Semua Tipe</option>
+
+                    <select id="filter-status-employee">
+                        <option value="">All Type</option>
                         <option value="PKWT">PKWT</option>
                         <option value="On Job Training">On Job Training</option>
                         <option value="DW">Daily Worker</option>
                     </select>
-                    <select id="filter-store" style="width:150px">
-                        <option value="">Semua Store</option>
+
+                    <select id="filter-store">
+                        <option value="">All Location</option>
                         @foreach ($stores as $store)
                             <option value="{{ $store->name }}">{{ $store->name }}</option>
                         @endforeach
                     </select>
-                    <button class="btn btn-light" id="btn-search"><i class="fas fa-search"></i> Cari</button>
-                    <button class="btn btn-light" id="btn-reset"><i class="fas fa-redo"></i> Reset</button>
-                    <div style="flex:1"></div>
-                    <button class="btn btn-success btn-sm" id="btn-bulk-approve" style="display:none">
-                        <i class="fas fa-check-double"></i> Bulk Approve
+                    <select id="filter-untuk-active-inactive">
+                        <option value="">All Emp. Status</option>
+                        @foreach ($statuses as $value => $label)
+                            <option value="{{ $value }}">
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <button class="btn btn-light" id="btn-search">
+                        <i class="fas fa-search"></i> Search
                     </button>
-                </div> --}}
-                <div class="dt-toolbar">
-  <select id="filter-status">
-    <option value="">All Statuses</option>
-    <option value="draft">Draft</option>
-    <option value="approved">Approved</option>
-    <option value="paid">Paid</option>
-  </select>
 
-  <select id="filter-company">
-    <option value="">All Companies</option>
-    @foreach ($companies as $company)
-      <option value="{{ $company->name }}">{{ $company->name }}</option>
-    @endforeach
-  </select>
+                    <button class="btn btn-light" id="btn-reset">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
 
-  <select id="filter-department">
-    <option value="">All Departments</option>
-    @foreach ($departments as $department)
-      <option value="{{ $department->department_name }}">{{ $department->department_name }}</option>
-    @endforeach
-  </select>
+                    <div class="flex-spacer"></div>
 
-  <select id="filter-grading">
-    <option value="">All Gradings</option>
-    @foreach ($gradings as $grading)
-      <option value="{{ $grading->grading_name }}">{{ $grading->grading_name }}</option>
-    @endforeach
-  </select>
-
-  <select id="filter-status-employee">
-    <option value="">All Type</option>
-    <option value="PKWT">PKWT</option>
-    <option value="On Job Training">On Job Training</option>
-    <option value="DW">Daily Worker</option>
-  </select>
-
-  <select id="filter-store">
-    <option value="">All Location</option>
-    @foreach ($stores as $store)
-      <option value="{{ $store->name }}">{{ $store->name }}</option>
-    @endforeach
-  </select>
-
-  <button class="btn btn-light" id="btn-search">
-    <i class="fas fa-search"></i> Search
-  </button>
-
-  <button class="btn btn-light" id="btn-reset">
-    <i class="fas fa-redo"></i> Reset
-  </button>
-
-  <div class="flex-spacer"></div>
-
-  <button class="btn btn-success btn-sm" id="btn-bulk-approve" style="display:none">
-    <i class="fas fa-check-double"></i> Bulk Approve
-  </button>
-</div>
+                    {{-- <button class="btn btn-success btn-sm" id="btn-bulk-approve" style="display:none">
+                        <i class="fas fa-check-double"></i> Bulk Approve
+                    </button> --}}
+                </div>
 
                 {{-- Bulk action bar --}}
+                {{-- <div class="bulk-bar" id="bulk-bar">
+                    <span class="bulk-bar-count"><span id="selected-count">0</span> dipilih</span>
+                    <button class="btn btn-success" id="btn-do-bulk-approve">
+                        <i class="fas fa-check-double"></i> Approve All
+                    </button>
+                     <button class="btn btn-danger" id="btn-do-bulk-delete">
+        <i class="fas fa-trash"></i> Delete All
+    </button>
+                    <button class="btn btn-light" id="btn-clear-select">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div> --}}
                 <div class="bulk-bar" id="bulk-bar">
                     <span class="bulk-bar-count"><span id="selected-count">0</span> dipilih</span>
                     <button class="btn btn-success" id="btn-do-bulk-approve">
-                        <i class="fas fa-check-double"></i> Approve Semua
+                        <i class="fas fa-check-double"></i> Approve
+                    </button>
+                    <button class="btn btn-danger" id="btn-do-bulk-delete">
+                        <i class="fas fa-trash"></i> Hapus
                     </button>
                     <button class="btn btn-light" id="btn-clear-select">
                         <i class="fas fa-times"></i> Batal
@@ -635,6 +616,7 @@
                             <tr>
                                 <th><input type="checkbox" id="check-all"></th>
                                 <th>#</th>
+                                <th>NIP</th>
                                 <th>Employee</th>
                                 <th>Company</th>
                                 <th>Department</th>
@@ -642,11 +624,29 @@
                                 <th>Location</th>
                                 <th>Position</th>
                                 <th>Tipe</th>
-                                <th>Absensi</th>
+                                <th>Emp. Status</th>
+                                <th>Wrk Days</th>
+                                <th>Attndnce</th>
+                                <th class="num">Basic Salary</th>
+                                <th class="num">Pos Allowance</th>
+                                <th class="num">Daily Rate</th>
                                 <th class="num">Gross</th>
-                                <th class="num">Potongan</th>
+                                <th class="num">Meal All</th>
+                                <th class="num">Trans All</th>
+                                <th class="num">House All</th>
+                                <th class="num">Overtime</th>
+                                <th class="num">Reimburse</th>
+                                <th class="num">Income</th>
+
+                                <th class="num">BPJS Kes</th>
+                                <th class="num">BPJS Ket</th>
+                                <th class="num">Punish</th>
+                                <th class="num">SO Punish</th>
+                                <th class="num">Debt</th>
+                                <th class="num">Tax</th>
+                                <th class="num">Deduction</th>
                                 <th class="num">Net Salary</th>
-                                <th>Prorate</th>
+                                {{-- <th>Prorate</th> --}}
                                 <th>Status</th>
                                 <th style="text-align:center">Action</th>
                             </tr>
@@ -668,7 +668,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-file-import"></i> Import Attendance
+                        <i class="fas fa-file-import"></i> Import External Data
                     </h5>
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
@@ -678,7 +678,7 @@
                     <div class="modal-body">
                         <div class="alert alert-info" style="font-size:.8rem">
                             <i class="fas fa-info-circle"></i>
-                            Download template dulu, isi kolom <code>attendance_days</code>,
+                            Download template dulu, isi kolom <code>reamburse_amount, punishment, punishment_so, debt, tax</code>,
                             lalu upload di sini.
                         </div>
                         <div class="form-group">
@@ -710,17 +710,25 @@
             const table = $('#payroll-table').DataTable({
                 processing: true,
                 serverSide: true,
+                // scrollX: true,
+
+
                 ajax: {
                     url: '{{ route('payroll.data', $period->id) }}',
                     data: function(d) {
                         d.status = $('#filter-status').val();
-                        d.status_employee = $('#filter-status-employee').val();
+                        d.status_type = $('#filter-status-employee').val();
+                        d.status_employee = $('#filter-untuk-active-inactive').val();
                         d.store_name = $('#filter-store').val();
                         d.company_name = $('#filter-company').val();
                         d.department_name = $('#filter-department').val();
                         d.grading_name = $('#filter-grading').val();
                     }
                 },
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'All']
+                ],
                 columns: [{
                         data: null,
                         orderable: false,
@@ -735,37 +743,14 @@
                         orderable: false,
                         searchable: false,
                     },
+
+                    {
+                        data: 'employee_pengenal',
+                        defaultContent: '-'
+                    },
                     {
                         data: 'employee_name',
-                        render: (data, type, row) => {
-                            const initials = data.split(' ').slice(0, 2)
-                                .map(w => w[0].toUpperCase()).join('');
-                            const colors = {
-                                'PKWT': {
-                                    bg: '#eff6ff',
-                                    color: '#1e40af'
-                                },
-                                'On Job Training': {
-                                    bg: '#fdf4ff',
-                                    color: '#6b21a8'
-                                },
-                                'DW': {
-                                    bg: '#fffbeb',
-                                    color: '#92400e'
-                                },
-                            };
-                            const c = colors[row.status_employee] ?? {
-                                bg: '#f1f5f9',
-                                color: '#475569'
-                            };
-                            return `<div class="emp-cell">
-                                <div class="emp-avatar" style="background:${c.bg};color:${c.color}">${initials}</div>
-                                <div>
-                                    <div class="emp-avatar-name">${data}</div>
-                                    <div class="emp-avatar-id">${row.employee_pengenal ?? '-'}</div>
-                                </div>
-                            </div>`;
-                        }
+                        defaultContent: '-'
                     },
                     {
                         data: 'company_name',
@@ -788,15 +773,20 @@
                         defaultContent: '-'
                     },
                     {
-                        data: 'status_employee_badge',
+                        data: 'status_type_badge',
                         orderable: false
                     },
-                    // {
-                    //     data: null,
-                    //     render: (d, t, row) =>
-                    //         `<span style="font-size:.78rem">${row.attendance_days} / ${row.working_days} hari</span>`,
-                    //     orderable: false,
-                    // },
+                    {
+                        data: 'status_employee',
+                        orderable: false
+                    },
+
+                    {
+                        data: null,
+                        render: (d, t, row) =>
+                            `<span style="font-size:.78rem">${row.working_days} hari</span>`,
+                        orderable: false,
+                    },
                     {
                         data: null,
                         render: (d, t, row) =>
@@ -804,9 +794,72 @@
                         orderable: false,
                     },
                     {
+                        data: 'basic_salary_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'position_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'daily_rate_fmt',
+                        className: 'num'
+                    },
+                    {
                         data: 'gross_salary_fmt',
                         className: 'num'
                     },
+                    {
+                        data: 'meal_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'transport_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'house_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'overtime_amount_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'reimburse_amount_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'total_income_fmt',
+                        className: 'num',
+                        render: d => `<span style="color:#16a34a">${d}</span>`
+                    },
+                    {
+                        data: 'bpjs_kesehatan_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'bpjs_ketenagakerjaan_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'punishment_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'punishment_so_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'debt_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'tax_fmt',
+                        className: 'num'
+                    },
+
+
                     {
                         data: 'total_deduction_fmt',
                         className: 'num',
@@ -817,11 +870,7 @@
                         className: 'num',
                         render: d => `<strong>${d}</strong>`
                     },
-                    {
-                        data: 'prorate_info',
-                        orderable: false,
-                        defaultContent: '-'
-                    },
+
                     {
                         data: 'status_badge',
                         orderable: false
@@ -848,11 +897,11 @@
                 ],
                 pageLength: 25,
             });
-
             // ── Filter ──
             $('#btn-search').on('click', () => table.ajax.reload());
             $('#btn-reset').on('click', () => {
-                $('#filter-status, #filter-status-employee, #filter-store, #filter-company, #filter-department, #filter-grading').val('');
+                $('#filter-status, #filter-status-employee, #filter-store, #filter-company, #filter-department, #filter-grading, #filter-untuk-active-inactive')
+                    .val('');
                 table.ajax.reload();
             });
 
@@ -866,15 +915,16 @@
                 updateBulkBar();
             });
 
+
             function updateBulkBar() {
                 const count = $('.row-check:checked').length;
                 $('#selected-count').text(count);
                 if (count > 0) {
                     $('#bulk-bar').addClass('show');
-                    $('#btn-bulk-approve').show();
+                    // ← hapus $('#btn-bulk-approve').show();
                 } else {
                     $('#bulk-bar').removeClass('show');
-                    $('#btn-bulk-approve').hide();
+                    // ← hapus $('#btn-bulk-approve').hide();
                 }
             }
 
@@ -954,6 +1004,110 @@
                                 icon: 'error',
                                 title: 'Gagal!',
                                 text: err.responseJSON?.error ?? 'Terjadi kesalahan.'
+                            });
+                        });
+                });
+            });
+
+            $(document).on('click', '.btn-delete-single', function() {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Hapus Payroll?',
+                    text: 'Data payroll dan detail akan dihapus permanen.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.ajax({
+                        url: '{{ url('payroll') }}/' + id,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            _method: 'DELETE',
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Dihapus!',
+                                    text: res.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                table.ajax.reload(null, false);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: res.message
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: xhr.responseJSON?.message ??
+                                    'Terjadi kesalahan.'
+                            });
+                        }
+                    });
+                });
+            });
+
+            // ── Bulk delete ──
+            $('#btn-do-bulk-delete').on('click', function() {
+                const ids = $('.row-check:checked').map((i, el) => $(el).data('id')).get();
+
+                if (ids.length === 0) return;
+
+                Swal.fire({
+                    title: `Hapus ${ids.length} Payroll?`,
+                    text: 'Semua data payroll dan detail yang dipilih akan dihapus permanen.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Hapus Semua!',
+                    cancelButtonText: 'Batal',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ route('payroll.destroyBulk') }}', {
+                            _token: '{{ csrf_token() }}',
+                            ids: ids,
+                        })
+                        .done(res => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Dihapus!',
+                                    text: res.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                $('.row-check, #check-all').prop('checked', false);
+                                updateBulkBar();
+                                table.ajax.reload(null, false);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: res.message
+                                });
+                            }
+                        })
+                        .fail(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.responseJSON?.message ?? 'Terjadi kesalahan.'
                             });
                         });
                 });

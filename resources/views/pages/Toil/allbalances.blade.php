@@ -57,7 +57,6 @@
         font-size: 0.75rem;
         font-weight: 600;
         color: #6b7280;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 0.5rem;
     }
@@ -132,7 +131,6 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -279,16 +277,16 @@
                 {{-- ════════════════════════════════════════ --}}
                 {{-- Filter Bar                                --}}
                 {{-- ════════════════════════════════════════ --}}
-                <div class="filter-card">
+                {{-- <div class="filter-card">
                     <h6 style="font-weight: 600; color: #4a5568; margin-bottom: 1rem;">
                         <i class="fas fa-filter"></i> Filter
                     </h6>
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label>Store</label>
+                                <label>Location</label>
                                 <select class="form-control form-control-sm select2-store" id="filter-store">
-                                    <option value="">Semua Store</option>
+                                    <option value="">All Locations</option>
                                     @foreach ($stores as $store)
                                         <option value="{{ $store->id }}">{{ $store->name }}</option>
                                     @endforeach
@@ -299,7 +297,7 @@
                             <div class="form-group">
                                 <label>Status</label>
                                 <select class="form-control form-control-sm select2-status" id="filter-status">
-                                    <option value="">Semua</option>
+                                    <option value="">All Statuses</option>
                                     <option value="active">Active</option>
                                     <option value="fully_used">Fully Used</option>
                                     <option value="expired">Expired</option>
@@ -321,12 +319,12 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
                 {{-- ════════════════════════════════════════ --}}
                 {{-- DataTable                                 --}}
                 {{-- ════════════════════════════════════════ --}}
-                <div class="row">
+                {{-- <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
@@ -337,8 +335,9 @@
                                     <table class="table table-hover" id="all-balances-table">
                                         <thead>
                                             <tr>
-                                                <th>Employee Name</th>
-                                                <th class="text-center">Store</th>
+                                                <th class="text-center">Employee Name</th>
+                                                <th class="text-center">NIP</th>
+                                                <th class="text-center">Location</th>
                                                 <th class="text-center">Ovt Date</th>
                                                 <th class="text-center">Type</th>
                                                 <th class="text-center">Earned</th>
@@ -354,7 +353,73 @@
                             </div>
                         </div>
                     </div>
+                </div> --}}
+                <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="display:block">
+                <h6 class="mb-3"><i class="fas fa-list"></i> All TOIL Balances</h6>
+                <div class="d-flex flex-wrap align-items-end" style="gap:10px">
+                    <div style="width:180px">
+                        <label class="small text-muted d-block mb-1">Location</label>
+                        <select class="form-control form-control-sm select2-store" id="filter-store">
+                            <option value="">All Locations</option>
+                            @foreach ($stores as $store)
+                                <option value="{{ $store->id }}">{{ $store->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div style="width:150px">
+                        <label class="small text-muted d-block mb-1">Status</label>
+                        <select class="form-control form-control-sm select2-status" id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="fully_used">Fully Used</option>
+                            <option value="expired">Expired</option>
+                            <option value="paid">Paid</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div style="width:160px">
+                        <label class="small text-muted d-block mb-1">Start Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-start-date">
+                    </div>
+                    <div style="width:160px">
+                        <label class="small text-muted d-block mb-1">End Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-end-date">
+                    </div>
+                    <div class="d-flex align-items-end" style="gap:6px;padding-bottom:1px">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                      
+                    </div>
                 </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="all-balances-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Employee Name</th>
+                                <th class="text-center">NIP</th>
+                                <th class="text-center">Location</th>
+                                <th class="text-center">Ovt Date</th>
+                                <th class="text-center">Type</th>
+                                <th class="text-center">Earned</th>
+                                <th class="text-center">Used</th>
+                                <th class="text-center">Remaining</th>
+                                <th class="text-center">Expires</th>
+                                <th class="text-center">Days Left</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
             </div>
         </section>
@@ -377,13 +442,13 @@
             // ── Init Select2 ──
             $('.select2-store').select2({
                 width: '100%',
-                placeholder: 'Semua Store',
+                placeholder: 'All Location',
                 allowClear: true
             });
 
             $('.select2-status').select2({
                 width: '100%',
-                placeholder: 'Semua',
+                placeholder: 'All Statuses',
                 allowClear: true,
                 minimumResultsForSearch: Infinity
             });
@@ -420,17 +485,16 @@
                     emptyTable: "Belum ada data saldo TOIL."
                 },
                 columns: [
-                    // Kolom 0: Employee Name + PIN
+                
+                    // Kolom 1: Store
                     {
                         data: 'employee_name',
-                        render: function(data, type, row) {
-                            return '<div class="employee-info">' +
-                                '<div class="name">' + (data ?? '-') + '</div>' +
-                                '<div class="pin">PIN: ' + (row.employee_pin ?? '-') + '</div>' +
-                                '</div>';
-                        }
+                        className: 'text-center'
                     },
-                    // Kolom 1: Store
+                    {
+                        data: 'employee_pengenal',
+                        className: 'text-center'
+                    },
                     {
                         data: 'store',
                         className: 'text-center'
@@ -525,6 +589,14 @@
             $('#filter-start-date, #filter-end-date').on('change', function() {
                 table.ajax.reload();
             });
+            $('#btn-reset').on('click', function() {
+    $('#filter-store').val('').trigger('change');
+    $('#filter-status').val('').trigger('change');
+    $('#filter-start-date').val('');
+    $('#filter-end-date').val('');
+    table.ajax.reload();
+});
+
 
         });
     </script>

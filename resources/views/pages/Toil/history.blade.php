@@ -57,7 +57,6 @@
         font-size: 0.75rem;
         font-weight: 600;
         color: #6b7280;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 0.5rem;
     }
@@ -128,7 +127,6 @@
         background-color: #f8fafc;
         color: #4a5568;
         font-weight: 600;
-        text-transform: uppercase;
         font-size: 0.7rem;
         letter-spacing: 0.5px;
         border: none;
@@ -268,90 +266,71 @@
                     </div>
                 </div>
 
-                {{-- ── Filter Bar ── --}}
-                <div class="filter-card">
-                    <h6 style="font-weight: 600; color: #4a5568; margin-bottom: 1rem;">
-                        <i class="fas fa-filter"></i> Filter History
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="filter-category">Category</label>
-                                {{-- No form-control class to avoid conflict with Select2 --}}
-                                <select id="filter-category">
-                                    <option value="">All</option>
-                                    <option value="Overtime">Overtime</option>
-                                    <option value="Leave">TOIL Leave</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="filter-status">Status</label>
-                                {{-- No form-control class to avoid conflict with Select2 --}}
-                                <select id="filter-status">
-                                    <option value="">All</option>
-                                    <option value="active">Active</option>
-                                    <option value="fully_used">Fully Used</option>
-                                    <option value="expired">Expired</option>
-                                    <option value="paid">Paid</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="filter-start-date">Start Date</label>
-                                <input type="date" class="form-control form-control-sm" id="filter-start-date">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="filter-end-date">End Date</label>
-                                <input type="date" class="form-control form-control-sm" id="filter-end-date">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 text-right">
-                            <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
-                                <i class="fas fa-undo"></i> Reset
-                            </button>
-                            <button type="button" class="btn btn-primary btn-sm" id="btn-filter">
-                                <i class="fas fa-search"></i> Apply Filter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ── Tabel Mixed Timeline ── --}}
                 <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h6><i class="fas fa-history"></i> TOIL Activity History</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="history-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">Date</th>
-                                                <th class="text-center">Category</th>
-                                                <th class="text-center">Hours</th>
-                                                <th class="text-center">Detail</th>
-                                                <th class="text-center">Status</th>
-                                                <th class="text-center">Approver</th>
-                                                <th>Description</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="display:block">
+                <h6 class="mb-3"><i class="fas fa-history"></i> TOIL Activity History</h6>
+                <div class="d-flex flex-wrap align-items-end" style="gap:10px">
+                    <div style="width:130px">
+                        <label class="small text-muted d-block mb-1">Category</label>
+                        <select id="filter-category" class="form-control form-control-sm">
+                            <option value="">All</option>
+                            <option value="Overtime">Overtime</option>
+                            <option value="Leave">TOIL Leave</option>
+                        </select>
+                    </div>
+                    <div style="width:140px">
+                        <label class="small text-muted d-block mb-1">Status</label>
+                        <select id="filter-status" class="form-control form-control-sm">
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="fully_used">Fully Used</option>
+                            <option value="expired">Expired</option>
+                            <option value="paid">Paid</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div style="width:160px">
+                        <label class="small text-muted d-block mb-1">Start Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-start-date">
+                    </div>
+                    <div style="width:160px">
+                        <label class="small text-muted d-block mb-1">End Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-end-date">
+                    </div>
+                    <div class="d-flex align-items-end" style="gap:6px;padding-bottom:1px">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-filter">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
                     </div>
                 </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="history-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Date</th>
+                                <th class="text-center">Category</th>
+                                <th class="text-center">Hours</th>
+                                <th class="text-center">Detail</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Paid At</th>
+                                <th class="text-center">Approver</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
             </div>
         </section>
@@ -446,6 +425,10 @@
                             return '<span class="badge-type badge-status-' + data + '">' + data.toUpperCase() + '</span>';
                         }
                     },
+                    {
+                        data: 'paid_at',
+                        className: 'text-center'
+                    },
                     { data: 'approver_name', className: 'text-center' },
                     {
                         data: 'reason',
@@ -474,6 +457,8 @@
                             hours:         o.earned_hours,
                             detail:        o.compensation_type,
                             status:        o.status,
+                            // paid_at:        o.paid_at,
+                            paid_at: o.paid_at ?? 'empty',
                             approver_name: o.approver_name,
                             reason:        o.reason
                         };

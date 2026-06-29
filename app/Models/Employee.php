@@ -54,6 +54,7 @@ class Employee extends Model
         'child',
         'telp_number',
         'nik',
+        'kk_number',
         'gender',
         'date_of_birth',
         'place_of_birth',
@@ -305,6 +306,7 @@ class Employee extends Model
                     'child' => 'Child',
                     'telp_number' => 'Telephone Number',
                     'nik' => 'ID Card',
+                    'kk_number' => 'KK Number',
                     'gender' => 'Gender',
                     'date_of_birth' => 'Date of Birth',
                     'place_of_birth' => 'Place of Birth',
@@ -588,5 +590,15 @@ public function atasan()
 public function bawahan()
 {
     return $this->bawahanList()->get();
+}
+public function overtimeRate()
+{
+    return $this->hasOne(EmployeeOvertimeRate::class);
+}
+
+// Accessor — ambil langsung sebagai angka
+public function getOvertimeRateAttribute(): float
+{
+    return (float) ($this->overtimeRate?->rate_per_hour ?? 0);
 }
 }
