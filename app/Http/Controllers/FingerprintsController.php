@@ -637,17 +637,33 @@ private function buildFingerprintResult(
 
         for ($i = 1; $i <= 10; $i++) {
             $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
+                $row["full_in_$i"] = null; // ← tambah ini
+
         }
 
+        // $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row, $deviceNames) {
+        //     if ($mode < 1 || $mode > 10) return;
+        //     $sorted  = $items->sortBy('scan_date');
+        //     $times   = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('H:i:s'))->implode(', ');
+        //     $devices = $sorted->map(fn($i) => $deviceNames->get($i->sn) ?? '')->implode(', ');
+        //     $row["in_$mode"]      = $times;
+        //     $row["device_$mode"]  = $devices;
+        //     $row["combine_$mode"] = trim($times . ' ' . $devices);
+        // });
         $group->groupBy('inoutmode')->each(function ($items, $mode) use (&$row, $deviceNames) {
-            if ($mode < 1 || $mode > 10) return;
-            $sorted  = $items->sortBy('scan_date');
-            $times   = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('H:i:s'))->implode(', ');
-            $devices = $sorted->map(fn($i) => $deviceNames->get($i->sn) ?? '')->implode(', ');
-            $row["in_$mode"]      = $times;
-            $row["device_$mode"]  = $devices;
-            $row["combine_$mode"] = trim($times . ' ' . $devices);
-        });
+    if ($mode < 1 || $mode > 10) return;
+    $sorted  = $items->sortBy('scan_date');
+    
+    // ← simpan waktu + tanggal lengkap untuk keperluan duration
+    $times   = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('H:i:s'))->implode(', ');
+    $fullTimes = $sorted->pluck('scan_date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d H:i:s'))->implode(', '); // ← tambah
+    $devices = $sorted->map(fn($i) => $deviceNames->get($i->sn) ?? '')->implode(', ');
+    
+    $row["in_$mode"]       = $times;
+    $row["full_in_$mode"]  = $fullTimes; // ← tambah untuk duration calculation
+    $row["device_$mode"]   = $devices;
+    $row["combine_$mode"]  = trim($times . ' ' . $devices);
+});
 
         // $times = collect(range(1, 10))
         //     ->flatMap(fn($i) => $row["in_$i"] ? explode(', ', $row["in_$i"]) : [])
@@ -667,22 +683,18 @@ private function buildFingerprintResult(
         // } else {
         //     $row['duration'] = 'invalid';
         // }
-        $times = collect(range(1, 10))
-    ->flatMap(fn($i) => $row["in_$i"] ? explode(', ', $row["in_$i"]) : [])
-    ->map(fn($t) => Carbon::parse($scanDate . ' ' . trim($t))) // ← parse dengan tanggal
+        // ← Pakai full datetime untuk duration
+$times = collect(range(1, 10))
+    ->flatMap(fn($i) => $row["full_in_$i"] ? explode(', ', $row["full_in_$i"]) : [])
+    ->map(fn($t) => Carbon::parse(trim($t)))
     ->sort()
     ->values();
 
 if ($times->count() >= 2) {
-    $first = $times->first();
-    $last  = $times->last();
+    $first   = $times->first();
+    $last    = $times->last();
+    $minutes = $first->diffInMinutes($last);
 
-    // ── Handle overnight: kalau last < first, tambah 1 hari ──
-    if ($last->lt($first)) {
-        $last->addDay();
-    }
-
-    $minutes         = $first->diffInMinutes($last);
     $row['duration'] = sprintf(
         '%d hour%s %d minute%s',
         intdiv($minutes, 60),
@@ -691,11 +703,9 @@ if ($times->count() >= 2) {
         $minutes % 60 !== 1 ? 's' : ''
     );
 } elseif ($times->count() === 1) {
-    // ── Hanya 1 scan — cek apakah roster overnight ──
     $isOvernightShift = $roster
         && $roster->shift
         && $roster->shift->end_time < $roster->shift->start_time;
-
     $row['duration'] = $isOvernightShift ? 'overnight' : 'invalid';
 } else {
     $row['duration'] = 'invalid';
