@@ -2635,7 +2635,7 @@
 
                         toast('Import selesai!');
                         btn.innerHTML = '<i class="fas fa-check"></i> Selesai';
-                        setTimeout(() => location.reload(), 2500);
+                        setTimeout(() => location.reload(), 7000);
                     } else {
                         resultEl.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px;color:#991b1b;">
                     <i class="fas fa-exclamation-circle"></i> ${data.message || 'Gagal import.'}

@@ -467,229 +467,7 @@ if ($hasStore) {
             'user'
         ));
     }
-//     public function index(Request $request)
-//     {
-//         /** @var \App\Models\User|null $user */
-//         $user = auth()->user();
 
-//         $myStores  = collect();
-//         $myStoreId = null;
-//         $myStoreName = null;
-
-//         $canManageAll = $user->hasPermissionTo('ManageRoster');
-//         $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
-//         $canView      = $user->hasPermissionTo('ViewRoster');
-
-
-//         if (!$canManageAll && !$canManageSPV && !$canView) {
-//             return abort(403, 'Unauthorized');
-//         }
-
-
-//         $myEmployee  = optional($user->employee);
-
-//         if ($myEmployee) {
-//             $myStore        = $myEmployee->store()->wherePivot('is_primary', true)->first();
-//             $myStoreId      = $myStore?->id;
-//             $myStoreName    = $myStore?->name;
-//             $myDepartment   = $myEmployee->department()->wherePivot('is_primary', true)->first();
-//             $myDepartmentId = $myDepartment?->id;
-//         } else {
-//             $myStore        = null;
-//             $myStoreId      = null;
-//             $myStoreName    = null;
-//             $myDepartment   = null;
-//             $myDepartmentId = null;
-//         }
-
-//         $today            = now();
-//         $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
-//         $defaultEndDate   = $today->copy()->day(25)->toDateString();
-
-//         if ($canView && !$canManageAll && !$canManageSPV) {
-//             $storeId = $myStoreId;
-//         } else {
-//             // $storeId = $request->store_id;
-//         }
-
-//         if (!$canManageAll && $canManageSPV) {
-
-//             // $myStoreIds = $this->userStoreIds($user);
-//                 $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray(); // ← semua store
-
-
-//             // Guard store_id
-//             // if ($request->store_id && !in_array($request->store_id, $myStoreIds)) {
-//             //     return redirect()->route('roster.index', [
-//             //         'store_id'   => $myStoreIds[0] ?? $myStoreId,
-//             //         'start_date' => $request->start_date,
-//             //         'end_date'   => $request->end_date,
-//             //     ]);
-//             // }
-//              if ($request->store_id && !in_array($request->store_id, $myStoreIds)) {
-//         return redirect()->route('roster.index', [
-//             'store_id'   => $myStoreIds[0] ?? $myStoreId,
-//             'start_date' => $request->start_date,
-//             'end_date'   => $request->end_date,
-//         ]);
-//     }
-
-//             // Guard date range
-//             $maxStartDate = Carbon::parse($defaultStartDate)->addMonth();
-//             $maxEndDate   = Carbon::parse($defaultEndDate)->addMonth();
-
-//             if ($request->start_date && Carbon::parse($request->start_date)->gt($maxStartDate)) {
-//                 return redirect()->route('roster.index', [
-//                     'store_id'   => $request->store_id,
-//                     'start_date' => $defaultStartDate,
-//                     'end_date'   => $request->end_date,
-//                 ]);
-//             }
-
-//             if ($request->end_date && Carbon::parse($request->end_date)->gt($maxEndDate)) {
-//                 return redirect()->route('roster.index', [
-//                     'store_id'   => $request->store_id,
-//                     'start_date' => $request->start_date,
-//                     'end_date'   => $defaultEndDate,
-//                 ]);
-//             }
-//         }
-
-//         $startDate = $request->start_date ?? $defaultStartDate;
-//         $endDate   = $request->end_date   ?? $defaultEndDate;
-//         $storeId   = $request->store_id;
-
-//         $stores = Stores::select('id', 'name')
-//             ->whereNotNull('name')
-//             ->orderBy('name')
-//             ->get();
-
-//         $employees = collect();
-//         $shifts    = collect();
-//         $dates     = [];
-
-//         if ($storeId) {
-
-//             $employeeQuery = Employee::with([
-//                 'store'      => fn($q) => $q->wherePivot('is_primary', true),
-//                 'position'   => fn($q) => $q->wherePivot('is_primary', true),
-//                 'department' => fn($q) => $q->wherePivot('is_primary', true),
-//                 'rosters'    => fn($q) => $q
-//                     ->whereBetween('date', [$startDate, $endDate])
-//                     ->with('shift:id,shift_name,start_time,end_time'),
-//             ])
-//                 ->select('id', 'employee_name', 'status_employee', 'status', 'company_id')
-//                 ->whereNull('deleted_at')
-//                 ->whereHas('store', fn($q) => $q->where('stores_tables.id', $storeId))
-//                 ->orderBy('employee_name');
-
-//             if ($canManageAll) {
-//                 $employeeQuery->whereIn('status', ['Active', 'Pending', 'On Leave']);
-//             } elseif ($canManageSPV) {
-//                 $employeeQuery
-//                     ->whereIn('status', ['Active', 'Pending', 'On Leave'])
-//                     ->where('company_id', $myEmployee->company_id) // ← filter company
-//                     ->whereHas(
-//                         'department',
-//                         fn($q) =>              // ← filter department
-//                         $q->where('departments_tables.id', $myDepartmentId)
-//                     );
-//             } elseif ($canView) {
-//                 $employeeQuery->where('id', $myEmployee->id);
-//             } else {
-//                 return abort(403, 'Unauthorized');
-//             }
-
-//             $employees = $employeeQuery->get();
-
-//             $shifts = Shifts::where('store_id', $storeId)
-//                 ->orderBy('shift_name')
-//                 ->get();
-
-
-//             $start   = Carbon::parse($startDate);
-//             $end     = Carbon::parse($endDate);
-//             $current = $start->copy();
-
-//             while ($current->lte($end)) {
-//                 $dates[] = $current->copy();
-//                 $current->addDay();
-//             }
-
-//             // Pre-compute per employee
-//             foreach ($employees as $employee) {
-//                 $employee->status_class = $this->getStatusClass($employee->status_employee);
-
-//                 $rosterByDate = $employee->rosters->keyBy(
-//                     fn($r) => Carbon::parse($r->date)->toDateString()
-//                 );
-
-//                 $cells = [];
-//                 foreach ($dates as $carbon) {
-//                     $dateStr = $carbon->toDateString();
-//                     $roster  = $rosterByDate->get($dateStr);
-//                     $cells[$dateStr] = $this->buildCellData($roster, $carbon);
-//                 }
-//                 $employee->cells = $cells;
-//             }
-
-//             // Pre-compute date headers
-//             foreach ($dates as $carbon) {
-//                 $dateHeaders[] = [
-//                     'carbon'     => $carbon,
-//                     'day_label'  => $carbon->format('D'),
-//                     'date_label' => $carbon->format('d/m'),
-//                     'is_weekend' => $carbon->isWeekend(),
-//                     'is_today'   => $carbon->isToday(),
-//                 ];
-//             }
-//         }
-
-//         $isSupervisorOrManager = $canManageSPV && !$canManageAll;
-//         $isRosterOpen = $this->isSPVOnly() ? $this->checkRosterWindow() : true;
-//         $canViewOnly = $canView && !$canManageAll && !$canManageSPV;
-//         $currentStoreName = $storeId
-//             ? optional($stores->firstWhere('id', $storeId))->name ?? ''
-//             : '';
-
-//         // Daftar store untuk dropdown SPV (hanya store miliknya)
-//         $myStores = collect();
-//         // if (!$canManageAll && $canManageSPV) {
-//         //     $myStoreIds = $this->userStoreIds($user);
-//         //     $myStores = Stores::select('id', 'name')
-//         //         ->whereIn('id', $myStoreIds)
-//         //         ->orderBy('name')
-//         //         ->get();
-//         // }
-//         if (!$canManageAll && $canManageSPV) {
-//     $myStoreIds = $myEmployee->store()->pluck('stores_tables.id')->toArray(); // ← hapus wherePivot is_primary
-//     $myStores = Stores::select('id', 'name')
-//         ->whereIn('id', $myStoreIds)
-//         ->orderBy('name')
-//         ->get();
-// }
-
-//         return view('pages.Roster.Roster', compact(
-//             'employees',
-//             'shifts',
-//             'stores',
-//             'dates',
-//             'startDate',
-//             'endDate',
-//             'storeId',
-//             'myStoreId',
-//             'isRosterOpen',
-//             'myStoreName',
-//             'isSupervisorOrManager',
-//             'canView',
-//             'canManageAll',
-//             'canManageSPV',
-//             'canViewOnly',
-//             'currentStoreName',
-//             'myStores',
-//             'user'
-//         ));
-//     }
     public function sickAttachmentUrl(Request $request)
     {
         $request->validate(['path' => 'required|string']);
@@ -734,9 +512,7 @@ if ($hasStore) {
         $employee = Employee::with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
             ->select('id', 'status_employee', 'religion', 'employee_name', 'store_id')
             ->find($request->employee_id);
-
         $allowed = $this->allowedDayTypes($employee?->status_employee);
-
         if (!in_array($request->day_type, $allowed)) {
             $status = strtoupper($employee?->status_employee ?? '-');
             return response()->json([
@@ -744,32 +520,26 @@ if ($hasStore) {
                 'message' => "Karyawan dengan status {$status} tidak dapat di-assign day type \"{$request->day_type}\".",
             ], 422);
         }
-
         $toilApproved = ToilLeaveRequests::where('employee_id', $request->employee_id)
             ->whereDate('leave_date', $request->date)
             ->where('status', 'Approved')
             ->exists();
-
         if ($toilApproved) {
             return response()->json([
                 'success' => false,
                 'message' => "Karyawan punya TOIL Leave yang sudah Approved di tanggal ini. Cancel TOIL leave dulu via menu Approval kalau mau ubah jadwal.",
             ], 422);
         }
-
         $phMap = $this->getPublicHolidaysMap($request->date, $request->date);
         $isPH  = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
-
         // PH di Minggu HANGUS untuk store statis → ambil primary store ID dari pivot
         $primaryStoreId = $employee?->store->first()?->id;
         if ($isPH && $this->isPhVoidedOnSunday($request->date, $primaryStoreId)) {
             $isPH = false;
         }
-
         // ── PH TUKAR: kalau hari ini PH tapi HR set Work → SIMPAN saldo PH ──
         if ($isPH && $request->day_type === 'Work') {
             $phName = $this->getPublicHolidayRemark($phMap, $request->date) ?? 'Public Holiday';
-
             // Jika sudah ada carryover (misal status cancelled karena sebelumnya di-set PH),
             // reset kembali ke available. Jika belum ada, buat baru.
             RosterPHCarryover::updateOrCreate(
@@ -786,12 +556,7 @@ if ($hasStore) {
         }
         // Kalau PH asli tapi di-set Public Holiday (tidak kerja) →
         // batalkan carryover yang ada untuk tanggal ini karena PH dinikmati langsung
-        // elseif ($isPH && $request->day_type === 'Public Holiday') {
-        //     RosterPHCarryover::where('employee_id', $request->employee_id)
-        //         ->where('ph_date', $request->date)
-        //         ->where('status', 'available')
-        //         ->update(['status' => 'cancelled']);
-        // }
+       
         elseif ($isPH && $request->day_type === 'Public Holiday') {
             RosterPHCarryover::where('employee_id', $request->employee_id)
                 ->where('ph_date', $request->date)
@@ -869,15 +634,16 @@ if ($hasStore) {
             $carryover = RosterPHCarryover::where('id', $request->ph_carryover_id)
                 ->where('employee_id', $request->employee_id)
                 ->where('status', 'available')
+                ->whereDate('ph_date', '<', $request->date) // ← tambah ini
                 ->first();
 
             if (!$carryover) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai.',
+                    // 'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai.',
+                            'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai, atau tanggal pengganti harus setelah tanggal PH asli.',
                 ], 422);
             }
-
             // Tandai terpakai, catat di tanggal mana dipakai
             $carryover->update([
                 'status'    => 'used',
@@ -1046,31 +812,55 @@ if ($hasStore) {
     // ─────────────────────────────────────────────────────────────
     //  AMBIL daftar saldo PH tukar yang masih tersedia utk 1 karyawan
     // ─────────────────────────────────────────────────────────────
+    // public function availablePhCarryovers(Request $request)
+    // {
+    //     $request->validate([
+    //         'employee_id' => 'required|exists:employees_tables,id',
+    //         'date'        => 'required|date',
+    //     ]);
+
+    //     // Ambil semua carryover available milik employee ini yang belum expired
+    //     // Status 'used' sudah di-set saat import (RosterImport) maupun saat store() via ph_carryover_id
+    //     $items = RosterPHCarryover::where('employee_id', $request->employee_id)
+    //         ->where('status', 'available')
+    //         ->whereDate('expired_at', '>=', $request->date)
+    //         ->orderBy('ph_date')
+    //         ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data'    => $items->map(fn($it) => [
+    //             'id'         => $it->id,
+    //             'ph_name'    => $it->ph_name,
+    //             'ph_date'    => Carbon::parse($it->ph_date)->toDateString(),
+    //             'expired_at' => Carbon::parse($it->expired_at)->toDateString(),
+    //         ]),
+    //     ]);
+    // }
     public function availablePhCarryovers(Request $request)
-    {
-        $request->validate([
-            'employee_id' => 'required|exists:employees_tables,id',
-            'date'        => 'required|date',
-        ]);
+{
+    $request->validate([
+        'employee_id' => 'required|exists:employees_tables,id',
+        'date'        => 'required|date',
+    ]);
 
-        // Ambil semua carryover available milik employee ini yang belum expired
-        // Status 'used' sudah di-set saat import (RosterImport) maupun saat store() via ph_carryover_id
-        $items = RosterPHCarryover::where('employee_id', $request->employee_id)
-            ->where('status', 'available')
-            ->whereDate('expired_at', '>=', $request->date)
-            ->orderBy('ph_date')
-            ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
+    $items = RosterPHCarryover::where('employee_id', $request->employee_id)
+        ->where('status', 'available')
+        ->whereDate('expired_at', '>=', $request->date)
+        ->whereDate('ph_date', '<', $request->date) // ← tanggal PH asli harus sebelum tanggal pengganti
+        ->orderBy('ph_date')
+        ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
 
-        return response()->json([
-            'success' => true,
-            'data'    => $items->map(fn($it) => [
-                'id'         => $it->id,
-                'ph_name'    => $it->ph_name,
-                'ph_date'    => Carbon::parse($it->ph_date)->toDateString(),
-                'expired_at' => Carbon::parse($it->expired_at)->toDateString(),
-            ]),
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data'    => $items->map(fn($it) => [
+            'id'         => $it->id,
+            'ph_name'    => $it->ph_name,
+            'ph_date'    => Carbon::parse($it->ph_date)->toDateString(),
+            'expired_at' => Carbon::parse($it->expired_at)->toDateString(),
+        ]),
+    ]);
+}
 
     // // ─────────────────────────────────────────────────────────────
     // //  AMBIL daftar saldo PH tukar yang masih tersedia utk 1 karyawan
@@ -1461,57 +1251,7 @@ if ($hasStore) {
         $filename
     );
 }
-    // public function downloadTemplate(Request $request)
-    // {
-    //     $request->validate([
-    //         'store_id'   => 'required|exists:stores_tables,id',
-    //         'start_date' => 'required|date',
-    //         'end_date'   => 'required|date|after_or_equal:start_date',
-    //     ]);
-
-    //     /** @var \App\Models\User $user */
-    //     $user         = auth()->user();
-    //     $canManageAll = $user->hasPermissionTo('ManageRoster');
-    //     $canManageSPV = $user->hasPermissionTo('ManageRosterSPVManager');
-
-    //     // SPV (bukan admin): hanya boleh store yang ada di daftar miliknya
-    //     if ($canManageSPV && !$canManageAll) {
-    //         $myStoreIds = $this->userStoreIds($user);
-    //         if (!in_array($request->store_id, $myStoreIds)) {
-    //             abort(403, 'Anda tidak punya akses ke store ini.');
-    //         }
-    //     }
-
-    //     $storeName = Stores::find($request->store_id)?->name ?? 'store';
-    //     $filename  = 'template-roster-' . str($storeName)->slug() . '-'
-    //         . $request->start_date . '-to-' . $request->end_date . '.xlsx';
-
-    //     return Excel::download(
-    //         new RosterTemplateExport($request->store_id, $request->start_date, $request->end_date),
-    //         $filename
-    //     );
-    // }
-
-    // ─────────────────────────────────────────────────────────────
-    //  HELPER: Daftar store_id milik user (multi-store).
-    //  Utamakan pivot employee_stores; fallback ke kolom store_id
-    //  tunggal kalau pivot belum diisi.
-    // ─────────────────────────────────────────────────────────────
-    // private function userStoreIds($user): array
-    // {
-    //     $employee = $user->employee;
-    //     if (!$employee) return [];
-
-    //     // Dari relasi multi-store (pivot employee_stores)
-    //     $ids = $employee->store->pluck('id')->toArray();
-
-    //     // Fallback: pivot kosong → pakai kolom store_id tunggal
-    //     if (empty($ids) && $employee->store_id) {
-    //         $ids = [$employee->store_id];
-    //     }
-
-    //     return $ids;
-    // }
+   
     private function userStoreIds($user): array
 {
     $employee = $user->employee;

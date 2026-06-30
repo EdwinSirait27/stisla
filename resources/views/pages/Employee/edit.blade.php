@@ -474,7 +474,7 @@
                                         <input type="text" name="kk_number" id="kk_number"
                                             class="form-control @error('kk_number') is-invalid @enderror"
                                             value="{{ old('kk_number', $employee->Employee->kk_number ?? '') }}" placeholder="KK Number"
-                                            maxlength="30" required>
+                                            maxlength="30">
                                         @error('kk_number')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror

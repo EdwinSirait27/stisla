@@ -15,18 +15,22 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 
 class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheets
-{
-   
-//      public int $created = 0;
+// {
+ 
+//  public int $created = 0;
 //     public array $errors = [];
 //     public function __construct(
 //         private string $storeId,
 //         private string $startDate
 //     ) {}
-//      public function sheets(): array
-// {
-//     return [0 => $this];
-// }
+ 
+//     // Hanya baca sheet pertama (index 0 = Template Roster)
+//     // Sheet Tutorial dan Shift diabaikan
+//     public function sheets(): array
+//     {
+//         return [0 => $this];
+//     }
+ 
 //     public function array(array $rows): void
 //     {
 //         // ── Cari baris HEADER (kolom A mengandung 'pengenal') ──
@@ -188,6 +192,12 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
 //                     if ($isEmptyButPH) {
 //                         $emptyPhRemark      = $this->getPublicHolidayRemark($phMap, $date) ?? 'Public Holiday';
 //                         $pendingPhRemarks[] = $emptyPhRemark;
+ 
+//                         // PH dinikmati langsung (sel kosong = tidak kerja) → cancel carryover lama
+//                         RosterPHCarryover::where('employee_id', $employee->id)
+//                             ->where('ph_date', $date)
+//                             ->where('status', 'available')
+//                             ->update(['status' => 'cancelled']);
 //                     }
  
 //                     continue;
@@ -213,7 +223,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
  
 //                             // Batalkan carryover lama jika ada (misal dari import sebelumnya
 //                             // employee kerja di tanggal ini, sekarang diubah jadi PH)
-//                             RosterPhCarryover::where('employee_id', $employee->id)
+//                             RosterPHCarryover::where('employee_id', $employee->id)
 //                                 ->where('ph_date', $date)
 //                                 ->where('status', 'available')
 //                                 ->update(['status' => 'cancelled']);
@@ -230,7 +240,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
  
 //                             // Tandai carryover yang matching sebagai 'used'
 //                             if ($notes) {
-//                                 $carryover = RosterPhCarryover::where('employee_id', $employee->id)
+//                                 $carryover = RosterPHCarryover::where('employee_id', $employee->id)
 //                                     ->where('status', 'available')
 //                                     ->where('ph_name', $notes)
 //                                     ->whereDate('expired_at', '>=', $date)
@@ -275,7 +285,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
 //                     // Simpan ke pending agar bisa dipakai tanggal pengganti
 //                     $pendingPhRemarks[] = $phName;
  
-//                     RosterPhCarryover::firstOrCreate(
+//                     RosterPHCarryover::firstOrCreate(
 //                         ['employee_id' => $employee->id, 'ph_date' => $date],
 //                         [
 //                             'ph_name'    => $phName,
@@ -374,7 +384,9 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
 //         $end = $this->periodEndFor(Carbon::parse($phDate));
 //         return $end->copy()->addMonths(2);
 //     }
- public int $created = 0;
+// }
+{
+    public int $created = 0;
     public array $errors = [];
     public function __construct(
         private string $storeId,
@@ -435,6 +447,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
         $employeePhUsed       = []; // [employee_id => int] jumlah kode 'PH' pengganti yang dipakai
         $employeeNames        = []; // [employee_id => string] untuk pesan error
         $employeeStatusType   = []; // [employee_id => string] status_employee (PKWT/DW/OJT)
+        $quotaErrors          = []; // dikumpulkan dari Pass 1 dan Pass 1b
  
         foreach ($rows as $i => $row) {
             if ($i <= $headerIndex) continue;
@@ -472,6 +485,16 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
  
             // Hitung kode 'PH' pengganti yang dipakai di baris ini
             // PH pengganti = kode 'PH' yang muncul di tanggal yang BUKAN PH asli untuk employee tsb
+            // dan harus SETELAH tanggal PH asli yang bersangkutan
+            $actualPhDates = []; // kumpulkan tanggal PH asli untuk validasi urutan
+            for ($col = 4; $col < count($row); $col++) {
+                $date       = $start->copy()->addDays($col - 4)->toDateString();
+                $isActualPH = $this->isPublicHolidayForEmployee($phMap, $date, $employee->religion);
+                if ($isActualPH && !$this->isPhVoidedOnSunday($date)) {
+                    $actualPhDates[] = $date;
+                }
+            }
+ 
             for ($col = 4; $col < count($row); $col++) {
                 $raw  = strtoupper(trim((string)($row[$col] ?? '')));
                 $date = $start->copy()->addDays($col - 4)->toDateString();
@@ -484,13 +507,21 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
                     continue;
                 }
  
+                // Validasi: tanggal pengganti harus setelah minimal 1 PH asli
+                $hasPhBefore = collect($actualPhDates)->contains(fn($phDate) => $phDate < $date);
+                if (!$hasPhBefore) {
+                    $name = $employeeNames[$employee->id] ?? $pengenal;
+                    $quotaErrors[] = "Karyawan '{$name}' memiliki PH pengganti di tanggal {$date} " .
+                                     "yang tidak ada PH asli sebelumnya.";
+                    continue;
+                }
+ 
                 // Ini PH pengganti (tanggal geser)
                 $employeePhUsed[$employee->id]++;
             }
         }
  
         // ── PASS 1b: Validasi kuota PH sebelum melakukan perubahan apapun ──
-        $quotaErrors = [];
         foreach ($employeePhUsed as $empId => $usedCount) {
             $quota = $employeePhQuota[$empId] ?? 0;
             if ($usedCount > $quota) {
@@ -551,7 +582,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
                         $pendingPhRemarks[] = $emptyPhRemark;
  
                         // PH dinikmati langsung (sel kosong = tidak kerja) → cancel carryover lama
-                        RosterPHCarryover::where('employee_id', $employee->id)
+                        RosterPhCarryover::where('employee_id', $employee->id)
                             ->where('ph_date', $date)
                             ->where('status', 'available')
                             ->update(['status' => 'cancelled']);
@@ -580,7 +611,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
  
                             // Batalkan carryover lama jika ada (misal dari import sebelumnya
                             // employee kerja di tanggal ini, sekarang diubah jadi PH)
-                            RosterPHCarryover::where('employee_id', $employee->id)
+                            RosterPhCarryover::where('employee_id', $employee->id)
                                 ->where('ph_date', $date)
                                 ->where('status', 'available')
                                 ->update(['status' => 'cancelled']);
@@ -597,10 +628,11 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
  
                             // Tandai carryover yang matching sebagai 'used'
                             if ($notes) {
-                                $carryover = RosterPHCarryover::where('employee_id', $employee->id)
+                                $carryover = RosterPhCarryover::where('employee_id', $employee->id)
                                     ->where('status', 'available')
                                     ->where('ph_name', $notes)
                                     ->whereDate('expired_at', '>=', $date)
+                                    ->whereDate('ph_date', '<', $date) // ← tanggal pengganti harus setelah PH asli
                                     ->orderBy('ph_date')
                                     ->first();
  
@@ -642,7 +674,7 @@ class RosterImport implements ToArray, WithCalculatedFormulas, WithMultipleSheet
                     // Simpan ke pending agar bisa dipakai tanggal pengganti
                     $pendingPhRemarks[] = $phName;
  
-                    RosterPHCarryover::firstOrCreate(
+                    RosterPhCarryover::firstOrCreate(
                         ['employee_id' => $employee->id, 'ph_date' => $date],
                         [
                             'ph_name'    => $phName,
