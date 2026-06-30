@@ -121,43 +121,6 @@ if ($archive) {
     Log::warning("PayrollService: no archive for {$employee->employee_name}, attendance_days = 0");
 }
 
-// // ════════════════════════════════════════
-// // STEP 3.5 — Hitung overtime_amount dari Overtimesubmissions
-// // Cash + Approved + date dalam periode payroll
-// // Setelah dihitung → update ToilBalance status = paid
-// // ════════════════════════════════════════
-// $overtimeAmount = 0;
-
-// $overtimeRate = \App\Models\EmployeeOvertimeRate::where('employee_id', $employee->id)
-//     ->first();
-
-// $overtimeSubmissions = collect(); // ← untuk update ToilBalance setelah transaction
-
-// if ($overtimeRate) {
-//     $ratePerHour = (float) $overtimeRate->rate_per_hour;
-
-//     // Ambil overtime submissions Cash+Approved dalam periode
-//     // via ToilBalances untuk cek date
-//     $overtimeSubmissions = Overtimesubmissions::where('employee_id', $employee->id)
-//         ->where('compensation_type', 'Cash')
-//         ->where('status', 'Approved')
-//         ->whereHas('balance', fn($q) =>
-//             $q->whereBetween('expires_at', [$period->period_start, $period->period_end])
-//               ->where('status', 'active')
-//         )
-//         // ->whereBetween('date', [$period->period_start, $period->period_end])
-//          ->whereDate('date', '>=', $period->period_start) // ← pakai whereDate
-//     ->whereDate('date', '<=', $period->period_end)   // ← pakai whereDate
-//         ->with('balance')
-//         ->get();
-
-//     $totalOvertimeHours = $overtimeSubmissions->sum('total_hours');
-//     $overtimeAmount     = round($ratePerHour * (float) $totalOvertimeHours, 2);
-
-//     Log::info("PayrollService: overtime for {$employee->employee_name} = {$overtimeAmount} ({$totalOvertimeHours} hours × {$ratePerHour})");
-// } else {
-//     Log::warning("PayrollService: no overtime rate for {$employee->employee_name}");
-// }
 // ════════════════════════════════════════
 // STEP 3.5 — Hitung overtime_amount dari Overtimesubmissions
 // Cash + Approved + date dalam periode payroll

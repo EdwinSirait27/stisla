@@ -292,40 +292,38 @@
                                     <span>{{ $payroll->period_start->format('d/m/Y') }} —
                                         {{ $payroll->period_end->format('d/m/Y') }}</span>
                                 </div>
-                        @if (strtoupper($payroll->employee->status_employee) !== 'DW') 
-
-                                <div class="info-box-row">
-                                    <span>Basic Salary</span>
-                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
-                                    <span>Rp {{ number_format($payroll->basic_salary, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="info-box-row">
-                                    <span>Positional Allowance</span>
-                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
-                                    <span>Rp {{ number_format($payroll->position_allowance, 2, ',', '.') }}</span>
-                                </div>
+                                @if (strtoupper($payroll->employee->status_employee) !== 'DW')
+                                    <div class="info-box-row">
+                                        <span>Basic Salary</span>
+                                        {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                        <span>Rp {{ number_format($payroll->basic_salary, 2, ',', '.') }}</span>
+                                    </div>
+                                    <div class="info-box-row">
+                                        <span>Positional Allowance</span>
+                                        {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                        <span>Rp {{ number_format($payroll->position_allowance, 2, ',', '.') }}</span>
+                                    </div>
                                 @endif
-                        @if (strtoupper($payroll->employee->status_employee) == 'DW') 
-
-                                <div class="info-box-row">
-                                    <span>Daily Allowance</span>
-                                    {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
-                                    <span>Rp {{ number_format($payroll->daily_rate, 2, ',', '.') }}</span>
-                                </div>
+                                @if (strtoupper($payroll->employee->status_employee) == 'DW')
+                                    <div class="info-box-row">
+                                        <span>Daily Allowance</span>
+                                        {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
+                                        <span>Rp {{ number_format($payroll->daily_rate, 2, ',', '.') }}</span>
+                                    </div>
                                 @endif
                                 <div class="info-box-row">
                                     <span>Gross Salary</span>
                                     {{-- <span>Rp {{ number_format($payroll->gross_salary, 0, ',', '.') }}</span> --}}
                                     <span>Rp {{ number_format($payroll->gross_salary, 2, ',', '.') }}</span>
                                 </div>
-                                {{-- <div class="info-box-row">
-                                    <span>Working Days</span>
-                                    <span>{{ $payroll->working_days }} hari</span>
-                                </div> --}}
-                                <div class="info-box-row">
-                                    <span>Working Days</span>
-                                    <span>{{ $payroll->working_days }} hari</span>
-                                </div>
+
+                                @if (in_array(strtoupper($payroll->employee->status_employee), ['On Job Training', 'PKWT']))
+                                    <div class="info-box-row">
+                                        <span>Working Days</span>
+                                        <span>{{ $payroll->working_days }} hari</span>
+                                    </div>
+                                @endif
+
                                 <div class="info-box-row">
                                     <span>Attendance Days</span>
                                     <span>{{ $payroll->attendance_days }} hari</span>
@@ -347,24 +345,23 @@
                                         <span class="invalid-feedback d-block">{{ $message }}</span>
                                     @enderror
                                 </div>
-                                 @if (strtoupper($payroll->employee->status_employee) !== 'DW')
-
-                                <div class="field-group">
-                                    <label><i class="fas fa-clock"></i>Working Days</label>
-                                    <input type="number" name="working_days"
-                                        class="form-control @error('working_days') is-invalid @enderror"
-                                        value="{{ old('working_days', $payroll->working_days) }}" min="0"
-                                        placeholder="0">
-                                    @error('working_days')
-                                        <span class="invalid-feedback d-block">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                        @endif
+                                @if (strtoupper($payroll->employee->status_employee) !== 'DW')
+                                    <div class="field-group">
+                                        <label><i class="fas fa-clock"></i>Working Days</label>
+                                        <input type="number" name="working_days"
+                                            class="form-control @error('working_days') is-invalid @enderror"
+                                            value="{{ old('working_days', $payroll->working_days) }}" min="0"
+                                            placeholder="0">
+                                        @error('working_days')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                @endif
 
                             </div>
                         </div>
-                        
-                        
+
+
                         <div class="form-section">
                             <div class="form-section-label">Income Tambahan</div>
                             <div class="field-grid">
@@ -439,51 +436,7 @@
                         </div>
 
                         {{-- Section 4: Prorate --}}
-                        {{-- @if (strtoupper($payroll->employee->status_employee) !== 'DW')
-                            <div class="form-section">
-                                <div class="form-section-label">Prorate</div>
-                                <div class="prorate-section">
-                                    <div class="field-group">
-                                        <label>
-                                            <input type="hidden" name="is_prorate" value="0">
-                                            <input type="checkbox" name="is_prorate" id="is_prorate" value="1"
-                                                {{ old('is_prorate', $payroll->is_prorate) ? 'checked' : '' }}>
-                                            <span style="font-size:.82rem;font-weight:600;color:#c2410c">Aktifkan
-                                                Prorate</span>
-                                        </label>
-                                        <small style="color:#92400e;font-size:.75rem">
-                                            Centang jika employee join atau resign di tengah periode ini.
-                                        </small>
-                                    </div>
-
-                                    <div class="prorate-fields {{ old('is_prorate', $payroll->is_prorate) ? 'show' : '' }}"
-                                        id="prorate-fields">
-                                        <div class="field-group">
-                                            <label><i class="fas fa-calendar-day"></i> Prorate Days</label>
-                                            <input type="number" name="prorate_days" id="prorate_days"
-                                                class="form-control @error('prorate_days') is-invalid @enderror"
-                                                value="{{ old('prorate_days', $payroll->prorate_days) }}" min="0"
-                                                max="{{ $payroll->working_days }}" placeholder="Jumlah hari kerja aktual">
-                                            <small style="color:#92400e;font-size:.72rem">
-                                                Maks: {{ $payroll->working_days }} hari (working days periode ini)
-                                            </small>
-                                            @error('prorate_days')
-                                                <span class="invalid-feedback d-block">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                        <div class="field-group">
-                                            <label><i class="fas fa-percent"></i> Prorate Ratio (preview)</label>
-                                            <input type="text" id="prorate_ratio_preview"
-                                                class="form-control readonly-field" readonly
-                                                value="{{ $payroll->is_prorate ? round($payroll->prorate_ratio * 100, 2) . '%' : '-' }}">
-                                            <small style="color:#92400e;font-size:.72rem">
-                                                Prorate Days / Working Days
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif --}}
+                        
 
                         {{-- Note --}}
                         <div class="form-section">
@@ -560,59 +513,29 @@
             @endif
         });
 
-        // document.querySelectorAll('.currency-format').forEach(function(input) {
-
-        //     // Format saat halaman pertama kali dibuka
-        //     let value = input.value;
-
-        //     if (value && !isNaN(value)) {
-        //         input.value = Number(value).toLocaleString('id-ID', {
-        //             minimumFractionDigits: 2,
-        //             maximumFractionDigits: 2
-        //         });
-        //     }
-
-        //     // Format saat user mengetik
-        //     input.addEventListener('input', function(e) {
-
-        //         let value = e.target.value.replace(/[^\d]/g, '');
-
-        //         if (!value) {
-        //             e.target.value = '';
-        //             return;
-        //         }
-
-        //         value = (parseInt(value, 10) / 100).toFixed(2);
-
-        //         e.target.value = new Intl.NumberFormat('id-ID', {
-        //             minimumFractionDigits: 2,
-        //             maximumFractionDigits: 2
-        //         }).format(value);
-        //     });
-
-        // });
+     
         document.querySelectorAll('.currency-format').forEach(function(input) {
-    // Format awal
-    let raw = input.value;
-    if (raw && !isNaN(raw)) {
-        input.value = new Intl.NumberFormat('id-ID').format(raw);
-    }
+            // Format awal
+            let raw = input.value;
+            if (raw && !isNaN(raw)) {
+                input.value = new Intl.NumberFormat('id-ID').format(raw);
+            }
 
-    // Format saat user mengetik
-    input.addEventListener('input', function(e) {
-        let digits = e.target.value.replace(/[^\d]/g, '');
-        if (!digits) {
-            e.target.value = '';
-            return;
-        }
-        e.target.value = new Intl.NumberFormat('id-ID').format(parseInt(digits));
-    });
-});
+            // Format saat user mengetik
+            input.addEventListener('input', function(e) {
+                let digits = e.target.value.replace(/[^\d]/g, '');
+                if (!digits) {
+                    e.target.value = '';
+                    return;
+                }
+                e.target.value = new Intl.NumberFormat('id-ID').format(parseInt(digits));
+            });
+        });
         $('form').on('submit', function() {
-    $('.currency-format').each(function() {
-        let val = $(this).val().replace(/\./g, '');
-        $(this).val(parseInt(val) || 0);
-    });
-});
+            $('.currency-format').each(function() {
+                let val = $(this).val().replace(/\./g, '');
+                $(this).val(parseInt(val) || 0);
+            });
+        });
     </script>
 @endpush

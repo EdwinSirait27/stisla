@@ -775,6 +775,13 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'downloadAttendanceTemplate'])->name('attendanceTemplate');
             Route::delete('/{id}',           [PayrollController::class, 'destroy'])->name('destroy');
 Route::post('/bulk-destroy',     [PayrollController::class, 'destroyBulk'])->name('destroyBulk');
+
+Route::get('/{id}/slip',                 [PayrollController::class, 'downloadSlip'])->name('slip');
+Route::post('/{id}/slip/send',           [PayrollController::class, 'sendSlipEmail'])->name('slipSend');
+Route::post('/{periodId}/slip/send-bulk',[PayrollController::class, 'sendSlipEmailBulk'])->name('slipSendBulk');
+    Route::get('/{periodId}/slip-bulk',        [PayrollController::class, 'downloadSlipBulk'])->name('slipBulk');
+    Route::post('/{periodId}/slip/send-bulk',  [PayrollController::class, 'sendSlipEmailBulk'])->name('slipSendBulk');
+
         });
     });
 

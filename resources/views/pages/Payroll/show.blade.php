@@ -9,6 +9,7 @@
             color: #1e293b;
             margin: 0;
         }
+
         .section-header {
             display: flex;
             align-items: center;
@@ -17,10 +18,12 @@
             gap: 12px;
             margin-bottom: 1.25rem;
         }
+
         .page-actions {
             display: flex;
             gap: 8px;
         }
+
         .page-actions .btn {
             height: 36px;
             font-size: .825rem;
@@ -30,6 +33,7 @@
             gap: .4rem;
             border-radius: .5rem;
         }
+
         /* Grid layout */
         .detail-grid {
             display: grid;
@@ -37,9 +41,11 @@
             gap: 1.25rem;
             margin-bottom: 1.25rem;
         }
+
         .detail-grid-full {
             grid-column: span 2;
         }
+
         /* Card */
         .detail-card {
             background: #fff;
@@ -55,6 +61,7 @@
             align-items: center;
             gap: .6rem;
         }
+
         .detail-card-icon {
             width: 26px;
             height: 26px;
@@ -65,14 +72,17 @@
             font-size: .75rem;
             flex-shrink: 0;
         }
+
         .detail-card-title {
             font-size: .85rem;
             font-weight: 600;
             color: #334155;
         }
+
         .detail-card-body {
             padding: 1rem 1.25rem;
         }
+
         /* Info rows */
         .info-row {
             display: flex;
@@ -82,33 +92,42 @@
             border-bottom: 1px solid #f8fafc;
             font-size: .82rem;
         }
+
         .info-row:last-child {
             border-bottom: none;
         }
+
         .info-label {
             color: #64748b;
         }
+
         .info-value {
             font-weight: 600;
             color: #1e293b;
             text-align: right;
         }
+
         .info-value.green {
             color: #16a34a;
         }
+
         .info-value.red {
             color: #dc2626;
         }
+
         .info-value.blue {
             color: #1d4ed8;
         }
+
         .info-value.amber {
             color: #d97706;
         }
+
         .info-value.muted {
             color: #94a3b8;
             font-weight: 400;
         }
+
         /* Employee header */
         .emp-header {
             background: #fff;
@@ -120,6 +139,7 @@
             align-items: center;
             gap: 1rem;
         }
+
         .emp-header-avatar {
             width: 52px;
             height: 52px;
@@ -131,20 +151,24 @@
             justify-content: center;
             flex-shrink: 0;
         }
+
         .emp-header-name {
             font-size: 1rem;
             font-weight: 600;
             color: #1e293b;
         }
+
         .emp-header-sub {
             font-size: .78rem;
             color: #64748b;
             margin-top: 2px;
         }
+
         .emp-header-right {
             margin-left: auto;
             text-align: right;
         }
+
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -154,6 +178,7 @@
             font-size: .7rem;
             font-weight: 700;
         }
+
         /* Summary box */
         .summary-box {
             background: #f8fafc;
@@ -161,12 +186,14 @@
             padding: 1rem 1.25rem;
             margin-top: .75rem;
         }
+
         .summary-row {
             display: flex;
             justify-content: space-between;
             font-size: .82rem;
             padding: .3rem 0;
         }
+
         .summary-row.total {
             border-top: 1px solid #e2e8f0;
             margin-top: .5rem;
@@ -174,16 +201,19 @@
             font-weight: 700;
             font-size: .9rem;
         }
+
         .summary-row.total .summary-value {
             color: #1d4ed8;
             font-size: 1rem;
         }
+
         /* Component table */
         .comp-table {
             width: 100%;
             font-size: .8rem;
             border-collapse: collapse;
         }
+
         .comp-table th {
             background: #f8fafc;
             color: #64748b;
@@ -193,19 +223,23 @@
             text-align: left;
             border-bottom: 1px solid #f1f5f9;
         }
+
         .comp-table td {
             padding: .6rem .75rem;
             border-bottom: 1px solid #f8fafc;
             color: #334155;
             vertical-align: middle;
         }
+
         .comp-table tr:last-child td {
             border-bottom: none;
         }
+
         .num {
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
+
         /* Prorate badge */
         .prorate-badge {
             display: inline-flex;
@@ -219,10 +253,12 @@
             font-size: .75rem;
             font-weight: 600;
         }
+
         @media (max-width: 768px) {
             .detail-grid {
                 grid-template-columns: 1fr;
             }
+
             .detail-grid-full {
                 grid-column: span 1;
             }
@@ -246,7 +282,7 @@
                     <h1>Payroll Details</h1>
                 </div>
                 <div class="page-actions">
-                   <a href="{{ route('payroll.index', $payroll->payroll_period_id) }}" class="btn btn-light">
+                    <a href="{{ route('payroll.index', $payroll->payroll_period_id) }}" class="btn btn-light">
                         <i class="fas fa-arrow-left"></i> Back
                     </a>
                     @if ($payroll->status === 'draft')
@@ -254,7 +290,7 @@
                             <i class="fas fa-edit"></i> Edit
                         </a>
                     @endif
-                   
+
                 </div>
             </div>
 
@@ -340,7 +376,7 @@
                             <span class="info-label">Bank Account Number</span>
                             <span class="info-value">{{ $emp->bank_account_number ?? '-' }}</span>
                         </div>
-                        
+
                         <div class="info-row">
                             <span class="info-label">Join Date</span>
                             <span
@@ -364,34 +400,19 @@
                         <span class="detail-card-title">Attendance Info</span>
                     </div>
                     <div class="detail-card-body">
-                        {{-- <div class="info-row">
-                            <span class="info-label">Working Days</span>
-                            <span class="info-value">{{ $payroll->working_days }} hari</span>
-                        </div> --}}
-                        <div class="info-row">
-                            <span class="info-label">Working Days</span>
-                            <span class="info-value green">{{ $payroll->working_days }} hari</span>
-                        </div>
+
+                        @if (in_array(strtoupper($emp->status_employee), ['On Job Training', 'PKWT']))
+                            <div class="info-row">
+                                <span class="info-label">Working Days</span>
+                                <span class="info-value green">{{ $payroll->working_days }} hari</span>
+                            </div>
+                        @endif
+
                         <div class="info-row">
                             <span class="info-label">Attendance Days</span>
                             <span class="info-value green">{{ $payroll->attendance_days }} hari</span>
                         </div>
-                        {{-- <div class="info-row">
-                            <span class="info-label">Absent Days</span>
-                            <span class="info-value {{ $payroll->absent_days > 0 ? 'red' : 'muted' }}">
-                                {{ $payroll->absent_days }} hari
-                            </span>
-                        </div> --}}
-                        {{-- @if ($payroll->is_prorate)
-                            <div class="info-row">
-                                <span class="info-label">Prorate Days</span>
-                                <span class="info-value amber">{{ $payroll->prorate_days }} hari</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Prorate Ratio</span>
-                                <span class="info-value amber">{{ round($payroll->prorate_ratio * 100, 2) }}%</span>
-                            </div>
-                        @endif --}}
+
                     </div>
                 </div>
 
@@ -422,17 +443,6 @@
                                 <span class="info-value">Rp
                                     {{ number_format($payroll->position_allowance, 0, ',', '.') }}</span>
                             </div>
-                            
-                            {{-- <div class="info-row">
-                                <span class="info-label">Allowance</span>
-                                <span class="info-value">Rp {{ number_format($payroll->allowance, 0, ',', '.') }}</span>
-                            </div> --}}
-                            {{-- @if ($payroll->is_prorate)
-                                <div class="info-row">
-                                    <span class="info-label">Prorate Ratio</span>
-                                    <span class="info-value amber">× {{ round($payroll->prorate_ratio * 100, 2) }}%</span>
-                                </div>
-                            @endif --}}
                         @endif
                         <div class="summary-box">
                             <div class="summary-row">

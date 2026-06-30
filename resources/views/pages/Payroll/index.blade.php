@@ -447,6 +447,12 @@
                         <button class="btn btn-warning" data-toggle="modal" data-target="#importAttendanceModal">
                             <i class="fas fa-file-import"></i> Import External Data
                         </button>
+                         {{-- ← tambahan --}}
+    {{-- @if($stats['approved'] > 0 || $stats['paid'] > 0)
+        <a href="{{ route('payroll.slipBulk', $period->id) }}" class="btn btn-info" target="_blank">
+            <i class="fas fa-file-pdf"></i> Download Semua Slip
+        </a>
+    @endif --}}
                         <a href="{{ route('payroll.attendanceTemplate', $period->id) }}" class="btn btn-light">
                             <i class="fas fa-download"></i> Download Template External Data
                         </a>
@@ -582,25 +588,18 @@
                         <i class="fas fa-check-double"></i> Bulk Approve
                     </button> --}}
                 </div>
-
-                {{-- Bulk action bar --}}
-                {{-- <div class="bulk-bar" id="bulk-bar">
-                    <span class="bulk-bar-count"><span id="selected-count">0</span> dipilih</span>
-                    <button class="btn btn-success" id="btn-do-bulk-approve">
-                        <i class="fas fa-check-double"></i> Approve All
-                    </button>
-                     <button class="btn btn-danger" id="btn-do-bulk-delete">
-        <i class="fas fa-trash"></i> Delete All
-    </button>
-                    <button class="btn btn-light" id="btn-clear-select">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div> --}}
                 <div class="bulk-bar" id="bulk-bar">
                     <span class="bulk-bar-count"><span id="selected-count">0</span> dipilih</span>
                     <button class="btn btn-success" id="btn-do-bulk-approve">
                         <i class="fas fa-check-double"></i> Approve
                     </button>
+                    {{-- ← tambahan --}}
+    <button class="btn btn-primary" id="btn-do-bulk-send-slip">
+        <i class="fas fa-paper-plane"></i> Kirim Slip Email
+    </button>
+    <a href="#" id="btn-do-bulk-download-slip" class="btn btn-info" target="_blank">
+        <i class="fas fa-file-pdf"></i> Download Slip
+    </a>
                     <button class="btn btn-danger" id="btn-do-bulk-delete">
                         <i class="fas fa-trash"></i> Hapus
                     </button>
@@ -609,7 +608,6 @@
                     </button>
                 </div>
 
-                {{-- Table --}}
                 <div class="table-responsive" style="padding:.75rem 1.25rem 1rem">
                     <table id="payroll-table">
                         <thead>
@@ -698,7 +696,7 @@
     </div>
 @endsection
 
-@push('scripts')
+{{-- @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -1124,6 +1122,528 @@
                     grading_name: $('#filter-grading').val(),
                 });
                 window.location.href = '{{ route('payroll.export', $period->id) }}?' + params.toString();
+            });
+            // Kirim slip per-baris
+$(document).on('click', '.btn-send-slip', function () {
+    const id = $(this).data('id');
+
+    Swal.fire({
+        title: 'Kirim slip gaji?',
+        text: 'Email akan diproses di background.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1d4ed8',
+        confirmButtonText: 'Ya, Kirim',
+        cancelButtonText: 'Batal',
+    }).then(result => {
+        if (!result.isConfirmed) return;
+
+        $.post('{{ url("payroll") }}/' + id + '/slip/send', { _token: '{{ csrf_token() }}' })
+            .done(res => Swal.fire({ icon: 'success', title: 'Terkirim!', text: res.message ?? res, timer: 2500, showConfirmButton: false }))
+            .fail(err => Swal.fire({ icon: 'error', title: 'Gagal!', text: err.responseJSON?.message ?? 'Terjadi kesalahan.' }));
+    });
+});
+            // ── Flash messages ──
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#1d4ed8',
+                    timer: 4000,
+                    timerProgressBar: true,
+                });
+            @endif
+
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#dc2626',
+                });
+            @endif
+        });
+    </script>
+@endpush --}}
+@push('scripts')
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(function() {
+
+            // ── DataTable ──
+            const table = $('#payroll-table').DataTable({
+                processing: true,
+                serverSide: true,
+
+                ajax: {
+                    url: '{{ route('payroll.data', $period->id) }}',
+                    data: function(d) {
+                        d.status = $('#filter-status').val();
+                        d.status_type = $('#filter-status-employee').val();
+                        d.status_employee = $('#filter-untuk-active-inactive').val();
+                        d.store_name = $('#filter-store').val();
+                        d.company_name = $('#filter-company').val();
+                        d.department_name = $('#filter-department').val();
+                        d.grading_name = $('#filter-grading').val();
+                    }
+                },
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'All']
+                ],
+                columns: [{
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        // ← checkbox sekarang muncul untuk semua status
+                        // backend (approveBulk/destroyBulk) sudah filter where('status','draft')
+                        // jadi tidak akan ada efek samping kalau dicentang untuk approved/paid
+                        render: (data, type, row) =>
+                            `<input type="checkbox" class="row-check" data-id="${row.id}">`,
+                    },
+                    {
+                        data: null,
+                        render: (d, t, r, m) => m.row + 1,
+                        orderable: false,
+                        searchable: false,
+                    },
+                    {
+                        data: 'employee_pengenal',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'employee_name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'company_name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'department_name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'grading_name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'grading_name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'position_name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'status_type_badge',
+                        orderable: false
+                    },
+                    {
+                        data: 'status_employee',
+                        orderable: false
+                    },
+                    {
+                        data: null,
+                        render: (d, t, row) =>
+                            `<span style="font-size:.78rem">${row.working_days} hari</span>`,
+                        orderable: false,
+                    },
+                    {
+                        data: null,
+                        render: (d, t, row) =>
+                            `<span style="font-size:.78rem">${row.attendance_days} hari</span>`,
+                        orderable: false,
+                    },
+                    {
+                        data: 'basic_salary_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'position_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'daily_rate_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'gross_salary_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'meal_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'transport_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'house_allowance_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'overtime_amount_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'reimburse_amount_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'total_income_fmt',
+                        className: 'num',
+                        render: d => `<span style="color:#16a34a">${d}</span>`
+                    },
+                    {
+                        data: 'bpjs_kesehatan_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'bpjs_ketenagakerjaan_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'punishment_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'punishment_so_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'debt_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'tax_fmt',
+                        className: 'num'
+                    },
+                    {
+                        data: 'total_deduction_fmt',
+                        className: 'num',
+                        render: d => `<span style="color:#dc2626">${d}</span>`
+                    },
+                    {
+                        data: 'net_salary_fmt',
+                        className: 'num',
+                        render: d => `<strong>${d}</strong>`
+                    },
+                    {
+                        data: 'status_badge',
+                        orderable: false
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                    },
+                ],
+                drawCallback: function() {
+                    const info = this.api().page.info();
+                    $('#record-count').text(info.recordsTotal + ' records');
+                    updateBulkBar();
+                },
+                language: {
+                    processing: 'Memuat data...',
+                    emptyTable: 'Belum ada data payroll. Klik Generate Payroll.',
+                    zeroRecords: 'Data tidak ditemukan.',
+                },
+                order: [
+                    [2, 'asc']
+                ],
+                pageLength: 25,
+            });
+
+            // ── Filter ──
+            $('#btn-search').on('click', () => table.ajax.reload());
+            $('#btn-reset').on('click', () => {
+                $('#filter-status, #filter-status-employee, #filter-store, #filter-company, #filter-department, #filter-grading, #filter-untuk-active-inactive')
+                    .val('');
+                table.ajax.reload();
+            });
+
+            // ── Checkbox select all ──
+            $(document).on('change', '#check-all', function() {
+                $('.row-check').prop('checked', this.checked);
+                updateBulkBar();
+            });
+
+            $(document).on('change', '.row-check', function() {
+                updateBulkBar();
+            });
+
+            function updateBulkBar() {
+                const count = $('.row-check:checked').length;
+                $('#selected-count').text(count);
+                if (count > 0) {
+                    $('#bulk-bar').addClass('show');
+                } else {
+                    $('#bulk-bar').removeClass('show');
+                }
+
+                // ← update href download slip setiap kali jumlah checked berubah
+                const ids = $('.row-check:checked').map((i, el) => $(el).data('id')).get();
+                const url = '{{ route("payroll.slipBulk", $period->id) }}' +
+                    (ids.length ? '?' + ids.map(id => 'ids[]=' + id).join('&') : '');
+                $('#btn-do-bulk-download-slip').attr('href', url);
+            }
+
+            $('#btn-clear-select').on('click', () => {
+                $('.row-check, #check-all').prop('checked', false);
+                updateBulkBar();
+            });
+
+            // ── Approve satu ──
+            $(document).on('click', '.btn-approve', function() {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: 'Approve payroll ini?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonText: 'Batal',
+                    confirmButtonText: 'Ya, Approve',
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ url('payroll') }}/' + id + '/approve', {
+                            _token: '{{ csrf_token() }}'
+                        })
+                        .done(res => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Approved!',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            table.ajax.reload();
+                        })
+                        .fail(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.responseJSON?.error ?? 'Terjadi kesalahan.'
+                            });
+                        });
+                });
+            });
+
+            // ── Bulk Approve ──
+            $('#btn-do-bulk-approve').on('click', function() {
+                const ids = $('.row-check:checked').map((i, el) => $(el).data('id')).get();
+
+                if (ids.length === 0) return;
+
+                Swal.fire({
+                    title: `Approve ${ids.length} payroll?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonText: 'Batal',
+                    confirmButtonText: 'Ya, Approve Semua',
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ route('payroll.approveBulk') }}', {
+                            _token: '{{ csrf_token() }}',
+                            ids: ids,
+                        })
+                        .done(res => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Bulk Approved!',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            $('.row-check, #check-all').prop('checked', false);
+                            updateBulkBar();
+                            table.ajax.reload();
+                        })
+                        .fail(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.responseJSON?.error ?? 'Terjadi kesalahan.'
+                            });
+                        });
+                });
+            });
+
+            $(document).on('click', '.btn-delete-single', function() {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Hapus Payroll?',
+                    text: 'Data payroll dan detail akan dihapus permanen.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.ajax({
+                        url: '{{ url('payroll') }}/' + id,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            _method: 'DELETE',
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Dihapus!',
+                                    text: res.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                table.ajax.reload(null, false);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: res.message
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: xhr.responseJSON?.message ??
+                                    'Terjadi kesalahan.'
+                            });
+                        }
+                    });
+                });
+            });
+
+            // ── Bulk delete ──
+            $('#btn-do-bulk-delete').on('click', function() {
+                const ids = $('.row-check:checked').map((i, el) => $(el).data('id')).get();
+
+                if (ids.length === 0) return;
+
+                Swal.fire({
+                    title: `Hapus ${ids.length} Payroll?`,
+                    text: 'Semua data payroll dan detail yang dipilih akan dihapus permanen.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Hapus Semua!',
+                    cancelButtonText: 'Batal',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ route('payroll.destroyBulk') }}', {
+                            _token: '{{ csrf_token() }}',
+                            ids: ids,
+                        })
+                        .done(res => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Dihapus!',
+                                    text: res.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                $('.row-check, #check-all').prop('checked', false);
+                                updateBulkBar();
+                                table.ajax.reload(null, false);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: res.message
+                                });
+                            }
+                        })
+                        .fail(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.responseJSON?.message ?? 'Terjadi kesalahan.'
+                            });
+                        });
+                });
+            });
+
+            // ── Export ──
+            $('#btn-export').on('click', () => {
+                const params = new URLSearchParams({
+                    status: $('#filter-status').val(),
+                    status_employee: $('#filter-status-employee').val(),
+                    store_name: $('#filter-store').val(),
+                    company_name: $('#filter-company').val(),
+                    department_name: $('#filter-department').val(),
+                    grading_name: $('#filter-grading').val(),
+                });
+                window.location.href = '{{ route('payroll.export', $period->id) }}?' + params.toString();
+            });
+
+            // ── Kirim slip per-baris ──
+            $(document).on('click', '.btn-send-slip', function () {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: 'Kirim slip gaji?',
+                    text: 'Email akan diproses di background.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d4ed8',
+                    confirmButtonText: 'Ya, Kirim',
+                    cancelButtonText: 'Batal',
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ url("payroll") }}/' + id + '/slip/send', { _token: '{{ csrf_token() }}' })
+                        .done(res => Swal.fire({ icon: 'success', title: 'Terkirim!', text: res.message ?? res, timer: 2500, showConfirmButton: false }))
+                        .fail(err => Swal.fire({ icon: 'error', title: 'Gagal!', text: err.responseJSON?.message ?? 'Terjadi kesalahan.' }));
+                });
+            });
+
+            // ── Kirim slip bulk ──
+            $('#btn-do-bulk-send-slip').on('click', function () {
+                const ids = $('.row-check:checked').map((i, el) => $(el).data('id')).get();
+
+                if (ids.length === 0) return;
+
+                Swal.fire({
+                    title: `Kirim slip ke ${ids.length} karyawan?`,
+                    text: 'Email akan diproses di background, mungkin butuh beberapa menit.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d4ed8',
+                    confirmButtonText: 'Ya, Kirim',
+                    cancelButtonText: 'Batal',
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ route("payroll.slipSendBulk", $period->id) }}', {
+                            _token: '{{ csrf_token() }}',
+                            ids: ids,
+                        })
+                        .done(res => {
+                            Swal.fire({ icon: 'success', title: 'Masuk Antrian!', text: res.message });
+                            $('.row-check, #check-all').prop('checked', false);
+                            updateBulkBar();
+                        })
+                        .fail(err => {
+                            Swal.fire({ icon: 'error', title: 'Gagal!', text: err.responseJSON?.message ?? 'Terjadi kesalahan.' });
+                        });
+                });
             });
 
             // ── Flash messages ──

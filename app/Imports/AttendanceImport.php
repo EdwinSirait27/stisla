@@ -112,9 +112,24 @@ class AttendanceImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
+               $statusEmp      = strtoupper($employee->status_employee);
+            $workingDays    = (int) ($row['working_days']    ?? $payroll->working_days);
+            $attendanceDays = (int) ($row['attendance_days'] ?? $payroll->attendance_days);
+
+            // Recalculate gross untuk DW (daily_rate × attendance)
+            $grossSalary = $payroll->gross_salary;
+            if ($statusEmp === 'DW') {
+                $grossSalary = round((float) $payroll->daily_rate * $attendanceDays, 2);
+            }
+
+
             // Update hanya field manual dari Excel
             // working_days, attendance_days, overtime_amount → otomatis dari service
             $payroll->update([
+                 'working_days'     => $workingDays,
+                'attendance_days'  => $attendanceDays,
+                'gross_salary'     => $grossSalary,
+                'overtime_amount'  => (float) ($row['overtime_amount']  ?? $payroll->overtime_amount),
                  'reimburse_amount' => (float) ($row['reimburse_amount'] ?? 0),
                 'punishment'       => (float) ($row['punishment']       ?? $payroll->punishment),
                 'punishment_so'    => (float) ($row['punishment_so']    ?? $payroll->punishment_so),

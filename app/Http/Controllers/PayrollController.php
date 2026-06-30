@@ -20,6 +20,11 @@ use App\Imports\AttendanceImport;
 use App\Models\Company;
 use App\Models\Departments;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Mail\PayrollSlipMail;
+use App\Services\PayrollSlipService;
+use Illuminate\Support\Facades\Mail;
+use App\Jobs\SendPayrollSlipJob;
+
 
 class PayrollController extends Controller
 {
@@ -76,8 +81,6 @@ class PayrollController extends Controller
         }
         $period = PayrollPeriod::findOrFail($periodId);
 
-        // $query = Payroll::with(['employee:id,employee_name,employee_pengenal,status_employee,store_id', 'employee.store:id,name'])
-        //     ->where('payroll_period_id', $period->id);
         $query = Payroll::with([
             'employee:id,employee_name,employee_pengenal,status_employee,status,company_id,grading_id',
             'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
@@ -343,7 +346,15 @@ class PayrollController extends Controller
             <i class="fas fa-trash"></i>
         </button>';
                 }
-
+                if (in_array($row->status, ['approved', 'paid'])) {
+        $actions .= '<a href="' . route('payroll.slip', $row->id) . '"
+            class="act-btn act-info" title="Download Slip" target="_blank">
+            <i class="fas fa-file-pdf"></i>
+        </a>';
+        $actions .= '<button class="act-btn act-primary btn-send-slip" data-id="' . $row->id . '" title="Kirim Email Slip">
+            <i class="fas fa-paper-plane"></i>
+        </button>';
+    }
                 return '<div class="action-wrap">' . $actions . '</div>';
             })
             ->rawColumns(['status_badge', 'status_type_badge', 'status_employee_badge', 'prorate_info', 'action'])
@@ -639,7 +650,7 @@ public function destroyBulk(Request $request)
                 ->where('status', 'draft')
                 ->update([
                     'status'      => 'approved',
-                    'approved_by' => Auth::id(),
+                    'approved_by' => $user->employee_id,
                     'approved_at' => now(),
                 ]);
 
@@ -722,129 +733,286 @@ public function destroyBulk(Request $request)
             return back()->with('error', 'Import gagal: ' . $e->getMessage());
         }
     }
-
     public function downloadAttendanceTemplate(string $periodId)
-    {
-        $period = PayrollPeriod::findOrFail($periodId);
+{
+    $period = PayrollPeriod::findOrFail($periodId);
 
-        // Ambil semua employee yang sudah di-generate, urutkan berdasarkan status_employee
-        $payrolls = Payroll::with('employee:id,employee_name,employee_pengenal,status_employee')
-            ->where('payroll_period_id', $periodId)
-            ->where('status', 'draft')
-            ->get()
-            ->sortBy(fn($p) => match (strtoupper($p->employee->status_employee ?? '')) {
-                'PKWT'            => 1,
-                'ON JOB TRAINING' => 2,
-                'DW'              => 3,
-                default           => 4,
-            });
+    $payrolls = Payroll::with('employee:id,employee_name,employee_pengenal,status_employee')
+        ->where('payroll_period_id', $periodId)
+        ->where('status', 'draft')
+        ->get()
+        ->sortBy(fn($p) => match (strtoupper($p->employee->status_employee ?? '')) {
+            'PKWT'            => 1,
+            'ON JOB TRAINING' => 2,
+            'DW'              => 3,
+            default           => 4,
+        });
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Attendance');
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet       = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Attendance');
 
-        // Header
+    // Header
+    $sheet->fromArray([[
+        'employee_pengenal',
+        'employee_name',
+        'status_employee',
+        'working_days',
+        'attendance_days',
+        'overtime_amount',
+        'reimburse_amount',
+        'punishment',
+        'punishment_so',
+        'debt',
+        'tax',
+    ]], null, 'A1');
+
+    // Style header A1:K1
+    $sheet->getStyle('A1:K1')->applyFromArray([
+        'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+        'fill' => [
+            'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => '1d4ed8'],
+        ],
+    ]);
+
+    // Data per employee
+    $row = 2;
+    foreach ($payrolls as $payroll) {
+        $statusEmp = strtoupper($payroll->employee->status_employee ?? '');
+        $isDW      = $statusEmp === 'DW';
+
         $sheet->fromArray([[
-            'employee_pengenal',
-            'employee_name',
-            'status_employee',
-            'reimburse_amount',
-            'punishment',
-            'punishment_so',
-            'debt',
-            'tax',
-        ]], null, 'A1');
+            $payroll->employee->employee_pengenal ?? '-',
+            $payroll->employee->employee_name     ?? '-',
+            $payroll->employee->status_employee   ?? '-',
+            $isDW ? 0 : $payroll->working_days,    // ← DW = 0
+            $payroll->attendance_days,
+            $payroll->overtime_amount  ?? 0,
+            $payroll->reimburse_amount ?? 0,
+            $payroll->punishment       ?? 0,
+            $payroll->punishment_so    ?? 0,
+            $payroll->debt             ?? 0,
+            $payroll->tax              ?? 0,
+        ]], null, 'A' . $row);
 
-        // Style header A1:K1
-        $sheet->getStyle('A1:H1')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+        $rowColor = match ($statusEmp) {
+            'PKWT'            => 'eff6ff',
+            'ON JOB TRAINING' => 'fdf4ff',
+            'DW'              => 'fffbeb',
+            default           => 'ffffff',
+        };
+
+        $sheet->getStyle('A' . $row . ':K' . $row)->applyFromArray([
             'fill' => [
                 'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1d4ed8'],
+                'startColor' => ['rgb' => $rowColor],
             ],
         ]);
 
-        // Data per employee
-        $row = 2;
-        foreach ($payrolls as $payroll) {
-            $statusEmp = strtoupper($payroll->employee->status_employee ?? '');
-
-            // $sheet->fromArray([[
-            //     $payroll->employee->employee_pengenal ?? '-',
-            //     $payroll->employee->employee_name     ?? '-',
-            //     $payroll->employee->status_employee   ?? '-',
-            //     $statusEmp === 'DW' ? '' : $payroll->working_days,
-            //     $payroll->punishment       ?? 0,
-            //     $payroll->punishment_so    ?? 0,
-            //     $payroll->debt             ?? 0,
-            //     $payroll->tax              ?? 0,
-            // ]], null, 'A' . $row);
-            $sheet->fromArray([[
-    $payroll->employee->employee_pengenal ?? '-',
-    $payroll->employee->employee_name     ?? '-',
-    $payroll->employee->status_employee   ?? '-',
-    // ← hapus $payroll->working_days
-    $payroll->reimburse_amount ?? 0, // ← tambah yang ini juga hilang
-    $payroll->punishment       ?? 0,
-    $payroll->punishment_so    ?? 0,
-    $payroll->debt             ?? 0,
-    $payroll->tax              ?? 0,
-]], null, 'A' . $row);
-
-            // Warna baris berdasarkan status_employee
-            $rowColor = match ($statusEmp) {
-                'PKWT'            => 'eff6ff', // biru muda
-                'ON JOB TRAINING' => 'fdf4ff', // ungu muda
-                'DW'              => 'fffbeb', // kuning muda
-                default           => 'ffffff',
-            };
-
-            $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray([
-                'fill' => [
-                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => $rowColor],
-                ],
-            ]);
-
-            $row++;
-        }
-
-        // Lock kolom A, B, C (penanda, tidak perlu diedit)
-        $sheet->getStyle('A2:C' . ($row - 1))->applyFromArray([
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'e2e8f0'],
-            ],
-        ]);
-
-        // Border semua data
-        $sheet->getStyle('A1:H' . ($row - 1))->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color'       => ['rgb' => 'cbd5e1'],
-                ],
-            ],
-        ]);
-
-        // Auto width
-        foreach (range('A', 'H') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        // Freeze header row
-        $sheet->freezePane('A2');
-
-        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = tempnam(sys_get_temp_dir(), 'attendance_template');
-        $writer->save($filename);
-
-        return response()->download(
-            $filename,
-            'attendance_' . $period->period_label . '.xlsx'
-        )->deleteFileAfterSend(true);
+        $row++;
     }
+
+    // Lock kolom A, B, C
+    $sheet->getStyle('A2:C' . ($row - 1))->applyFromArray([
+        'font' => ['bold' => true],
+        'fill' => [
+            'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'e2e8f0'],
+        ],
+    ]);
+
+    // Border A1:K
+    $sheet->getStyle('A1:K' . ($row - 1))->applyFromArray([
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color'       => ['rgb' => 'cbd5e1'],
+            ],
+        ],
+    ]);
+
+    // Auto width A sampai K
+    foreach (range('A', 'K') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    $sheet->freezePane('A2');
+
+    $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    $filename = tempnam(sys_get_temp_dir(), 'attendance_template');
+    $writer->save($filename);
+
+    return response()->download(
+        $filename,
+        'attendance_' . $period->period_label . '.xlsx'
+    )->deleteFileAfterSend(true);
+}
+
+public function downloadSlip(string $id)
+{
+    $payroll = Payroll::with(['employee.company', 'details.component'])->findOrFail($id);
+    $pdf = app(PayrollSlipService::class)->generateSingle($payroll);
+
+    return $pdf->download('Slip_Gaji_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf');
+}
+
+public function sendSlipEmail(string $id)
+{
+    $payroll = Payroll::with('employee')->findOrFail($id);
+    if (!$payroll->employee->email) {
+        return back()->with('error', 'Email karyawan tidak tersedia.');
+    }
+    SendPayrollSlipJob::dispatch($payroll->id)->onQueue('payrollslip');
+    return back()->with('success', "Slip gaji {$payroll->employee->employee_name} sedang dikirim di background.");
+}
+
+public function sendSlipEmailBulk(Request $request, string $periodId)
+{
+    $request->validate(['ids' => 'required|array|min:1']);
+    $payrolls = Payroll::with('employee')
+        ->whereIn('id', $request->ids)
+        ->where('payroll_period_id', $periodId)
+        ->whereIn('status', ['approved', 'paid'])
+        ->get();
+    $dispatched = 0;
+    $skipped    = [];
+    foreach ($payrolls as $payroll) {
+        if (!$payroll->employee->email) {
+            $skipped[] = $payroll->employee->employee_name;
+            continue;
+        }
+
+        SendPayrollSlipJob::dispatch($payroll->id)->onQueue('payrollslip');
+        $dispatched++;
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => "{$dispatched} slip masuk antrian pengiriman."
+            . (count($skipped) ? ' Dilewati (no email): ' . implode(', ', $skipped) : ''),
+    ]);
+}
+
+
+//     public function downloadAttendanceTemplate(string $periodId)
+//     {
+//         $period = PayrollPeriod::findOrFail($periodId);
+
+//         // Ambil semua employee yang sudah di-generate, urutkan berdasarkan status_employee
+//         $payrolls = Payroll::with('employee:id,employee_name,employee_pengenal,status_employee')
+//             ->where('payroll_period_id', $periodId)
+//             ->where('status', 'draft')
+//             ->get()
+//             ->sortBy(fn($p) => match (strtoupper($p->employee->status_employee ?? '')) {
+//                 'PKWT'            => 1,
+//                 'ON JOB TRAINING' => 2,
+//                 'DW'              => 3,
+//                 default           => 4,
+//             });
+
+//         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+//         $sheet       = $spreadsheet->getActiveSheet();
+//         $sheet->setTitle('Attendance');
+
+//         // Header
+//         $sheet->fromArray([[
+//             'employee_pengenal',
+//             'employee_name',
+//             'status_employee',
+//              'working_days',
+//     'attendance_days',
+//     'overtime_amount',
+//             'reimburse_amount',
+//             'punishment',
+//             'punishment_so',
+//             'debt',
+//             'tax',
+//         ]], null, 'A1');
+
+//         // Style header A1:K1
+//         $sheet->getStyle('A1:H1')->applyFromArray([
+//             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+//             'fill' => [
+//                 'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+//                 'startColor' => ['rgb' => '1d4ed8'],
+//             ],
+//         ]);
+
+//         // Data per employee
+//         $row = 2;
+//         foreach ($payrolls as $payroll) {
+//             $statusEmp = strtoupper($payroll->employee->status_employee ?? '');
+
+          
+//             $sheet->fromArray([[
+//     $payroll->employee->employee_pengenal ?? '-',
+//     $payroll->employee->employee_name     ?? '-',
+//     $payroll->employee->status_employee   ?? '-',
+//       $statusEmp === 'DW' ? '' : $payroll->working_days,
+//     $payroll->attendance_days,
+//     $payroll->overtime_amount  ?? 0,
+//     $payroll->reimburse_amount ?? 0, 
+//     $payroll->punishment       ?? 0,
+//     $payroll->punishment_so    ?? 0,
+//     $payroll->debt             ?? 0,
+//     $payroll->tax              ?? 0,
+// ]], null, 'A' . $row);
+
+//             // Warna baris berdasarkan status_employee
+//             $rowColor = match ($statusEmp) {
+//                 'PKWT'            => 'eff6ff', // biru muda
+//                 'ON JOB TRAINING' => 'fdf4ff', // ungu muda
+//                 'DW'              => 'fffbeb', // kuning muda
+//                 default           => 'ffffff',
+//             };
+
+//             $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray([
+//                 'fill' => [
+//                     'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+//                     'startColor' => ['rgb' => $rowColor],
+//                 ],
+//             ]);
+
+//             $row++;
+//         }
+
+//         // Lock kolom A, B, C (penanda, tidak perlu diedit)
+//         $sheet->getStyle('A2:C' . ($row - 1))->applyFromArray([
+//             'font' => ['bold' => true],
+//             'fill' => [
+//                 'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+//                 'startColor' => ['rgb' => 'e2e8f0'],
+//             ],
+//         ]);
+
+//         // Border semua data
+//         $sheet->getStyle('A1:H' . ($row - 1))->applyFromArray([
+//             'borders' => [
+//                 'allBorders' => [
+//                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+//                     'color'       => ['rgb' => 'cbd5e1'],
+//                 ],
+//             ],
+//         ]);
+
+//         // Auto width
+//         foreach (range('A', 'H') as $col) {
+//             $sheet->getColumnDimension($col)->setAutoSize(true);
+//         }
+
+//         // Freeze header row
+//         $sheet->freezePane('A2');
+
+//         $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+//         $filename = tempnam(sys_get_temp_dir(), 'attendance_template');
+//         $writer->save($filename);
+
+//         return response()->download(
+//             $filename,
+//             'attendance_' . $period->period_label . '.xlsx'
+//         )->deleteFileAfterSend(true);
+//     }
     // public function downloadAttendanceTemplate(string $periodId)
     // {
     //     $period = PayrollPeriod::findOrFail($periodId);
