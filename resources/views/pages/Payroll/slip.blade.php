@@ -220,9 +220,9 @@
         </table> --}}
         <table width="100%" style="margin-bottom: 20px; font-size: 12px; text-align: left;">
     <tr>
-        <td width="15%"><strong>Payroll Month :</strong></td>
+        <td width="15%"><strong>Payroll :</strong></td>
         <td width="35%">{{ \Carbon\Carbon::parse($payroll->period_start)->translatedFormat('F Y') }}</td>
-        <td width="15%"><strong>Payroll Periode :</strong></td>
+        <td width="15%"><strong>Periode :</strong></td>
         <td width="35%">{{ \Carbon\Carbon::parse($payroll->period_start)->format('d/m/Y') }} —
             {{ \Carbon\Carbon::parse($payroll->period_end)->format('d/m/Y') }}</td>
     </tr>
