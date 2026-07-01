@@ -809,10 +809,8 @@ public function destroyBulk(Request $request)
                 'startColor' => ['rgb' => $rowColor],
             ],
         ]);
-
         $row++;
     }
-
     // Lock kolom A, B, C
     $sheet->getStyle('A2:C' . ($row - 1))->applyFromArray([
         'font' => ['bold' => true],
@@ -821,7 +819,6 @@ public function destroyBulk(Request $request)
             'startColor' => ['rgb' => 'e2e8f0'],
         ],
     ]);
-
     // Border A1:K
     $sheet->getStyle('A1:K' . ($row - 1))->applyFromArray([
         'borders' => [
@@ -855,6 +852,71 @@ public function downloadSlip(string $id)
     $pdf = app(PayrollSlipService::class)->generateSingle($payroll);
 
     return $pdf->download('Slip_Gaji_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf');
+}
+// public function downloadSlipBulk(Request $request, string $periodId)
+// {
+//     $period = PayrollPeriod::findOrFail($periodId);
+
+//     $payrolls = Payroll::with(['employee.company', 'details.component'])
+//         ->where('payroll_period_id', $periodId)
+//         ->whereIn('status', ['approved', 'paid']) // ← hanya yang sudah final
+//         ->get();
+
+//     if ($request->filled('ids')) {
+//         $payrolls = $payrolls->whereIn('id', $request->ids);
+//     }
+
+//     $pdf = app(PayrollSlipService::class)->generateBulk($payrolls);
+
+//     return $pdf->download('Slip_Gaji_Bulk_' . $period->period_label . '.pdf');
+// }
+public function downloadSlipBulk(Request $request, string $periodId)
+{
+    $period = PayrollPeriod::findOrFail($periodId);
+
+    $query = Payroll::with(['employee.company', 'employee.bank', 'details.component'])
+        ->where('payroll_period_id', $periodId)
+        ->whereIn('status', ['approved', 'paid']);
+
+    if ($request->filled('ids')) {
+        $query->whereIn('id', $request->ids);
+    }
+
+    $payrolls = $query->get();
+
+    if ($payrolls->isEmpty()) {
+        return back()->with('error', 'Tidak ada payroll approved/paid untuk didownload.');
+    }
+
+    $service   = app(\App\Services\PayrollSlipService::class);
+    $tempDir   = storage_path('app/temp-slips');
+    $zipPath   = $tempDir . '/Slip_Gaji_' . $period->period_label . '_' . time() . '.zip';
+
+    if (!file_exists($tempDir)) {
+        mkdir($tempDir, 0755, true);
+    }
+
+    $zip = new \ZipArchive();
+    $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+    foreach ($payrolls as $payroll) {
+        $pdf      = $service->generateSingle($payroll);
+        $filename = 'Slip_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf';
+        $tempPdf  = $tempDir . '/' . uniqid() . '_' . $filename;
+
+        $pdf->save($tempPdf);
+        $zip->addFile($tempPdf, $filename);
+    }
+
+    $zip->close();
+
+    // Hapus file PDF temp setelah di-zip
+    foreach (glob($tempDir . '/????????????????????_Slip_*.pdf') as $file) {
+        unlink($file);
+    }
+
+    return response()->download($zipPath, 'Slip_Gaji_' . $period->period_label . '.zip')
+        ->deleteFileAfterSend(true);
 }
 
 public function sendSlipEmail(string $id)
