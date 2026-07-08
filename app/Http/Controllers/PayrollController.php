@@ -846,10 +846,18 @@ public function destroyBulk(Request $request)
     )->deleteFileAfterSend(true);
 }
 
+// public function downloadSlip(string $id)
+// {
+//     $payroll = Payroll::with(['employee.company', 'details.component'])->findOrFail($id);
+//     $pdf = app(PayrollSlipService::class)->generateSingle($payroll);
+
+//     return $pdf->download('Slip_Gaji_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf');
+// }
 public function downloadSlip(string $id)
 {
     $payroll = Payroll::with(['employee.company', 'details.component'])->findOrFail($id);
-    $pdf = app(PayrollSlipService::class)->generateSingle($payroll);
+
+    ['pdf' => $pdf] = app(\App\Services\PayrollSlipService::class)->generateForDownload($payroll);
 
     return $pdf->download('Slip_Gaji_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf');
 }
@@ -870,6 +878,133 @@ public function downloadSlip(string $id)
 
 //     return $pdf->download('Slip_Gaji_Bulk_' . $period->period_label . '.pdf');
 // }
+// public function downloadSlipBulk(Request $request, string $periodId)
+// {
+//     $period = PayrollPeriod::findOrFail($periodId);
+
+//     $query = Payroll::with(['employee.company', 'employee.bank', 'details.component'])
+//         ->where('payroll_period_id', $periodId)
+//         ->whereIn('status', ['approved', 'paid']);
+
+//     if ($request->filled('ids')) {
+//         $query->whereIn('id', $request->ids);
+//     }
+
+//     $payrolls = $query->get();
+
+//     if ($payrolls->isEmpty()) {
+//         return back()->with('error', 'Tidak ada payroll approved/paid untuk didownload.');
+//     }
+
+//     $service   = app(\App\Services\PayrollSlipService::class);
+//     $tempDir   = storage_path('app/temp-slips');
+//     $zipPath   = $tempDir . '/Slip_Gaji_' . $period->period_label . '_' . time() . '.zip';
+
+//     if (!file_exists($tempDir)) {
+//         mkdir($tempDir, 0755, true);
+//     }
+
+//     $zip = new \ZipArchive();
+//     $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+//     foreach ($payrolls as $payroll) {
+//         $pdf      = $service->generateSingle($payroll);
+//         $filename = 'Slip_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf';
+//         $tempPdf  = $tempDir . '/' . uniqid() . '_' . $filename;
+
+//         $pdf->save($tempPdf);
+//         $zip->addFile($tempPdf, $filename);
+//     }
+
+//     $zip->close();
+
+//     // Hapus file PDF temp setelah di-zip
+//     foreach (glob($tempDir . '/????????????????????_Slip_*.pdf') as $file) {
+//         unlink($file);
+//     }
+
+//     return response()->download($zipPath, 'Slip_Gaji_' . $period->period_label . '.zip')
+//         ->deleteFileAfterSend(true);
+// }
+// public function downloadSlipBulk(Request $request, string $periodId)
+// {
+//     $period = PayrollPeriod::findOrFail($periodId);
+
+//     $query = Payroll::with(['employee.company', 'employee.bank', 'details.component'])
+//         ->where('payroll_period_id', $periodId)
+//         ->whereIn('status', ['approved', 'paid']);
+
+//     if ($request->filled('ids')) {
+//         $query->whereIn('id', $request->ids);
+//     }
+
+//     $payrolls = $query->get();
+
+//     if ($payrolls->isEmpty()) {
+//         return back()->with('error', 'Tidak ada payroll approved/paid untuk didownload.');
+//     }
+
+//     $service = app(\App\Services\PayrollSlipService::class);
+//     $tempDir = storage_path('app/temp-slips');
+//     $zipPath = $tempDir . '/Slip_Gaji_' . $period->period_label . '_' . time() . '.zip';
+
+//     if (!file_exists($tempDir)) {
+//         mkdir($tempDir, 0755, true);
+//     }
+
+//     $zip = new \ZipArchive();
+//     if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+//         return back()->with('error', 'Gagal membuat file zip.');
+//     }
+
+//     $tempFiles = [];
+
+//     foreach ($payrolls as $payroll) {
+//         try {
+//             if (!$payroll->employee) {
+//                 Log::warning('downloadSlipBulk: skip, employee not found', [
+//                     'payroll_id' => $payroll->id,
+//                 ]);
+//                 continue;
+//             }
+
+//             ['pdf' => $pdf, 'password' => $password] = $service->generateSingle($payroll);
+
+//             $filename = 'Slip_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf';
+//             $tempPdf  = $tempDir . '/' . uniqid('', true) . '_' . $filename;
+
+//             $pdf->save($tempPdf);
+//             $zip->addFile($tempPdf, $filename);
+//             $tempFiles[] = $tempPdf;
+//         } catch (\Throwable $e) {
+//             Log::error('downloadSlipBulk: failed to generate PDF', [
+//                 'payroll_id' => $payroll->id,
+//                 'error'      => $e->getMessage(),
+//             ]);
+//             continue; // lanjut ke payroll berikutnya, jangan gagalkan semua proses
+//         }
+//     }
+
+//     $zip->close();
+
+//     // Hapus semua file PDF temp setelah masuk zip (baik sukses maupun gagal sebagian)
+//     foreach ($tempFiles as $file) {
+//         if (file_exists($file)) {
+//             unlink($file);
+//         }
+//     }
+
+//     if (empty($tempFiles)) {
+//         // Semua gagal generate, hapus zip kosong juga
+//         if (file_exists($zipPath)) {
+//             unlink($zipPath);
+//         }
+//         return back()->with('error', 'Gagal generate slip untuk semua payroll. Cek log untuk detail.');
+//     }
+
+//     return response()->download($zipPath, 'Slip_Gaji_' . $period->period_label . '.zip')
+//         ->deleteFileAfterSend(true);
+// }
 public function downloadSlipBulk(Request $request, string $periodId)
 {
     $period = PayrollPeriod::findOrFail($periodId);
@@ -888,64 +1023,121 @@ public function downloadSlipBulk(Request $request, string $periodId)
         return back()->with('error', 'Tidak ada payroll approved/paid untuk didownload.');
     }
 
-    $service   = app(\App\Services\PayrollSlipService::class);
-    $tempDir   = storage_path('app/temp-slips');
-    $zipPath   = $tempDir . '/Slip_Gaji_' . $period->period_label . '_' . time() . '.zip';
+    $service = app(\App\Services\PayrollSlipService::class);
+    $tempDir = storage_path('app/temp-slips');
+    $zipPath = $tempDir . '/Slip_Gaji_' . $period->period_label . '_' . time() . '.zip';
 
     if (!file_exists($tempDir)) {
         mkdir($tempDir, 0755, true);
     }
 
     $zip = new \ZipArchive();
-    $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+    if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+        return back()->with('error', 'Gagal membuat file zip.');
+    }
 
-    foreach ($payrolls as $payroll) {
-        $pdf      = $service->generateSingle($payroll);
+    $tempFiles = [];
+    $results = $service->generateBulkForDownload($payrolls);
+
+    foreach ($results as $result) {
+        $payroll = $result['payroll'];
+        $pdf     = $result['pdf'];
+
         $filename = 'Slip_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf';
-        $tempPdf  = $tempDir . '/' . uniqid() . '_' . $filename;
+        $tempPdf  = $tempDir . '/' . uniqid('', true) . '_' . $filename;
 
         $pdf->save($tempPdf);
         $zip->addFile($tempPdf, $filename);
+        $tempFiles[] = $tempPdf;
     }
 
     $zip->close();
 
-    // Hapus file PDF temp setelah di-zip
-    foreach (glob($tempDir . '/????????????????????_Slip_*.pdf') as $file) {
-        unlink($file);
+    foreach ($tempFiles as $file) {
+        if (file_exists($file)) {
+            unlink($file);
+        }
+    }
+
+    if (empty($tempFiles)) {
+        if (file_exists($zipPath)) {
+            unlink($zipPath);
+        }
+        return back()->with('error', 'Gagal generate slip untuk semua payroll. Cek log untuk detail.');
     }
 
     return response()->download($zipPath, 'Slip_Gaji_' . $period->period_label . '.zip')
         ->deleteFileAfterSend(true);
 }
 
+// public function sendSlipEmail(string $id)
+// {
+//     $payroll = Payroll::with('employee')->findOrFail($id);
+//     if (!$payroll->employee->email) {
+//         return back()->with('error', 'Email karyawan tidak tersedia.');
+//     }
+//     SendPayrollSlipJob::dispatch($payroll->id)->onQueue('payrollslip');
+//     return back()->with('success', "Slip gaji {$payroll->employee->employee_name} sedang dikirim di background.");
+// }
+
+// public function sendSlipEmailBulk(Request $request, string $periodId)
+// {
+//     $request->validate(['ids' => 'required|array|min:1']);
+//     $payrolls = Payroll::with('employee')
+//         ->whereIn('id', $request->ids)
+//         ->where('payroll_period_id', $periodId)
+//         ->whereIn('status', ['approved', 'paid'])
+//         ->get();
+//     $dispatched = 0;
+//     $skipped    = [];
+//     foreach ($payrolls as $payroll) {
+//         if (!$payroll->employee->email) {
+//             $skipped[] = $payroll->employee->employee_name;
+//             continue;
+//         }
+
+//         SendPayrollSlipJob::dispatch($payroll->id)->onQueue('payrollslip');
+//         $dispatched++;
+//     }
+
+//     return response()->json([
+//         'success' => true,
+//         'message' => "{$dispatched} slip masuk antrian pengiriman."
+//             . (count($skipped) ? ' Dilewati (no email): ' . implode(', ', $skipped) : ''),
+//     ]);
+// }
 public function sendSlipEmail(string $id)
 {
     $payroll = Payroll::with('employee')->findOrFail($id);
-    if (!$payroll->employee->email) {
+
+    if (!$payroll->employee || !$payroll->employee->email) {
         return back()->with('error', 'Email karyawan tidak tersedia.');
     }
-    SendPayrollSlipJob::dispatch($payroll->id)->onQueue('payrollslip');
+
+    SendPayrollSlipJob::dispatch($payroll->id);
+
     return back()->with('success', "Slip gaji {$payroll->employee->employee_name} sedang dikirim di background.");
 }
-
 public function sendSlipEmailBulk(Request $request, string $periodId)
 {
     $request->validate(['ids' => 'required|array|min:1']);
+
     $payrolls = Payroll::with('employee')
         ->whereIn('id', $request->ids)
         ->where('payroll_period_id', $periodId)
         ->whereIn('status', ['approved', 'paid'])
         ->get();
+
     $dispatched = 0;
     $skipped    = [];
+
     foreach ($payrolls as $payroll) {
-        if (!$payroll->employee->email) {
-            $skipped[] = $payroll->employee->employee_name;
+        if (!$payroll->employee || !$payroll->employee->email) {
+            $skipped[] = $payroll->employee->employee_name ?? "Payroll ID: {$payroll->id}";
             continue;
         }
 
-        SendPayrollSlipJob::dispatch($payroll->id)->onQueue('payrollslip');
+        SendPayrollSlipJob::dispatch($payroll->id);
         $dispatched++;
     }
 
