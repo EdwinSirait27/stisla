@@ -621,7 +621,8 @@ public function destroyBulk(Request $request)
         try {
             $payroll->update([
                 'status'      => 'approved',
-                'approved_by' => Auth::id(),
+                    'approved_by' => $user->employee_id, 
+
                 'approved_at' => now(),
             ]);
 
