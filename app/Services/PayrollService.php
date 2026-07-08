@@ -8,7 +8,7 @@ use App\Models\Fingerprintrecap;
 use App\Models\Payroll;
 use App\Models\PayrollDetail;
 use App\Models\PayrollPeriod;
-use App\Models\PayrollComponents;
+use App\Models\Payrollcomponents;
 use App\Models\EmployeeOvertimeRate;
 use App\Models\Overtimesubmissions;
 use App\Models\Roster;
@@ -249,7 +249,7 @@ foreach ($overtimeSubmissions as $submission) {
             // Generate PayrollDetail dari komponen is_fixed = true:
             // BPJS KESEHATAN, BPJS KETENAGAKERJAAN (Deduction)
             // MEAL ALLOWANCE, HOUSE ALLOWANCE, TRANSPORT ALLOWANCE (Income)
-            $fixedComponents = PayrollComponents::where('is_fixed', true)->get();
+            $fixedComponents = Payrollcomponents::where('is_fixed', true)->get();
 
             foreach ($fixedComponents as $component) {
                 $amount = $this->calculateComponentAmount(
@@ -302,7 +302,7 @@ foreach ($overtimeSubmissions as $submission) {
     // MEAL/HOUSE/TRANSPORT → nominal dari EmployeeSalary
     // ════════════════════════════════════════
     private function calculateComponentAmount(
-        PayrollComponents $component,
+        Payrollcomponents $component,
         float $grossSalary,
         float $basicSalary,
         string $statusEmp,
