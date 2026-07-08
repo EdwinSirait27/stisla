@@ -182,42 +182,7 @@
             </table>
         </div>
         <!-- Employee Information -->
-        {{-- <table width="100%" style="margin-bottom: 20px; font-size: 12px; text-align: left;">
-            <tr>
-                <td><strong>Payroll Month :</strong></td>
-                <td>{{ \Carbon\Carbon::parse($payroll->period_start)->translatedFormat('F Y') }}</td>
-                <td><strong>Payroll Periode :</strong></td>
-                <td>{{ \Carbon\Carbon::parse($payroll->period_start)->format('d/m/Y') }} —
-                    {{ \Carbon\Carbon::parse($payroll->period_end)->format('d/m/Y') }}</td>
-            </tr>
-            <tr>
-                <td><strong>Name :</strong></td>
-                <td>{{ $payroll->employee->employee_name }}</td>
-                <td><strong>Company Name :</strong></td>
-                <td>{{ $payroll->employee->company->name }}</td>
-                <td><strong>Department :</strong></td>
-                <td>{{ optional($payroll->employee->department()->wherePivot('is_primary', true)->first())->department_name ?? '' }}</td>
-                <td><strong>Location :</strong></td>
-                <td>{{ optional($payroll->employee->store()->wherePivot('is_primary', true)->first())->name ?? '' }}</td>
-                <td><strong>Status :</strong></td>
-                <td>{{ $payroll->employee->status_employee }}</td>
-                <td><strong>NIP :</strong></td>
-                <td>{{ $payroll->employee->employee_pengenal }}</td>
-            </tr>
-            <tr>
-                <td><strong>Job position :</strong></td>
-                <td>{{ optional($payroll->employee->position()->wherePivot('is_primary', true)->first())->name ?? '' }}</td>
-                <td><strong>Grading :</strong></td>
-                <td>{{ $payroll->employee->grading->grading_name ?? '' }}</td>
-                <td><strong>NPWP :</strong></td>
-                <td>{{ $payroll->employee->npwp ?? '' }}</td>
-            </tr>
-            <tr>
-               
-                <td><strong>Email :</strong></td>
-                <td>{{ $payroll->employee->email }}</td>
-            </tr>
-        </table> --}}
+        
         <table width="100%" style="margin-bottom: 20px; font-size: 12px; text-align: left;">
     <tr>
         <td width="15%"><strong>Payroll :</strong></td>
@@ -248,7 +213,7 @@
         <td><strong>Job Position :</strong></td>
         <td>{{ optional($payroll->employee->position()->wherePivot('is_primary', true)->first())->name ?? '' }}</td>
         <td><strong>Grading :</strong></td>
-        <td>{{ $payroll->employee->grading->grading_name ?? '' }}</td>
+        <td>{{ $payroll->employee->grading->grading_name ?? 'Empty' }}</td>
     </tr>
     <tr>
         <td><strong>NPWP :</strong></td>

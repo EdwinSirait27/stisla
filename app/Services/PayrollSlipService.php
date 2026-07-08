@@ -1,105 +1,178 @@
 <?php
 
+// namespace App\Services;
+
+// use App\Models\Payroll;
+// use App\Models\PayrollPeriod;
+// use Barryvdh\DomPDF\Facade\Pdf;
+
+// class PayrollSlipService
+// {
+//     public function generateSingle(Payroll $payroll): \Barryvdh\DomPDF\PDF
+//     {
+//         $payroll->load(['employee.company', 'details.component']);
+
+//         $pdf = Pdf::loadView('pages.Payroll.slip', [
+//             'payroll' => $payroll,
+//         ])->setPaper('a4', 'portrait');
+
+//         // ── Password protection pakai tanggal lahir format Ymd ──
+//         $password = $payroll->employee->date_of_birth
+//             ? \Carbon\Carbon::parse($payroll->employee->date_of_birth)->format('Ymd')
+//             : null;
+
+//         if ($password) {
+//             $pdf->getDomPDF()->getOptions()->set('isHtml5ParserEnabled', true);
+//             $canvas = $pdf->getDomPDF()->getCanvas();
+//             $canvas->get_cpdf()->setEncryption($password, null, ['copy', 'print']);
+//         }
+
+//         return $pdf;
+//     }
+// }
 namespace App\Services;
 
 use App\Models\Payroll;
-use App\Models\PayrollPeriod;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+
 
 class PayrollSlipService
 {
-    public function generateSingle(Payroll $payroll): \Barryvdh\DomPDF\PDF
+    public function generateSingle(Payroll $payroll): array
     {
         $payroll->load(['employee.company', 'details.component']);
 
         $pdf = Pdf::loadView('pages.Payroll.slip', [
             'payroll' => $payroll,
         ])->setPaper('a4', 'portrait');
+        $password = $this->generateReadableRandomKey(8);
+        $pdf->getDomPDF()->getOptions()->set('isHtml5ParserEnabled', true);
+        $canvas = $pdf->getDomPDF()->getCanvas();
+        $canvas->get_cpdf()->setEncryption($password, null, ['copy', 'print']);
+        return [
+            'pdf'      => $pdf,
+            'password' => $password,
+        ];
+    }
 
-        // ── Password protection pakai tanggal lahir format Ymd ──
-        $password = $payroll->employee->date_of_birth
-            ? \Carbon\Carbon::parse($payroll->employee->date_of_birth)->format('Ymd')
-            : null;
-
-        if ($password) {
-            $pdf->getDomPDF()->getOptions()->set('isHtml5ParserEnabled', true);
-            $canvas = $pdf->getDomPDF()->getCanvas();
-            $canvas->get_cpdf()->setEncryption($password, null, ['copy', 'print']);
+    protected function generateReadableRandomKey(int $length = 8): string
+    {
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $key = '';
+        for ($i = 0; $i < $length; $i++) {
+            $key .= $chars[random_int(0, strlen($chars) - 1)];
         }
-
-        return $pdf;
+        return $key;
     }
 
-    // public function generateBulk(\Illuminate\Support\Collection $payrolls): array
-    // {
-    //     $payrolls->load(['employee.company', 'details.component']);
+    public function generateBulk($payrolls): array
+    {
+        $results = [];
 
-    //     $files = [];
+        foreach ($payrolls as $payroll) {
+            try {
+                if (!$payroll->employee) {
+                    Log::warning('PayrollSlipService: skip, employee not found', [
+                        'payroll_id' => $payroll->id,
+                    ]);
+                    continue;
+                }
 
-    //     foreach ($payrolls as $payroll) {
-    //         $pdf = $this->generateSingle($payroll);
+                ['pdf' => $pdf, 'password' => $password] = $this->generateSingle($payroll);
 
-    //         $filename = 'Slip_' . $payroll->employee->employee_pengenal . '_'
-    //             . $payroll->period_month . $payroll->period_year . '.pdf';
+                $tempPath = storage_path(
+                    'app/temp-slips/Slip_' . $payroll->employee->employee_pengenal
+                    . '_' . $payroll->id . '_' . uniqid('', true) . '.pdf'
+                );
 
-    //         $path = storage_path('app/temp-slips/' . $filename);
+                if (!file_exists(dirname($tempPath))) {
+                    mkdir(dirname($tempPath), 0755, true);
+                }
 
-    //         if (!file_exists(dirname($path))) {
-    //             mkdir(dirname($path), 0755, true);
-    //         }
-
-    //         $pdf->save($path);
-    //         $files[] = $path;
-    //     }
-
-    //     return $files;
-    // }
-    public function downloadSlipBulk(Request $request, string $periodId)
-{
-    $period = PayrollPeriod::findOrFail($periodId);
-
-    $payrolls = Payroll::with(['employee.company', 'details.component'])
-        ->where('payroll_period_id', $periodId)
-        ->whereIn('status', ['approved', 'paid'])
-        ->get();
-
-    if ($request->filled('ids')) {
-        $payrolls = $payrolls->whereIn('id', $request->ids);
-    }
-
-    $filePaths = app(PayrollSlipService::class)->generateBulk($payrolls);
-
-    if (empty($filePaths)) {
-        return back()->with('error', 'Tidak ada slip yang bisa di-generate.');
-    }
-
-    $zipDir = storage_path('app/temp-zip');
-    if (!file_exists($zipDir)) {
-        mkdir($zipDir, 0755, true);
-    }
-
-    $zipFileName = 'Slip_Gaji_Bulk_' . $period->period_label . '_' . now()->timestamp . '.zip';
-    $zipPath = $zipDir . '/' . $zipFileName;
-
-    $zip = new \ZipArchive();
-    if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-        return back()->with('error', 'Gagal membuat file zip.');
-    }
-
-    foreach ($filePaths as $path) {
-        if (file_exists($path)) {
-            $zip->addFile($path, basename($path));
+                $pdf->save($tempPath);
+                $results[] = ['path' => $tempPath, 'password' => $password];
+            } catch (\Throwable $e) {
+                Log::error('PayrollSlipService: failed to generate PDF in bulk', [
+                    'payroll_id' => $payroll->id,
+                    'error'      => $e->getMessage(),
+                ]);
+                continue;
+            }
         }
+        return $results;
     }
-    $zip->close();
-
-    // hapus file pdf sementara setelah di-zip
-    foreach ($filePaths as $path) {
-        if (file_exists($path)) {
-            unlink($path);
-        }
-    }
-
-    return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
 }
-}
+// class PayrollSlipService
+// {
+//     public function generateSingle(Payroll $payroll): \Barryvdh\DomPDF\PDF
+//     {
+//         $payroll->load(['employee.company', 'details.component']);
+
+//         $pdf = Pdf::loadView('pages.Payroll.slip', [
+//             'payroll' => $payroll,
+//         ])->setPaper('a4', 'portrait');
+
+//         // ── Password protection pakai tanggal lahir format Ymd ──
+//         $password = $payroll->employee->date_of_birth
+//             ? Carbon::parse($payroll->employee->date_of_birth)->format('Ymd')
+//             : null;
+
+//         if ($password) {
+//             $pdf->getDomPDF()->getOptions()->set('isHtml5ParserEnabled', true);
+//             $canvas = $pdf->getDomPDF()->getCanvas();
+//             $canvas->get_cpdf()->setEncryption($password, null, ['copy', 'print']);
+//         } else {
+//             Log::warning('PayrollSlipService: PDF generated WITHOUT password protection', [
+//                 'payroll_id'  => $payroll->id,
+//                 'employee_id' => $payroll->employee->id,
+//                 'reason'      => 'missing date_of_birth',
+//             ]);
+//         }
+
+//         return $pdf;
+//     }
+
+//     /**
+//      * Generate PDF untuk banyak payroll sekaligus, return array path file temporary.
+//      * Dipakai oleh downloadSlipBulk() di controller.
+//      */
+//     public function generateBulk($payrolls): array
+//     {
+//         $filePaths = [];
+
+//         foreach ($payrolls as $payroll) {
+//             try {
+//                 if (!$payroll->employee) {
+//                     Log::warning('PayrollSlipService: skip, employee not found', [
+//                         'payroll_id' => $payroll->id,
+//                     ]);
+//                     continue;
+//                 }
+
+//                 $pdf = $this->generateSingle($payroll);
+
+//                 $tempPath = storage_path(
+//                     'app/temp-slips/Slip_' . $payroll->employee->employee_pengenal
+//                     . '_' . $payroll->id . '_' . uniqid('', true) . '.pdf'
+//                 );
+
+//                 if (!file_exists(dirname($tempPath))) {
+//                     mkdir(dirname($tempPath), 0755, true);
+//                 }
+
+//                 $pdf->save($tempPath);
+//                 $filePaths[] = $tempPath;
+//             } catch (\Throwable $e) {
+//                 Log::error('PayrollSlipService: failed to generate PDF in bulk', [
+//                     'payroll_id' => $payroll->id,
+//                     'error'      => $e->getMessage(),
+//                 ]);
+//                 continue; // lanjut ke payroll berikutnya, jangan hentikan seluruh proses
+//             }
+//         }
+
+//         return $filePaths;
+//     }
+// }

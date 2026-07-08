@@ -20,7 +20,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class EmployeeSalaryController extends Controller
 {
-
     // ── Index ──
     public function index()
     {
