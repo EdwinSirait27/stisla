@@ -44,6 +44,20 @@ return [
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
         ],
+     
+        'payroll' => [
+            'transport'  => 'smtp',
+            'host'       => env('PAYROLL_MAIL_HOST', 'mail.asianbay.co.id'),
+            'port'       => env('PAYROLL_MAIL_PORT', 587),
+            'encryption' => env('PAYROLL_MAIL_ENCRYPTION', 'tls'),
+            'username'   => env('PAYROLL_MAIL_USERNAME'),
+            'password'   => env('PAYROLL_MAIL_PASSWORD'),
+            'from' => [                                          // ← tambah ini
+        'address' => env('PAYROLL_MAIL_FROM_ADDRESS'),
+        'name'    => env('PAYROLL_MAIL_FROM_NAME', 'HRX Payroll'),
+    ],
+        ],
+
 
         'ses' => [
             'transport' => 'ses',

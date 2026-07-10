@@ -126,7 +126,6 @@ class PayrollController extends Controller
             );
         }
 
-
         if ($request->filled('store_name')) {
             $query->whereHas('employee', function ($q) use ($request) {
                 $q->whereHas(
