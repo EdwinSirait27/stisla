@@ -131,7 +131,8 @@ public function switchRole(Request $request)
             'photos' => [
                 'nullable',
                 'mimes:jpg,jpeg,png,webp',
-                'max:512'
+                // 'max:512'
+                'max:2048'
             ],
             'kk_photos' => [
                 'nullable',
@@ -155,7 +156,7 @@ public function switchRole(Request $request)
 
         ], [
             'photos.mimes' => 'Photo harus jpg, jpeg, png, atau webp',
-            'photos.max'   => 'Photo maksimal 512KB',
+            'photos.max'   => 'Photo maksimal 2048KB',
         ]);
 
         $changes      = [];

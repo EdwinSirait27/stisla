@@ -1138,7 +1138,7 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <div class="photo-upload-hint">JPG, PNG or WEBP — max 512 KB</div>
+                                                <div class="photo-upload-hint">JPG, PNG or WEBP — max 2048 KB</div>
                                                 <label for="photos" class="photo-upload-btn">
                                                     <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
                                                     Upload photo
