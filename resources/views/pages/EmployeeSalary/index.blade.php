@@ -788,57 +788,6 @@
                 ajax: {
                     url: '{{ route('employeesalary.activity') }}',
                 },
-                // columns: [{
-                //         data: null,
-                //         render: (data, type, row, meta) => meta.row + 1,
-                //         orderable: false,
-                //         searchable: false,
-                //     },
-                //     {
-                //         data: 'event_badge',
-                //         orderable: false,
-                //     },
-                //     {
-                //         data: 'employee_name',
-                //         className: 'text-center',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'effective_date',
-                //         className: 'text-center',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'basic_salary',
-                //         className: 'text-center num',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'position_allowance',
-                //         className: 'text-center num',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'allowance',
-                //         className: 'text-center num',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'daily_rate',
-                //         className: 'text-center num',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'causer_name',
-                //         className: 'text-center',
-                //         defaultContent: '-'
-                //     },
-                //     {
-                //         data: 'changed_at',
-                //         className: 'text-center',
-                //         defaultContent: '-'
-                //     },
-                // ],
                 columns: [{
                         data: null,
                         render: (d, t, r, m) => m.row + 1,

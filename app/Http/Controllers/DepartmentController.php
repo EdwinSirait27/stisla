@@ -19,7 +19,6 @@ class DepartmentController extends Controller
 
     public function getDepartments()
     {
-        // Ambil department dengan employee yang is_manager = 1
         $departments = Departments::with(['employees' => function ($query) {
             $query->where('is_manager', 1);
         }])

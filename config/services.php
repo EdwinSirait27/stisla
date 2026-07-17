@@ -39,6 +39,9 @@ return [
     'endpoint' => env('WHATSAPP_ENDPOINT'),
     'group_id' => env('WHATSAPP_GROUP_ID'),
 ],
+'deepface' => [
+    'url' => env('DEEPFACE_SERVICE_URL', 'http://192.168.10.101:5000'),
+],
 
 
 ];

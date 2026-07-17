@@ -6,6 +6,7 @@ use App\Models\Payroll;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Carbon\Carbon;
 
 class PayrollSlipMail extends Mailable
 {
@@ -19,7 +20,7 @@ class PayrollSlipMail extends Mailable
  
     public function build()
     {
-        $period = \Carbon\Carbon::parse($this->payroll->period_start)->translatedFormat('F Y');
+        $period = Carbon::parse($this->payroll->period_start)->translatedFormat('F Y');
 
         return $this->mailer('payroll')
             ->subject('Slip Gaji - ' . $period . ' - ' . $this->payroll->employee->employee_name)

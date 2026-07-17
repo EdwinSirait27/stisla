@@ -100,7 +100,7 @@ public function switchRole(Request $request)
     public function updateemailtelpphotos(Request $request)
     {
         $user = Auth::user();
-
+// dd($user->employee->id, $user->employee->email);
         $validated = $request->validate([
             'email' => [
                 'nullable',
@@ -114,6 +114,20 @@ public function switchRole(Request $request)
                 'max:20',
                 Rule::unique('employees_tables', 'telp_number')->ignore($user->employee->id)
             ],
+    //          'email' => [
+    //     'nullable',
+    //     'email',
+    //     'max:100',
+    //     'not_regex:/[\r\n]/',
+    //     Rule::unique('employees_tables', 'email')
+    //         ->ignore($user->employee->id, 'id')
+    // ],
+    // 'telp_number' => [
+    //     'nullable',
+    //     'max:20',
+    //     Rule::unique('employees_tables', 'telp_number')
+    //         ->ignore($user->employee->id, 'id')
+    // ],
             'photos' => [
                 'nullable',
                 'mimes:jpg,jpeg,png,webp',
@@ -495,244 +509,7 @@ public function switchRole(Request $request)
 
         return back()->with('success', 'Signature updated!');
     }
-    // public function serveSignature($filename)
-    // {
-    //     // 1. Autentikasi - pastikan user sudah login
-    //     if (!auth()->check()) {
-    //         abort(401);
-    //     }
 
-    //     // 2. Validasi format filename
-    //     if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
-    //         abort(400, 'Invalid filename');
-    //     }
-
-    //     // 3. Basename untuk mencegah path traversal
-    //     $filename = basename($filename);
-
-    //     // 4. Whitelist ekstensi yang diizinkan
-    //     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    //     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-    //     if (!in_array($extension, $allowedExtensions)) {
-    //         abort(400, 'File type not allowed');
-    //     }
-    //     $user = auth()->user();
-
-    //     // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
-    //     // ✅ Tambahkan prefix folder saat query
-    //     $employee = Employee::where('id', $user->employee_id)
-    //         ->where('signature', 'employees-signatures-photos/' . $filename)
-    //         ->first();
-
-    //     if (!$employee) {
-    //         abort(403, 'Forbidden: You are not allowed to access this file');
-    //     }
-
-    //     // 6. Cek file exists di S3
-    //     $path = 'employees-signatures-photos/' . $filename;
-
-    //     if (!Storage::disk('s3')->exists($path)) {
-    //         abort(404);
-    //     }
-
-    //     $file = Storage::disk('s3')->get($path);
-
-    //     // 7. Gunakan MIME type dari whitelist
-    //     $mimeTypes = [
-    //         'jpg'  => 'image/jpeg',
-    //         'jpeg' => 'image/jpeg',
-    //         'png'  => 'image/png',
-    //         'gif'  => 'image/gif',
-    //         'webp' => 'image/webp',
-    //     ];
-    //     $mimeType = $mimeTypes[$extension];
-
-    //     return response($file, 200)
-    //         ->header('Content-Type', $mimeType)
-    //         ->header('Content-Security-Policy', "default-src 'none'")
-    //         ->header('X-Content-Type-Options', 'nosniff')
-    //         ->header('Cache-Control', 'private, max-age=3600');
-    // }
-
-
-    // public function servePhoto($filename)
-    // {
-    //     // 1. Autentikasi - pastikan user sudah login
-    //     if (!auth()->check()) {
-    //         abort(401);
-    //     }
-
-    //     // 2. Validasi format filename
-    //     if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
-    //         abort(400, 'Invalid filename');
-    //     }
-
-    //     // 3. Basename untuk mencegah path traversal
-    //     $filename = basename($filename);
-
-    //     // 4. Whitelist ekstensi yang diizinkan
-    //     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    //     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-    //     if (!in_array($extension, $allowedExtensions)) {
-    //         abort(400, 'File type not allowed');
-    //     }
-    //     $user = auth()->user();
-
-    //     // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
-    //     // ✅ Tambahkan prefix folder saat query
-    //     $employee = Employee::where('id', $user->employee_id)
-    //         ->where('photos', 'employees-photos/' . $filename)
-    //         ->first();
-
-    //     if (!$employee) {
-    //         abort(403, 'Forbidden: You are not allowed to access this file');
-    //     }
-
-    //     // 6. Cek file exists di S3
-    //     $path = 'employees-photos/' . $filename;
-
-    //     if (!Storage::disk('s3')->exists($path)) {
-    //         abort(404);
-    //     }
-
-    //     $file = Storage::disk('s3')->get($path);
-
-    //     // 7. Gunakan MIME type dari whitelist
-    //     $mimeTypes = [
-    //         'jpg'  => 'image/jpeg',
-    //         'jpeg' => 'image/jpeg',
-    //         'png'  => 'image/png',
-    //         'gif'  => 'image/gif',
-    //         'webp' => 'image/webp',
-    //     ];
-    //     $mimeType = $mimeTypes[$extension];
-
-    //     return response($file, 200)
-    //         ->header('Content-Type', $mimeType)
-    //         ->header('Content-Security-Policy', "default-src 'none'")
-    //         ->header('X-Content-Type-Options', 'nosniff')
-    //         ->header('Cache-Control', 'private, max-age=3600');
-    // }
-    // public function servePhotoktp($filename)
-    // {
-    //     // 1. Autentikasi - pastikan user sudah login
-    //     if (!auth()->check()) {
-    //         abort(401);
-    //     }
-
-    //     // 2. Validasi format filename
-    //     if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
-    //         abort(400, 'Invalid filename');
-    //     }
-
-    //     // 3. Basename untuk mencegah path traversal
-    //     $filename = basename($filename);
-
-    //     // 4. Whitelist ekstensi yang diizinkan
-    //     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    //     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-    //     if (!in_array($extension, $allowedExtensions)) {
-    //         abort(400, 'File type not allowed');
-    //     }
-    //     $user = auth()->user();
-
-    //     // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
-    //     // ✅ Tambahkan prefix folder saat query
-    //     $employee = Employee::where('id', $user->employee_id)
-    //         ->where('ktp_photos', 'employees-ktp-photos/' . $filename)
-    //         ->first();
-
-    //     if (!$employee) {
-    //         abort(403, 'Forbidden: You are not allowed to access this file');
-    //     }
-
-    //     // 6. Cek file exists di S3
-    //     $path = 'employees-ktp-photos/' . $filename;
-
-    //     if (!Storage::disk('s3')->exists($path)) {
-    //         abort(404);
-    //     }
-
-    //     $file = Storage::disk('s3')->get($path);
-
-    //     // 7. Gunakan MIME type dari whitelist
-    //     $mimeTypes = [
-    //         'jpg'  => 'image/jpeg',
-    //         'jpeg' => 'image/jpeg',
-    //         'png'  => 'image/png',
-    //         'gif'  => 'image/gif',
-    //         'webp' => 'image/webp',
-    //     ];
-    //     $mimeType = $mimeTypes[$extension];
-
-    //     return response($file, 200)
-    //         ->header('Content-Type', $mimeType)
-    //         ->header('Content-Security-Policy', "default-src 'none'")
-    //         ->header('X-Content-Type-Options', 'nosniff')
-    //         ->header('Cache-Control', 'private, max-age=3600');
-    // }
-
-    // public function servePhotokk($filename)
-    // {
-    //     if (!auth()->check()) {
-    //         abort(401);
-    //     }
-
-    //     // 2. Validasi format filename
-    //     if (!preg_match('/^[\w\-]+\.(jpg|jpeg|png|gif|webp)$/i', $filename)) {
-    //         abort(400, 'Invalid filename');
-    //     }
-
-    //     // 3. Basename untuk mencegah path traversal
-    //     $filename = basename($filename);
-
-    //     // 4. Whitelist ekstensi yang diizinkan
-    //     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    //     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-    //     if (!in_array($extension, $allowedExtensions)) {
-    //         abort(400, 'File type not allowed');
-    //     }
-    //     $user = auth()->user();
-
-    //     // 5. ✅ Autorisasi - cek apakah file ini milik user yang sedang login
-    //     // ✅ Tambahkan prefix folder saat query
-    //     $employee = Employee::where('id', $user->employee_id)
-    //         ->where('kk_photos', 'employees-kk-photos/' . $filename)
-    //         ->first();
-
-    //     if (!$employee) {
-    //         abort(403, 'Forbidden: You are not allowed to access this file');
-    //     }
-
-    //     // 6. Cek file exists di S3
-    //     $path = 'employees-kk-photos/' . $filename;
-
-    //     if (!Storage::disk('s3')->exists($path)) {
-    //         abort(404);
-    //     }
-
-    //     $file = Storage::disk('s3')->get($path);
-
-    //     // 7. Gunakan MIME type dari whitelist
-    //     $mimeTypes = [
-    //         'jpg'  => 'image/jpeg',
-    //         'jpeg' => 'image/jpeg',
-    //         'png'  => 'image/png',
-    //         'gif'  => 'image/gif',
-    //         'webp' => 'image/webp',
-    //     ];
-    //     $mimeType = $mimeTypes[$extension];
-
-    //     return response($file, 200)
-    //         ->header('Content-Type', $mimeType)
-    //         ->header('Content-Security-Policy', "default-src 'none'")
-    //         ->header('X-Content-Type-Options', 'nosniff')
-    //         ->header('Cache-Control', 'private, max-age=3600');
-    // }
     private function serveFile(string $filename, string $folder, string $column): \Illuminate\Http\Response
 {
     if (!auth()->check()) {

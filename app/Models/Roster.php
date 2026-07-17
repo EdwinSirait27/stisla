@@ -45,39 +45,6 @@ public function getActivitylogOptions(): LogOptions
         });
 }
 
-// public function tapActivity(Activity $activity, string $eventName): void
-// {
-//     // Ambil shift_name dari relasi
-//     $shiftName = $this->shift?->shift_name ?? '-';
-//     $employeeName = $this->employee?->employee_name ?? '-';
-
-//     $attributes = [
-//         'employee name' => $employeeName,
-//         'shift name'  => $shiftName,
-//         'date'        => $this->date?->toDateString(),
-//         'day type'    => $this->day_type,
-//         'notes'       => $this->notes ?? 'empty',
-//     ];
-
-//     if ($eventName === 'created') {
-//         $activity->properties = $activity->properties->merge([
-//             'attributes' => $attributes,
-//         ]);
-//     }
-
-//     if ($eventName === 'updated') {
-//         $activity->properties = $activity->properties->merge([
-//             'attributes' => $attributes,
-//         ]);
-//     }
-
-//     if ($eventName === 'deleted') {
-//         $activity->properties = $activity->properties->merge([
-//             'attributes' => $attributes,
-//             'old'        => $attributes,
-//         ]);
-//     }
-// }
 public function tapActivity(Activity $activity, string $eventName): void
 {
     $shiftName    = $this->shift?->shift_name ?? '-';

@@ -69,6 +69,7 @@ class Employee extends Model
         'bpjs_ket',
         'email',
         'company_email',
+        'attendance_type',
         'emergency_contact_name',
         'status',
         'notes',
@@ -147,6 +148,13 @@ class Employee extends Model
             'On Leave' => 'On Leave',
             'Mutation' => 'Mutation',
             'Resign' => 'Resign'
+        ];
+    }
+    public static function getAttendanceTypeOptions()
+    {
+        return [
+            'store_bound' => 'store_bound',
+            'flexible' => 'flexible'
         ];
     }
     public static function getBloodTypeOptions()
@@ -600,5 +608,9 @@ public function overtimeRate()
 public function getOvertimeRateAttribute(): float
 {
     return (float) ($this->overtimeRate?->rate_per_hour ?? 0);
+}
+public function attendanceStores()
+{
+    return $this->hasMany(EmployeeStoreAttendance::class, 'employee_id', 'id');
 }
 }
