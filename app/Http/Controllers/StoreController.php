@@ -35,7 +35,7 @@ class StoreController extends Controller
   
     public function edit($hashedId)
     {
-        $store = Stores::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
+        $store = Stores::with('employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -94,7 +94,7 @@ class StoreController extends Controller
     }
     public function update(Request $request, $hashedId)
     {
-        $store = Stores::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
+        $store = Stores::with('employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });

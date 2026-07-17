@@ -64,7 +64,7 @@ Route::middleware(['auth:sanctum', 'device.check'])->group(function () {
     Route::get('/mobile/profile', [AuthController::class, 'profile']);
 
     // Attendance — throttle ketat karena hit DeepFace service
-    Route::middleware('throttle:5,1')->group(function () {
+    Route::middleware('throttle:10,1')->group(function () {
         Route::post('/mobile/attendance/checkin', [AttendanceController::class, 'checkin']);
         Route::post('/mobile/attendance/checkout', [AttendanceController::class, 'checkout']);
     });
