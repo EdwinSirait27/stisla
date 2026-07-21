@@ -156,6 +156,22 @@
         select.form-control {
             height: 42px;
         }
+
+        /* Blok aturan cuti khusus */
+        .special-rules-box {
+            border: 1px dashed #d1d1d1;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
+            background-color: #fbfbfb;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #98a6ad;
+            margin-top: 4px;
+            display: block;
+        }
     </style>
 @endpush
 @section('main')
@@ -164,7 +180,7 @@
             <div class="section-header">
                 <h1>Create Leave Type</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item"><a href="{{ route('pages.Leavestype') }}">Position</a></div>
+                    <div class="breadcrumb-item"><a href="{{ route('pages.Leavestype') }}">Leave Type</a></div>
                     <div class="breadcrumb-item">Create Leave Type</div>
                 </div>
             </div>
@@ -211,6 +227,7 @@
                                                             class="form-control @error('name') is-invalid @enderror"
                                                             id="name" name="name" value="{{ old('name') }}"
                                                             required placeholder="Fill Leave Name">
+                                                        <span class="form-hint">Nama yang muncul di dropdown pengajuan cuti karyawan.</span>
                                                         @error('name')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -219,20 +236,224 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        
-                                        
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="default_balance" class="form-control-label">
+                                                        <i class="fas fa-calendar-check"></i> {{ __('Default Balance (days)') }}
+                                                    </label>
+                                                    <div>
+                                                        <input type="number"
+                                                            class="form-control @error('default_balance') is-invalid @enderror"
+                                                            id="default_balance" name="default_balance"
+                                                            value="{{ old('default_balance') }}"
+                                                            min="0" max="365" step="0.5"
+                                                            placeholder="mis. 90">
+                                                        <span class="form-hint">Jatah saldo per karyawan per tahun. Kosongkan bila tidak memakai saldo.</span>
+                                                        @error('default_balance')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                           
-                                        <div class="alert alert-secondary mt-4" role="alert">
-                                            <span class="text-dark">
-                                                <strong>Important Note:</strong> <br>
-                                                - If a Leave Type name is already registered, you cannot register it again.
-                                                <br> - please use English to get used to it.
-                                                <br> - Before creating data, please check first whether there is already
-                                                similar or identical data to avoid double input.
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-control-label">
+                                                        <i class="fas fa-cog"></i> {{ __('Options') }}
+                                                    </label>
+
+                                                    <div class="form-check">
+                                                        <input type="hidden" name="is_paid" value="0">
+                                                        <input type="checkbox" class="form-check-input" id="is_paid"
+                                                            name="is_paid" value="1"
+                                                            {{ old('is_paid', '1') == '1' ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="is_paid">
+                                                            {{ __('Paid leave (cuti dibayar)') }}
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="form-check">
+                                                        <input type="hidden" name="is_active" value="0">
+                                                        <input type="checkbox" class="form-check-input" id="is_active"
+                                                            name="is_active" value="1"
+                                                            {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="is_active">
+                                                            {{ __('Active (muncul di dropdown pengajuan)') }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr>
+
+                                        {{-- ── SAKLAR: cuti khusus ── --}}
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                <input type="hidden" name="is_special" value="0">
+                                                <input type="checkbox" class="form-check-input" id="is_special"
+                                                    name="is_special" value="1"
+                                                    {{ old('is_special') == '1' ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="is_special">
+                                                    <strong>{{ __('Cuti ini punya syarat khusus') }}</strong>
+                                                </label>
+                                            </div>
+                                            <span class="form-hint">
+                                                Centang bila cuti dibatasi gender, status menikah, status kepegawaian,
+                                                wajib lampiran, atau durasinya dikunci.
+                                                Biarkan kosong untuk cuti biasa seperti Annual Leave.
                                             </span>
                                         </div>
-                                        <div class="d-flex justify-content-end mt-4">
+
+                                        {{-- ── Blok aturan (muncul bila is_special dicentang) ── --}}
+                                        <div class="special-rules-box" id="special-rules-box" style="display:none;">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="gender_rule" class="form-control-label">
+                                                            <i class="fas fa-venus-mars"></i> {{ __('Hanya untuk gender') }}
+                                                        </label>
+                                                        <select class="form-control @error('gender_rule') is-invalid @enderror"
+                                                            id="gender_rule" name="gender_rule">
+                                                            <option value="all" {{ old('gender_rule', 'all') == 'all' ? 'selected' : '' }}>Semua</option>
+                                                            <option value="male" {{ old('gender_rule') == 'male' ? 'selected' : '' }}>Laki-laki</option>
+                                                            <option value="female" {{ old('gender_rule') == 'female' ? 'selected' : '' }}>Perempuan</option>
+                                                        </select>
+                                                        @error('gender_rule')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="roster_day_type" class="form-control-label">
+                                                            <i class="fas fa-th"></i> {{ __('Tampil di roster sebagai') }}
+                                                        </label>
+                                                        <select class="form-control @error('roster_day_type') is-invalid @enderror"
+                                                            id="roster_day_type" name="roster_day_type">
+                                                            <option value="Leave" {{ old('roster_day_type', 'Leave') == 'Leave' ? 'selected' : '' }}>Leave</option>
+                                                            <option value="Cuti Melahirkan" {{ old('roster_day_type') == 'Cuti Melahirkan' ? 'selected' : '' }}>Cuti Melahirkan</option>
+                                                        </select>
+                                                        <span class="form-hint">Pilihan dibatasi karena tiap tipe butuh warna di grid roster.</span>
+                                                        @error('roster_day_type')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="fixed_days" class="form-control-label">
+                                                            <i class="fas fa-lock"></i> {{ __('Durasi dikunci (hari)') }}
+                                                        </label>
+                                                        <input type="number"
+                                                            class="form-control @error('fixed_days') is-invalid @enderror"
+                                                            id="fixed_days" name="fixed_days"
+                                                            value="{{ old('fixed_days') }}"
+                                                            min="1" max="365" placeholder="mis. 90">
+                                                        <span class="form-hint">Karyawan tidak bisa mengubah durasi. Kosongkan bila durasi bebas.</span>
+                                                        @error('fixed_days')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="max_days" class="form-control-label">
+                                                            <i class="fas fa-arrow-up"></i> {{ __('Durasi maksimal (hari)') }}
+                                                        </label>
+                                                        <input type="number"
+                                                            class="form-control @error('max_days') is-invalid @enderror"
+                                                            id="max_days" name="max_days"
+                                                            value="{{ old('max_days') }}"
+                                                            min="1" max="365" placeholder="mis. 3">
+                                                        <span class="form-hint">Hanya dipakai bila durasi TIDAK dikunci.</span>
+                                                        @error('max_days')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="allowed_status" class="form-control-label">
+                                                            <i class="fas fa-id-badge"></i> {{ __('Hanya status kepegawaian') }}
+                                                        </label>
+                                                        <input type="text"
+                                                            class="form-control @error('allowed_status') is-invalid @enderror"
+                                                            id="allowed_status" name="allowed_status"
+                                                            value="{{ old('allowed_status') }}"
+                                                            placeholder="mis. PKWT">
+                                                        <span class="form-hint">
+                                                            Pisahkan dengan koma bila lebih dari satu.
+                                                            Kosongkan = semua status (DW &amp; On Job Training tetap selalu ditolak).
+                                                        </span>
+                                                        @error('allowed_status')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-control-label">
+                                                            <i class="fas fa-check-double"></i> {{ __('Syarat tambahan') }}
+                                                        </label>
+
+                                                        <div class="form-check">
+                                                            <input type="hidden" name="require_married" value="0">
+                                                            <input type="checkbox" class="form-check-input" id="require_married"
+                                                                name="require_married" value="1"
+                                                                {{ old('require_married') == '1' ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="require_married">
+                                                                {{ __('Wajib sudah menikah') }}
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="form-check">
+                                                            <input type="hidden" name="require_attachment" value="0">
+                                                            <input type="checkbox" class="form-check-input" id="require_attachment"
+                                                                name="require_attachment" value="1"
+                                                                {{ old('require_attachment') == '1' ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="require_attachment">
+                                                                {{ __('Wajib melampirkan bukti') }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-secondary mt-4" role="alert">
+                                            <span class="text-dark">
+                                                <strong>Catatan Penting:</strong> <br>
+                                                - Nama jenis cuti yang sudah terdaftar tidak dapat didaftarkan lagi.
+                                                <br> - Sebelum memperbarui data, periksa dulu apakah sudah ada data yang serupa atau identik untuk menghindari duplikasi.
+                                                {{-- <br> - <strong>Annual Leave:</strong> jangan centang "syarat khusus" — biarkan lewat jalur lama yang sudah berjalan. --}}
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-end mt-6">
                                             <a href="{{ route('pages.Leavestype') }}" class="btn btn-secondary">
                                                 <i class="fas fa-times"></i> {{ __('Cancel') }}
                                             </a>
@@ -253,6 +474,33 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('node_modules/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+    <script>
+        // Tampilkan/sembunyikan blok aturan mengikuti saklar "syarat khusus"
+        (function () {
+            const chkSpecial = document.getElementById('is_special');
+            const box        = document.getElementById('special-rules-box');
+
+            function toggleBox() {
+                box.style.display = chkSpecial.checked ? 'block' : 'none';
+            }
+
+            chkSpecial.addEventListener('change', toggleBox);
+            toggleBox(); // saat halaman dimuat (mis. setelah validasi gagal)
+
+            // fixed_days dan max_days saling meniadakan
+            const fixedDays = document.getElementById('fixed_days');
+            const maxDays   = document.getElementById('max_days');
+
+            function toggleMaxDays() {
+                const locked = fixedDays.value !== '';
+                maxDays.disabled = locked;
+                if (locked) maxDays.value = '';
+            }
+
+            fixedDays.addEventListener('input', toggleMaxDays);
+            toggleMaxDays();
+        })();
+    </script>
     <script>
         document.getElementById('create-btn').addEventListener('click', function(e) {
             e.preventDefault(); // Mencegah pengiriman form langsung

@@ -910,11 +910,14 @@
                             </label>
                             <select name="leave_balance_id" id="leave_balance_id" class="form-control" required>
                                 <option value="">-- Select type of leave --</option>
-                                @forelse(($leaveBalances ?? []) as $balance)
-                                    <option value="{{ $balance->id }}" data-days="{{ $balance->balance_days }}"
-                                        data-name="{{ $balance->leaves->name ?? 'Leave' }}">
-                                        {{ $balance->leaves->name ?? 'Leave' }}
-                                        — Sisa: {{ $balance->balance_days }} days
+                               @forelse(($leaveBalances ?? []) as $balance)
+                                    <option value="{{ $balance->id }}"
+                                        data-days="{{ $balance->balance_days }}"
+                                        data-name="{{ $balance->leaves->name ?? 'Leave' }}"
+                                        data-fixed-days="{{ $balance->leaves->fixed_days ?? '' }}"
+                                        data-require-attachment="{{ ($balance->leaves->require_attachment ?? false) ? '1' : '0' }}">
+                                        {{ $balance->leaves->name ?? 'Leave' }} — Sisa:
+                                        {{ $balance->balance_days }} days
                                     </option>
                                 @empty
                                     <option value="" disabled>No leave balance available</option>
@@ -957,6 +960,30 @@
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Insufficient leave balance!</strong>
                             The requested duration exceeds your remaining leave days.
+                        </div>
+
+                        <div class="mb-4" id="attachmentGroup" style="display:none;">
+                            <label class="form-label" for="attachment">
+                                <i class="fas fa-paperclip me-1"></i> Lampiran Bukti
+                                <span class="text-danger" id="attachmentRequiredMark">*</span>
+                            </label>
+                            <input type="file" name="attachment" id="attachment" class="form-control"
+                                accept=".jpg,.jpeg,.png,.pdf">
+                            <small class="text-muted" id="attachmentHint">
+                                Wajib untuk jenis cuti ini. Format: JPG, PNG, atau PDF. Maks 5MB.
+                            </small>
+                        </div>
+
+                        <div class="mb-4" id="attachmentGroup" style="display:none;">
+                            <label class="form-label" for="attachment">
+                                <i class="fas fa-paperclip me-1"></i> Lampiran Bukti
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" name="attachment" id="attachment" class="form-control"
+                                accept=".jpg,.jpeg,.png,.pdf">
+                            <small class="text-muted">
+                                Wajib untuk jenis cuti ini. Format: JPG, PNG, atau PDF. Maks 5MB.
+                            </small>
                         </div>
 
                         <div class="mb-3">
@@ -1086,23 +1113,62 @@
             const form = document.getElementById('leaveRequestForm');
 
             let maxDays = 0;
+            let fixedDays = 0;              // durasi dikunci (0 = tidak dikunci)
+            let requireAttachment = false; // jenis cuti ini wajib lampiran?
+            const attachmentGroup = document.getElementById('attachmentGroup');
+            const attachmentInput = document.getElementById('attachment');
+
+            function applyFixedDuration() {
+                if (fixedDays > 0 && startDate.value) {
+                    const s = new Date(startDate.value);
+                    s.setDate(s.getDate() + (fixedDays - 1));
+                    endDate.value = s.toISOString().slice(0, 10);
+                }
+            }
 
             leaveSelect?.addEventListener('change', function() {
                 const opt = this.options[this.selectedIndex];
                 const days = parseInt(opt.dataset.days ?? 0);
                 const name = opt.dataset.name ?? '-';
+                fixedDays = parseInt(opt.dataset.fixedDays || '0') || 0;
+                requireAttachment = (opt.dataset.requireAttachment === '1');
 
                 if (this.value) {
                     maxDays = days;
                     availableBalance.textContent = days + ' days';
                     selectedType.textContent = name;
                     balanceInfo.style.display = 'block';
+
+                    attachmentGroup.style.display = requireAttachment ? 'block' : 'none';
+
+                    if (fixedDays > 0) {
+                        endDate.readOnly = true;
+                        endDate.style.backgroundColor = '#e9ecef';
+                        applyFixedDuration();
+                    } else {
+                        endDate.readOnly = false;
+                        endDate.style.backgroundColor = '';
+                    }
                 } else {
                     balanceInfo.style.display = 'none';
+                    attachmentGroup.style.display = 'none';
+                    endDate.readOnly = false;
+                    endDate.style.backgroundColor = '';
                     maxDays = 0;
+                    fixedDays = 0;
+                    requireAttachment = false;
                 }
                 calculateDuration();
             });
+
+            // Hitung end_date otomatis untuk cuti berdurasi tetap
+            function applyFixedDuration() {
+                if (fixedDays > 0 && startDate.value) {
+                    const s = new Date(startDate.value);
+                    s.setDate(s.getDate() + (fixedDays - 1));
+                    endDate.value = s.toISOString().slice(0, 10);
+                }
+            }
 
             function calculateDuration() {
                 const start = startDate.value;
@@ -1142,8 +1208,9 @@
                 }
             }
 
-            startDate?.addEventListener('change', function() {
+           startDate?.addEventListener('change', function() {
                 if (endDate) endDate.min = this.value;
+                if (fixedDays > 0) applyFixedDuration();
                 calculateDuration();
             });
             endDate?.addEventListener('change', calculateDuration);
@@ -1170,21 +1237,30 @@
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
 
-                    const payload = {
-                        leave_balance_id: document.getElementById('leave_balance_id').value,
-                        start_date: document.getElementById('start_date').value,
-                        end_date: document.getElementById('end_date').value,
-                        employee_reason: document.getElementById('employee_reason').value,
-                    };
+                    // Guard: lampiran wajib tapi belum dipilih
+                    if (requireAttachment && attachmentInput && !attachmentInput.files.length) {
+                        Swal.fire({ icon: 'warning', title: 'Lampiran wajib', text: 'Jenis cuti ini memerlukan lampiran bukti.' });
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('leave_balance_id', document.getElementById('leave_balance_id').value);
+                    formData.append('start_date', document.getElementById('start_date').value);
+                    formData.append('end_date', document.getElementById('end_date').value);
+                    formData.append('employee_reason', document.getElementById('employee_reason').value);
+                    if (attachmentInput && attachmentInput.files.length) {
+                        formData.append('attachment', attachmentInput.files[0]);
+                    }
 
                     fetch("{{ route('Leaverequest.store') }}", {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json',
+                                'Accept': 'application/json'
                             },
-                            body: JSON.stringify(payload),
+                            body: formData,
                         })
                         .then(async (res) => {
                             const data = await res.json();

@@ -1,4 +1,4 @@
-/node_modules
+﻿/node_modules
 /public/build
 /public/hot
 /public/storage
@@ -14,3 +14,5 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+composer-setup.exe
+diff_8file.txt

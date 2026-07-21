@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Submission Type')
+@section('title', 'Leave Type')
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
@@ -137,14 +137,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Submussion Type</h1>
+                <h1>Leave Type</h1>
             </div>
             <div class="section-body">
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6><i class="fas fa-user-shield"></i> List Submission Type</h6>
+                                <h6><i class="fas fa-user-shield"></i> List Leave Type</h6>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -152,6 +152,10 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Name</th>
+                                                <th class="text-center">Balance</th>
+                                                <th class="text-center">Type</th>
+                                                <th class="text-center">Rules</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -160,7 +164,7 @@
                                 <div class="action-buttons">
                                     <button type="button" onclick="window.location='{{ route('Leavestype.create') }}'"
                                         class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus-circle"></i> Create Submission Type
+                                        <i class="fas fa-plus-circle"></i> Create Leave Type
                                     </button>
                                 </div>
                             </div>
@@ -199,7 +203,37 @@
                         name: 'name',
                         className: 'text-center'
                     },
-              
+                    {
+                        data: 'default_balance',
+                        name: 'default_balance',
+                        className: 'text-center',
+                        render: function(data) {
+                            return data === null || data === ''
+                                ? '<span class="text-muted">&mdash;</span>'
+                                : data + ' hari';
+                        }
+                    },
+                    {
+                        data: 'tipe',
+                        name: 'is_special',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'aturan',
+                        name: 'aturan',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'aktif',
+                        name: 'is_active',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
                     {
                         data: 'action',
                         name: 'action',
@@ -208,7 +242,6 @@
                         className: 'text-center'
                     }
                 ],
-              
             });
 
             @if (session('success'))

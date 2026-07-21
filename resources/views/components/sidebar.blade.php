@@ -206,6 +206,11 @@
                             <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
                         </li>
                     @endcan
+                    @can('ManageLeavestype')
+                        <li class="{{ Request::is('Leavestype') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Leavestype') }}">Leaves</a>
+                        </li>
+                    @endcan
                 </ul>
             </li>
             @endrole
@@ -279,7 +284,7 @@
                     
                 </ul>
             </li>
-            @endcan
+            @endcanany
             {{-- <li class="nav-item dropdown ">
                         <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
                                 class="fas fa-file-signature"></i>
