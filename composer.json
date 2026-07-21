@@ -7,6 +7,7 @@
    
     "require": {
         "php": "^8.2",
+        "bacon/bacon-qr-code": "^3.1",
         "barryvdh/laravel-dompdf": "^3.1",
         "barryvdh/laravel-snappy": "^1.0",
         "doctrine/dbal": "^3.7",
@@ -22,6 +23,7 @@
         "milon/barcode": "^12.0",
         "opcodesio/log-viewer": "^3.24",
         "phpoffice/phpspreadsheet": "^1.30",
+        "pragmarx/google2fa-laravel": "^3.0",
         "predis/predis": "*",
         "ramsey/uuid": "^4.7",
         "rappasoft/laravel-livewire-tables": "^3.7",

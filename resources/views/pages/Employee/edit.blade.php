@@ -641,6 +641,23 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
+                                    <div class="field-group">
+    <label><i class="fas fa-water"></i> Blood Type</label>
+    <select name="blood_type"
+        class="form-control @error('blood_type') is-invalid @enderror">
+        <option value="">-- Choose type --</option>
+        @foreach ($bloodtypes as $value)
+            <option value="{{ $value }}"
+                {{ old('blood_type', $employee->blood_type) == $value ? 'selected' : '' }}>
+                {{ $value }}
+            </option>
+        @endforeach
+    </select>
+
+    @error('blood_type')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
 
                                 </div>
                             </div>
@@ -816,6 +833,28 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
+                                    {{-- {{ dd($employee->attendance_type) }} --}}
+
+                               <div class="field-group">
+    <label><i class="fas fa-water"></i> Attendance Type</label>
+<select name="attendance_type"
+        class="form-control @error('attendance_type') is-invalid @enderror">
+
+        <option value="">-- Attendance Type --</option>
+
+    @foreach ($attendancetypes as $key => $label)
+    <option value="{{ $key }}"
+        {{ (string)$employee->Employee->attendance_type === (string)$key ? 'selected' : '' }}>
+        {{ ucfirst(str_replace('_', ' ', $label)) }}
+    </option>
+@endforeach
+
+    </select>
+
+    @error('attendance_type')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
                                     <div class="field-group">
                                         <label><i class="fas fa-users"></i> Group class</label>
                                         <select name="group_id" id="group_id"

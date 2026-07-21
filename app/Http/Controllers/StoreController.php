@@ -17,9 +17,7 @@ class StoreController extends Controller
     }
     public function getStores()
     {
-        $stores = Stores::with(['employees' => function ($query) {
-            $query->where('is_manager_store', 1);
-        }])
+        $stores = Stores::with(['employees'])
         ->select(['id','name','address','phone_num','nickname'])
         ->get()
             ->map(function ($store) {
@@ -31,21 +29,13 @@ class StoreController extends Controller
                 return $store;
             });
         return DataTables::of($stores)
-        
-         ->addColumn('employee_name', function ($store) {
-            if (!empty($store->employees) && $store->employees->count() > 0) {
-                // Bisa ada lebih dari satu manager, ambil nama-namanya
-                return $store->employees->pluck('employee_name')->join(', ');
-            }
-            return 'Empty';
-        })
             ->rawColumns(['action'])
             ->make(true);
     }
   
     public function edit($hashedId)
     {
-        $store = Stores::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
+        $store = Stores::with('employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -71,11 +61,7 @@ class StoreController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string','max:255', 'unique:stores_tables,name',
                 new NoXSSInput()],
-            // 'manager_id' => ['required','max:255',
-            //     new NoXSSInput()],
-            // 'manager_id' => ['required','max:255', 'unique:stores_tables,manager_id',
-            //     new NoXSSInput()],
-            'address' => ['required','max:255', 
+           'address' => ['required','max:255', 
                 new NoXSSInput()],
             'nickname' => ['required','max:255', 
                 new NoXSSInput()],
@@ -88,7 +74,6 @@ class StoreController extends Controller
             'name.max' => 'Username maksimal terdiri dari 255 karakter.',
             'address.required' => 'address wajib diisi.',
             'phone_num.required' => 'telephone number wajib diisi.',
-            // 'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
         ]);
         try {
             DB::beginTransaction();
@@ -109,7 +94,7 @@ class StoreController extends Controller
     }
     public function update(Request $request, $hashedId)
     {
-        $store = Stores::with('user.Employee')->get()->first(function ($u) use ($hashedId) {
+        $store = Stores::with('employees')->get()->first(function ($u) use ($hashedId) {
             $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
             return $expectedHash === $hashedId;
         });
@@ -119,12 +104,7 @@ class StoreController extends Controller
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255',Rule::unique('stores_tables')->ignore($store->id),
             new NoXSSInput()],
-            // 'manager_id' => ['required', 'string', 'max:255',
-            // new NoXSSInput()],
-            // 'manager_id' => ['required', 'string', 'max:255', Rule::unique('stores_tables')->ignore($store->id),
-            // new NoXSSInput()],
-
-        'address' => ['required','max:255', 
+              'address' => ['required','max:255', 
             new NoXSSInput()],
         'nickname' => ['required','max:255', 
             new NoXSSInput()],
@@ -137,7 +117,6 @@ class StoreController extends Controller
         'name.max' => 'Username maksimal terdiri dari 255 karakter.',
         'address.required' => 'address wajib diisi.',
         'phone_num.required' => 'telephone number wajib diisi.',
-        // 'manager_id.unique' => 'Sudah ada manager yang tersimpan.',
     ]);
 
         $storeData = [
@@ -145,8 +124,7 @@ class StoreController extends Controller
             'address' => $validatedData['address'],
             'phone_num' => $validatedData['phone_num'],
             'nickname' => $validatedData['nickname'],
-            // 'manager_id' => $validatedData['manager_id'],
-            
+              
         ];
         DB::beginTransaction();
         $store->update($storeData);

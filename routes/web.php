@@ -17,6 +17,7 @@ use App\Http\Controllers\PayrollsController;
 use App\Http\Controllers\DashboardSupervisorController;
 use App\Http\Controllers\UserprofileController;
 use App\Http\Controllers\DashManagerController;
+use App\Http\Controllers\AttendanceMobileController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\BanksController;
@@ -71,6 +72,7 @@ use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeTrainingController;
 use App\Http\Controllers\OvertimeRateController;
+use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Contract;
@@ -94,10 +96,18 @@ Route::middleware(['auth'])->group(function () {
     // ── Logout ──
     Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
         ->name('logout');
+          Route::get('/two-factor/setup', [TwoFactorController::class, 'showSetup'])->name('2fa.setup');
+    Route::post('/two-factor/setup/confirm', [TwoFactorController::class, 'confirmSetup'])->name('2fa.setup.confirm');
+    Route::get('/two-factor/recovery-codes', [TwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery-codes');
 });
-
+Route::middleware(['auth', 'role:Admin'])->group(function () {
+    
+    Route::post('/users/{user}/2fa/disable', [TwoFactorController::class, 'adminDisable'])->name('admin.2fa.disable');
+    Route::post('/users/{user}/2fa/toggle-required', [TwoFactorController::class, 'adminToggleRequired'])->name('admin.2fa.toggle-required');
+    });
 
 Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor|Training'])->group(function () {
+    
     Route::put('/profile/switch-role', [UserprofileController::class, 'switchRole'])->name('profile.switchRole');
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
         ->name('pages.feature-profile');
@@ -370,15 +380,9 @@ Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|
             ->name('pages.Attendanceall');
         Route::match(['GET', 'POST'], '/attendanceall/attendanceall', [AttendanceController::class, 'getAttendancealls'])->name('attendanceall.attendanceall');
 
-        // ── Fingerprints (List utama) ──
-        // Route::get('/Fingerprints', [FingerprintsController::class, 'index'])
-        //     ->name('pages.Fingerprints');
-        // Route::match(['GET', 'POST'], '/fingerprints/fingerprints', [FingerprintsController::class, 'getFingerprints'])->name('fingerprints.fingerprints');
-      
-        Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
+       Route::get('/Fingerprints/total-hari', [FingerprintsController::class, 'getTotalHariBekerja'])->name('Fingerprints.totalHari');
         Route::post('/fingerprints/recap', [FingerprintsController::class, 'recap'])->name('fingerprints.recap');
 
-        // ── Manual Added (datatable bawah, dari Add Recap) ──
         Route::match(['GET', 'POST'], '/fingerprints/manual-added', [FingerprintsController::class, 'getManualAdded'])
             ->name('fingerprints.manual-added');
 
@@ -486,6 +490,13 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
         Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
     });
+    Route::group(['middleware' => ['permission:ManageAttendanceMobile']], function () {
+        Route::get('/AttendanceMobile', [AttendanceMobileController::class, 'index'])
+            ->name('pages.AttendanceMobile');
+        Route::get('/AttendanceMobile/show/{hashedId}', [AttendanceMobileController::class, 'show'])->name('attendancemobile.show');
+           Route::get('/attendancemobiles/attendancemobiles', [AttendanceMobileController::class, 'getAttendanceMobiles'])->name('attendancemobiles.attendancemobiles');
+    });
+
     Route::group(['middleware' => ['permission:ManageAssetcategories']], function () {
         Route::get('/AssetCategories', [AssetCategoriesController::class, 'index'])
             ->name('pages.AssetCategories');
@@ -995,6 +1006,9 @@ Route::group(['middleware' => 'guest'], function () {
         Route::get('/', [LoginController::class, 'index'])->name('login');
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
         Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
+        Route::get('/two-factor/verify', [TwoFactorController::class, 'showVerify'])->name('2fa.verify');
+Route::post('/two-factor/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify.post');
+
     });
 });
 // ── Guest routes (tanpa throttle, di-define ulang sesuai original) ──

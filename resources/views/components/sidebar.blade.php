@@ -412,6 +412,18 @@
                     @endcanany
                 </ul>
             </li>
+            <li class="nav-item dropdown ">
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-calendar-check"></i>
+                    <span>Attendance Mobile</span></a>
+                <ul class="dropdown-menu">
+                    @can('ManageAttendanceMobile')
+
+                    <li class="{{ Request::is('{AttendanceMobile}') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('AttendanceMobile') }}">Attendance Data</a>
+                        </li>
+                        @endcan
+                </ul>
+            </li>
 
         </ul>
     </aside>

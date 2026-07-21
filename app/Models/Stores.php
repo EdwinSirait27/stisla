@@ -25,22 +25,18 @@ class Stores extends Model
         });
     }
     protected $fillable = [
-        'name',
-        'address',
-        'phone_num',
-        'nickname',
-        'manager_id'
-    ];
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'manager_id', 'id');
-    }
+    'name',
+    'address',
+    'phone_num',
+    'nickname',
+    'latitude',
+    'longitude',
+    'geofence_radius',
+];
+  
     public function employees()
     {
         return $this->hasMany(Employee::class, 'store_id', 'id');
     }
-    /**
-     * Konfigurasi log activity
-     */
- 
+
 }

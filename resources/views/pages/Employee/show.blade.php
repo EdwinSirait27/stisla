@@ -841,6 +841,26 @@
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                    <div class="field-group">
+    <label><i class="fas fa-water"></i> Attendance Type</label>
+<select name="attendance_type"
+        class="form-control @error('attendance_type') is-invalid @enderror">
+
+        <option value="">-- Attendance Type --</option>
+
+    @foreach ($attendancetypes as $key => $label)
+    <option value="{{ $key }}"
+        {{ (string)$employee->Employee->attendance_type === (string)$key ? 'selected' : '' }}>
+        {{ ucfirst(str_replace('_', ' ', $label)) }}
+    </option>
+@endforeach
+
+    </select>
+
+    @error('attendance_type')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
                                 @can('ManageEmployee')
                                 <div class="field-group">
                                     <label><i class="fas fa-briefcase"></i> Atasan</label>

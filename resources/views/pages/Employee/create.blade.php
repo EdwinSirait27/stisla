@@ -633,6 +633,7 @@
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
+                                    
                                     <div class="field-group">
                                         <label><i class="fas fa-water"></i> Blood Type</label>
                                         <select name="blood_type"
@@ -787,6 +788,23 @@
                                             value="{{ old('pin') }}" placeholder="Pin fingerspot"
                                             style="font-family:monospace">
                                         @error('pin')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    
+                                    <div class="field-group">
+                                        <label><i class="fas fa-water"></i> Attendance Type</label>
+                                        <select name="attendance_type"
+                                            class="form-control @error('attendance_type') is-invalid @enderror">
+                                            <option value="">Choose Type</option>
+                                            @foreach ($attendancetypes as $value)
+                                                <option value="{{ $value }}"
+                                                    {{ old('attendance_type') == $value ? 'selected' : '' }}>
+                                                    {{ $value }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('attendance_type')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
