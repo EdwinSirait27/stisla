@@ -490,12 +490,15 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::put('/Position/{hashedId}', [PositionController::class, 'update'])->name('Position.update');
         Route::get('/positions/positions', [PositionController::class, 'getPositions'])->name('positions.positions');
     });
-    Route::group(['middleware' => ['permission:ManageAttendanceMobile']], function () {
+    // Route::group(['middleware' => ['permission:ManageAttendanceMobile']], function () {
         Route::get('/AttendanceMobile', [AttendanceMobileController::class, 'index'])
             ->name('pages.AttendanceMobile');
         Route::get('/AttendanceMobile/show/{hashedId}', [AttendanceMobileController::class, 'show'])->name('attendancemobile.show');
+        Route::post('attendancemobile/store', [AttendanceMobileController::class, 'store'])->name('attendancemobile.store');
+// Route::put('attendancemobile/{idHashed}', [AttendanceMobileController::class, 'update'])->name('attendancemobile.update');
+// Route::get('attendancemobile/{idHashed}/edit-data', [AttendanceMobileController::class, 'editData'])->name('attendancemobile.editdata');
            Route::get('/attendancemobiles/attendancemobiles', [AttendanceMobileController::class, 'getAttendanceMobiles'])->name('attendancemobiles.attendancemobiles');
-    });
+    // });
 
     Route::group(['middleware' => ['permission:ManageAssetcategories']], function () {
         Route::get('/AssetCategories', [AssetCategoriesController::class, 'index'])
@@ -1001,7 +1004,7 @@ Route::group(['middleware' => ['permission:ManageSktypes']], function () {
 //   GUEST ROUTES
 // ════════════════════════════════════════════════════════════════
 Route::group(['middleware' => 'guest'], function () {
-    Route::middleware(['throttle:10,1'])->group(function () {
+    Route::middleware(['throttle:15,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
         Route::get('/', [LoginController::class, 'index'])->name('login');
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
@@ -1012,7 +1015,7 @@ Route::post('/two-factor/verify', [TwoFactorController::class, 'verify'])->name(
     });
 });
 // ── Guest routes (tanpa throttle, di-define ulang sesuai original) ──
-Route::group(['middleware' => 'guest'], function () {
-    Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
-    Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
-});
+// Route::group(['middleware' => 'guest'], function () {
+//     Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
+//     Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
+// });

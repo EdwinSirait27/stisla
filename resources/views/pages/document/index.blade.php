@@ -181,6 +181,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Document Name</th>
                                                 <th class="text-center">Document Number</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
@@ -222,6 +223,11 @@
                     {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'document_name',
+                        name: 'document_name',
                         className: 'text-center'
                     },
                     {

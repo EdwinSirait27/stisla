@@ -62,17 +62,17 @@ Route::middleware(['auth:sanctum', 'device.check'])->group(function () {
     Route::post('/mobile/logout', [AuthController::class, 'logout']);
     Route::get('/mobile/me', [AuthController::class, 'me']);
     Route::get('/mobile/profile', [AuthController::class, 'profile']);
-
     // Attendance — throttle ketat karena hit DeepFace service
     Route::middleware('throttle:10,1')->group(function () {
         Route::post('/mobile/attendance/checkin', [AttendanceController::class, 'checkin']);
         Route::post('/mobile/attendance/checkout', [AttendanceController::class, 'checkout']);
     });
-
     // Read-only endpoints
     Route::middleware('throttle:60,1')->group(function () {
         Route::get('/mobile/attendance/history', [AttendanceController::class, 'history']);
         Route::get('/mobile/attendance/today', [AttendanceController::class, 'today']);
         Route::get('/mobile/roster', [AttendanceController::class, 'myRoster']);
+                Route::post('/mobile/push-token', [AuthController::class, 'registerPushToken']); // tambahkan di sini
+
     });
 });

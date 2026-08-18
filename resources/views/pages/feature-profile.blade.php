@@ -945,7 +945,7 @@
                                                         @endforeach
                                                     </select>
                                                     {{-- <button type="submit" class="btn btn-primary btn-sm text-nowrap"> --}}
-                                                        <button type="submit" class="btn btn-primary btn-sm text-nowrap ms-6">
+                                                    <button type="submit" class="btn btn-primary btn-sm text-nowrap ms-6">
                                                         <i class="fas fa-sync-alt"></i> Switch
                                                     </button>
                                                 </div>
@@ -953,7 +953,8 @@
                                                     <span class="text-danger small">{{ $message }}</span>
                                                 @enderror
                                                 <small class="text-muted">
-                                                    Active Role : <strong>{{ Auth::user()->active_role_hrx ?? '-' }}</strong>
+                                                    Active Role :
+                                                    <strong>{{ Auth::user()->active_role_hrx ?? '-' }}</strong>
                                                 </small>
                                             </div>
                                         </div>
@@ -1042,7 +1043,7 @@
                                                     {{-- {{ $department->department_name ?? '-' }} --}}
                                                 </div>
                                             </div>
-                                           
+
                                             <div class="field-group">
                                                 <label><i class="fas fa-briefcase"></i> Position</label>
                                                 <div class="field-readonly">
@@ -1120,7 +1121,7 @@
                                         </div>
                                     </div>
 
-<br>
+                                    <br>
                                     <div>
                                         <div class="profile-section-label">Profile Photo *</div>
                                         <div class="photo-upload-wrap">
@@ -1220,7 +1221,7 @@
                                             </div>
                                         </div>
                                     </div>
-<br>
+                                    <br>
                                     <div>
                                         <div class="profile-section-label-ktp">Documents</div>
                                         <div class="photo-upload-wrap-ktp">
@@ -1312,8 +1313,10 @@
                                                 <div class="border rounded p-3 bg-light mb-3"
                                                     style="border-style: dashed !important;">
                                                     <p class="text-muted small mb-2">Draw your signature below</p>
-                                                    <canvas id="signature-pad" class="w-100 bg-white rounded"
-                                                        style="height: 160px; cursor: crosshair;"></canvas>
+                                                    {{-- <canvas id="signature-pad" class="w-100 bg-white rounded"
+                                                        style="height: 160px; cursor: crosshair;"></canvas> --}}
+                                                        {{-- <canvas id="signature-pad" class="w-100 rounded" style="height: 160px; cursor: crosshair; background: transparent;"></canvas> --}}
+                                                        <canvas id="signature-pad" class="w-100 rounded" style="height: 200px; cursor: crosshair;"></canvas>
                                                 </div>
 
                                                 <input type="hidden" name="signature" id="signature-input">
@@ -1403,7 +1406,7 @@
     </div>
 @endsection
 
-@push('scripts')
+{{-- @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
@@ -1475,22 +1478,35 @@
         let signaturePad = null;
 
         if (canvas) {
-            function resizeCanvas() {
-                const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                canvas.width = canvas.offsetWidth * ratio;
-                canvas.height = canvas.offsetHeight * ratio;
-                canvas.getContext("2d").scale(ratio, ratio);
-            }
+        
+function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    
+    // Simpan data dulu sebelum resize
+    const data = signaturePad ? signaturePad.toData() : null;
+    
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(ratio, ratio);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Restore data setelah resize
+    if (signaturePad && data) {
+        signaturePad.fromData(data);
+    }
+}
             resizeCanvas();
             window.addEventListener("resize", resizeCanvas);
 
+        
             signaturePad = new SignaturePad(canvas, {
-                backgroundColor: 'rgb(255,255,255)',
-                penColor: 'black',
-                minWidth: 2.5,
-                maxWidth: 4.5,
-                velocityFilterWeight: 0.7
-            });
+    backgroundColor: 'rgba(0,0,0,0)',    // ← transparent
+    penColor: 'black',
+    minWidth: 2.5,
+    maxWidth: 4.5,
+    velocityFilterWeight: 0.7
+});
 
             document.getElementById('clear-signature')
                 .addEventListener('click', function() {
@@ -1561,7 +1577,15 @@
                         });
                         return;
                     }
-                    document.getElementById('signature-input').value = signaturePad.toDataURL('image/png');
+                    const exportCanvas = document.createElement('canvas');
+const scale = 3;
+exportCanvas.width = canvas.width * scale;
+exportCanvas.height = canvas.height * scale;
+const exportCtx = exportCanvas.getContext('2d');
+exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+exportCtx.scale(scale, scale);
+exportCtx.drawImage(canvas, 0, 0);
+document.getElementById('signature-input').value = exportCanvas.toDataURL('image/png');
                     document.getElementById('signature_file').value = '';
                 } else {
                     const fileInput = document.getElementById('signature_file');
@@ -1622,6 +1646,219 @@
 
         function closeImageModalktp() {
             document.getElementById('imagePreviewModalktp').style.display = 'none';
+        }
+    </script>
+@endpush --}}
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+    <script>
+        // ─── Password Toggle ───────────────────────────────────────────────
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon  = document.getElementById('eyeIcon');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.classList.replace(isHidden ? 'fa-eye' : 'fa-eye-slash', isHidden ? 'fa-eye-slash' : 'fa-eye');
+        }
+
+        // ─── Image Modal Helpers ───────────────────────────────────────────
+        function openImageModal(src)    { document.getElementById('imagePreviewModal').style.display    = 'block'; document.getElementById('modalPreviewImage').src    = src; }
+        function closeImageModal()      { document.getElementById('imagePreviewModal').style.display    = 'none'; }
+        function openImageModalkk(src)  { document.getElementById('imagePreviewModalkk').style.display  = 'block'; document.getElementById('modalPreviewImagekk').src  = src; }
+        function closeImageModalkk()    { document.getElementById('imagePreviewModalkk').style.display  = 'none'; }
+        function openImageModalktp(src) { document.getElementById('imagePreviewModalktp').style.display = 'block'; document.getElementById('modalPreviewImagektp').src = src; }
+        function closeImageModalktp()   { document.getElementById('imagePreviewModalktp').style.display = 'none'; }
+
+        // ─── Photo Preview Helpers ─────────────────────────────────────────
+        function previewPhoto(fileInput, imgId, placeholderId, modalFn) {
+            const file = fileInput.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            const img = document.getElementById(imgId);
+            const ph  = document.getElementById(placeholderId);
+            img.src = url;
+            img.style.display = 'block';
+            if (ph) ph.style.display = 'none';
+            img.setAttribute('onclick', `${modalFn}(this.src)`);
+        }
+
+        function previewProfilePhoto(event)    { previewPhoto(event.target, 'preview-image',     'photo-placeholder',     'openImageModal'); }
+        function previewProfilePhotokk(event)  { previewPhoto(event.target, 'preview-image-kk',  'photo-placeholder-kk',  'openImageModalkk'); }
+        function previewProfilePhotoktp(event) { previewPhoto(event.target, 'preview-image-ktp', 'photo-placeholder-ktp', 'openImageModalktp'); }
+
+        // ─── SweetAlert Session Flash ──────────────────────────────────────
+        @if (session('success') || session('status'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Saved',
+                text: '{{ session('success') ?? session('status') }}',
+                confirmButtonColor: '#1d4ed8',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#dc2626'
+            });
+        @endif
+
+        // ─── Signature Pad ─────────────────────────────────────────────────
+        const canvas = document.getElementById('signature-pad');
+        let signaturePad = null;
+
+        if (canvas) {
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const data  = signaturePad ? signaturePad.toData() : null;
+
+                canvas.width  = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+
+                const ctx = canvas.getContext('2d');
+                ctx.scale(ratio, ratio);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (signaturePad && data) signaturePad.fromData(data);
+            }
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgba(0,0,0,0)',
+                penColor: 'black',
+                minWidth: 4,
+                maxWidth: 7,
+                velocityFilterWeight: 0.7
+            });
+
+            document.getElementById('clear-signature').addEventListener('click', () => signaturePad.clear());
+        }
+
+        // ─── Signature Export (crop + scale ke 800x300) ────────────────────
+        function exportSignatureAsPNG() {
+            const imgData     = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            const { data, width, height } = imgData;
+
+            let minX = width, minY = height, maxX = 0, maxY = 0;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if (data[(y * width + x) * 4 + 3] > 10) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+
+            const padding    = 20;
+            minX = Math.max(0, minX - padding);
+            minY = Math.max(0, minY - padding);
+            maxX = Math.min(width,  maxX + padding);
+            maxY = Math.min(height, maxY + padding);
+
+            const cropW = maxX - minX;
+            const cropH = maxY - minY;
+
+            const targetW = 800;
+            const targetH = 300;
+            const scale   = Math.min(targetW / cropW, targetH / cropH, 2);
+
+            const drawW   = cropW * scale;
+            const drawH   = cropH * scale;
+            const offsetX = (targetW - drawW) / 2;
+            const offsetY = (targetH - drawH) / 2;
+
+            const exportCanvas    = document.createElement('canvas');
+            exportCanvas.width    = targetW;
+            exportCanvas.height   = targetH;
+            const exportCtx       = exportCanvas.getContext('2d');
+            exportCtx.clearRect(0, 0, targetW, targetH);
+            exportCtx.drawImage(canvas, minX, minY, cropW, cropH, offsetX, offsetY, drawW, drawH);
+
+            return exportCanvas.toDataURL('image/png');
+        }
+
+        // ─── Tab Switch ────────────────────────────────────────────────────
+        function switchTab(tab) {
+            const isDrawTab    = tab === 'draw';
+            const drawSection  = document.getElementById('section-draw');
+            const importSection = document.getElementById('section-import');
+            const tabDraw      = document.getElementById('tab-draw');
+            const tabImport    = document.getElementById('tab-import');
+
+            drawSection.style.display   = isDrawTab ? 'block' : 'none';
+            importSection.style.display = isDrawTab ? 'none'  : 'block';
+
+            tabDraw.classList.toggle('btn-primary', isDrawTab);
+            tabDraw.classList.toggle('btn-light',  !isDrawTab);
+            tabImport.classList.toggle('btn-primary', !isDrawTab);
+            tabImport.classList.toggle('btn-light',    isDrawTab);
+
+            if (isDrawTab) {
+                document.getElementById('signature_file').value = '';
+                document.getElementById('preview-signature-import').style.display = 'none';
+                document.getElementById('signature-import-placeholder').style.display = 'inline';
+                document.getElementById('signature-file-name').textContent = 'No file chosen';
+            } else {
+                document.getElementById('signature-input').value = '';
+                if (signaturePad) signaturePad.clear();
+            }
+        }
+
+        // ─── Import File Preview ───────────────────────────────────────────
+        function previewSignatureImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            document.getElementById('preview-signature-import').src          = url;
+            document.getElementById('preview-signature-import').style.display = 'block';
+            document.getElementById('signature-import-placeholder').style.display = 'none';
+            document.getElementById('signature-file-name').textContent        = file.name;
+        }
+
+        // ─── Form Submit ───────────────────────────────────────────────────
+        const formSignature = document.getElementById('form-signature');
+        if (formSignature) {
+            formSignature.addEventListener('submit', function (e) {
+                const isDrawTab = document.getElementById('section-draw').style.display !== 'none';
+
+                if (isDrawTab) {
+                    if (!signaturePad || signaturePad.isEmpty()) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Signature kosong',
+                            text: 'Silakan buat tanda tangan terlebih dahulu.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                        return;
+                    }
+                    document.getElementById('signature-input').value = exportSignatureAsPNG();
+                    document.getElementById('signature_file').value  = '';
+                } else {
+                    if (!document.getElementById('signature_file').files.length) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'File kosong',
+                            text: 'Silakan pilih file signature terlebih dahulu.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                        return;
+                    }
+                    document.getElementById('signature-input').value = '';
+                }
+            });
         }
     </script>
 @endpush

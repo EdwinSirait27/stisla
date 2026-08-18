@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\TwoFactorLog;
 use App\Models\User;
+use App\Models\UserSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -31,62 +32,147 @@ class TwoFactorController extends Controller
         return view('auth.two-factor-verify');
     }
 
+    // public function verify(Request $request)
+    // {
+    //     $userId = session('2fa.user_id');
+    //     if (!$userId) {
+    //         return redirect()->route('login');
+    //     }
+    //     $user       = User::findOrFail($userId);
+    //     $rateLimiterKey = "2fa:{$user->id}";
+    //     // Max 5 percobaan per 5 menit
+    //     if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+    //         $this->log2FAEvent($user, 'failed', $request);
+    //         return back()->withErrors(['code' => 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.']);
+    //     }
+    //     $request->validate([
+    //         'code' => ['required', 'digits:6'],
+    //     ]);
+
+    //     $inputCode = trim($request->code);
+
+    //     // Coba validasi TOTP dulu
+    //     $secret = decrypt($user->two_factor_secret);
+    //     $valid  = $this->google2fa->verifyKey($secret, $inputCode);
+
+    //     if (!$valid) {
+    //         // Coba recovery code
+    //         $valid = $user->useRecoveryCode($inputCode);
+
+    //         if ($valid) {
+    //             $this->log2FAEvent($user, 'recovery_used', $request);
+    //             Log::warning('2FA recovery code used', [
+    //                 'user_id' => $user->id,
+    //                 'ip'      => $request->ip(),
+    //             ]);
+    //         }
+    //     }
+
+    //     if (!$valid) {
+    //         RateLimiter::hit($rateLimiterKey, 300); // 5 menit
+    //         $this->log2FAEvent($user, 'failed', $request);
+    //         return back()->withErrors(['code' => 'Kode tidak valid. Pastikan waktu HP Anda sudah sinkron.']);
+    //     }
+
+    //     // Berhasil — login user & bersihkan session flag
+    //     RateLimiter::clear($rateLimiterKey);
+    //     Auth::loginUsingId($user->id);
+    //     session()->forget('2fa.user_id');
+    //     $request->session()->regenerate();
+
+    //     $this->log2FAEvent($user, 'verified', $request);
+
+    //     // Lanjutkan ke redirect yang sama seperti login normal
+    //     $redirect = \App\Services\DashboardRedirectService::redirectForUser($user);
+    //     return $redirect
+    //         ? $redirect->with('success', 'Success login, Goodluck!!!')
+    //         : redirect('/')->with('warning', 'Your account does not have a valid role.');
+    // }
     public function verify(Request $request)
-    {
-        $userId = session('2fa.user_id');
-        if (!$userId) {
-            return redirect()->route('login');
-        }
-        $user       = User::findOrFail($userId);
-        $rateLimiterKey = "2fa:{$user->id}";
-        // Max 5 percobaan per 5 menit
-        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
-            $this->log2FAEvent($user, 'failed', $request);
-            return back()->withErrors(['code' => 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.']);
-        }
-        $request->validate([
-            'code' => ['required', 'digits:6'],
-        ]);
-
-        $inputCode = trim($request->code);
-
-        // Coba validasi TOTP dulu
-        $secret = decrypt($user->two_factor_secret);
-        $valid  = $this->google2fa->verifyKey($secret, $inputCode);
-
-        if (!$valid) {
-            // Coba recovery code
-            $valid = $user->useRecoveryCode($inputCode);
-
-            if ($valid) {
-                $this->log2FAEvent($user, 'recovery_used', $request);
-                Log::warning('2FA recovery code used', [
-                    'user_id' => $user->id,
-                    'ip'      => $request->ip(),
-                ]);
-            }
-        }
-
-        if (!$valid) {
-            RateLimiter::hit($rateLimiterKey, 300); // 5 menit
-            $this->log2FAEvent($user, 'failed', $request);
-            return back()->withErrors(['code' => 'Kode tidak valid. Pastikan waktu HP Anda sudah sinkron.']);
-        }
-
-        // Berhasil — login user & bersihkan session flag
-        RateLimiter::clear($rateLimiterKey);
-        Auth::loginUsingId($user->id);
-        session()->forget('2fa.user_id');
-        $request->session()->regenerate();
-
-        $this->log2FAEvent($user, 'verified', $request);
-
-        // Lanjutkan ke redirect yang sama seperti login normal
-        $redirect = \App\Services\DashboardRedirectService::redirectForUser($user);
-        return $redirect
-            ? $redirect->with('success', 'Success login, Goodluck!!!')
-            : redirect('/')->with('warning', 'Your account does not have a valid role.');
+{
+    $userId = session('2fa.user_id');
+    if (!$userId) {
+        return redirect()->route('login');
     }
+
+    $user           = User::findOrFail($userId);
+    $rateLimiterKey = "2fa:{$user->id}";
+
+    if (RateLimiter::tooManyAttempts($rateLimiterKey, 10)) {
+        $this->log2FAEvent($user, 'failed', $request);
+        return back()->withErrors(['code' => 'Terlalu banyak percobaan. Coba lagi dalam 10 menit.']);
+    }
+
+    $request->validate([
+        'code' => [
+            'required',
+            'string',
+            function ($attribute, $value, $fail) {
+                $len = strlen(trim($value));
+                if ($len !== 6 && $len !== 10) {
+                    $fail('Kode tidak valid. Masukkan kode 6-digit dari Authenticator atau recovery code 10 karakter.');
+                }
+            },
+        ],
+    ]);
+
+    $inputCode  = strtoupper(trim($request->code));
+    $isRecovery = strlen($inputCode) === 10;
+    $valid      = false;
+
+    if ($isRecovery) {
+        $valid = $user->useRecoveryCode($inputCode);
+        if ($valid) {
+            $this->log2FAEvent($user, 'recovery_used', $request);
+            Log::warning('2FA recovery code used', [
+                'user_id' => $user->id,
+                'ip'      => $request->ip(),
+            ]);
+        }
+    } else {
+        $secret = decrypt($user->two_factor_secret);
+        $valid  = $this->google2fa->verifyKeyNewer($secret, $inputCode, null, 1);
+    }
+
+    if (!$valid) {
+        RateLimiter::hit($rateLimiterKey, 300);
+        $this->log2FAEvent($user, 'failed', $request);
+        return back()->withErrors(['code' => 'Kode tidak valid. Pastikan waktu HP Anda sudah sinkron.']);
+    }
+
+    // ── Berhasil — login & simpan UserSession ────────────────────
+    RateLimiter::clear($rateLimiterKey);
+    Auth::loginUsingId($user->id);
+
+    // Ambil ip & device yang disimpan saat login tadi
+    $ip     = session('2fa.ip',     $request->ip());
+    $device = session('2fa.device', $request->header('User-Agent'));
+
+    session()->forget(['2fa.user_id', '2fa.ip', '2fa.device']);
+    $request->session()->regenerate();
+
+    // Simpan UserSession dengan session ID BARU setelah regenerate
+    UserSession::updateOrCreate(
+        ['user_id' => $user->id, 'session_id' => $request->session()->getId()],
+        [
+            'ip_address'    => $ip,
+            'last_activity' => now(),
+            'device_type'   => $device,
+        ]
+    );
+
+    $this->log2FAEvent($user, 'verified', $request);
+
+    Log::info("User logged in via 2FA", [
+        'user_id' => $user->id,
+        'ip'      => $ip,
+    ]);
+
+    $redirect = \App\Services\DashboardRedirectService::redirectForUser($user);
+    return $redirect
+        ? $redirect->with('success', 'Success login, Goodluck!!!')
+        : redirect('/')->with('warning', 'Your account does not have a valid role.');
+}
 
     // ── Setup 2FA (user scan QR) ──────────────────────────────────
 

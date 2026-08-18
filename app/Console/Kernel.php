@@ -39,6 +39,9 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes();
         $schedule->command('sync:primary-store')
             ->everyFiveMinutes();
+        $schedule->command('attendance:send-reminder')
+            ->everyFifteenMinutes()
+            ->timezone('Asia/Makassar');
     }
     /**
      * Register the commands for the application.

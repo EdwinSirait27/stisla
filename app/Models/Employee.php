@@ -49,6 +49,8 @@ class Employee extends Model
         'submissions_id',
         'status_employee',
         'join_date',
+        'point_of_hire',
+
         'blood_type',
         'marriage',
         'child',
@@ -358,92 +360,6 @@ class Employee extends Model
                 return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
             });
     }
-    // public function getActivitylogOptions(): LogOptions
-    // {
-    //     return LogOptions::defaults()
-    //         ->logFillable()
-    //         ->useLogName('employee')
-    //         ->setDescriptionForEvent(function (string $eventName) {
-    //             $actor = auth()->user()->employee->employee_name
-    //                 ?? auth()->user()->name
-    //                 ?? 'system';
-    //             $target = $this->employee_name ?? 'Unknown Employee';
-    //             $changes = $this->getChanges();
-    //             $original = $this->getOriginal();
-    //             $relationNames = [
-    //                 'company_id' => fn($id) => optional(Company::find($id))->name,
-    //                 'store_id' => fn($id) => optional(Stores::find($id))->name,
-    //                 'position_id' => fn($id) => optional(Position::find($id))->name,
-    //                 'banks_id' => fn($id) => optional(Banks::find($id))->name,
-    //                 'department_id' => fn($id) => optional(Departments::find($id))->department_name,
-    //                 'grading_id' => fn($id) => optional(Grading::find($id))->grading_name,
-    //                 'group_id' => fn($id) => optional(Groups::find($id))->group_name,
-    //                 'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
-    //             ];
-    //             $fieldLabels = [
-    //                 'employee_name' => 'Employee Name',
-    //                 'photos' => 'Photo',
-    //                 'kk_photos' => 'KK Photos',
-    //                 'ktp_photos' => 'KTP Photos',
-    //                 'position_id' => 'Position',
-    //                 'company_id' => 'Company',
-    //                 'store_id' => 'Location',
-    //                 'bank_account_number' => 'Bank Account Number',
-    //                 'banks_id' => 'Bank',
-    //                 'department_id' => 'Department',
-    //                 'grading_id' => 'Grading',
-    //                 'group_id' => 'Group',
-    //                 'status_employee' => 'Employee Status',
-    //                 'join_date' => 'Join',
-    //                 'marriage' => 'Status Marriage',
-    //                 'child' => 'Child',
-    //                 'telp_number' => 'Telephone Number',
-    //                 'nik' => 'ID Card',
-    //                 'gender' => 'Gender',
-    //                 'date_of_birth' => 'Date of Birth',
-    //                 'place_of_birth' => 'Place of Birth',
-    //                 'biological_mother_name' => 'Mothers Name',
-    //                 'religion' => 'Religion',
-    //                 'current_address' => 'Current Address',
-    //                 'id_card_address' => 'ID Card Address',
-    //                 'last_education' => 'Last Education',
-    //                 'institution' => 'Institution',
-    //                 'npwp' => 'NPWP',
-    //                 'bpjs_kes' => 'BPJS Kesehatan',
-    //                 'bpjs_ket' => 'BPJS Ketenagakerjaan',
-    //                 'email' => 'email',
-    //                 'emergency_contact_name' => 'Emergency Contact',
-    //                 'status' => 'status',
-    //                 'notes' => 'Resign notes',
-    //                 'pin' => 'Employee Fingerprints',
-    //                 'end_date' => 'Leave',
-    //                 'structure_id' => 'Structures',
-    //             ];
-    //             $changesInfo = '';
-    //             if ($eventName === 'updated' && !empty($changes)) {
-    //                 $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
-    //                     $old = $original[$field] ?? 'null';
-    //                     $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
-    //                     if (isset($relationNames[$field])) {
-    //                         $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
-    //                         $oldLabel = $relationNames[$field]($old) ?? $old;
-    //                         $newLabel = $relationNames[$field]($new) ?? $new;
-    //                         return "{$label}: {$oldLabel} → {$newLabel}";
-    //                     }
-    //                     if ($old == $new) return null;
-    //                     return "{$label}: {$old} → {$new}";
-    //                 })
-    //                     ->filter()
-    //                     ->values()
-    //                     ->implode(', ');
-
-    //                 $changesInfo = $details ? "Changes: {$details}" : '';
-    //             }
-
-    //             return "Employee Data {$target} has been {$eventName}. {$changesInfo}";
-    //         });
-    // }
-
     public function rosters()
     {
         return $this->hasMany(Roster::class, 'employee_id', 'id');

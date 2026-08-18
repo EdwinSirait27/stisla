@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PushToken;
 use App\Models\RegisteredDevice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -218,5 +219,36 @@ class AuthController extends Controller
     $mimeType = Storage::disk('s3')->mimeType($decodedPath);
 
     return response($content)->header('Content-Type', $mimeType);
+}
+public function registerPushToken(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'token' => 'required|string',
+        'platform' => 'nullable|in:android,ios',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Data tidak valid',
+            'errors' => $validator->errors(),
+        ], 422);
+    }
+
+    $user = $request->user();
+
+    // Upsert — update kalau sudah ada, insert kalau belum
+    PushToken::updateOrCreate(
+        ['user_id' => $user->id, 'token' => $request->token],
+        [
+            'platform' => $request->platform ?? 'android',
+            'is_active' => true,
+        ]
+    );
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Push token berhasil didaftarkan',
+    ]);
 }
 }
