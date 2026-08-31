@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Models\Documents;
+use App\Jobs\SendDocumentEmailJob;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -31,7 +32,11 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $query = Documents::with('companydocumentconfigs.documenttypes','employee:id,employee_name')->select([
+        $query = Documents::with([
+                'companydocumentconfigs.documenttypes',
+                'employee:id,employee_name,grading_id',
+                'employee.grading:id,grading_name',
+            ])->select([
                 'id',
                 'company_document_config_id',
                 'employee_id',
@@ -40,18 +45,22 @@ class DocumentController extends Controller
             ]);
 
         return DataTables::of($query)
+            ->addColumn('checkbox', function ($document) {
+                return '<input type="checkbox" class="doc-checkbox" value="' . $document->id . '">';
+            })
             ->addColumn('employee_name', function ($document) {
                 return $document->employee->employee_name ?? '-';
+            })
+            ->addColumn('grading_name', function ($document) {
+                return $document->employee->grading->grading_name ?? '-';
             })
             ->addColumn('document_name', function ($document) {
                 return $document->companydocumentconfigs->documenttypes->document_name ?? '-';
             })
             ->addColumn('action', function ($document) {
 
-                $downloadUrl = route(
-                    'documents.download',
-                    $document->id
-                );
+                $downloadUrl = route('documents.download', $document->id);
+                $sendUrl     = route('documents.send', $document->id);
 
                 return '
             <a href="' . $downloadUrl . '"
@@ -59,6 +68,11 @@ class DocumentController extends Controller
                target="_blank">
                 <i class="fas fa-download"></i> Download
             </a>
+            <button type="button"
+                    class="btn btn-sm btn-success btn-send-document"
+                    data-url="' . $sendUrl . '">
+                <i class="fas fa-paper-plane"></i> Send Email
+            </button>
         ';
             })
             ->filterColumn('employee_name', function ($query, $keyword) {
@@ -66,8 +80,49 @@ class DocumentController extends Controller
                     $q->where('employee_name', 'like', "%{$keyword}%");
                 });
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['checkbox', 'action'])
             ->make(true);
+    }
+
+    public function sendDocument(string $documentId)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+
+        if (!$user || !$user->hasPermissionTo('ManageDocument')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $document = Documents::findOrFail($documentId);
+
+        SendDocumentEmailJob::dispatch($document->id);
+
+        return response()->json([
+            'message' => 'Document has been queued for sending.',
+        ]);
+    }
+
+    public function bulkSendDocument(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+
+        if (!$user || !$user->hasPermissionTo('ManageDocument')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $validated = $request->validate([
+            'document_ids'   => 'required|array|min:1',
+            'document_ids.*' => 'required|string|exists:documents,id',
+        ]);
+
+        foreach ($validated['document_ids'] as $documentId) {
+            SendDocumentEmailJob::dispatch($documentId);
+        }
+
+        return response()->json([
+            'message' => count($validated['document_ids']) . ' document(s) have been queued for sending.',
+        ]);
     }
     public function downloadDocument(string $documentId)
     {

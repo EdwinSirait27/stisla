@@ -589,6 +589,10 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             '/documents/download/{document}',
             [DocumentController::class, 'downloadDocument']
         )->name('documents.download');
+        Route::post('/documents/{document}/send', [DocumentController::class, 'sendDocument'])
+            ->name('documents.send');
+        Route::post('/documents/bulk-send', [DocumentController::class, 'bulkSendDocument'])
+            ->name('documents.bulk-send');
     });
 
     // ── Public Holidays ──

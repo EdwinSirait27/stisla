@@ -172,15 +172,28 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <h6><i class="fas fa-user-shield"></i> List Documents</h6>
+                                <div class="d-flex gap-2">
+                                    <button type="button" id="btn-check-all" class="btn btn-sm btn-light border">
+                                        <i class="fas fa-check-square"></i> Check All
+                                    </button>
+                                    <button type="button" id="btn-uncheck-all" class="btn btn-sm btn-light border">
+                                        <i class="far fa-square"></i> Uncheck All
+                                    </button>
+                                    <button type="button" id="btn-bulk-send" class="btn btn-sm btn-success">
+                                        <i class="fas fa-paper-plane"></i> Bulk Send
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
                                             <tr>
+                                                <th class="text-center"></th>
                                                 <th class="text-center">Employee Name</th>
+                                                <th class="text-center">Grading</th>
                                                 <th class="text-center">Document Name</th>
                                                 <th class="text-center">Document Number</th>
                                                 <th class="text-center">Action</th>
@@ -221,8 +234,20 @@
                 },
                 columns: [
                     {
+                        data: 'checkbox',
+                        name: 'checkbox',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
                         data: 'employee_name',
                         name: 'employee_name',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'grading_name',
+                        name: 'grading_name',
                         className: 'text-center'
                     },
                     {
@@ -256,6 +281,105 @@
                     text: '{{ session('success') }}',
                 });
             @endif
+
+            // ─── CSRF for AJAX ──────────────────────────────────────────
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            // ─── Check All / Uncheck All ────────────────────────────────
+            $('#btn-check-all').on('click', function() {
+                $('#users-table tbody .doc-checkbox').prop('checked', true);
+            });
+
+            $('#btn-uncheck-all').on('click', function() {
+                $('#users-table tbody .doc-checkbox').prop('checked', false);
+            });
+
+            // ─── Send Email (per row) ───────────────────────────────────
+            $('#users-table').on('click', '.btn-send-document', function() {
+                const url = $(this).data('url');
+                const $btn = $(this);
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Send this document?',
+                    text: 'The document will be emailed as a PDF attachment.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, send it',
+                    confirmButtonColor: '#1d4ed8'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $btn.prop('disabled', true);
+
+                    $.post(url)
+                        .done(function(res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Queued',
+                                text: res.message || 'Document has been queued for sending.'
+                            });
+                        })
+                        .fail(function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed',
+                                text: 'Failed to queue the document for sending.'
+                            });
+                        })
+                        .always(function() {
+                            $btn.prop('disabled', false);
+                        });
+                });
+            });
+
+            // ─── Bulk Send ───────────────────────────────────────────────
+            $('#btn-bulk-send').on('click', function() {
+                const ids = $('#users-table tbody .doc-checkbox:checked')
+                    .map(function() { return $(this).val(); })
+                    .get();
+
+                if (ids.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No document selected',
+                        text: 'Please select at least one document first.'
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Bulk send documents?',
+                    text: `${ids.length} document(s) will be emailed as PDF attachments.`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, send them',
+                    confirmButtonColor: '#1d4ed8'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.post('{{ route('documents.bulk-send') }}', {
+                            document_ids: ids
+                        })
+                        .done(function(res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Queued',
+                                text: res.message || 'Documents have been queued for sending.'
+                            });
+                        })
+                        .fail(function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed',
+                                text: 'Failed to queue the documents for sending.'
+                            });
+                        });
+                });
+            });
         });
     </script>
 @endpush

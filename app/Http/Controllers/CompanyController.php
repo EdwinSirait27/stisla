@@ -115,7 +115,7 @@ class CompanyController extends Controller
                 'required',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
-                'max:512'
+                'max:1024'
             ],
         ], [
             'name.required' => 'name wajib diisi.',
@@ -129,7 +129,7 @@ class CompanyController extends Controller
             'foto.required' => 'Foto wajib diisi.',
             'foto.image' => 'File harus berupa gambar.',
             'foto.mimes' => 'Format gambar harus jpg, jpeg, png, atau webp.',
-            'foto.max' => 'Ukuran gambar maksimal 512 KB.',
+            'foto.max' => 'Ukuran gambar maksimal 1024 KB.',
         ]);
 
         $filePath = null;
@@ -140,8 +140,15 @@ class CompanyController extends Controller
             $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
             $folderPath = 'company/' . date('Y/m'); // rapi per tahun/bulan
 
-            // Simpan ke storage
-            Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+            // Simpan ke disk 'public' (yang di-serve lewat symlink public/storage,
+            // sesuai URL yang dipakai getFotoUrlAttribute() & views)
+            $stored = Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+
+            if (!$stored) {
+                return back()
+                    ->withErrors(['foto' => 'Gagal mengunggah foto perusahaan. Silakan coba lagi.'])
+                    ->withInput();
+            }
 
             // Simpan path relatif ke DB
             $filePath = $folderPath . '/' . $fileName;
@@ -171,8 +178,8 @@ class CompanyController extends Controller
             DB::rollBack();
 
             // Hapus file jika gagal
-            if ($filePath && Storage::exists('public/' . $filePath)) {
-                Storage::delete('public/' . $filePath);
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
             }
 
             return back()
@@ -248,7 +255,7 @@ class CompanyController extends Controller
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
-                'max:512'
+                'max:1024'
             ],
         ], [
             'name.required' => 'Name wajib diisi.',
@@ -257,7 +264,7 @@ class CompanyController extends Controller
             'npwp.required' => 'NPWP wajib diisi.',
             'foto.image' => 'File harus berupa gambar.',
             'foto.mimes' => 'Format gambar harus jpg, jpeg, png, atau webp.',
-            'foto.max' => 'Ukuran gambar maksimal 512 KB.',
+            'foto.max' => 'Ukuran gambar maksimal 1024 KB.',
         ]);
 
         $filePath = $company->foto; // default: gunakan foto lama
@@ -271,13 +278,18 @@ class CompanyController extends Controller
                 $fileName = hash('sha256', $file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension();
                 $folderPath = 'company/' . date('Y/m');
 
-                // Simpan file baru
-                Storage::putFileAs('public/' . $folderPath, $file, $fileName);
+                // Simpan file baru ke disk 'public' (yang di-serve lewat symlink public/storage)
+                $stored = Storage::disk('public')->putFileAs($folderPath, $file, $fileName);
+
+                if (!$stored) {
+                    throw new \RuntimeException('Gagal mengunggah foto perusahaan.');
+                }
+
                 $newFilePath = $folderPath . '/' . $fileName;
 
                 // Hapus file lama kalau ada
-                if ($filePath && Storage::exists('public/' . $filePath)) {
-                    Storage::delete('public/' . $filePath);
+                if ($filePath && Storage::disk('public')->exists($filePath)) {
+                    Storage::disk('public')->delete($filePath);
                 }
                 $filePath = $newFilePath;
             }
@@ -299,8 +311,8 @@ class CompanyController extends Controller
             DB::rollBack();
 
             // Hapus file baru jika transaksi gagal
-            if (!empty($newFilePath) && Storage::exists('public/' . $newFilePath)) {
-                Storage::delete('public/' . $newFilePath);
+            if (!empty($newFilePath) && Storage::disk('public')->exists($newFilePath)) {
+                Storage::disk('public')->delete($newFilePath);
             }
 
             return back()->withErrors(['error' => 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage()])

@@ -262,17 +262,18 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        {{-- <div class="row mt-3">
+                                        <div class="row mt-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="foto" class="form-control-label">
                                                         <i class="fas fa-id-card"></i> {{ __('Company Image') }}
                                                     </label>
                                                     <div>
+                                                        {{-- Preview Image --}}
                                                         <div class="mb-2">
-                                                            @if ($company->foto)
+                                                            @if (!empty($company->foto))
                                                                 <img id="preview-image"
-                                                                    src="{{ asset('storage/company/' . $company->foto) }}"
+                                                                    src="{{ asset('storage/' . $company->foto) }}"
                                                                     alt="Preview" class="img-thumbnail" width="150"
                                                                     style="cursor:pointer"
                                                                     onclick="showImageSwal(this.src)">
@@ -284,9 +285,12 @@
                                                                     onclick="showImageSwal(this.src)">
                                                             @endif
                                                         </div>
-                                                        <input class="form-control @error('foto') is-invalid @enderror"
-                                                            type="file" id="foto" name="foto" accept="image/*"
-                                                            onchange="previewImage(event)">
+
+                                                        {{-- File Input --}}
+                                                        <input type="file" name="foto" id="foto"
+                                                            class="form-control @error('foto') is-invalid @enderror"
+                                                            accept="image/*" onchange="previewImage(event)">
+
                                                         @error('foto')
                                                             <span class="invalid-feedback" role="alert">
                                                                 <strong>{{ $message }}</strong>
@@ -294,52 +298,7 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                            </div> --}}
-                                    <div class="row mt-3">
-    <div class="col-md-6">
-        <div class="form-group">
-            <label for="foto" class="form-control-label">
-                <i class="fas fa-id-card"></i> {{ __('Company Image') }}
-            </label>
-            <div>
-                {{-- Preview Image --}}
-                <div class="mb-2">
-                    @if (!empty($company->foto))
-                        <img id="preview-image"
-                            src="{{ asset('storage/' . $company->foto) }}"
-                            alt="Preview"
-                            class="img-thumbnail"
-                            width="150"
-                            style="cursor:pointer"
-                            onclick="showImageSwal(this.src)">
-                    @else
-                        <img id="preview-image"
-                            src="https://via.placeholder.com/150"
-                            alt="Preview"
-                            class="img-thumbnail"
-                            width="150"
-                            style="cursor:pointer"
-                            onclick="showImageSwal(this.src)">
-                    @endif
-                </div>
-
-                {{-- File Input --}}
-                <input type="file"
-                    name="foto"
-                    id="foto"
-                    class="form-control @error('foto') is-invalid @enderror"
-                    accept="image/*"
-                    onchange="previewImage(event)">
-
-                @error('foto')
-                    <span class="invalid-feedback" role="alert">
-                        <strong>{{ $message }}</strong>
-                    </span>
-                @enderror
-            </div>
-        </div>
-    </div>
-
+                                            </div>
 
                                             <div class="col-md-6">
                                                 <div class="form-group">

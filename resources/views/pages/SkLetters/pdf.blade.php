@@ -452,12 +452,8 @@
                         /* Hitung baris dinamis dari pivot yang ada */
                         $pvt = $block['pivot'];
                         $rows = 4; // nama, NIK, tanggal efektif — selalu ada
-                        if ($pvt->previous_structure_id) {
-                            $rows++;
-                        }
-                        if ($pvt->new_structure_id) {
-                            $rows++;
-                        }
+                       
+                       
                         if ($pvt->basic_salary) {
                             $rows++;
                         }
@@ -630,33 +626,7 @@
                                 <td class="col-value">{{ $emp->employee_pengenal ?? ($emp->employee_code ?? '-') }}
                                 </td>
                             </tr>
-                            @if ($pvt->previous_structure_id)
-                                @php
-                                    $prevStructure = \App\Models\Structuresnew::with(
-                                        'submissionposition.positionRelation',
-                                    )->find($pvt->previous_structure_id);
-                                @endphp
-                                <tr>
-                                    <td class="col-label">Jabatan Sebelumnya</td>
-                                    <td class="col-sep">:</td>
-                                    <td class="col-value">
-                                        {{ $prevStructure?->submissionposition?->positionRelation?->name ?? '-' }}</td>
-                                </tr>
-                            @endif
-                            @if ($pvt->new_structure_id)
-                                @php
-                                    $newStructure = \App\Models\Structuresnew::with(
-                                        'submissionposition.positionRelation',
-                                    )->find($pvt->new_structure_id);
-                                @endphp
-                                <tr>
-                                    <td class="col-label">Jabatan Baru</td>
-                                    <td class="col-sep">:</td>
-                                    <td class="col-value">
-                                        <strong>{{ $newStructure?->submissionposition?->positionRelation?->name ?? '-' }}</strong>
-                                    </td>
-                                </tr>
-                            @endif
+                           
                             @if ($pvt->basic_salary)
                                 <tr>
                                     <td class="col-label">Gaji Pokok</td>
@@ -709,26 +679,7 @@
                             <table class="ttd-table">
                                 <tr>
                                  
-                    {{-- <td>
-    <div class="ttd-role">{{ $skLetter->approver1?->position->name }}</div>
-
-    @if ($skLetter->approver_1_at && $skLetter->approver1?->signature)
-        <div style="display:flex; justify-content:center; align-items:flex-end; height:80px; margin-bottom:-5px;">
-            <img src="{{ public_path('storage/' . $skLetter->approver1->signature) }}"
-                alt="Signature" style="max-height:80px; object-fit:contain;">
-        </div>
-    @endif
-    <div class="ttd-line">
-        <div class="ttd-name">
-            {{ $skLetter->approver1?->employee_name ?? '( _________________ )' }}
-        </div>
-        @if ($skLetter->approver_1_at)
-            <div class="ttd-date">{{ $formatTglStr($skLetter->approver_1_at) }}</div>
-        @else
-            <div class="ttd-pending">Belum disetujui</div>
-        @endif
-    </div>
-</td> --}}
+              
 <td>
     <div class="ttd-role" style="margin-bottom: 0;">
         {{ $skLetter->approver1?->position->name }}

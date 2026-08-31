@@ -609,25 +609,25 @@
             }
         }
 
-        .request-box {
-            background: linear-gradient(to right, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1));
-            border: 1px solid rgba(245, 158, 11, 0.3);
+        .info-box {
+            background: linear-gradient(to right, rgba(59, 130, 246, 0.08), rgba(29, 78, 216, 0.06));
+            border: 1px solid rgba(59, 130, 246, 0.25);
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 24px;
         }
 
-        .request-content {
+        .info-content {
             display: flex;
             align-items: flex-start;
             gap: 12px;
         }
 
-        .request-icon {
+        .info-icon {
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            background: rgba(245, 158, 11, 0.2);
+            background: rgba(59, 130, 246, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -637,21 +637,98 @@
         .icon-svg {
             width: 20px;
             height: 20px;
-            color: #fbbf24;
+            color: #1d4ed8;
         }
 
-        .request-text h3 {
+        .info-text h3 {
             font-size: 14px;
             font-weight: 600;
-            color: #fbbf24;
+            color: #1d4ed8;
             margin-bottom: 4px;
         }
 
-        .request-text p {
+        .info-text p {
             font-size: 12px;
-            color: #94a3b8;
+            color: #64748b;
             line-height: 1.5;
             margin: 0 0 4px 0;
+        }
+
+        /* ─── Document / SK chips ────────────────────────────── */
+        .doc-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .doc-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px 8px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: .5rem;
+            background: #f8fafc;
+            color: #334155;
+            font-size: .8rem;
+            font-weight: 500;
+            text-decoration: none;
+            max-width: 100%;
+            transition: all .15s;
+        }
+
+        .doc-chip:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            color: #1d4ed8;
+            text-decoration: none;
+        }
+
+        .doc-chip-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            flex-shrink: 0;
+        }
+
+        .doc-chip-icon-sk {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .doc-chip-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+
+        .doc-chip-download {
+            font-size: .68rem;
+            color: #cbd5e1;
+        }
+
+        .doc-chip:hover .doc-chip-download {
+            color: #3b82f6;
+        }
+
+        .doc-empty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px;
+            border: 1px dashed #e2e8f0;
+            border-radius: .5rem;
+            background: #f8fafc;
+            color: #94a3b8;
+            font-size: .8rem;
+            width: 100%;
         }
 
         .signature-wrapper {
@@ -841,6 +918,31 @@
             <div class="section-body">
                 <div class="row justify-content-center">
                     <div class="col-12 col-xl-10">
+                        <div class="info-box">
+                            <div class="info-content">
+                                <div class="info-icon">
+                                    <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="info-text">
+                                    <h3>Information</h3>
+                                    <p>
+                                        - Email, phone number, profile photo, KTP, and KK can all be changed. However, email
+                                        and phone number must be requested and HR will be responsible for changing them.<br>
+                                        - To change Signature, please contact HR Admin.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-body">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-xl-10">
 
                         <div class="profile-card">
 
@@ -965,6 +1067,7 @@
                                     @csrf
                                     @method('PUT')
 
+                                    <div class="profile-fields">
                                     <div>
                                         <div class="profile-section-label">Account</div>
                                         <div class="field-grid">
@@ -1222,36 +1325,37 @@
                                         </div>
                                     </div>
                                     <br>
+                                    @php
+                                        $documents = $user->employee?->documents ?? collect();
+                                        $skLetters = $user->employee?->skletters?->where('status', 'Draft') ?? collect();
+                                    @endphp
                                     <div>
-                                        <div class="profile-section-label-ktp">Documents</div>
-                                        <div class="photo-upload-wrap-ktp">
-                                            @if ($user->employee && $user->employee->documents && $user->employee->documents->isNotEmpty())
-                                                @foreach ($user->employee->documents as $doc)
-                                                    <a href="{{ route('profile.documents.download', $doc->id) }}"
-                                                        class="photo-upload-btn-ktp mt-1"
-                                                        style="display:inline-block; text-decoration:none;">
-                                                        <i class="fas fa-file-pdf" style="font-size:.7rem"></i>
-                                                        {{ $doc->document_number }}
-                                                    </a>
-                                                @endforeach
-                                            @endif
+                                        <div class="profile-section-label"><i class="fas fa-folder-open"></i> Documents</div>
+                                        <div class="doc-list">
+                                            @forelse ($documents as $doc)
+                                                <a href="{{ route('profile.documents.download', $doc->id) }}" class="doc-chip">
+                                                    <span class="doc-chip-icon"><i class="fas fa-file-pdf"></i></span>
+                                                    <span class="doc-chip-name">{{ $doc->document_number }}</span>
+                                                    <i class="fas fa-arrow-down doc-chip-download"></i>
+                                                </a>
+                                            @empty
+                                                <div class="doc-empty"><i class="fas fa-folder-open"></i> No documents uploaded yet</div>
+                                            @endforelse
                                         </div>
                                     </div>
                                     <br>
                                     <div>
-                                        <div class="profile-section-label-ktp">SK</div>
-                                        <div class="photo-upload-wrap-ktp">
-
-                                            @if ($user->employee && $user->employee->skletters && $user->employee->skletters->isNotEmpty())
-                                                @foreach ($user->Employee->skletters->where('status', 'Draft') as $skletter)
-                                                    <a href="{{ route('my-sk-letter.download', $skletter->id) }}"
-                                                        class="photo-upload-btn-ktp mt-1"
-                                                        style="display:inline-block; text-decoration:none;">
-                                                        <i class="fas fa-file-pdf" style="font-size:.7rem"></i>
-                                                        {{ $skletter->sk_number }}
-                                                    </a>
-                                                @endforeach
-                                            @endif
+                                        <div class="profile-section-label"><i class="fas fa-file-signature"></i> SK</div>
+                                        <div class="doc-list">
+                                            @forelse ($skLetters as $skletter)
+                                                <a href="{{ route('my-sk-letter.download', $skletter->id) }}" class="doc-chip doc-chip-sk">
+                                                    <span class="doc-chip-icon doc-chip-icon-sk"><i class="fas fa-file-pdf"></i></span>
+                                                    <span class="doc-chip-name">{{ $skletter->sk_number }}</span>
+                                                    <i class="fas fa-arrow-down doc-chip-download"></i>
+                                                </a>
+                                            @empty
+                                                <div class="doc-empty"><i class="fas fa-file-circle-xmark"></i> No SK letters available</div>
+                                            @endforelse
                                         </div>
                                     </div>
                                     <div id="imagePreviewModal" class="image-modal" onclick="closeImageModal()">
@@ -1267,29 +1371,36 @@
                                         <span class="close-modal-ktp">&times;</span>
                                         <img class="image-modal-content-ktp" id="modalPreviewImagektp">
                                     </div>
-                            </div>
-                            <div class="profile-footer">
-                                <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i
-                                        class="fas fa-arrow-left"></i> Back</a>
+                                    </div>
 
-                                <button type="submit" class="btn btn-save">
-                                    <i class="fas fa-floppy-disk"></i> Save changes
-                                </button>
-                            </div>
+                                <div class="profile-footer">
+                                    <a href="{{ route(getDashboardRoute()) }}" class="btn btn-back"><i
+                                            class="fas fa-arrow-left"></i> Back</a>
+
+                                    <button type="submit" class="btn btn-save">
+                                        <i class="fas fa-floppy-disk"></i> Save changes
+                                    </button>
+                                </div>
                             </form>
+                            </div>
 
                             <div class="profile-body" style="border-top: 1px solid #f1f5f9;">
                                 <div>
-                                    <div class="profile-section-label">Signature</div>
+                                    <div class="profile-section-label">
+                                        <i class="fas fa-signature"></i> Signature
+                                        @if (!empty($user->employee->signature))
+                                            <span class="profile-tag profile-tag-status">Signed</span>
+                                        @else
+                                            <span class="profile-tag" style="background:#fef2f2;color:#991b1b;">Not signed</span>
+                                        @endif
+                                    </div>
                                     <p class="text-muted small mb-3">Please create your signature</p>
 
                                     @if (!empty($user->employee->signature))
-                                        <div class="border rounded p-3 bg-light mb-3">
-                                            <p class="text-muted small mb-2">Current signature</p>
-                                            <div class="d-flex justify-content-center">
-                                                <img src="{{ route('useremployeesignature.photo', basename($user->employee->signature)) }}"
-                                                    class="img-fluid" style="height: 96px; object-fit: contain;">
-                                            </div>
+                                        <div class="signature-preview-wrapper">
+                                            <img src="{{ route('useremployeesignature.photo', basename($user->employee->signature)) }}"
+                                                class="signature-preview-image" alt="Signature">
+                                            <p class="text-muted small mt-2 mb-0">This is your saved signature.</p>
                                         </div>
                                     @else
                                         <form method="POST" action="{{ route('save.signature') }}" id="form-signature"
@@ -1380,25 +1491,6 @@
                                 </div>
                             </div>
                         </div>
-                        <br>
-                        <div class="request-box">
-                            <div class="request-content">
-                                <div class="request-icon">
-                                    <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </div>
-                                <div class="request-text">
-                                    <h3>Information</h3>
-                                    <p>
-                                        - Email, phone number, profile photo, KTP, and KK can all be changed. However, email
-                                        and phone number must be requested and HR will be responsible for changing them.<br>
-                                        - To change Signature, please contact HR Admin.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1406,249 +1498,6 @@
     </div>
 @endsection
 
-{{-- @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
-    <script>
-        function togglePassword() {
-            let passwordInput = document.getElementById('password');
-            let eyeIcon = document.getElementById('eyeIcon');
-
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
-            } else {
-                passwordInput.type = "password";
-                eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
-            }
-        }
-    </script>
-    <script>
-        function previewProfilePhoto(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const url = URL.createObjectURL(file);
-            const img = document.getElementById('preview-image');
-            const ph = document.getElementById('photo-placeholder');
-
-            img.src = url;
-            img.style.display = 'block';
-
-            if (ph) ph.style.display = 'none';
-
-            // tambahkan onclick setelah upload
-            img.setAttribute('onclick', 'openImageModal(this.src)');
-        }
-
-        function openImageModal(src) {
-            document.getElementById('imagePreviewModal').style.display = 'block';
-            document.getElementById('modalPreviewImage').src = src;
-        }
-
-        function closeImageModal() {
-            document.getElementById('imagePreviewModal').style.display = 'none';
-        }
-
-
-
-        @if (session('success') || session('status'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Saved',
-                text: '{{ session('success') ?? session('status') }}',
-                confirmButtonColor: '#1d4ed8',
-                timer: 3000,
-                timerProgressBar: true
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#dc2626'
-            });
-        @endif
-    </script>
-    <script>
-        const canvas = document.getElementById('signature-pad');
-        let signaturePad = null;
-
-        if (canvas) {
-        
-function resizeCanvas() {
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    
-    // Simpan data dulu sebelum resize
-    const data = signaturePad ? signaturePad.toData() : null;
-    
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
-    const ctx = canvas.getContext("2d");
-    ctx.scale(ratio, ratio);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Restore data setelah resize
-    if (signaturePad && data) {
-        signaturePad.fromData(data);
-    }
-}
-            resizeCanvas();
-            window.addEventListener("resize", resizeCanvas);
-
-        
-            signaturePad = new SignaturePad(canvas, {
-    backgroundColor: 'rgba(0,0,0,0)',    // ← transparent
-    penColor: 'black',
-    minWidth: 2.5,
-    maxWidth: 4.5,
-    velocityFilterWeight: 0.7
-});
-
-            document.getElementById('clear-signature')
-                .addEventListener('click', function() {
-                    signaturePad.clear();
-                });
-        }
-
-        function switchTab(tab) {
-            const drawSection = document.getElementById('section-draw');
-            const importSection = document.getElementById('section-import');
-            const tabDraw = document.getElementById('tab-draw');
-            const tabImport = document.getElementById('tab-import');
-
-            if (tab === 'draw') {
-                drawSection.style.display = 'block';
-                importSection.style.display = 'none';
-                tabDraw.classList.add('btn-primary');
-                tabDraw.classList.remove('btn-light');
-                tabImport.classList.add('btn-light');
-                tabImport.classList.remove('btn-primary');
-
-                document.getElementById('signature_file').value = '';
-                document.getElementById('preview-signature-import').style.display = 'none';
-                document.getElementById('signature-import-placeholder').style.display = 'inline';
-                document.getElementById('signature-file-name').textContent = 'No file chosen';
-            } else {
-                drawSection.style.display = 'none';
-                importSection.style.display = 'block';
-                tabImport.classList.add('btn-primary');
-                tabImport.classList.remove('btn-light');
-                tabDraw.classList.add('btn-light');
-                tabDraw.classList.remove('btn-primary');
-
-                document.getElementById('signature-input').value = '';
-                if (signaturePad) signaturePad.clear();
-            }
-        }
-
-        function previewSignatureImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const url = URL.createObjectURL(file);
-            const img = document.getElementById('preview-signature-import');
-            const placeholder = document.getElementById('signature-import-placeholder');
-            const fileName = document.getElementById('signature-file-name');
-
-            img.src = url;
-            img.style.display = 'block';
-            placeholder.style.display = 'none';
-            fileName.textContent = file.name;
-        }
-
-        const formSignature = document.getElementById('form-signature');
-        if (formSignature) {
-            formSignature.addEventListener('submit', function(e) {
-                const drawSection = document.getElementById('section-draw');
-                const isDrawTab = drawSection.style.display !== 'none';
-
-                if (isDrawTab) {
-                    if (!signaturePad || signaturePad.isEmpty()) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Signature kosong',
-                            text: 'Silakan buat tanda tangan terlebih dahulu.',
-                            confirmButtonColor: '#1d4ed8'
-                        });
-                        return;
-                    }
-                    const exportCanvas = document.createElement('canvas');
-const scale = 3;
-exportCanvas.width = canvas.width * scale;
-exportCanvas.height = canvas.height * scale;
-const exportCtx = exportCanvas.getContext('2d');
-exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
-exportCtx.scale(scale, scale);
-exportCtx.drawImage(canvas, 0, 0);
-document.getElementById('signature-input').value = exportCanvas.toDataURL('image/png');
-                    document.getElementById('signature_file').value = '';
-                } else {
-                    const fileInput = document.getElementById('signature_file');
-                    if (!fileInput.files.length) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'File kosong',
-                            text: 'Silakan pilih file signature terlebih dahulu.',
-                            confirmButtonColor: '#1d4ed8'
-                        });
-                        return;
-                    }
-                    document.getElementById('signature-input').value = '';
-                }
-            });
-        }
-    </script>
-    <script>
-        function previewProfilePhotokk(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            const img = document.getElementById('preview-image-kk');
-            const ph = document.getElementById('photo-placeholder-kk');
-            img.src = url;
-            img.style.display = 'block';
-            if (ph) ph.style.display = 'none';
-            img.setAttribute('onclick', 'openImageModalkk(this.src)');
-        }
-
-        function openImageModalkk(src) {
-            document.getElementById('imagePreviewModalkk').style.display = 'block';
-            document.getElementById('modalPreviewImagekk').src = src;
-        }
-
-        function closeImageModalkk() {
-            document.getElementById('imagePreviewModalkk').style.display = 'none';
-        }
-    </script>
-    <script>
-        function previewProfilePhotoktp(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            const img = document.getElementById('preview-image-ktp');
-            const ph = document.getElementById('photo-placeholder-ktp');
-            img.src = url;
-            img.style.display = 'block';
-            if (ph) ph.style.display = 'none';
-            img.setAttribute('onclick', 'openImageModalktp(this.src)');
-        }
-
-        function openImageModalktp(src) {
-            document.getElementById('imagePreviewModalktp').style.display = 'block';
-            document.getElementById('modalPreviewImagektp').src = src;
-        }
-
-        function closeImageModalktp() {
-            document.getElementById('imagePreviewModalktp').style.display = 'none';
-        }
-    </script>
-@endpush --}}
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>

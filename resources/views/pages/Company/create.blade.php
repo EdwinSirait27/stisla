@@ -235,19 +235,11 @@
                                                     <div>
                                                         {{-- Preview Image --}}
                                                         <div class="mb-2">
-                                                            @if (!empty($company?->foto))
-                                                                <img id="preview-image"
-                                                                    src="{{ asset('storage/company/' . $company->foto) }}"
-                                                                    alt="Preview" class="img-thumbnail" width="150"
-                                                                    style="cursor:pointer"
-                                                                    onclick="showImageSwal(this.src)">
-                                                            @else
-                                                                <img id="preview-image"
-                                                                    src="https://via.placeholder.com/150" alt="Preview"
-                                                                    class="img-thumbnail" width="150"
-                                                                    style="cursor:pointer"
-                                                                    onclick="showImageSwal(this.src)">
-                                                            @endif
+                                                            <img id="preview-image"
+                                                                src="https://via.placeholder.com/150" alt="Preview"
+                                                                class="img-thumbnail" width="150"
+                                                                style="cursor:pointer"
+                                                                onclick="showImageSwal(this.src)">
                                                         </div>
 
                                                         {{-- File Input --}}
