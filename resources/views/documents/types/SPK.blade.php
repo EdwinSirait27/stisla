@@ -428,28 +428,28 @@
                 </td>
             </tr>
         </table> --}}
-         <table style="width: 100%; margin-bottom: 100px; font-size: 10.5pt;">
-                <tr>
-                    {{-- Tempat & Tanggal --}}
-                    <td style="width: 60%; vertical-align: top;">
-                        <br><br>
+          <table style="width: 100%; margin-bottom: 90px; font-size: 10.5pt;">
 
+                <tr>
+                    {{-- Keterangan --}}
+                    <td style="width: 60%; vertical-align: top;">
+                        <br>
                         Ditetapkan di &nbsp;:
                         {{ $company->city ?? 'Denpasar' }}
                         <br>
-
                         Pada tanggal &nbsp;&nbsp;:
                         {{ $formatTgl($document->issued_date) }}
                     </td>
+                    {{-- Tanda Tangan --}}
                     <td style="width: 40%; text-align: center; vertical-align: bottom;">
-                        @if ($issued->signature)
-                            <img src="{{ route('useremployeesignature.photo', basename($issued->signature)) }}" alt="Signature"
+                        @if ($signatureData)
+                            <img src="{{ $signatureData }}" alt="Signature"
                                 style="
-                height: 70px;
-                width: auto;
-                display: block;
-                margin: 0 auto 4px 50px;
-            ">
+        height: 70px;
+        width: auto;
+        display: block;
+        margin: 0 auto 4px 50px;
+    ">
                         @else
                             <div style="height: 70px;"></div>
                         @endif
