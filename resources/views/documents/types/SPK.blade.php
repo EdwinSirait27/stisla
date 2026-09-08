@@ -393,41 +393,7 @@
             samanya, kami ucapkan terima kasih.
         </p>
 
-        {{-- <table style="width: 100%; margin-bottom: 100px; font-size: 10.5pt;">
-            <tr>
-                <td style="width: 60%; vertical-align: top;">
-                    <br><br>
-
-                    Ditetapkan di &nbsp;:
-                    {{ $company->city ?? 'Denpasar' }}
-                    <br>
-
-                    Pada tanggal &nbsp;&nbsp;:
-                    {{ $formatTgl($document->issued_date) }}
-                </td>
-                <td style="width: 40%; text-align: center; vertical-align: bottom;">
-
-                       @if ($issued->signature)
-                            <img src="{{ route('useremployeesignature.photo', basename($issued->signature)) }}" alt="Signature"
-                                style="
-                height: 70px;
-                width: auto;
-                display: block;
-                margin: 0 auto 4px 50px;
-            ">
-                        @else
-                            <div style="height: 70px;"></div>
-                        @endif
-                    <div style="padding-top: 4px; margin: 0 10px;">
-                        <strong>{{ $issued->employee_name }}</strong><br>
-                        <span style="font-size: 9.5pt;">
-                                  {{ $issued->position->first()->name ?? '-'}}
-
-                        </span>
-                    </div>
-                </td>
-            </tr>
-        </table> --}}
+       
           <table style="width: 100%; margin-bottom: 90px; font-size: 10.5pt;">
 
                 <tr>

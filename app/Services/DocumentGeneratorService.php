@@ -42,28 +42,7 @@ class DocumentGeneratorService
             ->where('status', 'Active')
             ->get();
 
-        // foreach ($employees as $employee) {
-        //     $config = $this->resolveConfig($employee);
-
-        //     if (!$config) {
-        //         continue;
-        //     }
-
-        //     $existing = Documents::where('company_document_config_id', $config->id)
-        //         ->where('employee_id', $employee->id)
-        //         ->exists();
-
-        //     if ($existing) {
-        //         continue;
-        //     }
-        //     Documents::create([
-        //         'company_document_config_id' => $config->id,
-        //         'employee_id'                => $employee->id,
-        //         'issued_by'                  => $headHR->employee_id,
-        //         'issued_date'                => Carbon::parse($employee->join_date)->toDateString(),
-        //         'status'                     => 'draft',
-        //     ]);
-        // }
+     
         foreach ($employees as $employee) {
     $config = $this->resolveConfig($employee);
 

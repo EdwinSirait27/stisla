@@ -21,13 +21,6 @@ class SendDocumentEmailJob implements ShouldQueue
     public int $timeout = 60;
     public array $backoff = [30, 90, 180];
 
-    /**
-     * TESTING ONLY: while this feature is being tested, every document email is
-     * redirected here instead of the employee's real address. Remove this override
-     * (send to $document->employee->email instead) before this goes live.
-     */
-    private const TEST_RECIPIENT_EMAIL = 'edwinsirait@asianbay.co.id';
-
     public function __construct(public string $documentId)
     {
     }
@@ -52,6 +45,11 @@ class SendDocumentEmailJob implements ShouldQueue
             return;
         }
 
+        if (!$document->employee->email) {
+            Log::warning("SendDocumentEmailJob: employee for document {$this->documentId} has no email");
+            return;
+        }
+
         $tempPath = null;
 
         try {
@@ -65,12 +63,12 @@ class SendDocumentEmailJob implements ShouldQueue
 
             $pdf->save($tempPath);
 
-            Mail::to(self::TEST_RECIPIENT_EMAIL)
+            Mail::to($document->employee->email)
                 ->send(new DocumentMail($document, $tempPath));
 
             Log::info("SendDocumentEmailJob: document sent successfully", [
                 'document_id' => $this->documentId,
-                'sent_to'     => self::TEST_RECIPIENT_EMAIL,
+                'sent_to'     => $document->employee->email,
             ]);
         } catch (\Throwable $e) {
             Log::error("SendDocumentEmailJob: failed to send document", [

@@ -65,7 +65,7 @@
             <p><strong>Document Number:</strong> {{ $documentNumber }}</p>
             <p><strong>Document Type:</strong> {{ $documentName }}</p>
         </div>
-        <p>The document is attached as a PDF file. If it is password protected, please contact HR for the password.</p>
+        <p>The document is attached as a PDF file. If it is password protected, please use your birth date as the password in YYYY/MM/DD format (e.g., 19450817).</p>
         <p>Best Regards,<br>
             <strong>HR Department<br>PT. Asian Bay Development</strong>
         </p>
@@ -83,7 +83,7 @@
             <p><strong>Nomor Dokumen:</strong> {{ $documentNumber }}</p>
             <p><strong>Jenis Dokumen:</strong> {{ $documentName }}</p>
         </div>
-        <p>Dokumen terlampir dalam bentuk PDF. Apabila dilindungi kata sandi, silakan hubungi HR untuk mendapatkan kata sandinya.</p>
+        <p>Dokumen terlampir dalam bentuk PDF. Apabila dilindungi kata sandi, silakan gunakan password tanggal lahir anda YYYY/MM/DD contoh 19450817.</p>
         <p>Hormat kami,<br>
             <strong>Departemen HR<br>PT. Asian Bay Development</strong>
         </p>

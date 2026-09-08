@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Employee;
 use App\Models\EmployeeSalary;
-use App\Models\Fingerprintrecap;
 use App\Models\Payroll;
 use App\Models\PayrollDetail;
 use App\Models\PayrollPeriod;

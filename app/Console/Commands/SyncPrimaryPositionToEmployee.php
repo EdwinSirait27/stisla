@@ -47,7 +47,6 @@ class SyncPrimaryPositionToEmployee extends Command
                         ]);
                 }
             });
-
         $this->info('Primary position synced.');
     }
 }
