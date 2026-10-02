@@ -180,14 +180,34 @@ class ToilLeaveRequestsController extends Controller
             ], 403);
         }
 
-        // ── Bangun daftar tanggal (semua hari, termasuk weekend) ──
-        $start = Carbon::parse($validated['start_date']);
-        $end   = Carbon::parse($validated['end_date']);
-        $dates = [];
-        $cur   = $start->copy();
+        // ── Bangun daftar tanggal KERJA saja ──
+        // Hari libur tidak memotong saldo & roster-nya tidak diubah:
+        // - ada roster  → libur kalau day_type = 'Off'
+        // - belum ada roster → libur kalau hari Minggu (sama dengan working days payroll)
+        $start      = Carbon::parse($validated['start_date']);
+        $end        = Carbon::parse($validated['end_date']);
+        $dates      = [];
+        $skippedOff = [];
+        $cur        = $start->copy();
         while ($cur->lte($end)) {
-            $dates[] = $cur->copy();
+            $roster = Roster::where('employee_id', $validated['employee_id'])
+                ->whereDate('date', $cur->toDateString())
+                ->first();
+            $isOff = $roster ? $roster->day_type === 'Off' : $cur->isSunday();
+
+            if ($isOff) {
+                $skippedOff[] = $cur->format('d M');
+            } else {
+                $dates[] = $cur->copy();
+            }
             $cur->addDay();
+        }
+
+        if (empty($dates)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Semua tanggal yang dipilih adalah hari libur (Off), tidak perlu TOIL.',
+            ], 422);
         }
 
         $totalDays  = count($dates);
@@ -307,7 +327,8 @@ class ToilLeaveRequestsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "TOIL Leave {$totalDays} hari berhasil di-assign. Saldo dipotong {$needed} jam & roster ter-update.",
+                'message' => "TOIL Leave {$totalDays} hari berhasil di-assign. Saldo dipotong {$needed} jam & roster ter-update."
+                    . ($skippedOff ? ' Hari libur tidak dipotong: ' . implode(', ', $skippedOff) . '.' : ''),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

@@ -116,6 +116,12 @@ class AttendanceImport implements ToCollection, WithHeadingRow
             $workingDays    = (int) ($row['working_days']    ?? $payroll->working_days);
             $attendanceDays = (int) ($row['attendance_days'] ?? $payroll->attendance_days);
 
+            // Non-DW: attendance tidak boleh melebihi working days (gaji pokok max 100%)
+            if ($statusEmp !== 'DW' && $attendanceDays > $workingDays) {
+                $this->skipped[] = "{$employee->employee_name}: attendance {$attendanceDays} melebihi working days {$workingDays}.";
+                continue;
+            }
+
             // Recalculate gross untuk DW (daily_rate × attendance)
             $grossSalary = $payroll->gross_salary;
             if ($statusEmp === 'DW') {

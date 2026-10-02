@@ -64,8 +64,8 @@ class DocumentGeneratorService
             'company_document_config_id' => $config->id,
             'employee_id'                => $employee->id,
             'issued_by'                  => $headHR->employee_id,
-            'issued_date'                => now()->toDateString(), // ← pakai now(), bukan join_date
-            'status'                     => 'draft',
+            'issued_date'                => $employee->join_date,
+            'status'                     => 'issued',
         ]);
     });
 }

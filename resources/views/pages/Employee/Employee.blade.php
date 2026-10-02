@@ -42,9 +42,28 @@
         /* ─── Stat cards row ─────────────────────────────────── */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
             margin-bottom: 1.25rem;
+        }
+
+        .stat-card {
+            min-width: 0;
+        }
+
+        /* Halaman tidak boleh scroll ke kanan; tabel scroll di dalam .table-responsive */
+        .main-content {
+            overflow-x: hidden;
+        }
+
+        .section-body,
+        .table-responsive {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .dt-filter-bar .select2-container {
+            max-width: 100%;
         }
 
         .stat-card {
@@ -407,7 +426,7 @@
         /* ─── Responsive ─────────────────────────────────────── */
         @media (max-width: 768px) {
             .stats-row {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .section-header {
@@ -418,7 +437,7 @@
 
         @media (max-width: 480px) {
             .stats-row {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 

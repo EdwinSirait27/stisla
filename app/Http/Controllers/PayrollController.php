@@ -732,6 +732,12 @@ class PayrollController extends Controller
             ->rawColumns(['status_badge', 'status_type_badge', 'status_employee_badge', 'prorate_info', 'action'])
             ->make(true);
     }
+    // Payroll hanya boleh diubah (edit/approve/hapus) selama periodenya masih open
+    private function periodIsOpen(Payroll $payroll): bool
+    {
+        return (bool) $payroll->period?->isOpen();
+    }
+
     public function destroy(string $id)
     {
         $user = auth()->user();
@@ -740,7 +746,7 @@ class PayrollController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $payroll = Payroll::findOrFail($id);
+        $payroll = Payroll::with('period')->findOrFail($id);
 
         if ($payroll->status !== 'draft') {
             return response()->json([
@@ -749,8 +755,16 @@ class PayrollController extends Controller
             ], 422);
         }
 
+        if (!$this->periodIsOpen($payroll)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode sudah closed/locked, payroll tidak bisa dihapus.',
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
+            $this->payrollService->releaseOvertime($payroll); // ← kembalikan overtime supaya bisa di-generate ulang
             $payroll->details()->delete(); // ← hapus PayrollDetail dulu
             $payroll->delete();            // ← baru hapus Payroll
             DB::commit();
@@ -782,20 +796,27 @@ class PayrollController extends Controller
             'ids.*' => 'exists:payrolls,id',
         ]);
 
-        $payrolls = Payroll::whereIn('id', $request->ids)
+        $payrolls = Payroll::with('period')
+            ->whereIn('id', $request->ids)
             ->where('status', 'draft') // ← hanya draft
+            ->whereHas('period', fn($q) => $q->where('status', 'open')) // ← hanya periode open
             ->get();
 
         if ($payrolls->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak ada payroll draft yang bisa dihapus.',
+                'message' => 'Tidak ada payroll draft (periode open) yang bisa dihapus.',
             ], 422);
         }
 
         DB::beginTransaction();
         try {
             $ids = $payrolls->pluck('id')->toArray();
+
+            // Kembalikan overtime supaya bisa di-generate ulang
+            foreach ($payrolls as $payroll) {
+                $this->payrollService->releaseOvertime($payroll);
+            }
 
             // Hapus PayrollDetail dulu
             PayrollDetail::whereIn('payroll_id', $ids)->delete();
@@ -841,6 +862,10 @@ class PayrollController extends Controller
                 . "Dilewati: " . count($results['skipped']) . " | "
                 . "Gagal: " . count($results['failed']);
 
+            if (!empty($results['warning'])) {
+                $message .= " | Perlu dicek (lihat note): " . implode(', ', $results['warning']);
+            }
+
             // Log failed employees
             if (!empty($results['failed'])) {
                 Log::warning('PayrollController: failed employees', $results['failed']);
@@ -875,6 +900,10 @@ class PayrollController extends Controller
 
             if ($result === 'skipped') {
                 return back()->with('error', "Employee {$employee->employee_name} dilewati. Cek salary atau roster.");
+            }
+
+            if ($result === 'warning') {
+                return back()->with('success', "Payroll {$employee->employee_name} berhasil di-generate, tapi perlu dicek (lihat note).");
             }
 
             return back()->with('success', "Payroll {$employee->employee_name} berhasil di-generate.");
@@ -917,6 +946,10 @@ class PayrollController extends Controller
             return back()->with('error', 'Hanya payroll berstatus draft yang bisa diedit.');
         }
 
+        if (!$this->periodIsOpen($payroll)) {
+            return back()->with('error', 'Periode sudah closed/locked, payroll tidak bisa diedit.');
+        }
+
         return view('pages.Payroll.edit', compact('payroll'));
     }
 
@@ -929,10 +962,14 @@ class PayrollController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $payroll = Payroll::findOrFail($id);
+        $payroll = Payroll::with(['period', 'employee'])->findOrFail($id);
 
         if ($payroll->status !== 'draft') {
             return back()->with('error', 'Hanya payroll berstatus draft yang bisa diedit.');
+        }
+
+        if (!$this->periodIsOpen($payroll)) {
+            return back()->with('error', 'Periode sudah closed/locked, payroll tidak bisa diedit.');
         }
 
         foreach (['overtime_amount', 'reimburse_amount', 'punishment', 'punishment_so', 'debt', 'tax'] as $field) {
@@ -952,6 +989,15 @@ class PayrollController extends Controller
             'tax'              => 'nullable|numeric|min:0',
             'note'             => 'nullable|string|max:500',
         ]);
+
+        // Non-DW: attendance tidak boleh melebihi working days (gaji pokok max 100%)
+        if (strtoupper($payroll->employee->status_employee ?? '') !== 'DW'
+            && (float) $request->attendance_days > (float) $request->working_days) {
+            return back()
+                ->withErrors(['attendance_days' => 'Attendance days tidak boleh melebihi working days.'])
+                ->withInput();
+        }
+
         try {
             $payroll->update([
                 'attendance_days'  => $request->attendance_days  ?? 0,
@@ -984,10 +1030,18 @@ class PayrollController extends Controller
         if (!$user->hasPermissionTo('ManagePayroll')) {
             abort(403, 'Unauthorized');
         }
-        $payroll = Payroll::findOrFail($id);
+        $payroll = Payroll::with('period')->findOrFail($id);
 
         if ($payroll->status !== 'draft') {
             return response()->json(['error' => 'Hanya draft yang bisa di-approve.'], 422);
+        }
+
+        if (!$this->periodIsOpen($payroll)) {
+            return response()->json(['error' => 'Periode sudah closed/locked.'], 422);
+        }
+
+        if ((float) $payroll->net_salary < 0) {
+            return response()->json(['error' => 'Net salary minus, cek attendance & potongan sebelum approve.'], 422);
         }
 
         try {
@@ -1019,15 +1073,22 @@ class PayrollController extends Controller
         ]);
 
         try {
-            Payroll::whereIn('id', $request->ids)
+            // Hanya draft, periode open, dan net salary tidak minus
+            $approved = Payroll::whereIn('id', $request->ids)
                 ->where('status', 'draft')
+                ->where('net_salary', '>=', 0)
+                ->whereHas('period', fn($q) => $q->where('status', 'open'))
                 ->update([
                     'status'      => 'approved',
                     'approved_by' => $user->employee_id,
                     'approved_at' => now(),
                 ]);
 
-            return response()->json(['success' => true, 'message' => 'Bulk approve berhasil.']);
+            $skipped = count($request->ids) - $approved;
+            $message = "{$approved} payroll di-approve."
+                . ($skipped > 0 ? " {$skipped} dilewati (bukan draft, periode tidak open, atau net salary minus)." : '');
+
+            return response()->json(['success' => true, 'message' => $message]);
         } catch (\Exception $e) {
             Log::error('PayrollController approveBulk error: ' . $e->getMessage());
             return response()->json(['error' => 'Gagal bulk approve.'], 500);
@@ -1042,10 +1103,15 @@ class PayrollController extends Controller
         if (!$user->hasPermissionTo('ManagePayroll')) {
             abort(403, 'Unauthorized');
         }
-        $payroll = Payroll::findOrFail($id);
+        $payroll = Payroll::with('period')->findOrFail($id);
 
         if ($payroll->status !== 'approved') {
             return response()->json(['error' => 'Hanya approved yang bisa di-paid.'], 422);
+        }
+
+        // Pembayaran masih boleh setelah periode closed, tapi tidak setelah locked
+        if (!$payroll->period || $payroll->period->isLocked()) {
+            return response()->json(['error' => 'Periode sudah locked.'], 422);
         }
 
         try {
@@ -1223,6 +1289,10 @@ class PayrollController extends Controller
     {
         $payroll = Payroll::with(['employee.company', 'details.component'])->findOrFail($id);
 
+        if (!in_array($payroll->status, ['approved', 'paid'], true)) {
+            return back()->with('error', 'Slip hanya bisa diunduh untuk payroll approved/paid.');
+        }
+
         ['pdf' => $pdf] = app(\App\Services\PayrollSlipService::class)->generateForDownload($payroll);
 
         return $pdf->download('Slip_Gaji_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf');
@@ -1295,6 +1365,10 @@ class PayrollController extends Controller
     public function sendSlipEmail(string $id)
     {
         $payroll = Payroll::with('employee')->findOrFail($id);
+
+        if (!in_array($payroll->status, ['approved', 'paid'], true)) {
+            return back()->with('error', 'Slip hanya bisa dikirim untuk payroll approved/paid.');
+        }
 
         if (!$payroll->employee || !$payroll->employee->email) {
             return back()->with('error', 'Email karyawan tidak tersedia.');

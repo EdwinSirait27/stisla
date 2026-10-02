@@ -240,6 +240,12 @@ class PayrollPeriodController extends Controller
             return back()->with('error', 'Periode bukan berstatus open.');
         }
 
+        // Semua payroll harus sudah di-approve sebelum periode ditutup
+        $draftCount = $period->payrolls()->where('status', 'draft')->count();
+        if ($draftCount > 0) {
+            return back()->with('error', "Masih ada {$draftCount} payroll draft. Approve atau hapus dulu sebelum close periode.");
+        }
+
         try {
             $period->update(['status' => 'closed']);
             return back()->with('success', 'Periode berhasil di-close.');
@@ -261,6 +267,13 @@ class PayrollPeriodController extends Controller
         if (!$period->isClosed()) {
             return back()->with('error', 'Periode harus berstatus closed sebelum di-lock.');
         }
+
+        // Semua payroll harus sudah paid sebelum periode dikunci permanen
+        $unpaidCount = $period->payrolls()->where('status', '!=', 'paid')->count();
+        if ($unpaidCount > 0) {
+            return back()->with('error', "Masih ada {$unpaidCount} payroll yang belum paid. Tandai paid dulu sebelum lock periode.");
+        }
+
         try {
             $period->update([
                 'status'    => 'locked',

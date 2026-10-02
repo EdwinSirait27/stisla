@@ -17,18 +17,9 @@
                     <li class="{{ Request::is('rnr') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('rnr') }}">Roles & Responsibilities</a>
                     </li>
-                    {{-- <li class="{{ Request::is('documents') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('documents') }}">Document</a>
-                    </li> --}}
 
                 </ul>
             </li>
-            {{-- @can('DashboardHuman')
-                <li class="{{ Request::is('dashboardHuman') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ url('dashboardHuman') }}"><i class="fas fa-house"></i>
-                        <span>Dashboard</span></a>
-                </li> --}}
-            {{-- @endrole --}}
             <li class="nav-item dropdown ">
                 <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-house"></i>
                     <span>Dashboards</span></a>
@@ -83,48 +74,17 @@
                             <a class="nav-link" href="{{ url('overtime-rate') }}">Overtime Rate</a>
                         </li>
                     @endcan
-                    {{-- @can('RequestPosition')
-                        <li class="{{ Request::is('Positionrequest') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Positionrequest') }}">Position Request</a>
-                        </li>
-                    @endcan
-                    @can('RequestPositionList')
-                        <li class="{{ Request::is('Positionreqlist') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Positionreqlist') }}">Position Req List</a>
-                        </li>
-                    @endcan --}}
-                    {{-- @can('ManageTeamfingerprint')
-                        <li class="{{ Request::is('Teamfingerprint') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Teamfingerprint') }}">Team Fingerprints</a>
-                        </li>
-                    @endcan --}}
-                    
-                   
-                    {{-- @can('Positionapprovals')
-                        <li class="{{ Request::is('Positionapprovals') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Positionapprovals') }}">Position Approvals</a>
-                        </li>
-                    @endcan --}}
-                    {{-- @can('ManageStructuresnew')
-                        <li class="{{ Request::is('Structuresnew') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Structuresnew') }}">Structure List</a>
-                        </li>
-                    @endcan --}}
-                     {{-- @canany(['ManageEmployee','ManageEmployeeSPVManager','ViewEmployee']) --}}
-                     @can('ManageEmployee')
-                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
-                        </li>
- <li class="{{ Request::is('employees/bulk') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('employees/bulk') }}">Bulk</a>
-                        </li>
-                    @endcan
-                     @can('ManageEmployeeSPVManager')
+                    @can('ManageEmployee')
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
                     @endcan
-                     @can('ViewEmployee')
+                    @can('ManageEmployeeSPVManager')
+                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
+                        </li>
+                    @endcan
+                    @can('ViewEmployee')
                         <li class="{{ Request::is('Employee') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
@@ -139,31 +99,29 @@
 
                 </ul>
             </li>
-
-            @role('Admin')
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                        <span>Users</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardAdmin') }}">List Users</a>
-                        </li>
-                        <li class="{{ Request::is('Activity') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Activity') }}">Activity Logs</a>
-                        </li>
-                        <li class="{{ Request::is('roles') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('roles') }}">Roles</a>
-                        </li>
-                        <li class="{{ Request::is('permission') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('permissions') }}">Permission</a>
-                        </li>
-                    </ul>
-                </li>
-            @endrole
-@role('HeadHR|HR')
+ @can('dashboardAdmin')
             <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-database"></i>
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
+                    <span>Users</span></a>
+                <ul class="dropdown-menu">
+                    <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ url('dashboardAdmin') }}">List Users</a>
+                    </li>
+                    <li class="{{ Request::is('Activity') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ url('Activity') }}">Activity Logs</a>
+                    </li>
+                    <li class="{{ Request::is('roles') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ url('roles') }}">Roles</a>
+                    </li>
+                    <li class="{{ Request::is('permission') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ url('permissions') }}">Permission</a>
+                    </li>
+                </ul>
+            </li>
+                    @endcan
+
+            <li class="nav-item dropdown ">
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-database"></i>
                     <span>Master Data</span></a>
                 <ul class="dropdown-menu">
                     @can('ManageBanks')
@@ -211,129 +169,96 @@
                             <a class="nav-link" href="{{ url('Leavestype') }}">Leaves</a>
                         </li>
                     @endcan
-                </ul>
-            </li>
-            @endrole
-@canany(['ManageShiftSPVManager','ViewShifts','ManagePHSPVManager','ViewPH'])
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-database"></i>
-                    <span>Master Data</span></a>
-                <ul class="dropdown-menu">
+
+
+                    @canany(['ManageShiftSPVManager', 'ViewShifts', 'ManagePHSPVManager', 'ViewPH'])
                         <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
                         </li>
                         <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
                         </li>
-                 
+                    @endcanany
+
+
+
+
                 </ul>
             </li>
-             @endcanany
-                    @can('ManageEmployeeTraining')
 
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-building"></i>
-                    <span>Training</span></a>
-                <ul class="dropdown-menu">
+            @can('ManageEmployeeTraining')
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                            class="fas fa-building"></i>
+                        <span>Training</span></a>
+                    <ul class="dropdown-menu">
                         <li class="{{ Request::is('{employee-training}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('employee-training') }}">Employee</a>
                         </li>
-                </ul>
-            </li>
-                    @endcan
-                    @can('ManageContracts')
-
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-building"></i>
-                    <span>Contracts</span></a>
-                <ul class="dropdown-menu">
+                    </ul>
+                </li>
+            @endcan
+            @can('ManageContracts')
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                            class="fas fa-building"></i>
+                        <span>Contracts</span></a>
+                    <ul class="dropdown-menu">
                         <li class="{{ Request::is('{contract}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('contract') }}">Employees Contracts</a>
                         </li>
-                </ul>
-            </li>
-                    @endcan
-                    @can('ManageDocument')
-
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-building"></i>
-                    <span>Documents</span></a>
-                <ul class="dropdown-menu">
+                    </ul>
+                </li>
+            @endcan
+            @can('ManageDocument')
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                            class="fas fa-building"></i>
+                        <span>Documents</span></a>
+                    <ul class="dropdown-menu">
                         <li class="{{ Request::is('{document}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('document') }}">Documents</a>
                         </li>
-                </ul>
-            </li>
-                    @endcan
-@canany(['ManageSktypes','ManageSkLetters'])
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-file-signature"></i>
-                    <span>SK</span></a>
-                <ul class="dropdown-menu">
+                    </ul>
+                </li>
+            @endcan
+            @canany(['ManageSktypes', 'ManageSkLetters'])
+                <li class="nav-item dropdown ">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                            class="fas fa-file-signature"></i>
+                        <span>SK</span></a>
+                    <ul class="dropdown-menu">
                         <li class="{{ Request::is('{Sktype}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Sktype') }}">SK Type</a>
                         </li>
                         <li class="{{ Request::is('{SkLetters}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('SkLetters') }}">SK Letters</a>
                         </li>
-                    
-                </ul>
-            </li>
+
+                    </ul>
+                </li>
             @endcanany
-            {{-- <li class="nav-item dropdown ">
-                        <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                                class="fas fa-file-signature"></i>
-                            <span>ST</span></a>
-                        <ul class="dropdown-menu">
-                            <li class="{{ Request::is('{StLetters}') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ url('StLetters') }}">ST Letters</a>
-                            </li>
-                            </ul>
-                    </li> --}}
-            {{-- <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-wallet"></i>
-                    <span>Payrolls</span></a>
-                <ul class="dropdown-menu">
-                    @can('ManagePayrolls')
+
+            @can('ManagePayrolls')
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
+                        <i class="fas fa-wallet"></i>
+                        <span>Payrolls</span>
+                    </a>
+                    <ul class="dropdown-menu">
                         <li class="{{ Request::is('payrollcomponents') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('payrollcomponents') }}">Payroll Components</a>
                         </li>
-                        <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
+                        <li class="{{ Request::is('employee-salary') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('employee-salary') }}">Employee Salary</a>
                         </li>
-                    @endcan
-                </ul>
-            </li> --}}
-            @can('ManagePayrolls')
-<li class="nav-item dropdown">
-    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
-        <i class="fas fa-wallet"></i>
-        <span>Payrolls</span>
-    </a>
-    <ul class="dropdown-menu">
-        <li class="{{ Request::is('payrollcomponents') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ url('payrollcomponents') }}">Payroll Components</a>
-        </li>
-        <li class="{{ Request::is('employee-salary') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ url('employee-salary') }}">Employee Salary</a>
-        </li>
-        <li class="{{ Request::is('payroll-period') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ url('payroll-period') }}">Payroll Period</a>
-        </li>
-        {{-- <li class="{{ Request::is('payroll') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ url('payroll') }}">Payroll</a>
-        </li> --}}
-        {{-- <li class="{{ Request::is('Payrolls') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ url('Payrolls') }}">Payrolls</a>
-        </li> --}}
-    </ul>
-</li>
-@endcan
+                        <li class="{{ Request::is('payroll-period') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ url('payroll-period') }}">Payroll Period</a>
+                        </li>
+
+                    </ul>
+                </li>
+            @endcan
 
 
             {{-- ════════════════════════════════════════════════════ --}}
@@ -379,49 +304,38 @@
                 </ul>
             </li>
 
-            {{-- <li
-                class="nav-item dropdown {{ Request::is('Fingerprints', 'Editedfinger', 'roster*', 'schedule*', 'fingerprint-recap*') ? 'active' : '' }}">
+            <li class="nav-item dropdown ">
                 <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
                         class="fas fa-calendar-check"></i>
                     <span>Attendance</span></a>
                 <ul class="dropdown-menu">
-                   
-
-                </ul>
-            </li> --}}
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-calendar-check"></i>
-                    <span>Attendance</span></a>
-                <ul class="dropdown-menu">
                     @canany(['ManageFingerspot', 'ManageFingerspotSPVManager', 'ViewFingerspot'])
-
-                    <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
+                        <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerprints Data</a>
                         </li>
-                        @endcanany
-                        @can('ManageFingerspot')
+                    @endcanany
+                    @can('ManageFingerspot')
                         <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
                         </li>
                     @endcan
-                @canany(['ManageRoster', 'ManageRosterSPVManager', 'ViewRoster'])
-
-                    <li class="{{ Request::is('roster*') ? 'active' : '' }}">
+                    @canany(['ManageRoster', 'ManageRosterSPVManager', 'ViewRoster'])
+                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('roster.index') }}">Roster & Schedule</a>
                         </li>
                     @endcanany
                 </ul>
             </li>
             <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-calendar-check"></i>
+                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
+                        class="fas fa-calendar-check"></i>
                     <span>Attendance Mobile</span></a>
                 <ul class="dropdown-menu">
-                    @canany(['ManageAttendanceMobile','ViewAttendanceMobile','ManageAttendanceMobileSPVManager'])
-
-                    <li class="{{ Request::is('{AttendanceMobile}') ? 'active' : '' }}">
+                    @canany(['ManageAttendanceMobile', 'ViewAttendanceMobile', 'ManageAttendanceMobileSPVManager'])
+                        <li class="{{ Request::is('{AttendanceMobile}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('AttendanceMobile') }}">Attendance Data</a>
                         </li>
-                        @endcanany
+                    @endcanany
                 </ul>
             </li>
 

@@ -70,6 +70,7 @@ use App\Http\Controllers\PayrollPeriodController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\SuratTugasController;
 use App\Http\Controllers\EmployeeTrainingController;
 use App\Http\Controllers\OvertimeRateController;
 use App\Http\Controllers\TwoFactorController;
@@ -100,13 +101,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/two-factor/setup/confirm', [TwoFactorController::class, 'confirmSetup'])->name('2fa.setup.confirm');
     Route::get('/two-factor/recovery-codes', [TwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery-codes');
 });
-Route::middleware(['auth', 'role:Admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     
     Route::post('/users/{user}/2fa/disable', [TwoFactorController::class, 'adminDisable'])->name('admin.2fa.disable');
     Route::post('/users/{user}/2fa/toggle-required', [TwoFactorController::class, 'adminToggleRequired'])->name('admin.2fa.toggle-required');
     });
 
-Route::middleware(['auth', 'force.password.change', 'role:Admin|HeadHR|HR|Human|Manager|Director|Supervisor|Training'])->group(function () {
+Route::middleware(['auth', 'force.password.change'])->group(function () {
     
     Route::put('/profile/switch-role', [UserprofileController::class, 'switchRole'])->name('profile.switchRole');
     Route::get('/feature-profile', [UserprofileController::class, 'index'])
@@ -584,7 +585,12 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
     Route::group(['middleware' => ['permission:ManageDocument']], function () {
         Route::get('/document', [DocumentController::class, 'index'])
             ->name('document.index');
+        Route::get('/documents/create', [DocumentController::class, 'create'])
+            ->name('documents.create');
+        Route::post('/documents', [DocumentController::class, 'store'])
+            ->name('documents.store');
         Route::match(['GET', 'POST'], '/documents/documents', [DocumentController::class, 'getDocuments'])->name('documents.documents');
+        Route::match(['GET', 'POST'], '/documents/activities', [DocumentController::class, 'getDocumentActivities'])->name('documents.activities');
         Route::get(
             '/documents/download/{document}',
             [DocumentController::class, 'downloadDocument']
@@ -593,6 +599,16 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             ->name('documents.send');
         Route::post('/documents/bulk-send', [DocumentController::class, 'bulkSendDocument'])
             ->name('documents.bulk-send');
+
+        // ── Surat Tugas (ST) ──
+        Route::get('/documents/surat-tugas/create/{employee}', [SuratTugasController::class, 'create'])
+            ->name('documents.st.create');
+        Route::post('/documents/surat-tugas/{employee}', [SuratTugasController::class, 'store'])
+            ->name('documents.st.store');
+        Route::get('/documents/surat-tugas/{document}/edit', [SuratTugasController::class, 'edit'])
+            ->name('documents.st.edit');
+        Route::put('/documents/surat-tugas/{document}', [SuratTugasController::class, 'update'])
+            ->name('documents.st.update');
     });
 
     // ── Public Holidays ──

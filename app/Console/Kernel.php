@@ -6,6 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Jobs\GeneratePayrollIntroLetterJob;
 use App\Jobs\GenerateSuratPengantarKaryawan;
+use App\Jobs\GeneratePaklaringJob;
 use App\Jobs\SendWhatsappReminder3Month;
 
 class Kernel extends ConsoleKernel
@@ -33,6 +34,10 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->name('generate-pengantar-karyawan-intro-letter')
             ->withoutOverlapping();
+        $schedule->job(new GeneratePaklaringJob)
+            ->everyFiveMinutes()
+            ->name('generate-paklaring')
+            ->withoutOverlapping();
         $schedule->command('sync:primary-position')
             ->everyFiveMinutes();
         $schedule->command('sync:primary-department')
@@ -42,6 +47,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('attendance:send-reminder')
             ->everyFifteenMinutes()
             ->timezone('Asia/Makassar');
+        $schedule->command('documents:expire-surat-tugas')
+            ->everyFiveMinutes()
+            ->timezone('Asia/Makassar')
+            ->withoutOverlapping();
     }
     /**
      * Register the commands for the application.

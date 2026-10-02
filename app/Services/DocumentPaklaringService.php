@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Documents;
+use App\Models\Companydocumentconfigs;
+use App\Models\Employee;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+
+class DocumentPaklaringService
+{
+    const MAHENDRADATA_COMPANY_ID = '0196ba4f-5c58-7022-9eb2-ba407eaf4753';
+    const TENJI_COMPANY_ID        = '0196ba57-c0ab-7339-b5f4-2bdfedfa14f2';
+    const NUANSA_COMPANY_ID       = '0196ba59-1723-732d-bbe0-d6e245b7e67f';
+    const ASIAN_BAY_COMPANY_ID    = '0199eb83-7351-729f-9def-c33ae7450447';
+
+    public function generatePaklaring(): void
+    {
+        $headHR = User::role('HeadHR')
+            ->whereHas('Employee', fn($q) => $q->where('status', 'Active'))
+            ->first();
+
+        if (!$headHR) {
+            return;
+        }
+
+        $targetStatuses  = ['DW', 'PKWT', 'On Job Training'];
+        $targetCompanies = [
+            self::MAHENDRADATA_COMPANY_ID,
+            self::TENJI_COMPANY_ID,
+            self::NUANSA_COMPANY_ID,
+            self::ASIAN_BAY_COMPANY_ID,
+        ];
+
+        $employees = Employee::with(['company', 'store'])
+            ->whereIn('company_id', $targetCompanies)
+            ->whereIn('status_employee', $targetStatuses)
+            ->where('status', 'Resign')
+            ->whereNotNull('end_date')
+            ->whereDate('end_date', '<=', now())
+            ->get();
+
+        foreach ($employees as $employee) {
+            $config = $this->resolveConfig($employee);
+
+            if (!$config) {
+                continue;
+            }
+
+            DB::transaction(function () use ($employee, $config, $headHR) {
+                $existing = Documents::where('company_document_config_id', $config->id)
+                    ->where('employee_id', $employee->id)
+                    ->lockForUpdate()
+                    ->exists();
+
+                if ($existing) {
+                    return;
+                }
+
+                Documents::create([
+                    'company_document_config_id' => $config->id,
+                    'employee_id'                => $employee->id,
+                    'issued_by'                  => $headHR->employee_id,
+                    'issued_date'                => now()->toDateString(),
+                    'status'                     => 'issued',
+                ]);
+            });
+        }
+    }
+
+    private function resolveConfig(Employee $employee): ?Companydocumentconfigs
+    {
+        return Companydocumentconfigs::with(['documenttypes'])
+            ->where('company_id', $employee->company_id)
+            ->whereHas('documenttypes', fn($q) => $q->where('nickname', 'PAK'))
+            ->where('is_active', true)
+            ->first();
+    }
+}

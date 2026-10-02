@@ -67,13 +67,13 @@
         </div>
         <p>The document is attached as a PDF file. If it is password protected, please use your birth date as the password in YYYY/MM/DD format (e.g., 19450817).</p>
         <p>Best Regards,<br>
-            <strong>HR Department<br>PT. Asian Bay Development</strong>
+            <strong>HR Department<br>{{ $companyName }}</strong>
         </p>
         <div class="note">
             This email was sent automatically. Please do not reply.<br>
             For further information, please contact our HR Department via WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
-                HR Department Asian Bay Development
+                HR Department {{ $companyName }}
             </a>
         </div>
         <hr style="margin:30px 0; border:0; border-top:1px solid #ddd;">
@@ -85,17 +85,17 @@
         </div>
         <p>Dokumen terlampir dalam bentuk PDF. Apabila dilindungi kata sandi, silakan gunakan password tanggal lahir anda YYYY/MM/DD contoh 19450817.</p>
         <p>Hormat kami,<br>
-            <strong>Departemen HR<br>PT. Asian Bay Development</strong>
+            <strong>Departemen HR<br>{{ $companyName }}</strong>
         </p>
         <div class="note">
             Email ini dikirim secara otomatis. Mohon untuk tidak membalas.<br>
             Untuk bantuan lebih lanjut, silakan menghubungi HR Departemen melalui WhatsApp:
             <a href="https://wa.me/6281138310552" style="color:#25D366; text-decoration:none; font-weight:bold;">
-                Departemen HR Asian Bay Development
+                Departemen HR {{ $companyName }}
             </a>
         </div>
         <div class="footer">
-            © {{ date('Y') }} HRX. PT Asian Bay Development Created by Edwin Sirait.
+            © {{ date('Y') }} HRX. {{ $companyName }} Created by Edwin Sirait.
         </div>
     </div>
 </body>

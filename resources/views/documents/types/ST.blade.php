@@ -43,7 +43,6 @@
             object-fit: contain;
         }
 
-        /* Konten di atas watermark */
         .page>*:not(.watermark-logo) {
             position: relative;
             z-index: 1;
@@ -100,27 +99,6 @@
             margin-top: 2px;
         }
 
-        /* ── Info surat ── */
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-            font-size: 10.5pt;
-        }
-
-        .info-table td {
-            padding: 2px 0;
-            vertical-align: top;
-        }
-
-        .info-table .col-label {
-            width: 80px;
-        }
-
-        .info-table .col-sep {
-            width: 20px;
-        }
-
         /* ── Judul ── */
         .doc-title {
             text-align: center;
@@ -170,41 +148,28 @@
             width: 20px;
         }
 
-        /* ── Detail bank ── */
-        .bank-table {
+        /* ── Perpindahan table ── */
+        .move-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 6px 0 12px 30px;
+            margin: 6px 0 14px 0;
             font-size: 10.5pt;
         }
 
-        .bank-table td {
-            padding: 2px 0;
+        .move-table th,
+        .move-table td {
+            border: 1px solid #000;
+            padding: 5px 8px;
             vertical-align: top;
-            line-height: 1.5;
         }
 
-        .bank-table .col-label {
-            width: 160px;
-        }
-
-        .bank-table .col-sep {
-            width: 20px;
-        }
-
-        /* ── PIC list ── */
-        .pic-list {
-            margin: 6px 0 12px 30px;
-            font-size: 10.5pt;
-            line-height: 1.8;
+        .move-table th {
+            background: #f0f0f0;
+            text-align: center;
+            font-size: 10pt;
         }
 
         /* ── Tanda Tangan ── */
-        .ttd-wrap {
-            margin-top: 20px;
-            width: 100%;
-        }
-
         .ttd-table {
             width: 100%;
             border-collapse: collapse;
@@ -222,9 +187,6 @@
             font-size: 9.5pt;
             margin-bottom: 55px;
             font-style: italic;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .ttd-signature {
@@ -257,26 +219,17 @@
             margin-top: 2px;
         }
 
-
         .doc-footer {
             position: fixed;
             bottom: 20px;
             left: 40px;
             right: 40px;
-
             text-align: center;
-
             font-size: 8pt;
             color: #555;
             border-top: 1px solid #ccc;
             padding-top: 5px;
             line-height: 1.4;
-        }
-
-        .label-id {
-            display: inline-block;
-            border-bottom: 1px solid #000;
-            padding-bottom: 2px;
         }
     </style>
 </head>
@@ -305,11 +258,27 @@
             $d = \Carbon\Carbon::parse($dateStr);
             return $d->day . ' ' . $bulan[$d->month] . ' ' . $d->year;
         };
+
+        $typeLabels = [
+            'department' => 'Departemen',
+            'store'      => 'Store / Lokasi',
+            'position'   => 'Posisi / Jabatan',
+        ];
+
+        $assignments = $document->assignments->whereNull('reverted_at');
+        if ($assignments->isEmpty()) {
+            // Already expired (and reverted) — show the full set of moves
+            // (a type like "store" can have more than one row) from the
+            // last revert batch, instead of collapsing to one per type.
+            $lastRevertedAt = $document->assignments->max('reverted_at');
+            $assignments = $document->assignments->filter(
+                fn($assignment) => $assignment->reverted_at == $lastRevertedAt
+            );
+        }
     @endphp
 
     <div class="page">
 
-        {{-- ── Watermark logo ── --}}
         @if ($company->foto)
             <div class="watermark-logo">
                 <img src="{{ public_path('storage/' . $company->foto) }}" alt="Watermark">
@@ -339,182 +308,73 @@
             </table>
         </div>
 
-        {{-- ── Info Surat ── --}}
-        <table class="info-table">
-            <tr>
-                <td class="col-label">Tanggal</td>
-                <td class="col-sep">:</td>
-                <td>{{ $formatTgl($employee->end_date) }}</td>
-            </tr>
-            <tr>
-                <td class="col-label">Perihal</td>
-                <td class="col-sep">:</td>
-                <td>
-                    Surat Keterangan Kerja
-                </td>
-            </tr>
-        </table>
-
         {{-- ── Judul ── --}}
         <div class="doc-title">
-            <span class="doc-title-text">Surat Keterangan Kerja</span>
+            <span class="doc-title-text">Surat Tugas</span>
         </div>
         <div class="doc-number">Nomor: {{ $document->document_number }}</div>
 
-        {{-- ── Kepada ── --}}
         <p class="body-text">
-            <span style="border-bottom: 1px solid #000;">
-                Dengan ini menerangkan bahwa
-            </span>
-            <br>
-            <i>This is to certify that</i>
+            Yang bertanda tangan di bawah ini menugaskan karyawan dengan identitas sebagai berikut:
         </p>
-        {{-- <table class="data-table">
-            <tr>
-                <td class="col-label">Nama / Name</td>
-                <td class="col-sep">:</td>
-                <td><strong>{{ $employee->employee_name }}</strong></td>
-            </tr>
-            <tr>
-                <td class="col-label">NIP / Employee ID</td>
-                <td class="col-sep">:</td>
-                <td><strong>{{ $employee->employee_pengenal }}</strong></td>
-            </tr>
-            <tr>
-                <td class="col-label">Jabatan Terakhir / Final Position</td>
-                <td class="col-sep">:</td>
-                <td>{{ $employee->position->first()->name ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td class="col-label">Masa Kerja / LOS</td>
-                <td class="col-sep">:</td>
-                <td>{{ $formatTgl($employee->join_date) }} - {{ $formatTgl($employee->end_date) }}</td>
-            </tr>
-        </table> --}}
-        {{-- <table class="data-table">
-    <tr>
-        <td class="col-label">
-            Nama<br>
-            <i>Name</i>
-        </td>
-        <td class="col-sep">:</td>
-        <td><strong>{{ $employee->employee_name }}</strong></td>
-    </tr>
-
-    <tr>
-        <td class="col-label">
-            NIP<br>
-            <i>Employee ID</i>
-        </td>
-        <td class="col-sep">:</td>
-        <td><strong>{{ $employee->employee_pengenal }}</strong></td>
-    </tr>
-
-    <tr>
-        <td class="col-label">
-            Lokasi Kerja<br>
-            <i>Work Location</i>
-        </td>
-        <td class="col-sep">:</td>
-        <td>{{ $employee->company->name ?? '-' }}</td>
-    </tr>
-    <tr>
-        <td class="col-label">
-            Jabatan Terakhir<br>
-            <i>Final Position</i>
-        </td>
-        <td class="col-sep">:</td>
-        <td>{{ $employee->position->first()->name ?? '-' }}</td>
-    </tr>
-
-    <tr>
-        <td class="col-label">
-            Masa Kerja<br>
-            <i>Length of Service</i>
-        </td>
-        <td class="col-sep">:</td>
-        <td>
-            {{ $formatTgl($employee->join_date) }} -
-            {{ $formatTgl($employee->end_date) }}
-        </td>
-    </tr>
-</table> --}}
         <table class="data-table">
             <tr>
-                <td class="col-label">
-                    <span class="label-id">Nama</span><br>
-                    <i>Name</i>
-                </td>
+                <td class="col-label">Nama</td>
                 <td class="col-sep">:</td>
                 <td><strong>{{ $employee->employee_name }}</strong></td>
             </tr>
-
             <tr>
-                <td class="col-label">
-                    <span class="label-id">NIP</span><br>
-                    <i>Employee ID</i>
-                </td>
+                <td class="col-label">Status Karyawan</td>
                 <td class="col-sep">:</td>
-                <td><strong>{{ $employee->employee_pengenal }}</strong></td>
+                <td>{{ $employee->status_employee ?? '-' }}</td>
             </tr>
-
             <tr>
-                <td class="col-label">
-                    <span class="label-id">Lokasi Kerja</span><br>
-                    <i>Work Location</i>
-                </td>
+                <td class="col-label">Masa Berlaku Tugas</td>
                 <td class="col-sep">:</td>
-                <td>{{ $employee->company->name ?? '-' }}</td>
-            </tr>
-
-            <tr>
-                <td class="col-label">
-                    <span class="label-id">Jabatan Terakhir</span><br>
-                    <i>Final Position</i>
-                </td>
-                <td class="col-sep">:</td>
-                <td>{{ $employee->position->first()->name ?? '-' }}</td>
-            </tr>
-
-            <tr>
-                <td class="col-label">
-                    <span class="label-id">Masa Kerja</span><br>
-                    <i>Length of Service</i>
-                </td>
-                <td class="col-sep">:</td>
-                <td>
-                    {{ $formatTgl($employee->join_date) }} -
-                    {{ $formatTgl($employee->end_date) }}
-                </td>
+                <td>{{ $formatTgl($document->issued_date) }} s/d {{ $formatTgl($document->expired_date) }}</td>
             </tr>
         </table>
-        <p class="body-text">
-            Kami mengucapkan terima kasih yang sebesar-besarnya atas usaha dan dedikasi yang telah Saudara/i berikan
-            kepada perusahaan. Semoga prestasi dan keberhasilan senantiasa menyertai Saudara/i di masa yang akan datang.
-            <i>We would like to extend our sincere gratitude for the efforts and dedication you have contributed to the
-                company. May success and achievement continue to accompany you in your future endeavors.</i>
-        </p>
 
         <p class="body-text">
-            Demikian surat keterangan ini dibuat agar dapat dipergunakan sebagaimana mestinya.
-            <i>This letter is issued to the person named above and may be used as deemed appropriate.</i>
+            Untuk dipindahtugaskan sementara sebagai berikut, dan wajib kembali ke penempatan semula setelah
+            masa tugas berakhir:
         </p>
 
-        <table style="width: 100%; margin-bottom: 100px; font-size: 10.5pt;">
+        <table class="move-table">
             <tr>
-                {{-- Tempat & Tanggal --}}
-                <td style="width: 60%; vertical-align: top;">
-                    <br><br>
+                <th>Jenis Penugasan</th>
+                <th>Dari</th>
+                <th>Ke</th>
+            </tr>
+            @forelse ($assignments as $assignment)
+                <tr>
+                    <td>{{ $typeLabels[$assignment->type] ?? ucfirst($assignment->type) }}</td>
+                    <td>{{ $assignment->previous_name ?? '-' }}</td>
+                    <td>{{ $assignment->new_name }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="3" style="text-align:center;">-</td>
+                </tr>
+            @endforelse
+        </table>
 
+        <p class="body-text">
+            Demikian Surat Tugas ini dibuat untuk dilaksanakan dengan penuh tanggung jawab. Atas perhatian dan
+            kerja samanya, kami ucapkan terima kasih.
+        </p>
+
+        <table style="width: 100%; margin-top: 20px; margin-bottom: 90px; font-size: 10.5pt;">
+            <tr>
+                <td style="width: 60%; vertical-align: top;">
+                    <br>
                     Ditetapkan di &nbsp;:
                     {{ $company->city ?? 'Denpasar' }}
                     <br>
-
                     Pada tanggal &nbsp;&nbsp;:
-                    {{ $formatTgl($employee->end_date) }}
+                    {{ $formatTgl($document->issued_date) }}
                 </td>
                 <td style="width: 40%; text-align: center; vertical-align: bottom;">
-
                     @if ($signatureData)
                         <img src="{{ $signatureData }}" alt="Signature"
                             style="height: 70px; width: auto; display: block; margin: 0 auto 4px 50px;">
@@ -522,7 +382,7 @@
                         <div style="height: 70px;"></div>
                     @endif
                     <div style="padding-top: 4px; margin: 0 10px;">
-                        <strong>{{ $issued->employee_name }}</strong><br>
+                        <strong>{{ $issued->employee_name ?? '-' }}</strong><br>
                         <span style="font-size: 9.5pt;">
                             {{ $issued->position->first()->name ?? '-' }}
                         </span>
@@ -530,11 +390,12 @@
                 </td>
             </tr>
         </table>
+
         {{-- ── Footer ── --}}
         <div class="doc-footer">
             Dokumen ini diterbitkan secara resmi oleh {{ $company->name }} &nbsp;|&nbsp;
             Nomor: {{ $document->document_number }} &nbsp;|&nbsp;
-            Tanggal: {{ $formatTgl($employee->end_date) }}
+            Tanggal: {{ $formatTgl($document->issued_date) }}
         </div>
     </div>
 </body>

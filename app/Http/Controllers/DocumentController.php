@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
+use App\Models\Departments;
 use App\Models\Documents;
+use App\Models\Employee;
+use App\Models\Grading;
+use App\Models\Documenttypes;
+use App\Models\Position;
+use App\Models\Stores;
 use App\Jobs\SendDocumentEmailJob;
+use App\Services\SuratTugasService;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Spatie\Activitylog\Models\Activity;
 
 use Illuminate\Support\Facades\DB;
 
@@ -21,8 +29,84 @@ class DocumentController extends Controller
         if (!$user->hasPermissionTo('ManageDocument')) {
             abort(403, 'Unauthorized');
         }
-        return view('pages.document.index');
+        $gradings      = Grading::pluck('grading_name')->unique()->sort()->values();
+        $documentNames = Documenttypes::where('is_active', true)
+            ->pluck('document_name')
+            ->unique()
+            ->sort()
+            ->values();
+        return view('pages.document.index', compact('gradings', 'documentNames'));
     }
+
+    public function create()
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+
+        if (!$user || !$user->hasPermissionTo('ManageDocument')) {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('pages.document.create', [
+            'employees'   => Employee::where('status', 'Active')->orderBy('employee_name')->get(),
+            'departments' => Departments::orderBy('department_name')->get(),
+            'stores'      => Stores::orderBy('name')->get(),
+            'positions'   => Position::orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(Request $request, SuratTugasService $suratTugasService)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+
+        if (!$user || !$user->hasPermissionTo('ManageDocument')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $validated = $request->validate([
+            'document_type'    => 'required|in:ST',
+            'employee_id'      => 'required|uuid|exists:employees_tables,id',
+            'department_id'    => 'nullable|uuid|exists:departments_tables,id',
+            'store_id'         => 'nullable|array',
+            'store_id.*'       => 'uuid|exists:stores_tables,id',
+            'position_id'      => 'nullable|uuid|exists:position_tables,id',
+            'issued_date'      => 'required|date',
+            'expired_date'     => 'required|date|after:issued_date',
+        ], [
+            'document_type.in'     => 'Tipe dokumen ini belum bisa dibuat manual dari halaman ini.',
+            'employee_id.required' => 'Pilih karyawan.',
+        ]);
+
+        $targets = array_filter([
+            'department' => $validated['department_id'] ?? null,
+            'store'      => $validated['store_id'] ?? null,
+            'position'   => $validated['position_id'] ?? null,
+        ]);
+
+        if (empty($targets)) {
+            return back()
+                ->withErrors(['assignment' => 'Pilih minimal satu tujuan pemindahan (departemen, store, atau posisi).'])
+                ->withInput();
+        }
+
+        try {
+            $suratTugasService->createSuratTugas($validated['employee_id'], [
+                'issued_date'  => $validated['issued_date'],
+                'expired_date' => $validated['expired_date'],
+                'targets'      => $targets,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('document.index')
+            ->with('success', 'Dokumen berhasil dibuat.');
+    }
+
     public function getDocuments()
     {
         /** @var \App\Models\User|null $user */
@@ -41,12 +125,31 @@ class DocumentController extends Controller
                 'company_document_config_id',
                 'employee_id',
                 'issued_by',
-                'document_number'
+                'document_number',
+                'status',
             ]);
+
+        $query->when(request()->filled('filter_grading'), function ($q) {
+            $q->whereHas('employee.grading', function ($gq) {
+                $gq->where('grading_name', request('filter_grading'));
+            });
+        });
+
+        $query->when(request()->filled('filter_document_name'), function ($q) {
+            $q->whereHas('companydocumentconfigs.documenttypes', function ($dq) {
+                $dq->where('document_name', request('filter_document_name'));
+            });
+        });
+
+        $query->when(request()->filled('filter_status'), function ($q) {
+            $q->where('status', request('filter_status'));
+        });
 
         return DataTables::of($query)
             ->addColumn('checkbox', function ($document) {
-                return '<input type="checkbox" class="doc-checkbox" value="' . $document->id . '">';
+                $disabled = $document->status === 'draft' ? 'disabled title="Dokumen masih draft, belum bisa dikirim"' : '';
+
+                return '<input type="checkbox" class="doc-checkbox" value="' . $document->id . '" ' . $disabled . '>';
             })
             ->addColumn('employee_name', function ($document) {
                 return $document->employee->employee_name ?? '-';
@@ -57,22 +160,66 @@ class DocumentController extends Controller
             ->addColumn('document_name', function ($document) {
                 return $document->companydocumentconfigs->documenttypes->document_name ?? '-';
             })
+            ->editColumn('status', function ($document) {
+                $badges = [
+                    'draft'   => '<span class="badge badge-secondary">Draft</span>',
+                    'issued'  => '<span class="badge badge-primary">Issued</span>',
+                    'revoked' => '<span class="badge badge-danger">Revoked</span>',
+                    'expired' => '<span class="badge badge-warning">Expired</span>',
+                ];
+
+                return $badges[$document->status] ?? ucfirst($document->status);
+            })
             ->addColumn('action', function ($document) {
 
                 $downloadUrl = route('documents.download', $document->id);
                 $sendUrl     = route('documents.send', $document->id);
+                $isDraft     = $document->status === 'draft';
+
+                $editButton = '';
+                $nickname   = $document->companydocumentconfigs->documenttypes->nickname ?? null;
+
+                if ($nickname === 'ST' && $document->status === SuratTugasService::ACTIVE_STATUS) {
+                    $editUrl    = route('documents.st.edit', $document->id);
+                    $editButton = '
+                <a href="' . $editUrl . '"
+                   class="btn btn-sm btn-warning"
+                   title="Edit Surat Tugas">
+                    <i class="fas fa-pen"></i> Edit
+                </a>';
+                }
+
+                if ($isDraft) {
+                    $downloadButton = '
+                <button type="button" class="btn btn-sm btn-primary" disabled
+                        title="Dokumen masih draft, belum bisa didownload">
+                    <i class="fas fa-download"></i> Download
+                </button>';
+                    $sendButton = '
+                <button type="button" class="btn btn-sm btn-success" disabled
+                        title="Dokumen masih draft, belum bisa dikirim">
+                    <i class="fas fa-paper-plane"></i> Send Email
+                </button>';
+                } else {
+                    $downloadButton = '
+                <a href="' . $downloadUrl . '"
+                   class="btn btn-sm btn-primary"
+                   target="_blank"
+                   title="Download document">
+                    <i class="fas fa-download"></i> Download
+                </a>';
+                    $sendButton = '
+                <button type="button"
+                        class="btn btn-sm btn-success btn-send-document"
+                        data-url="' . $sendUrl . '"
+                        title="Email this document">
+                    <i class="fas fa-paper-plane"></i> Send Email
+                </button>';
+                }
 
                 return '
-            <a href="' . $downloadUrl . '"
-               class="btn btn-sm btn-primary"
-               target="_blank">
-                <i class="fas fa-download"></i> Download
-            </a>
-            <button type="button"
-                    class="btn btn-sm btn-success btn-send-document"
-                    data-url="' . $sendUrl . '">
-                <i class="fas fa-paper-plane"></i> Send Email
-            </button>
+            <div class="btn-group" role="group">' . $downloadButton . $sendButton . $editButton . '
+            </div>
         ';
             })
             ->filterColumn('employee_name', function ($query, $keyword) {
@@ -80,7 +227,78 @@ class DocumentController extends Controller
                     $q->where('employee_name', 'like', "%{$keyword}%");
                 });
             })
-            ->rawColumns(['checkbox', 'action'])
+            ->filterColumn('grading_name', function ($query, $keyword) {
+                $query->whereHas('employee.grading', function ($q) use ($keyword) {
+                    $q->where('grading_name', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('document_name', function ($query, $keyword) {
+                $query->whereHas('companydocumentconfigs.documenttypes', function ($q) use ($keyword) {
+                    $q->where('document_name', 'like', "%{$keyword}%");
+                });
+            })
+            ->orderColumn('grading_name', function ($query, $order) {
+                $query->orderBy(
+                    \App\Models\Employee::select('grading.grading_name')
+                        ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
+                        ->whereColumn('employees_tables.id', 'documents.employee_id')
+                        ->limit(1),
+                    $order
+                );
+            })
+            ->orderColumn('document_name', function ($query, $order) {
+                $query->orderBy(
+                    \App\Models\Companydocumentconfigs::select('document_types.document_name')
+                        ->join('document_types', 'document_types.id', '=', 'company_document_configs.document_type_id')
+                        ->whereColumn('company_document_configs.id', 'documents.company_document_config_id')
+                        ->limit(1),
+                    $order
+                );
+            })
+            ->rawColumns(['checkbox', 'status', 'action'])
+            ->make(true);
+    }
+
+    public function getDocumentActivities(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+
+        if (!$user || !$user->hasPermissionTo('ManageDocument')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $query = Activity::where('log_name', 'document')
+            ->with(['causer.employee'])
+            ->latest();
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('description', function ($row) {
+                return $row->description ?? '-';
+            })
+            ->addColumn('causer', function ($row) {
+                return $row->causer->employee->employee_name ?? ($row->causer->name ?? 'system');
+            })
+            ->addColumn('created_at', function ($row) {
+                return $row->created_at->format('d M Y H:i');
+            })
+            ->addColumn('changes', function ($row) {
+                return json_encode($row->properties['attributes'] ?? []);
+            })
+            ->filter(function ($instance) use ($request) {
+                if ($request->has('search') && $request->get('search')['value'] != '') {
+                    $search = $request->get('search')['value'];
+
+                    $instance->where(function ($q) use ($search) {
+                        $q->where('description', 'like', "%{$search}%")
+                            ->orWhereHas('causer.employee', function ($q2) use ($search) {
+                                $q2->where('employee_name', 'like', "%{$search}%");
+                            });
+                    });
+                }
+            })
+            ->rawColumns(['description'])
             ->make(true);
     }
 
@@ -139,6 +357,7 @@ class DocumentController extends Controller
             'issued.position',
             'companydocumentconfigs.company',
             'companydocumentconfigs.documenttypes',
+            'assignments',
         ])->findOrFail($documentId);
 
         if (
@@ -155,6 +374,8 @@ class DocumentController extends Controller
         $allowedViews = [
             'documents.types.SPK',
             'documents.types.SPPRP',
+            'documents.types.PAK',
+            'documents.types.ST',
         ];
         if (!in_array($viewName, $allowedViews)) {
             abort(403);

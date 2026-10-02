@@ -139,12 +139,18 @@ class Toilbalances extends Model
      */
     public function refreshStatus(): void
     {
-        $newStatus = $this->status;
+        // Status akhir (paid / cancelled) tidak diubah otomatis
+        if (!in_array($this->status, ['active', 'fully_used'], true)) {
+            return;
+        }
 
-        if ($this->isExpired() && $this->status === 'active') {
-            $newStatus = 'expired';
-        } elseif ($this->remaining_hours <= 0 && $this->status === 'active') {
+        if ($this->remaining_hours <= 0) {
             $newStatus = 'fully_used';
+        } elseif ($this->isExpired()) {
+            $newStatus = 'expired';
+        } else {
+            // fully_used → active lagi kalau jam ditambah / leave di-cancel
+            $newStatus = 'active';
         }
 
         if ($newStatus !== $this->status) {

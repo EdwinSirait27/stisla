@@ -45,6 +45,7 @@ class Overtimesubmissions extends Model
     protected $fillable = [
         'employee_id',
         'date',
+        'end_date',
         'start_time',
         'end_time',
         'total_hours',

@@ -27,6 +27,9 @@ class OvertimesubmissionsController extends Controller
         }
 
         // $employees = $this->getSubordinates($manager);
+        // Assign lembur ke diri sendiri hanya kalau punya permission assignmentSelf
+        $canSelf = $user->can('assignmentSelf');
+
         $myStoreIds = $manager->store()->pluck('stores_tables.id')->toArray();
     $myDeptIds  = $manager->department()->pluck('departments_tables.id')->toArray();
     $bawahanIds = $manager->bawahanList()->pluck('employees_tables.id')->toArray();
@@ -35,8 +38,9 @@ class OvertimesubmissionsController extends Controller
     $employees = Employee::select('id', 'employee_name', 'employee_pengenal')
      ->with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
         ->whereNull('deleted_at')
+        ->when(!$canSelf, fn($q) => $q->where('id', '!=', $manager->id))
         ->whereIn('status', ['Active', 'Pending', 'On Leave'])
-        ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds) {
+        ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds, $canSelf, $manager) {
             // Kepunyaan sendiri: store + department sama
             $q->where(function ($q1) use ($myStoreIds, $myDeptIds) {
                 $q1->whereHas('store', fn($sq) =>
@@ -50,18 +54,14 @@ class OvertimesubmissionsController extends Controller
             if (!empty($bawahanIds)) {
                 $q->orWhereIn('id', $bawahanIds);
             }
+            // Atau diri sendiri (kalau punya permission assignmentSelf)
+            if ($canSelf) {
+                $q->orWhere('id', $manager->id);
+            }
         })
         ->orderBy('employee_name')
         ->get();
-        $today = now();
-
-if ($today->day >= 26) {
-    $minDate = $today->copy()->day(26);
-    $maxDate = $today->copy()->addMonth()->day(25);
-} else {
-    $minDate = $today->copy()->subMonth()->day(26);
-    $maxDate = $today->copy()->day(25);
-}
+        [$minDate, $maxDate] = $this->currentPeriodRange();
 
 
         return view('pages.Toil.assignment', compact('employees', 'manager','minDate',
@@ -116,46 +116,37 @@ if ($today->day >= 26) {
 
     public function store(Request $request)
     {
+        [$minDate, $maxDate] = $this->currentPeriodRange();
+
+        $periodMsg = "harus di periode berjalan ({$minDate->format('d-m-Y')} s/d {$maxDate->format('d-m-Y')}).";
+
         $validated = $request->validate([
             'employee_ids'      => 'required|array|min:1',
             'employee_ids.*'    => 'exists:employees_tables,id',
            
-'date' => [
-    'required',
-    'date',
-    function ($attribute, $value, $fail) {
-        $date = Carbon::parse($value);
-
-        if ($date->day < 26) {
-            $fail('Tanggal mulai harus tanggal 26 atau setelahnya.');
-        }
-    }
-],
-'end_date' => [
-    'required',
-    'date',
-    'after_or_equal:date',
-    function ($attribute, $value, $fail) use ($request) {
-
-        $start = Carbon::parse($request->date);
-        $end   = Carbon::parse($value);
-
-        $maxEnd = $start->copy()
-            ->addMonthNoOverflow()
-            ->day(25);
-
-        if ($end->gt($maxEnd)) {
-            $fail("Tanggal selesai maksimal {$maxEnd->format('d-m-Y')}.");
-        }
-    }
-],
+            // Tanggal harus di dalam periode payroll berjalan (26 – 25)
+            'date'              => ['required', 'date', 'after_or_equal:' . $minDate->toDateString(), 'before_or_equal:' . $maxDate->toDateString()],
+            'end_date'          => ['required', 'date', 'after_or_equal:date', 'before_or_equal:' . $maxDate->toDateString()],
 
             'start_time'        => 'nullable|date_format:H:i',
             'end_time'          => 'nullable|date_format:H:i',
             'total_hours'       => 'required|numeric|min:0.5|max:24',
             'compensation_type' => 'required|in:Cash,Toil',
             'reason'            => 'required|string|min:10|max:1000',
+        ], [
+            'date.after_or_equal'      => "Tanggal mulai {$periodMsg}",
+            'date.before_or_equal'     => "Tanggal mulai {$periodMsg}",
+            'end_date.before_or_equal' => "Tanggal selesai {$periodMsg}",
         ]);
+
+        // Jam per hari dihitung ulang di server dari start/end time (jangan percaya input)
+        if (!empty($validated['start_time']) && !empty($validated['end_time'])) {
+            $hours = $this->calculateHours($validated['start_time'], $validated['end_time']);
+            if ($hours < 0.5) {
+                return response()->json(['success' => false, 'message' => 'Jam selesai harus setelah jam mulai (minimal 0.5 jam).'], 422);
+            }
+            $validated['total_hours'] = $hours;
+        }
 
         $user    = Auth::user();
         $manager = $user->employee;
@@ -172,10 +163,20 @@ if ($today->day >= 26) {
 $myDeptIds  = $manager->department()->pluck('departments_tables.id')->toArray();
 $bawahanIds = $manager->bawahanList()->pluck('employees_tables.id')->toArray();
 
+$canSelf = $user->can('assignmentSelf');
+
+// Assign ke diri sendiri tanpa permission → tolak dengan pesan jelas
+if (!$canSelf && in_array($manager->id, $validated['employee_ids'], true)) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Anda tidak punya izin untuk assign lembur ke diri sendiri (permission: assignmentSelf).',
+    ], 403);
+}
+
 $validSubordinateIds = Employee::select('id')
     ->whereNull('deleted_at')
     ->whereIn('status', ['Active', 'Pending', 'On Leave'])
-    ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds) {
+    ->where(function ($q) use ($myStoreIds, $myDeptIds, $bawahanIds, $canSelf, $manager) {
         $q->where(function ($q1) use ($myStoreIds, $myDeptIds) {
             $q1->whereHas('store', fn($sq) =>
                 $sq->whereIn('stores_tables.id', $myStoreIds)
@@ -186,6 +187,9 @@ $validSubordinateIds = Employee::select('id')
         });
         if (!empty($bawahanIds)) {
             $q->orWhereIn('id', $bawahanIds);
+        }
+        if ($canSelf) {
+            $q->orWhere('id', $manager->id);
         }
     })
     ->pluck('id')
@@ -204,45 +208,40 @@ if (!empty($invalidIds)) {
     ], 422);
 }
 
-        $invalidIds = array_diff($validated['employee_ids'], $validSubordinateIds);
-
-        if (!empty($invalidIds)) {
-            $invalidNames = Employee::whereIn('id', $invalidIds)
-                ->pluck('employee_name')
-                ->toArray();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Karyawan berikut tidak terdaftar sebagai bawahan Anda: ' . implode(', ', $invalidNames),
-            ], 422);
-        }
-
         try {
             DB::beginTransaction();
 
+            // 1 record per karyawan per hari → total jam = jam per hari × jumlah hari
+            $dates = [];
+            for ($d = Carbon::parse($validated['date']); $d->lte(Carbon::parse($validated['end_date'])); $d->addDay()) {
+                $dates[] = $d->toDateString();
+            }
+
             $created = 0;
             foreach ($validated['employee_ids'] as $empId) {
-                Overtimesubmissions::create([
-                    'employee_id'       => $empId,
-                    'approver_id'       => $manager->id,
-                    'date'              => $validated['date'],
-                    'end_date'          => $validated['end_date'],
-                    'start_time'        => $validated['start_time'] ?? null,
-                    'end_time'          => $validated['end_time'] ?? null,
-                    'total_hours'       => $validated['total_hours'],
-                    'compensation_type' => $validated['compensation_type'],
-                    'reason'            => $validated['reason'],
-                    'status'            => 'Approved',
-                    'approved_at'       => now(),
-                ]);
-                $created++;
+                foreach ($dates as $date) {
+                    Overtimesubmissions::create([
+                        'employee_id'       => $empId,
+                        'approver_id'       => $manager->id,
+                        'date'              => $date,
+                        'end_date'          => $date,
+                        'start_time'        => $validated['start_time'] ?? null,
+                        'end_time'          => $validated['end_time'] ?? null,
+                        'total_hours'       => $validated['total_hours'],
+                        'compensation_type' => $validated['compensation_type'],
+                        'reason'            => $validated['reason'],
+                        'status'            => 'Approved',
+                        'approved_at'       => now(),
+                    ]);
+                    $created++;
+                }
             }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "Berhasil assign overtime untuk {$created} karyawan.",
+                'message' => 'Berhasil assign overtime untuk ' . count($validated['employee_ids']) . ' karyawan × ' . count($dates) . " hari ({$created} record, {$validated['total_hours']} jam/hari).",
                 'count'   => $created,
             ]);
         } catch (\Exception $e) {
@@ -267,6 +266,15 @@ if (!empty($invalidIds)) {
             'total_hours' => 'sometimes|numeric|min:0.5|max:24',
             'reason'      => 'sometimes|string|min:10|max:1000',
         ]);
+
+        // Jam dihitung ulang di server dari start/end time
+        if (!empty($validated['start_time']) && !empty($validated['end_time'])) {
+            $hours = $this->calculateHours($validated['start_time'], $validated['end_time']);
+            if ($hours < 0.5) {
+                return response()->json(['success' => false, 'message' => 'Jam selesai harus setelah jam mulai (minimal 0.5 jam).'], 422);
+            }
+            $validated['total_hours'] = $hours;
+        }
 
         $submission = Overtimesubmissions::with('balance')->findOrFail($id);
          if ($submission->status === 'Approved HR') {
@@ -298,6 +306,7 @@ if (!empty($invalidIds)) {
             if (isset($validated['total_hours'])) {
                 if ($submission->balance) {
                     $submission->balance->update(['earned_hours' => $validated['total_hours']]);
+                    $submission->balance->refresh(); // ← remaining_hours (generated column) perlu dibaca ulang
                     $submission->balance->refreshStatus();
                 } else {
                     $submission->createOrUpdateBalance();
@@ -359,6 +368,11 @@ if (!empty($invalidIds)) {
         $manager   = Auth::user()->employee;
         $employees = $this->getSubordinates($manager);
 
+        // Tambahkan diri sendiri kalau punya permission assignmentSelf
+        if (Auth::user()->can('assignmentSelf') && !$employees->contains('id', $manager->id)) {
+            $employees->prepend($manager);
+        }
+
         if ($employees->isEmpty()) {
             return response()->json([
                 'data'    => [],
@@ -378,6 +392,44 @@ if (!empty($invalidIds)) {
     // ════════════════════════════════════════════════════════════════
     //   PRIVATE METHODS
     // ════════════════════════════════════════════════════════════════
+
+    /**
+     * Range periode payroll berjalan: 26 bulan lalu – 25 bulan ini
+     * (atau 26 bulan ini – 25 bulan depan kalau hari ini >= 26).
+     */
+    private function currentPeriodRange(): array
+    {
+        $today = today();
+
+        if ($today->day >= 26) {
+            $minDate = $today->copy()->day(26);
+            $maxDate = $today->copy()->startOfMonth()->addMonthNoOverflow()->day(25);
+        } else {
+            $minDate = $today->copy()->startOfMonth()->subMonthNoOverflow()->day(26);
+            $maxDate = $today->copy()->day(25);
+        }
+
+        return [$minDate, $maxDate];
+    }
+
+    /**
+     * Hitung jam lembur dari HH:MM – HH:MM (lewat tengah malam didukung),
+     * dibulatkan ke 0.5 jam — sama dengan autoCalcHours() di view.
+     */
+    private function calculateHours(string $start, string $end): float
+    {
+        [$sh, $sm] = array_map('intval', explode(':', $start));
+        [$eh, $em] = array_map('intval', explode(':', $end));
+
+        $startMinutes = $sh * 60 + $sm;
+        $endMinutes   = $eh * 60 + $em;
+
+        if ($endMinutes <= $startMinutes) {
+            $endMinutes += 24 * 60;
+        }
+
+        return round((($endMinutes - $startMinutes) / 60) * 2) / 2;
+    }
     private function getSubordinates(Employee $manager): Collection
     {
         return $manager->bawahanList()->get();

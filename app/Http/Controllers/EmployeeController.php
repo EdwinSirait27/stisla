@@ -222,7 +222,7 @@ class EmployeeController extends Controller
                     return $row->description ?? '-';
                 })
                 ->addColumn('causer', function ($row) {
-                    return $row->causer->employee->employee_name;
+                    return $row->causer?->employee?->employee_name ?? $row->causer?->name ?? 'system';
                 })
                 ->addColumn('created_at', function ($row) {
                     return $row->created_at->format('d M Y H:i');

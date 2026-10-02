@@ -30,12 +30,22 @@ class PayrollService
     {
         $results = [
             'success' => [],
+            'warning' => [],
             'skipped' => [],
             'failed'  => [],
         ];
 
-        $employees = Employee::whereIn('status', ['Active', 'Mutation', 'On Leave', 'Pending'])
-            ->whereNotNull('employee_pengenal')
+        // Karyawan aktif + karyawan yang resign DI DALAM periode ini
+        // (tetap berhak atas gaji terakhir sesuai kehadiran)
+        $employees = Employee::whereNotNull('employee_pengenal')
+            ->where(function ($q) use ($period) {
+                $q->whereIn('status', ['Active', 'Mutation', 'On Leave', 'Pending'])
+                    ->orWhere(function ($q) use ($period) {
+                        $q->where('status', 'Resign')
+                            ->whereDate('end_date', '>=', $period->period_start)
+                            ->whereDate('end_date', '<=', $period->period_end);
+                    });
+            })
             ->get();
 
         foreach ($employees as $employee) {
@@ -44,6 +54,9 @@ class PayrollService
 
                 if ($result === 'skipped') {
                     $results['skipped'][] = $employee->employee_name;
+                } elseif ($result === 'warning') {
+                    $results['success'][] = $employee->employee_name;
+                    $results['warning'][] = $employee->employee_name;
                 } else {
                     $results['success'][] = $employee->employee_name;
                 }
@@ -74,8 +87,10 @@ class PayrollService
         // ════════════════════════════════════════
         // STEP 1 — Ambil salary
         // ════════════════════════════════════════
+        // Pakai salary terakhir yang berlaku s/d AKHIR periode, supaya
+        // karyawan baru / kenaikan gaji di tengah periode ikut terhitung
         $salary = EmployeeSalary::where('employee_id', $employee->id)
-            ->where('effective_date', '<=', $period->period_start)
+            ->whereDate('effective_date', '<=', $period->period_end)
             ->latest('effective_date')
             ->first();
 
@@ -106,19 +121,27 @@ class PayrollService
         // $attendanceDays = 0;
         // $absentDays     = 0;
         $attendanceDays = 0;
-$absentDays     = 0;
+        $absentDays     = 0;
+        $warnings       = [];
 
-$archive = \App\Models\Fingerprintrecaparchive::where('employee_id', $employee->id)
-    ->whereDate('period_start', $period->period_start)
-    ->whereDate('period_end', $period->period_end)
-    ->first();
+        $archive = \App\Models\Fingerprintrecaparchive::where('employee_id', $employee->id)
+            ->whereDate('period_start', $period->period_start)
+            ->whereDate('period_end', $period->period_end)
+            ->first();
 
-if ($archive) {
-    $attendanceDays = (int) ($archive->total_hari_kerja ?? 0);
-    Log::info("PayrollService: attendance from archive for {$employee->employee_name} = {$attendanceDays}");
-} else {
-    Log::warning("PayrollService: no archive for {$employee->employee_name}, attendance_days = 0");
-}
+        if ($archive) {
+            $attendanceDays = (int) ($archive->total_hari_kerja ?? 0);
+            Log::info("PayrollService: attendance from archive for {$employee->employee_name} = {$attendanceDays}");
+        } else {
+            Log::warning("PayrollService: no archive for {$employee->employee_name}, attendance_days = 0");
+            $warnings[] = 'Arsip absensi belum ada, attendance_days = 0 (isi via import/edit).';
+        }
+
+        // Kehadiran tidak boleh melebihi hari kerja (non-DW) → cegah gaji > 100%
+        if ($statusEmp !== 'DW' && $attendanceDays > $workingDays) {
+            $warnings[] = "Attendance {$attendanceDays} melebihi working days {$workingDays}, dibatasi ke {$workingDays}.";
+            $attendanceDays = $workingDays;
+        }
 
 // ════════════════════════════════════════
 // STEP 3.5 — Hitung overtime_amount dari Overtimesubmissions
@@ -129,6 +152,7 @@ $overtimeAmount      = 0;
 $overtimeSubmissions = collect();
 
 $overtimeRate = \App\Models\EmployeeOvertimeRate::where('employee_id', $employee->id)
+    ->latest()
     ->first();
 
 if ($overtimeRate) {
@@ -199,7 +223,9 @@ if ($overtimeRate) {
             $dailyRate,
             $grossSalary,
             $statusEmp,
-             $overtimeAmount, $overtimeSubmissions
+            $overtimeAmount,
+            $overtimeSubmissions,
+            $warnings
         ) {
             $payroll = Payroll::create([
                 'employee_id'         => $employee->id,
@@ -226,8 +252,10 @@ if ($overtimeRate) {
                 'total_deduction'     => 0,
                 'net_salary'          => 0,
                 'status'              => 'draft',
+                'note'                => $warnings ? implode(' ', $warnings) : null,
             ]);
      // ← Update ToilBalance dan Overtimesubmissions
+     // (dikembalikan lagi oleh releaseOvertime() kalau draft dihapus)
 foreach ($overtimeSubmissions as $submission) {
     // Update ToilBalance → paid
     if ($submission->balance) {
@@ -271,7 +299,39 @@ foreach ($overtimeSubmissions as $submission) {
             $this->recalculateNet($payroll);
         });
 
-        return 'success';
+        return $warnings ? 'warning' : 'success';
+    }
+
+    // ════════════════════════════════════════
+    // Kembalikan Overtimesubmissions & ToilBalance yang dikunci saat generate,
+    // supaya overtime ikut terhitung lagi kalau payroll draft di-generate ulang.
+    // Panggil SEBELUM payroll draft dihapus.
+    // ════════════════════════════════════════
+    public function releaseOvertime(Payroll $payroll): void
+    {
+        $periodLabel = $payroll->period?->period_label;
+
+        $submissions = Overtimesubmissions::where('employee_id', $payroll->employee_id)
+            ->where('compensation_type', 'Cash')
+            ->where('status', 'Approved HR')
+            ->whereDate('date', '>=', $payroll->period_start)
+            ->whereDate('date', '<=', $payroll->period_end)
+            ->with('balance')
+            ->get();
+
+        foreach ($submissions as $submission) {
+            $balance = $submission->balance;
+            if ($balance && $balance->status === 'paid'
+                && (!$periodLabel || $balance->paid_period === $periodLabel)) {
+                $balance->update([
+                    'status'      => 'active',
+                    'paid_at'     => null,
+                    'paid_period' => null,
+                ]);
+            }
+
+            $submission->update(['status' => 'Approved']);
+        }
     }
 
     // ════════════════════════════════════════
@@ -380,10 +440,13 @@ foreach ($overtimeSubmissions as $submission) {
                     $payroll->period_end
                 );
 
-            $grossActual = $payroll->attendance_days > 0
+            // Attendance dibatasi max working_days → gaji pokok maksimal 100%
+            $attendance = min((int) $payroll->attendance_days, (int) $workingDays);
+
+            $grossActual = $attendance > 0
                 ? floor(
                     ((float) $payroll->gross_salary / $workingDays)
-                        * (int) $payroll->attendance_days
+                        * $attendance
                 )
                 : 0;
         }

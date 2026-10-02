@@ -37,6 +37,10 @@ class SendPayrollSlipJob implements ShouldQueue
         return;
     }
 
+    if (!in_array($payroll->status, ['approved', 'paid'], true)) {
+        Log::warning("SendPayrollSlipJob: payroll {$this->payrollId} masih {$payroll->status}, slip tidak dikirim");
+        return;
+    }
     if (!$payroll->employee || empty(trim($payroll->employee->email ?? ''))) {
         Log::warning("SendPayrollSlipJob: no email for payroll {$this->payrollId}");
         return;

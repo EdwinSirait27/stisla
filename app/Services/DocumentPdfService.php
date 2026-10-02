@@ -13,6 +13,8 @@ class DocumentPdfService
     protected const ALLOWED_VIEWS = [
         'documents.types.SPK',
         'documents.types.SPPRP',
+        'documents.types.PAK',
+        'documents.types.ST',
     ];
 
     /**
@@ -28,6 +30,7 @@ class DocumentPdfService
             'issued.position',
             'companydocumentconfigs.company',
             'companydocumentconfigs.documenttypes',
+            'assignments',
         ]);
 
         if (!$document->companydocumentconfigs || !$document->companydocumentconfigs->documenttypes) {

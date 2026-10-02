@@ -134,7 +134,7 @@
             : ($payroll->working_days > 0
                 ? floor(
                     (($payroll->basic_salary + $payroll->position_allowance) / $payroll->working_days) *
-                        $payroll->attendance_days,
+                        min($payroll->attendance_days, $payroll->working_days),
                 )
                 : 0);
         $basic = $payroll->basic_salary;

@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 @endpush
 <style>
     /* Card Styles */
@@ -139,6 +140,59 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    /* Filter labels */
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .filter-group label {
+        margin: 0;
+        font-size: 0.7rem;
+        font-weight: 600;
+        /* text-transform: uppercase; */
+        letter-spacing: 0.5px;
+        color: #8898aa;
+    }
+
+    /* Select2 overrides to match form-select-sm styling */
+    .select2-container {
+        min-width: 200px;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + 0.5rem + 2px);
+        display: flex;
+        align-items: center;
+        border: 1px solid #dde2ec;
+        border-radius: 0.35rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        font-size: 0.8125rem;
+        color: #4a5568;
+        line-height: normal;
+        padding-left: 0.75rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + 0.5rem);
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #5e72e4;
+    }
+
+    .select2-dropdown {
+        border-color: #dde2ec;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #5e72e4;
+    }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
         .table-responsive {
@@ -174,19 +228,63 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <h6><i class="fas fa-user-shield"></i> List Documents</h6>
-                                <div class="d-flex gap-2">
-                                    <button type="button" id="btn-check-all" class="btn btn-sm btn-light border">
-                                        <i class="fas fa-check-square"></i> Check All
+                                <div class="d-flex align-items-center gap-2">
+                                    {{-- <a href="{{ route('documents.create') }}" class="btn btn-sm btn-primary"
+                                        title="Create a new document">
+                                        <i class="fas fa-plus"></i> Buat Dokumen
+                                    </a> --}}
+                                    <button type="button" id="btn-toggle-all" class="btn btn-sm btn-light border"
+                                        title="Select or deselect all documents on this page">
+                                        <i class="fas fa-check-square"></i>
+                                        <span id="btn-toggle-all-label">Select All</span>
                                     </button>
-                                    <button type="button" id="btn-uncheck-all" class="btn btn-sm btn-light border">
-                                        <i class="far fa-square"></i> Uncheck All
-                                    </button>
-                                    <button type="button" id="btn-bulk-send" class="btn btn-sm btn-success">
+                                    <button type="button" id="btn-bulk-send" class="btn btn-sm btn-success" disabled
+                                        title="Select at least one document to enable bulk send">
                                         <i class="fas fa-paper-plane"></i> Bulk Send
                                     </button>
                                 </div>
                             </div>
                             <div class="card-body">
+                                <div class="d-flex align-items-end flex-wrap gap-2 mb-3">
+                                    <div class="filter-group" style="min-width: 200px;">
+                                        <label for="filter-grading">Grading</label>
+                                        <select id="filter-grading" class="form-select form-select-sm select2"
+                                            style="width: 100%;">
+                                            <option value="">All Gradings</option>
+                                            @foreach ($gradings as $grading)
+                                                <option value="{{ $grading }}">{{ $grading }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="filter-group" style="min-width: 260px;">
+                                        <label for="filter-document-name">Document Name</label>
+                                        <select id="filter-document-name" class="form-select form-select-sm select2"
+                                            style="width: 100%;">
+                                            <option value="">All Document Names</option>
+                                            @foreach ($documentNames as $documentName)
+                                                <option value="{{ $documentName }}">{{ $documentName }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="filter-group" style="min-width: 160px;">
+                                        <label for="filter-status">Status</label>
+                                        <select id="filter-status" class="form-select form-select-sm select2"
+                                            style="width: 100%;">
+                                            <option value="">All Statuses</option>
+                                            <option value="draft">Draft</option>
+                                            <option value="issued">Issued</option>
+                                            <option value="revoked">Revoked</option>
+                                            <option value="expired">Expired</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group" style="margin-left: 1rem;">
+                                        <label class="invisible">Reset</label>
+                                        <button type="button" id="btn-reset-filter"
+                                            class="btn btn-sm btn-light border">
+                                            <i class="fas fa-rotate-left"></i> Reset Filter
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="users-table">
                                         <thead>
@@ -196,6 +294,7 @@
                                                 <th class="text-center">Grading</th>
                                                 <th class="text-center">Document Name</th>
                                                 <th class="text-center">Document Number</th>
+                                                <th class="text-center">Status</th>
                                                 <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -205,23 +304,57 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-history"></i> Document Activity Log</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="activity-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">#</th>
+                                                <th class="text-center">Description</th>
+                                                <th class="text-center">Causer</th>
+                                                <th class="text-center">Date</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          
+
         </section>
     </div>
 @endsection
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         jQuery(document).ready(function($) {
+            $('#filter-grading, #filter-document-name, #filter-status').select2({
+                width: 'resolve'
+            });
+
             var table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
                 ajax: {
                     url: '{{ route('documents.documents') }}',
-                    type: 'GET'
+                    type: 'GET',
+                    data: function(d) {
+                        d.filter_grading = $('#filter-grading').val();
+                        d.filter_document_name = $('#filter-document-name').val();
+                        d.filter_status = $('#filter-status').val();
+                    }
                 },
                 responsive: true,
                 lengthMenu: [
@@ -261,6 +394,11 @@
                         className: 'text-center'
                     },
                     {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-center'
+                    },
+                    {
                         data: 'action',
                         name: 'action',
                         orderable: false,
@@ -274,11 +412,55 @@
                 }
             });
 
+            // ─── Document Activity Log ────────────────────────────────────
+            $('#activity-table').DataTable({
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                ajax: '{{ route('documents.activities') }}',
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                },
+                columns: [
+                    {
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'description',
+                        name: 'description',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'causer',
+                        name: 'causer',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-center'
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_filter input').addClass('form-control');
+                    $('.dataTables_length select').addClass('form-control');
+                }
+            });
+
             @if (session('success'))
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
-                    text: '{{ session('success') }}',
+                    text: @json(session('success')),
                 });
             @endif
 
@@ -289,19 +471,56 @@
                 }
             });
 
-            // ─── Check All / Uncheck All ────────────────────────────────
-            $('#btn-check-all').on('click', function() {
-                $('#users-table tbody .doc-checkbox').prop('checked', true);
+            // ─── Filters (Grading / Document Name / Status) ──────────────
+            $('#filter-grading, #filter-document-name, #filter-status').on('change', function() {
+                table.ajax.reload();
             });
 
-            $('#btn-uncheck-all').on('click', function() {
-                $('#users-table tbody .doc-checkbox').prop('checked', false);
+            $('#btn-reset-filter').on('click', function() {
+                $('#filter-grading').val('').trigger('change');
+                $('#filter-document-name').val('').trigger('change');
+                $('#filter-status').val('').trigger('change');
             });
+
+            // ─── Selection state (toggle-all + bulk send button) ────────
+            function updateSelectionUI() {
+                const $checkboxes = $('#users-table tbody .doc-checkbox:not(:disabled)');
+                const checkedCount = $checkboxes.filter(':checked').length;
+                const allChecked = $checkboxes.length > 0 && checkedCount === $checkboxes.length;
+
+                $('#btn-toggle-all-label').text(allChecked ? 'Deselect All' : 'Select All');
+                $('#btn-toggle-all i')
+                    .toggleClass('fas fa-check-square', !allChecked)
+                    .toggleClass('far fa-square', allChecked);
+
+                $('#btn-bulk-send')
+                    .prop('disabled', checkedCount === 0)
+                    .attr('title', checkedCount === 0 ?
+                        'Select at least one document to enable bulk send' :
+                        `Send ${checkedCount} selected document(s)`)
+                    .html('<i class="fas fa-paper-plane"></i> Bulk Send' +
+                        (checkedCount ? ` (${checkedCount})` : ''));
+            }
+
+            $('#btn-toggle-all').on('click', function() {
+                const $checkboxes = $('#users-table tbody .doc-checkbox:not(:disabled)');
+                const allChecked = $checkboxes.length > 0 && $checkboxes.filter(':checked')
+                    .length === $checkboxes.length;
+                $checkboxes.prop('checked', !allChecked);
+                updateSelectionUI();
+            });
+
+            $('#users-table').on('change', '.doc-checkbox', updateSelectionUI);
+
+            // Row checkboxes are wiped out on every server-side redraw, so
+            // the toggle-all / bulk-send state must be recomputed each time.
+            table.on('draw', updateSelectionUI);
 
             // ─── Send Email (per row) ───────────────────────────────────
             $('#users-table').on('click', '.btn-send-document', function() {
                 const url = $(this).data('url');
                 const $btn = $(this);
+                const originalHtml = $btn.html();
 
                 Swal.fire({
                     icon: 'question',
@@ -313,7 +532,8 @@
                 }).then((result) => {
                     if (!result.isConfirmed) return;
 
-                    $btn.prop('disabled', true);
+                    $btn.prop('disabled', true)
+                        .html('<i class="fas fa-spinner fa-spin"></i> Sending...');
 
                     $.post(url)
                         .done(function(res) {
@@ -331,7 +551,7 @@
                             });
                         })
                         .always(function() {
-                            $btn.prop('disabled', false);
+                            $btn.prop('disabled', false).html(originalHtml);
                         });
                 });
             });
@@ -343,13 +563,11 @@
                     .get();
 
                 if (ids.length === 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'No document selected',
-                        text: 'Please select at least one document first.'
-                    });
                     return;
                 }
+
+                const $btn = $(this);
+                const originalHtml = $btn.html();
 
                 Swal.fire({
                     icon: 'question',
@@ -361,6 +579,9 @@
                 }).then((result) => {
                     if (!result.isConfirmed) return;
 
+                    $btn.prop('disabled', true)
+                        .html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+
                     $.post('{{ route('documents.bulk-send') }}', {
                             document_ids: ids
                         })
@@ -370,6 +591,8 @@
                                 title: 'Queued',
                                 text: res.message || 'Documents have been queued for sending.'
                             });
+                            $('#users-table tbody .doc-checkbox').prop('checked', false);
+                            updateSelectionUI();
                         })
                         .fail(function() {
                             Swal.fire({
@@ -377,6 +600,10 @@
                                 title: 'Failed',
                                 text: 'Failed to queue the documents for sending.'
                             });
+                        })
+                        .always(function() {
+                            $btn.prop('disabled', false).html(originalHtml);
+                            updateSelectionUI();
                         });
                 });
             });

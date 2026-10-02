@@ -119,6 +119,24 @@
             display: flex;
             flex-direction: column;
             gap: .3rem;
+            min-width: 0;
+        }
+
+        /* Cegah select / select2 dengan opsi panjang melebarkan grid */
+        .field-group .form-control,
+        .field-group .select2-container {
+            max-width: 100%;
+        }
+
+        /* Halaman tidak boleh scroll ke kanan */
+        .main-content {
+            overflow-x: hidden;
+        }
+
+        .section-body,
+        .emp-form-card {
+            min-width: 0;
+            max-width: 100%;
         }
 
         .field-group label {
