@@ -867,7 +867,7 @@
                                             <img alt="image"
                                                 src="{{ route('useremployee.photo', basename($user->employee->photos)) }}">
                                         @else
-                                            {{ collect(explode(' ', $user->employee->employee_name ?? ($user->username ?? 'U')))->take(2)->map(fn($w) => strtoupper($w[0]))->implode('') }}
+                                            {{ collect(explode(' ', $user->employee->employee_name ?? ($user->username ?? 'U')))->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') }}
                                         @endif
                                     </div>
 

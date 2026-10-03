@@ -300,8 +300,9 @@
                     $emp = $payroll->employee;
                     $status = $emp->status_employee ?? '';
                     $initials = collect(explode(' ', $emp->employee_name ?? 'U'))
+                        ->filter()
                         ->take(2)
-                        ->map(fn($w) => strtoupper($w[0]))
+                        ->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))
                         ->implode('');
                     $avatarColors = [
                         'PKWT' => ['bg' => '#eff6ff', 'color' => '#1e40af'],

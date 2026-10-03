@@ -257,7 +257,7 @@
                     <span class="emp-form-header-title">Payroll data correction</span>
                     <div class="emp-name-pill">
                         <div class="emp-name-pill-avatar">
-                            {{ collect(explode(' ', $payroll->employee->employee_name ?? 'U'))->take(2)->map(fn($w) => strtoupper($w[0]))->implode('') }}
+                            {{ collect(explode(' ', $payroll->employee->employee_name ?? 'U'))->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') }}
                         </div>
                         <span>{{ $payroll->employee->employee_name ?? '-' }}</span>
                     </div>
