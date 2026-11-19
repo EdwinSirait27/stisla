@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Models\Fingerprintrecap;
 use App\Models\Roster;
+use App\Models\ToilLeaveRequests;
 use Carbon\Carbon;
 
 // class FingerprintRecapCalculator
@@ -250,6 +251,21 @@ class FingerprintRecapCalculator
             ->get()
             ->groupBy('employee_id');
 
+        // ── TOIL Approved: libur pengganti lembur tetap dihitung hari kerja berbayar ──
+        // Sumbernya klaim, bukan roster, supaya hanya hari yang benar-benar memotong saldo yang dihitung.
+        $toilLeaves = ToilLeaveRequests::whereIn('employee_id', $employeeIds)
+            ->where('status', 'Approved')
+            ->whereBetween('leave_date', [$startDate, $endDate])
+            ->get(['employee_id', 'leave_date'])
+            ->groupBy('employee_id');
+
+        // ── Cuti & sakit di roster: dibayar untuk selain DW ──
+        $paidAbsenceRosters = Roster::whereIn('employee_id', $employeeIds)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->whereIn('day_type', ['Leave', 'Cuti Melahirkan', 'Sick'])
+            ->get()
+            ->groupBy('employee_id');
+
         // ── Pre-load primary store id per employee (sekali saja, hindari N+1) ──
         $employeePrimaryStoreIds = Employee::with([
             'store' => fn($q) => $q->wherePivot('is_primary', true)->select('stores_tables.id'),
@@ -265,6 +281,8 @@ class FingerprintRecapCalculator
             $rosters,
             $rostersByEmployee,
             $publicHolidayRosters,
+            $toilLeaves,
+            $paidAbsenceRosters,
             $startDate,
             $endDate,
             $employeePrimaryStoreIds
@@ -360,12 +378,26 @@ class FingerprintRecapCalculator
                     ->toArray()
                 : [];
 
-            $allCountedDates = array_unique(array_merge($countedDates, $phDates));
+            $toilDates = $toilLeaves->get($employee->id, collect())
+                ->map(fn($t) => Carbon::parse($t->leave_date)->toDateString())
+                ->values()
+                ->toArray();
+
+            // DW dibayar per hari hadir, jadi TOIL, cuti, dan sakit tidak dihitung sebagai hari berbayar
+            $isDailyWorker     = $statusEmp === 'DW';
+            $paidToilDates     = $isDailyWorker ? [] : $toilDates;
+            $paidAbsences      = $isDailyWorker ? collect() : $paidAbsenceRosters->get($employee->id, collect());
+            $paidAbsenceDates  = $paidAbsences
+                ->map(fn($r) => Carbon::parse($r->date)->toDateString())
+                ->values()
+                ->toArray();
+
+            $allCountedDates = array_unique(array_merge($countedDates, $phDates, $paidToilDates, $paidAbsenceDates));
             $totalHariKerja  = count($allCountedDates);
             $totalHariTelat  = count($telatDates);
 
             // ── Tidak masuk ──
-            $tidakMasukDates = array_diff($rosterWorkDates, $countedDates, $cutiDates);
+            $tidakMasukDates = array_diff($rosterWorkDates, $countedDates, $cutiDates, $toilDates);
 
             // ── Remarks: telat + tidak masuk ──
             $remarksItems = collect(array_merge($telatDates, array_values($tidakMasukDates)))
@@ -406,10 +438,24 @@ class FingerprintRecapCalculator
                     ->values()
                 : collect();
 
+            // ── Remarks: TOIL ──
+            $toilItems = collect($toilDates)->map(fn($d) => [
+                'date'    => $d,
+                'display' => Carbon::parse($d)->format('d/m/Y') . ' (TOIL Off)',
+            ]);
+
+            // ── Remarks: cuti & sakit berbayar ──
+            $paidAbsenceItems = $paidAbsences->map(fn($r) => [
+                'date'    => Carbon::parse($r->date)->toDateString(),
+                'display' => Carbon::parse($r->date)->format('d/m/Y') . ' (' . $r->day_type . ')',
+            ]);
+
             // ── Combine remarks ──
             $bermasalahDates = $remarksItems
                 ->concat($phItems)
                 ->concat($cutiItems)
+                ->concat($paidAbsenceItems)
+                ->concat($toilItems)
                 ->unique('date')
                 ->sortBy('date')
                 ->pluck('display')

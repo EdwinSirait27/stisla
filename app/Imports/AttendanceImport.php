@@ -80,6 +80,7 @@ class AttendanceImport implements ToCollection, WithHeadingRow
 {
     public array $skipped = [];
     public array $updated = [];
+    public array $notes = [];
 
     public function __construct(
         protected string $periodId,
@@ -112,36 +113,57 @@ class AttendanceImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-               $statusEmp      = strtoupper($employee->status_employee);
-            $workingDays    = (int) ($row['working_days']    ?? $payroll->working_days);
-            $attendanceDays = (int) ($row['attendance_days'] ?? $payroll->attendance_days);
+            $statusEmp = strtoupper($employee->status_employee);
 
-            // Non-DW: attendance tidak boleh melebihi working days (gaji pokok max 100%)
-            if ($statusEmp !== 'DW' && $attendanceDays > $workingDays) {
-                $this->skipped[] = "{$employee->employee_name}: attendance {$attendanceDays} melebihi working days {$workingDays}.";
+            // Ambil angka dari Excel. Sel kosong = pakai nilai payroll yang sekarang.
+            // Teks seperti "1.500.000" ditolak: (float) "1.500.000" = 1.5, bukan 1,5 juta.
+            $invalid = [];
+            $num = function (string $field, $current, bool $integer = false) use ($row, &$invalid) {
+                $value = $row[$field] ?? null;
+                if ($value === null || (is_string($value) && trim($value) === '')) {
+                    return $current;
+                }
+                if (!is_numeric($value) || $value < 0) {
+                    $invalid[] = $field . ' "' . $value . '"';
+                    return $current;
+                }
+                return $integer ? (int) $value : round((float) $value, 2);
+            };
+
+            $workingDays    = $num('working_days', (int) $payroll->working_days, true);
+            $attendanceDays = $num('attendance_days', (int) $payroll->attendance_days, true);
+            $values = [
+                'overtime_amount'  => $num('overtime_amount', (float) $payroll->overtime_amount),
+                'reimburse_amount' => $num('reimburse_amount', (float) $payroll->reimburse_amount),
+                'punishment'       => $num('punishment', (float) $payroll->punishment),
+                'punishment_so'    => $num('punishment_so', (float) $payroll->punishment_so),
+                'debt'             => $num('debt', (float) $payroll->debt),
+                'tax'              => $num('tax', (float) $payroll->tax),
+            ];
+
+            if ($invalid) {
+                $this->skipped[] = "{$employee->employee_name}: isi angka tanpa titik/koma/simbol, cek kolom " . implode(', ', $invalid) . '.';
                 continue;
             }
 
-            // Recalculate gross untuk DW (daily_rate × attendance)
+            // Non-DW: attendance > working days tetap diimpor apa adanya (kolom lain di baris
+            // yang sama, mis. overtime, ikut masuk). Gaji pokok tetap maksimal 100% karena
+            // Payroll::earnedSalary() memakai min(attendance, working days).
+            if ($statusEmp !== 'DW' && $attendanceDays > $workingDays) {
+                $this->notes[] = "{$employee->employee_name}: attendance {$attendanceDays} melebihi working days {$workingDays}, gaji pokok dibayar maksimal {$workingDays}/{$workingDays} hari (100%).";
+            }
+
+            // DW: gross = daily_rate × attendance (disimpan supaya kolom Gross ikut benar)
             $grossSalary = $payroll->gross_salary;
             if ($statusEmp === 'DW') {
                 $grossSalary = round((float) $payroll->daily_rate * $attendanceDays, 2);
             }
 
-
-            // Update hanya field manual dari Excel
-            // working_days, attendance_days, overtime_amount → otomatis dari service
-            $payroll->update([
-                 'working_days'     => $workingDays,
-                'attendance_days'  => $attendanceDays,
-                'gross_salary'     => $grossSalary,
-                'overtime_amount'  => (float) ($row['overtime_amount']  ?? $payroll->overtime_amount),
-                 'reimburse_amount' => (float) ($row['reimburse_amount'] ?? 0),
-                'punishment'       => (float) ($row['punishment']       ?? $payroll->punishment),
-                'punishment_so'    => (float) ($row['punishment_so']    ?? $payroll->punishment_so),
-                'debt'             => (float) ($row['debt']             ?? $payroll->debt),
-                'tax'              => (float) ($row['tax']              ?? $payroll->tax),
-            ]);
+            $payroll->update(array_merge([
+                'working_days'    => $workingDays,
+                'attendance_days' => $attendanceDays,
+                'gross_salary'    => $grossSalary,
+            ], $values));
 
             $this->payrollService->recalculateNet($payroll->fresh());
 

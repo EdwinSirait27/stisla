@@ -93,14 +93,43 @@ class Toilbalances extends Model
         });
     }
 
+    /**
+     * Saldo TOIL yang boleh dipakai untuk cuti di tanggal tertentu:
+     * masih berlaku di tanggal itu dan lemburnya sudah terjadi (bukan lembur tanggal depan).
+     */
+    public function scopeUsableForLeave($query, $leaveDate)
+    {
+        return $query
+            ->where('status', 'active')
+            ->where('expires_at', '>=', Carbon::parse($leaveDate)->toDateString())
+            ->whereHas('overtimeSubmission', function ($q) {
+                $q->where('compensation_type', 'Toil')
+                    ->whereDate('date', '<=', today());
+            });
+    }
+
     // ════════════════════════════════════════════════════════════════
     //   HELPERS
     // ════════════════════════════════════════════════════════════════
 
+    /**
+     * Mutex per karyawan untuk semua perubahan saldo TOIL.
+     * Wajib dipanggil di dalam transaksi; kunci lepas saat commit / rollback.
+     */
+    public static function lockEmployees(array $employeeIds): void
+    {
+        Employee::whereIn('id', $employeeIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->pluck('id');
+    }
 
+    /**
+     * Saldo masih berlaku sampai akhir hari expires_at (sama dengan scopeActive).
+     */
     public function isExpired(): bool
     {
-        return $this->expires_at && $this->expires_at->isPast();
+        return $this->expires_at && $this->expires_at->lt(today());
     }
 
     public function getDaysUntilExpiredAttribute(): int
@@ -140,7 +169,7 @@ class Toilbalances extends Model
     public function refreshStatus(): void
     {
         // Status akhir (paid / cancelled) tidak diubah otomatis
-        if (!in_array($this->status, ['active', 'fully_used'], true)) {
+        if (!in_array($this->status, ['active', 'fully_used', 'expired'], true)) {
             return;
         }
 

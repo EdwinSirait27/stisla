@@ -111,19 +111,22 @@ class Overtimesubmissions extends Model
     //   HELPER METHODS
     // ════════════════════════════════════════════════════════════════
 
-    public function createOrUpdateBalance(): void
+    public function balanceExpiryDate(): Carbon
     {
-        $expiresAt = $this->compensation_type === 'Cash'
+        return $this->compensation_type === 'Cash'
             ? Carbon::parse($this->date)->addMonth()
             : Carbon::parse($this->date)->addMonths(3);
+    }
 
+    public function createOrUpdateBalance(): void
+    {
         Toilbalances::updateOrCreate(
             ['overtime_submission_id' => $this->id],
             [
                 'employee_id'  => $this->employee_id,
                 'earned_hours' => $this->total_hours,
                 'used_hours'   => 0,
-                'expires_at'   => $expiresAt,
+                'expires_at'   => $this->balanceExpiryDate(),
                 'status'       => 'active',
             ]
         );

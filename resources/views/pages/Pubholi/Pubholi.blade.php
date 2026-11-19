@@ -209,13 +209,18 @@
                                                 <th class="text-center">Date</th>
                                                 <th class="text-center">Remark</th>
                                                 <th class="text-center">Type</th>
-                                                {{-- <th class="text-center">Action</th> --}}
+                                                @can('ManagePH')
+                                                    <th class="text-center">Action</th>
+                                                @endcan
                                             </tr>
                                         </thead>
                                     </table>
                                 </div>
                                 @can('ManagePH')
                                 <div class="action-buttons">
+                                    <a href="{{ route('Pubholi.create') }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus"></i> Add Public Holiday
+                                    </a>
                                     <button type="button" onclick="window.location='{{ route('pages.ImportPH') }}'"
                                         class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus-circle"></i> Import Public Holidays
@@ -274,8 +279,42 @@
                     name: 'type',
                     className: 'text-center'
                 }
+                @can('ManagePH')
+                ,{
+                    data: 'hashed_id',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function(id, type, row) {
+                        if (!row.editable) return '<span class="text-muted">-</span>';
+                        return '<a class="btn btn-sm btn-warning" href="{{ url('Pubholi/edit') }}/' + id + '"><i class="fas fa-edit"></i></a> ' +
+                            '<button type="button" class="btn btn-sm btn-danger btn-delete-ph" data-id="' + id + '"><i class="fas fa-trash"></i></button>';
+                    }
+                }
+                @endcan
             ]
         });
+
+        @can('ManagePH')
+        $('#users-table').on('click', '.btn-delete-ph', function() {
+            var id = $(this).data('id');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Hapus Public Holiday?',
+                text: 'Roster PH di tanggal ini akan dikosongkan dan perlu dijadwalkan ulang.',
+                showCancelButton: true,
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal'
+            }).then(function(result) {
+                if (!result.isConfirmed) return;
+                var form = $('<form>', { method: 'POST', action: '{{ url('Pubholi') }}/' + id });
+                form.append($('<input>', { type: 'hidden', name: '_token', value: '{{ csrf_token() }}' }));
+                form.append($('<input>', { type: 'hidden', name: '_method', value: 'DELETE' }));
+                $('body').append(form);
+                form.submit();
+            });
+        });
+        @endcan
 
         // FILTER
         $('#filter').click(function() {
@@ -295,6 +334,14 @@
                 icon: 'success',
                 title: 'Success',
                 text: '{{ session('success') }}',
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
             });
         @endif
 

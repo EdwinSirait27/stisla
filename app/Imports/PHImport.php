@@ -18,6 +18,9 @@ class PHImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailur
 {
     use SkipsFailures, SkipsErrors, Importable;
 
+    /** Tanggal yang benar-benar baru, untuk disinkronkan ke roster setelah import. */
+    public array $importedDates = [];
+
     private function parseDate(mixed $value): ?string
     {
         try {
@@ -41,6 +44,8 @@ class PHImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailur
         if (Ph::where('type', $type)->whereDate('date', $date)->exists()) {
             return null;
         }
+
+        $this->importedDates[] = $date;
 
         return new Ph([
             'type'   => $type,

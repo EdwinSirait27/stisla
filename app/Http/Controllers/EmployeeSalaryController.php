@@ -24,7 +24,7 @@ class EmployeeSalaryController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.view')) {
             abort(403, 'Unauthorized');
         }
         $stats = [
@@ -32,14 +32,25 @@ class EmployeeSalaryController extends Controller
             'pkwt'  => EmployeeSalary::whereHas('employee', fn($q) => $q->where('status_employee', 'PKWT'))->distinct('employee_id')->count(),
             'ojt'   => EmployeeSalary::whereHas('employee', fn($q) => $q->where('status_employee', 'On Job Training'))->distinct('employee_id')->count(),
             'dw'    => EmployeeSalary::whereHas('employee', fn($q) => $q->where('status_employee', 'DW'))->distinct('employee_id')->count(),
+            // Gaji dengan effective_date setelah hari ini (belum dipakai payroll periode berjalan)
+            'scheduled' => EmployeeSalary::whereDate('effective_date', '>', now()->toDateString())->count(),
         ];
+
+        // Karyawan aktif yang belum punya data gaji sama sekali → payroll-nya tidak bisa di-generate
+        $missingQuery = Employee::where('status', 'Active')
+            ->whereNotNull('employee_pengenal')
+            ->whereNotIn('id', EmployeeSalary::select('employee_id'));
+        $stats['missing'] = (clone $missingQuery)->count();
+        $missingEmployees = $missingQuery->orderBy('employee_name')
+            ->limit(8)
+            ->get(['id', 'employee_name', 'employee_pengenal', 'status_employee']);
 
         $stores = Stores::orderBy('name')->get();
         $companies = Company::orderBy('name')->get();
         $gradings = Grading::orderBy('grading_name')->get();
         $departments = Departments::orderBy('department_name')->get();
 
-        return view('pages.EmployeeSalary.index', compact('companies', 'stats', 'stores', 'gradings', 'departments'));
+        return view('pages.EmployeeSalary.index', compact('companies', 'stats', 'stores', 'gradings', 'departments', 'missingEmployees'));
     }
 
     // ── DataTable ──
@@ -47,7 +58,7 @@ class EmployeeSalaryController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.view')) {
             abort(403, 'Unauthorized');
         }
 
@@ -61,6 +72,21 @@ class EmployeeSalaryController extends Controller
             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
             'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
         ])->select('employee_salaries.*');
+
+        // Gaji yang berlaku hari ini = effective_date terakhir yang <= hari ini, per karyawan
+        $today = now()->toDateString();
+        $currentSub = "employee_salaries.effective_date = (
+            SELECT MAX(s2.effective_date) FROM employee_salaries s2
+            WHERE s2.employee_id = employee_salaries.employee_id AND s2.effective_date <= ?
+        )";
+        $query->selectRaw("({$currentSub}) AS is_current", [$today]);
+
+        match ($request->input('scope', 'current')) {
+            'scheduled' => $query->whereDate('employee_salaries.effective_date', '>', $today),
+            'all'       => null,
+            default     => $query->whereRaw($currentSub, [$today]),
+        };
+
         if ($request->filled('store_name')) {
             $query->whereHas(
                 'employee.store',
@@ -188,11 +214,17 @@ class EmployeeSalaryController extends Controller
                     ->where('ed.is_primary', true)
                     ->orderBy('d.department_name', $order);
             })
-            ->addColumn('action', fn($row) => '
-                <a href="' . route('employeesalary.edit', $row->id) . '" class="btn btn-sm btn-warning">
-                    <i class="fas fa-edit"></i>
+            ->addColumn('effective_date_fmt', fn($row) => $row->effective_date?->locale('id')->translatedFormat('d M Y') ?? '-')
+            ->addColumn('salary_state', fn($row) => match (true) {
+                $row->effective_date?->toDateString() > now()->toDateString() => 'scheduled',
+                (bool) $row->is_current => 'current',
+                default => 'history',
+            })
+            ->addColumn('action', fn($row) => $user->can('employee.salary.update') ? '
+                <a href="' . route('employeesalary.edit', $row->id) . '" class="act-btn" title="Edit gaji" aria-label="Edit gaji">
+                    <i class="fas fa-edit" aria-hidden="true"></i>
                 </a>
-            ')
+            ' : '')
 
             ->rawColumns(['action'])
             ->make(true);
@@ -201,7 +233,7 @@ class EmployeeSalaryController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.view')) {
             abort(403, 'Unauthorized');
         }
 
@@ -213,10 +245,10 @@ class EmployeeSalaryController extends Controller
         return DataTables::of($query)
             ->addColumn('causer_name', fn($row) => $row->causer?->employee->employee_name ?? '-')
             ->addColumn('event_badge', fn($row) => match ($row->event) {
-                'created' => '<span class="status-badge" style="background:#f0fdf4;color:#166534">Created</span>',
-                'updated' => '<span class="status-badge" style="background:#fffbeb;color:#92400e">Updated</span>',
-                'deleted' => '<span class="status-badge" style="background:#fef2f2;color:#991b1b">Deleted</span>',
-                default   => '<span class="status-badge">' . $row->event . '</span>',
+                'created' => '<span class="status-badge is-created">Dibuat</span>',
+                'updated' => '<span class="status-badge is-updated">Diubah</span>',
+                'deleted' => '<span class="status-badge is-deleted">Dihapus</span>',
+                default   => '<span class="status-badge">' . e($row->event) . '</span>',
             })
             ->addColumn(
                 'employee_name',
@@ -225,8 +257,17 @@ class EmployeeSalaryController extends Controller
             )
             ->addColumn(
                 'effective_date',
-                fn($row) =>
-                $row->properties['attributes']['effective_date'] ?? '-'
+                function ($row) {
+                    $raw = $row->properties['attributes']['effective_date'] ?? null;
+                    if (!$raw || $raw === '-') {
+                        return '-';
+                    }
+                    // EmployeeSalary menyimpan log dalam format d/m/Y; Carbon::parse akan membacanya sebagai m/d/Y
+                    $date = preg_match('#^\d{2}/\d{2}/\d{4}$#', $raw)
+                        ? \Carbon\Carbon::createFromFormat('d/m/Y', $raw)
+                        : \Carbon\Carbon::parse($raw)->setTimezone(config('app.timezone'));
+                    return $date->locale('id')->translatedFormat('d M Y');
+                }
             )
             // ── New values ──
             ->addColumn(
@@ -345,7 +386,7 @@ class EmployeeSalaryController extends Controller
             ->addColumn(
                 'changed_at',
                 fn($row) =>
-                $row->created_at->format('d/m/Y H:i')
+                $row->created_at->locale('id')->translatedFormat('d M Y, H:i')
             )
             ->filterColumn(
                 'employee_name',
@@ -371,6 +412,12 @@ class EmployeeSalaryController extends Controller
     }
     public function export(Request $request)
     {
+        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('employee.salary.export')) {
+            abort(403, 'Unauthorized');
+        }
+
         return Excel::download(
             new EmployeeSalaryExport(
                 $request->effective_date,
@@ -388,7 +435,7 @@ class EmployeeSalaryController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.create')) {
             abort(403, 'Unauthorized');
         }
         $employees = Employee::where(function ($query) {
@@ -436,7 +483,7 @@ class EmployeeSalaryController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.create')) {
             abort(403, 'Unauthorized');
         }
         $this->normalizeCurrency($request);
@@ -503,7 +550,7 @@ class EmployeeSalaryController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.update')) {
             abort(403, 'Unauthorized');
         }
         $salary    = EmployeeSalary::with('employee')->findOrFail($id);
@@ -519,7 +566,7 @@ class EmployeeSalaryController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.update')) {
             abort(403, 'Unauthorized');
         }
         $salary   = EmployeeSalary::findOrFail($id);
@@ -566,7 +613,7 @@ class EmployeeSalaryController extends Controller
         set_time_limit(300);
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.import')) {
             abort(403, 'Unauthorized');
         }
         $request->validate([
@@ -597,7 +644,7 @@ class EmployeeSalaryController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManageEmployeeSalary')) {
+        if (!$user->hasPermissionTo('employee.salary.import')) {
             abort(403, 'Unauthorized');
         }
 

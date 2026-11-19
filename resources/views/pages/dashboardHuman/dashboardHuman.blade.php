@@ -1,1296 +1,1377 @@
 @extends('layouts.app')
-@section('title', 'User Dashboard')
-
+@section('title', 'Dashboard Karyawan')
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: today's schedule beside the leave and TOIL I can still use, over a calendar that marks scheduled days without a scan · states: empty roster, stale fingerprint, full
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the old cards showed the same invented numbers to every employee, answered with each employee's own roster, scans and recap */
+
         :root {
-            --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
-            --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
-            --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
-            --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
-            --orange-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .profile-header-card {
-            background: var(--primary-gradient);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-            margin-bottom: 32px;
-            position: relative;
-            overflow: hidden;
+        html,
+        body {
+            overflow-x: clip;
         }
 
-        .profile-header-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
         }
 
-        .profile-header-card::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
+        .pr [hidden] {
+            display: none !important;
         }
 
-        .profile-content {
-            position: relative;
-            z-index: 1;
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
         }
 
-        .profile-avatar-large {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            object-fit: cover;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .profile-info h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .profile-meta {
-            display: flex;
-            gap: 24px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .profile-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            opacity: 0.95;
-        }
-
-        .profile-meta-item i {
-            font-size: 1.1rem;
-        }
-
-        .mini-stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: var(--card-shadow);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-left: 4px solid transparent;
-            height: 100%;
-        }
-
-        .mini-stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--card-hover-shadow);
-        }
-
-        .mini-stat-card.primary { border-left-color: #667eea; }
-        .mini-stat-card.success { border-left-color: #11998e; }
-        .mini-stat-card.warning { border-left-color: #f59e0b; }
-        .mini-stat-card.danger  { border-left-color: #f5576c; }
-
-        .mini-stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-        }
-
-        .mini-stat-icon.primary { background: rgba(102, 126, 234, 0.1); color: #667eea; }
-        .mini-stat-icon.success { background: rgba(17, 153, 142, 0.1); color: #11998e; }
-        .mini-stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-        .mini-stat-icon.danger  { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
-
-        .mini-stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #344767;
-            margin: 8px 0;
-        }
-
-        .mini-stat-label {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .calendar-month {
-        text-align: center;
-        font-weight: 600;
-        color: #344767;
-        margin-bottom: 20px;
-        font-size: 1.1rem;
-        }
-
-        .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 8px;
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            padding: 8px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            cursor: pointer;
-            padding: 4px;
-            text-align: center;
-        }
-
-        .calendar-day-number {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        .calendar-day-label {
-            font-size: 0.65rem;
-            font-weight: 500;
-            line-height: 1.1;
-            opacity: 0.85;
-        }
-
-        .calendar-day-remark {
-            font-size: 0.6rem;
-            font-weight: 400;
-            line-height: 1.1;
-            font-style: italic;
-            opacity: 0.75;
-        }
-
-        .calendar-day.empty {
-            background: transparent;
-            cursor: default;
-        }
-
-        .calendar-day.present {
-            background: rgba(56, 239, 125, 0.15);
-            color: #11998e;
-        }
-
-        .calendar-day.absent {
-            background: rgba(245, 87, 108, 0.15);
-            color: #f5576c;
-        }
-
-        .calendar-day.leave {
-            background: rgba(255, 171, 0, 0.15);
-            color: #f59e0b;
-        }
-
-        .calendar-day.weekend {
-            background: #f8f9fa;
-            color: #94a3b8;
-        }
-
-        .calendar-day.today {
-            border: 2px solid #667eea;
-            font-weight: 700;
-        }
-
-        .calendar-day:hover:not(.empty) {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .calendar-legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-
-        .leave-balance-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .leave-balance-header {
-            background: var(--info-gradient);
-            color: white;
-            padding: 24px;
-        }
-
-        .leave-balance-header h4 {
-            margin: 0;
-            font-weight: 600;
-            color: white;
-        }
-
-        .leave-balance-body {
-            padding: 24px;
-        }
-
-        .leave-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #f1f3f5;
-        }
-
-        .leave-item:last-child {
-            border-bottom: none;
-        }
-
-        .leave-type {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .leave-type-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-
-        .leave-type-icon.annual { background: rgba(102, 126, 234, 0.1); color: #667eea; }
-        .leave-type-icon.sick   { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
-        .leave-type-icon.casual { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-
-        .leave-type-name {
-            font-weight: 600;
-            color: #344767;
-            margin-bottom: 4px;
-        }
-
-        .leave-type-period {
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .leave-days {
+        .pr .num {
             text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
         }
 
-        .leave-days-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #344767;
-        }
-
-        .leave-days-label {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .submissions-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .submissions-header {
-            background: white;
-            border-bottom: 2px solid #f1f3f5;
-            padding: 20px 24px;
+        /* ── Head ── */
+        .pr-head {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-        }
-
-        .submissions-header h4 {
-            margin: 0;
-            font-weight: 600;
-            color: #344767;
-        }
-
-        .submission-item {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f3f5;
-            transition: background-color 0.2s;
-        }
-
-        .submission-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .submission-item:last-child {
-            border-bottom: none;
-        }
-
-        .submission-header-row {
-            display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
         }
 
-        .submission-type-badge {
+        .pr-crumbs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
+        }
+
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
             display: inline-flex;
             align-items: center;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            justify-content: center;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
             font-weight: 600;
-            text-transform: uppercase;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        .submission-type-badge.annual-leave { background: rgba(102, 126, 234, 0.1); color: #667eea; }
-        .submission-type-badge.sick-leave   { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
-        .submission-type-badge.overtime     { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-
-        .submission-status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
         }
 
-        .submission-status.pending  { background: rgba(255, 171, 0, 0.15); color: #f59e0b; }
-        .submission-status.approved { background: rgba(56, 239, 125, 0.15); color: #11998e; }
-        .submission-status.rejected { background: rgba(245, 87, 108, 0.15); color: #f5576c; }
+        .pr-btn:active {
+            background: var(--pr-rule);
+        }
 
-        .submission-meta {
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr-btn i {
+            font-size: .85em;
+        }
+
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
+        }
+
+        .pr-btn-ghost {
+            border-color: transparent;
+            background: transparent;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-btn-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-danger {
+            color: var(--pr-error);
+        }
+
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
             display: flex;
-            gap: 20px;
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 8px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        .submission-meta i {
-            width: 14px;
-        }
-
-        .submission-notes {
-            font-size: 0.9rem;
-            color: #344767;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #e9ecef;
-        }
-
-        .announcements-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .announcements-header {
-            background: var(--orange-gradient);
-            color: white;
-            padding: 20px 24px;
-        }
-
-        .announcements-header h4 {
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
             margin: 0;
-            font-weight: 600;
-            color: rgb(0, 0, 0);
         }
 
-        .announcement-item {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f3f5;
-            transition: all 0.2s;
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        /* ── Toolbar ── */
+        .pr-toolbar {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+            overflow-x: auto;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
+        }
+
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
+        }
+
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
+        }
+
+        .pr-mini {
+            min-width: 140px;
+        }
+
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
+        }
+
+        .pr-muted {
+            color: var(--pr-muted);
+        }
+
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
+        .action-wrap {
+            display: flex;
+            gap: var(--pr-space-2xs);
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .act-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .act-btn.act-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* DataTables chrome */
+        .pr-dt-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
+        }
+
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
+            font-weight: 600;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
+        }
+
+
+        /* ── Dashboard HR ── */
+        .pr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-hello {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+        }
+
+        .pr-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
+        }
+
+        .pr-hello-date {
+            margin: 0 0 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-lede {
+            line-height: 1.5;
+        }
+
+        .pr-btn-sm {
+            min-height: 32px;
+            padding: 0 var(--pr-space-sm);
+            font-size: var(--pr-text-xs);
+        }
+
+        .pr-link {
+            border: 0;
+            background: none;
+            padding: 0;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            text-decoration: underline;
+            text-underline-offset: .16em;
             cursor: pointer;
         }
 
-        .announcement-item:hover {
-            background-color: #f8f9fa;
+        .pr-link:hover {
+            color: var(--pr-ink);
         }
 
-        .announcement-item:last-child {
-            border-bottom: none;
+        .pr-card-link {
+            display: inline-block;
+            margin: 0 var(--pr-space-lg) var(--pr-space-md);
         }
 
-        .announcement-title {
-            font-weight: 600;
-            color: #344767;
-            margin-bottom: 8px;
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        /* Action queue */
+        .pr-todo {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-todo li {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            border-left: 3px solid var(--pr-warn);
         }
 
-        .announcement-badge-new {
-            background: #f5576c;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.65rem;
+        .pr-todo li.is-ready {
+            border-left-color: var(--pr-success);
+        }
+
+        .pr-todo li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-todo-text {
+            font-size: var(--pr-text-md);
+            color: var(--pr-ink);
+        }
+
+        .pr-todo-text strong {
+            font-size: var(--pr-text-lg);
+            font-variant-numeric: tabular-nums;
+            margin-right: 2px;
+        }
+
+        /* Today */
+        .pr-today {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        .pr-today>.pr-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pr-big {
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-xs);
+        }
+
+        .pr-big strong {
+            display: block;
+            font-size: var(--pr-text-2xl);
             font-weight: 700;
-            text-transform: uppercase;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
         }
 
-        .announcement-excerpt {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 8px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .announcement-date {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .attendance-history-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .attendance-history-header {
-            background: white;
-            border-bottom: 2px solid #f1f3f5;
-            padding: 20px 24px;
-        }
-
-        .attendance-history-header h4 {
-            margin: 0;
+        .pr-big strong small {
+            font-size: var(--pr-text-md);
+            color: var(--pr-muted);
             font-weight: 600;
-            color: #344767;
+            margin-right: 2px;
         }
 
-        .attendance-calendar {
-            padding: 24px;
+        .pr-big span {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
         }
 
-        .empty-state {
+        .pr-bar {
+            display: flex;
+            height: 8px;
+            margin: var(--pr-space-xs) var(--pr-space-lg);
+            border-radius: var(--pr-pill);
+            overflow: hidden;
+            background: var(--pr-paper-2);
+        }
+
+        .pr-bar span {
+            display: block;
+            height: 100%;
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-paid {
+            background: var(--pr-accent);
+        }
+
+        .pr-bar.is-stack .is-approved {
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-draft {
+            background: var(--pr-muted);
+        }
+
+        .pr-mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: var(--pr-space-xs);
+            margin: var(--pr-space-xs) 0 0;
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-mini-stats dt {
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-mini-stats dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-mini-stats dd.is-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-note {
+            margin: auto 0 0;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-note+.pr-note {
+            margin-top: 0;
+        }
+
+        .pr-note.is-warn {
+            background: var(--pr-warn-soft);
+            color: var(--pr-ink);
+        }
+
+        /* Charts */
+        .pr-range {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-field label {
+            display: block;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            margin-bottom: var(--pr-space-2xs);
+        }
+
+        .pr-field input {
+            min-height: 36px;
+            padding: 0 var(--pr-space-sm);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-field input:focus-visible {
+            outline-offset: -1px;
+        }
+
+        .pr-chart-body {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .pr-chart {
+            position: relative;
+        }
+
+        .pr-chart[hidden] {
+            display: none !important;
+        }
+
+        .pr-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        .pr-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+            align-items: start;
+        }
+
+        /* Lists */
+        .pr-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-list li {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-list li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-list-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pr-list-title {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pr-list-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-days {
+            width: 48px;
+            flex-shrink: 0;
             text-align: center;
-            padding: 48px 24px;
+            padding: var(--pr-space-2xs) 0;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-warn-soft);
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-warn);
         }
 
-        .empty-state i {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 16px;
-        }
-
-        .empty-state h6 {
-            color: #64748b;
+        .pr-days small {
+            display: block;
+            font-size: 10px;
             font-weight: 600;
-            margin-bottom: 8px;
         }
 
-        .empty-state p {
-            color: #94a3b8;
-            font-size: 0.875rem;
+        .pr-days.is-urgent {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+        /* Announcements */
+        #users-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #users-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #users-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        .pr-modal-title {
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            color: var(--pr-ink);
             margin: 0;
         }
 
-        .modal-content {
-            border-radius: 16px;
-            border: none;
+        .pr-preview-title {
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            margin: 0 0 var(--pr-space-sm);
+            color: var(--pr-ink);
         }
 
-        .modal-header {
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 16px 16px 0 0;
-            padding: 20px 24px;
+        .pr-facts {
+            margin: 0 0 var(--pr-space-md);
         }
 
-        .modal-header .modal-title {
+        .pr-facts>div {
+            display: flex;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-2xs) 0;
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-facts dt {
+            width: 110px;
+            font-weight: 400;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-facts dd {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .pr-preview-content {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-top: var(--pr-space-md);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-md);
+            line-height: 1.7;
+        }
+
+        .pr-today,
+        .pr-grid-3,
+        .pr-grid-2 {
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-today .pr-panel,
+        .pr-grid-3 .pr-panel,
+        .pr-grid-2 .pr-panel {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 75rem) {
+            .pr-grid-3 {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            }
+
+            .pr-grid-3>.pr-panel:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 60rem) {
+
+            .pr-grid-3,
+            .pr-grid-2 {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 40rem) {
+
+            .pr-head,
+            .pr-panel-head,
+            .pr-big,
+            .pr-mini-stats,
+            .pr-note,
+            .pr-todo li,
+            .pr-list li,
+            .pr-chart-body,
+            .pr-table-wrap,
+            .pr-empty-note {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .pr-bar {
+                margin-left: var(--pr-space-md);
+                margin-right: var(--pr-space-md);
+            }
+
+            .pr-todo li {
+                flex-wrap: wrap;
+            }
+
+            .pr-actions .pr-btn,
+            .pr-field input {
+                min-height: 44px;
+                font-size: 16px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .pr *,
+            .pr *::before,
+            .pr *::after {
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ── Dashboard karyawan ── */
+        .pr-big strong.is-muted {
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xl);
+        }
+
+        .pr-period {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+            margin: 0;
+        }
+
+        .pr-period>div {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-right: 1px solid var(--pr-rule);
+        }
+
+        .pr-period>div:last-child {
+            border-right: 0;
+        }
+
+        .pr-period dt {
+            font-size: var(--pr-text-sm);
             font-weight: 600;
-            color: white;
+            color: var(--pr-ink-2);
         }
 
-        .modal-header .close {
-            color: white;
-            opacity: 0.9;
+        .pr-period dd {
+            margin: var(--pr-space-2xs) 0 0;
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
         }
 
-        .modal-body { padding: 24px; }
-
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .form-label {
+        .pr-period dd small {
+            font-size: var(--pr-text-sm);
             font-weight: 600;
-            color: #344767;
-            margin-bottom: 8px;
-            font-size: 0.875rem;
+            color: var(--pr-muted);
         }
 
-        .form-control {
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            padding: 10px 14px;
-            transition: all 0.2s;
+        .pr-period-note {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
         }
 
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .pr-note strong {
+            font-weight: 700;
         }
 
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            padding: 10px 20px;
-            transition: all 0.2s;
+        /* Submissions */
+        .pr-sub {
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        .btn-primary {
-            background: var(--primary-gradient);
-            border: none;
+        .pr-sub:last-child {
+            border-bottom: 0;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .pr-sub-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-sm);
         }
 
-        @media (max-width: 768px) {
-            .profile-header-card { padding: 24px; }
-            .profile-info h2 { font-size: 1.5rem; }
-            .profile-meta { flex-direction: column; gap: 12px; }
-            .mini-stat-card { margin-bottom: 16px; }
+        .pr-sub-name {
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+        .pr-sub-meta {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
         }
 
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
+        .pr-sub-note {
+            margin: var(--pr-space-xs) 0 0;
+            padding: var(--pr-space-xs) var(--pr-space-sm);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink);
         }
 
-        .select2-container--default .select2-selection--single {
-            height: 44px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 6px 14px;
+        .pr-sub-note span {
+            font-weight: 700;
+            color: var(--pr-ink-2);
         }
 
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 30px;
-            color: #344767;
-            font-size: 0.95rem;
+        .pr-sub-note.is-rejected {
+            background: var(--pr-error-soft);
         }
 
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px;
+        .status-badge.is-pending {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
         }
 
-        .select2-dropdown {
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .status-badge.is-approved {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
         }
 
-        .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: #667eea;
+        .status-badge.is-rejected {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
         }
 
-        .select2-container--open {
-            z-index: 99999;
+        /* Announcements */
+        .pr-ann {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            background: transparent;
+            font-family: var(--pr-font);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-ann:hover {
+            background: var(--pr-paper);
+        }
+
+        .pr-ann:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-ann-title {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pr-ann-excerpt {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-ann-date {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-ann-byline {
+            margin: 0 0 var(--pr-space-sm);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        /* Calendar */
+        .pk-cal-wrap {
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-lg);
+            transition: opacity var(--pr-dur-short) var(--pr-ease);
+        }
+
+        .pk-cal-head {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-md);
+        }
+
+        .pk-cal-title {
+            min-width: 160px;
+            text-align: center;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+        }
+
+        .pk-cal {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: var(--pr-space-2xs);
+        }
+
+        .pk-cal-dow {
+            padding: var(--pr-space-2xs) 0;
+            text-align: center;
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-ink-2);
+        }
+
+        .pk-cal-day {
+            min-height: 84px;
+            padding: var(--pr-space-xs);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            min-width: 0;
+        }
+
+        .pk-cal-day.is-empty {
+            border-color: transparent;
+            background: transparent;
+        }
+
+        .pk-cal-day.is-work {
+            background: var(--pr-success-soft);
+        }
+
+        .pk-cal-day.is-off {
+            background: var(--pr-paper-2);
+        }
+
+        .pk-cal-day.is-holiday {
+            background: var(--pr-warn-soft);
+        }
+
+        .pk-cal-day.is-leave {
+            background: var(--pr-accent-soft);
+        }
+
+        .pk-cal-day.is-sick {
+            background: var(--pr-error-soft);
+        }
+
+        .pk-cal-day.is-missing {
+            box-shadow: inset 0 0 0 2px var(--pr-warn);
+        }
+
+        .pk-cal-day.is-today {
+            box-shadow: inset 0 0 0 2px var(--pr-accent-strong);
+        }
+
+        .pk-cal-num {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pk-cal-label,
+        .pk-cal-shift,
+        .pk-cal-scan {
+            display: block;
+            font-size: 11px;
+            line-height: 1.35;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pk-cal-label {
+            font-weight: 600;
+            color: var(--pr-ink);
+        }
+
+        .pk-cal-shift {
+            color: var(--pr-ink-2);
+        }
+
+        .pk-cal-scan {
+            margin-top: 2px;
+            font-weight: 700;
+            color: var(--pr-success);
+        }
+
+        .pk-cal-scan.is-missing {
+            color: var(--pr-warn);
+        }
+
+        .pk-cal-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs) var(--pr-space-md);
+            margin: var(--pr-space-md) 0 0;
+            padding: 0;
+            list-style: none;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-ink-2);
+        }
+
+        .pk-cal-legend li {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--pr-space-xs);
+        }
+
+        .pk-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid var(--pr-rule);
+        }
+
+        .pk-swatch.is-work { background: var(--pr-success-soft); }
+        .pk-swatch.is-off { background: var(--pr-paper-2); }
+        .pk-swatch.is-holiday { background: var(--pr-warn-soft); }
+        .pk-swatch.is-leave { background: var(--pr-accent-soft); }
+        .pk-swatch.is-sick { background: var(--pr-error-soft); }
+        .pk-swatch.is-missing { background: var(--pr-panel); box-shadow: inset 0 0 0 2px var(--pr-warn); }
+
+        @media (max-width: 40rem) {
+            .pk-cal-wrap,
+            .pr-sub,
+            .pr-ann,
+            .pr-period>div {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .pk-cal-day {
+                min-height: 56px;
+                padding: 4px;
+            }
+
+            .pk-cal-label,
+            .pk-cal-shift {
+                display: none;
+            }
+
+            .pk-cal-scan {
+                font-size: 0;
+            }
+
+            .pk-cal-scan i {
+                font-size: 10px;
+            }
+
+            .pk-cal-scan.is-missing {
+                font-size: 0;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--pr-warn);
+            }
+
+            .pr-period>div {
+                border-right: 0;
+                border-bottom: 1px solid var(--pr-rule);
+            }
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $emp = Auth::user()->employee;
+        $hour = now()->hour;
+        $greeting = $hour < 11 ? 'Selamat pagi' : ($hour < 15 ? 'Selamat siang' : ($hour < 18 ? 'Selamat sore' : 'Selamat malam'));
+        $d = fn($v) => $v ? \Carbon\Carbon::parse($v)->setTimezone(config('app.timezone'))->locale('id')->translatedFormat('d M Y') : '-';
+        $dt = fn($v) => $v ? \Carbon\Carbon::parse($v)->locale('id')->translatedFormat('d M Y, H:i') : '-';
+        $num = fn($v) => rtrim(rtrim(number_format((float) $v, 2, ',', '.'), '0'), ',');
+        $p = $periodSummary;
+        $scanStale = $p['last_scan'] && \Carbon\Carbon::parse($p['last_scan'])->lt(today());
+        $pendingSub = collect($submissions)->firstWhere('statusClass', 'pending');
+    @endphp
+    <div class="main-content pr">
         <section class="section">
 
-            {{-- Profile Header --}}
-            <div class="profile-header-card animate-fade-in-up">
-                <div class="profile-content">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <div class="d-flex align-items-center gap-4">
-                                <img src="{{ Auth::user()->employee->photos
-                                    ? route('useremployee.photo', basename(Auth::user()->employee->photos))
-                                    : asset('img/avatar/avatar-1.png') }}"
-                                    alt="Profile" class="profile-avatar-large no-drag">
-                                <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? '-' }}</h2>
-                                    <div class="profile-meta">
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-briefcase"></i>
-                                            <span>{{ Auth::user()->employee->position->first()?->name ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->first()?->department_name ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-id-badge"></i>
-                                            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ now()->format('l, F d, Y') }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            {{-- Head --}}
+            <header class="pr-head">
+                <div class="pr-hello">
+                    <img src="{{ $emp?->photos ? route('useremployee.photo', basename($emp->photos)) : asset('img/avatar/avatar-1.png') }}"
+                        alt="" class="pr-avatar no-drag" width="56" height="56">
+                    <div>
+                        <p class="pr-hello-date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
+                        <h1 class="pr-title">{{ $greeting }}, {{ $emp->employee_name ?? Auth::user()->username }}</h1>
+                        <p class="pr-lede">
+                            {{ collect([$emp?->position->first()?->name, $emp?->department->first()?->department_name, $emp?->employee_pengenal ? 'NIP ' . $emp->employee_pengenal : null])->filter()->implode(', ') }}
+                        </p>
                     </div>
                 </div>
-            </div>
+                <div class="pr-actions">
+                    @if ($hasPending)
+                        <button type="button" class="pr-btn" disabled title="Masih ada pengajuan yang menunggu persetujuan">
+                            <i class="fas fa-clock" aria-hidden="true"></i> Pengajuan menunggu approval
+                        </button>
+                    @else
+                        <button type="button" class="pr-btn pr-btn-primary" id="newSubmissionBtn" data-toggle="modal" data-target="#requestLeaveModal">
+                            <i class="fas fa-plus" aria-hidden="true"></i> Ajukan cuti
+                        </button>
+                    @endif
+                </div>
+            </header>
 
-            {{-- Mini Stat Cards --}}
-            <div class="row mb-4">
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card primary">
-                        <div class="mini-stat-icon primary"><i class="fas fa-calendar-check"></i></div>
-                        <div class="mini-stat-value">22</div>
-                        <div class="mini-stat-label">Days Present</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card success">
-                        <div class="mini-stat-icon success"><i class="fas fa-percentage"></i></div>
-                        <div class="mini-stat-value">95%</div>
-                        <div class="mini-stat-label">Attendance Rate</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card warning">
-                        <div class="mini-stat-icon warning"><i class="fas fa-clock"></i></div>
-                        <div class="mini-stat-value">2</div>
-                        <div class="mini-stat-label">Times Late</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card danger">
-                        <div class="mini-stat-icon danger"><i class="fas fa-times-circle"></i></div>
-                        <div class="mini-stat-value">1</div>
-                        <div class="mini-stat-label">Days Absent</div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Company Announcements --}}
-            <div class="col-lg-12 col-12 mb-4 px-0">
-                <div class="announcements-card">
-                    <div class="announcements-header">
-                        <h4><i class="fas fa-bullhorn me-2"></i> Company Announcements</h4>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        @forelse ($announcements as $announcement)
-                            <div class="announcement-item" data-toggle="modal" data-target="#announcementModal"
-                                data-id="{{ $announcement->id }}"
-                                data-title="{{ $announcement->title }}"
-                                data-content="{{ $announcement->content }}"
-                                data-author="{{ $announcement->user->employee->employee_name ?? 'Admin' }}"
-                                data-date="{{ $announcement->publish_date ?? $announcement->created_at->format('d M Y') }}">
-                                <div class="announcement-title">
-                                    <i class="fas fa-bullhorn text-primary"></i>
-                                    {{ $announcement->title }}
-                                    @if ($announcement->created_at->diffInDays(now()) <= 3)
-                                        <span class="announcement-badge-new">New</span>
-                                    @endif
-                                </div>
-                                <div class="announcement-excerpt">
-                                    {{ Str::limit(strip_tags($announcement->content), 120) }}
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    {{ $announcement->created_at->diffForHumans() }}
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center py-4 text-muted">
-                                <i class="fas fa-inbox fa-2x mb-2"></i>
-                                <p>No announcements available.</p>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
-            {{-- Leave Balance + My Submissions --}}
-            <div class="row">
-
-                {{-- Leave Balance (Annual Leave dari DB) --}}
-                <div class="col-lg-4 col-12 mb-4">
-                    <div class="leave-balance-card mt-1">
-                        <div class="leave-balance-header">
-                            <h4>
-                                <i class="fas fa-umbrella-beach me-2"></i>
-                                Leave Balance - {{ Auth::user()->employee->employee_name ?? '-' }}
-                            </h4>
-                        </div>
-                        <div class="leave-balance-body">
-                            <div class="leave-item">
-                                <div class="leave-type">
-                                    <div class="leave-type-icon annual">
-                                        <i class="fas fa-umbrella-beach"></i>
-                                    </div>
-                                    <div>
-                                        <div class="leave-type-name">Annual Leave</div>
-                                        <div class="leave-type-period">{{ $annualLeave->year ?? date('Y') }}</div>
-                                    </div>
-                                </div>
-                                <div class="leave-days">
-                                    <div class="leave-days-value">
-                                        {{ rtrim(rtrim(number_format($displayBalance, 2), '0'), '.') }}
-                                    </div>
-                                    <div class="leave-days-label">days remaining</div>
-                                </div>
-                            </div>
-
-                            @unless ($annualLeave)
-                                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    @if ($isNewbie)
-                                        Anda belum genap 1 tahun berada di perusahaan ini, sehingga saldo cuti belum tersedia.
-                                    @else
-                                        Saldo cuti tahunan belum tersedia untuk periode ini.
-                                    @endif
-                                </div>
-                            @endunless
-                        </div>
-                    </div>
-                </div>
-
-                {{-- My Submissions --}}
-                <div class="col-lg-8 col-12 mb-4">
-                    <div class="submissions-card">
-                        <div class="submissions-header">
-                            <div class="d-flex justify-content-between align-items-center w-100">
-                                <h4><i class="fas fa-file-alt me-2"></i> My Submissions</h4>
-                                @if ($hasPending)
-                                    <button type="button" class="btn btn-secondary btn-sm" disabled
-                                        title="Anda masih memiliki pengajuan yang menunggu persetujuan">
-                                        <i class="fas fa-clock me-1"></i> Pending Approval
-                                    </button>
-                                @else
-                                    <button type="button" class="btn btn-primary btn-sm" id="newSubmissionBtn"
-                                        data-toggle="modal" data-target="#requestLeaveModal">
-                                        <i class="fas fa-plus me-1"></i> New Request
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            @forelse ($submissions as $sub)
-                                <div class="submission-item">
-                                    <div class="submission-header-row">
-                                        <span class="submission-type-badge annual-leave">
-                                            <i class="fas fa-umbrella-beach me-1"></i>
-                                            {{ $sub['leave_name'] }}
-                                        </span>
-                                        <span class="submission-status {{ $sub['statusClass'] }}">
-                                            <i class="fas {{ $sub['statusIcon'] }} me-1"></i>
-                                            {{ $sub['status'] }}
-                                        </span>
-                                    </div>
-                                    <div class="submission-meta">
-                                        <span><i class="fas fa-calendar"></i> {{ $sub['dateLabel'] }}</span>
-                                        <span><i class="fas fa-hourglass-half"></i> {{ $sub['totalDays'] }} days</span>
-                                        <span><i class="fas fa-clock"></i> {{ $sub['ago'] }}</span>
-                                    </div>
-                                    @if ($sub['employeeReason'])
-                                        <div class="submission-notes">
-                                            <i class="fas fa-sticky-note me-2"></i>
-                                            <strong>Note:</strong> {{ $sub['employeeReason'] }}
-                                        </div>
-                                    @endif
-                                    @if (!empty($sub['approverReason']))
-                                        <div class="submission-notes"
-                                            style="border-top: 1px dashed #e9ecef; margin-top: 6px; padding-top: 6px;">
-                                            <i class="fas {{ $sub['isRejected'] ? 'fa-times-circle' : 'fa-user-check' }} me-2"></i>
-                                            <strong>{{ $sub['isRejected'] ? 'Rejection reason:' : 'Approver:' }}</strong>
-                                            {{ $sub['approverReason'] }}
-                                        </div>
-                                    @endif
-                                </div>
-                            @empty
-                                <div class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <h6>No submissions yet</h6>
-                                    <p>You haven't submitted any leave requests.</p>
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Schedule History (Calendar dari DB) --}}
-            <div class="row">
-                <div class="col-lg-12 col-12 mb-4">
-                    <div class="attendance-history-card">
-                        <div class="attendance-history-header">
-                            <h4><i class="fas fa-calendar-check me-2"></i> Schedule History</h4>
-                        </div>
-                        <div class="attendance-calendar" id="calendarContainer">
-                            @include('pages.Dashboard.calendar')
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            @include('pages.dashboardHuman._personal')
         </section>
     </div>
 
-    {{-- Request Leave Modal --}}
-    <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <form id="leaveRequestForm">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="requestLeaveLabel">
-                            <i class="fas fa-paper-plane me-2"></i> Apply Leave
-                        </h5>
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-4">
-                            <label class="form-label" for="leave_balance_id">
-                                <i class="fas fa-clipboard-list me-1"></i> Type Leave
-                            </label>
-                            <select name="leave_balance_id" id="leave_balance_id" class="form-control" required>
-                                <option value="">-- Select type of leave --</option>
-                               @forelse(($leaveBalances ?? []) as $balance)
-                                    <option value="{{ $balance->id }}"
-                                        data-days="{{ $balance->balance_days }}"
-                                        data-name="{{ $balance->leaves->name ?? 'Leave' }}"
-                                        data-fixed-days="{{ $balance->leaves->fixed_days ?? '' }}"
-                                        data-require-attachment="{{ ($balance->leaves->require_attachment ?? false) ? '1' : '0' }}">
-                                        {{ $balance->leaves->name ?? 'Leave' }} — Sisa:
-                                        {{ $balance->balance_days }} days
-                                    </option>
-                                @empty
-                                    <option value="" disabled>No leave balance available</option>
-                                @endforelse
-                            </select>
-                        </div>
-
-                        <div class="alert alert-info mb-4" id="leaveBalanceInfo" style="display:none;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div><strong>Balance Available:</strong> <span id="availableBalance">- days</span></div>
-                                <div><strong>Leave Type:</strong> <span id="selectedLeaveType">-</span></div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label" for="start_date">
-                                    <i class="fas fa-calendar-alt me-1"></i> Start Date
-                                </label>
-                                <input type="date" name="start_date" id="start_date" class="form-control"
-                                    min="{{ date('Y-m-d') }}" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label" for="end_date">
-                                    <i class="fas fa-calendar-check me-1"></i> End Date
-                                </label>
-                                <input type="date" name="end_date" id="end_date" class="form-control"
-                                    min="{{ date('Y-m-d') }}" required>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-light border mb-4" id="durationInfo">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-hourglass-half me-2"></i><strong>Duration:</strong></span>
-                                <span id="calculatedDuration" class="text-primary font-weight-bold">0 days</span>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-danger mb-4" id="balanceWarning" style="display:none;">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Insufficient leave balance!</strong>
-                            The requested duration exceeds your remaining leave days.
-                        </div>
-
-                        <div class="mb-4" id="attachmentGroup" style="display:none;">
-                            <label class="form-label" for="attachment">
-                                <i class="fas fa-paperclip me-1"></i> Lampiran Bukti
-                                <span class="text-danger" id="attachmentRequiredMark">*</span>
-                            </label>
-                            <input type="file" name="attachment" id="attachment" class="form-control"
-                                accept=".jpg,.jpeg,.png,.pdf">
-                            <small class="text-muted" id="attachmentHint">
-                                Wajib untuk jenis cuti ini. Format: JPG, PNG, atau PDF. Maks 5MB.
-                            </small>
-                        </div>
-
-                        <div class="mb-4" id="attachmentGroup" style="display:none;">
-                            <label class="form-label" for="attachment">
-                                <i class="fas fa-paperclip me-1"></i> Lampiran Bukti
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="file" name="attachment" id="attachment" class="form-control"
-                                accept=".jpg,.jpeg,.png,.pdf">
-                            <small class="text-muted">
-                                Wajib untuk jenis cuti ini. Format: JPG, PNG, atau PDF. Maks 5MB.
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="employee_reason">
-                                <i class="fas fa-sticky-note me-1"></i> Reason for Application
-                            </label>
-                            <textarea name="employee_reason" id="employee_reason" class="form-control" rows="4"
-                                placeholder="Write the reason for your leave application..." required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            <i class="fas fa-times me-1"></i> Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="submitLeaveBtn">
-                            <i class="fas fa-paper-plane me-1"></i> Apply Leave
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    {{-- Announcement Preview Modal --}}
-    <div class="modal fade" id="announcementModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-bullhorn me-2"></i>
-                        <span id="modalTitle"></span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted mb-3">
-                        <i class="fas fa-user me-1"></i> <span id="modalAuthor"></span>
-                        &nbsp;|&nbsp;
-                        <i class="fas fa-calendar-alt me-1"></i> <span id="modalDate"></span>
-                    </p>
-                    <div id="modalContent"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('pages.dashboardHuman._modals')
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        @if (session('success'))
-            Swal.fire({ icon: 'success', title: 'Success', text: '{{ session('success') }}', timer: 3000, showConfirmButton: false });
-        @endif
-        @if (session('error'))
-            Swal.fire({ icon: 'error', title: 'Error', text: '{{ session('error') }}' });
-        @endif
-    </script>
-
-    {{-- Calendar AJAX loader --}}
-    <script>
-        function loadCalendar(month, year) {
-            const container = document.getElementById('calendarContainer');
-            container.style.opacity = '0.5';
-
-            fetch(`{{ url('/dashboardHuman') }}?month=${month}&year=${year}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(res => res.text())
-                .then(html => {
-                    container.innerHTML = html;
-                    container.style.opacity = '1';
-                })
-                .catch(() => {
-                    window.location.href = `{{ url('/dashboardHuman') }}?month=${month}&year=${year}`;
-                });
-        }
-    </script>
-
-    {{-- Announcement modal filler --}}
-    <script>
-        $('#announcementModal').on('show.bs.modal', function(e) {
-            const trigger = $(e.relatedTarget);
-            $('#modalTitle').text(trigger.data('title'));
-            $('#modalAuthor').text(trigger.data('author'));
-            $('#modalDate').text(trigger.data('date'));
-            $('#modalContent').html(trigger.data('content'));
-        });
-    </script>
-
-    {{-- Request Leave modal logic --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            $('#requestLeaveModal').on('shown.bs.modal', function() {
-                $('#leave_balance_id').select2({
-                    dropdownParent: $('#requestLeaveModal'),
-                    placeholder: '-- select the type of leave --',
-                    allowClear: true,
-                    width: '100%',
-                });
-            });
-
-            $('#requestLeaveModal').on('hidden.bs.modal', function() {
-                $('#leave_balance_id').select2('destroy');
-            });
-
-            $('#leave_balance_id').on('select2:select select2:clear', function() {
-                this.dispatchEvent(new Event('change', { bubbles: true }));
-            });
-
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-            const leaveSelect = document.getElementById('leave_balance_id');
-            const balanceInfo = document.getElementById('leaveBalanceInfo');
-            const availableBalance = document.getElementById('availableBalance');
-            const selectedType = document.getElementById('selectedLeaveType');
-            const startDate = document.getElementById('start_date');
-            const endDate = document.getElementById('end_date');
-            const durationDisplay = document.getElementById('calculatedDuration');
-            const balanceWarning = document.getElementById('balanceWarning');
-            const submitBtn = document.getElementById('submitLeaveBtn');
-            const form = document.getElementById('leaveRequestForm');
-
-            let maxDays = 0;
-            let fixedDays = 0;              // durasi dikunci (0 = tidak dikunci)
-            let requireAttachment = false; // jenis cuti ini wajib lampiran?
-            const attachmentGroup = document.getElementById('attachmentGroup');
-            const attachmentInput = document.getElementById('attachment');
-
-            function applyFixedDuration() {
-                if (fixedDays > 0 && startDate.value) {
-                    const s = new Date(startDate.value);
-                    s.setDate(s.getDate() + (fixedDays - 1));
-                    endDate.value = s.toISOString().slice(0, 10);
-                }
-            }
-
-            leaveSelect?.addEventListener('change', function() {
-                const opt = this.options[this.selectedIndex];
-                const days = parseInt(opt.dataset.days ?? 0);
-                const name = opt.dataset.name ?? '-';
-                fixedDays = parseInt(opt.dataset.fixedDays || '0') || 0;
-                requireAttachment = (opt.dataset.requireAttachment === '1');
-
-                if (this.value) {
-                    maxDays = days;
-                    availableBalance.textContent = days + ' days';
-                    selectedType.textContent = name;
-                    balanceInfo.style.display = 'block';
-
-                    attachmentGroup.style.display = requireAttachment ? 'block' : 'none';
-
-                    if (fixedDays > 0) {
-                        endDate.readOnly = true;
-                        endDate.style.backgroundColor = '#e9ecef';
-                        applyFixedDuration();
-                    } else {
-                        endDate.readOnly = false;
-                        endDate.style.backgroundColor = '';
-                    }
-                } else {
-                    balanceInfo.style.display = 'none';
-                    attachmentGroup.style.display = 'none';
-                    endDate.readOnly = false;
-                    endDate.style.backgroundColor = '';
-                    maxDays = 0;
-                    fixedDays = 0;
-                    requireAttachment = false;
-                }
-                calculateDuration();
-            });
-
-            // Hitung end_date otomatis untuk cuti berdurasi tetap
-            function applyFixedDuration() {
-                if (fixedDays > 0 && startDate.value) {
-                    const s = new Date(startDate.value);
-                    s.setDate(s.getDate() + (fixedDays - 1));
-                    endDate.value = s.toISOString().slice(0, 10);
-                }
-            }
-
-            function calculateDuration() {
-                const start = startDate.value;
-                const end = endDate.value;
-
-                if (!start || !end) {
-                    durationDisplay.textContent = '0 days';
-                    balanceWarning.style.display = 'none';
-                    submitBtn.disabled = false;
-                    return;
-                }
-
-                const startObj = new Date(start);
-                const endObj = new Date(end);
-
-                if (endObj < startObj) {
-                    durationDisplay.textContent = 'End date cannot be before start date';
-                    durationDisplay.classList.add('text-danger');
-                    durationDisplay.classList.remove('text-primary');
-                    submitBtn.disabled = true;
-                    return;
-                }
-
-                const diffTime = endObj - startObj;
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                durationDisplay.textContent = diffDays + ' days';
-                durationDisplay.classList.remove('text-danger');
-                durationDisplay.classList.add('text-primary');
-
-                if (maxDays > 0 && diffDays > maxDays) {
-                    balanceWarning.style.display = 'block';
-                    submitBtn.disabled = true;
-                } else {
-                    balanceWarning.style.display = 'none';
-                    submitBtn.disabled = false;
-                }
-            }
-
-           startDate?.addEventListener('change', function() {
-                if (endDate) endDate.min = this.value;
-                if (fixedDays > 0) applyFixedDuration();
-                calculateDuration();
-            });
-            endDate?.addEventListener('change', calculateDuration);
-
-            form?.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                if (!leaveSelect.value) {
-                    Swal.fire({ icon: 'warning', title: 'Select the type of leave', text: 'Please select the type of leave first.' });
-                    return;
-                }
-
-                Swal.fire({
-                    title: 'Submit Leave Request?',
-                    text: 'Please ensure the data is correct before submitting.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Submit',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#1976D2',
-                }).then((result) => {
-                    if (!result.isConfirmed) return;
-
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
-
-                    // Guard: lampiran wajib tapi belum dipilih
-                    if (requireAttachment && attachmentInput && !attachmentInput.files.length) {
-                        Swal.fire({ icon: 'warning', title: 'Lampiran wajib', text: 'Jenis cuti ini memerlukan lampiran bukti.' });
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('leave_balance_id', document.getElementById('leave_balance_id').value);
-                    formData.append('start_date', document.getElementById('start_date').value);
-                    formData.append('end_date', document.getElementById('end_date').value);
-                    formData.append('employee_reason', document.getElementById('employee_reason').value);
-                    if (attachmentInput && attachmentInput.files.length) {
-                        formData.append('attachment', attachmentInput.files[0]);
-                    }
-
-                    fetch("{{ route('Leaverequest.store') }}", {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json'
-                            },
-                            body: formData,
-                        })
-                        .then(async (res) => {
-                            const data = await res.json();
-                            return { ok: res.ok, data };
-                        })
-                        .then(({ ok, data }) => {
-                            if (ok && data.status === 'success') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: data.message ?? 'Leave request submitted successfully.',
-                                    confirmButtonText: 'OK',
-                                }).then(() => {
-                                    $('#requestLeaveModal').modal('hide');
-                                    window.location.reload();
-                                });
-                            } else {
-                                Swal.fire({ icon: 'error', title: 'Failed', text: data.message ?? 'An error occurred while submitting the request.' });
-                                submitBtn.disabled = false;
-                                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Apply Leave';
-                            }
-                        })
-                        .catch((err) => {
-                            console.error(err);
-                            Swal.fire({ icon: 'error', title: 'Failed', text: 'An error occurred while submitting the request.' });
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Apply Leave';
-                        });
-                });
-            });
-        });
-    </script>
+    @include('pages.dashboardHuman._scripts')
 @endpush

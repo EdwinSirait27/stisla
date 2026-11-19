@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Payroll;
+use App\Models\PayrollPeriod;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -20,7 +21,10 @@ class PayrollSlipMail extends Mailable
  
     public function build()
     {
-        $period = Carbon::parse($this->payroll->period_start)->translatedFormat('F Y');
+        // Nama periode dari period_month + period_year (PayrollPeriod::period_label), mis. "Juni 2026".
+        // Dulu dihitung dari period_start, jadi slip periode Juni ter-subject "May 2026".
+        // Fallback memakai period_month/period_year milik payroll sendiri dengan format yang sama.
+        $period = $this->payroll->periodLabel();
 
         return $this->mailer('payroll')
             ->subject('Slip Gaji - ' . $period . ' - ' . $this->payroll->employee->employee_name)
@@ -33,31 +37,14 @@ class PayrollSlipMail extends Mailable
                 'companyName'    => $this->payroll->employee->company->name ?? 'PT. Asian Bay Development',
             ])
             ->from(
-                env('PAYROLL_MAIL_FROM_ADDRESS'),
-                env('PAYROLL_MAIL_FROM_NAME', 'HRX Payroll')
+                config('mail.mailers.payroll.from.address'),
+                config('mail.mailers.payroll.from.name', 'HRX Payroll')
             )
             ->attach($this->pdfPath, [
-                'as'   => 'Slip_Gaji_' . $this->payroll->employee->employee_pengenal . '.pdf',
+                'as'   => $this->payroll->slipFilename(),
                 'mime' => 'application/pdf',
             ]);
     }
 }
 
-   // public function build()
-    // {
-    //     $period = \Carbon\Carbon::parse($this->payroll->period_start)->translatedFormat('F Y');
-    //     return $this->subject('Slip Gaji - ' . $period . ' - ' . $this->payroll->employee->employee_name)
-    //         ->view('mail.PayrollSlipMail')
-    //         ->with([
-    //             'employeeName'   => $this->payroll->employee->employee_name,
-    //             'payrollPeriod'  => $period,
-    //             'netSalary'      => $this->payroll->net_salary,
-    //             'totalDeduction' => $this->payroll->total_deduction,
-    //             'companyName'    => $this->payroll->employee->company->name ?? 'PT. Asian Bay Development',
-    //             'slipPassword'   => $this->slipPassword,
-    //         ])
-    //         ->attach($this->pdfPath, [
-    //             'as'   => 'Slip_Gaji_' . $this->payroll->employee->employee_pengenal . '.pdf',
-    //             'mime' => 'application/pdf',
-    //         ]);
-    // }
+   

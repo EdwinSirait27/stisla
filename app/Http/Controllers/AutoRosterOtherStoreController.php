@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\Ph;
+use App\Models\PublicHoliday;
 use App\Models\Roster;
+use App\Models\RosterPHCarryover;
 use App\Models\Shifts;
 use App\Models\Stores;
 use Carbon\Carbon;
@@ -516,6 +518,13 @@ class AutoRosterOtherStoreController extends Controller
                 // PKWT & OJT → dapat PH | DW → tidak dapat PH
                 $eligibleForPH = $this->isEligibleForPH($employee->status_employee);
 
+                // PH hari Minggu hangus untuk store statis (ikut primary store karyawan)
+                $isStaticStore = in_array(
+                    $employee->primaryStore()->value('stores_tables.id'),
+                    PublicHoliday::STATIC_STORE_IDS,
+                    true
+                );
+
                 foreach ($dates as $dayIndex => $date) {
                     $dateStr  = $date->toDateString();
                     $key      = $employee->id . '_' . $dateStr;
@@ -524,26 +533,46 @@ class AutoRosterOtherStoreController extends Controller
                     $dayType = $pattern['day_type'];
                     $shiftId = $pattern['shift_id'] ?? null;
                     $notes   = null;
+                    $phForDate = null;
 
                     // ✅ PERUBAHAN: cek PH hanya untuk karyawan yang eligible (PKWT & OJT)
                     // DW tetap mengikuti pattern Work/Off tanpa override PH
-                    if ($eligibleForPH && $allPublicHolidays->has($dateStr)) {
+                    $phVoided = $isStaticStore && $date->isSunday();
+
+                    if ($eligibleForPH && !$phVoided && $allPublicHolidays->has($dateStr)) {
                         $phForDate = $allPublicHolidays->get($dateStr)
                             ->first(fn($ph) => in_array($ph->type, $relevantPhTypes));
-
-                        if ($phForDate) {
-                            $dayType = 'Public Holiday';
-                            $shiftId = null;
-                            $notes   = $phForDate->remark;
-                            $phApplied++;
-                        }
                     }
 
-                    if ($existingRosters->has($key)) {
-                        if (!$overrideExisting) {
+                    if ($phForDate) {
+                        $dayType = 'Public Holiday';
+                        $shiftId = null;
+                        $notes   = $phForDate->remark;
+                    } elseif ($dayType === 'Public Holiday') {
+                        // Pola PH di tanggal yang bukan PH tidak boleh jadi libur berbayar
+                        $dayType = 'Off';
+                        $shiftId = null;
+                    }
+
+                    // TOIL Off tidak ikut di-override: saldonya sudah terpotong
+                    if ($existingRosters->has($key)
+                        && (!$overrideExisting || $existingRosters->get($key)->day_type === 'TOIL Off')) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    // Hari PH yang sudah dikerjakan / saldonya sudah dipakai tidak boleh jadi PH lagi
+                    if ($phForDate) {
+                        if (!RosterPHCarryover::enjoyPh($employee->id, $dateStr)) {
                             $skipped++;
                             continue;
                         }
+                        $phApplied++;
+                    }
+
+                    if ($existingRosters->has($key)) {
+                        // Hari pengganti yang tertimpa: saldonya kembali tersedia
+                        RosterPHCarryover::refundUsedOn($employee->id, $dateStr);
 
                         // Update
                         $existingRosters->get($key)->update([

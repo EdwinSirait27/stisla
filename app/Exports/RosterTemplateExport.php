@@ -382,7 +382,7 @@ class RosterTutorialSheet implements WithEvents, WithTitle
                     '2. Saldo PH tukar dapat digunakan di tanggal lain dalam periode yang sama (maks 2 bulan setelah periode berakhir).',
                     '3. Karyawan DW (Daily Worker) TIDAK berhak mendapatkan PH. Jangan isi kode PH untuk karyawan DW.',
                     '4. PH yang jatuh di hari Minggu untuk store Head Office / Holding / Distribution Center akan HANGUS (tidak bisa ditukar).',
-                    '5. Jumlah kode PH pengganti tidak boleh melebihi jumlah PH asli yang diperoleh karyawan di periode tersebut.',
+                    '5. Kode PH pengganti hanya berlaku kalau karyawan punya saldo PH yang sah (sudah tercatat masuk di hari PH). Kalau belum, tanggalnya dilewati.',
                 ];
                 foreach ($notes as $note) {
                     $sheet->setCellValue("A{$noteRow}", $note);

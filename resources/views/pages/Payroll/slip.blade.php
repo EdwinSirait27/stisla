@@ -1,114 +1,256 @@
+{{--
+    PDF slip gaji (dompdf). dompdf hanya mendukung CSS 2.1: layout pakai tabel,
+    tanpa flex/grid/CSS variable. Warna ditulis sebagai hex di blok token PHP di bawah.
+    Angka diambil dari Payroll::salaryBreakdown(), rumus yang sama dengan halaman detail
+    dan PayrollService::recalculateNet.
+--}}
+@php
+    $emp = $payroll->employee;
+    $b = $payroll->salaryBreakdown();
+    $rp = fn($n) => number_format((float) $n, 0, ',', '.');
+
+    // Nama periode dari period_month + period_year (PayrollPeriod::period_label)
+    $periodLabel = $payroll->periodLabel();
+    $start = \Carbon\Carbon::parse($payroll->period_start)->locale('id');
+    $end = \Carbon\Carbon::parse($payroll->period_end)->locale('id');
+
+    $department = optional($emp->department()->wherePivot('is_primary', true)->first())->department_name;
+    $location = optional($emp->store()->wherePivot('is_primary', true)->first())->name;
+    $position = optional($emp->position()->wherePivot('is_primary', true)->first())->name;
+    $bankName = optional($emp->bank)->name;
+
+    // Baris pendapatan: allowance selalu tampil, overtime/reimburse hanya jika ada
+    $alwaysShow = ['MEAL ALLOWANCE', 'HOUSE ALLOWANCE', 'TRANSPORT ALLOWANCE', 'BPJS KESEHATAN', 'BPJS KETENAGAKERJAAN'];
+    $incomeRows = array_values(array_filter($b['income'], fn($r) => $r['amount'] > 0 || in_array($r['label'], $alwaysShow, true)));
+    $deductionRows = array_values(array_filter($b['deduction'], fn($r) => $r['amount'] > 0 || in_array($r['label'], $alwaysShow, true)));
+    $totalIncome = $b['earned'] + $b['income_total'];
+    $isNegative = (float) $payroll->net_salary < 0;
+
+    $logo = null;
+    $fotoPath = $emp->company->foto ?? null;
+    if ($fotoPath) {
+        $fullPath = storage_path('app/public/' . $fotoPath);
+        if (is_file($fullPath)) {
+            $logo = 'data:image/' . pathinfo($fullPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode(file_get_contents($fullPath));
+        }
+    }
+
+    $c = [
+        'ink' => '#1f2433',
+        'ink2' => '#4a5163',
+        'muted' => '#6b7183',
+        'rule' => '#d9dce6',
+        'soft' => '#f4f5f9',
+        'accent' => '#3f44b5',
+        'accentSoft' => '#eceefe',
+        'plus' => '#1d6b3a',
+        'minus' => '#a3261b',
+        'confidential' => '#b42318',
+    ];
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payslip MJM</title>
-    <link rel="icon" type="image/png"
-        href="{{ asset('img/1710675344-17-03-2024-iSZQk9yVubtJh31N46lxpnC7av5osrLW.ico') }}">
+    <title>Slip gaji {{ $periodLabel }} {{ $emp->employee_name }}</title>
     <style>
+        @page {
+            margin: 28px 32px;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            color: #333;
-            font-size: 12px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10px;
+            line-height: 1.4;
+            color: {{ $c['ink'] }};
+            margin: 0;
         }
 
-        .payslip-container {
-            border: 1px solid #ddd;
-            padding: 15px;
+        table {
+            border-collapse: collapse;
+            width: 100%;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
+        td,
+        th {
+            vertical-align: top;
+            padding: 0;
         }
 
-        .confidential {
-            color: #FF0000;
-            font-weight: bold;
-        }
-
-        .tables-container {
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-        }
-
-        .table-cell-amount {
+        .num {
             text-align: right;
-            font-family: monospace;
-        }
-
-        .totals-row {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 1rem;
-        }
-
-        .total-section {
-            flex: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            font-weight: bold;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .table-cell-amount {
-            font-weight: bold;
             white-space: nowrap;
         }
 
-        .take-home {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            background-color: #f5f5f5;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-        }
-
-        .transfer-section {
-            border-top: 1px solid #ddd;
-            padding-top: 12px;
-        }
-
-        .transfer-title {
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .transfer-details {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-        }
-
-        .transfer-account {
-            color: #555;
+        .muted {
+            color: {{ $c['muted'] }};
         }
 
         .watermark {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 80px;
-            color: rgba(200, 200, 200, 0.15);
-            white-space: nowrap;
-            pointer-events: none;
-            z-index: 0;
+            top: 42%;
+            left: 8%;
+            font-size: 72px;
+            font-weight: bold;
+            color: #000000;
+            opacity: 0.04;
+            transform: rotate(-30deg);
+            z-index: -1;
+        }
+
+        /* Head */
+        .head td {
+            vertical-align: middle;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            color: {{ $c['ink2'] }};
+            margin: 2px 0 0;
+        }
+
+        .confidential {
+            display: inline-block;
+            padding: 3px 8px;
+            border: 1px solid {{ $c['confidential'] }};
+            color: {{ $c['confidential'] }};
+            font-weight: bold;
+            font-size: 9px;
+        }
+
+        .rule {
+            border-bottom: 1px solid {{ $c['rule'] }};
+            margin: 12px 0;
+        }
+
+        /* Facts */
+        .facts td {
+            padding: 3px 0;
+        }
+
+        .facts .k {
+            width: 16%;
+            color: {{ $c['ink2'] }};
+        }
+
+        .facts .v {
+            width: 34%;
+            font-weight: bold;
+            padding-right: 12px;
+        }
+
+        /* Attendance strip */
+        .strip td {
+            background: {{ $c['soft'] }};
+            padding: 8px 10px;
+            border-right: 2px solid #ffffff;
+        }
+
+        .strip .k {
+            display: block;
+            font-size: 9px;
+            color: {{ $c['ink2'] }};
+        }
+
+        .strip .v {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* Ledger */
+        .ledger {
+            border: 1px solid {{ $c['rule'] }};
+        }
+
+        .ledger th {
+            text-align: left;
+            font-size: 11px;
+            padding: 7px 10px;
+            border-bottom: 1px solid {{ $c['rule'] }};
+            background: {{ $c['soft'] }};
+        }
+
+        .ledger td {
+            padding: 5px 10px;
+        }
+
+        .ledger .hint {
+            display: block;
+            font-size: 8.5px;
+            color: {{ $c['muted'] }};
+        }
+
+        .ledger tr.total td {
+            border-top: 1px solid {{ $c['rule'] }};
+            font-weight: bold;
+            padding-top: 7px;
+            padding-bottom: 7px;
+        }
+
+        .ledger tr.earned td {
+            font-weight: bold;
+        }
+
+        .plus {
+            color: {{ $c['plus'] }};
+        }
+
+        .minus {
+            color: {{ $c['minus'] }};
+        }
+
+        /* Net */
+        .net td {
+            background: {{ $c['accentSoft'] }};
+            padding: 12px 14px;
+        }
+
+        .net .k {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .net .formula {
+            display: block;
+            font-size: 9px;
+            font-weight: normal;
+            color: {{ $c['ink2'] }};
+            margin-top: 2px;
+        }
+
+        .net .v {
+            font-size: 18px;
+            font-weight: bold;
+            color: {{ $isNegative ? $c['minus'] : $c['accent'] }};
+        }
+
+        /* Transfer */
+        .transfer td {
+            padding: 3px 0;
+        }
+
+        .transfer .k {
+            width: 22%;
+            color: {{ $c['ink2'] }};
+        }
+
+        .transfer .v {
+            font-weight: bold;
+        }
+
+        .foot {
+            margin-top: 16px;
+            font-size: 8.5px;
+            color: {{ $c['muted'] }};
         }
     </style>
 </head>
@@ -116,198 +258,169 @@
 <body>
     <div class="watermark">CONFIDENTIAL</div>
 
-    @php
-        $statusEmp = strtoupper($payroll->employee->status_employee ?? '');
-        $isDW = $statusEmp === 'DW';
-
-        // Ambil amount dari PayrollDetail (BPJS, MEAL/HOUSE/TRANSPORT allowance)
-        $mealAllowance = $payroll->details->firstWhere('component.component_name', 'MEAL ALLOWANCE')?->amount ?? 0;
-        $houseAllowance = $payroll->details->firstWhere('component.component_name', 'HOUSE ALLOWANCE')?->amount ?? 0;
-        $transportAllowance =
-            $payroll->details->firstWhere('component.component_name', 'TRANSPORT ALLOWANCE')?->amount ?? 0;
-        $bpjsKesehatan = $payroll->details->firstWhere('component.component_name', 'BPJS KESEHATAN')?->amount ?? 0;
-        $bpjsKetenagakerjaan =
-            $payroll->details->firstWhere('component.component_name', 'BPJS KETENAGAKERJAAN')?->amount ?? 0;
-
-        $basicOrDaily = $isDW
-            ? $payroll->daily_rate * $payroll->attendance_days
-            : ($payroll->working_days > 0
-                ? floor(
-                    (($payroll->basic_salary + $payroll->position_allowance) / $payroll->working_days) *
-                        min($payroll->attendance_days, $payroll->working_days),
-                )
-                : 0);
-        $basic = $payroll->basic_salary;
-        $positional = $payroll->position_allowance;
-    @endphp
-
-    <div class="payslip-container" id="payslip-content" style="font-family: Arial, sans-serif; font-size: 14px;">
-
-        <!-- Header with Logo and Confidential -->
-        <div class="header"
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <table style="width: 100%; margin-bottom: 20px;">
-                <tr>
-                    <td style="text-align: left;">
-                        @php
-                            $imageData = null;
-                            $fotoPath = $payroll->employee->company->foto ?? null;
-
-                            if ($fotoPath) {
-                                $fullPath = storage_path('app/public/' . $fotoPath);
-
-                                if (is_file($fullPath)) {
-                                    $type = pathinfo($fullPath, PATHINFO_EXTENSION);
-                                    $imageData =
-                                        'data:image/' .
-                                        $type .
-                                        ';base64,' .
-                                        base64_encode(file_get_contents($fullPath));
-                                }
-                            }
-                        @endphp
-
-                        @if ($imageData)
-                            <div style="background-color: #000000; display: inline-block; padding: 5px;">
-                                <img src="{{ $imageData }}" alt="Foto Perusahaan" width="70">
-                            </div>
-                        @else
-                            <span style="color: #888;">Foto tidak tersedia</span>
-                        @endif
-                    </td>
-                    <td style="text-align: right; color: red; font-weight: bold; font-size: 18px;">
-                        *CONFIDENTIAL
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <!-- Employee Information -->
-        
-        <table width="100%" style="margin-bottom: 20px; font-size: 12px; text-align: left;">
-    <tr>
-        <td width="15%"><strong>Payroll :</strong></td>
-        <td width="35%">{{ \Carbon\Carbon::parse($payroll->period_start)->translatedFormat('F Y') }}</td>
-        <td width="15%"><strong>Periode :</strong></td>
-        <td width="35%">{{ \Carbon\Carbon::parse($payroll->period_start)->format('d/m/Y') }} —
-            {{ \Carbon\Carbon::parse($payroll->period_end)->format('d/m/Y') }}</td>
-    </tr>
-    <tr>
-        <td><strong>Name :</strong></td>
-        <td>{{ $payroll->employee->employee_name }}</td>
-        <td><strong>NIP :</strong></td>
-        <td>{{ $payroll->employee->employee_pengenal }}</td>
-    </tr>
-    <tr>
-        <td><strong>Company Name :</strong></td>
-        <td>{{ $payroll->employee->company->name }}</td>
-        <td><strong>Status :</strong></td>
-        <td>{{ $payroll->employee->status_employee }}</td>
-    </tr>
-    <tr>
-        <td><strong>Department :</strong></td>
-        <td>{{ optional($payroll->employee->department()->wherePivot('is_primary', true)->first())->department_name ?? '' }}</td>
-        <td><strong>Location :</strong></td>
-        <td>{{ optional($payroll->employee->store()->wherePivot('is_primary', true)->first())->name ?? '' }}</td>
-    </tr>
-    <tr>
-        <td><strong>Job Position :</strong></td>
-        <td>{{ optional($payroll->employee->position()->wherePivot('is_primary', true)->first())->name ?? '' }}</td>
-        <td><strong>Grading :</strong></td>
-        <td>{{ $payroll->employee->grading->grading_name ?? 'Empty' }}</td>
-    </tr>
-    <tr>
-        <td><strong>NPWP :</strong></td>
-        <td>{{ $payroll->employee->npwp ?? '' }}</td>
-        <td><strong>Email :</strong></td>
-        <td>{{ $payroll->employee->email }}</td>
-    </tr>
-</table>
-        <!-- Earnings and Deductions Tables -->
-        <div class="tables-container">
-            <table width="100%" border="1" cellspacing="0" cellpadding="5"
-                style="border-collapse: collapse; margin-bottom: 20px;">
-                <thead>
-                    <tr style="background-color: #f5f5f5;">
-                        <th width="50%">Income</th>
-                        <th width="50%">Outcome (Deductions)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="text-align: left;">
-                            Attendances: {{ $payroll->attendance_days }} days<br>
-                            @if ($isDW)
-                            @else
-                                Working Days : {{ $payroll->working_days }} days<br>
-                            @endif
-                            @if ($isDW)
-                                Daily Rate: IDR {{ number_format($payroll->daily_rate, 0, ',', '.') }}<br>
-                            @else
-                                Basic Salary : IDR {{ number_format($basic, 0, ',', '.') }}<br>
-                                Position Allowance: IDR {{ number_format($positional, 0, ',', '.') }}<br>
-                            @endif
-                            @if ($payroll->overtime_amount > 0)
-                                Overtime: IDR {{ number_format($payroll->overtime_amount, 0, ',', '.') }}<br>
-                            @endif
-                                House Allowance: IDR {{ number_format($houseAllowance, 0, ',', '.') }}<br>
-                                Meal Allowance: IDR {{ number_format($mealAllowance, 0, ',', '.') }}<br>
-                                Transport Allowance: IDR {{ number_format($transportAllowance, 0, ',', '.') }}<br>
-                            @if ($payroll->reimburse_amount > 0)
-                                Reimburse: IDR {{ number_format($payroll->reimburse_amount, 0, ',', '.') }}
-                            @endif
-                        </td>
-                        <td>
-                            @if ($payroll->punishment > 0)
-                                Punishment: IDR {{ number_format($payroll->punishment, 0, ',', '.') }}<br>
-                            @endif
-                            @if ($payroll->punishment_so > 0)
-                                SO Punishment: IDR {{ number_format($payroll->punishment_so, 0, ',', '.') }}<br>
-                            @endif
-                                BPJS Ketenagakerjaan: IDR {{ number_format($bpjsKetenagakerjaan, 0, ',', '.') }}<br>
-                                BPJS Kesehatan: IDR {{ number_format($bpjsKesehatan, 0, ',', '.') }}<br>
-                            @if ($payroll->tax > 0)
-                                Tax: IDR {{ number_format($payroll->tax, 0, ',', '.') }}<br>
-                            @endif
-                            @if ($payroll->debt > 0)
-                                Debt: IDR {{ number_format($payroll->debt, 0, ',', '.') }}<br>
-                            @endif
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <!-- Totals Row -->
-            <div class="totals-row">
-                <div class="total-section">
-                    <div>Total Incomes</div>
-                    <div class="table-cell-amount">IDR
-                        {{ number_format($basicOrDaily + $payroll->total_income, 0, ',', '.') }}</div>
-                </div>
-                <div class="total-section">
-                    <div>Total Outcomes (Deductions)</div>
-                    <div class="table-cell-amount">IDR {{ number_format($payroll->total_deduction, 0, ',', '.') }}
+    {{-- Head --}}
+    <table class="head">
+        <tr>
+            <td style="width:60%;">
+                @if ($logo)
+                    <div style="background:#000000;display:inline-block;padding:5px;margin-bottom:6px;">
+                        <img src="{{ $logo }}" alt="" width="64">
                     </div>
-                </div>
-            </div>
-        </div>
-        <!-- Take Home Pay -->
-        <div class="take-home">
-            <div>Net Salary</div>
-            <div>IDR {{ number_format($payroll->net_salary, 0, ',', '.') }}</div>
-        </div>
-        <!-- Transfer Information -->
-        <div class="transfer-section">
-            <div class="transfer-title">
-                Transfer To {{ optional($payroll->employee->bank)->name ?? 'Bank' }}
-            </div>
-            <div class="transfer-details">
-                <div class="transfer-account">
-                    {{ $payroll->created_at ? $payroll->created_at->format('d-m-Y') : '-' }}
-                    {{ optional($payroll->employee->bank)->name ?? '-' }} -
-                    {{ $payroll->employee->bank_account_number ?? '-' }} a/n
-                    {{ $payroll->employee->employee_name }}
-                </div>
-            </div>
-        </div>
-    </div>
+                @endif
+                <p class="title">Slip gaji {{ $periodLabel }}</p>
+                <p class="subtitle">Payslip, {{ $emp->company->name ?? '-' }}</p>
+            </td>
+            <td class="num" style="width:40%;">
+                <span class="confidential">RAHASIA / CONFIDENTIAL</span>
+                <p class="subtitle" style="margin-top:6px;">
+                    {{ $start->translatedFormat('d M Y') }} sampai {{ $end->translatedFormat('d M Y') }}
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <div class="rule"></div>
+
+    {{-- Employee facts --}}
+    <table class="facts">
+        <tr>
+            <td class="k">Name</td>
+            <td class="v">{{ $emp->employee_name }}</td>
+            <td class="k">NIP</td>
+            <td class="v">{{ $emp->employee_pengenal ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Company</td>
+            <td class="v">{{ $emp->company->name ?? '-' }}</td>
+            <td class="k">Status</td>
+            <td class="v">{{ $emp->status_employee ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Department</td>
+            <td class="v">{{ $department ?: '-' }}</td>
+            <td class="k">Location</td>
+            <td class="v">{{ $location ?: '-' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Job position</td>
+            <td class="v">{{ $position ?: '-' }}</td>
+            <td class="k">Grading</td>
+            <td class="v">{{ $emp->grading->grading_name ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="k">NPWP</td>
+            <td class="v">{{ $emp->npwp ?: '-' }}</td>
+            <td class="k">Email</td>
+            <td class="v">{{ $emp->email ?: '-' }}</td>
+        </tr>
+    </table>
+
+    <div class="rule"></div>
+
+    {{-- Attendance --}}
+    <table class="strip">
+        <tr>
+            @if (!$b['is_dw'])
+                <td style="width:50%;"><span class="k">Working days</span><span class="v">{{ $b['working_days'] }} hari</span></td>
+                <td style="width:50%;border-right:0;"><span class="k">Attendance</span><span class="v">{{ $b['attendance'] }} hari</span></td>
+            @else
+                <td style="width:50%;"><span class="k">Attendance</span><span class="v">{{ $b['attendance'] }} hari</span></td>
+                <td style="width:50%;border-right:0;"><span class="k">Daily rate</span><span class="v">IDR {{ $rp($payroll->daily_rate) }}</span></td>
+            @endif
+        </tr>
+    </table>
+
+    {{-- Income + deductions --}}
+    <table style="margin-top:12px;">
+        <tr>
+            <td style="width:50%;padding-right:6px;">
+                <table class="ledger">
+                    <tr>
+                        <th colspan="2">Income</th>
+                    </tr>
+                    @if ($b['is_dw'])
+                        <tr class="earned">
+                            <td>
+                                Daily rate &times; attendance
+                                <span class="hint">IDR {{ $rp($payroll->daily_rate) }} &times; {{ $b['attendance'] }} hari</span>
+                            </td>
+                            <td class="num">{{ $rp($b['earned']) }}</td>
+                        </tr>
+                    @else
+                        <tr>
+                            <td>Basic salary</td>
+                            <td class="num muted">{{ $rp($payroll->basic_salary) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Position allowance</td>
+                            <td class="num muted">{{ $rp($payroll->position_allowance) }}</td>
+                        </tr>
+                        <tr class="earned">
+                            <td>
+                                Salary for attendance
+                                <span class="hint">{{ $rp($payroll->gross_salary) }} &times; {{ $b['counted_days'] }}/{{ $b['working_days'] }} hari</span>
+                            </td>
+                            <td class="num">{{ $rp($b['earned']) }}</td>
+                        </tr>
+                    @endif
+                    @foreach ($incomeRows as $row)
+                        <tr>
+                            <td>{{ ucwords(strtolower($row['label'])) }}</td>
+                            <td class="num">{{ $rp($row['amount']) }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="total">
+                        <td>Total income</td>
+                        <td class="num plus">IDR {{ $rp($totalIncome) }}</td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width:50%;padding-left:6px;">
+                <table class="ledger">
+                    <tr>
+                        <th colspan="2">Deductions</th>
+                    </tr>
+                    @foreach ($deductionRows as $row)
+                        <tr>
+                            <td>{{ $row['label'] === 'BPJS KETENAGAKERJAAN' ? 'BPJS Ketenagakerjaan' : ($row['label'] === 'BPJS KESEHATAN' ? 'BPJS Kesehatan' : ucfirst(strtolower($row['label']))) }}</td>
+                            <td class="num">{{ $rp($row['amount']) }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="total">
+                        <td>Total deductions</td>
+                        <td class="num minus">IDR {{ $rp($b['deduction_total']) }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Net --}}
+    <table class="net" style="margin-top:12px;">
+        <tr>
+            <td>
+                <span class="k">Net salary</span>
+                <span class="formula">Total income {{ $rp($totalIncome) }} dikurangi total deductions {{ $rp($b['deduction_total']) }}</span>
+            </td>
+            <td class="num" style="vertical-align:middle;"><span class="v">IDR {{ $rp($payroll->net_salary) }}</span></td>
+        </tr>
+    </table>
+
+    {{-- Transfer --}}
+    <table class="transfer" style="margin-top:14px;">
+        <tr>
+            <td class="k">Transfer ke</td>
+            <td class="v">{{ $bankName ?: '-' }} {{ $emp->bank_account_number ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Atas nama</td>
+            <td class="v">{{ $emp->employee_name }}</td>
+        </tr>
+    </table>
+
+    <p class="foot">
+        Dicetak {{ now()->locale('id')->translatedFormat('d M Y, H:i') }}. Slip ini bersifat rahasia dan hanya untuk karyawan yang bersangkutan.
+    </p>
 </body>
+
 </html>

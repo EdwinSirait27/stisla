@@ -2,208 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\UserSession;
+use App\Rules\NoXSSInput;
+use App\Services\LoginSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Rules\NoXSSInput;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use App\Models\UserSession;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use App\Services\DashboardRedirectService;
 
 class LoginController extends Controller
 {
+    /**
+     * Batas percobaan gagal: [key prefix, maks gagal, jendela detik].
+     * - pair : username + IP, mengerem tebak cepat dari satu mesin
+     * - user : per username dari IP mana pun (lockout bertingkat 15 menit lalu 1 jam)
+     * - ip   : per IP lintas username (password spraying)
+     */
+    private const LIMITS = [
+        'pair'      => [5, 60],
+        'user'      => [10, 900],
+        'user_long' => [25, 3600],
+        'ip'        => [30, 600],
+    ];
+
+    private const GENERIC_FAIL = 'Username atau password salah.';
+    private const BLOCKED_ACCOUNT = 'Akun ini tidak dapat digunakan untuk login. Hubungi HR.';
+
+    public function __construct(private LoginSessionService $loginSession)
+    {
+    }
+
     public function index()
     {
         return view('pages.login');
     }
-    // public function store(Request $request)
-    // {
-    //     $attributes = $request->validate([
-    //         'username' => [
-    //             'required',
-    //             'string',
-    //             'min:7',
-    //             'max:12',
-    //             'regex:/^[a-zA-Z0-9_-]+$/',
-    //             new NoXSSInput(),
-    //             function ($attribute, $value, $fail) {
-    //                 if (strip_tags($value) !== $value) {
-    //                     $fail("Input $attribute mengandung tag HTML yang tidak diperbolehkan.");
-    //                 }
-    //             }
-    //         ],
-    //         'password' => [
-    //             'required',
-    //             'string',
-    //             'min:8',
-    //             'max:20',
-    //         ],
-    //     ], [
-    //         'username.required' => 'Username is required.',
-    //         'username.min'      => 'Username must be at least 7 characters.',
-    //         'username.max'      => 'Username cannot be more than 12 characters.',
-    //         'password.required' => 'Password is required.',
-    //         'password.min'      => 'Password must be at least 8 characters.',
-    //         'password.max'      => 'Password cannot be more than 20 characters.',
-    //     ]);
 
-    //     $normalizedUsername = strtolower($request->username);
-    //     $rateLimiterKey     = "login:{$normalizedUsername}";
-
-    //     if (RateLimiter::tooManyAttempts($rateLimiterKey, 10)) {
-    //         Log::warning("Rate limiter triggered", [
-    //             'username'   => $normalizedUsername,
-    //             'ip'         => $request->ip(),
-    //             'user_agent' => $request->header('User-Agent'),
-    //         ]);
-    //         return back()->withErrors(['/' => 'Too many attempts. Please try again in 1 minute.']);
-    //     }
-
-    //     try {
-    //         $attributes['username'] = $normalizedUsername;
-
-    //         if (!Auth::attempt($attributes, $request->boolean('remember'))) {
-    //             sleep(1);
-    //             Log::warning("Failed login attempt", [
-    //                 'username'   => $normalizedUsername,
-    //                 'ip'         => $request->ip(),
-    //                 'user_agent' => $request->header('User-Agent'),
-    //             ]);
-    //             RateLimiter::hit($rateLimiterKey, 60);
-    //             return back()->withErrors(['/' => 'Wrong username or Password.']);
-    //         }
-
-    //         $request->session()->regenerate();
-    //         RateLimiter::clear($rateLimiterKey);
-
-    //         /** @var \App\Models\User $user */
-    //         $user             = Auth::user(); // ← assign DULU di sini
-    //         $currentSessionId = $request->session()->getId();
-
-    //         /**
-    //          * Cek relasi employee dan status aktif
-    //          */
-    //         if (!$user->employee) {
-    //             Auth::logout();
-    //             return back()->withErrors(['/' => 'Your account is not yet connected to employee data.']);
-    //         }
-    //         if ($user->employee->status !== 'Active') {
-    //             Auth::logout();
-    //             return back()->withErrors(['/' => 'Your account is inactive. Please contact HR.']);
-    //         }
-
-    //         /**
-    //          * Cek 2FA — SETELAH employee valid, SEBELUM session & redirect
-    //          */
-    //         if ($user->hasTwoFactorEnabled()) {
-    //             Auth::logout();
-    //             session(['2fa.user_id' => $user->id]);
-    //             return redirect()->route('2fa.verify');
-    //         }
-
-    //         if ($user->requiresTwoFactor() && !$user->hasTwoFactorEnabled()) {
-    //             return redirect()->route('2fa.setup')
-    //                 ->with('warning', 'Akun Anda diwajibkan mengaktifkan 2FA sebelum bisa mengakses sistem.');
-    //         }
-
-
-    //         /**
-    //          * Cek password sama dengan username
-    //          */
-    //         if (Hash::check($normalizedUsername, $user->password)) {
-    //             Log::warning("User login with password same as username", [
-    //                 'username' => $normalizedUsername,
-    //                 'ip'       => $request->ip(),
-    //             ]);
-
-    //             UserSession::where('user_id', $user->id)
-    //                 ->where('session_id', '!=', $currentSessionId)
-    //                 ->delete();
-
-    //             UserSession::updateOrCreate(
-    //                 ['user_id' => $user->id, 'session_id' => $currentSessionId],
-    //                 [
-    //                     'ip_address'    => $request->ip(),
-    //                     'last_activity' => now(),
-    //                     'device_type'   => $request->header('User-Agent'),
-    //                 ]
-    //             );
-
-    //             return redirect()->route('pages.change-password')
-    //                 ->with('warning', 'Your password is the same as your username. Please change your password first.');
-    //         }
-
-    //         /**
-    //          * Cek apakah user sudah login di device lain
-    //          */
-    //         $existingSession = UserSession::where('user_id', $user->id)
-    //             ->where('session_id', '!=', $currentSessionId)
-    //             ->first();
-
-    //         if ($existingSession) {
-    //             if (!$request->has('force_login')) {
-    //                 Log::info("User already logged in elsewhere", [
-    //                     'username'         => $normalizedUsername,
-    //                     'current_session'  => $currentSessionId,
-    //                     'existing_session' => $existingSession->session_id,
-    //                 ]);
-    //                 Auth::logout();
-    //                 return back()->with('confirm_force_login', [
-    //                     'message'  => 'You are already logged in on another device. Will you continue to log out from that device?',
-    //                     'username' => $request->username,
-    //                     'password' => $request->password,
-    //                     'remember' => $request->boolean('remember'),
-    //                 ]);
-    //             }
-    //             $this->logoutOtherDevices($user, $currentSessionId);
-    //         }
-
-    //         /**
-    //          * Simpan sesi login
-    //          */
-    //         UserSession::updateOrCreate(
-    //             ['user_id' => $user->id, 'session_id' => $currentSessionId],
-    //             [
-    //                 'ip_address'    => $request->ip(),
-    //                 'last_activity' => now(),
-    //                 'device_type'   => $request->header('User-Agent'),
-    //             ]
-    //         );
-
-    //         /**
-    //          * Redirect berdasarkan permission (Spatie)
-    //          */
-    //         $redirect = DashboardRedirectService::redirectForUser($user);
-    //         if ($redirect) {
-    //             Log::info("User logged in", [
-    //                 'username'    => $normalizedUsername,
-    //                 'ip'          => $request->ip(),
-    //                 'permissions' => implode(', ', $user->getPermissionsViaRoles()->pluck('name')->toArray()),
-    //             ]);
-    //             return $redirect->with('success', 'Success login, Goodluck!!!');
-    //         }
-
-    //         Log::warning("User has no valid permission", [
-    //             'username' => $normalizedUsername,
-    //             'ip'       => $request->ip(),
-    //         ]);
-    //         Auth::logout();
-    //         return redirect('/')->with('warning', 'Your account does not have a valid role.');
-    //     } catch (\Exception $e) {
-    //         Log::error("Login error", [
-    //             'message'  => $e->getMessage(),
-    //             'trace'    => $e->getTraceAsString(),
-    //             'ip'       => $request->ip(),
-    //             'username' => $normalizedUsername ?? null,
-    //         ]);
-    //         return back()->withErrors(['/' => 'An error occurred. Please try again.']);
-    //     }
-    // }
     public function store(Request $request)
     {
-        $attributes = $request->validate([
+        $request->validate([
             'username' => [
                 'required',
                 'string',
@@ -211,218 +49,151 @@ class LoginController extends Controller
                 'max:12',
                 'regex:/^[a-zA-Z0-9_-]+$/',
                 new NoXSSInput(),
-                function ($attribute, $value, $fail) {
-                    if (strip_tags($value) !== $value) {
-                        $fail("Input $attribute mengandung tag HTML yang tidak diperbolehkan.");
-                    }
-                }
             ],
-            'password' => ['required', 'string', 'min:8', 'max:20'],
+            'password' => ['required', 'string', 'min:8', 'max:128'],
         ], [
-            'username.required' => 'Username is required.',
-            'username.min'      => 'Username must be at least 7 characters.',
-            'username.max'      => 'Username cannot be more than 12 characters.',
-            'password.required' => 'Password is required.',
-            'password.min'      => 'Password must be at least 8 characters.',
-            'password.max'      => 'Password cannot be more than 20 characters.',
+            'username.required' => 'Username wajib diisi.',
+            'username.min'      => 'Username minimal 7 karakter.',
+            'username.max'      => 'Username maksimal 12 karakter.',
+            'username.regex'    => 'Username hanya boleh huruf, angka, - dan _.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min'      => 'Password minimal 8 karakter.',
+            'password.max'      => 'Password maksimal 128 karakter.',
         ]);
 
-        $normalizedUsername = strtolower($request->username);
-        $rateLimiterKey     = "login:{$normalizedUsername}";
+        $username = strtolower($request->username);
+        $keys = $this->limiterKeys($username, $request->ip());
 
-        if (RateLimiter::tooManyAttempts($rateLimiterKey, 10)) {
-            Log::warning("Rate limiter triggered", [
-                'username'   => $normalizedUsername,
-                'ip'         => $request->ip(),
-                'user_agent' => $request->header('User-Agent'),
+        if ($seconds = $this->lockedFor($keys)) {
+            Log::warning('Login rate limit hit', ['username' => $username, 'ip' => $request->ip()]);
+
+            return back()->withInput($request->only('username'))->withErrors([
+                'throttle' => 'Terlalu banyak percobaan login. Coba lagi dalam ' . max(1, (int) ceil($seconds / 60)) . ' menit.',
             ]);
-            return back()->withErrors(['/' => 'Too many attempts. Please try again in 1 minute.']);
         }
 
         try {
-            $attributes['username'] = $normalizedUsername;
+            $user = User::with('employee')->where('username', $username)->first();
 
-            if (!Auth::attempt($attributes, $request->boolean('remember'))) {
-                sleep(1);
-                Log::warning("Failed login attempt", [
-                    'username'   => $normalizedUsername,
-                    'ip'         => $request->ip(),
-                    'user_agent' => $request->header('User-Agent'),
-                ]);
-                RateLimiter::hit($rateLimiterKey, 60);
-                return back()->withErrors(['/' => 'Wrong username or Password.']);
+            // Hash tetap dihitung walau user tidak ada, supaya waktu respons tidak membocorkan username.
+            $passwordOk = $user
+                ? Hash::check($request->password, $user->password)
+                : (Hash::check($request->password, Hash::make('timing-equaliser')) && false);
+
+            if (!$passwordOk) {
+                $this->hitAll($keys);
+                Log::warning('Failed login attempt', ['username' => $username, 'ip' => $request->ip()]);
+
+                return back()->withInput($request->only('username'))->withErrors(['/' => self::GENERIC_FAIL]);
             }
 
-            $request->session()->regenerate();
-            RateLimiter::clear($rateLimiterKey);
-
-            /** @var \App\Models\User $user */
-            $user             = Auth::user();
-            $currentSessionId = $request->session()->getId();
-
-            // ── 1. Cek employee & status ──────────────────────────────
-            if (!$user->employee) {
-                Auth::logout();
-                return back()->withErrors(['/' => 'Your account is not yet connected to employee data.']);
-            }
-            if ($user->employee->status !== 'Active') {
-                Auth::logout();
-                return back()->withErrors(['/' => 'Your account is inactive. Please contact HR.']);
-            }
-
-            // ── 2. Cek password == username ───────────────────────────
-            if (Hash::check($normalizedUsername, $user->password)) {
-                Log::warning("User login with password same as username", [
-                    'username' => $normalizedUsername,
-                    'ip'       => $request->ip(),
+            if (!LoginSessionService::canLogin($user)) {
+                // Dihitung sebagai gagal juga, dan pesannya satu untuk semua alasan.
+                $this->hitAll($keys);
+                Log::warning('Login blocked: employee missing or not active', [
+                    'user_id' => $user->id,
+                    'status'  => $user->employee?->status,
+                    'ip'      => $request->ip(),
                 ]);
 
-                UserSession::where('user_id', $user->id)
-                    ->where('session_id', '!=', $currentSessionId)
-                    ->delete();
-
-                UserSession::updateOrCreate(
-                    ['user_id' => $user->id, 'session_id' => $currentSessionId],
-                    [
-                        'ip_address'    => $request->ip(),
-                        'last_activity' => now(),
-                        'device_type'   => $request->header('User-Agent'),
-                    ]
-                );
-
-                return redirect()->route('pages.change-password')
-                    ->with('warning', 'Your password is the same as your username. Please change your password first.');
+                return back()->withInput($request->only('username'))->withErrors(['/' => self::BLOCKED_ACCOUNT]);
             }
 
-            // ── 3. Cek session device lain ────────────────────────────
-            $existingSession = UserSession::where('user_id', $user->id)
-                ->where('session_id', '!=', $currentSessionId)
-                ->first();
+            $this->clearAll($keys);
 
-            if ($existingSession) {
-                if (!$request->has('force_login')) {
-                    Log::info("User already logged in elsewhere", [
-                        'username'         => $normalizedUsername,
-                        'current_session'  => $currentSessionId,
-                        'existing_session' => $existingSession->session_id,
-                    ]);
-                    Auth::logout();
-                    return back()->with('confirm_force_login', [
-                        'message'  => 'You are already logged in on another device. Will you continue to log out from that device?',
-                        'username' => $request->username,
-                        'password' => $request->password,
-                        'remember' => $request->boolean('remember'),
-                    ]);
-                }
-                $this->logoutOtherDevices($user, $currentSessionId);
-            }
-
-            // ── 4. Cek 2FA — setelah device lain di-handle ───────────
+            // 2FA aktif: belum login sama sekali sampai kode valid.
             if ($user->hasTwoFactorEnabled()) {
-                // Simpan session ID sementara di session Laravel
-                // supaya verify() bisa simpan UserSession dengan session ID yang benar
-                session([
-                    '2fa.user_id'    => $user->id,
-                    '2fa.ip'         => $request->ip(),
-                    '2fa.device'     => $request->header('User-Agent'),
+                $request->session()->regenerate();
+                $request->session()->put('2fa', [
+                    'user_id'    => $user->id,
+                    'expires_at' => now()->addMinutes(10)->timestamp,
                 ]);
 
-                Auth::logout();
                 return redirect()->route('2fa.verify');
             }
 
-            if ($user->requiresTwoFactor() && !$user->hasTwoFactorEnabled()) {
-                return redirect()->route('2fa.setup')
-                    ->with('warning', 'Akun Anda diwajibkan mengaktifkan 2FA sebelum bisa mengakses sistem.');
-            }
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
 
-            // ── 5. Non-2FA — simpan session & redirect dashboard ──────
-            UserSession::updateOrCreate(
-                ['user_id' => $user->id, 'session_id' => $currentSessionId],
-                [
-                    'ip_address'    => $request->ip(),
-                    'last_activity' => now(),
-                    'device_type'   => $request->header('User-Agent'),
-                ]
-            );
+            return $this->loginSession->finish($request, $user, false, $request->boolean('remember'));
+        } catch (\Throwable $e) {
+            Log::error('Login error', ['message' => $e->getMessage(), 'ip' => $request->ip(), 'username' => $username]);
 
-            $redirect = DashboardRedirectService::redirectForUser($user);
-            if ($redirect) {
-                Log::info("User logged in", [
-                    'username'    => $normalizedUsername,
-                    'ip'          => $request->ip(),
-                    'permissions' => implode(', ', $user->getPermissionsViaRoles()->pluck('name')->toArray()),
-                ]);
-                return $redirect->with('success', 'Success login, Goodluck!!!');
-            }
-
-            Log::warning("User has no valid permission", [
-                'username' => $normalizedUsername,
-                'ip'       => $request->ip(),
-            ]);
-            Auth::logout();
-            return redirect('/')->with('warning', 'Your account does not have a valid role.');
-        } catch (\Exception $e) {
-            Log::error("Login error", [
-                'message'  => $e->getMessage(),
-                'trace'    => $e->getTraceAsString(),
-                'ip'       => $request->ip(),
-                'username' => $normalizedUsername ?? null,
-            ]);
-            return back()->withErrors(['/' => 'An error occurred. Please try again.']);
+            return back()->withInput($request->only('username'))->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
         }
     }
 
-    protected function logoutOtherDevices($user, $currentSessionId): void
+    /** Konfirmasi "lanjutkan login & keluarkan perangkat lain" (token sekali pakai dari LoginSessionService). */
+    public function confirmForceLogin(Request $request)
     {
-        UserSession::where('user_id', $user->id)
-            ->where('session_id', '!=', $currentSessionId)
-            ->delete();
+        $pending = $this->loginSession->consumePending($request, $request->input('token'));
+        if (!$pending) {
+            return redirect()->route('login')->withErrors(['/' => 'Konfirmasi sudah kedaluwarsa. Silakan login ulang.']);
+        }
+
+        $user = User::with('employee')->find($pending['user_id']);
+        if (!$user || !LoginSessionService::canLogin($user)) {
+            return redirect()->route('login')->withErrors(['/' => self::BLOCKED_ACCOUNT]);
+        }
+
+        Auth::login($user, (bool) $pending['remember']);
+        $request->session()->regenerate();
+
+        return $this->loginSession->finish($request, $user, true, (bool) $pending['remember']);
     }
 
     public function destroy(Request $request)
     {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        if ($user) {
-            $currentSessionId = $request->session()->getId();
-
+        if ($user = Auth::user()) {
             UserSession::where('user_id', $user->id)
-                ->where('session_id', $currentSessionId)
+                ->where('session_id', $request->session()->getId())
                 ->delete();
-
-            if (!$request->boolean('remember')) {
-                $user->setRememberToken(null);
-                $user->save();
-            }
         }
 
-        Auth::logout();
+        Auth::logout(); // juga mengganti remember token, jadi cookie "ingat saya" lama tidak berlaku
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('success', 'Anda berhasil logout');
+        return redirect()->route('login')->with('success', 'Anda berhasil logout');
     }
-    //  protected function logoutOtherDevices($user, $currentSessionId)
-    //     {
-    //         UserSession::where('user_id', $user->id)
-    //             ->where('session_id', '!=', $currentSessionId)
-    //             ->delete();
-    //     }
-    // public function destroy(Request $request)
-    // {
-    //     /** @var User|null $user */
 
-    //     $user = Auth::user();
-    //     if ($user) {
-    //         $user->setRememberToken(null);
-    //         UserSession::where('user_id', $user->id)->delete();
-    //         $user->save();
-    //     }
-    //     Auth::logout();
-    //     $request->session()->invalidate();
-    //     $request->session()->regenerateToken();
-    //     return redirect('/')->with('success', 'Anda berhasil logout');
-    // }
+    // ── Rate limiting ──────────────────────────────────────────────
+
+    private function limiterKeys(string $username, string $ip): array
+    {
+        return [
+            'pair'      => 'login:pair:' . sha1($username . '|' . $ip),
+            'user'      => 'login:user:' . $username,
+            'user_long' => 'login:user-long:' . $username,
+            'ip'        => 'login:ip:' . $ip,
+        ];
+    }
+
+    /** Sisa detik terkunci (0 kalau tidak terkunci). */
+    private function lockedFor(array $keys): int
+    {
+        $wait = 0;
+        foreach ($keys as $name => $key) {
+            if (RateLimiter::tooManyAttempts($key, self::LIMITS[$name][0])) {
+                $wait = max($wait, RateLimiter::availableIn($key));
+            }
+        }
+
+        return $wait;
+    }
+
+    private function hitAll(array $keys): void
+    {
+        foreach ($keys as $name => $key) {
+            RateLimiter::hit($key, self::LIMITS[$name][1]);
+        }
+    }
+
+    /** Login sukses menghapus hitungan username & pasangan; hitungan per IP dibiarkan habis sendiri. */
+    private function clearAll(array $keys): void
+    {
+        RateLimiter::clear($keys['pair']);
+        RateLimiter::clear($keys['user']);
+        RateLimiter::clear($keys['user_long']);
+    }
 }

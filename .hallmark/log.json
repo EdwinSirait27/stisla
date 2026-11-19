@@ -1,0 +1,13 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "signature": "period ledger: status flow bar beside money totals",
+  "prompt": "payroll period screen for HR: review, approve, send slips",
+  "waived": [],
+  "date": "2026-11-17"
+ }
+]

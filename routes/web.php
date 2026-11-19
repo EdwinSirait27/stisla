@@ -95,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
         ->name('change-password.update');
     // ── Logout ──
-    Route::match(['GET', 'POST'], '/logout', [LoginController::class, 'destroy'])
+    Route::post('/logout', [LoginController::class, 'destroy'])
         ->name('logout');
           Route::get('/two-factor/setup', [TwoFactorController::class, 'showSetup'])->name('2fa.setup');
     Route::post('/two-factor/setup/confirm', [TwoFactorController::class, 'confirmSetup'])->name('2fa.setup.confirm');
@@ -157,6 +157,9 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/dashboardAdmin/edit/{hashedId}', [dashboardAdminController::class, 'edit'])->name('dashboardAdmin.edit');
         Route::get('/dashboardAdmin/show/{hashedId}', [dashboardAdminController::class, 'show'])->name('dashboardAdmin.show');
         Route::put('/dashboardAdmin/{hashedId}', [dashboardAdminController::class, 'update'])->name('dashboardAdmin.update');
+        Route::post('/dashboardAdmin/{hashedId}/reset-password-link', [dashboardAdminController::class, 'sendResetLink'])
+            ->middleware('throttle:10,1')
+            ->name('dashboardAdmin.resetLink');
         Route::match(['GET', 'POST'], '/users/users', [dashboardAdminController::class, 'getUsers'])->name('users.users');
         Route::post('/users/bulk-update-role', [dashboardAdminController::class, 'bulkUpdateRole'])->name('users.bulkUpdateRole');
     });
@@ -623,6 +626,7 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::post('/Pubholi', [PHController::class, 'store'])->name('Pubholi.store');
         Route::get('/Pubholi/edit/{hashedId}', [PHController::class, 'edit'])->name('Pubholi.edit');
         Route::put('/Pubholi/{hashedId}', [PHController::class, 'update'])->name('Pubholi.update');
+        Route::delete('/Pubholi/{hashedId}', [PHController::class, 'destroy'])->name('Pubholi.destroy');
         Route::get('/ImportPH', [PHController::class, 'indexphs'])
             ->name('pages.ImportPH');
         Route::post('/ImportPH', [PHController::class, 'Importphs'])->name('ImportPH.phs');
@@ -702,9 +706,14 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             ->name('pages.dashboardTeam');
         Route::get('/dashboardManager', [DashManagerController::class, 'index'])
             ->name('pages.dashboardManager');
+        Route::get('/leaverequest',              [LeaverequestController::class, 'index'])->name('leaverequest.index');
+    });
+
+    // Approve / tolak cuti: manager dan supervisor. Hak per pengajuan tetap dicek di
+    // LeaverequestController (canBeApprovedBy: hanya atasan si pengaju).
+    Route::middleware(['auth', 'permission:dashboardManager|dashboardSupervisor'])->group(function () {
         Route::post('/leaverequest/{id}/approve', [LeaverequestController::class, 'approve'])->name('leaverequest.approve');
         Route::post('/leaverequest/{id}/reject',  [LeaverequestController::class, 'reject'])->name('leaverequest.reject');
-        Route::get('/leaverequest',              [LeaverequestController::class, 'index'])->name('leaverequest.index');
     });
     Route::group(['middleware' => ['auth', 'permission:ManageTeam']], function () {
 
@@ -758,64 +767,120 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
     });
 
     // ── Payroll Components ──
-    Route::group(['middleware' => ['auth', 'permission:PayrollComponents']], function () {
-        Route::get('/payrollcomponents', [PayrollcomponentsController::class, 'index'])
-            ->name('payrollcomponents');
-        Route::get('payrollcomponents/create', [PayrollcomponentsController::class, 'create'])->name('payrollcomponents.create');
-        Route::post('/payrollcomponents', [PayrollcomponentsController::class, 'store'])->name('payrollcomponents.store');
-        Route::get('/payrollcomponents/edit/{id}', [PayrollcomponentsController::class, 'edit'])->name('editpayrollcomponents');
-        Route::put('/payrollcomponents/{id}', [PayrollcomponentsController::class, 'update'])->name('updatepayrollcomponents');
-        Route::get('/payrollcomponents/payrollcomponents', [PayrollcomponentsController::class, 'getPayrollcomponents'])->name('payrollcomponents.payrollcomponents');
+    Route::middleware('auth')->group(function () {
+        // Lihat daftar komponen
+        Route::middleware('permission:payroll.component.view')->group(function () {
+            Route::get('/payrollcomponents', [PayrollcomponentsController::class, 'index'])
+                ->name('payrollcomponents');
+            Route::get('/payrollcomponents/payrollcomponents', [PayrollcomponentsController::class, 'getPayrollcomponents'])
+                ->name('payrollcomponents.payrollcomponents');
+        });
+
+        // Tambah komponen
+        Route::middleware('permission:payroll.component.create')->group(function () {
+            Route::get('payrollcomponents/create', [PayrollcomponentsController::class, 'create'])
+                ->name('payrollcomponents.create');
+            Route::post('/payrollcomponents', [PayrollcomponentsController::class, 'store'])
+                ->name('payrollcomponents.store');
+        });
+
+        // Ubah komponen
+        Route::middleware('permission:payroll.component.update')->group(function () {
+            Route::get('/payrollcomponents/edit/{id}', [PayrollcomponentsController::class, 'edit'])
+                ->name('editpayrollcomponents');
+            Route::put('/payrollcomponents/{id}', [PayrollcomponentsController::class, 'update'])
+                ->name('updatepayrollcomponents');
+        });
     });
     Route::prefix('employee-salary')->name('employeesalary.')->group(function () {
-        Route::group(['middleware' => ['auth', 'permission:ManageEmployeeSalary']], function () {
-            Route::get('/',             [EmployeeSalaryController::class, 'index'])->name('index');
-            Route::get('/data',         [EmployeeSalaryController::class, 'getEmployeeSalaries'])->name('data');
-            Route::get('/activity', [EmployeeSalaryController::class, 'getActivitySalary'])->name('activity');
-            Route::get('/create',       [EmployeeSalaryController::class, 'create'])->name('create');
-            Route::get('/export', [EmployeeSalaryController::class, 'export'])->name('export');
-            Route::get('/template',     [EmployeeSalaryController::class, 'downloadTemplate'])->name('template'); // ← tambah ini
-            Route::post('/',            [EmployeeSalaryController::class, 'store'])->name('store');
-            Route::post('/import',      [EmployeeSalaryController::class, 'import'])->name('import');
-            Route::get('/{id}/edit',    [EmployeeSalaryController::class, 'edit'])->name('edit');
-            Route::put('/{id}',         [EmployeeSalaryController::class, 'update'])->name('update');
+        Route::middleware('auth')->group(function () {
+            // Lihat data gaji + riwayat perubahan
+            Route::middleware('permission:employee.salary.view')->group(function () {
+                Route::get('/',         [EmployeeSalaryController::class, 'index'])->name('index');
+                Route::get('/data',     [EmployeeSalaryController::class, 'getEmployeeSalaries'])->name('data');
+                Route::get('/activity', [EmployeeSalaryController::class, 'getActivitySalary'])->name('activity');
+            });
+
+            // Tambah gaji
+            Route::middleware('permission:employee.salary.create')->group(function () {
+                Route::get('/create', [EmployeeSalaryController::class, 'create'])->name('create');
+                Route::post('/',      [EmployeeSalaryController::class, 'store'])->name('store');
+            });
+
+            // Import Excel (template hanya dipakai untuk import)
+            Route::middleware('permission:employee.salary.import')->group(function () {
+                Route::get('/template', [EmployeeSalaryController::class, 'downloadTemplate'])->name('template');
+                Route::post('/import',  [EmployeeSalaryController::class, 'import'])->name('import');
+            });
+
+            // Export Excel
+            Route::get('/export', [EmployeeSalaryController::class, 'export'])
+                ->middleware('permission:employee.salary.export')
+                ->name('export');
+
+            // Ubah gaji (route {id} paling bawah supaya tidak menangkap /create, /export, dst.)
+            Route::middleware('permission:employee.salary.update')->group(function () {
+                Route::get('/{id}/edit', [EmployeeSalaryController::class, 'edit'])->name('edit');
+                Route::put('/{id}',      [EmployeeSalaryController::class, 'update'])->name('update');
+            });
         });
     });
 
     Route::prefix('payroll-period')->name('payrollperiod.')->group(function () {
-        Route::group(['middleware' => ['auth', 'permission:ManagePayrollPeriod']], function () {
-            Route::get('/',              [PayrollPeriodController::class, 'index'])->name('index');
-            Route::get('/data',          [PayrollPeriodController::class, 'getPayrollPeriod'])->name('data');
-            Route::post('/',             [PayrollPeriodController::class, 'store'])->name('store');
-            Route::get('/{id}/close',    [PayrollPeriodController::class, 'close'])->name('close');
-            Route::get('/{id}/lock',     [PayrollPeriodController::class, 'lock'])->name('lock');
+        Route::middleware('auth')->group(function () {
+            // Lihat daftar periode
+            Route::middleware('permission:payroll.period.view')->group(function () {
+                Route::get('/',     [PayrollPeriodController::class, 'index'])->name('index');
+                Route::get('/data', [PayrollPeriodController::class, 'getPayrollPeriod'])->name('data');
+            });
+
+            // Buat periode baru (form ada di halaman index)
+            Route::post('/', [PayrollPeriodController::class, 'store'])
+                ->middleware('permission:payroll.period.create')->name('store');
+
+            // Tutup dan kunci periode
+            Route::get('/{id}/close', [PayrollPeriodController::class, 'close'])
+                ->middleware('permission:payroll.period.close')->name('close');
+            Route::get('/{id}/lock', [PayrollPeriodController::class, 'lock'])
+                ->middleware('permission:payroll.period.lock')->name('lock');
         });
     });
 
     Route::prefix('payroll')->name('payroll.')->group(function () {
-        Route::group(['middleware' => ['auth', 'permission:ManagePayroll']], function () {
-            Route::get('/{periodId}',              [PayrollController::class, 'index'])->name('index');
-            Route::get('/{periodId}/data',         [PayrollController::class, 'getPayroll'])->name('data');
-            Route::get('/{periodId}/generate',     [PayrollController::class, 'generate'])->name('generate');
-            Route::post('/{periodId}/generate-one', [PayrollController::class, 'generateOne'])->name('generateOne');
-            Route::get('/{periodId}/export', [PayrollController::class, 'export'])->name('export');
-            Route::get('/{id}/show',               [PayrollController::class, 'show'])->name('show');
-            Route::get('/{id}/edit',               [PayrollController::class, 'edit'])->name('edit');
-            Route::put('/{id}',                    [PayrollController::class, 'update'])->name('update');
-            Route::post('/{id}/approve',           [PayrollController::class, 'approve'])->name('approve');
-            Route::post('/approve-bulk',           [PayrollController::class, 'approveBulk'])->name('approveBulk');
-            Route::post('/{id}/paid',              [PayrollController::class, 'paid'])->name('paid');
-            Route::post('/{periodId}/import-attendance',      [PayrollController::class, 'importAttendance'])->name('importAttendance');
-            Route::get('/{periodId}/attendance-template',     [PayrollController::class, 'downloadAttendanceTemplate'])->name('attendanceTemplate');
-            Route::delete('/{id}',           [PayrollController::class, 'destroy'])->name('destroy');
-Route::post('/bulk-destroy',     [PayrollController::class, 'destroyBulk'])->name('destroyBulk');
+        // Satu permission per aksi (Spatie), bukan role. Lihat juga constructor PayrollController.
+        Route::middleware('auth')->group(function () {
+            $p = fn(string $permission) => 'permission:' . $permission;
 
-Route::get('/{id}/slip',                 [PayrollController::class, 'downloadSlip'])->name('slip');
-Route::post('/{id}/slip/send',           [PayrollController::class, 'sendSlipEmail'])->name('slipSend');
-Route::post('/{periodId}/slip/send-bulk',[PayrollController::class, 'sendSlipEmailBulk'])->name('slipSendBulk');
-    Route::get('/{periodId}/slip-bulk',        [PayrollController::class, 'downloadSlipBulk'])->name('slipBulk');
-    Route::post('/{periodId}/slip/send-bulk',  [PayrollController::class, 'sendSlipEmailBulk'])->name('slipSendBulk');
+            // Lihat
+            Route::get('/{periodId}',      [PayrollController::class, 'index'])->middleware($p('payroll.view'))->name('index');
+            Route::get('/{periodId}/data', [PayrollController::class, 'getPayroll'])->middleware($p('payroll.view'))->name('data');
+            Route::get('/{id}/show',       [PayrollController::class, 'show'])->middleware($p('payroll.show'))->name('show');
 
+            // Generate
+            Route::get('/{periodId}/generate',      [PayrollController::class, 'generate'])->middleware($p('payroll.generate'))->name('generate');
+            Route::post('/{periodId}/generate-one', [PayrollController::class, 'generateOne'])->middleware($p('payroll.generate.one'))->name('generateOne');
+
+            // Ubah & hapus
+            Route::get('/{id}/edit',     [PayrollController::class, 'edit'])->middleware($p('payroll.update'))->name('edit');
+            Route::put('/{id}',          [PayrollController::class, 'update'])->middleware($p('payroll.update'))->name('update');
+            Route::delete('/{id}',       [PayrollController::class, 'destroy'])->middleware($p('payroll.destroy'))->name('destroy');
+            Route::post('/bulk-destroy', [PayrollController::class, 'destroyBulk'])->middleware($p('payroll.destroy.bulk'))->name('destroyBulk');
+
+            // Approve & paid
+            Route::post('/{id}/approve',  [PayrollController::class, 'approve'])->middleware($p('payroll.approve'))->name('approve');
+            Route::post('/approve-bulk',  [PayrollController::class, 'approveBulk'])->middleware($p('payroll.approve.bulk'))->name('approveBulk');
+            Route::post('/{id}/paid',     [PayrollController::class, 'paid'])->middleware($p('payroll.paid'))->name('paid');
+
+            // Export / import data eksternal
+            Route::get('/{periodId}/export',               [PayrollController::class, 'export'])->middleware($p('payroll.export'))->name('export');
+            Route::post('/{periodId}/import-attendance',   [PayrollController::class, 'importAttendance'])->middleware($p('payroll.import'))->name('importAttendance');
+            Route::get('/{periodId}/attendance-template',  [PayrollController::class, 'downloadAttendanceTemplate'])->middleware($p('payroll.download.template'))->name('attendanceTemplate');
+
+            // Slip
+            Route::get('/{id}/slip',                   [PayrollController::class, 'downloadSlip'])->middleware($p('payroll.download.slip'))->name('slip');
+            Route::get('/{periodId}/slip-bulk',        [PayrollController::class, 'downloadSlipBulk'])->middleware($p('payroll.slip.bulk'))->name('slipBulk');
+            Route::post('/{id}/slip/send',             [PayrollController::class, 'sendSlipEmail'])->middleware($p('payroll.send.slip'))->name('slipSend');
+            Route::post('/{periodId}/slip/send-bulk',  [PayrollController::class, 'sendSlipEmailBulk'])->middleware($p('payroll.send.slip.bulk'))->name('slipSendBulk');
         });
     });
 
@@ -1020,18 +1085,31 @@ Route::group(['middleware' => ['permission:ManageSktypes']], function () {
 // Route::group(['middleware' => ['auth', 'permission:toil']]->prefix('toil')->name('toil.')->group(function () {
 // Route::middleware(['auth'])->prefix('toil')->name('toil.')->group(function () {
 // ── Manual Recap (+Add Recap feature) ──
+// ── Reset password lewat link email sekali pakai (tanpa login) ──
+// Tidak memakai middleware guest supaya link tetap bisa dibuka walau browser sedang login akun lain.
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('/reset-password/{token}', [\App\Http\Controllers\PasswordResetLinkController::class, 'show'])
+        ->name('password.link.show');
+    Route::post('/reset-password/{token}', [\App\Http\Controllers\PasswordResetLinkController::class, 'update'])
+        ->name('password.link.update');
+});
+
 // ════════════════════════════════════════════════════════════════
 //   GUEST ROUTES
 // ════════════════════════════════════════════════════════════════
 Route::group(['middleware' => 'guest'], function () {
-    Route::middleware(['throttle:15,1'])->group(function () {
-        Route::post('/session', [LoginController::class, 'store'])->name('session');
+    // Halaman publik: throttle longgar supaya membuka halaman tidak menghabiskan jatah login
+    Route::middleware(['throttle:60,1'])->group(function () {
         Route::get('/', [LoginController::class, 'index'])->name('login');
         Route::get('Career', [CareerController::class, 'index'])->name('pages.Career');
         Route::get('About-us', [CareerController::class, 'indexabout'])->name('pages.About-us');
         Route::get('/two-factor/verify', [TwoFactorController::class, 'showVerify'])->name('2fa.verify');
-Route::post('/two-factor/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify.post');
-
+    });
+    // Aksi login: per IP; batas per username/IP yang lebih ketat ada di LoginController
+    Route::middleware(['throttle:15,1'])->group(function () {
+        Route::post('/session', [LoginController::class, 'store'])->name('session');
+        Route::post('/session/confirm', [LoginController::class, 'confirmForceLogin'])->name('session.confirm');
+        Route::post('/two-factor/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify.post');
     });
 });
 // ── Guest routes (tanpa throttle, di-define ulang sesuai original) ──

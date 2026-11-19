@@ -13,26 +13,39 @@ class PayrollPeriodController extends Controller
     {
       $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayrollPeriod')) {
+        if (!$user->hasPermissionTo('payroll.period.view')) {
             abort(403, 'Unauthorized');
         }   
-         $stats = [
-        'open'   => PayrollPeriod::where('status', 'open')->count(),
-        'closed' => PayrollPeriod::where('status', 'closed')->count(),
-        'locked' => PayrollPeriod::where('status', 'locked')->count(),
-    ];
-        return view('pages.PayrollPeriod.index',compact('stats'));
+        $stats = [
+            'open'   => PayrollPeriod::where('status', 'open')->count(),
+            'closed' => PayrollPeriod::where('status', 'closed')->count(),
+            'locked' => PayrollPeriod::where('status', 'locked')->count(),
+        ];
+
+        // Periode yang masih berjalan (open/closed) beserta progres payroll-nya
+        $active = PayrollPeriod::whereIn('status', ['open', 'closed'])
+            ->withPayrollSummary()
+            ->orderByDesc('period_year')
+            ->orderByDesc('period_month')
+            ->get();
+
+        $existing = PayrollPeriod::get(['period_month', 'period_year'])
+            ->map(fn($p) => $p->period_year . '-' . $p->period_month)
+            ->values();
+
+        return view('pages.PayrollPeriod.index', compact('stats', 'active', 'existing'));
     }
 
     public function getPayrollPeriod(Request $request)
     {
            $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayrollPeriod')) {
+        if (!$user->hasPermissionTo('payroll.period.view')) {
             abort(403, 'Unauthorized');
         }   
         $query = PayrollPeriod::with(['createdBy', 'lockedBy'])
-            ->select('payroll_periods.*');
+            ->select('payroll_periods.*')
+            ->withPayrollSummary();
 
         if ($request->filled('year')) {
             $query->where('period_year', $request->year);
@@ -45,145 +58,51 @@ class PayrollPeriodController extends Controller
         return DataTables::of($query)
             ->addColumn('period_label', fn($row) => $row->period_label)
             ->addColumn('period_range', fn($row) =>
-                $row->period_start->format('d/m/Y') . ' — ' . $row->period_end->format('d/m/Y')
-            )
-            ->addColumn('status_badge', fn($row) => match($row->status) {
-                'open'   => '<span class="status-badge" style="background:#f0fdf4;color:#166534">Open</span>',
-                'closed' => '<span class="status-badge" style="background:#fffbeb;color:#92400e">Closed</span>',
-                'locked' => '<span class="status-badge" style="background:#fef2f2;color:#991b1b"><i class="fas fa-lock" style="font-size:.65rem"></i> Locked</span>',
-                default  => $row->status,
+                $row->period_start->locale('id')->translatedFormat('d M Y') . ' sampai ' . $row->period_end->locale('id')->translatedFormat('d M Y'))
+            ->addColumn('status_badge', fn($row) => match ($row->status) {
+                'open'   => '<span class="status-badge is-open">Open</span>',
+                'closed' => '<span class="status-badge is-closed">Closed</span>',
+                'locked' => '<span class="status-badge is-locked">Locked</span>',
+                default  => e($row->status),
             })
+            ->addColumn('payroll_total', fn($row) => (int) $row->payrolls_count)
+            ->addColumn('draft_count', fn($row) => (int) $row->draft_count)
+            ->addColumn('approved_count', fn($row) => (int) $row->approved_count)
+            ->addColumn('paid_count', fn($row) => (int) $row->paid_count)
+            ->addColumn('net_total_fmt', fn($row) => number_format((float) $row->net_total, 0, ',', '.'))
+            ->addColumn('next_step', fn($row) => $row->nextStep())
             ->addColumn('created_by_name', fn($row) => $row->createdBy?->employee_name ?? '-')
             ->addColumn('locked_by_name', fn($row) =>
                 $row->lockedBy
-                    ? $row->lockedBy->employee_name . ' (' . $row->locked_at?->format('d/m/Y H:i') . ')'
-                    : '-'
-            )
-            // ->addColumn('action', function ($row) {
-            //     $actions = '';
+                    ? $row->lockedBy->employee_name . ', ' . $row->locked_at?->locale('id')->translatedFormat('d M Y H:i')
+                    : '-')
+            ->addColumn('action', function ($row) use ($user) {
+                $actions = $user->can('payroll.view')
+                    ? '<a href="' . route('payroll.index', $row->id) . '" class="act-btn" title="Lihat payroll" aria-label="Lihat payroll">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </a>'
+                    : '';
 
-            //     if ($row->isOpen()) {
-            //         $actions .= '<a href="' . route('payrollperiod.close', $row->id) . '"
-            //             class="act-btn act-warning" title="Close Period"
-            //             onclick="return confirm(\'Close periode ini?\')">
-            //             <i class="fas fa-lock-open"></i>
-            //         </a>';
-            //     }
+                if ($row->isOpen() && $user->can('payroll.period.close')) {
+                    $actions .= '<a href="' . route('payrollperiod.close', $row->id) . '"
+                        class="act-btn act-warning" title="Close periode" aria-label="Close periode"
+                        onclick="return confirm(\'Close periode ini?\')">
+                        <i class="fas fa-lock-open" aria-hidden="true"></i>
+                    </a>';
+                }
 
-            //     if ($row->isClosed()) {
-            //         $actions .= '<a href="' . route('payrollperiod.lock', $row->id) . '"
-            //             class="act-btn act-danger" title="Lock Period"
-            //             onclick="return confirm(\'Lock periode ini? Tidak bisa dibuka kembali.\')">
-            //             <i class="fas fa-lock"></i>
-            //         </a>';
-            //     }
+                if ($row->isClosed() && $user->can('payroll.period.lock')) {
+                    $actions .= '<a href="' . route('payrollperiod.lock', $row->id) . '"
+                        class="act-btn act-danger" title="Lock periode" aria-label="Lock periode"
+                        onclick="return confirm(\'Lock periode ini? Tidak bisa dibuka kembali.\')">
+                        <i class="fas fa-lock" aria-hidden="true"></i>
+                    </a>';
+                }
 
-            //     return '<div class="action-wrap">' . $actions . '</div>';
-            // })
-//             ->addColumn('action', function ($row) {
-//     $actions = '';
-
-//     if ($row->isOpen()) {
-//         // Tambah tombol Generate Payroll
-//         $actions .= '<a href="' . route('payroll.generate', $row->id) . '"
-//             class="act-btn" title="Generate Payroll" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe">
-//             <i class="fas fa-cog"></i>
-//         </a> ';
-
-//         // Tombol Close
-//         $actions .= '<a href="' . route('payrollperiod.close', $row->id) . '"
-//             class="act-btn act-warning" title="Close Period"
-//             onclick="return confirm(\'Close periode ini?\')">
-//             <i class="fas fa-lock-open"></i>
-//         </a>';
-//     }
-
-//     if ($row->isClosed()) {
-//         $actions .= '<a href="' . route('payrollperiod.lock', $row->id) . '"
-//             class="act-btn act-danger" title="Lock Period"
-//             onclick="return confirm(\'Lock periode ini? Tidak bisa dibuka kembali.\')">
-//             <i class="fas fa-lock"></i>
-//         </a>';
-//     }
-
-//     return '<div class="action-wrap">' . $actions . '</div>';
-// })
-// ->addColumn('action', function ($row) {
-//     $actions = '';
-
-//     if ($row->isOpen()) {
-//         // ← tambah tombol Generate di sini
-//         $actions .= '<a href="' . route('payroll.generate', $row->id) . '"
-//             class="act-btn" title="Generate Payroll"
-//             style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe"
-//             onclick="return confirm(\'Generate payroll untuk periode ini?\')">
-//             <i class="fas fa-cog"></i>
-//         </a> ';
-
-//         // Tombol Close
-//         $actions .= '<a href="' . route('payrollperiod.close', $row->id) . '"
-//             class="act-btn act-warning" title="Close Period"
-//             onclick="return confirm(\'Close periode ini?\')">
-//             <i class="fas fa-lock-open"></i>
-//         </a>';
-//     }
-
-//     if ($row->isClosed()) {
-//         $actions .= '<a href="' . route('payrollperiod.lock', $row->id) . '"
-//             class="act-btn act-danger" title="Lock Period"
-//             onclick="return confirm(\'Lock periode ini? Tidak bisa dibuka kembali.\')">
-//             <i class="fas fa-lock"></i>
-//         </a>';
-//     }
-
-//     return '<div class="action-wrap">' . $actions . '</div>';
-// })
-->addColumn('action', function ($row) {
-    $actions = '';
-
-    if ($row->isOpen()) {
-        // Tombol View Payroll → ke index payroll
-        $actions .= '<a href="' . route('payroll.index', $row->id) . '"
-            class="act-btn" title="Lihat Payroll"
-            style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe">
-            <i class="fas fa-eye"></i>
-        </a> ';
-
-        // Tombol Close
-        $actions .= '<a href="' . route('payrollperiod.close', $row->id) . '"
-            class="act-btn act-warning" title="Close Period"
-            onclick="return confirm(\'Close periode ini?\')">
-            <i class="fas fa-lock-open"></i>
-        </a>';
-    }
-
-    if ($row->isClosed()) {
-        // Tombol View Payroll → ke index payroll
-        $actions .= '<a href="' . route('payroll.index', $row->id) . '"
-            class="act-btn" title="Lihat Payroll"
-            style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe">
-            <i class="fas fa-eye"></i>
-        </a> ';
-
-        // Tombol Lock
-        $actions .= '<a href="' . route('payrollperiod.lock', $row->id) . '"
-            class="act-btn act-danger" title="Lock Period"
-            onclick="return confirm(\'Lock periode ini? Tidak bisa dibuka kembali.\')">
-            <i class="fas fa-lock"></i>
-        </a>';
-    }
-
-    if ($row->isLocked()) {
-        // Hanya view
-        $actions .= '<a href="' . route('payroll.index', $row->id) . '"
-            class="act-btn" title="Lihat Payroll"
-            style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe">
-            <i class="fas fa-eye"></i>
-        </a>';
-    }
-
-    return '<div class="action-wrap">' . $actions . '</div>';
-})
+                return '<div class="action-wrap">' . $actions . '</div>';
+            })
+            ->orderColumn('period_label', fn($q, $order) =>
+                $q->orderBy('period_year', $order)->orderBy('period_month', $order))
             ->rawColumns(['status_badge', 'action'])
             ->make(true);
     }
@@ -192,7 +111,7 @@ class PayrollPeriodController extends Controller
     {
            $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayrollPeriod')) {
+        if (!$user->hasPermissionTo('payroll.period.create')) {
             abort(403, 'Unauthorized');
         }   
         $request->validate([
@@ -231,7 +150,7 @@ class PayrollPeriodController extends Controller
     {
            $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayrollPeriod')) {
+        if (!$user->hasPermissionTo('payroll.period.close')) {
             abort(403, 'Unauthorized');
         }   
         $period = PayrollPeriod::findOrFail($id);
@@ -259,7 +178,7 @@ class PayrollPeriodController extends Controller
     {
            $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayrollPeriod')) {
+        if (!$user->hasPermissionTo('payroll.period.lock')) {
             abort(403, 'Unauthorized');
         }   
         $period = PayrollPeriod::findOrFail($id);

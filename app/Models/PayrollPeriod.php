@@ -150,6 +150,42 @@ class PayrollPeriod extends Model
     }
 
     // ── Status helpers ──
+    /** Hitungan payroll per status + total net, untuk halaman daftar periode. */
+    public function scopeWithPayrollSummary($query)
+    {
+        return $query->withCount([
+            'payrolls',
+            'payrolls as draft_count'    => fn($q) => $q->where('status', 'draft'),
+            'payrolls as approved_count' => fn($q) => $q->where('status', 'approved'),
+            'payrolls as paid_count'     => fn($q) => $q->where('status', 'paid'),
+        ])->withSum('payrolls as net_total', 'net_salary');
+    }
+
+    /**
+     * Langkah berikutnya untuk periode ini, mengikuti aturan di
+     * PayrollPeriodController::close (draft harus 0) dan ::lock (semua paid).
+     * Butuh kolom dari scopeWithPayrollSummary.
+     */
+    public function nextStep(): array
+    {
+        $total  = (int) ($this->payrolls_count ?? 0);
+        $draft  = (int) ($this->draft_count ?? 0);
+        $unpaid = $total - (int) ($this->paid_count ?? 0);
+
+        return match ($this->status) {
+            'open' => match (true) {
+                $total === 0 => ['tone' => 'todo', 'text' => 'Belum ada payroll, generate dulu'],
+                $draft > 0   => ['tone' => 'todo', 'text' => "{$draft} draft perlu di-approve sebelum close"],
+                default      => ['tone' => 'ready', 'text' => 'Siap di-close'],
+            },
+            'closed' => $unpaid > 0
+                ? ['tone' => 'todo', 'text' => "{$unpaid} payroll belum paid sebelum lock"]
+                : ['tone' => 'ready', 'text' => 'Siap di-lock'],
+            'locked' => ['tone' => 'done', 'text' => 'Selesai, terkunci'],
+            default  => ['tone' => 'todo', 'text' => '-'],
+        };
+    }
+
     public function isOpen(): bool   { return $this->status === 'open'; }
     public function isClosed(): bool { return $this->status === 'closed'; }
     public function isLocked(): bool { return $this->status === 'locked'; }

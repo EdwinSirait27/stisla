@@ -239,26 +239,31 @@
                 </li>
             @endcanany
 
-            @can('ManagePayrolls')
+            @canany(['ManagePayrolls', 'payroll.component.view', 'employee.salary.view', 'payroll.period.view'])
                 <li class="nav-item dropdown">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
                         <i class="fas fa-wallet"></i>
                         <span>Payrolls</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li class="{{ Request::is('payrollcomponents') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('payrollcomponents') }}">Payroll Components</a>
-                        </li>
-                        <li class="{{ Request::is('employee-salary') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('employee-salary') }}">Employee Salary</a>
-                        </li>
-                        <li class="{{ Request::is('payroll-period') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('payroll-period') }}">Payroll Period</a>
-                        </li>
-
+                        @can('payroll.component.view')
+                            <li class="{{ Request::is('payrollcomponents') ? 'active' : '' }}">
+                                <a class="nav-link" href="{{ url('payrollcomponents') }}">Payroll Components</a>
+                            </li>
+                        @endcan
+                        @can('employee.salary.view')
+                            <li class="{{ Request::is('employee-salary') ? 'active' : '' }}">
+                                <a class="nav-link" href="{{ url('employee-salary') }}">Employee Salary</a>
+                            </li>
+                        @endcan
+                        @can('payroll.period.view')
+                            <li class="{{ Request::is('payroll-period') ? 'active' : '' }}">
+                                <a class="nav-link" href="{{ url('payroll-period') }}">Payroll Period</a>
+                            </li>
+                        @endcan
                     </ul>
                 </li>
-            @endcan
+            @endcanany
 
 
             {{-- ════════════════════════════════════════════════════ --}}

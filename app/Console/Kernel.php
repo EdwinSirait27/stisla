@@ -51,6 +51,10 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->timezone('Asia/Makassar')
             ->withoutOverlapping();
+        $schedule->command('toil:expire-balances')
+            ->dailyAt('00:10')
+            ->timezone('Asia/Makassar')
+            ->withoutOverlapping();
     }
     /**
      * Register the commands for the application.

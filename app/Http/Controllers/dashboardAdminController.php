@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserPasswordResetLink;
+use App\Services\PasswordResetLinkService;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Models\User;
 use Yajra\DataTables\DataTables;
 use App\Models\Terms;
@@ -19,8 +22,22 @@ class dashboardAdminController extends Controller
 {   
     public function index()
     {
-        $storeList = Stores::select('name')->distinct()->get();
-        return view('pages.dashboardAdmin.dashboardAdmin', compact('storeList'));
+        $users = User::with(['Employee:id,status', 'roles:id,name', 'Terms'])
+            ->get(['id', 'employee_id', 'terms_id', 'two_factor_secret', 'two_factor_confirmed_at', 'two_factor_required']);
+
+        $stats = [
+            'total'       => $users->count(),
+            'can_login'   => $users->filter(fn($u) => ($u->Employee->status ?? null) === 'Active')->count(),
+            'blocked'     => $users->filter(fn($u) => ($u->Employee->status ?? null) !== 'Active')->count(),
+            'no_role'     => $users->filter(fn($u) => $u->roles->isEmpty())->count(),
+            'twofa'       => $users->filter(fn($u) => $u->hasTwoFactorEnabled())->count(),
+            'twofa_todo'  => $users->filter(fn($u) => $u->two_factor_required && !$u->hasTwoFactorEnabled())->count(),
+            'online'      => \App\Models\UserSession::distinct('user_id')->count('user_id'),
+        ];
+        $roles = Role::orderBy('name')->pluck('name');
+        $statuses = $users->map(fn($u) => $u->Employee->status ?? null)->filter()->unique()->sort()->values();
+
+        return view('pages.dashboardAdmin.dashboardAdmin', compact('stats', 'roles', 'statuses'));
     }
 //         public function getUsers(Request $request)
 // {
@@ -64,126 +81,67 @@ class dashboardAdminController extends Controller
 public function getUsers(Request $request)
 {
     $users = User::with([
-        'Terms',
-        'roles',
+        'Terms:id,device_wifi_mac,device_lan_mac',
+        'roles:id,name',
+        'Employee:id,employee_name,employee_pengenal,pin,status,grading_id',
         'Employee.store'    => fn($q) => $q->wherePivot('is_primary', true),
         'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),
-        'Employee.grading',
+        'Employee.grading:id,grading_name',
     ])
-        ->select(['id', 'username', 'employee_id', 'password', 'terms_id', 'created_at',
-            // ← tambah 3 kolom ini supaya hasTwoFactorEnabled() & requiresTwoFactor() bisa jalan
-            'two_factor_secret',
-            'two_factor_confirmed_at',
-            'two_factor_required',
-        ])
-        ->get()
-        ->map(function ($user) {
-            $user->id_hashed = substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8);
-            $user->action = '
-                <a href="' . route('dashboardAdmin.edit', $user->id_hashed) . '" class="mx-3"
-                   data-bs-toggle="tooltip" title="Edit User: ' . e($user->username) . '">
-                    <i class="fas fa-user-edit text-secondary"></i>
-                </a>';
-            return $user;
-        });
+        ->select(['id', 'username', 'employee_id', 'terms_id', 'created_at',
+            'two_factor_secret', 'two_factor_confirmed_at', 'two_factor_required'])
+        ->get();
 
-    return DataTables::of($users)
-        ->addColumn('checkbox', fn($user) =>
-            '<input type="checkbox" class="user-checkbox" value="' . e($user->id) . '">'
-        )
-        ->addColumn('roles', function ($user) {
-            if ($user->roles instanceof \Illuminate\Support\Collection) {
-                return $user->roles->pluck('name')->implode(', ');
+    $online = \App\Models\UserSession::pluck('last_activity', 'user_id');
+
+    // Hanya kolom yang dipakai tabel (bukan seluruh model employee)
+    $rows = $users->map(function ($user) use ($online) {
+        $emp = $user->Employee;
+        $twofa = $user->hasTwoFactorEnabled() ? 'active' : ($user->two_factor_required ? 'required' : 'off');
+
+        return [
+            'id'             => $user->id,
+            'username'       => $user->username,
+            'employee_name'  => $emp->employee_name ?? null,
+            'nip'            => $emp->employee_pengenal ?? null,
+            'status'         => $emp->status ?? null,
+            'can_login'      => ($emp->status ?? null) === 'Active',
+            'store_name'     => $emp?->store->first()?->name,
+            'position_name'  => $emp?->position->first()?->name,
+            'grading_name'   => $emp?->grading?->grading_name,
+            'pin'            => $emp->pin ?? null,
+            'roles'          => $user->roles->pluck('name')->values()->all(),
+            'device_wifi_mac'=> $user->Terms->device_wifi_mac ?? null,
+            'device_lan_mac' => $user->Terms->device_lan_mac ?? null,
+            'twofa'          => $twofa,
+            'last_activity'  => isset($online[$user->id]) ? Carbon::parse($online[$user->id])->locale('id')->translatedFormat('d M Y, H:i') : null,
+            'created_fmt'    => $user->created_at?->locale('id')->translatedFormat('d M Y'),
+            'created_at'     => $user->created_at?->toDateTimeString(),
+            'edit_url'       => route('dashboardAdmin.edit', substr(hash('sha256', $user->id . env('APP_KEY')), 0, 8)),
+            'twofa_toggle_url' => route('admin.2fa.toggle-required', $user->id),
+            'twofa_reset_url'  => route('admin.2fa.disable', $user->id),
+        ];
+    });
+
+    $rows = $rows
+        ->when($request->filled('role'), fn($c) => $request->role === '__none'
+            ? $c->filter(fn($r) => empty($r['roles']))
+            : $c->filter(fn($r) => in_array($request->role, $r['roles'], true)))
+        ->when($request->filled('status'), fn($c) => $c->where('status', $request->status))
+        ->when($request->input('flag') === 'blocked', fn($c) => $c->where('can_login', false))
+        ->when($request->input('flag') === 'no_role', fn($c) => $c->filter(fn($r) => empty($r['roles'])))
+        ->when($request->input('flag') === 'online', fn($c) => $c->whereNotNull('last_activity'))
+        ->values();
+
+    return DataTables::of($rows)
+        ->filter(function ($instance) use ($request) {
+            $q = mb_strtolower(trim((string) $request->input('search.value')));
+            if ($q !== '') {
+                $instance->collection = $instance->collection->filter(fn($r) => collect([
+                    $r['username'], $r['employee_name'], $r['nip'], $r['store_name'], $r['position_name'], $r['pin'],
+                ])->filter()->contains(fn($v) => str_contains(mb_strtolower((string) $v), $q)));
             }
-            return 'Empty';
         })
-        ->addColumn('device_lan_mac',   fn($u) => optional($u->Terms)->device_lan_mac    ?? 'Empty')
-        ->addColumn('employee_name',    fn($u) => optional($u->Employee)->employee_name   ?? 'Empty')
-        ->addColumn('store_name',       fn($u) => optional($u->Employee)->store->first()?->name     ?? 'Empty')
-        ->addColumn('position_name',    fn($u) => optional($u->Employee)->position->first()?->name  ?? 'Empty')
-        ->addColumn('grading_name',     fn($u) => optional(optional($u->Employee)->grading)->grading_name ?? 'Empty')
-        ->addColumn('pin',              fn($u) => optional($u->Employee)->pin             ?? 'Empty')
-        ->addColumn('device_wifi_mac',  fn($u) => optional($u->Terms)->device_wifi_mac    ?? 'Empty')
-        ->addColumn('status',           fn($u) => optional($u->Employee)->status          ?? 'Empty')
-
-        // ── Kolom baru: status 2FA ────────────────────────────────────
-        ->addColumn('two_factor_status', function ($user) {
-            if ($user->hasTwoFactorEnabled()) {
-                return '<span class="badge bg-success">Aktif</span>';
-            }
-            if ($user->two_factor_required) {
-                return '<span class="badge bg-warning text-dark">Belum Setup</span>';
-            }
-            return '<span class="badge bg-secondary">Tidak Aktif</span>';
-        })
-
-        // ── Kolom baru: action 2FA ────────────────────────────────────
-        // ->addColumn('two_factor_action', function ($user) {
-        //     $toggleLabel = $user->two_factor_required ? 'Batalkan Wajib' : 'Wajibkan';
-        //     $toggleClass = $user->two_factor_required ? 'btn-outline-warning' : 'btn-outline-secondary';
-
-        //     $toggleBtn = '
-        //         <form method="POST" action="' . route('admin.2fa.toggle-required', $user->id) . '" class="d-inline">
-        //             ' . csrf_field() . '
-        //             <button type="submit" class="btn btn-sm ' . $toggleClass . '" title="' . $toggleLabel . ' 2FA">
-        //                 ' . $toggleLabel . '
-        //             </button>
-        //         </form>';
-
-        //     $resetBtn = '';
-        //     if ($user->hasTwoFactorEnabled()) {
-        //         $resetBtn = '
-        //         <form method="POST" action="' . route('admin.2fa.disable', $user->id) . '" class="d-inline"
-        //             onsubmit="return confirm(\'Reset 2FA untuk ' . e($user->username) . '?\')">
-        //             ' . csrf_field() . '
-        //             <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Reset 2FA">
-        //                 Reset
-        //             </button>
-        //         </form>';
-        //     }
-
-        //     return $toggleBtn . $resetBtn;
-        // })
-        ->addColumn('two_factor_action', function ($user) {
-    $toggleLabel = $user->two_factor_required ? 'Batalkan Wajib' : 'Wajibkan';
-    $toggleClass = $user->two_factor_required ? 'btn-outline-warning' : 'btn-outline-secondary';
-
-    $toggleBtn = '
-        <form method="POST" action="' . route('admin.2fa.toggle-required', $user->id) . '" class="d-inline">
-            ' . csrf_field() . '
-            <button type="submit" class="btn btn-sm ' . $toggleClass . '">
-                ' . $toggleLabel . '
-            </button>
-        </form>';
-
-    $resetBtn = '';
-    if ($user->hasTwoFactorEnabled()) {
-        // Sudah setup — tampilkan tombol Reset
-        $resetBtn = '
-            <form method="POST" action="' . route('admin.2fa.disable', $user->id) . '" class="d-inline"
-                onsubmit="return confirm(\'Reset 2FA untuk ' . e($user->username) . '?\')">
-                ' . csrf_field() . '
-                <button type="submit" class="btn btn-sm btn-outline-danger ms-1">
-                    Reset
-                </button>
-            </form>';
-    } elseif ($user->two_factor_required) {
-        // Diwajibkan tapi belum setup — tampilkan info cara setup
-        $resetBtn = '
-            <span class="ms-1 text-muted small"
-                data-bs-toggle="tooltip"
-                title="User harus login dan akses /two-factor/setup untuk setup 2FA">
-                <i class="fas fa-info-circle text-warning"></i> Belum setup
-            </span>';
-    }
-
-    return $toggleBtn . $resetBtn;
-})
-
-        ->rawColumns([
-            'checkbox', 'device_lan_mac', 'device_wifi_mac', 'action',
-            'two_factor_status', 'two_factor_action', // ← tambah ke rawColumns
-        ])
         ->make(true);
 }
 public function bulkUpdateRole(Request $request)
@@ -197,11 +155,12 @@ public function bulkUpdateRole(Request $request)
         $users = User::whereIn('id', $request->user_ids)->get();
 
         foreach ($users as $user) {
-            // Hapus semua role lama, lalu assign 'Human'
+            // Hapus semua role lama, lalu assign 'Human' (kolom role aktif ikut disamakan)
             $user->syncRoles(['Human']);
+            $user->update(['active_role_hrx' => 'Human', 'all_roles_hrx' => ['Human']]);
         }
 
-        return response()->json(['success' => true, 'message' => 'Selected users successfully updated to Human role.']);
+        return response()->json(['success' => true, 'message' => count($users) . ' akun sekarang hanya memegang role Human.']);
     } catch (\Exception $e) {
         Log::error('Bulk update error', ['message' => $e->getMessage()]);
         return response()->json(['success' => false, 'message' => 'Something went wrong.']);
@@ -226,6 +185,8 @@ public function bulkUpdateRole(Request $request)
     $roles          = Role::pluck('name', 'name')->all();
     $selectedRoles  = old('roles', $user->roles->pluck('name')->toArray());
 
+    $resetLinks = app(PasswordResetLinkService::class);
+
     return view('pages.dashboardAdmin.edit', [
         'user'           => $user,
         'hashedId'       => $hashedId,
@@ -233,6 +194,15 @@ public function bulkUpdateRole(Request $request)
         'selectedStatus' => $selectedStatus,
         'roles'          => $roles,
         'selectedRoles'  => $selectedRoles,
+        // Reset password via email
+        'resetEmail'     => $resetLinks->emailFor($user),
+        'activeResetLink' => $resetLinks->activeLink($user),
+        'lastResetLink'  => UserPasswordResetLink::where('user_id', $user->id)->latest('id')->first(),
+        // Panel info akun
+        'roleOptions'    => Role::withCount(['permissions', 'users'])->orderBy('name')->get(['id', 'name']),
+        'session'        => \App\Models\UserSession::where('user_id', $user->id)->latest('last_activity')->first(),
+        'twofaState'     => $user->hasTwoFactorEnabled() ? 'active' : ($user->two_factor_required ? 'required' : 'off'),
+        'canLogin'       => ($user->Employee->status ?? null) === 'Active',
     ]);
 }
     public function update(Request $request, $hashedId)
@@ -298,6 +268,11 @@ public function bulkUpdateRole(Request $request)
             $user->update($userData);
             Log::info('User berhasil diupdate', ['user_id' => $user->id]);
 
+            // Password diganti manual oleh admin → link reset yang masih aktif tidak berlaku lagi
+            if (!empty($validatedData['password'])) {
+                app(PasswordResetLinkService::class)->revokeAll($user);
+            }
+
             if ($user->Terms) {
                 $user->Terms->update([
                     'device_wifi_mac' => $validatedData['device_wifi_mac'] ?? null,
@@ -307,11 +282,14 @@ public function bulkUpdateRole(Request $request)
             }
 
             if ($user->Employee) {
-                $user->Employee->update([
-                    'status' => $validatedData['status'] ?? 'Active',
-                    'pin' => $validatedData['pin'] ?? 'Active',
-                ]);
-                Log::info('Employee status berhasil diupdate');
+                // Status karyawan hanya diubah kalau field-nya benar-benar dikirim.
+                // Dulu default 'Active' membuat karyawan Resign bisa login lagi setelah akunnya diedit.
+                $employeeData = ['pin' => $validatedData['pin']];
+                if ($request->filled('status')) {
+                    $employeeData['status'] = $validatedData['status'];
+                }
+                $user->Employee->update($employeeData);
+                Log::info('Employee data berhasil diupdate');
             }
 
             // Ambil role dan permission
@@ -334,6 +312,31 @@ public function bulkUpdateRole(Request $request)
             ]);
             return redirect()->route('pages.dashboardAdmin')->with('error', 'Terjadi kesalahan saat mengupdate user.');
         }
+    }
+
+    /**
+     * Kirim link reset password sekali pakai ke email karyawan.
+     */
+    public function sendResetLink($hashedId, PasswordResetLinkService $resetLinks)
+    {
+        $user = User::with('Employee.company')->get()->first(function ($u) use ($hashedId) {
+            return substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8) === $hashedId;
+        });
+
+        if (!$user) {
+            abort(404, 'User not found.');
+        }
+
+        try {
+            $link = $resetLinks->send($user, auth()->user());
+        } catch (\RuntimeException $e) {
+            return redirect()->route('dashboardAdmin.edit', $hashedId)->with('reset_error', $e->getMessage());
+        }
+
+        return redirect()->route('dashboardAdmin.edit', $hashedId)->with(
+            'reset_success',
+            'Link reset password dikirim ke ' . $link->sent_to . '. Berlaku ' . PasswordResetLinkService::EXPIRE_MINUTES . ' menit dan hanya bisa dipakai sekali.'
+        );
     }
 
     public function show($hashedId)

@@ -285,6 +285,16 @@
         }
 
         .alert-dark-danger ul { margin: 0; padding-left: 16px; }
+
+        .alert-dark-success {
+            background: rgba(92,184,128,0.12);
+            border: 1px solid rgba(92,184,128,0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #9fdcb5;
+            font-size: 0.83rem;
+        }
         .alert-dark-danger li { margin: 2px 0; }
 
         /* ── Footer ── */
@@ -437,6 +447,12 @@
                 @csrf
 
                 {{-- Alerts --}}
+                @if (session('success'))
+                    <div class="alert-dark-success" role="status">{{ session('success') }}</div>
+                @endif
+                @if (session('warning') || session('error'))
+                    <div class="alert-dark-danger" role="alert">{{ session('warning') ?? session('error') }}</div>
+                @endif
                 @if ($errors->has('throttle'))
                     <div class="alert-dark-danger">{{ $errors->first('throttle') }}</div>
                 @endif
@@ -504,7 +520,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             Swal.fire({
                 title: 'Confirm Login',
-                html: `{{ session('confirm_force_login')['message'] }}`,
+                text: @json(session('confirm_force_login')['message'] ?? ''),
                 icon: 'question',
                 background: '#181b22',
                 color: '#f0ede8',
@@ -518,7 +534,7 @@
             }).then(result => {
                 if (result.isConfirmed) {
                     const form = document.createElement('form');
-                    form.action = '{{ route('session') }}';
+                    form.action = '{{ route('session.confirm') }}';
                     form.method = 'POST';
                     form.style.display = 'none';
                     const csrf = document.createElement('input');
@@ -526,10 +542,7 @@
                     csrf.value = '{{ csrf_token() }}';
                     form.appendChild(csrf);
                     const fields = {
-                        username: '{{ session('confirm_force_login')['username'] }}',
-                        password: '{{ session('confirm_force_login')['password'] }}',
-                        remember: '{{ session('confirm_force_login')['remember'] ? '1' : '0' }}',
-                        force_login: '1'
+                        token: @json(session('confirm_force_login')['token'] ?? ''),
                     };
                     for (const [name, value] of Object.entries(fields)) {
                         const input = document.createElement('input');

@@ -427,13 +427,13 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>Start Time</label>
-                                        <input type="time" class="form-control" name="start_time" id="start_time">
+                                        <input type="time" class="form-control" name="start_time" id="start_time" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>End Time</label>
-                                        <input type="time" class="form-control" name="end_time" id="end_time">
+                                        <input type="time" class="form-control" name="end_time" id="end_time" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -670,19 +670,19 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Date</label>
-                            <input type="date" class="form-control" id="edit_date" name="date">
+                            <input type="date" class="form-control" id="edit_date" name="date" min="{{ $minDate->format('Y-m-d') }}" max="{{ $maxDate->format('Y-m-d') }}">
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Start Time</label>
-                                    <input type="time" class="form-control" id="edit_start_time" name="start_time">
+                                    <input type="time" class="form-control" id="edit_start_time" name="start_time" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>End Time</label>
-                                    <input type="time" class="form-control" id="edit_end_time" name="end_time">
+                                    <input type="time" class="form-control" id="edit_end_time" name="end_time" required>
                                 </div>
                             </div>
                         </div>

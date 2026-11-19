@@ -34,6 +34,7 @@ class ToilLeaveRequests extends Model
         'hours_used',
         'original_shift_id',
         'original_day_type',
+        'original_notes',
         'leave_date',
         'reason',
         'status',           // 'Pending' | 'Approved' | 'Rejected' | 'Cancelled'

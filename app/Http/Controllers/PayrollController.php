@@ -29,8 +29,35 @@ class PayrollController extends Controller
 {
     protected PayrollService $payrollService;
 
+    /** Permission per aksi (Spatie), bukan role. Route di web.php memakai peta yang sama. */
+    private const PERMISSIONS = [
+        'index'                      => 'payroll.view',
+        'getPayroll'                 => 'payroll.view',
+        'show'                       => 'payroll.show',
+        'generate'                   => 'payroll.generate',
+        'generateOne'                => 'payroll.generate.one',
+        'edit'                       => 'payroll.update',
+        'update'                     => 'payroll.update',
+        'destroy'                    => 'payroll.destroy',
+        'destroyBulk'                => 'payroll.destroy.bulk',
+        'approve'                    => 'payroll.approve',
+        'approveBulk'                => 'payroll.approve.bulk',
+        'paid'                       => 'payroll.paid',
+        'export'                     => 'payroll.export',
+        'importAttendance'           => 'payroll.import',
+        'downloadAttendanceTemplate' => 'payroll.download.template',
+        'downloadSlip'               => 'payroll.download.slip',
+        'downloadSlipBulk'           => 'payroll.slip.bulk',
+        'sendSlipEmail'              => 'payroll.send.slip',
+        'sendSlipEmailBulk'          => 'payroll.send.slip.bulk',
+    ];
+
     public function __construct(PayrollService $payrollService)
     {
+        foreach (self::PERMISSIONS as $method => $permission) {
+            $this->middleware('permission:' . $permission)->only($method);
+        }
+
         $this->payrollService = $payrollService;
     }
     // ── Index per periode ──
@@ -38,15 +65,35 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.view')) {
             abort(403, 'Unauthorized');
         }
         $period = PayrollPeriod::findOrFail($periodId);
+        $agg = Payroll::where('payroll_period_id', $periodId)
+            ->selectRaw("
+                COUNT(*)                                      AS total,
+                SUM(status = 'draft')                         AS draft,
+                SUM(status = 'approved')                      AS approved,
+                SUM(status = 'paid')                          AS paid,
+                COALESCE(SUM(gross_salary), 0)                AS total_gross,
+                COALESCE(SUM(overtime_amount), 0)             AS total_overtime,
+                COALESCE(SUM(total_deduction), 0)             AS total_deduction,
+                COALESCE(SUM(net_salary), 0)                  AS total_net,
+                SUM(status = 'draft' AND net_salary < 0)      AS net_negative,
+                SUM(status = 'draft' AND attendance_days = 0) AS no_attendance
+            ")
+            ->first();
         $stats = [
-            'draft'     => Payroll::where('payroll_period_id', $periodId)->where('status', 'draft')->count(),
-            'approved'  => Payroll::where('payroll_period_id', $periodId)->where('status', 'approved')->count(),
-            'paid'      => Payroll::where('payroll_period_id', $periodId)->where('status', 'paid')->count(),
-            'total_net' => Payroll::where('payroll_period_id', $periodId)->sum('net_salary'),
+            'total'           => (int) $agg->total,
+            'draft'           => (int) $agg->draft,
+            'approved'        => (int) $agg->approved,
+            'paid'            => (int) $agg->paid,
+            'total_gross'     => (float) $agg->total_gross,
+            'total_overtime'  => (float) $agg->total_overtime,
+            'total_deduction' => (float) $agg->total_deduction,
+            'total_net'       => (float) $agg->total_net,
+            'net_negative'    => (int) $agg->net_negative,
+            'no_attendance'   => (int) $agg->no_attendance,
         ];
         $stores = Stores::orderBy('name')->get();
         $companies = Company::orderBy('name')->get();
@@ -396,7 +443,7 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.view')) {
             abort(403, 'Unauthorized');
         }
         $period = PayrollPeriod::findOrFail($periodId);
@@ -414,6 +461,13 @@ class PayrollController extends Controller
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Penanda dari panel "perlu dicek" di halaman index
+        if ($request->input('flag') === 'net_negative') {
+            $query->where('status', 'draft')->where('net_salary', '<', 0);
+        } elseif ($request->input('flag') === 'no_attendance') {
+            $query->where('status', 'draft')->where('attendance_days', 0);
         }
 
         if ($request->filled('status_type')) {
@@ -499,15 +553,15 @@ class PayrollController extends Controller
             ->addColumn('department_name', fn($row) => $row->employee->department->first()?->department_name ?? '-')
             ->addColumn('position_name', fn($row) => $row->employee->position->first()?->name ?? '-')
             ->addColumn('status_badge', fn($row) => match ($row->status) {
-                'draft'    => '<span class="status-badge" style="background:#f1f5f9;color:#475569">Draft</span>',
-                'approved' => '<span class="status-badge" style="background:#f0fdf4;color:#166534">Approved</span>',
-                'paid'     => '<span class="status-badge" style="background:#eff6ff;color:#1e40af">Paid</span>',
+                'draft'    => '<span class="status-badge is-draft">Draft</span>',
+                'approved' => '<span class="status-badge is-approved">Approved</span>',
+                'paid'     => '<span class="status-badge is-paid">Paid</span>',
                 default    => $row->status,
             })
             ->addColumn('status_type_badge', fn($row) => match ($row->employee->status_employee ?? '') {
-                'PKWT'           => '<span class="status-badge" style="background:#eff6ff;color:#1e40af">PKWT</span>',
-                'On Job Training' => '<span class="status-badge" style="background:#fdf4ff;color:#6b21a8">OJT</span>',
-                'DW'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+                'PKWT'           => '<span class="status-badge is-type">PKWT</span>',
+                'On Job Training' => '<span class="status-badge is-type">OJT</span>',
+                'DW'             => '<span class="status-badge is-type">DW</span>',
                 default          => '-',
             })
             ->addColumn('status_employee_badge', fn($row) => match ($row->employee->status ?? '') {
@@ -637,7 +691,7 @@ class PayrollController extends Controller
                 'prorate_info',
                 fn($row) =>
                 $row->is_prorate
-                    ? '<span class="status-badge" style="background:#fff7ed;color:#c2410c">Prorate ' . ($row->prorate_ratio * 100) . '%</span>'
+                    ? '<span class="status-badge is-prorate">Prorate ' . ($row->prorate_ratio * 100) . '%</span>'
                     : '-'
             )
             ->orderColumn('employee_name', function ($q, $order) {
@@ -693,40 +747,47 @@ class PayrollController extends Controller
 ->orderColumn('tax_fmt', fn($q, $order) => $q->orderBy('tax', $order))
 ->orderColumn('total_deduction_fmt', fn($q, $order) => $q->orderBy('total_deduction', $order))
 ->orderColumn('net_salary_fmt', fn($q, $order) => $q->orderBy('net_salary', $order))
-            ->addColumn('action', function ($row) {
-                $actions = '<a href="' . route('payroll.show', $row->id) . '"
-                    class="act-btn" title="Detail">
-                    <i class="fas fa-eye"></i>
-                </a>';
+            ->addColumn('action', function ($row) use ($user) {
+                // Tiap tombol hanya muncul kalau user punya permission aksinya
+                $actions = '';
+
+                if ($user->can('payroll.show')) {
+                    $actions .= '<a href="' . route('payroll.show', $row->id) . '" class="act-btn" title="Detail" aria-label="Detail">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </a>';
+                }
 
                 if ($row->status === 'draft') {
-                    $actions .= '<a href="' . route('payroll.edit', $row->id) . '"
-                        class="act-btn act-warning" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </a>';
-
-                    $actions .= '<button
-                        class="act-btn act-success btn-approve"
-                        data-id="' . $row->id . '"
-                        title="Approve">
-                        <i class="fas fa-check"></i>
-                    </button>';
-                    $actions .= '<button
-            class="act-btn act-danger btn-delete-single"
-            data-id="' . $row->id . '"
-            title="Delete">
-            <i class="fas fa-trash"></i>
-        </button>';
+                    if ($user->can('payroll.update')) {
+                        $actions .= '<a href="' . route('payroll.edit', $row->id) . '" class="act-btn act-warning" title="Edit" aria-label="Edit">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
+                        </a>';
+                    }
+                    if ($user->can('payroll.approve')) {
+                        $actions .= '<button type="button" class="act-btn act-success btn-approve" data-id="' . $row->id . '" title="Approve" aria-label="Approve">
+                            <i class="fas fa-check" aria-hidden="true"></i>
+                        </button>';
+                    }
+                    if ($user->can('payroll.destroy')) {
+                        $actions .= '<button type="button" class="act-btn act-danger btn-delete-single" data-id="' . $row->id . '" title="Delete" aria-label="Delete">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>';
+                    }
                 }
-                if (in_array($row->status, ['approved', 'paid'])) {
-        $actions .= '<a href="' . route('payroll.slip', $row->id) . '"
-            class="act-btn act-info" title="Download Slip" target="_blank">
-            <i class="fas fa-file-pdf"></i>
-        </a>';
-        $actions .= '<button class="act-btn act-primary btn-send-slip" data-id="' . $row->id . '" title="Kirim Email Slip">
-            <i class="fas fa-paper-plane"></i>
-        </button>';
-    }
+
+                if (in_array($row->status, ['approved', 'paid'], true)) {
+                    if ($user->can('payroll.download.slip')) {
+                        $actions .= '<a href="' . route('payroll.slip', $row->id) . '" class="act-btn act-info" title="Download Slip" aria-label="Download Slip" target="_blank">
+                            <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                        </a>';
+                    }
+                    if ($user->can('payroll.send.slip')) {
+                        $actions .= '<button type="button" class="act-btn act-primary btn-send-slip" data-id="' . $row->id . '" title="Kirim Email Slip" aria-label="Kirim Email Slip">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                        </button>';
+                    }
+                }
+
                 return '<div class="action-wrap">' . $actions . '</div>';
             })
             ->rawColumns(['status_badge', 'status_type_badge', 'status_employee_badge', 'prorate_info', 'action'])
@@ -742,7 +803,7 @@ class PayrollController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.destroy')) {
             abort(403, 'Unauthorized');
         }
 
@@ -787,7 +848,7 @@ class PayrollController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.destroy.bulk')) {
             abort(403, 'Unauthorized');
         }
 
@@ -845,7 +906,7 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.generate')) {
             abort(403, 'Unauthorized');
         }
         $period = PayrollPeriod::findOrFail($periodId);
@@ -885,7 +946,7 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.generate.one')) {
             abort(403, 'Unauthorized');
         }
         $period   = PayrollPeriod::findOrFail($periodId);
@@ -917,24 +978,33 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.show')) {
             abort(403, 'Unauthorized');
         }
         $payroll = Payroll::with([
-            'employee',
-            'employee.store',
+            'period',
+            'approvedBy:id,employee_name',
+            'employee.company:id,name',
+            'employee.grading:id,grading_name',
+            'employee.bank',
+            'employee.store'      => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.position'   => fn($q) => $q->wherePivot('is_primary', true),
             'details.component',
         ])->findOrFail($id);
 
-        return view('pages.Payroll.show', compact('payroll'));
+        $breakdown = $payroll->salaryBreakdown();
+
+        return view('pages.Payroll.show', compact('payroll', 'breakdown'));
     }
+
 
     // ── Edit (koreksi manual) ──
     public function edit(string $id)
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.update')) {
             abort(403, 'Unauthorized');
         }
         $payroll = Payroll::with([
@@ -958,7 +1028,7 @@ class PayrollController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.update')) {
             abort(403, 'Unauthorized');
         }
 
@@ -990,16 +1060,16 @@ class PayrollController extends Controller
             'note'             => 'nullable|string|max:500',
         ]);
 
-        // Non-DW: attendance tidak boleh melebihi working days (gaji pokok max 100%)
-        if (strtoupper($payroll->employee->status_employee ?? '') !== 'DW'
-            && (float) $request->attendance_days > (float) $request->working_days) {
-            return back()
-                ->withErrors(['attendance_days' => 'Attendance days tidak boleh melebihi working days.'])
-                ->withInput();
-        }
+        // Non-DW: attendance boleh melebihi working days (dicatat apa adanya, sama seperti import),
+        // tapi gaji pokok tetap maksimal 100% lewat Payroll::earnedSalary().
 
         try {
+            $isDw = strtoupper($payroll->employee->status_employee ?? '') === 'DW';
+            $attendance = (int) ($request->attendance_days ?? 0);
+
             $payroll->update([
+                // DW: gross = daily_rate × attendance, ikut diperbarui seperti saat import
+                'gross_salary'     => $isDw ? round((float) $payroll->daily_rate * $attendance, 2) : $payroll->gross_salary,
                 'attendance_days'  => $request->attendance_days  ?? 0,
                 'working_days'  => $request->working_days  ?? 0,
                 'overtime_amount'  => $request->overtime_amount  ?? 0,
@@ -1027,7 +1097,7 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.approve')) {
             abort(403, 'Unauthorized');
         }
         $payroll = Payroll::with('period')->findOrFail($id);
@@ -1064,7 +1134,7 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.approve.bulk')) {
             abort(403, 'Unauthorized');
         }
         $request->validate([
@@ -1073,8 +1143,29 @@ class PayrollController extends Controller
         ]);
 
         try {
-            // Hanya draft, periode open, dan net salary tidak minus
-            $approved = Payroll::whereIn('id', $request->ids)
+            $payrolls = Payroll::with(['employee:id,employee_name', 'period:id,status'])
+                ->whereIn('id', $request->ids)
+                ->get();
+
+            $approvableIds = [];
+            $skipped = [];
+            foreach ($payrolls as $payroll) {
+                $reason = match (true) {
+                    $payroll->status !== 'draft'                      => "status {$payroll->status}",
+                    !$this->periodIsOpen($payroll)                    => 'periode closed/locked',
+                    (float) $payroll->net_salary < 0                  => 'net salary minus (Rp ' . number_format($payroll->net_salary, 0, ',', '.') . ')',
+                    default                                           => null,
+                };
+
+                if ($reason === null) {
+                    $approvableIds[] = $payroll->id;
+                } else {
+                    $skipped[] = ($payroll->employee->employee_name ?? $payroll->id) . " — {$reason}";
+                }
+            }
+
+            // Filter ulang di query supaya aman dari race condition
+            $approved = empty($approvableIds) ? 0 : Payroll::whereIn('id', $approvableIds)
                 ->where('status', 'draft')
                 ->where('net_salary', '>=', 0)
                 ->whereHas('period', fn($q) => $q->where('status', 'open'))
@@ -1084,11 +1175,16 @@ class PayrollController extends Controller
                     'approved_at' => now(),
                 ]);
 
-            $skipped = count($request->ids) - $approved;
             $message = "{$approved} payroll di-approve."
-                . ($skipped > 0 ? " {$skipped} dilewati (bukan draft, periode tidak open, atau net salary minus)." : '');
+                . (count($skipped) > 0 ? ' ' . count($skipped) . ' dilewati.' : '');
 
-            return response()->json(['success' => true, 'message' => $message]);
+            return response()->json([
+                'success'  => true,
+                'approved' => $approved,
+                'skipped'  => $skipped,
+                'message'  => $message,
+            ]);
+
         } catch (\Exception $e) {
             Log::error('PayrollController approveBulk error: ' . $e->getMessage());
             return response()->json(['error' => 'Gagal bulk approve.'], 500);
@@ -1100,7 +1196,7 @@ class PayrollController extends Controller
     {
         $user     = auth()->user();
         /** @var \App\Models\User|null $user */
-        if (!$user->hasPermissionTo('ManagePayroll')) {
+        if (!$user->hasPermissionTo('payroll.paid')) {
             abort(403, 'Unauthorized');
         }
         $payroll = Payroll::with('period')->findOrFail($id);
@@ -1166,7 +1262,8 @@ class PayrollController extends Controller
 
             return back()
                 ->with('success', $message)
-                ->with('skipped', $import->skipped);
+                ->with('skipped', $import->skipped)
+                ->with('import_notes', $import->notes);
         } catch (\Exception $e) {
             Log::error('AttendanceImport error: ' . $e->getMessage());
             return back()->with('error', 'Import gagal: ' . $e->getMessage());
@@ -1295,7 +1392,7 @@ class PayrollController extends Controller
 
         ['pdf' => $pdf] = app(\App\Services\PayrollSlipService::class)->generateForDownload($payroll);
 
-        return $pdf->download('Slip_Gaji_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf');
+        return $pdf->download($payroll->slipFilename());
     }
     public function downloadSlipBulk(Request $request, string $periodId)
     {
@@ -1330,12 +1427,18 @@ class PayrollController extends Controller
 
         $tempFiles = [];
         $results = $service->generateBulkForDownload($payrolls);
+        $usedNames = [];
 
         foreach ($results as $result) {
             $payroll = $result['payroll'];
             $pdf     = $result['pdf'];
 
-            $filename = 'Slip_' . $payroll->employee->employee_pengenal . '_' . $payroll->period_month . $payroll->period_year . '.pdf';
+            $filename = $payroll->slipFilename();
+            // Dua karyawan bernama sama di satu ZIP → tambahkan NIP supaya file tidak saling menimpa
+            if (isset($usedNames[$filename])) {
+                $filename = substr($filename, 0, -4) . '_' . $payroll->employee->employee_pengenal . '.pdf';
+            }
+            $usedNames[$filename] = true;
             $tempPdf  = $tempDir . '/' . uniqid('', true) . '_' . $filename;
 
             $pdf->save($tempPdf);

@@ -4,381 +4,1034 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        /* ── Wrapper ── */
-        .roster-scroll {
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: how many workdays in the period still have no schedule, per store and per person · states: no store, no employees, view-only, window closed, full
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R3 V4 · weakest: R, modal bodies keep their inline styles because 1,600 lines of JS read them; restyled via shared classes only */
+        :root {
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html,
+        body {
+            overflow-x: clip;
+        }
+
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
+        }
+
+        .pr [hidden] {
+            display: none !important;
+        }
+
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .pr .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        /* ── Head ── */
+        .pr-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
+        }
+
+        .pr-crumbs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
+        }
+
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .pr-btn:active {
+            background: var(--pr-rule);
+        }
+
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr-btn i {
+            font-size: .85em;
+        }
+
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
+        }
+
+        .pr-btn-ghost {
+            border-color: transparent;
+            background: transparent;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-btn-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-danger {
+            color: var(--pr-error);
+        }
+
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        /* ── Toolbar ── */
+        .pr-toolbar {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
             overflow-x: auto;
-            border-radius: 8px;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
+        }
+
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
+        }
+
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
+        }
+
+        .pr-mini {
+            min-width: 140px;
+        }
+
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
+        }
+
+        .pr-muted {
+            color: var(--pr-muted);
+        }
+
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
+        .action-wrap {
+            display: flex;
+            gap: var(--pr-space-2xs);
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .act-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .act-btn.act-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* DataTables chrome */
+        .pr-dt-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
+        }
+
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
+            font-weight: 600;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-period {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+            margin: 0;
+        }
+
+        .pr-period>div {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-right: 1px solid var(--pr-rule);
+        }
+
+        .pr-period>div:last-child {
+            border-right: 0;
+        }
+
+        .pr-period dt {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-period dd {
+            margin: var(--pr-space-2xs) 0 0;
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-period dd small {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-muted);
+        }
+
+        .pr-period-note {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+
+        /* ── Roster: tokens khusus tipe hari ── */
+        :root {
+            --rs-work: oklch(95.5% 0.03 250);
+            --rs-work-ink: oklch(42% 0.13 255);
+            --rs-off: var(--pr-paper-2);
+            --rs-off-ink: var(--pr-ink-2);
+            --rs-holiday: var(--pr-warn-soft);
+            --rs-holiday-ink: var(--pr-warn);
+            --rs-leave: oklch(95.5% 0.035 305);
+            --rs-leave-ink: oklch(45% 0.14 305);
+            --rs-sick: var(--pr-error-soft);
+            --rs-sick-ink: var(--pr-error);
+            --rs-toil: oklch(95.5% 0.035 180);
+            --rs-toil-ink: oklch(42% 0.08 180);
+            --rs-weekend-col: oklch(97.6% 0.006 265);
+            --rs-overlay: oklch(27% 0.03 265 / .45);
+            --rs-shadow: oklch(27% 0.03 265 / .18);
+        }
+
+        /* Head: periode & jendela */
+        .rs-period {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .rs-window {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--pr-space-2xs);
+            margin-left: var(--pr-space-xs);
+        }
+
+        /* Filter */
+        .rs-filter {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: var(--pr-space-sm) var(--pr-space-md);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .rs-field {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .rs-field.is-store {
+            flex: 1 1 240px;
+            max-width: 340px;
+        }
+
+        .rs-field.is-date {
+            flex: 0 1 170px;
+        }
+
+        .rs-filter-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .rs-field-hint {
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        /* Ringkasan periode */
+        .rs-summary .pr-period dd.is-warn-text {
+            color: var(--pr-warn);
+        }
+
+        /* Legend / filter tipe */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--pr-space-xs);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            margin: 0;
+        }
+
+        .legend-lead {
+            margin-right: var(--pr-space-2xs);
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .legend-item {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            padding: 4px 10px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-pill);
+            background: var(--pr-panel);
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            user-select: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .legend-item:hover {
+            background: var(--pr-paper);
+        }
+
+        .legend-item input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+        }
+
+        .legend-item:has(input:checked) {
+            border-color: var(--pr-accent);
+            background: var(--pr-accent-soft);
+            color: var(--pr-accent-deep);
+        }
+
+        .legend-item:has(input:focus-visible) {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .legend-count {
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-muted);
+        }
+
+        .rs-sw {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1px solid var(--pr-rule);
+        }
+
+        .rs-sw.is-work { background: var(--rs-work); }
+        .rs-sw.is-off { background: var(--rs-off); }
+        .rs-sw.is-holiday { background: var(--rs-holiday); }
+        .rs-sw.is-leave { background: var(--rs-leave); }
+        .rs-sw.is-sick { background: var(--rs-sick); }
+        .rs-sw.is-toil { background: var(--rs-toil); }
+        .rs-sw.is-today { background: var(--pr-panel); box-shadow: inset 0 0 0 2px var(--pr-accent-strong); }
+
+        /* Grid roster */
+        .roster-scroll {
+            overflow: auto;
+            max-height: 72vh;
         }
 
         .roster-table {
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             width: 100%;
-            font-size: 13px;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
         }
 
-        /* ── Header ── */
         .roster-table thead th {
-            background: #1e293b;
-            color: #fff;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            padding: 10px 6px;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            padding: 8px 4px;
+            background: var(--pr-paper);
+            border-bottom: 1px solid var(--pr-rule);
+            border-right: 1px solid var(--pr-rule);
             text-align: center;
             white-space: nowrap;
-            border: 1px solid #334155;
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-ink-2);
         }
 
-        .roster-table thead th.col-emp {
-            position: sticky;
-            left: 0;
-            z-index: 4;
-            background: #0f172a;
-            min-width: 200px;
-            text-align: left;
-            padding-left: 14px;
+        .roster-table thead th .rs-dow {
+            display: block;
+            font-weight: 600;
+            color: var(--pr-muted);
+        }
+
+        .roster-table thead th .rs-date {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
         }
 
         .roster-table thead th.weekend {
-            background: #7f1d1d;
+            background: var(--pr-paper-2);
         }
 
         .roster-table thead th.today {
-            background: #78350f;
+            background: var(--pr-accent-soft);
+            box-shadow: inset 0 -2px 0 var(--pr-accent-strong);
         }
 
-        /* ── Body ── */
+        .roster-table thead th.today .rs-date {
+            color: var(--pr-accent-deep);
+        }
+
+        .roster-table thead th.col-emp {
+            left: 0;
+            z-index: 5;
+            min-width: 220px;
+            padding-left: var(--pr-space-md);
+            text-align: left;
+            font-size: var(--pr-text-sm);
+        }
+
         .roster-table tbody td {
-            border: 1px solid #e2e8f0;
-            padding: 5px 4px;
+            padding: 4px;
+            border-bottom: 1px solid var(--pr-rule);
+            border-right: 1px solid var(--pr-rule);
             vertical-align: middle;
             text-align: center;
-            background: #fff;
+            background: var(--pr-panel);
         }
 
-        .roster-table tbody td.col-emp {
+        .roster-table tbody .col-emp {
             position: sticky;
             left: 0;
             z-index: 2;
-            background: #f8fafc;
+            min-width: 220px;
+            max-width: 260px;
+            padding: var(--pr-space-xs) var(--pr-space-md);
             text-align: left;
-            padding: 8px 14px;
-            border-right: 2px solid #cbd5e1;
-            min-width: 200px;
-        }
-
-        .roster-table tbody tr:nth-child(even) td.col-emp {
-            background: #f1f5f9;
+            background: var(--pr-panel);
+            box-shadow: inset -1px 0 0 var(--pr-rule);
         }
 
         .roster-table tbody tr:hover td {
-            background: #f0f9ff !important;
+            background: var(--pr-paper);
         }
 
-
-        /* ── Employee info ── */
         .emp-name {
-            font-weight: 600;
-            color: #0f172a;
-            font-size: 13px;
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+            overflow-wrap: break-word;
         }
 
         .emp-meta {
-            font-size: 10px;
-            color: #64748b;
+            display: block;
             margin-top: 1px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: var(--pr-muted);
+            overflow-wrap: break-word;
         }
 
-        /* ── Status Badge ── */
         .emp-status {
             display: inline-block;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 1px 7px;
-            border-radius: 10px;
             margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
+            padding: 1px 8px;
+            border-radius: var(--pr-pill);
+            font-size: 11px;
+            font-weight: 700;
         }
 
-        .status-pkwt {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
+        .status-pkwt { background: var(--rs-work); color: var(--rs-work-ink); }
+        .status-ojt { background: var(--pr-warn-soft); color: var(--pr-warn); }
+        .status-dw { background: var(--rs-leave); color: var(--rs-leave-ink); }
 
-        .status-ojt {
-            background: #fef9c3;
-            color: #854d0e;
-        }
-
-        .status-dw {
-            background: #fce7f3;
-            color: #9d174d;
-        }
-
-        /* ── Day cell ── */
         .day-cell {
+            min-width: 86px;
             cursor: pointer;
-            min-width: 85px;
         }
 
-        .day-cell:hover {
-            background: #eff6ff !important;
+        .roster-table tbody td.day-cell.weekend {
+            background: var(--rs-weekend-col);
         }
 
-        .day-cell.weekend {
-            background: #fff1f2 !important;
+        .roster-table tbody td.day-cell.today {
+            box-shadow: inset 2px 0 0 var(--pr-accent-strong), inset -2px 0 0 var(--pr-accent-strong);
         }
 
-        .day-cell.today {
-            background: #fefce8 !important;
-            outline: 2px solid #eab308;
-            outline-offset: -2px;
+        .roster-table tbody td.day-cell:hover {
+            background: var(--pr-accent-soft);
         }
 
-        /* ── Roster badge ── */
         .r-badge {
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            border-radius: 5px;
-            padding: 3px 8px;
-            min-width: 72px;
-            border: 1px solid transparent;
+            min-width: 74px;
+            padding: 3px 6px;
+            border-radius: var(--pr-radius-sm);
+            line-height: 1.3;
         }
 
         .r-badge .r-name {
-            font-weight: 700;
-            font-size: 11px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
+            font-size: 11px;
+            font-weight: 700;
         }
 
         .r-badge .r-time {
-            font-size: 10px;
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
             white-space: nowrap;
-            opacity: .85;
         }
 
         .r-badge .r-notes {
-            font-size: 9px;
-            font-style: italic;
-            margin-top: 2px;
             max-width: 80px;
-            white-space: nowrap;
+            margin-top: 1px;
             overflow: hidden;
             text-overflow: ellipsis;
-            opacity: 0.9;
+            white-space: nowrap;
+            font-size: 10px;
+            opacity: .9;
         }
 
-        .r-work {
-            background: #dbeafe;
-            border-color: #93c5fd;
-        }
+        .r-work { background: var(--rs-work); color: var(--rs-work-ink); }
+        .r-off { background: var(--rs-off); color: var(--rs-off-ink); }
+        .r-holiday { background: var(--rs-holiday); color: var(--rs-holiday-ink); }
+        .r-leave { background: var(--rs-leave); color: var(--rs-leave-ink); }
+        .r-sick { background: var(--rs-sick); color: var(--rs-sick-ink); }
+        .r-toiloff { background: var(--rs-toil); color: var(--rs-toil-ink); }
 
-        .r-work .r-name {
-            color: #1d4ed8;
-        }
-
-        .r-work .r-time {
-            color: #3b82f6;
-        }
-
-        .r-work .r-notes {
-            color: #1e40af;
-        }
-
-        .r-off {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-
-        .r-off .r-name {
-            color: #64748b;
-        }
-
-        .r-off .r-notes {
-            color: #475569;
-        }
-
-        .r-holiday {
-            background: #fef9c3;
-            border-color: #fde047;
-        }
-
-        .r-holiday .r-name {
-            color: #854d0e;
-        }
-
-        .r-holiday .r-notes {
-            color: #92400e;
-            font-weight: 500;
-        }
-
-        .r-leave {
-            background: #f3e8ff;
-            border-color: #d8b4fe;
-        }
-
-        .r-leave .r-name {
-            color: #7e22ce;
-        }
-
-        .r-leave .r-notes {
-            color: #6b21a8;
-        }
-
-        /* ── Sick (oranye) ── */
-        .r-sick {
-            background: #ffedd5;
-            border-color: #fdba74;
-        }
-
-        .r-sick .r-name {
-            color: #c2410c;
-        }
-
-        .r-sick .r-notes {
-            color: #9a3412;
-        }
-
-        /* ── TOIL Off (teal — beda dari Off biasa) ── */
-        .r-toiloff {
-            background: #ccfbf1;
-            border-color: #5eead4;
-        }
-
-        .r-toiloff .r-name {
-            color: #0f766e;
-        }
-
-        .r-toiloff .r-notes {
-            color: #115e59;
+        .day-cell.weekend:not([data-has-roster="1"]) .r-off {
+            background: transparent;
+            color: var(--pr-muted);
+            font-weight: 600;
         }
 
         .r-empty {
-            color: #cbd5e1;
-            font-size: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px dashed var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            font-size: var(--pr-text-md);
             line-height: 1;
+            color: var(--pr-muted);
         }
 
-        /* ── Filter card ── */
-        .filter-card {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 1px 8px rgba(0, 0, 0, .08);
-            padding: 20px 24px;
-            margin-bottom: 16px;
+        .day-cell:hover .r-empty {
+            border-color: var(--pr-accent);
+            color: var(--pr-accent-strong);
         }
 
+        /* Form controls */
         .f-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 6px;
             display: block;
-            white-space: nowrap;
+            margin-bottom: 4px;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .f-label .rs-req {
+            color: var(--pr-error);
         }
 
         .f-control {
             width: 100%;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px;
-            color: #0f172a;
+            min-height: 38px;
+            padding: 7px 12px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+            transition: border-color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        .f-control:focus {
-            outline: none;
-            border-color: #3b82f6;
+        .f-control:hover {
+            border-color: var(--pr-muted);
         }
 
-        .filter-item {
-            min-width: 180px;
+        .f-control:focus,
+        .f-control:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 0;
+            border-color: var(--pr-accent);
         }
 
-        .filter-item-date {
-            min-width: 160px;
-        }
-
-        .filter-item-btn {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-            padding-bottom: 1px;
-        }
-
-        /* ── Buttons ── */
-        .btn-primary-r {
-            background: #1d4ed8;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-primary-r:disabled {
-            opacity: 0.7;
+        .f-control:disabled {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
             cursor: not-allowed;
         }
 
-        .btn-secondary-r {
-            background: #e2e8f0;
-            color: #334155;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 14px;
-            font-size: 13px;
+        /* Tombol lama (dipakai modal & JS): disamakan dengan pr-btn */
+        .btn-primary-r,
+        .btn-secondary-r,
+        .btn-danger-r,
+        .btn-success-r {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 0 14px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+            text-decoration: none;
+            white-space: nowrap;
             cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), transform var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .btn-secondary-r:hover {
+            background: var(--pr-paper);
+            border-color: var(--pr-muted);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .btn-primary-r,
+        .btn-success-r {
+            border-color: var(--pr-accent-strong);
+            background: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
+        }
+
+        .btn-primary-r:hover,
+        .btn-success-r:hover {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
         }
 
         .btn-danger-r {
-            background: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fca5a5;
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 12px;
-            cursor: pointer;
+            border-color: var(--pr-error-soft);
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
         }
 
-        .btn-danger-r:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
+        .btn-danger-r:hover {
+            border-color: var(--pr-error);
         }
 
-        .btn-success-r {
-            background: #16a34a;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
+        .btn-primary-r:active,
+        .btn-secondary-r:active,
+        .btn-danger-r:active,
+        .btn-success-r:active {
+            transform: translateY(1px);
         }
 
-        .btn-success-r:hover {
-            background: #15803d;
+        .btn-primary-r:focus-visible,
+        .btn-secondary-r:focus-visible,
+        .btn-danger-r:focus-visible,
+        .btn-success-r:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
         }
 
+        .btn-primary-r:disabled,
+        .btn-secondary-r:disabled,
+        .btn-danger-r:disabled,
         .btn-success-r:disabled {
-            opacity: 0.7;
+            opacity: .6;
             cursor: not-allowed;
+            transform: none;
         }
 
-        /* ── Modal ── */
+        /* Modal */
         .m-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, .45);
-            z-index: 9999;
+            z-index: 1050;
             align-items: center;
             justify-content: center;
+            padding: var(--pr-space-md);
+            background: var(--rs-overlay);
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
         }
 
         .m-overlay.open {
@@ -386,123 +1039,187 @@
         }
 
         .m-box {
-            background: #fff;
-            border-radius: 12px;
-            width: 320px;
-            max-width: 95vw;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
-            overflow: hidden;
+            width: 380px;
+            max-width: 100%;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+            border-radius: var(--pr-radius);
+            background: var(--pr-panel);
+            box-shadow: 0 20px 50px var(--rs-shadow);
         }
 
         .m-head {
-            background: #1e293b;
-            color: #fff;
-            padding: 14px 18px;
-            font-weight: 700;
-            font-size: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
+            position: sticky;
+            top: 0;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
         }
 
         .m-head button {
-            background: none;
-            border: none;
-            color: #94a3b8;
+            width: 32px;
+            height: 32px;
+            border: 0;
+            border-radius: var(--pr-radius-sm);
+            background: transparent;
             font-size: 20px;
-            cursor: pointer;
             line-height: 1;
+            color: var(--pr-muted);
+            cursor: pointer;
         }
 
         .m-head button:hover {
-            color: #fff;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+        }
+
+        .m-head button:focus-visible {
+            outline: 2px solid var(--pr-focus);
         }
 
         .m-body {
-            padding: 18px;
+            padding: var(--pr-space-md) var(--pr-space-lg);
         }
 
         .m-foot {
-            padding: 12px 18px;
-            border-top: 1px solid #e2e8f0;
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
+            gap: var(--pr-space-xs);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
         }
 
-        /* ── Toast ── */
         #rosterToast {
             position: fixed;
-            bottom: 24px;
             right: 24px;
-            z-index: 99999;
-            background: #0f172a;
-            color: #fff;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 13px;
-            font-weight: 500;
+            bottom: 24px;
+            z-index: 1080;
             display: none;
-            max-width: 320px;
-        }
-
-        /* ── Legend Checkbox ── */
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 12px;
-            align-items: center;
-        }
-
-        .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #475569;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .legend-item input[type="checkbox"] {
-            width: 15px;
-            height: 15px;
-            cursor: pointer;
-            accent-color: #3b82f6;
-        }
-
-        /* ── Empty state ── */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #94a3b8;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        .empty-state h5 {
-            font-size: 16px;
+            max-width: 340px;
+            padding: 12px 18px;
+            border-radius: var(--pr-radius);
+            background: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
             font-weight: 600;
-            color: #64748b;
-            margin-bottom: 8px;
+            color: var(--pr-panel);
+        }
+
+        .empty-state {
+            padding: 56px 20px;
+            text-align: center;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 6px;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            color: var(--pr-ink);
         }
 
         .empty-state p {
-            font-size: 13px;
-            color: #94a3b8;
+            max-width: 46ch;
+            margin: 0 auto;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
         }
+
+        /* Histori */
+        .rs-history-filter {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .rs-history-filter > div {
+            min-width: 0;
+        }
+
+        #historyResult {
+            max-height: 520px;
+            overflow: auto;
+        }
+
+        #historyResult .pr-empty-note {
+            margin: 0;
+        }
+
+        .rs-type {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: var(--pr-pill);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .rs-type.is-work { background: var(--rs-work); color: var(--rs-work-ink); }
+        .rs-type.is-off { background: var(--rs-off); color: var(--rs-off-ink); }
+        .rs-type.is-holiday { background: var(--rs-holiday); color: var(--rs-holiday-ink); }
+        .rs-type.is-leave { background: var(--rs-leave); color: var(--rs-leave-ink); }
+        .rs-type.is-sick { background: var(--rs-sick); color: var(--rs-sick-ink); }
+        .rs-type.is-toil { background: var(--rs-toil); color: var(--rs-toil-ink); }
+
+        /* Activity log (DataTables) */
+        #activityTable {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+        }
+
+        .rs-dt {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        @media (max-width: 40rem) {
+            .rs-filter,
+            .legend,
+            .rs-history-filter,
+            .rs-dt,
+            .m-body,
+            .m-head,
+            .m-foot {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .rs-field.is-store,
+            .rs-field.is-date {
+                flex: 1 1 100%;
+                max-width: none;
+            }
+
+            .roster-table thead th.col-emp,
+            .roster-table tbody .col-emp {
+                min-width: 150px;
+                max-width: 160px;
+            }
+
+            .roster-scroll {
+                max-height: 64vh;
+            }
+        }
+
+        .emp-meta.is-warn {
+            font-weight: 700;
+            color: var(--pr-warn);
+        }
+
+        /* ── Auto generate & import (gaya lama, warna dipetakan ke token) ── */
 
         /* ── Auto Roster Static: Periode card ── */
         .ag-period-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--pr-paper);
+            border: 1px solid var(--pr-rule);
             border-radius: 6px;
             padding: 12px;
             margin-bottom: 14px;
@@ -511,20 +1228,20 @@
         .ag-period-title {
             font-size: 13px;
             font-weight: 600;
-            color: #334155;
+            color: var(--pr-ink-2);
             margin-bottom: 8px;
         }
 
         .ag-period-title small {
             font-size: 11px;
             font-weight: 400;
-            color: #94a3b8;
+            color: var(--pr-muted);
         }
 
         .btn-update-preview {
             background: none;
             border: none;
-            color: #1d4ed8;
+            color: var(--pr-accent-strong);
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
@@ -536,22 +1253,22 @@
         }
 
         .btn-update-preview:hover {
-            color: #1e40af;
+            color: var(--pr-accent-deep);
             text-decoration: underline;
         }
 
         .btn-update-preview:disabled {
-            color: #94a3b8;
+            color: var(--pr-muted);
             cursor: not-allowed;
         }
 
         .auto-roster-preview {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+            background: var(--pr-accent-soft);
+            border: 1px solid var(--pr-accent-soft);
             border-radius: 6px;
             padding: 12px;
             font-size: 12px;
-            color: #1e40af;
+            color: var(--pr-accent-deep);
             margin-bottom: 14px;
         }
 
@@ -562,16 +1279,16 @@
         }
 
         .auto-roster-preview .preview-row strong {
-            color: #1e3a8a;
+            color: var(--pr-accent-deep);
         }
 
         .auto-roster-preview .preview-row.created strong {
-            color: #16a34a;
+            color: var(--pr-success);
             font-weight: 700;
         }
 
         .auto-roster-preview .preview-row.skipped strong {
-            color: #f59e0b;
+            color: var(--pr-warn);
             font-weight: 700;
         }
 
@@ -595,52 +1312,52 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #e2e8f0;
-            color: #94a3b8;
+            background: var(--pr-rule);
+            color: var(--pr-muted);
             font-weight: 700;
             font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all .25s ease;
+            transition: background-color .25s ease;
         }
 
         .aro-step-item.active .aro-step-dot {
-            background: #1d4ed8;
-            color: #fff;
+            background: var(--pr-accent-strong);
+            color: var(--pr-panel);
         }
 
         .aro-step-item.done .aro-step-dot {
-            background: #16a34a;
-            color: #fff;
+            background: var(--pr-success);
+            color: var(--pr-panel);
         }
 
         .aro-step-label {
             font-size: 10px;
             margin-top: 4px;
-            color: #94a3b8;
+            color: var(--pr-muted);
             white-space: nowrap;
         }
 
         .aro-step-item.active .aro-step-label {
-            color: #1d4ed8;
+            color: var(--pr-accent-strong);
             font-weight: 600;
         }
 
         .aro-step-item.done .aro-step-label {
-            color: #16a34a;
+            color: var(--pr-success);
         }
 
         .aro-step-line {
             width: 60px;
             height: 2px;
-            background: #e2e8f0;
+            background: var(--pr-rule);
             margin-bottom: 18px;
-            transition: all .25s ease;
+            transition: background-color .25s ease;
         }
 
         .aro-step-line.done {
-            background: #16a34a;
+            background: var(--pr-success);
         }
 
         /* ARO modal body scroll */
@@ -658,16 +1375,16 @@
         }
 
         .aro-day-table th {
-            background: #1e293b;
-            color: #fff;
+            background: var(--pr-ink);
+            color: var(--pr-panel);
             padding: 8px 10px;
             text-align: left;
             font-size: 11px;
-            text-transform: uppercase;
+            
         }
 
         .aro-day-table td {
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--pr-paper-2);
             padding: 6px 8px;
             vertical-align: middle;
         }
@@ -677,24 +1394,24 @@
         }
 
         .aro-day-table tr.weekend-row td {
-            background: #fff8f8;
+            background: var(--pr-error-soft);
         }
 
         /* ARO info box */
         .aro-info-box {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
+            background: var(--pr-warn-soft);
+            border: 1px solid var(--pr-warn-soft);
             border-radius: 6px;
             padding: 10px 12px;
             font-size: 11px;
-            color: #92400e;
+            color: var(--pr-warn);
             margin-bottom: 14px;
             line-height: 1.6;
         }
 
         .aro-preview-box {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
+            background: var(--pr-success-soft);
+            border: 1px solid var(--pr-success-soft);
             border-radius: 6px;
             padding: 12px;
             font-size: 12px;
@@ -705,11 +1422,11 @@
             display: flex;
             justify-content: space-between;
             padding: 3px 0;
-            color: #166534;
+            color: var(--pr-success);
         }
 
         .aro-preview-row strong {
-            color: #14532d;
+            color: var(--pr-success);
         }
 
         /* ARO result card */
@@ -737,627 +1454,435 @@
         }
 
         .aro-card-created {
-            background: #f0fdf4;
+            background: var(--pr-success-soft);
         }
 
         .aro-card-created .val {
-            color: #16a34a;
+            color: var(--pr-success);
         }
 
         .aro-card-created .lbl {
-            color: #4ade80;
+            color: var(--pr-success);
         }
 
         .aro-card-updated {
-            background: #eff6ff;
+            background: var(--pr-accent-soft);
         }
 
         .aro-card-updated .val {
-            color: #1d4ed8;
+            color: var(--pr-accent-strong);
         }
 
         .aro-card-updated .lbl {
-            color: #60a5fa;
+            color: var(--pr-accent);
         }
 
         .aro-card-skipped {
-            background: #fafafa;
+            background: var(--pr-paper);
         }
 
         .aro-card-skipped .val {
-            color: #64748b;
+            color: var(--pr-muted);
         }
 
         .aro-card-skipped .lbl {
-            color: #94a3b8;
+            color: var(--pr-muted);
         }
 
         .aro-card-ph {
-            background: #fefce8;
+            background: var(--pr-warn-soft);
         }
 
         .aro-card-ph .val {
-            color: #ca8a04;
+            color: var(--pr-warn);
         }
 
         .aro-card-ph .lbl {
-            color: #fbbf24;
+            color: var(--pr-warn);
+        }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            min-height: 34px;
+            margin: 0 6px;
+            padding: 4px 10px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info {
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $fmtD = fn($v) => \Carbon\Carbon::parse($v)->locale('id')->translatedFormat('d M Y');
+        $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
+        $showAutoGenerate = $storeId && in_array($currentStoreName, $autoGenerateStores);
+        $canEditActions = $storeId && (auth()->user()->can('ManageRoster') || (auth()->user()->can('ManageRosterSPVManager') && $isSupervisorOrManager && $isRosterOpen));
+        $showGrid = $storeId || ($canManageSPV && !$canManageAll);
+        $locationLabel = $storeId ? $currentStoreName : ($showGrid ? 'Semua lokasi saya' : null);
+
+        // Ringkasan periode dari sel grid (tanpa query tambahan)
+        $allCells = $employees->flatMap(fn($e) => array_values($e->cells));
+        $typeCount = $allCells->countBy('cell_type');
+        $emptyByEmp = $employees->mapWithKeys(fn($e) => [$e->id => collect($e->cells)->where('cell_type', 'empty')->count()]);
+        $todayStr = now()->toDateString();
+        $todayCells = $employees->map(fn($e) => $e->cells[$todayStr] ?? null)->filter();
+        $legendTypes = [
+            'work' => ['Kerja', 'is-work'],
+            'off' => ['Off', 'is-off'],
+            'weekend' => ['Akhir pekan', 'is-off'],
+            'holiday' => ['Public holiday', 'is-holiday'],
+            'leave' => ['Cuti', 'is-leave'],
+            'melahirkan' => ['Cuti melahirkan', 'is-leave'],
+            'sick' => ['Sakit', 'is-sick'],
+            'toiloff' => ['TOIL off', 'is-toil'],
+        ];
+    @endphp
+    <div class="main-content pr">
         <section class="section">
 
-
-            <div class="section-header">
-                <div class="d-flex align-items-center flex-wrap mb-2" style="gap: 12px;">
-                    <h1 class="mb-0 mr-auto">Roster & Schedule</h1>
-
-                    @if ($storeId)
-                        @php
-                            $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
-                            $currentStoreName = optional($stores->firstWhere('id', $storeId))->name ?? '';
-                            $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
-                        @endphp
-
-                        <div class="d-flex flex-wrap ml-auto" style="gap: 8px;">
-                            @can('ManageRoster')
-                                @if ($showAutoGenerate)
-                                    <button class="btn-success-r" onclick="confirmAutoGenerate()"
-                                        title="Auto generate roster untuk periode yang dipilih">
-                                        <i class="fas fa-magic"></i>
-                                        <span class="d-none d-sm-inline"> Auto Generate Roster</span>
-                                        <span class="d-inline d-sm-none"> Auto Generate</span>
-                                    </button>
-                                @else
-                                    {{-- <button class="btn-success-r" onclick="openAroModal()"
-                                        title="Auto generate roster mingguan dengan pola kustom">
-                                        <i class="fas fa-calendar-week"></i>
-                                        <span class="d-none d-sm-inline"> Auto Generate Roster</span>
-                                        <span class="d-inline d-sm-none"> Auto Generate</span>
-                                    </button> --}}
-                                    {{-- <button class="btn-secondary-r" onclick="confirmCopyRoster()">
-                                        <i class="fas fa-copy"></i>
-                                        <span class="d-none d-sm-inline"> Copy Roster</span>
-                                    </button> --}}
-                                @endif
-
-                                <button class="btn-secondary-r" onclick="downloadTemplate()">
-                                    <i class="fas fa-download"></i>
-                                    <span class="d-none d-sm-inline"> Download Template</span>
-                                </button>
-
-                                <button class="btn-primary-r" onclick="openImportModal()">
-                                    <i class="fas fa-file-import"></i>
-                                    <span class="d-none d-sm-inline">Import Excel</span>
-                                </button>
-
-                                <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
-                                    <i class="fas fa-trash"></i>
-                                    <span class="d-none d-sm-inline"> Bulk Delete</span>
-                                </button>
-                            @endcan
-                            @can('ManageRosterSPVManager')
-                                @if ($isSupervisorOrManager && $isRosterOpen)
-                                    <button class="btn-secondary-r" onclick="downloadTemplate()">
-                                        <i class="fas fa-download"></i>
-                                        <span class="d-none d-sm-inline"> Download Template</span>
-                                    </button>
-
-                                    <button class="btn-primary-r" onclick="openImportModal()">
-                                        <i class="fas fa-file-import"></i>
-                                        <span class="d-none d-sm-inline"> Import Excel</span>
-                                    </button>
-
-                                    <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
-                                        <i class="fas fa-trash"></i>
-                                        <span class="d-none d-sm-inline"> Bulk Delete</span>
-                                    </button>
-                                @else
-                                    <span class="d-none d-sm-inline">Closed</span>
-                                @endif
-                            @endcan
-
-                        </div>
-
-                    @endif
-                    {{-- Tombol hanya muncul kalau ada storeId ATAU SPV All Location --}}
-{{-- @if ($storeId || ($canManageSPV && !$canManageAll))
-
-    @php
-        $autoGenerateStores = ['Head Office', 'Holding', 'Distribution Center'];
-        $currentStoreName = $storeId
-            ? (optional($stores->firstWhere('id', $storeId))->name ?? '')
-            : '';
-        $showAutoGenerate = in_array($currentStoreName, $autoGenerateStores);
-    @endphp
-
-    <div class="d-flex flex-wrap ml-auto" style="gap: 8px;">
-        @can('ManageRoster')
-            @if ($showAutoGenerate)
-                <button class="btn-success-r" onclick="confirmAutoGenerate()"
-                    title="Auto generate roster untuk periode yang dipilih">
-                    <i class="fas fa-magic"></i>
-                    <span class="d-none d-sm-inline"> Auto Generate Roster</span>
-                    <span class="d-inline d-sm-none"> Auto Generate</span>
-                </button>
-            @else
-                <button class="btn-success-r" onclick="openAroModal()"
-                    title="Auto generate roster mingguan dengan pola kustom">
-                    <i class="fas fa-calendar-week"></i>
-                    <span class="d-none d-sm-inline"> Auto Generate Roster</span>
-                    <span class="d-inline d-sm-none"> Auto Generate</span>
-                </button>
-                <button class="btn-secondary-r" onclick="confirmCopyRoster()">
-                    <i class="fas fa-copy"></i>
-                    <span class="d-none d-sm-inline"> Copy Roster</span>
-                </button>
-            @endif
-
-            <button class="btn-secondary-r" onclick="downloadTemplate()">
-                <i class="fas fa-download"></i>
-                <span class="d-none d-sm-inline"> Download Template</span>
-            </button>
-
-            <button class="btn-primary-r" onclick="openImportModal()">
-                <i class="fas fa-file-import"></i>
-                <span class="d-none d-sm-inline"> Import Excel</span>
-            </button>
-
-            <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
-                <i class="fas fa-trash"></i>
-                <span class="d-none d-sm-inline"> Bulk Delete</span>
-            </button>
-        @endcan
-
-        @can('ManageRosterSPVManager')
-            @if ($isSupervisorOrManager && $isRosterOpen)
-                @if($storeId)
-                    <button class="btn-secondary-r" onclick="downloadTemplate()">
-                        <i class="fas fa-download"></i>
-                        <span class="d-none d-sm-inline"> Download Template</span>
-                    </button>
-
-                    <button class="btn-primary-r" onclick="openImportModal()">
-                        <i class="fas fa-file-import"></i>
-                        <span class="d-none d-sm-inline"> Import Excel</span>
-                    </button>
-                @endif
-
-                <button class="btn-danger-r" onclick="openModal('modalBulkDelete')">
-                    <i class="fas fa-trash"></i>
-                    <span class="d-none d-sm-inline"> Bulk Delete</span>
-                </button>
-            @else
-                <span class="d-none d-sm-inline">Closed</span>
-            @endif
-        @endcan
-    </div>
-
-@endif --}}
-
+            <header class="pr-head">
+                <div>
+                    <h1 class="pr-title">Roster & jadwal</h1>
+                    <p class="pr-lede">
+                        {{ $locationLabel ?? 'Pilih lokasi untuk melihat roster' }}{{ $showGrid ? ', ' . $fmtD($startDate) . ' sampai ' . $fmtD($endDate) : '' }}
+                        @if ($isSupervisorOrManager)
+                            <span class="rs-window">
+                                <span class="status-badge {{ $isRosterOpen ? 'is-approved' : 'is-rejected' }}">
+                                    {{ $isRosterOpen ? 'Pengisian roster dibuka' : 'Pengisian roster ditutup' }}
+                                </span>
+                            </span>
+                        @endif
+                    </p>
                 </div>
-            </div>
+                @if ($canEditActions)
+                    <div class="pr-actions">
+                        @can('ManageRoster')
+                            @if ($showAutoGenerate)
+                                <button type="button" class="pr-btn" onclick="confirmAutoGenerate()" title="Auto generate roster untuk periode yang dipilih">
+                                    <i class="fas fa-magic" aria-hidden="true"></i> Auto generate
+                                </button>
+                            @endif
+                        @endcan
+                        <button type="button" class="pr-btn" onclick="downloadTemplate()">
+                            <i class="fas fa-download" aria-hidden="true"></i> Template
+                        </button>
+                        <button type="button" class="pr-btn" onclick="openModal('modalBulkDelete')">
+                            <i class="fas fa-trash" aria-hidden="true"></i> Hapus massal
+                        </button>
+                        <button type="button" class="pr-btn pr-btn-primary" onclick="openImportModal()">
+                            <i class="fas fa-file-import" aria-hidden="true"></i> Import Excel
+                        </button>
+                    </div>
+                @endif
+            </header>
 
-            <div class="section-body">
-
-                {{-- ── Filter ── --}}
-                <div class="filter-card">
-                    <form method="GET" action="{{ route('roster.index') }}" class="d-flex flex-wrap align-items-end"
-                        style="gap: 20px;">
-                        <div class="filter-item">
-                            <label class="f-label">
-                                Location
-                                <span style="color:#ef4444">*</span>
-                                <small style="color:#94a3b8;font-weight:400">(Required)</small>
-                            </label>
-                            {{-- @can('ManageRoster')
-                                <select name="store_id" class="f-control select2" style="min-width:180px" required>
-                                    <option value="">Choose Location</option>
-                                    @foreach ($stores as $store)
-                                        <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                                            {{ $store->name }}
-                                        </option>
+            {{-- Filter --}}
+            <section class="pr-panel" aria-label="Filter roster">
+                <form method="GET" action="{{ route('roster.index') }}" class="rs-filter">
+                    <div class="rs-field is-store">
+                        <label class="f-label" for="rsStore">Lokasi
+                            @can('ManageRoster')<span class="rs-req" aria-hidden="true">*</span>@endcan
+                        </label>
+                        @can('ManageRoster')
+                            <select name="store_id" id="rsStore" class="f-control select2" required>
+                                <option value="">Pilih lokasi</option>
+                                @foreach ($stores as $store)
+                                    <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
+                                @endforeach
+                            </select>
+                        @elsecan('ManageRosterSPVManager')
+                            @if ($myStores->count() >= 1)
+                                <select name="store_id" id="rsStore" class="f-control select2">
+                                    <option value="">Semua lokasi saya</option>
+                                    @foreach ($myStores as $store)
+                                        <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
                                     @endforeach
                                 </select>
                             @else
-                                @if (isset($myStores) && $myStores->count() > 1)
-                                    <select name="store_id" class="f-control select2" style="min-width:180px" required>
-                                        @foreach ($myStores as $store)
-                                            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                                                {{ $store->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                @else
-                                    <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-                                    <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-                                        style="min-width:180px; background:#f1f5f9;">
-                                @endif
-                            @endcan --}}
-                            @can('ManageRoster')
-    <select name="store_id" class="f-control select2" style="min-width:180px" required>
-        <option value="">Choose Location</option>
-        @foreach ($stores as $store)
-            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                {{ $store->name }}
-            </option>
-        @endforeach
-    </select>
-{{-- @elsecan('ManageRosterSPVManager')
-    @if($myStores->count() > 1)
-        <select name="store_id" class="f-control select2" style="min-width:180px" required>
-            <option value="">Choose Location</option>
-            @foreach ($myStores as $store)
-                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                    {{ $store->name }}
-                </option>
-            @endforeach
-        </select>
-    @else
-        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-            style="min-width:180px;background:#f1f5f9;">
-    @endif --}}
-    {{-- @elsecan('ManageRosterSPVManager')
-    @if($myStores->count() > 1)
-        <select name="store_id" class="f-control select2" style="min-width:180px">
-            <option value="">All Location</option> 
-            @foreach ($myStores as $store)
-                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                    {{ $store->name }}
-                </option>
-            @endforeach
-        </select>
-    @else
-        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-            style="min-width:180px;background:#f1f5f9;">
-    @endif --}}
-    {{-- @elsecan('ManageRosterSPVManager')
-    @if($myStores->count() > 1)
-        <select name="store_id" class="f-control select2" style="min-width:180px">
-            <option value="">All Location</option>
-            @foreach ($myStores as $store)
-                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                    {{ $store->name }}
-                </option>
-            @endforeach
-        </select>
-    @else
-        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-            style="min-width:180px;background:#f1f5f9;">
-    @endif
-@else
-    <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-    <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-        style="min-width:180px;background:#f1f5f9;">
-@endcan --}}
-@elsecan('ManageRosterSPVManager')
-    @if($myStores->count() >= 1)  {{-- ← ganti > 1 jadi >= 1 --}}
-        <select name="store_id" class="f-control select2" style="min-width:180px">
-            <option value="">All Location</option>
-            @foreach ($myStores as $store)
-                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                    {{ $store->name }}
-                </option>
-            @endforeach
-        </select>
-    @else
-        {{-- Tidak punya store sama sekali — fixed primary store --}}
-        <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-        <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-            style="min-width:180px;background:#f1f5f9;">
-    @endif
-@else
-    {{-- ViewRoster — fixed store sendiri --}}
-    <input type="hidden" name="store_id" value="{{ $myStoreId }}">
-    <input type="text" class="f-control" value="{{ $myStoreName }}" disabled
-        style="min-width:180px;background:#f1f5f9;">
-@endcan
+                                <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+                                <input type="text" id="rsStore" class="f-control" value="{{ $myStoreName }}" disabled>
+                            @endif
+                        @else
+                            <input type="hidden" name="store_id" value="{{ $myStoreId }}">
+                            <input type="text" id="rsStore" class="f-control" value="{{ $myStoreName }}" disabled>
+                        @endcan
+                    </div>
+
+                    @can('ManageRoster')
+                        <div class="rs-field is-date">
+                            <label class="f-label" for="rsStart">Dari</label>
+                            <input type="date" name="start_date" id="rsStart" class="f-control" value="{{ $startDate }}">
                         </div>
-                        @can('ManageRoster')
-                            <div class="filter-item-date">
-                                <label class="f-label">Start Date</label>
-                                <input type="date" name="start_date" class="f-control" value="{{ $startDate }}">
+                        <div class="rs-field is-date">
+                            <label class="f-label" for="rsEnd">Sampai</label>
+                            <input type="date" name="end_date" id="rsEnd" class="f-control" value="{{ $endDate }}">
+                        </div>
+                    @else
+                        @can('ManageRosterSPVManager')
+                            <div class="rs-field is-date">
+                                <label class="f-label" for="rsStart">Dari</label>
+                                <input type="date" name="start_date" id="rsStart" class="f-control" value="{{ $startDate }}"
+                                    min="{{ $startDate }}" max="{{ \Carbon\Carbon::parse($startDate)->addMonth()->toDateString() }}">
                             </div>
-                            <div class="filter-item-date">
-                                <label class="f-label">End Date</label>
-                                <input type="date" name="end_date" class="f-control" value="{{ $endDate }}">
+                            <div class="rs-field is-date">
+                                <label class="f-label" for="rsEnd">Sampai</label>
+                                <input type="date" name="end_date" id="rsEnd" class="f-control" value="{{ $endDate }}"
+                                    min="{{ $endDate }}" max="{{ \Carbon\Carbon::parse($endDate)->addMonth()->toDateString() }}">
                             </div>
                         @endcan
+                    @endcan
 
-                        @cannot('ManageRoster')
-                            @can('ManageRosterSPVManager')
-                                <div class="filter-item-date">
-                                    <label class="f-label">Start Date</label>
-                                    <input type="date" name="start_date" class="f-control" value="{{ $startDate }}"
-                                        min="{{ $startDate }}"
-                                        max="{{ \Carbon\Carbon::parse($startDate)->addMonth()->toDateString() }}">
-                                </div>
-                                <div class="filter-item-date">
-                                    <label class="f-label">End Date</label>
-                                    <input type="date" name="end_date" class="f-control" value="{{ $endDate }}"
-                                        min="{{ $endDate }}"
-                                        max="{{ \Carbon\Carbon::parse($endDate)->addMonth()->toDateString() }}">
-                                </div>
-                            @endcan
-                        @endcannot
+                    <div class="rs-filter-actions">
+                        <button type="submit" class="pr-btn pr-btn-primary"><i class="fas fa-search" aria-hidden="true"></i> Tampilkan</button>
+                        <a href="{{ route('roster.index') }}" class="pr-btn">Reset</a>
+                    </div>
+                </form>
+            </section>
 
-                        <div class="filter-item-btn">
-                            <button type="submit" class="btn-primary-r"><i class="fas fa-search"></i> Filter</button>
-                            <a href="{{ route('roster.index') }}" class="btn-secondary-r">Reset</a>
+            @if (!$showGrid)
+                <section class="pr-panel">
+                    <div class="empty-state">
+                        <h3>Pilih lokasi dulu</h3>
+                        <p>Pilih lokasi di filter atas, lalu klik Tampilkan untuk melihat dan mengisi roster periode ini.</p>
+                    </div>
+                </section>
+            @else
+                {{-- Ringkasan periode (signature: berapa jadwal yang masih bolong) --}}
+                <section class="pr-panel rs-summary" aria-labelledby="rs-sum-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="rs-sum-title">Kelengkapan roster</h2>
+                            <span class="pr-panel-sub">{{ $employees->count() }} karyawan, {{ count($dates) }} hari</span>
                         </div>
-                    </form>
-                </div>
-
-                {{-- @if (!$storeId)
-                    <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
-                        <div class="card-body">
-                            <div class="empty-state">
-                                <i class="fas fa-store"></i>
-                                <h5>Choose Location First</h5>
-                                <p>Please select location in the top filter then click <strong>Filter</strong> untuk
-                                    menampilkan data roster.</p>
+                    </div>
+                    <dl class="pr-period">
+                        <div>
+                            <dt>Hari kerja belum diisi</dt>
+                            <dd class="{{ ($typeCount['empty'] ?? 0) ? 'is-warn-text' : '' }}">{{ $typeCount['empty'] ?? 0 }} <small>sel</small></dd>
+                            <span class="pr-period-note">{{ $emptyByEmp->filter()->count() }} karyawan masih ada yang kosong</span>
+                        </div>
+                        <div>
+                            <dt>Jadwal kerja</dt>
+                            <dd>{{ $typeCount['work'] ?? 0 }} <small>sel</small></dd>
+                        </div>
+                        <div>
+                            <dt>Off dan TOIL off</dt>
+                            <dd>{{ ($typeCount['off'] ?? 0) + ($typeCount['toiloff'] ?? 0) }} <small>sel</small></dd>
+                            <span class="pr-period-note">ditambah {{ $typeCount['weekend'] ?? 0 }} akhir pekan tanpa roster</span>
+                        </div>
+                        <div>
+                            <dt>Cuti, sakit, libur</dt>
+                            <dd>{{ ($typeCount['leave'] ?? 0) + ($typeCount['melahirkan'] ?? 0) + ($typeCount['sick'] ?? 0) + ($typeCount['holiday'] ?? 0) }} <small>sel</small></dd>
+                        </div>
+                        @if ($todayCells->isNotEmpty())
+                            <div>
+                                <dt>Hari ini</dt>
+                                <dd>{{ $todayCells->where('cell_type', 'work')->count() }} <small>kerja</small></dd>
+                                <span class="pr-period-note">{{ $todayCells->where('cell_type', 'empty')->count() }} belum dijadwalkan</span>
                             </div>
+                        @endif
+                    </dl>
+                </section>
+
+                {{-- Grid roster --}}
+                <section class="pr-panel" aria-labelledby="rs-grid-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="rs-grid-title">Jadwal per karyawan</h2>
+                            <span class="pr-panel-sub">
+                                {{ $canViewOnly ? 'Hanya lihat' : 'Klik sel untuk mengisi atau mengubah jadwal' }}
+                            </span>
                         </div>
                     </div>
-                @else --}}
-                @if (!$storeId && !($canManageSPV && !$canManageAll))
-    <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
-        <div class="card-body">
-            <div class="empty-state">
-                <i class="fas fa-store"></i>
-                <h5>Choose Location First</h5>
-                <p>Please select location in the top filter then click <strong>Filter</strong> untuk
-                    menampilkan data roster.</p>
-            </div>
-        </div>
-    </div>
-@else
-                    {{-- ── Legend Checkbox Filter ── --}}
-                    <div class="legend">
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="work" checked> Work
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="off"> Off
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="holiday"> Public Holiday
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="leave"> Leave
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="melahirkan"> Maternity leave
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="weekend"> Weekend
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="today"> Today
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="sick"> Sick
-                        </label>
-                        <label class="legend-item">
-                            <input type="checkbox" class="legend-filter" data-type="toiloff"> TOIL Off
-                        </label>
+                    <div class="legend" role="group" aria-label="Sorot satu tipe hari">
+                        <span class="legend-lead">Sorot:</span>
+                        @foreach ($legendTypes as $type => [$label, $sw])
+                            <label class="legend-item">
+                                <input type="checkbox" class="legend-filter" data-type="{{ $type }}">
+                                <span class="rs-sw {{ $sw }}" aria-hidden="true"></span>
+                                {{ $label }} <span class="legend-count">{{ $typeCount[$type] ?? 0 }}</span>
+                            </label>
+                        @endforeach
+                        @if ($todayCells->isNotEmpty())
+                            <label class="legend-item">
+                                <input type="checkbox" class="legend-filter" data-type="today">
+                                <span class="rs-sw is-today" aria-hidden="true"></span> Hari ini
+                            </label>
+                        @endif
                     </div>
-
-                    {{-- ── Grid Roster ── --}}
-                    <div class="card" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
-                        <div class="card-body p-0">
-                            <div class="roster-scroll">
-                                <table class="roster-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="col-emp">Employee</th>
-                                            @foreach ($dates as $carbon)
-                                                @php
-                                                    $isWeekend = $carbon->isWeekend();
-                                                    $isToday = $carbon->isToday();
-                                                @endphp
-                                                <th class="{{ $isWeekend ? 'weekend' : '' }} {{ $isToday ? 'today' : '' }}"
-                                                    style="min-width:85px">
-                                                    <div>{{ $carbon->format('D') }}</div>
-                                                    <div style="font-size:10px;opacity:.8">{{ $carbon->format('d/m') }}
-                                                    </div>
-                                                </th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($employees as $employee)
-                                            <tr>
-                                                <td class="col-emp">
-                                                    <div class="emp-meta">Employee Name : {{ $employee->employee_name }}
-                                                    </div>
-                                                    <div class="emp-meta">Department :
-                                                        {{ $employee->department->first()?->department_name ?? '-' }}
-                                                    </div>
-                                                    @if(!$storeId && $canManageSPV)
-        <div class="emp-meta">Location : {{ $employee->store->first()?->name ?? '-' }}</div>
-    @endif
-                                                    <div class="emp-meta">Position :
-                                                        {{ $employee->position->first()?->name ?? '-' }}
-                                                    </div>
-                                                    {{-- <div class="emp-meta">Location {{ $employee->store->first()?->name ?? '-' }}
-                    </div> --}}
-                                                    @if ($employee->status_employee)
-                                                        <div class="emp-meta">Status :
-                                                            {{ $employee->status_employee ?? '-' }}
-                                                        </div>
-                                                    @endif
-                                                    @if ($employee->status)
-                                                        <div class="emp-meta">Status :
-                                                            {{ $employee->status ?? '-' }}
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                                @foreach ($employee->cells as $cell)
-                                                    <td class="day-cell {{ $cell['is_weekend'] ? 'weekend' : '' }} {{ $cell['is_today'] ? 'today' : '' }}"
-                                                        data-emp-id="{{ $employee->id }}"
-                                                        data-emp-name="{{ $employee->employee_name }}"
-                                                        data-emp-status="{{ $employee->status_employee ?? '' }}"
-                                                        data-date="{{ $cell['date_str'] }}"
-                                                        data-shift-id="{{ $cell['shift_id'] }}"
-                                                        data-day-type="{{ $cell['day_type'] }}"
-                                                        data-has-roster="{{ $cell['has_roster'] ? '1' : '0' }}"
-                                                        data-sick-attachment="{{ $cell['sick_attachment'] }}"
-                                                        data-notes="{{ $cell['notes'] }}"
-                                                        data-cell-type="{{ $cell['cell_type'] }}"
-                                                        data-is-today="{{ $cell['is_today'] ? '1' : '0' }}"
-                                                        onclick="openCellModal(this)"
-                                                        title="{{ $employee->employee_name }} – {{ $cell['date_str'] }}{{ $cell['notes'] ? ' | ' . $cell['notes'] : '' }}">
-                                                        @if ($cell['badge_class'] === '')
-                                                            <span class="r-empty">+</span>
-                                                        @else
-                                                            <span class="{{ $cell['badge_class'] }}">
-                                                                <span class="r-name">{{ $cell['badge_name'] }}</span>
-                                                                @if ($cell['badge_time'])
-                                                                    <span class="r-time">{{ $cell['badge_time'] }}</span>
-                                                                @endif
-                                                                @if ($cell['notes'])
-                                                                    <span class="r-notes">{{ $cell['notes'] }}</span>
-                                                                @endif
-                                                            </span>
+                    <div class="roster-scroll">
+                        <table class="roster-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-emp" scope="col">Karyawan</th>
+                                    @foreach ($dates as $carbon)
+                                        <th scope="col" class="{{ $carbon->isWeekend() ? 'weekend' : '' }} {{ $carbon->isToday() ? 'today' : '' }}">
+                                            <span class="rs-dow">{{ $carbon->locale('id')->translatedFormat('D') }}</span>
+                                            <span class="rs-date">{{ $carbon->format('d/m') }}</span>
+                                        </th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($employees as $employee)
+                                    @php $empty = $emptyByEmp[$employee->id] ?? 0; @endphp
+                                    <tr>
+                                        <th scope="row" class="col-emp">
+                                            <span class="emp-name">{{ $employee->employee_name }}</span>
+                                            <span class="emp-meta">
+                                                {{ collect([$employee->position->first()?->name, $employee->department->first()?->department_name, !$storeId ? $employee->store->first()?->name : null])->filter()->implode(', ') ?: '-' }}
+                                            </span>
+                                            @if ($employee->status_employee)
+                                                <span class="emp-status {{ $employee->status_class }}">{{ $employee->status_employee }}</span>
+                                            @endif
+                                            @if ($employee->status && $employee->status !== 'Active')
+                                                <span class="emp-status status-ojt">{{ $employee->status }}</span>
+                                            @endif
+                                            @if ($empty)
+                                                <span class="emp-meta is-warn">{{ $empty }} hari kerja belum diisi</span>
+                                            @endif
+                                        </th>
+                                        @foreach ($employee->cells as $cell)
+                                            <td class="day-cell {{ $cell['is_weekend'] ? 'weekend' : '' }} {{ $cell['is_today'] ? 'today' : '' }}"
+                                                data-emp-id="{{ $employee->id }}"
+                                                data-emp-name="{{ $employee->employee_name }}"
+                                                data-emp-status="{{ $employee->status_employee ?? '' }}"
+                                                data-date="{{ $cell['date_str'] }}"
+                                                data-shift-id="{{ $cell['shift_id'] }}"
+                                                data-day-type="{{ $cell['day_type'] }}"
+                                                data-has-roster="{{ $cell['has_roster'] ? '1' : '0' }}"
+                                                data-sick-attachment="{{ $cell['sick_attachment'] }}"
+                                                data-notes="{{ $cell['notes'] }}"
+                                                data-cell-type="{{ $cell['cell_type'] }}"
+                                                data-is-today="{{ $cell['is_today'] ? '1' : '0' }}"
+                                                onclick="openCellModal(this)"
+                                                title="{{ $employee->employee_name }}, {{ $fmtD($cell['date_str']) }}{{ $cell['notes'] ? ', ' . $cell['notes'] : '' }}">
+                                                @if ($cell['badge_class'] === '')
+                                                    <span class="r-empty" aria-label="Belum diisi">+</span>
+                                                @else
+                                                    <span class="{{ $cell['badge_class'] }}">
+                                                        <span class="r-name">{{ $cell['badge_name'] }}</span>
+                                                        @if ($cell['badge_time'])
+                                                            <span class="r-time">{{ $cell['badge_time'] }}</span>
                                                         @endif
-                                                    </td>
-                                                @endforeach
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="{{ count($dates) + 1 }}"
-                                                    class="text-center py-5 text-muted">
-                                                    No employees were found in this location.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                                                        @if ($cell['notes'])
+                                                            <span class="r-notes">{{ $cell['notes'] }}</span>
+                                                        @endif
+                                                    </span>
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ count($dates) + 1 }}">
+                                            <p class="pr-empty-note">Tidak ada karyawan aktif di lokasi ini.</p>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {{-- Histori roster --}}
+                <section class="pr-panel" aria-labelledby="rs-hist-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="rs-hist-title">Histori roster</h2>
+                            <span class="pr-panel-sub">Cari jadwal per tanggal dan nama, lalu export ke Excel</span>
                         </div>
                     </div>
-
-
-
-
-                    {{-- ── Tabel Histori Roster ── --}}
-                    <div class="card mt-4" style="border:none;box-shadow:0 1px 8px rgba(0,0,0,.08);">
-                        <div class="card-body">
-                            <h6 style="font-weight:700;color:#0f172a;margin-bottom:16px;">
-                                <i class="fas fa-history"></i> Histori Roster
-                            </h6>
-
-                            {{-- Filter Histori --}}
-                            <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
-                                @can('ManageRoster')
-                                    <div>
-                                        <label class="f-label">Location</label>
-                                        <select id="historyStore" class="f-control select2" style="min-width:100px;">
-                                            <option value="">-- All Locations --</option>
-                                            @foreach ($stores as $store)
-                                                <option value="{{ $store->id }}"
-                                                    {{ $storeId == $store->id ? 'selected' : '' }}>
-                                                    {{ $store->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                @else
-                                    {{-- SPV: hidden, otomatis pakai store sendiri --}}
-                                    {{-- <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
-                                @endcan --}}
-                                  @if($myStores->count() > 1)
-        <select id="historyStore" class="f-control select2" style="min-width:100px;">
-            <option value="">-- All Locations --</option>
-            @foreach ($myStores as $store)
-                <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>
-                    {{ $store->name }}
-                </option>
-            @endforeach
-        </select>
-    @else
-        <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
-    @endif
-@endcan
-
-                                <div>
-                                    <label class="f-label">Start Date</label>
-                                    <input type="date" id="historyStart" value="{{ $startDate }}"
-                                        class="f-control">
-                                </div>
-                                <div>
-                                    <label class="f-label">End Date</label>
-                                    <input type="date" id="historyEnd" value="{{ $endDate }}"
-                                        class="f-control">
-                                </div>
-
-                                <div>
-                                    <label class="f-label">Cari Nama</label>
-                                    <input type="text" id="historySearch" class="f-control"
-                                        placeholder="Nama karyawan...">
-                                </div>
-                                <div>
-                                    <button class="btn-primary-r" onclick="loadHistory()">
-                                        <i class="fas fa-search"></i> Cari
-                                    </button>
-                                    <button class="btn-secondary-r" onclick="resetHistory()">
-                                        Reset
-                                    </button>
-                                    {{-- @canany(['ManageRoster', 'ManageRosterSPVManager']) --}}
-
-                                    <button class="btn-success-r" onclick="exportHistory()">
-                                        <i class="fas fa-file-excel"></i> Export Excel
-                                    </button>
-                                    {{-- @endcanany --}}
-                                </div>
+                    <div class="rs-history-filter">
+                        @can('ManageRoster')
+                            <div class="rs-field is-store">
+                                <label class="f-label" for="historyStore">Lokasi</label>
+                                <select id="historyStore" class="f-control select2">
+                                    <option value="">Semua lokasi</option>
+                                    @foreach ($stores as $store)
+                                        <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-
-                            {{-- Hasil --}}
-                            <div id="historyResult">
-                                <div class="text-muted text-center py-4" style="font-size:13px;">
-                                    <i class="fas fa-search"></i> Masukkan rentang tanggal lalu klik Cari.
+                        @else
+                            @if ($myStores->count() > 1)
+                                <div class="rs-field is-store">
+                                    <label class="f-label" for="historyStore">Lokasi</label>
+                                    <select id="historyStore" class="f-control select2">
+                                        <option value="">Semua lokasi saya</option>
+                                        @foreach ($myStores as $store)
+                                            <option value="{{ $store->id }}" {{ $storeId == $store->id ? 'selected' : '' }}>{{ $store->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </div>
+                            @else
+                                <input type="hidden" id="historyStore" value="{{ $myStoreId }}">
+                            @endif
+                        @endcan
+                        <div class="rs-field is-date">
+                            <label class="f-label" for="historyStart">Dari</label>
+                            <input type="date" id="historyStart" value="{{ $startDate }}" class="f-control">
+                        </div>
+                        <div class="rs-field is-date">
+                            <label class="f-label" for="historyEnd">Sampai</label>
+                            <input type="date" id="historyEnd" value="{{ $endDate }}" class="f-control">
+                        </div>
+                        <div class="rs-field is-store">
+                            <label class="f-label" for="historySearch">Nama karyawan</label>
+                            <input type="search" id="historySearch" class="f-control" placeholder="Ketik nama">
+                        </div>
+                        <div class="rs-filter-actions">
+                            <button type="button" class="pr-btn pr-btn-primary" onclick="loadHistory()"><i class="fas fa-search" aria-hidden="true"></i> Cari</button>
+                            <button type="button" class="pr-btn" onclick="resetHistory()">Reset</button>
+                            <button type="button" class="pr-btn" onclick="exportHistory()"><i class="fas fa-file-excel" aria-hidden="true"></i> Export</button>
                         </div>
                     </div>
+                    <div id="historyResult">
+                        <p class="pr-empty-note">Isi rentang tanggal lalu klik Cari.</p>
+                    </div>
+                </section>
+            @endif
 
-                @endif
-                @canany(['ManageRoster', 'ManageRosterSPVManager'])
-                    <div class="card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-history me-2"></i> Roster Activity Log</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover" id="activityTable">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th width="50">#</th>
-                                            <th width="100">Event</th>
-                                            <th>Description</th>
-                                            <th width="150">By</th>
-                                            <th>Changes</th>
-                                            <th width="160">Date & Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+            @canany(['ManageRoster', 'ManageRosterSPVManager'])
+                <section class="pr-panel" aria-labelledby="rs-log-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="rs-log-title">Log aktivitas roster</h2>
+                            <span class="pr-panel-sub">Siapa mengubah jadwal apa, terbaru di atas</span>
                         </div>
                     </div>
-                @endcanany
+                    <div class="rs-dt pr-table-wrap">
+                        <table class="table" id="activityTable">
+                            <thead>
+                                <tr>
+                                    <th width="40">#</th>
+                                    <th width="100">Aksi</th>
+                                    <th>Keterangan</th>
+                                    <th width="150">Oleh</th>
+                                    <th>Perubahan</th>
+                                    <th width="150">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            @endcanany
 
-            </div>
         </section>
     </div>
-
 
     <div class="m-overlay" id="modalCell">
         <div class="m-box">
@@ -1396,7 +1921,6 @@
                         <option value="Leave" class="opt-cuti">Leave (Cuti)</option>
                         <option value="Cuti Melahirkan" class="opt-cuti">Cuti Melahirkan</option>
                         <option value="Sick" class="opt-sick">Sick</option>
-                        <option value="TOIL Off" class="opt-toiloff">TOIL Off</option>
                     </select>
                     <small id="mDayTypeNote"
                         style="display:none;color:#92400e;font-size:11px;margin-top:-8px;margin-bottom:10px;display:block"></small>
@@ -1550,7 +2074,7 @@
     <div class="m-overlay" id="modalCopy">
         <div class="m-box">
             <div class="m-head">
-                <span>📋 Copy Roster</span>
+                <span>Copy Roster</span>
                 <button onclick="closeModal('modalCopy')">×</button>
             </div>
             <div class="m-body">
@@ -1585,7 +2109,7 @@
     <div class="m-overlay" id="modalBulkDelete">
         <div class="m-box" style="width:400px">
             <div class="m-head">
-                <span>🗑️ Bulk Delete Roster</span>
+                <span>Bulk Delete Roster</span>
                 <button onclick="closeModal('modalBulkDelete')">×</button>
             </div>
 
@@ -1733,7 +2257,7 @@
     {{-- <div class="m-overlay" id="modalAroOther">
         <div class="m-box" style="width:560px; max-width:97vw;">
             <div class="m-head" style="background:linear-gradient(135deg,#0f172a,#1e3a8a);">
-                <span>📅 Auto Generate Roster — Store Lain</span>
+                <span>Auto Generate Roster — Store Lain</span>
                 <button onclick="closeModal('modalAroOther')">×</button>
             </div>
 
@@ -1933,7 +2457,7 @@
     <div class="m-overlay" id="modalImport">
         <div class="m-box" style="width:460px">
             <div class="m-head">
-                <span>📥 Import Roster (Excel)</span>
+                <span>Import Roster (Excel)</span>
                 <button onclick="closeModal('modalImport')">×</button>
             </div>
             <div class="m-body">
@@ -3380,69 +3904,61 @@
                 return;
             }
 
-            resultEl.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+            resultEl.innerHTML = '<p class="pr-empty-note"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Memuat histori</p>';
 
-            let url = `{{ route('roster.history') }}?start_date=${start}&end_date=${end}&search=${search}`;
+            let url = `{{ route('roster.history') }}?start_date=${start}&end_date=${end}&search=${encodeURIComponent(search)}`;
             // Kirim store_id hanya kalau ada (Admin bisa kosong = semua store)
             if (storeId) url += `&store_id=${storeId}`;
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success || !data.data.length) {
-                        resultEl.innerHTML = '<div class="text-muted text-center py-4">Tidak ada data ditemukan.</div>';
+                        resultEl.innerHTML = '<p class="pr-empty-note">Tidak ada roster di rentang dan nama itu.</p>';
                         return;
                     }
 
-                    let html = `<div style="overflow-x:auto;">
-                <table class="roster-table" style="font-size:12px;">
+                    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                    const typeClass = {
+                        'Work': 'is-work', 'Off': 'is-off', 'TOIL Off': 'is-toil', 'Public Holiday': 'is-holiday',
+                        'Leave': 'is-leave', 'Cuti Melahirkan': 'is-leave', 'Sick': 'is-sick',
+                    };
+                    let html = `<table class="roster-table">
                     <thead>
                         <tr>
-                            <th class="col-emp">Employee</th>
+                            <th class="col-emp">Karyawan</th>
                             <th>Tanggal</th>
-                            <th>Day Type</th>
+                            <th>Tipe hari</th>
                             <th>Shift</th>
                             <th>Jam</th>
-                            <th>Notes</th>
+                            <th>Catatan</th>
                         </tr>
                     </thead>
                     <tbody>`;
 
                     data.data.forEach(emp => {
                         emp.rosters.forEach((r, i) => {
-                            const badgeColor = {
-                                'Work': '#dbeafe',
-                                'Off': '#f1f5f9',
-                                'Public Holiday': '#fef9c3',
-                                'Leave': '#fce7f3',
-                                'Cuti Melahirkan': '#fce7f3',
-                            } [r.day_type] || '#f1f5f9';
-
                             html += `<tr>`;
-
-                            // Rowspan untuk nama employee
                             if (i === 0) {
-                                html += `<td class="col-emp" rowspan="${emp.rosters.length}" style="vertical-align:top;">
-                            <div class="emp-name">${emp.employee_name}</div>
-                            <div class="emp-meta">Dept: ${emp.department}</div>
-                            <div class="emp-meta">Pos: ${emp.position}</div>
-                            <span class="emp-status status-pkwt">${emp.status_employee}</span>
-                        </td>`;
+                                html += `<th scope="row" class="col-emp" rowspan="${emp.rosters.length}" style="vertical-align:top;">
+                            <span class="emp-name">${esc(emp.employee_name)}</span>
+                            <span class="emp-meta">${esc([emp.position, emp.department].filter(v => v && v !== '-').join(', ') || '-')}</span>
+                            ${emp.status_employee ? `<span class="emp-status status-pkwt">${esc(emp.status_employee)}</span>` : ''}
+                        </th>`;
                             }
-
                             html += `
-                        <td>${r.date}</td>
-                        <td><span style="background:${badgeColor};padding:2px 8px;border-radius:4px;font-size:11px;">${r.day_type}</span></td>
-                        <td>${r.shift_name}</td>
-                        <td>${r.start_time && r.end_time ? r.start_time + ' - ' + r.end_time : '-'}</td>
-                        <td style="color:#64748b;">${r.notes || '-'}</td>
+                        <td>${esc(r.date)}</td>
+                        <td><span class="rs-type ${typeClass[r.day_type] || 'is-off'}">${esc(r.day_type)}</span></td>
+                        <td>${esc(r.shift_name || '-')}</td>
+                        <td>${r.start_time && r.end_time ? esc(r.start_time + '–' + r.end_time) : '-'}</td>
+                        <td>${esc(r.notes || '-')}</td>
                     </tr>`;
                         });
                     });
-                    html += `</tbody></table></div>`;
+                    html += `</tbody></table>`;
                     resultEl.innerHTML = html;
                 })
                 .catch(() => {
-                    resultEl.innerHTML = '<div class="text-danger text-center py-4">Terjadi kesalahan.</div>';
+                    resultEl.innerHTML = '<p class="pr-empty-note">Gagal memuat histori. Coba lagi.</p>';
                 });
         }
 
@@ -3451,7 +3967,7 @@
             document.getElementById('historyEnd').value = '';
             document.getElementById('historySearch').value = '';
             document.getElementById('historyResult').innerHTML =
-                '<div class="text-muted text-center py-4"><i class="fas fa-search"></i> Masukkan rentang tanggal lalu klik Cari.</div>';
+                '<p class="pr-empty-note">Isi rentang tanggal lalu klik Cari.</p>';
         }
 
         function exportHistory() {
@@ -3570,19 +4086,6 @@
                 });
             });
 
-            // 1. Cek element ada
-            console.log(document.getElementById('mSickLihatBtn'))
-
-            // 2. Cek onclick ter-set
-            console.log(document.getElementById('mSickLihatBtn').onclick)
-
-            // 3. Cek _currentSickPath
-            console.log(_currentSickPath)
-
-            // 4. Trigger manual
-            document.getElementById('mSickLihatBtn').dispatchEvent(new MouseEvent('click', {
-                bubbles: true
-            }))
         </script>
     @endif
 @endpush

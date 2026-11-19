@@ -23,205 +23,37 @@ class DashManagerController extends Controller
 {
 
 
-    public function index(Request $request)
-{
-    $announcements = Announcement::with('user')
-        ->orderBy('publish_date', 'desc')
-        ->paginate(10);
+    public function index(Request $request, \App\Services\EmployeeDashboardData $dashboard, \App\Services\TeamDashboardData $teams)
+    {
+        // Bagian pribadi: sama persis dengan dashboard karyawan
+        $viewData = $dashboard->build($request);
+        $viewData['calendarUrl'] = url('/dashboardManager');
 
-    $employee  = Auth::user()->employee;
-    $companyId = $employee->company_id;
-
-    $storeIds = $employee->primaryStore()->pluck('stores_tables.id')->toArray();
-    if (empty($storeIds)) {
-        $storeIds = [$employee->store_id];
-    }
-
-    $totalEmployees = Employee::whereIn('status', ['Active', 'Pending'])
-        ->where('company_id', $companyId)
-        ->whereIn('store_id', $storeIds)
-        ->count();
-
-    $totalEmployeespending = Employee::where('status', 'Pending')
-        ->where('company_id', $companyId)
-        ->whereIn('store_id', $storeIds)
-        ->count();
-
-    $employeesPins = Employee::where('company_id', $companyId)
-        ->whereIn('store_id', $storeIds)
-        ->pluck('pin')
-        ->toArray();
-
-    $today = now()->format('Y-m-d');
-
-    $presentToday = Fingerprints::whereDate('scan_date', $today)
-        ->whereIn('inoutmode', [1])
-        ->whereIn('pin', $employeesPins)
-        ->distinct('pin')
-        ->count('pin');
-
-    $absentToday  = count($employeesPins) - $presentToday;
-    $presentCount = $presentToday;
-
-    // ── Pending Leave Approvals dari bawahan (employee_atasans) ──
-    $subordinateIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
-    $balanceIds = Leavebalance::whereIn('employee_id', $subordinateIds)->pluck('id');
-
-    $colors  = ['#4CAF50', '#FF9800', '#2196F3', '#9C27B0', '#F44336', '#00BCD4'];
-    $typeMap = [
-        'sakit'      => ['bg' => '#FFF3CD', 'text' => '#856404'],
-        'annual'     => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
-        'tahunan'    => ['bg' => '#D1ECF1', 'text' => '#0C5460'],
-        'melahirkan' => ['bg' => '#F8D7DA', 'text' => '#721C24'],
-        'darurat'    => ['bg' => '#F8D7DA', 'text' => '#721C24'],
-        'toil'       => ['bg' => '#E2D9F3', 'text' => '#4A235A'],
-    ];
-
-    $pendingLeaves = Leaverequest::whereIn('leave_balance_id', $balanceIds)
-        ->where('status', 'Pending')
-        ->with(['leavebalance.employees', 'leavebalance.leaves'])
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->map(function ($leave) use ($colors, $typeMap) {
-            $balance   = $leave->leavebalance;
-            $emp       = $balance?->employees;
-            $leaveType = $balance?->leaves;
-
-            $employeeName  = $emp?->employee_name ?? '-';
-            $leaveTypeName = $leaveType?->name ?? 'Cuti';
-
-            $bgColor = $colors[abs(crc32($employeeName)) % count($colors)];
-            $initial = strtoupper(substr($employeeName, 0, 1));
-
-            $key       = strtolower($leaveTypeName);
-            $typeStyle = collect($typeMap)->first(fn($v, $k) => str_contains($key, $k))
-                ?? ['bg' => '#E2E3E5', 'text' => '#383D41'];
-
-            $start = \Carbon\Carbon::parse($leave->start_date);
-            $dateLabel = $start->format('d M Y');
-            if ($leave->end_date && $leave->end_date !== $leave->start_date) {
-                $dateLabel .= ' – ' . \Carbon\Carbon::parse($leave->end_date)->format('d M Y');
-            }
-
-            return [
-                'id'             => $leave->id,
-                'employeeName'   => $employeeName,
-                'leaveTypeName'  => $leaveTypeName,
-                'bgColor'        => $bgColor,
-                'initial'        => $initial,
-                'typeBg'         => $typeStyle['bg'],
-                'typeText'       => $typeStyle['text'],
-                'dateLabel'      => $dateLabel,
-                'ago'            => \Carbon\Carbon::parse($leave->created_at)->diffForHumans(),
-                'employeeReason' => $leave->employee_reason,
-                'approveUrl'     => route('leaverequest.approve', $leave->id),
-                'rejectUrl'      => route('leaverequest.reject', $leave->id),
-            ];
-        });
-
-    // ── Leave Balance manager sendiri ──
-    $annualLeave = Leavebalance::with('leaves')
-        ->where('employee_id', $employee->id)
-        ->where('year', date('Y'))
-        ->whereHas('leaves', fn($q) => $q->where('name', 'Annual Leave'))
-        ->first();
-
-    $isNewbie = $employee->join_date
-        ? \Carbon\Carbon::parse($employee->join_date)->diffInYears(now()) < 1
-        : false;
-
-    $myPendingDays = Leaverequest::whereHas('leavebalance', fn($q) =>
-        $q->where('employee_id', $employee->id))
-        ->where('status', 'Pending')
-        ->sum('total_days');
-
-    $displayBalance = $annualLeave
-        ? max(0, (float) $annualLeave->balance_days - (float) $myPendingDays)
-        : 0;
-
-    // ── Calendar (roster manager sendiri) ──
-    $month  = (int) $request->query('month', now()->month);
-    $year   = (int) $request->query('year', now()->year);
-    $cursor = \Carbon\Carbon::createFromDate($year, $month, 1);
-
-    $rosters = \App\Models\Roster::with('shift')
-        ->where('employee_id', $employee->id)
-        ->whereYear('date', $year)
-        ->whereMonth('date', $month)
-        ->get()
-        ->keyBy(fn ($r) => \Carbon\Carbon::parse($r->date)->day);
-
-    $todayC    = \Carbon\Carbon::today();
-    $daysInMon = $cursor->daysInMonth;
-    $leadBlank = $cursor->copy()->startOfMonth()->dayOfWeek;
-
-    $calendarDays = [];
-    for ($i = 0; $i < $leadBlank; $i++) {
-        $calendarDays[] = ['empty' => true];
-    }
-    for ($d = 1; $d <= $daysInMon; $d++) {
-        $dateObj = $cursor->copy()->day($d);
-        $dow     = $dateObj->dayOfWeek;
-        $roster  = $rosters[$d] ?? null;
-
-        if ($roster) {
-            $type = strtolower($roster->day_type);
-            $cssClass = match (true) {
-                str_contains($type, 'work')       => 'present',
-                str_contains($type, 'off')        => 'weekend',
-                str_contains($type, 'holiday')    => 'leave',
-                str_contains($type, 'leave')      => 'absent',
-                str_contains($type, 'melahirkan') => 'absent',
-                default                           => '',
-            };
-            $label  = $roster->day_type;
-            $remark = (str_contains($type, 'holiday') || str_contains($type, 'toil')) ? ($roster->notes ?? '') : '';
-        } else {
-            $cssClass = in_array($dow, [0, 6]) ? 'weekend' : '';
-            $label    = '';
-            $remark   = '';
+        if ($request->ajax()) {
+            return view('pages.dashboardHuman._calendar', $viewData);
         }
 
-        $calendarDays[] = [
-            'empty'    => false,
-            'day'      => $d,
-            'cssClass' => $cssClass,
-            'label'    => $label,
-            'remark'   => $remark,
-            'isToday'  => $dateObj->isSameDay($todayC),
-        ];
+        $employee = Auth::user()->employee;
+
+        // Bawahan langsung (approval cuti)
+        $team = $teams->subordinates($employee);
+        $teamToday = $teams->today($team);
+        $pending = $teams->pendingLeaves($team->pluck('id')->all());
+
+        // Seluruh karyawan di store utama manager
+        $stores = $employee ? $employee->primaryStore()->get(['stores_tables.id', 'stores_tables.name']) : collect();
+        $storeToday = $teams->today($teams->storeEmployees($stores->pluck('id')->all()));
+
+        return view('pages.dashboardManager.dashboardManager', array_merge($viewData, [
+            'teamToday'     => $teamToday['rows'],
+            'teamStats'     => $teamToday['stats'],
+            'pendingLeaves' => $pending['items'],
+            'pendingCount'  => $pending['count'],
+            'stores'        => $stores,
+            'storeToday'    => $storeToday['rows'],
+            'storeStats'    => $storeToday['stats'],
+        ]));
     }
-
-    $prev = $cursor->copy()->subMonth();
-    $next = $cursor->copy()->addMonth();
-    $calendarLabel = $cursor->translatedFormat('F Y');
-    $prevMonth     = ['month' => $prev->month, 'year' => $prev->year];
-    $nextMonth     = ['month' => $next->month, 'year' => $next->year];
-
-    // ── Cabang AJAX navigasi calendar ──
-    if ($request->ajax()) {
-        return view('pages.dashboardManager.calendar', compact(
-            'calendarDays', 'calendarLabel', 'prevMonth', 'nextMonth'
-        ));
-    }
-
-    return view('pages.dashboardManager.dashboardManager', compact(
-        'announcements',
-        'totalEmployees',
-        'totalEmployeespending',
-        'presentToday',
-        'absentToday',
-        'presentCount',
-        'pendingLeaves',
-        'annualLeave',
-        'isNewbie',
-        'displayBalance',
-        'calendarDays',
-        'calendarLabel',
-        'prevMonth',
-        'nextMonth'
-    ));
-}
 
     public function indexteam()
     {

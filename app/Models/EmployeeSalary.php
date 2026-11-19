@@ -154,16 +154,6 @@ class EmployeeSalary extends Model
     {
         return $this->belongsTo(Employee::class, 'created_by');
     }
-    // ── Ambil salary aktif untuk periode payroll ──
-    public static function getActiveForPeriod(string $employeeId, int $month, int $year): ?self
-    {
-        $periodStart = \Carbon\Carbon::create($year, $month, 25)
-            ->subMonth()
-            ->setDay(26)
-            ->toDateString();
-        return self::where('employee_id', $employeeId)
-            ->where('effective_date', '<=', $periodStart)
-            ->latest('effective_date')
-            ->first();
-    }
+    // Gaji yang dipakai payroll: effective_date terakhir yang <= akhir periode.
+    // Aturan ini hanya ada di PayrollService::generateForEmployee (STEP 1).
 }

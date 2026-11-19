@@ -420,9 +420,11 @@
                     <h1>Payroll Components</h1>
                 </div>
                 <div class="page-actions">
-                    <a href="{{ route('payrollcomponents.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create Payroll Components
-                    </a>
+                    @can('payroll.component.create')
+                        <a href="{{ route('payrollcomponents.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Payroll Components
+                        </a>
+                    @endcan
                  
                 </div>
             </div>

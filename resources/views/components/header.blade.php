@@ -36,7 +36,7 @@
                     <i class="fas fa-unlock"></i> Change Password
                 </a>
 
-                <form method="GET" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <a href="#" class="dropdown-item has-icon text-danger"
                         onclick="event.preventDefault(); this.closest('form').submit();">

@@ -1,2300 +1,1558 @@
 @extends('layouts.app')
 @section('title', 'HR Dashboard')
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* =====================================================
-                               ROOT & TOKENS
-                            ===================================================== */
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: the action queue, what HR must do today, above live counts with their data freshness · states: loading, empty, stale data, full
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the old cards showed zeros nobody computed and invented events, answered with real counts or an honest empty state */
+
         :root {
-            --brand-900: #0f172a;
-            --brand-800: #1e293b;
-            --brand-700: #25316D;
-            --brand-600: #3E497A;
-            --brand-400: #6c7fc4;
-            --brand-100: #e8ecf8;
-            --brand-50: #f1f4fb;
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
 
-            --emerald-600: #059669;
-            --emerald-500: #10b981;
-            --amber-500: #f59e0b;
-            --amber-600: #d97706;
-            --rose-500: #f43f5e;
-            --rose-600: #e11d48;
-            --sky-500: #0ea5e9;
-            --violet-500: #8b5cf6;
-
-            --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
-            --success-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
-            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            --danger-gradient: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
-            --info-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-            --purple-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-
-            --surface: #ffffff;
-            /* --surface-2:   #f8fafc; */
-            --border: #e2e8f0;
-            --text-primary: #0f172a;
-            --text-muted: #64748b;
-
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, .08);
-            --shadow-lg: 0 12px 32px rgba(0, 0, 0, .12);
-            --shadow-xl: 0 24px 48px rgba(0, 0, 0, .16);
-
-            --transition: all .25s cubic-bezier(.4, 0, .2, 1);
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* =====================================================
-                               BASE
-                            ===================================================== */
-        body,
-        .main-content {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--surface-2);
+        html,
+        body {
+            overflow-x: clip;
         }
 
-        img.no-drag {
-            -webkit-user-drag: none;
-            user-select: none;
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
         }
 
-        /* =====================================================
-                               PROFILE HEADER
-                            ===================================================== */
-        .profile-header-card {
-            background: var(--primary-gradient);
-            border-radius: var(--radius-xl);
-            padding: 36px 40px;
-            color: white;
-            margin-bottom: 28px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
+        .pr [hidden] {
+            display: none !important;
         }
 
-        .profile-header-card::before {
-            content: '';
-            position: absolute;
-            top: -60%;
-            right: -8%;
-            width: 380px;
-            height: 380px;
-            background: rgba(255, 255, 255, .08);
-            border-radius: 50%;
-            pointer-events: none;
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
         }
 
-        .profile-header-card::after {
-            content: '';
-            position: absolute;
-            bottom: -40%;
-            left: -4%;
-            width: 280px;
-            height: 280px;
-            background: rgba(255, 255, 255, .05);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .profile-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .profile-avatar-large {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, .35);
-            object-fit: cover;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
-        }
-
-        .profile-info h2 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-            letter-spacing: -.5px;
-        }
-
-        .profile-meta {
-            display: flex;
-            gap: 20px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-
-        .profile-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: .875rem;
-            opacity: .9;
-            background: rgba(255, 255, 255, .12);
-            padding: 5px 12px;
-            border-radius: 20px;
-        }
-
-        /* =====================================================
-                               QUICK ACTIONS
-                            ===================================================== */
-        .quick-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 28px;
-        }
-
-        .qa-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            border-radius: var(--radius-md);
-            border: 1.5px solid var(--border);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: .82rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .qa-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            color: var(--brand-700);
-            border-color: var(--brand-400);
-            text-decoration: none;
-        }
-
-        .qa-btn i {
-            width: 28px;
-            height: 28px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .85rem;
-            color: white;
-        }
-
-        .qa-btn .icon-primary {
-            background: var(--primary-gradient);
-        }
-
-        .qa-btn .icon-success {
-            background: var(--success-gradient);
-        }
-
-        .qa-btn .icon-warning {
-            background: var(--warning-gradient);
-        }
-
-        .qa-btn .icon-danger {
-            background: var(--danger-gradient);
-        }
-
-        .qa-btn .icon-info {
-            background: var(--info-gradient);
-        }
-
-        .qa-btn .icon-purple {
-            background: var(--purple-gradient);
-        }
-
-        /* =====================================================
-                               STAT CARDS
-                            ===================================================== */
-        .stat-card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-            transition: var(--transition);
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-card-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.35rem;
-            color: white;
-        }
-
-        .stat-icon.primary {
-            background: var(--primary-gradient);
-        }
-
-        .stat-icon.success {
-            background: var(--success-gradient);
-        }
-
-        .stat-icon.warning {
-            background: var(--warning-gradient);
-        }
-
-        .stat-icon.info {
-            background: var(--info-gradient);
-        }
-
-        .stat-icon.danger {
-            background: var(--danger-gradient);
-        }
-
-        .stat-icon.purple {
-            background: var(--purple-gradient);
-        }
-
-        .stat-badge {
-            font-size: .72rem;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 20px;
-            letter-spacing: .3px;
-        }
-
-        .stat-badge.up {
-            background: rgba(16, 185, 129, .12);
-            color: var(--emerald-600);
-        }
-
-        .stat-badge.down {
-            background: rgba(244, 63, 94, .12);
-            color: var(--rose-600);
-        }
-
-        .stat-badge.neutral {
-            background: rgba(100, 116, 139, .1);
-            color: var(--text-muted);
-        }
-
-        .stat-content h3 {
-            font-size: 2.1rem;
-            font-weight: 800;
-            margin: 0 0 2px 0;
-            color: var(--text-primary);
-            letter-spacing: -1px;
-        }
-
-        .stat-content p {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: .82rem;
-            font-weight: 600;
-            /* text-transform: uppercase; */
-            letter-spacing: .4px;
-        }
-
-        .stat-footer {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* =====================================================
-                               ALERT BANNER (contract expiry, birthdays)
-                            ===================================================== */
-        .alert-banner {
-            border-radius: var(--radius-md);
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 10px;
-            font-size: .875rem;
-            font-weight: 500;
-            border: none;
-        }
-
-        .alert-banner.danger {
-            background: rgba(244, 63, 94, .08);
-            color: var(--rose-600);
-            border-left: 4px solid var(--rose-500);
-        }
-
-        .alert-banner.warning {
-            background: rgba(245, 158, 11, .08);
-            color: var(--amber-600);
-            border-left: 4px solid var(--amber-500);
-        }
-
-        .alert-banner.info {
-            background: rgba(14, 165, 233, .08);
-            color: var(--sky-500);
-            border-left: 4px solid var(--sky-500);
-        }
-
-        .alert-banner.success {
-            background: rgba(16, 185, 129, .08);
-            color: var(--emerald-600);
-            border-left: 4px solid var(--emerald-500);
-        }
-
-        .alert-banner .alert-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .alert-banner.danger .alert-icon {
-            background: rgba(244, 63, 94, .15);
-        }
-
-        .alert-banner.warning .alert-icon {
-            background: rgba(245, 158, 11, .15);
-        }
-
-        .alert-banner.info .alert-icon {
-            background: rgba(14, 165, 233, .15);
-        }
-
-        .alert-banner.success .alert-icon {
-            background: rgba(16, 185, 129, .15);
-        }
-
-        /* =====================================================
-                               CARD GENERIC
-                            ===================================================== */
-        .dash-card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .dash-card .dash-card-header {
-            padding: 18px 22px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--surface);
-        }
-
-        .dash-card .dash-card-title {
-            font-size: .95rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0;
-        }
-
-        .dash-card .dash-card-title .title-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .85rem;
-            color: white;
-        }
-
-        .dash-card .dash-card-body {
-            padding: 20px 22px;
-        }
-
-        #losChart {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* =====================================================
-                               SUBMISSION LIST
-                            ===================================================== */
-
-
-        .type-badge {
-            font-size: .72rem;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
+        .pr .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
             white-space: nowrap;
         }
 
-        .type-badge.leave {
-            background: rgba(139, 92, 246, .12);
-            color: var(--violet-500);
-        }
-
-        .type-badge.overtime {
-            background: rgba(245, 158, 11, .12);
-            color: var(--amber-600);
-        }
-
-        .type-badge.sick {
-            background: rgba(244, 63, 94, .12);
-            color: var(--rose-600);
-        }
-
-        .type-badge.other {
-            background: rgba(14, 165, 233, .12);
-            color: var(--sky-500);
-        }
-
-        /* =====================================================
-                               BIRTHDAY LIST
-                            ===================================================== */
-        .birthday-item {
+        /* ── Head ── */
+        .pr-head {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 11px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .birthday-item:last-child {
-            border-bottom: none;
-        }
-
-        .birthday-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--border);
-        }
-
-        .birthday-info {
-            flex: 1;
-        }
-
-        .birthday-name {
-            font-size: .85rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .birthday-date {
-            font-size: .77rem;
-            color: var(--text-muted);
-        }
-
-        .birthday-today {
-            font-size: .72rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-        }
-
-        /* =====================================================
-                               CONTRACT EXPIRY
-                            ===================================================== */
-        .contract-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 11px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .contract-item:last-child {
-            border-bottom: none;
-        }
-
-        .contract-days {
-            width: 46px;
-            height: 46px;
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .contract-days.urgent {
-            background: rgba(244, 63, 94, .12);
-            color: var(--rose-600);
-        }
-
-        .contract-days.warning {
-            background: rgba(245, 158, 11, .12);
-            color: var(--amber-600);
-        }
-
-        .contract-days.ok {
-            background: rgba(16, 185, 129, .12);
-            color: var(--emerald-600);
-        }
-
-        /* =====================================================
-                               PAYROLL CARD
-                            ===================================================== */
-        .payroll-status-card {
-            background: var(--primary-gradient);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .payroll-status-card::after {
-            content: '';
-            position: absolute;
-            top: -40%;
-            right: -15%;
-            width: 220px;
-            height: 220px;
-            background: rgba(255, 255, 255, .08);
-            border-radius: 50%;
-        }
-
-        .payroll-status-card .payroll-label {
-            font-size: .78rem;
-            font-weight: 700;
-            /* text-transform: uppercase; */
-            letter-spacing: .5px;
-            opacity: .8;
-            margin-bottom: 6px;
-        }
-
-        .payroll-status-card .payroll-amount {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-
-        .payroll-progress {
-            margin-top: 16px;
-            background: rgba(255, 255, 255, .2);
-            border-radius: 8px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .payroll-progress-bar {
-            height: 100%;
-            background: rgba(255, 255, 255, .8);
-            border-radius: 8px;
-            transition: width .8s ease;
-        }
-
-        .payroll-meta {
-            display: flex;
             justify-content: space-between;
-            margin-top: 10px;
-            font-size: .78rem;
-            opacity: .85;
+            flex-wrap: wrap;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
         }
 
-        /* =====================================================
-                               HR CALENDAR
-                            ===================================================== */
-        .calendar-event {
+        .pr-crumbs {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
         }
 
-        .calendar-event:last-child {
-            border-bottom: none;
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
         }
 
-        .cal-date {
-            width: 44px;
-            height: 44px;
-            border-radius: var(--radius-sm);
-            display: flex;
-            flex-direction: column;
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .cal-date .cal-day {
-            font-size: 1.1rem;
-            font-weight: 800;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
             line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        .cal-date .cal-mon {
-            font-size: .65rem;
-            font-weight: 700;
-            /* text-transform: uppercase; */
-            letter-spacing: .5px;
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
         }
 
-        .cal-date.primary {
-            background: var(--brand-50);
-            color: var(--brand-700);
+        .pr-btn:active {
+            background: var(--pr-rule);
         }
 
-        .cal-date.success {
-            background: rgba(16, 185, 129, .1);
-            color: var(--emerald-600);
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
         }
 
-        .cal-date.warning {
-            background: rgba(245, 158, 11, .1);
-            color: var(--amber-600);
+        .pr-btn i {
+            font-size: .85em;
         }
 
-        .cal-info {
-            flex: 1;
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
         }
 
-        .cal-title {
-            font-size: .855rem;
-            font-weight: 700;
-            color: var(--text-primary);
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
         }
 
-        .cal-sub {
-            font-size: .77rem;
-            color: var(--text-muted);
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
         }
 
-        /* =====================================================
-                               LEAVE SUMMARY BOX (inside submissions)
-                            ===================================================== */
-        .leave-summary-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: var(--radius-md);
-            padding: 18px;
-            color: white;
-            margin-bottom: 18px;
-        }
-
-        .leave-summary-box h6 {
-            color: white;
-            font-weight: 700;
-            margin-bottom: 14px;
-            font-size: .875rem;
-        }
-
-        .leave-stat {
-            text-align: center;
-        }
-
-        .leave-stat small {
-            display: block;
-            opacity: .85;
-            font-size: .72rem;
-            margin-bottom: 3px;
-        }
-
-        .leave-stat .leave-num {
-            font-size: 1.6rem;
-            font-weight: 800;
-        }
-
-        /* =====================================================
-                               DATE FILTER
-                            ===================================================== */
-        .date-input {
-            width: 140px !important;
-            padding: 7px 10px;
-            font-size: .85rem;
-            border-radius: var(--radius-sm);
-            border: 1.5px solid var(--border);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: var(--transition);
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: var(--brand-400);
-            box-shadow: 0 0 0 3px rgba(108, 127, 196, .15);
-        }
-
-        /* =====================================================
-                               CHART INFO BOX
-                            ===================================================== */
-        .chart-info-box {
-            background: var(--brand-50);
-            border-left: 4px solid var(--brand-400);
-            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-            padding: 12px 16px;
-            margin-top: 14px;
-            font-size: .82rem;
-            color: var(--brand-700);
-        }
-
-        /* =====================================================
-                               ANNOUNCEMENTS TABLE
-                            ===================================================== */
-        #users-table thead th {
-            background: var(--surface-2);
-            font-size: .78rem;
-            font-weight: 700;
-            /* text-transform: uppercase; */
-            letter-spacing: .5px;
-            color: var(--text-muted);
-            border-bottom: 2px solid var(--border);
-        }
-
-        #users-table tbody tr:hover {
-            background: var(--brand-50);
-        }
-
-        /* =====================================================
-                               BUTTONS
-                            ===================================================== */
-        .btn {
-            border-radius: var(--radius-sm);
-            font-weight: 700;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: var(--transition);
-        }
-
-        .btn-primary {
-            background: var(--primary-gradient);
-            border: none;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(37, 49, 109, .35);
-            color: white;
-        }
-
-        .btn-sm {
-            padding: 6px 16px;
-            font-size: .82rem;
-        }
-
-        .btn-outline-primary {
-            border: 1.5px solid var(--brand-700);
-            color: var(--brand-700);
+        .pr-btn-ghost {
+            border-color: transparent;
             background: transparent;
+            color: var(--pr-ink-2);
         }
 
-        .btn-outline-primary:hover {
-            background: var(--brand-700);
-            color: white;
+        .pr-btn-warn {
+            color: var(--pr-warn);
         }
 
-        /* =====================================================
-                               MODAL
-                            ===================================================== */
-        .modal-content {
-            border-radius: var(--radius-xl);
-            border: none;
-            box-shadow: var(--shadow-xl);
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
         }
 
-        .modal-header {
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-            padding: 22px 26px;
+        .pr-btn-danger {
+            color: var(--pr-error);
         }
 
-        .modal-header .modal-title {
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
             font-weight: 700;
-            color: white;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
         }
 
-        .modal-header .close {
-            color: white;
-            opacity: .9;
-            font-size: 1.25rem;
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
         }
 
-        .modal-body {
-            padding: 26px;
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
         }
 
-        .modal-footer {
-            padding: 16px 26px;
-            border-top: 1px solid var(--border);
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
         }
 
-        .form-label {
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
             font-weight: 700;
-            color: var(--brand-800);
-            font-size: .85rem;
-            margin-bottom: 7px;
-        }
-
-        .form-control {
-            border-radius: var(--radius-sm);
-            border: 1.5px solid var(--border);
-            padding: 10px 14px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: .875rem;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            border-color: var(--brand-400);
-            box-shadow: 0 0 0 3px rgba(108, 127, 196, .15);
-            outline: none;
-        }
-
-        /* =====================================================
-                               INFO BOX (Annual Leave in modal)
-                            ===================================================== */
-        .info-box {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: var(--radius-md);
-            padding: 18px;
-            color: white;
-        }
-
-        .info-box p {
-            margin-bottom: 7px;
-            font-size: .875rem;
-        }
-
-        .info-box strong {
-            font-weight: 700;
-        }
-
-        /* =====================================================
-                               EMPLOYEE CHECKBOX
-                            ===================================================== */
-        .employee-checkbox-container {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 10px;
-            background: var(--surface-2);
-        }
-
-        .form-check {
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: var(--transition);
-        }
-
-        .form-check:hover {
-            background: white;
-        }
-
-        .form-check-input:checked {
-            background-color: var(--brand-700);
-            border-color: var(--brand-700);
-        }
-
-        /* =====================================================
-                               SECTION LABEL
-                            ===================================================== */
-        .section-label {
-            font-size: .72rem;
-            font-weight: 800;
-            /* text-transform: uppercase; */
-            letter-spacing: .8px;
-            color: var(--text-muted);
-            margin-bottom: 14px;
-        }
-
-        /* =====================================================
-                               RESPONSIVE
-                            ===================================================== */
-        @media (max-width: 768px) {
-            .profile-header-card {
-                padding: 24px 20px;
-            }
-
-            .profile-info h2 {
-                font-size: 1.35rem;
-            }
-
-            .profile-meta {
-                gap: 10px;
-            }
-
-            .quick-actions {
-                gap: 8px;
-            }
-
-            .qa-btn {
-                font-size: .78rem;
-                padding: 8px 14px;
-            }
-
-            .stat-content h3 {
-                font-size: 1.6rem;
-            }
-
-            .date-input {
-                width: 100% !important;
-            }
-        }
-
-        /* =====================================================
-                               ANIMATE
-                            ===================================================== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp .45s ease forwards;
-        }
-
-        .animate-in:nth-child(1) {
-            animation-delay: .05s;
-        }
-
-        .animate-in:nth-child(2) {
-            animation-delay: .10s;
-        }
-
-        .animate-in:nth-child(3) {
-            animation-delay: .15s;
-        }
-
-        .animate-in:nth-child(4) {
-            animation-delay: .20s;
-        }
-
-        /* =====================================================
-                               DONUT LEGEND
-                            ===================================================== */
-        .donut-legend {
-            list-style: none;
-            padding: 0;
+            color: var(--pr-ink);
             margin: 0;
         }
 
-        .donut-legend li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: .82rem;
-            color: var(--text-muted);
-            padding: 5px 0;
-            font-weight: 500;
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
         }
 
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .legend-val {
-            margin-left: auto;
+        .pr-section-title {
+            font-size: var(--pr-text-md);
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
         }
 
-        /* =====================================================
-                               LATE/ABSENT TRACKER
-                            ===================================================== */
-        .tracker-row {
+        /* ── Toolbar ── */
+        .pr-toolbar {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+            overflow-x: auto;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
+        }
+
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
+        }
+
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
+        }
+
+        .pr-mini {
+            min-width: 140px;
+        }
+
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
+        }
+
+        .pr-muted {
+            color: var(--pr-muted);
+        }
+
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
+        .action-wrap {
+            display: flex;
+            gap: var(--pr-space-2xs);
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .act-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .act-btn.act-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* DataTables chrome */
+        .pr-dt-bottom {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
         }
 
-        .tracker-row:last-child {
-            border-bottom: none;
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
         }
 
-        .tracker-avatar {
-            width: 36px;
-            height: 36px;
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
+            font-weight: 600;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
+        }
+
+
+        /* ── Dashboard HR ── */
+        .pr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-hello {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+        }
+
+        .pr-avatar {
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--border);
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
         }
 
-        .tracker-info {
+        .pr-hello-date {
+            margin: 0 0 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-lede {
+            line-height: 1.5;
+        }
+
+        .pr-btn-sm {
+            min-height: 32px;
+            padding: 0 var(--pr-space-sm);
+            font-size: var(--pr-text-xs);
+        }
+
+        .pr-link {
+            border: 0;
+            background: none;
+            padding: 0;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            text-decoration: underline;
+            text-underline-offset: .16em;
+            cursor: pointer;
+        }
+
+        .pr-link:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-card-link {
+            display: inline-block;
+            margin: 0 var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        /* Action queue */
+        .pr-todo {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-todo li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            border-left: 3px solid var(--pr-warn);
+        }
+
+        .pr-todo li.is-ready {
+            border-left-color: var(--pr-success);
+        }
+
+        .pr-todo li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-todo-text {
+            font-size: var(--pr-text-md);
+            color: var(--pr-ink);
+        }
+
+        .pr-todo-text strong {
+            font-size: var(--pr-text-lg);
+            font-variant-numeric: tabular-nums;
+            margin-right: 2px;
+        }
+
+        /* Today */
+        .pr-today {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        .pr-today>.pr-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pr-big {
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-xs);
+        }
+
+        .pr-big strong {
+            display: block;
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-big strong small {
+            font-size: var(--pr-text-md);
+            color: var(--pr-muted);
+            font-weight: 600;
+            margin-right: 2px;
+        }
+
+        .pr-big span {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr-bar {
+            display: flex;
+            height: 8px;
+            margin: var(--pr-space-xs) var(--pr-space-lg);
+            border-radius: var(--pr-pill);
+            overflow: hidden;
+            background: var(--pr-paper-2);
+        }
+
+        .pr-bar span {
+            display: block;
+            height: 100%;
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-paid {
+            background: var(--pr-accent);
+        }
+
+        .pr-bar.is-stack .is-approved {
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-draft {
+            background: var(--pr-muted);
+        }
+
+        .pr-mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: var(--pr-space-xs);
+            margin: var(--pr-space-xs) 0 0;
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-mini-stats dt {
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-mini-stats dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-mini-stats dd.is-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-note {
+            margin: auto 0 0;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-note+.pr-note {
+            margin-top: 0;
+        }
+
+        .pr-note.is-warn {
+            background: var(--pr-warn-soft);
+            color: var(--pr-ink);
+        }
+
+        /* Charts */
+        .pr-range {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-field label {
+            display: block;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            margin-bottom: var(--pr-space-2xs);
+        }
+
+        .pr-field input {
+            min-height: 36px;
+            padding: 0 var(--pr-space-sm);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-field input:focus-visible {
+            outline-offset: -1px;
+        }
+
+        .pr-chart-body {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .pr-chart {
+            position: relative;
+        }
+
+        .pr-chart[hidden] {
+            display: none !important;
+        }
+
+        .pr-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+            align-items: start;
+        }
+
+        .pr-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        /* Lists */
+        .pr-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-list li {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-list li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-list-main {
             flex: 1;
+            min-width: 0;
         }
 
-        .tracker-name {
-            font-size: .85rem;
+        .pr-list-title {
+            display: block;
+            font-size: var(--pr-text-sm);
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--pr-ink);
         }
 
-        .tracker-time {
-            font-size: .75rem;
-            color: var(--text-muted);
+        .pr-list-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
         }
 
-        .tracker-tag {
-            font-size: .72rem;
+        .pr-days {
+            width: 48px;
+            flex-shrink: 0;
+            text-align: center;
+            padding: var(--pr-space-2xs) 0;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-warn-soft);
+            font-size: var(--pr-text-lg);
             font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-warn);
         }
 
-        .tracker-tag.late {
-            background: rgba(245, 158, 11, .12);
-            color: var(--amber-600);
+        .pr-days small {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
         }
 
-        .tracker-tag.absent {
-            background: rgba(244, 63, 94, .12);
-            color: var(--rose-600);
+        .pr-days.is-urgent {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
         }
 
-        .tracker-tag.permit {
-            background: rgba(14, 165, 233, .12);
-            color: var(--sky-500);
+        /* Announcements */
+        #users-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
         }
 
-        /* Scrollable inner list */
-        .inner-scroll {
-            max-height: 290px;
+        #users-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #users-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        .pr-modal-title {
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-preview-title {
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            margin: 0 0 var(--pr-space-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-facts {
+            margin: 0 0 var(--pr-space-md);
+        }
+
+        .pr-facts>div {
+            display: flex;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-2xs) 0;
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-facts dt {
+            width: 110px;
+            font-weight: 400;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-facts dd {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .pr-preview-content {
+            max-height: 420px;
             overflow-y: auto;
+            padding-top: var(--pr-space-md);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-md);
+            line-height: 1.7;
         }
 
-        .inner-scroll::-webkit-scrollbar {
-            width: 4px;
+        .pr-today,
+        .pr-grid-3,
+        .pr-grid-2 {
+            margin-bottom: var(--pr-space-lg);
         }
 
-        .inner-scroll::-webkit-scrollbar-track {
-            background: transparent;
+        .pr-today .pr-panel,
+        .pr-grid-3 .pr-panel,
+        .pr-grid-2 .pr-panel {
+            margin-bottom: 0;
         }
-        .inner-scroll::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
+
+        @media (max-width: 75rem) {
+            .pr-grid-3 {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            }
+
+            .pr-grid-3>.pr-panel:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 60rem) {
+
+            .pr-grid-3,
+            .pr-grid-2 {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 40rem) {
+
+            .pr-head,
+            .pr-panel-head,
+            .pr-big,
+            .pr-mini-stats,
+            .pr-note,
+            .pr-todo li,
+            .pr-list li,
+            .pr-chart-body,
+            .pr-table-wrap,
+            .pr-empty-note {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .pr-bar {
+                margin-left: var(--pr-space-md);
+                margin-right: var(--pr-space-md);
+            }
+
+            .pr-todo li {
+                flex-wrap: wrap;
+            }
+
+            .pr-actions .pr-btn,
+            .pr-field input {
+                min-height: 44px;
+                font-size: 16px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .pr *,
+            .pr *::before,
+            .pr *::after {
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $emp = Auth::user()->employee;
+        $hour = now()->hour;
+        $greeting = $hour < 11 ? 'Selamat pagi' : ($hour < 15 ? 'Selamat siang' : ($hour < 18 ? 'Selamat sore' : 'Selamat malam'));
+        $fmtDate = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d M Y') : '-';
+        $fmtDateTime = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d M Y, H:i') : '-';
+        $a = $attendance;
+        $scanStale = $a['last_scan'] && \Carbon\Carbon::parse($a['last_scan'])->lt(today());
+        $openActions = collect([
+            ['key' => 'leave', 'count' => $actions['leave'], 'label' => 'cuti menunggu approval', 'href' => route('pages.Leaverequest'), 'cta' => 'Review cuti'],
+            ['key' => 'position', 'count' => $actions['position'], 'label' => 'pengajuan posisi menunggu approval', 'href' => route('pages.Positionreqlist'), 'cta' => 'Review pengajuan'],
+            ['key' => 'contract', 'count' => $actions['contract'], 'label' => 'kontrak habis dalam 30 hari', 'href' => route('contract'), 'cta' => 'Lihat kontrak'],
+        ]);
+        foreach ($payrollPeriods as $p) {
+            $step = $p->nextStep();
+            if ($step['tone'] !== 'done') {
+                $openActions->push(['key' => 'payroll', 'count' => null, 'label' => 'Payroll ' . $p->period_label . ': ' . $step['text'], 'href' => route('payroll.index', $p->id), 'cta' => 'Buka payroll', 'ready' => $step['tone'] === 'ready']);
+            }
+        }
+        $pending = $openActions->filter(fn($x) => $x['count'] === null || $x['count'] > 0);
+    @endphp
+    <div class="main-content pr">
         <section class="section">
 
-            {{-- =========================================================
-         PROFILE HEADER
-    ========================================================= --}}
-            <div class="profile-header-card animate-in">
-                <div class="profile-content">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <div class="d-flex align-items-center gap-4">
-                                <img src="{{ Auth::user()->employee->photos
-                                    ? route('useremployee.photo', basename(Auth::user()->employee->photos))
-                                    : asset('img/avatar/avatar-1.png') }}"
-                                    alt="Profile" class="profile-avatar-large no-drag">
-                                <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? 'HR User' }}</h2>
-                                    <div style="font-size:.85rem;opacity:.85;font-weight:500;">
-                                        {{-- Human Resources Department --}}
-                                    </div>
-                                    <div class="profile-meta">
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-briefcase"></i>
-
-                                            <span>{{ Auth::user()->employee->position->first()->name ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->first()->department_name ?? '-' }}</span>
-
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-id-badge"></i>
-                                            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ now()->format('l, F d, Y') }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
-                            <div
-                                style="background:rgba(255,255,255,.12);border-radius:12px;padding:16px 20px;display:inline-block;text-align:center;">
-                                <div
-                                    style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.8;margin-bottom:6px;">
-                                    Today's Attendance Rate
-                                </div>
-                                <div style="font-size:2.2rem;font-weight:800;letter-spacing:-1px;">
-                                    {{ $attendanceRateToday ?? 0 }}%
-                                </div>
-                                <div style="font-size:.78rem;opacity:.8;margin-top:4px;">
-                                    {{ $presentToday ?? 0 }} / {{ $totalEmployees ?? 0 }} Present
-                                </div>
-                            </div>
-                        </div> --}}
+            {{-- Head --}}
+            <header class="pr-head">
+                <div class="pr-hello">
+                    <img src="{{ $emp?->photos ? route('useremployee.photo', basename($emp->photos)) : asset('img/avatar/avatar-1.png') }}"
+                        alt="" class="pr-avatar" width="56" height="56">
+                    <div>
+                        <p class="pr-hello-date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
+                        <h1 class="pr-title">{{ $greeting }}, {{ $emp->employee_name ?? Auth::user()->username }}</h1>
+                        <p class="pr-lede">
+                            {{ collect([$emp?->position->first()?->name, $emp?->department->first()?->department_name])->filter()->implode(', ') ?: 'HR' }}
+                        </p>
                     </div>
                 </div>
-            </div>
-
-            {{-- =========================================================
-         QUICK ACTIONS BAR
-    ========================================================= --}}
-            <div class="quick-actions animate-in">
-                <a href="{{ route('Employee.create') }}" class="qa-btn">
-                    <i class="fas fa-user-plus icon-primary"></i> Add Employee
-                </a>
-                <a href="{{ route('pages.Fingerprints') }}" class="qa-btn">
-                    <i class="fas fa-fingerprint icon-success"></i> Attendance Log
-                </a>
-
-                <a href="#" class="qa-btn" id="btn-announcement-quick">
-                    <i class="fas fa-bullhorn icon-info"></i> Announcement
-                </a>
-                <a href="#" class="qa-btn">
-                    <i class="fas fa-money-bill-wave icon-purple"></i> Payroll
-                </a>
-                <a href="#" class="qa-btn">
-                    <i class="fas fa-file-contract icon-danger"></i> Contracts
-                </a>
-            </div>
-
-            <div class="section-body">
-
-                {{-- =====================================================
-             ALERT BANNERS (Contract Expiry +)
-        ===================================================== --}}
-                @if (isset($contractsExpiringCount) && $contractsExpiringCount > 0)
-                    <div class="alert-banner danger animate-in" role="alert">
-                        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div>
-                            <strong>{{ $contractsExpiringCount }} employee contract(s)</strong> expiring within 30 days.
-                            <a href="#" class="ml-2"
-                                style="font-weight:700;color:inherit;text-decoration:underline;">Review now →</a>
-                        </div>
-                    </div>
-                @endif
-                {{-- =====================================================
-             TOP STAT CARDS
-        ===================================================== --}}
-                <div class="row mb-2">
-                    {{-- Total Employees --}}
-                    <div class="col-lg-3 col-md-6 col-12 mb-4 animate-in">
-                        <div onclick="window.location='{{ route('pages.Employee') }}';" class="stat-card" role="button"
-                            aria-label="View all employees">
-                            <div class="stat-card-header">
-                                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
-                                <span class="stat-badge up"><i class="fas fa-arrow-up mr-1"></i> Active</span>
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $totalEmployees ?? 0 }}</h3>
-                                <p>Total Employees</p>
-                            </div>
-                            <div class="stat-footer">
-                                <span class="stat-badge up"><i class="fas fa-hourglass-half mr-1"></i>
-                                    {{ $totalEmployeespending ?? 0 }} Pending</span>
-                                <span class="stat-badge down"><i class="fas fa-door-open mr-1"></i>
-                                    {{ $totalEmployeesinactive ?? 0 }} Resigned this week</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Present Today --}}
-                    <div class="col-lg-3 col-md-6 col-12 mb-4 animate-in">
-                        <div onclick="window.location='{{ route('pages.Fingerprints') }}';" class="stat-card"
-                            role="button" aria-label="View attendance">
-                            <div class="stat-card-header">
-                                <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
-                                @if (($trend ?? 0) >= 0)
-                                    <span class="stat-badge up"><i class="fas fa-arrow-up mr-1"></i>
-                                        +{{ $trend }}</span>
-                                @else
-                                    <span class="stat-badge down"><i class="fas fa-arrow-down mr-1"></i>
-                                        {{ $trend }}</span>
-                                @endif
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $presentToday ?? 0 }}</h3>
-                                <p>Present Today</p>
-                            </div>
-                            <div class="stat-footer">
-                                <span class="stat-badge neutral">Yesterday: {{ $presentYesterday ?? 0 }}</span>
-                                <span class="stat-badge down"><i class="fas fa-user-times mr-1"></i>
-                                    {{ $absentToday ?? 0 }} Absent</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Late Today --}}
-                    <div class="col-lg-3 col-md-6 col-12 mb-4 animate-in">
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
-                                @if (($lateToday ?? 0) > 0)
-                                    <span class="stat-badge down"><i class="fas fa-exclamation-circle mr-1"></i>
-                                        Alert</span>
-                                @else
-                                    <span class="stat-badge up"><i class="fas fa-check-circle mr-1"></i> On Time</span>
-                                @endif
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $lateToday ?? 0 }}</h3>
-                                <p>Late Today</p>
-                            </div>
-                            <div class="stat-footer">
-                                <span class="stat-badge neutral">Pending Approvals: {{ $pendingApprovals ?? 0 }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- On Leave --}}
-                    <div class="col-lg-3 col-md-6 col-12 mb-4 animate-in">
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <div class="stat-icon info"><i class="fas fa-calendar-check"></i></div>
-                                <span class="stat-badge neutral">This Week</span>
-                            </div>
-                            <div class="stat-content">
-                                <h3>{{ $onLeave ?? 0 }}</h3>
-                                <p>On Leave</p>
-                            </div>
-                            <div class="stat-footer">
-                                <span class="stat-badge warning"><i class="fas fa-file-medical mr-1"></i>
-                                    {{ $onSickLeave ?? 0 }} Sick</span>
-                                <span class="stat-badge up"><i class="fas fa-umbrella-beach mr-1"></i>
-                                    {{ $onAnnualLeave ?? 0 }} Annual</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- =====================================================
-             ROW 2 — Attendance Chart + Submissions
-        ===================================================== --}}
-                <div class="row mb-4">
-                    {{-- Attendance Chart --}}
-                    <div class="col-lg-8 col-12 mb-4">
-                        <div class="dash-card">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--primary-gradient)"><i
-                                            class="fas fa-chart-bar"></i></span>
-                                    Monthly Attendance Rate
-                                </h4>
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="date" id="startDate" class="date-input" aria-label="Start Date">
-                                    {{-- value="{{ now()->startOfMonth()->format('Y-m-d') }}"> --}}
-                                    <input type="date" id="endDate" class="date-input" aria-label="End Date">
-                                    {{-- value="{{ now()->endOfMonth()->format('Y-m-d') }}"> --}}
-                                    <button id="filterButton" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-filter mr-1"></i> Filter
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="dash-card-body">
-                                <canvas id="attendanceChart" height="190"></canvas>
-                                <div class="chart-info-box">
-                                    <i class="fas fa-info-circle mr-2"></i>
-                                    X-axis: Date &nbsp;|&nbsp; Y-axis: Attendance percentage of total active employees
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Position request --}}
-                    <div class="col-lg-4 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--primary-gradient)">
-                                        <i class="fas fa-user-plus"></i>
-                                    </span>
-                                    Position Requests
-                                </h4>
-                                <div class="d-flex align-items-center gap-2">
-                                    @if (isset($positionRequestCount) && $positionRequestCount > 0)
-                                        <span class="stat-badge">{{ $positionRequestCount }} total Request</span>
-                                    @endif
-                                    <a href="{{ route('pages.Positionreqlist') }}" class="btn btn-sm btn-warning">
-                                        Approve Now
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="dash-card-body">
-                                <div class="inner-scroll">
-                                    @forelse($positionRequests as $req)
-                                        <div class="contract-item">
-                                            <div style="flex:1;">
-                                                <div style="font-size:.85rem;font-weight:700;">
-                                                    {{ $req->title ?? 'Position Request' }}
-                                                </div>
-
-                                                <div style="font-size:.75rem;color:var(--text-muted);">
-                                                    {{ $req->submitter->employee_name ?? '-' }} ·
-                                                    {{ \Carbon\Carbon::parse($req->created_at)->format('d M Y') }}
-                                                </div>
-                                            </div>
-
-                                            <span class="badge bg-warning">
-                                                {{ $req->status_label }}
-                                            </span>
-                                        </div>
-                                    @empty
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-user-plus fa-3x text-muted mb-3 d-block"></i>
-                                            <p class="text-muted mb-0">No position requests</p>
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- =====================================================
-             ROW 3 — Dept Chart + Late Tracker + Birthdays
-        ===================================================== --}}
-                <div class="row mb-4">
-                    {{-- Department Distribution --}}
-                    <div class="col-lg-4 col-md-6 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--info-gradient)"><i
-                                            class="fas fa-sitemap"></i></span>
-                                    Employee by Department
-                                </h4>
-                            </div>
-                            <div class="dash-card-body">
-                                <!-- Wrap canvas dengan div yang punya height fix -->
-                                <div style="position: relative; height: 350px;">
-                                    <canvas id="deptChart"></canvas>
-                                </div>
-
-                                <ul class="donut-legend mt-3" id="deptLegend">
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Late / Absent Today --}}
-                    <div class="col-lg-4 col-md-6 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--info-gradient)"><i
-                                            class="fas fa-sitemap"></i></span>
-                                    Employee by Company
-                                </h4>
-                            </div>
-                            <div class="dash-card-body">
-                                <!-- Wrap canvas dengan div yang punya height fix -->
-                                <div style="position: relative; height: 350px;">
-                                    <canvas id="companyChart"></canvas>
-                                </div>
-
-                                <ul class="horizontal-bar-legend mt-3" id="depthorizontal-barLegend">
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Upcoming Birthdays --}}
-                    <div class="col-lg-4 col-md-6 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--success-gradient)">
-                                        <i class="fas fa-chart-bar"></i>
-                                    </span>
-                                    Employee by Length of Service
-                                </h4>
-                            </div>
-                            {{-- <div class="dash-card-body">
-            <canvas id="losChart" height="200"></canvas>
-        </div> --}}
-                            {{-- <div class="dash-card-body d-flex align-items-center justify-content-center"> --}}
-                            <div class="dash-card-body">
-
-                                <canvas id="losChart"height="400"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-4">
-                    {{-- Payroll Status --}}
-                    @can('ManageEmployeeSalary')
-                    <div class="col-lg-4 col-md-6 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--success-gradient)"><i
-                                            class="fas fa-money-bill-wave"></i></span>
-                                    Payroll Status
-                                </h4>
-                                <span class="stat-badge neutral">{{ now()->format('M Y') }}</span>
-                            </div>
-                            <div class="dash-card-body">
-                                <div class="payroll-status-card mb-3">
-                                    <div class="payroll-label">Total Payroll This Month</div>
-                                    <div class="payroll-amount">
-                                        Rp {{ number_format($totalPayroll ?? 0, 0, ',', '.') }}
-                                    </div>
-                                    <div class="payroll-progress">
-                                        <div class="payroll-progress-bar" style="width:{{ $payrollProgress ?? 0 }}%">
-                                        </div>
-                                    </div>
-                                    <div class="payroll-meta">
-                                        <span>{{ $payrollProcessed ?? 0 }} Processed</span>
-                                        <span>{{ $payrollPending ?? 0 }} Pending</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <div class="flex-fill text-center p-3"
-                                        style="background:var(--surface-2);border-radius:var(--radius-sm);">
-                                        <div
-                                            style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);">
-                                            Processed</div>
-                                        <div style="font-size:1.5rem;font-weight:800;color:var(--emerald-600);">
-                                            {{ $payrollProcessed ?? 0 }}</div>
-                                    </div>
-                                    <div class="flex-fill text-center p-3"
-                                        style="background:var(--surface-2);border-radius:var(--radius-sm);">
-                                        <div
-                                            style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);">
-                                            Pending</div>
-                                        <div style="font-size:1.5rem;font-weight:800;color:var(--amber-600);">
-                                            {{ $payrollPending ?? 0 }}</div>
-                                    </div>
-                                    <div class="flex-fill text-center p-3"
-                                        style="background:var(--surface-2);border-radius:var(--radius-sm);">
-                                        <div
-                                            style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);">
-                                            Failed</div>
-                                        <div style="font-size:1.5rem;font-weight:800;color:var(--rose-600);">
-                                            {{ $payrollFailed ?? 0 }}</div>
-                                    </div>
-                                </div>
-
-                                <a href="#" class="btn btn-outline-primary btn-block mt-3">
-                                    <i class="fas fa-arrow-right mr-2"></i>Process Payroll
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                <div class="pr-actions">
+                    <a href="{{ route('Employee.create') }}" class="pr-btn"><i class="fas fa-user-plus" aria-hidden="true"></i> Tambah karyawan</a>
+                    <a href="{{ route('pages.Fingerprints') }}" class="pr-btn"><i class="fas fa-fingerprint" aria-hidden="true"></i> Attendance log</a>
+                    @can('payroll.period.view')
+                        <a href="{{ route('payrollperiod.index') }}" class="pr-btn"><i class="fas fa-wallet" aria-hidden="true"></i> Payroll</a>
                     @endcan
+                    <a href="{{ route('contract') }}" class="pr-btn"><i class="fas fa-file-contract" aria-hidden="true"></i> Kontrak</a>
+                    <button type="button" class="pr-btn pr-btn-primary" id="btn-announcement-quick">
+                        <i class="fas fa-bullhorn" aria-hidden="true"></i> Buat pengumuman
+                    </button>
+                </div>
+            </header>
 
-                    {{-- Contract Expiry --}}
-                    <div class="col-lg-4 col-md-6 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--danger-gradient)"><i
-                                            class="fas fa-file-contract"></i></span>
-                                    Contracts that Will Expire
-                                </h4>
-                                @if (isset($contractsExpiringCount) && $contractsExpiringCount > 0)
-                                    <span class="stat-badge down">{{ $contractsExpiringCount }} expiring</span>
-                                @endif
-                            </div>
-                            <div class="dash-card-body">
-                                <div class="inner-scroll">
-
-                                    @forelse($expiringContracts ?? [] as $contract)
-                                        @php
-                                            $daysLeft = now()->diffInDays(
-                                                \Carbon\Carbon::parse($contract->end_date),
-                                                false,
-                                            );
-                                            $urgencyClass =
-                                                $daysLeft <= 7 ? 'urgent' : ($daysLeft <= 30 ? 'warning' : 'ok');
-                                        @endphp
-                                        <div class="contract-item">
-                                            <div class="contract-days {{ $urgencyClass }}">
-                                                {{ $daysLeft }}<span
-                                                    style="font-size:.6rem;display:block;font-weight:600;">days</span>
-                                            </div>
-                                            <div style="flex:1;min-width:0;">
-                                                <div style="font-size:.855rem;font-weight:700;color:var(--text-primary);">
-                                                    {{ $contract->employee->employee_name }}</div>
-                                                <div style="font-size:.77rem;color:var(--text-muted);">
-                                                    Ends
-                                                    {{ \Carbon\Carbon::parse($contract->end_date)->format('d M Y') }}
-                                                    &nbsp;· {{ $contract->contract_type ?? 'PKWT' }}
-                                                </div>
-                                            </div>
-                                            <a href="#" class="btn btn-sm btn-outline-primary">Renew</a>
-                                        </div>
-                                    @empty
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-file-contract fa-3x text-muted mb-3 d-block"></i>
-                                            <p class="text-muted mb-0" style="font-size:.875rem;">No contracts expiring
-                                                soon</p>
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- HR Calendar / Upcoming Events --}}
-                    <div class="col-lg-4 col-12 mb-4">
-                        <div class="dash-card h-100">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--primary-gradient)"><i
-                                            class="fas fa-calendar-alt"></i></span>
-                                    SK Letters
-                                </h4>
-                                <a href="#" class="btn btn-sm btn-outline-primary">+ Add</a>
-                            </div>
-                            <div class="dash-card-body">
-                                <div class="inner-scroll">
-                                    @forelse($upcomingEvents ?? [] as $event)
-                                        @php
-                                            $eventDate = \Carbon\Carbon::parse($event->event_date);
-                                            $colorClass =
-                                                $event->type === 'holiday'
-                                                    ? 'success'
-                                                    : ($event->type === 'deadline'
-                                                        ? 'warning'
-                                                        : 'primary');
-                                        @endphp
-                                        <div class="calendar-event">
-                                            <div class="cal-date {{ $colorClass }}">
-                                                <span class="cal-day">{{ $eventDate->format('d') }}</span>
-                                                <span class="cal-mon">{{ $eventDate->format('M') }}</span>
-                                            </div>
-                                            <div class="cal-info">
-                                                <div class="cal-title">{{ $event->title }}</div>
-                                                <div class="cal-sub">{{ ucfirst($event->type) }} &nbsp;·&nbsp;
-                                                    {{ $event->description ?? '' }}</div>
-                                            </div>
-                                        </div>
-                                    @empty
-                                        {{-- Static placeholder events when no DB data --}}
-                                        <div class="calendar-event">
-                                            <div class="cal-date primary">
-                                                <span class="cal-day">{{ now()->addDays(3)->format('d') }}</span>
-                                                <span class="cal-mon">{{ now()->addDays(3)->format('M') }}</span>
-                                            </div>
-                                            <div class="cal-info">
-                                                <div class="cal-title">Monthly Payroll Deadline</div>
-                                                <div class="cal-sub">Deadline · Finance & HR</div>
-                                            </div>
-                                        </div>
-                                        <div class="calendar-event">
-                                            <div class="cal-date success">
-                                                <span class="cal-day">{{ now()->addDays(7)->format('d') }}</span>
-                                                <span class="cal-mon">{{ now()->addDays(7)->format('M') }}</span>
-                                            </div>
-                                            <div class="cal-info">
-                                                <div class="cal-title">Performance Review</div>
-                                                <div class="cal-sub">HR Event · All Departments</div>
-                                            </div>
-                                        </div>
-                                        <div class="calendar-event">
-                                            <div class="cal-date warning">
-                                                <span class="cal-day">{{ now()->addDays(14)->format('d') }}</span>
-                                                <span class="cal-mon">{{ now()->addDays(14)->format('M') }}</span>
-                                            </div>
-                                            <div class="cal-info">
-                                                <div class="cal-title">New Employee Onboarding</div>
-                                                <div class="cal-sub">HR Event · 3 new hires</div>
-                                            </div>
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
-                        </div>
+            {{-- Action queue (signature) --}}
+            <section class="pr-panel" aria-labelledby="todo-title">
+                <div class="pr-panel-head">
+                    <div>
+                        <h2 class="pr-panel-title" id="todo-title">Perlu tindakan</h2>
+                        <span class="pr-panel-sub">{{ $pending->count() ? $pending->count() . ' hal menunggu' : 'Tidak ada yang menunggu' }}</span>
                     </div>
                 </div>
+                @if ($pending->isEmpty())
+                    <p class="pr-empty-note">Semua approval, kontrak, dan payroll aman untuk saat ini.</p>
+                @else
+                    <ul class="pr-todo">
+                        @foreach ($pending as $item)
+                            <li class="{{ ($item['ready'] ?? false) ? 'is-ready' : '' }}">
+                                <span class="pr-todo-text">
+                                    @if ($item['count'] !== null)
+                                        <strong>{{ $item['count'] }}</strong>
+                                    @endif
+                                    {{ $item['label'] }}
+                                </span>
+                                <a href="{{ $item['href'] }}" class="pr-btn pr-btn-sm">{{ $item['cta'] }}</a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </section>
 
-        {{-- =====================================================
-             ANNOUNCEMENTS TABLE
-        ===================================================== --}}
-                <div class="row">
-                    <div class="col-12 mb-4">
-                        <div class="dash-card">
-                            <div class="dash-card-header">
-                                <h4 class="dash-card-title">
-                                    <span class="title-icon" style="background:var(--primary-gradient)"><i
-                                            class="fas fa-bullhorn"></i></span>
-                                    Announcements
-                                </h4>
-                                <button id="btn-announcement" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-plus mr-1"></i> New Announcement
-                                </button>
-                            </div>
-                            <div class="dash-card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0" id="users-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center pl-4">Title</th>
-                                                <th class="text-center">Publish Date</th>
-                                                <th class="text-center">End Date</th>
-                                                <th class="text-center pr-4">Action</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
+            {{-- Today --}}
+            <div class="pr-today">
+                <section class="pr-panel" aria-labelledby="hc-title">
+                    <div class="pr-panel-head">
+                        <h2 class="pr-panel-title" id="hc-title">Karyawan</h2>
+                        <a href="{{ route('pages.Employee') }}" class="pr-link">Lihat semua</a>
+                    </div>
+                    <div class="pr-big">
+                        <strong>{{ $headcount['active'] }}</strong>
+                        <span>karyawan aktif</span>
+                    </div>
+                    <dl class="pr-mini-stats">
+                        <div><dt>Pending</dt><dd>{{ $headcount['pending'] }}</dd></div>
+                        <div><dt>Masuk bulan ini</dt><dd>{{ $headcount['joined'] }}</dd></div>
+                        <div><dt>Keluar bulan ini</dt><dd>{{ $headcount['resigned'] }}</dd></div>
+                    </dl>
+                </section>
+
+                <section class="pr-panel" aria-labelledby="att-title">
+                    <div class="pr-panel-head">
+                        <h2 class="pr-panel-title" id="att-title">Kehadiran hari ini</h2>
+                        <a href="{{ route('pages.Fingerprints') }}" class="pr-link">Attendance log</a>
+                    </div>
+                    @if ($a['has_roster'])
+                        <div class="pr-big">
+                            <strong>{{ $a['present_scheduled'] }}<small> / {{ $a['scheduled'] }}</small></strong>
+                            <span>yang dijadwalkan kerja sudah absen masuk{{ $a['rate'] !== null ? ' (' . $a['rate'] . '%)' : '' }}</span>
                         </div>
+                        <div class="pr-bar" role="img" aria-label="{{ $a['rate'] ?? 0 }} persen hadir">
+                            <span style="width: {{ $a['rate'] ?? 0 }}%"></span>
+                        </div>
+                        <dl class="pr-mini-stats">
+                            <div><dt>Belum absen</dt><dd class="{{ $a['not_in_yet'] ? 'is-warn' : '' }}">{{ $a['not_in_yet'] }}</dd></div>
+                            <div><dt>Cuti</dt><dd>{{ $a['leave'] }}</dd></div>
+                            <div><dt>Sakit</dt><dd>{{ $a['sick'] }}</dd></div>
+                            <div><dt>Off / libur</dt><dd>{{ $a['off'] + $a['holiday'] }}</dd></div>
+                        </dl>
+                    @else
+                        <div class="pr-big">
+                            <strong>{{ $a['present'] }}</strong>
+                            <span>karyawan sudah absen hari ini</span>
+                        </div>
+                        <p class="pr-note">Belum ada roster untuk hari ini, jadi kehadiran belum bisa dibandingkan dengan jadwal. Roster terakhir: {{ $fmtDate($a['last_roster']) }}.</p>
+                    @endif
+                    <p class="pr-note {{ $scanStale ? 'is-warn' : '' }}">
+                        Data fingerprint terakhir {{ $fmtDateTime($a['last_scan']) }}.
+                        @if ($scanStale)
+                            Data hari ini belum masuk, sync fingerprint dulu.
+                        @endif
+                        Kemarin: {{ $a['yesterday'] }} absen.
+                    </p>
+                </section>
+
+                {{-- Periode yang ditampilkan: yang terbaru dan sudah punya payroll; kalau belum ada, yang terbaru --}}
+                @foreach (collect([$payrollPeriods->firstWhere('payrolls_count', '>', 0) ?? $payrollPeriods->first()])->filter() as $p)
+                    @php
+                        $total = (int) $p->payrolls_count;
+                        $pct = fn($n) => $total > 0 ? round($n / $total * 100, 2) : 0;
+                    @endphp
+                    <section class="pr-panel" aria-labelledby="pay-title">
+                        <div class="pr-panel-head">
+                            <h2 class="pr-panel-title" id="pay-title">Payroll {{ $p->period_label }}</h2>
+                            <span class="status-badge is-{{ $p->status }}">{{ ucfirst($p->status) }}</span>
+                        </div>
+                        <div class="pr-big">
+                            <strong><small>Rp</small>{{ number_format((float) $p->net_total, 0, ',', '.') }}</strong>
+                            <span>total net dari {{ $total }} payroll</span>
+                        </div>
+                        <div class="pr-bar is-stack" role="img" aria-label="{{ $p->draft_count }} draft, {{ $p->approved_count }} approved, {{ $p->paid_count }} paid">
+                            <span class="is-paid" style="width: {{ $pct($p->paid_count) }}%"></span>
+                            <span class="is-approved" style="width: {{ $pct($p->approved_count) }}%"></span>
+                            <span class="is-draft" style="width: {{ $pct($p->draft_count) }}%"></span>
+                        </div>
+                        <dl class="pr-mini-stats">
+                            <div><dt>Draft</dt><dd>{{ $p->draft_count }}</dd></div>
+                            <div><dt>Approved</dt><dd>{{ $p->approved_count }}</dd></div>
+                            <div><dt>Paid</dt><dd>{{ $p->paid_count }}</dd></div>
+                        </dl>
+                        @can('payroll.view')
+                            <a href="{{ route('payroll.index', $p->id) }}" class="pr-link pr-card-link">Buka payroll {{ $p->period_label }}</a>
+                        @endcan
+                    </section>
+                @endforeach
+            </div>
+
+            {{-- Attendance trend --}}
+            <section class="pr-panel" aria-labelledby="trend-title">
+                <div class="pr-panel-head">
+                    <div>
+                        <h2 class="pr-panel-title" id="trend-title">Tingkat kehadiran harian</h2>
+                        <span class="pr-panel-sub" id="trend-sub">Persentase karyawan aktif yang absen per hari</span>
+                    </div>
+                    <div class="pr-range">
+                        <div class="pr-field">
+                            <label for="startDate">Dari</label>
+                            <input type="date" id="startDate" value="{{ now()->startOfMonth()->toDateString() }}">
+                        </div>
+                        <div class="pr-field">
+                            <label for="endDate">Sampai</label>
+                            <input type="date" id="endDate" value="{{ now()->endOfMonth()->toDateString() }}">
+                        </div>
+                        <button type="button" id="filterButton" class="pr-btn">Terapkan</button>
                     </div>
                 </div>
+                <div class="pr-chart-body">
+                    <div class="pr-chart" style="height: 280px;">
+                        <canvas id="attendanceChart" aria-label="Grafik tingkat kehadiran harian" role="img"></canvas>
+                    </div>
+                    <p class="pr-empty-note" id="trend-empty" hidden></p>
+                </div>
+            </section>
 
-            </div>{{-- /section-body --}}
+            {{-- Composition --}}
+            <div class="pr-grid-3">
+                <section class="pr-panel" aria-labelledby="dept-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="dept-title">Per department</h2>
+                            <span class="pr-panel-sub" id="dept-sub">Karyawan aktif</span>
+                        </div>
+                    </div>
+                    <div class="pr-chart-body">
+                        <div class="pr-chart js-bar-wrap" id="deptWrap"><canvas id="deptChart" role="img" aria-label="Jumlah karyawan per department"></canvas></div>
+                    </div>
+                </section>
+                <section class="pr-panel" aria-labelledby="company-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="company-title">Per company</h2>
+                            <span class="pr-panel-sub" id="company-sub">Karyawan aktif</span>
+                        </div>
+                    </div>
+                    <div class="pr-chart-body">
+                        <div class="pr-chart js-bar-wrap" id="companyWrap"><canvas id="companyChart" role="img" aria-label="Jumlah karyawan per company"></canvas></div>
+                    </div>
+                </section>
+                <section class="pr-panel" aria-labelledby="los-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="los-title">Masa kerja</h2>
+                            <span class="pr-panel-sub" id="los-sub">Karyawan aktif</span>
+                        </div>
+                    </div>
+                    <div class="pr-chart-body">
+                        <div class="pr-chart" style="height: 260px;"><canvas id="losChart" role="img" aria-label="Jumlah karyawan per masa kerja"></canvas></div>
+                    </div>
+                </section>
+            </div>
+
+            {{-- Lists --}}
+            <div class="pr-grid-2">
+                <section class="pr-panel" aria-labelledby="contract-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="contract-title">Kontrak habis dalam 30 hari</h2>
+                            <span class="pr-panel-sub">{{ $contractsExpiringCount }} kontrak</span>
+                        </div>
+                        <a href="{{ route('contract') }}" class="pr-link">Semua kontrak</a>
+                    </div>
+                    @if ($expiringContracts->isEmpty())
+                        <p class="pr-empty-note">Tidak ada kontrak yang habis dalam 30 hari ke depan.</p>
+                    @else
+                        <ul class="pr-list">
+                            @foreach ($expiringContracts as $c)
+                                <li>
+                                    <span class="pr-days {{ $c->days_left <= 7 ? 'is-urgent' : '' }}">{{ $c->days_left }}<small>hari</small></span>
+                                    <span class="pr-list-main">
+                                        <span class="pr-list-title">{{ $c->employee->employee_name ?? '-' }}</span>
+                                        <span class="pr-list-sub">Berakhir {{ $fmtDate($c->end_date) }}, {{ $c->contract_type ?? 'PKWT' }}</span>
+                                    </span>
+                                    <a href="{{ route('editcontract', $c->id) }}" class="pr-btn pr-btn-sm">Perpanjang</a>
+                                </li>
+                            @endforeach
+                        </ul>
+                        @if ($contractsExpiringCount > $expiringContracts->count())
+                            <p class="pr-note" style="padding: 0 24px 16px;">dan {{ $contractsExpiringCount - $expiringContracts->count() }} kontrak lainnya.</p>
+                        @endif
+                    @endif
+                </section>
+
+                <section class="pr-panel" aria-labelledby="pos-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="pos-title">Pengajuan posisi menunggu</h2>
+                            <span class="pr-panel-sub">{{ $actions['position'] }} pengajuan</span>
+                        </div>
+                        <a href="{{ route('pages.Positionreqlist') }}" class="pr-link">Review semua</a>
+                    </div>
+                    @if ($positionRequests->isEmpty())
+                        <p class="pr-empty-note">Tidak ada pengajuan posisi yang menunggu approval.</p>
+                    @else
+                        <ul class="pr-list">
+                            @foreach ($positionRequests as $req)
+                                <li>
+                                    <span class="pr-list-main">
+                                        <span class="pr-list-title">{{ $req->title ?? 'Pengajuan posisi' }}</span>
+                                        <span class="pr-list-sub">{{ $req->submitter->employee_name ?? '-' }}, diajukan {{ $fmtDate($req->created_at) }}</span>
+                                    </span>
+                                    <span class="status-badge is-closed">Perlu approval</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </section>
+            </div>
+
+            {{-- Announcements --}}
+            <section class="pr-panel" aria-labelledby="ann-title">
+                <div class="pr-panel-head">
+                    <div>
+                        <h2 class="pr-panel-title" id="ann-title">Pengumuman</h2>
+                        <span class="pr-panel-sub">{{ $activeAnnouncements }} sedang tayang</span>
+                    </div>
+                    <button type="button" id="btn-announcement" class="pr-btn">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Pengumuman baru
+                    </button>
+                </div>
+                <div class="pr-table-wrap">
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Judul</th>
+                                <th>Status</th>
+                                <th>Tayang</th>
+                                <th>Berakhir</th>
+                                <th style="text-align:center">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </section>
         </section>
-    </div>{{-- /main-content --}}
+    </div>
+
     {{-- Preview Modal --}}
     <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="previewModalLabel">
-                        <i class="fas fa-eye mr-2"></i> Announcement Preview
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h2 class="modal-title pr-modal-title" id="previewModalLabel">Pratinjau pengumuman</h2>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-sm mb-4" style="font-size:.875rem;">
-                        <tbody>
-                            <tr>
-                                <th style="width:140px;color:var(--text-muted);">Publish Date</th>
-                                <td id="previewDate" style="font-weight:700;"></td>
-                            </tr>
-                            <tr>
-                                <th style="color:var(--text-muted);">End Date</th>
-                                <td id="previewEndDate" style="font-weight:700;"></td>
-                            </tr>
-                            <tr>
-                                <th style="color:var(--text-muted);">Created By</th>
-                                <td id="previewEmployee" style="font-weight:700;"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div id="previewContent" style="max-height:400px;overflow-y:auto;line-height:1.8;font-size:.9rem;">
-                    </div>
+                    <h3 class="pr-preview-title" id="previewTitle"></h3>
+                    <dl class="pr-facts">
+                        <div><dt>Tayang</dt><dd id="previewDate"></dd></div>
+                        <div><dt>Berakhir</dt><dd id="previewEndDate"></dd></div>
+                        <div><dt>Dibuat oleh</dt><dd id="previewEmployee"></dd></div>
+                    </dl>
+                    <div id="previewContent" class="pr-preview-content"></div>
                 </div>
-                <div class="modal-footer" style="background:var(--surface-2);">
+                <div class="modal-footer">
                     <small class="text-muted text-center w-100">
-                        <i class="fas fa-shield-alt mr-2"></i>Official announcement from HR Department ·
-                        <a href="https://wa.me/6281138310552" target="_blank" class="text-success">Contact HR</a>
+                        Pengumuman resmi dari Departemen HR.
+                        <a href="https://wa.me/6281138310552" target="_blank" rel="noopener">Hubungi HR</a>
                     </small>
                 </div>
             </div>
         </div>
     </div>
-
-    {{-- Create Submission Modal --}}
-
 @endsection
 
 @push('scripts')
-    {{-- <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script> --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
-    <script src="{{ asset('library/jqvmap/dist/jquery.vmap.min.js') }}"></script>
-    <script src="{{ asset('library/jqvmap/dist/maps/jquery.vmap.world.js') }}"></script>
-    <script src="{{ asset('library/summernote/dist/summernote-bs4.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
-
-
     <script>
-        //    SUBMISSION TYPE TOGGLE
-        $(document).ready(function() {
-            function toggleFields(type) {
-                const isOvertime = type === 'Overtime';
-                const isAnnual = type === 'Annual Leave';
+        (function() {
+            // Satu seri per chart → satu warna aksen (lolos validasi kontras), teks memakai warna ink
+            const css = getComputedStyle(document.documentElement);
+            const C = {
+                mark: '#5157d4',
+                ink2: '#4a5163',
+                muted: '#6b7183',
+                grid: '#eceef4',
+                font: "'Nunito', 'Segoe UI', system-ui, sans-serif",
+            };
+            Chart.defaults.font.family = C.font;
+            Chart.defaults.font.size = 12;
+            Chart.defaults.color = C.muted;
+            const esc = v => $('<div>').text(v ?? '').html();
+            const nf = new Intl.NumberFormat('id-ID');
+            const tooltip = {
+                backgroundColor: '#1f2433',
+                padding: 10,
+                cornerRadius: 6,
+                displayColors: false,
+                titleFont: { weight: '700' },
+            };
 
-                $('#leave_date_from, #leave_date_to').attr('type', isOvertime ? 'datetime-local' : 'date');
-                $('#statusDiv').toggle(isOvertime);
-                $('#annualLeaveInfo').toggle(isAnnual);
-                @if ($canCreateOvertime)
-                    $('#employeeList').toggle(isOvertime);
-                @endif
-            }
-
-            toggleFields($('#type').val());
-            $('#type').on('change', function() {
-                toggleFields($(this).val());
-            });
-        });
-
-        //    SELECT2
-
-
-        //    ATTENDANCE CHART
-        let ctx = document.getElementById('attendanceChart').getContext('2d');
-        let attendanceChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Attendance %',
-                    data: [],
-                    backgroundColor: 'rgba(37,49,109,0.15)',
-                    borderColor: 'rgba(37,49,109,0.8)',
-                    borderWidth: 2,
-                    borderRadius: 6,
-                    borderSkipped: false,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => ctx.parsed.y + '%'
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            color: 'rgba(0,0,0,.05)'
-                        },
-                        ticks: {
-                            callback: v => v + '%',
-                            font: {
-                                family: 'Plus Jakarta Sans',
-                                size: 11
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                family: 'Plus Jakarta Sans',
-                                size: 11
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        function loadChartData(startDate, endDate) {
-            fetch(`{{ route('dashboardHR.data') }}?start_date=${startDate}&end_date=${endDate}`)
-                .then(r => r.json())
-                .then(data => {
-                    attendanceChart.data.labels = data.data.map(i => i.date);
-                    attendanceChart.data.datasets[0].data = data.data.map(i => i.percentage);
-                    attendanceChart.update();
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadChartData(document.getElementById('startDate').value, document.getElementById('endDate').value);
-        });
-
-        document.getElementById('filterButton').addEventListener('click', function() {
-            loadChartData(document.getElementById('startDate').value, document.getElementById('endDate').value);
-        });
-        //    DEPARTMENT bar CHART
-        document.addEventListener('DOMContentLoaded', function() {
-            const deptData = @json($departmentDistribution ?? []);
-            const labels = deptData.map(d => d.name);
-            const counts = deptData.map(d => d.count);
-            const palette = ['#25316D', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#0ea5e9', '#f97316',
-                '#14b8a6'
-            ];
-
-            const dctx = document.getElementById('deptChart').getContext('2d');
-            new Chart(dctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: counts,
-                        backgroundColor: palette,
-                        borderWidth: 2,
-                        borderColor: '#fff',
-                        hoverOffset: 6,
-                    }]
-                },
+            // ── Tren kehadiran (line) ──
+            const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [{ data: [], borderColor: C.mark, backgroundColor: C.mark, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5, tension: 0.25, fill: false }] },
                 options: {
-                    cutout: '68%',
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: c => ` ${c.label}: ${c.parsed} employees`
-                            }
-                        }
-                    }
-                }
+                        legend: { display: false },
+                        tooltip: { ...tooltip, callbacks: { label: c => `${c.parsed.y}% karyawan aktif absen` } },
+                    },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v => v + '%', stepSize: 25 }, grid: { color: C.grid }, border: { display: false } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
+                    },
+                },
             });
 
-            // Render legend
-            const legendEl = document.getElementById('deptLegend');
-            if (legendEl && labels.length) {
-                const total = counts.reduce((a, b) => a + b, 0);
-                labels.forEach((lbl, i) => {
-                    const pct = total > 0 ? Math.round(counts[i] / total * 100) : 0;
-                    legendEl.innerHTML += `
-                    <li>
-                        <span class="legend-dot" style="background:${palette[i % palette.length]}"></span>
-                        ${lbl}
-                        <span class="legend-val">${counts[i]} <span style="color:var(--text-muted);font-weight:500;">(${pct}%)</span></span>
-                    </li>`;
+            function loadAttendance() {
+                const start = document.getElementById('startDate').value;
+                const end = document.getElementById('endDate').value;
+                fetch(`{{ route('dashboardHR.data') }}?start_date=${start}&end_date=${end}`)
+                    .then(r => r.json())
+                    .then(res => {
+                        const rows = res.data || [];
+                        attendanceChart.data.labels = rows.map(r => new Date(r.date + 'T00:00:00').toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }));
+                        attendanceChart.data.datasets[0].data = rows.map(r => r.percentage);
+                        attendanceChart.update();
+                        const empty = document.getElementById('trend-empty');
+                        empty.hidden = rows.length > 0;
+                        empty.textContent = 'Belum ada data fingerprint di rentang tanggal ini. Data terakhir {{ $fmtDate($attendance['last_scan']) }}.';
+                        document.querySelector('#attendanceChart').parentElement.hidden = rows.length === 0;
+                        const avg = rows.length ? Math.round(rows.reduce((s, r) => s + r.percentage, 0) / rows.length) : null;
+                        document.getElementById('trend-sub').textContent = avg !== null
+                            ? `Rata-rata ${avg}% dari ${nf.format(res.totalEmployees)} karyawan aktif, ${rows.length} hari ada data`
+                            : 'Persentase karyawan aktif yang absen per hari';
+                    })
+                    .catch(() => {
+                        const empty = document.getElementById('trend-empty');
+                        empty.hidden = false;
+                        empty.textContent = 'Gagal memuat data kehadiran. Muat ulang halaman.';
+                    });
+            }
+            document.getElementById('filterButton').addEventListener('click', loadAttendance);
+            loadAttendance();
+
+            // ── Bar horizontal terurut (department, company) ──
+            function horizontalBar(canvasId, wrapId, subId, rows, labelKey) {
+                rows = rows.filter(r => r.total > 0).sort((a, b) => b.total - a.total);
+                const wrap = document.getElementById(wrapId);
+                if (!rows.length) {
+                    wrap.innerHTML = '<p class="pr-empty-note">Belum ada data.</p>';
+                    return;
+                }
+                wrap.style.height = Math.max(160, rows.length * 30 + 30) + 'px';
+                const total = rows.reduce((s, r) => s + r.total, 0);
+                document.getElementById(subId).textContent = `${nf.format(total)} karyawan aktif di ${rows.length} ${labelKey === 'department' ? 'department' : 'company'}`;
+                new Chart(document.getElementById(canvasId), {
+                    type: 'bar',
+                    data: { labels: rows.map(r => r[labelKey]), datasets: [{ data: rows.map(r => r.total), backgroundColor: C.mark, borderRadius: 4, borderSkipped: 'start', barThickness: 14 }] },
+                    options: {
+                        indexAxis: 'y',
+                        maintainAspectRatio: false,
+                        layout: { padding: { left: 8 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { ...tooltip, callbacks: { label: c => {
+                                const r = rows[c.dataIndex];
+                                return [`${nf.format(r.total)} karyawan`, `Active ${r.active ?? 0}, Pending ${r.pending ?? 0}, Mutation ${r.mutation ?? 0}, On leave ${r.on_leave ?? 0}`];
+                            } } },
+                        },
+                        scales: {
+                            x: { beginAtZero: true, grid: { color: C.grid }, border: { display: false }, ticks: { precision: 0 } },
+                            y: { grid: { display: false }, ticks: { color: C.ink2, autoSkip: false, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 18 ? l.slice(0, 17) + '…' : l; } } },
+                        },
+                    },
                 });
             }
-        });
 
-        //    DATATABLES — ANNOUNCEMENTS
-        $(document).ready(function() {
-            var table = $('#users-table').DataTable({
-                processing: true,
-                autoWidth: false,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('announcements.announcements') }}',
-                    type: 'GET'
-                },
-                responsive: true,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'All']
-                ],
-                language: {
-                    search: '_INPUT_',
-                    searchPlaceholder: 'Search...'
-                },
-                columns: [{
-                        data: 'title',
-                        name: 'title',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'publish_date',
-                        name: 'publish_date',
-                        className: 'text-center',
-                        render: d => {
-                            if (!d) return '-';
-                            const dt = new Date(d);
-                            return `${String(dt.getDate()).padStart(2,'0')} ${['January','February','March','April','May','June','July','August','September','October','November','December'][dt.getMonth()]} ${dt.getFullYear()}`;
-                        }
-                    },
-                    {
-                        data: 'end_date',
-                        name: 'end_date',
-                        className: 'text-center',
-                        render: d => {
-                            if (!d) return '<span class="stat-badge neutral">Continuesly</span>';
-                            const dt = new Date(d);
-                            return `${String(dt.getDate()).padStart(2,'0')} ${['January','February','March','April','May','June','July','August','September','October','November','December'][dt.getMonth()]} ${dt.getFullYear()}`;
-                        }
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-                ]
-            });
-        });
+            fetch('/dashboard/employee-by-department').then(r => r.json())
+                .then(d => horizontalBar('deptChart', 'deptWrap', 'dept-sub', d, 'department'))
+                .catch(() => document.getElementById('deptWrap').innerHTML = '<p class="pr-empty-note">Gagal memuat data.</p>');
+            fetch('/dashboard/employee-by-company').then(r => r.json())
+                .then(d => horizontalBar('companyChart', 'companyWrap', 'company-sub', d, 'company'))
+                .catch(() => document.getElementById('companyWrap').innerHTML = '<p class="pr-empty-note">Gagal memuat data.</p>');
 
-        //    PREVIEW MODAL
-        $(document).on('click', '.preview-btn', function() {
-            $('#previewEmployee').text($(this).data('employee'));
-            $('#previewDate').text($(this).data('date'));
-            $('#previewEndDate').text($(this).data('enddate'));
-            $('#previewContent').html($(this).data('content'));
-            $('#previewModal').modal('show');
-        });
-
-        //    ANNOUNCEMENT MODAL (SweetAlert)
-        function openAnnouncementModal() {
-            Swal.fire({
-                title: 'Make an Announcement',
-                html: `
-                <form id="announcementForm" action="{{ route('dashboardHR.store') }}" method="POST">
-                    @csrf
-                    <div class="form-group mb-3 text-start">
-                        <label class="form-label">Title</label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-                    <div class="form-group mb-3 text-start">
-                        <label class="form-label">Announcement Content</label>
-                        <textarea id="editor" name="content" class="form-control"></textarea>
-                    </div>
-                    <div class="form-group mb-3 text-start">
-                        <label class="form-label">Publish Date</label>
-                        <input type="date" name="publish_date" class="form-control" required>
-                    </div>
-                    <div class="form-group mb-3 text-start">
-                        <label class="form-label">End Date <span class="text-muted">(optional)</span></label>
-                        <input type="date" name="end_date" class="form-control">
-                    </div>
-                </form>`,
-                showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-paper-plane mr-1"></i> Publish',
-                cancelButtonText: 'Cancel',
-                width: '680px',
-                focusConfirm: false,
-                didOpen: () => {
-                    if (tinymce.get('editor')) tinymce.get('editor').remove();
-                    tinymce.init({
-                        selector: '#editor',
-                        plugins: 'lists link image table code',
-                        toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
-                        menubar: false,
-                        height: 280,
-                        license_key: 'gpl'
-                    });
-                },
-                willClose: () => {
-                    if (tinymce.get('editor')) tinymce.get('editor').remove();
-                },
-                preConfirm: () => {
-                    tinymce.triggerSave();
-                    const title = document.querySelector('input[name="title"]').value.trim();
-                    const content = document.querySelector('textarea[name="content"]').value.trim();
-                    const publish_date = document.querySelector('input[name="publish_date"]').value;
-                    if (!title) {
-                        Swal.showValidationMessage('Title is required');
-                        return false;
-                    }
-                    if (!content) {
-                        Swal.showValidationMessage('Content is required');
-                        return false;
-                    }
-                    if (!publish_date) {
-                        Swal.showValidationMessage('Publish date is required');
-                        return false;
-                    }
-                    document.getElementById('announcementForm').submit();
-                }
-            });
-        }
-
-        document.getElementById('btn-announcement').addEventListener('click', openAnnouncementModal);
-        document.getElementById('btn-announcement-quick').addEventListener('click', function(e) {
-            e.preventDefault();
-            openAnnouncementModal();
-        });
-
-        /* =====================================================
-           FLASH MESSAGES
-        ===================================================== */
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-                timer: 3000,
-                showConfirmButton: false
-            });
-        @endif
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: '{{ session('error') }}'
-            });
-        @endif
-
-        /* =====================================================
-           CLEANUP MODAL BACKDROP
-        ===================================================== */
-        $(document).on('hidden.bs.modal', function() {
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open');
-        });
-    </script>
-    {{-- chart department --}}
-    <script>
-        let deptChartInstance = null;
-
-        fetch('/dashboard/employee-by-department')
-            .then(res => {
-                if (!res.ok) throw new Error('Gagal memuat data');
-                return res.json();
-            })
-            .then(data => {
-                if (!data.length) return;
-
-                const STATUS_CONFIG = [{
-                        key: 'active',
-                        label: 'Active',
-                        color: '#1cc88a'
-                    },
-                    {
-                        key: 'pending',
-                        label: 'Pending',
-                        color: '#f6c23e'
-                    },
-                    {
-                        key: 'mutation',
-                        label: 'Mutation',
-                        color: '#36b9cc'
-                    },
-                    {
-                        key: 'on_leave',
-                        label: 'On Leave',
-                        color: '#e74a3b'
-                    },
-                ];
-
-                const canvas = document.getElementById('deptChart');
-                const existing = Chart.getChart(canvas);
-                if (existing) existing.destroy();
-
-                deptChartInstance = new Chart(canvas, {
+            // ── Masa kerja (bar vertikal, urutan rentang tetap) ──
+            const LOS = { '< 1 Year': '< 1 tahun', '1-3 Years': '1-3 tahun', '3-5 Years': '3-5 tahun', '5-10 Years': '5-10 tahun', '> 10 Years': '> 10 tahun' };
+            fetch('/dashboard/employee-by-los').then(r => r.json()).then(d => {
+                const byKey = Object.fromEntries(d.map(r => [r.range_label, Number(r.total)]));
+                const keys = Object.keys(LOS);
+                const values = keys.map(k => byKey[k] || 0);
+                const total = values.reduce((s, v) => s + v, 0);
+                document.getElementById('los-sub').textContent = `${nf.format(total)} karyawan dengan tanggal masuk`;
+                new Chart(document.getElementById('losChart'), {
                     type: 'bar',
-                    data: {
-                        labels: data.map(i => i.department),
-                        datasets: STATUS_CONFIG.map(({
-                            key,
-                            label,
-                            color
-                        }) => ({
-                            label,
-                            data: data.map(i => i[key]),
-                            backgroundColor: color,
-                        })),
-                    },
+                    data: { labels: keys.map(k => LOS[k]), datasets: [{ data: values, backgroundColor: C.mark, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 36 }] },
                     options: {
-                        responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    footer: (items) => {
-                                        const total = items.reduce((sum, i) => sum + i.parsed.y, 0);
-                                        return `Total: ${total}`;
-                                    },
-                                },
-                            },
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    boxWidth: 12,
-                                    padding: 15,
-                                },
-                            },
+                            legend: { display: false },
+                            tooltip: { ...tooltip, callbacks: { label: c => `${nf.format(c.parsed.y)} karyawan (${total ? Math.round(c.parsed.y / total * 100) : 0}%)` } },
                         },
                         scales: {
-                            x: {
-                                stacked: true
-                            },
-                            y: {
-                                stacked: true,
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0
-                                },
-                            },
+                            y: { beginAtZero: true, grid: { color: C.grid }, border: { display: false }, ticks: { precision: 0 } },
+                            x: { grid: { display: false }, ticks: { color: C.ink2 } },
                         },
                     },
                 });
-            })
-            .catch(err => console.error('Chart error:', err));
+            }).catch(() => {});
 
-        let companyChartInstance = null;
+            // ── Tabel pengumuman ──
+            const STATE = { active: ['is-open', 'Tayang'], scheduled: ['is-paid', 'Terjadwal'], ended: ['is-locked', 'Berakhir'] };
+            $('#users-table').DataTable({
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                dom: 'rt<"pr-dt-bottom"ip>',
+                ajax: { url: '{{ route('announcements.announcements') }}' },
+                columns: [
+                    { data: 'title', render: (d, t) => t !== 'display' ? d : `<span class="pr-cell-name">${esc(d)}</span>` },
+                    { data: 'state', orderable: false, searchable: false, render: (d, t) => { const s = STATE[d] || ['', d]; return `<span class="status-badge ${s[0]}">${s[1]}</span>`; } },
+                    { data: 'publish_fmt', orderable: false, searchable: false },
+                    { data: 'end_fmt', orderable: false, searchable: false },
+                    { data: 'action', orderable: false, searchable: false, className: 'text-center' },
+                ],
+                order: [],
+                pageLength: 5,
+                language: {
+                    processing: 'Memuat data...',
+                    emptyTable: 'Belum ada pengumuman. Klik Pengumuman baru untuk membuat.',
+                    info: '_START_ sampai _END_ dari _TOTAL_',
+                    infoEmpty: '0 pengumuman',
+                    infoFiltered: '',
+                    paginate: { previous: 'Sebelumnya', next: 'Berikutnya' },
+                },
+            });
 
-        fetch('/dashboard/employee-by-company')
-            .then(res => {
-                if (!res.ok) throw new Error('Gagal memuat data');
-                return res.json();
-            })
-            .then(data => {
-                if (!data.length) return;
+            $(document).on('click', '.preview-btn', function() {
+                $('#previewTitle').text($(this).data('title'));
+                $('#previewDate').text($(this).data('date'));
+                $('#previewEndDate').text($(this).data('enddate'));
+                $('#previewEmployee').text($(this).data('employee'));
+                $('#previewContent').html($(this).data('content'));
+                $('#previewModal').modal('show');
+            });
 
-                const STATUS_CONFIG = [{
-                        key: 'active',
-                        label: 'Active',
-                        color: '#1cc88a'
+            // ── Buat pengumuman ──
+            function openAnnouncementModal() {
+                Swal.fire({
+                    title: 'Buat pengumuman',
+                    html: `
+                    <form id="announcementForm" action="{{ route('dashboardHR.store') }}" method="POST" style="text-align:left">
+                        @csrf
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="ann-title-input">Judul</label>
+                            <input type="text" name="title" id="ann-title-input" class="form-control" maxlength="255" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label" for="editor">Isi pengumuman</label>
+                            <textarea id="editor" name="content" class="form-control"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="form-label" for="ann-publish">Tanggal tayang</label>
+                                <input type="date" name="publish_date" id="ann-publish" class="form-control" value="{{ now()->toDateString() }}" required>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="form-label" for="ann-end">Berakhir <span class="text-muted">(opsional)</span></label>
+                                <input type="date" name="end_date" id="ann-end" class="form-control">
+                            </div>
+                        </div>
+                        <p class="text-muted" style="font-size:.8rem;margin:0">Email pengumuman dikirim ke semua karyawan aktif yang punya email.</p>
+                    </form>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Tayangkan & kirim email',
+                    cancelButtonText: 'Batal',
+                    width: '680px',
+                    focusConfirm: false,
+                    didOpen: () => {
+                        if (tinymce.get('editor')) tinymce.get('editor').remove();
+                        tinymce.init({ selector: '#editor', plugins: 'lists link image table code', toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code', menubar: false, height: 260, license_key: 'gpl' });
                     },
-                    {
-                        key: 'pending',
-                        label: 'Pending',
-                        color: '#f6c23e'
-                    },
-                    {
-                        key: 'mutation',
-                        label: 'Mutation',
-                        color: '#36b9cc'
-                    },
-                    {
-                        key: 'on_leave',
-                        label: 'On Leave',
-                        color: '#e74a3b'
-                    },
-                ];
-
-                // Build custom legend
-                const legend = document.getElementById('depthorizontal-barLegend');
-                legend.innerHTML = STATUS_CONFIG.map(s => `
-            <li style="display:inline-flex; align-items:center; gap:6px; margin-right:12px; font-size:12px; color:var(--text-muted, #6c757d);">
-                <span style="width:10px; height:10px; border-radius:2px; background:${s.color}; display:inline-block;"></span>
-                ${s.label}
-            </li>
-        `).join('');
-
-                // Height dinamis
-                const containerHeight = Math.max(300, data.length * 40 + 80);
-                document.getElementById('companyChart').parentElement.style.height = containerHeight + 'px';
-
-                const canvas = document.getElementById('companyChart');
-                const existing = Chart.getChart(canvas);
-                if (existing) existing.destroy();
-
-                companyChartInstance = new Chart(canvas, {
-                    type: 'bar', // v3: pakai 'bar' + indexAxis
-                    data: {
-                        labels: data.map(i => i.company),
-                        datasets: STATUS_CONFIG.map(({
-                            key,
-                            label,
-                            color
-                        }) => ({
-                            label,
-                            data: data.map(i => i[key]),
-                            backgroundColor: color,
-                        })),
-                    },
-                    options: {
-                        indexAxis: 'y', // v3: ini yang bikin horizontal
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    footer: (items) => {
-                                        const total = items.reduce((s, i) => s + i.parsed.x, 0);
-                                        return `Total: ${total}`;
-                                    },
-                                },
-                            },
-                        },
-                        scales: {
-                            x: {
-                                stacked: true,
-                                beginAtZero: true,
-                                ticks: {
-                                    precision: 0
-                                }
-                            },
-                            y: {
-                                stacked: true
-                            },
-                        },
-                    },
+                    willClose: () => { if (tinymce.get('editor')) tinymce.get('editor').remove(); },
+                    preConfirm: () => {
+                        tinymce.triggerSave();
+                        const title = document.querySelector('input[name="title"]').value.trim();
+                        const content = document.querySelector('textarea[name="content"]').value.trim();
+                        const publish = document.querySelector('input[name="publish_date"]').value;
+                        const end = document.querySelector('input[name="end_date"]').value;
+                        if (!title) { Swal.showValidationMessage('Judul wajib diisi'); return false; }
+                        if (!content) { Swal.showValidationMessage('Isi pengumuman wajib diisi'); return false; }
+                        if (!publish) { Swal.showValidationMessage('Tanggal tayang wajib diisi'); return false; }
+                        if (end && end < publish) { Swal.showValidationMessage('Tanggal berakhir tidak boleh sebelum tanggal tayang'); return false; }
+                        document.getElementById('announcementForm').submit();
+                    }
                 });
-            })
-            .catch(err => console.error('Chart error:', err));
-        // los
-        document.addEventListener("DOMContentLoaded", function() {
+            }
+            document.getElementById('btn-announcement').addEventListener('click', openAnnouncementModal);
+            document.getElementById('btn-announcement-quick').addEventListener('click', openAnnouncementModal);
 
-            fetch('/dashboard/employee-by-los')
-                .then(res => res.json())
-                .then(data => {
+            @if (session('success'))
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: @json(session('success')), timer: 3000, showConfirmButton: false });
+            @endif
+            @if (session('error'))
+                Swal.fire({ icon: 'error', title: 'Gagal', text: @json(session('error')) });
+            @endif
 
-                    const labels = data.map(i => i.range_label);
-                    const values = data.map(i => i.total);
-
-                    new Chart(document.getElementById('losChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Total Employee',
-                                data: values,
-                                backgroundColor: '#1cc88a',
-                                borderRadius: 6
-                            }]
-                        },
-                        options: {
-                            indexAxis: 'y', // 🔥 INI KUNCI
-                            responsive: true,
-                            maintainAspectRatio: false,
-
-                            layout: {
-                                padding: 0
-                            },
-
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                }
-                            },
-
-                            scales: {
-                                x: {
-                                    beginAtZero: true,
-                                    grace: 0
-                                },
-                                y: {
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    });
-                });
-        });
+            $(document).on('hidden.bs.modal', function() {
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+            });
+        })();
     </script>
 @endpush

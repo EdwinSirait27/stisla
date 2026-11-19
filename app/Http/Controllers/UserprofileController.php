@@ -91,6 +91,11 @@ public function switchRole(Request $request)
             'Employee.position',
             'Employee.store',
             'Employee.department',
+            'Employee.grading',
+            'Employee.group',
+            'Employee.company',
+            'Employee.bank',
+            'Employee.atasanList:id,employee_name',
             'Employee.skletters' => function ($query) {
                 $query->where('status', 'Draft');
             },
@@ -107,12 +112,18 @@ public function switchRole(Request $request)
                 'email',
                 'max:100',
                 'not_regex:/[\r\n]/',
-                Rule::unique('employees_tables', 'email')->ignore($user->employee->id)
+                // Unik hanya dicek kalau email diganti: data lama ada yang memakai email sama,
+                // dan itu tidak boleh menghalangi karyawan menyimpan foto.
+                $request->input('email') !== $user->employee->email
+                    ? Rule::unique('employees_tables', 'email')->ignore($user->employee->id)
+                    : 'nullable',
             ],
             'telp_number' => [
                 'nullable',
                 'max:20',
-                Rule::unique('employees_tables', 'telp_number')->ignore($user->employee->id)
+                $request->input('telp_number') !== $user->employee->telp_number
+                    ? Rule::unique('employees_tables', 'telp_number')->ignore($user->employee->id)
+                    : 'nullable',
             ],
     //          'email' => [
     //     'nullable',

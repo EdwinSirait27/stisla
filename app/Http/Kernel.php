@@ -36,7 +36,8 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\SingleDeviceLogin::class, // Add this line
+            \App\Http\Middleware\SingleDeviceLogin::class,
+            \App\Http\Middleware\RequireTwoFactor::class,
         ],
 
         'api' => [
@@ -70,6 +71,7 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'manager.store'      => \App\Http\Middleware\ManagerStoreOnly::class,
         'force.password.change' => \App\Http\Middleware\ForcePasswordChange::class,
+        'require.2fa' => \App\Http\Middleware\RequireTwoFactor::class,
         'device.check' => \App\Http\Middleware\CheckDeviceBinding::class,
 
     ];

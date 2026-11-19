@@ -10,6 +10,7 @@ use App\Models\Shifts;
 use App\Models\Stores;
 use App\Models\RosterSetting;
 use App\Models\PublicHoliday;
+use Illuminate\Support\Facades\DB;
 use App\Models\RosterPHCarryover;
 use Yajra\DataTables\DataTables;
 use Spatie\Activitylog\Models\Activity;
@@ -31,11 +32,22 @@ class RosterController extends Controller
     // ─────────────────────────────────────────────────────────────
 
 
+    /**
+     * TOIL Off hanya boleh lahir dari menu TOIL Approval, karena di sanalah saldo dipotong.
+     */
+    private function toilOffNotAssignableResponse()
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'TOIL Off tidak bisa di-set dari roster. Gunakan menu TOIL Approval supaya saldo ikut terpotong.',
+        ], 422);
+    }
+
     private function allowedDayTypes(?string $statusEmployee): array
     {
         $status = strtoupper($statusEmployee ?? '');
         if ($status === 'DW') {
-            return ['Work', 'Off', 'TOIL Off'];
+            return ['Work', 'Off'];
         }
 
         if (str_contains($status, 'JOB TRAINING')) {
@@ -509,6 +521,10 @@ if ($hasStore) {
             'ph_carryover_id' => 'nullable|exists:roster_ph_carryovers,id',
         ]);
 
+        if ($request->day_type === 'TOIL Off') {
+            return $this->toilOffNotAssignableResponse();
+        }
+
         $employee = Employee::with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
             ->select('id', 'status_employee', 'religion', 'employee_name', 'store_id')
             ->find($request->employee_id);
@@ -531,7 +547,9 @@ if ($hasStore) {
             ], 422);
         }
         $phMap = $this->getPublicHolidaysMap($request->date, $request->date);
-        $isPH  = $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
+        // DW tidak mendapat PH: di tanggal merah cukup Work atau Off, tanpa saldo
+        $isPH  = $this->isEligibleForPH($employee?->status_employee)
+            && $this->isPublicHolidayForEmployee($phMap, $request->date, $employee?->religion);
         // PH di Minggu HANGUS untuk store statis → ambil primary store ID dari pivot
         $primaryStoreId = $employee?->store->first()?->id;
         if ($isPH && $this->isPhVoidedOnSunday($request->date, $primaryStoreId)) {
@@ -539,30 +557,24 @@ if ($hasStore) {
         }
         // ── PH TUKAR: kalau hari ini PH tapi HR set Work → SIMPAN saldo PH ──
         if ($isPH && $request->day_type === 'Work') {
-            $phName = $this->getPublicHolidayRemark($phMap, $request->date) ?? 'Public Holiday';
-            // Jika sudah ada carryover (misal status cancelled karena sebelumnya di-set PH),
-            // reset kembali ke available. Jika belum ada, buat baru.
-            RosterPHCarryover::updateOrCreate(
-                [
-                    'employee_id' => $request->employee_id,
-                    'ph_date'     => $request->date,
-                ],
-                [
-                    'ph_name'    => $phName,
-                    'expired_at' => $this->phCarryoverExpiry($request->date)->toDateString(),
-                    'status'     => 'available',
-                ]
+            $phName = $this->getPublicHolidayRemark($phMap, $request->date, $employee?->religion) ?? 'Public Holiday';
+            RosterPHCarryover::rememberWorkOnPh(
+                $request->employee_id,
+                $request->date,
+                $phName,
+                $this->phCarryoverExpiry($request->date)->toDateString()
             );
         }
         // Kalau PH asli tapi di-set Public Holiday (tidak kerja) →
         // batalkan carryover yang ada untuk tanggal ini karena PH dinikmati langsung
-       
         elseif ($isPH && $request->day_type === 'Public Holiday') {
-            RosterPHCarryover::where('employee_id', $request->employee_id)
-                ->where('ph_date', $request->date)
-                ->where('status', 'available')
-                ->whereNull('used_date') // ← tambah ini
-                ->update(['status' => 'cancelled']);
+            if (!RosterPHCarryover::enjoyPh($request->employee_id, $request->date)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal ini tidak bisa dijadikan Public Holiday: karyawan sudah tercatat masuk, '
+                        . 'atau saldo PH-nya sudah dipakai untuk hari pengganti. Batalkan hari penggantinya dulu.',
+                ], 422);
+            }
         }
         // Kalau bukan Work dan bukan Public Holiday, baru tolak (PH wajib diakui)
         elseif ($isPH && $request->day_type !== 'Public Holiday') {
@@ -578,25 +590,10 @@ if ($hasStore) {
                 'message' => "Tanggal ini bukan Public Holiday. Pilih saldo PH Tukar (Simpanan) untuk menjadikan hari ini sebagai pengganti PH.",
             ], 422);
         }
-        // Bukan PH asli dan di-set Work → refund carryover yang dipakai di tanggal ini
-
-        elseif (!$isPH && $request->day_type === 'Work') {
-            $affected = RosterPHCarryover::where('employee_id', $request->employee_id)
-                ->where('status', 'used')
-                ->whereDate('used_date', $request->date)
-                ->update(['status' => 'available']); // ← hapus 'used_date' => null
-
-            Log::info('[CARRYOVER REFUND]', [
-                'employee_id' => $request->employee_id,
-                'date'        => $request->date,
-                'affected'    => $affected,
-            ]);
-        }
-
         // Kalau Public Holiday, auto-isi notes dari ph.remark (kecuali user isi notes manual)
         $notes = $request->notes;
         if ($request->day_type === 'Public Holiday') {
-            $phRemark = $this->getPublicHolidayRemark($phMap, $request->date);
+            $phRemark = $this->getPublicHolidayRemark($phMap, $request->date, $employee?->religion);
             if (empty($notes) && !empty($phRemark)) {
                 $notes = $phRemark;
             }
@@ -630,30 +627,54 @@ if ($hasStore) {
 
         // ── PH TUKAR: kalau HR memilih saldo PH untuk dipakai di hari ini ──
         // Hari pengganti = day_type "Public Holiday" + ph_carryover_id dipilih.
-        if ($request->day_type === 'Public Holiday' && $request->filled('ph_carryover_id')) {
-            $carryover = RosterPHCarryover::where('id', $request->ph_carryover_id)
-                ->where('employee_id', $request->employee_id)
-                ->where('status', 'available')
-                ->whereDate('ph_date', '<', $request->date) // ← tambah ini
+        // Di tanggal PH asli tidak perlu saldo, jadi saldo tidak ikut terpakai.
+        if (!$isPH && $request->day_type === 'Public Holiday' && $request->filled('ph_carryover_id')) {
+            $current = RosterPHCarryover::where('employee_id', $request->employee_id)
+                ->where('status', 'used')
+                ->whereDate('used_date', $request->date)
                 ->first();
 
-            if (!$carryover) {
-                return response()->json([
-                    'success' => false,
-                    // 'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai.',
-                            'message' => 'Saldo PH tukar tidak ditemukan / sudah terpakai, atau tanggal pengganti harus setelah tanggal PH asli.',
-                ], 422);
+            // Saldo yang sama disimpan ulang: tidak ada yang berubah
+            if ($current?->id === $request->ph_carryover_id) {
+                $carryover = $current;
+            } else {
+                $carryover = RosterPHCarryover::where('id', $request->ph_carryover_id)
+                    ->where('employee_id', $request->employee_id)
+                    ->usableOn($request->date)
+                    ->first();
+
+                if (!$carryover) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Saldo PH tukar tidak bisa dipakai. Pastikan kehadiran di hari PH sudah tercatat di rekap, saldo belum terpakai atau kedaluwarsa, dan tanggal pengganti setelah tanggal PH asli.',
+                    ], 422);
+                }
+
+                // Ganti saldo: yang lama kembali tersedia
+                RosterPHCarryover::refundUsedOn($request->employee_id, $request->date);
+
+                $carryover->update([
+                    'status'    => 'used',
+                    'used_date' => $request->date,
+                ]);
             }
-            // Tandai terpakai, catat di tanggal mana dipakai
-            $carryover->update([
-                'status'    => 'used',
-                'used_date' => $request->date,
-            ]);
 
             // Pakai nama PH simpanan sebagai notes (kalau notes kosong)
             if (empty($notes)) {
                 $notes = $carryover->ph_name;
             }
+        }
+
+        // Tanggal ini bukan lagi hari pengganti → saldonya kembali tersedia.
+        // Di sini, setelah semua validasi, supaya saldo tidak kembali kalau simpan roster gagal.
+        if (!$isPH && $request->day_type !== 'Public Holiday') {
+            $affected = RosterPHCarryover::refundUsedOn($request->employee_id, $request->date);
+
+            Log::info('[CARRYOVER REFUND]', [
+                'employee_id' => $request->employee_id,
+                'date'        => $request->date,
+                'affected'    => $affected,
+            ]);
         }
 
         $roster = Roster::updateOrCreate(
@@ -713,7 +734,7 @@ if ($hasStore) {
         RosterPHCarryover::where('employee_id', $request->employee_id)
             ->where('status', 'used')
             ->whereDate('used_date', $request->date)
-            ->update(['status' => 'available']); // ← hapus 'used_date' => null
+            ->update(['status' => 'available', 'used_date' => null]);
 
         // ── RESET PH ASLI: carryover 'cancelled' di ph_date ini → available kembali ──
         // (roster PH dihapus, jadi PH belum tentu dinikmati)
@@ -777,7 +798,7 @@ if ($hasStore) {
                 ->where('status', 'used')
                 ->whereBetween('used_date', [$request->start_date, $request->end_date])
                 ->when(!empty($protectedDates), fn($q) => $q->whereNotIn('used_date', $protectedDates))
-                ->update(['status' => 'available']); // ← hapus 'used_date' => null
+                ->update(['status' => 'available', 'used_date' => null]);
 
             // ── RESET PH ASLI: carryover 'cancelled' dalam rentang → available kembali ──
             RosterPHCarryover::where('employee_id', $empId)
@@ -845,9 +866,7 @@ if ($hasStore) {
     ]);
 
     $items = RosterPHCarryover::where('employee_id', $request->employee_id)
-        ->where('status', 'available')
-        ->whereDate('expired_at', '>=', $request->date)
-        ->whereDate('ph_date', '<', $request->date) // ← tanggal PH asli harus sebelum tanggal pengganti
+        ->usableOn($request->date)
         ->orderBy('ph_date')
         ->get(['id', 'ph_name', 'ph_date', 'expired_at']);
 
@@ -896,14 +915,25 @@ if ($hasStore) {
     //  HELPER: Cek apakah store termasuk "store statis"
     //  (Head Office / Holding / Distribution Center)
     // ─────────────────────────────────────────────────────────────
-    private function isStaticStore(?string $storeName): bool
+    private function isStaticStore(?string $storeId): bool
     {
-        $staticStoreNames = [
-            '019623ad-de58-7368-8873-e3cbff2b0aff',
-            '019a230d-6146-7001-848d-046ccdbdf163',
-            '019963a7-cdb8-7002-b10b-163645c199d0',
-        ];
-        return in_array($storeName ?? '', $staticStoreNames);
+        return in_array($storeId ?? '', PublicHoliday::STATIC_STORE_IDS);
+    }
+
+    private function primaryStoreIdOf(Employee $employee): ?string
+    {
+        return $employee->store->first(fn($store) => $store->pivot->is_primary)?->id;
+    }
+
+    /**
+     * Tanggal ini benar-benar PH bagi karyawan: berhak PH, sesuai agama, dan tidak hangus.
+     */
+    private function isActualPhFor(?Employee $employee, array $phMap, string $date): bool
+    {
+        return $employee
+            && $this->isEligibleForPH($employee->status_employee)
+            && $this->isPublicHolidayForEmployee($phMap, $date, $employee->religion)
+            && !$this->isPhVoidedOnSunday($date, $this->primaryStoreIdOf($employee));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -911,34 +941,18 @@ if ($hasStore) {
     //  Periode roster: 26 bulan lalu → 25 bulan ini.
     //  Contoh: 17 Feb → akhir periode = 25 Feb.
     // ─────────────────────────────────────────────────────────────
-    private function periodEndFor(Carbon $date): Carbon
-    {
-        // Kalau tanggal >= 26, periode berakhir tgl 25 BULAN BERIKUTNYA.
-        // Kalau tanggal <= 25, periode berakhir tgl 25 BULAN INI.
-        if ($date->day >= 26) {
-            return $date->copy()->addMonth()->day(25);
-        }
-        return $date->copy()->day(25);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    //  HELPER: Tanggal kedaluwarsa saldo PH tukar
-    //  = akhir periode +2 dari periode tanggal PH asal.
-    //  Contoh: PH 17 Feb → periode berakhir 25 Feb → +2 periode → 25 Apr.
-    // ─────────────────────────────────────────────────────────────
     private function phCarryoverExpiry(string $phDate): Carbon
     {
-        $end = $this->periodEndFor(Carbon::parse($phDate)); // 25 Feb
-        return $end->copy()->addMonths(2);                   // 25 Apr
+        return RosterPHCarryover::expiryFor($phDate);
     }
 
     // ─────────────────────────────────────────────────────────────
     //  HELPER: PH HANGUS jika jatuh di Minggu DAN store statis
     //  → untuk store statis, Minggu sudah Off, jadi PH tidak berlaku
     // ─────────────────────────────────────────────────────────────
-    private function isPhVoidedOnSunday(string $date, ?string $storeName): bool
+    private function isPhVoidedOnSunday(string $date, ?string $storeId): bool
     {
-        return Carbon::parse($date)->isSunday() && $this->isStaticStore($storeName);
+        return Carbon::parse($date)->isSunday() && $this->isStaticStore($storeId);
     }
 
     // Cek apakah tanggal ini PH yang relevan untuk agama karyawan
@@ -959,14 +973,18 @@ if ($hasStore) {
         return false;
     }
 
-    // Ambil remark PH pertama di tanggal tsb (untuk auto-isi notes)
-    private function getPublicHolidayRemark(array $phMap, string $date): ?string
+    // Ambil remark PH yang berlaku untuk agama karyawan (untuk auto-isi notes)
+    private function getPublicHolidayRemark(array $phMap, string $date, ?string $religion): ?string
     {
-        $dateStr = Carbon::parse($date)->toDateString();
-        if (!isset($phMap[$dateStr]) || empty($phMap[$dateStr])) {
-            return null;
+        $relevantTypes = $this->resolveRelevantPhTypes($religion);
+
+        foreach ($phMap[Carbon::parse($date)->toDateString()] ?? [] as $ph) {
+            if (in_array($ph['type'], $relevantTypes)) {
+                return $ph['remark'];
+            }
         }
-        return $phMap[$dateStr][0]['remark'] ?? null;
+
+        return null;
     }
 
 
@@ -1008,6 +1026,9 @@ if ($hasStore) {
             'saturday_shift_id' => 'nullable|exists:shifts_tables,id',
         ]);
 
+        if ($request->day_type === 'TOIL Off') {
+            return $this->toilOffNotAssignableResponse();
+        }
 
         $employees = Employee::with('store:id,name')
             ->select('id', 'employee_name', 'status_employee', 'religion', 'store_id')
@@ -1093,6 +1114,12 @@ if ($hasStore) {
 
         $count        = 0;
         $skippedCount = 0;
+        $phNoSaldo    = 0; // day_type PH di tanggal yang bukan PH
+        $phProtected  = 0; // hari PH yang sudah dikerjakan / saldonya sudah dipakai
+
+        // Satu transaksi: kalau gagal di tengah, tidak ada tanggal yang setengah tersimpan
+        DB::beginTransaction();
+        try {
 
         foreach ($request->employee_ids as $empId) {
 
@@ -1128,11 +1155,13 @@ if ($hasStore) {
                 if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $empId, 'date' => $dateStr],
-                        ['shift_id' => null, 'day_type' => 'TOIL Off', 'notes' => null]
+                        ['shift_id' => null, 'day_type' => 'TOIL Off']
                     );
                     $skippedCount++;
                     continue;
                 }
+
+                $isActualPH = false;
 
                 if ($eligibleForPH && isset($publicHolidayMap[$dateStr])) {
                     $matchingPH = $publicHolidayMap[$dateStr]->first(
@@ -1140,7 +1169,13 @@ if ($hasStore) {
                     );
 
                     // PH hangus kalau Minggu + store statis → jangan jadikan PH
-                    if ($matchingPH && !$this->isPhVoidedOnSunday($dateStr, optional($emp->store)->name)) {
+                    if ($matchingPH && !$this->isPhVoidedOnSunday($dateStr, $this->primaryStoreIdOf($emp))) {
+                        if (!RosterPHCarryover::enjoyPh($empId, $dateStr)) {
+                            $phProtected++;
+                            continue;
+                        }
+
+                        $isActualPH = true;
                         Log::info('Public Holiday Match', [
                             'employee' => $emp->employee_name,
                             'date'     => $dateStr,
@@ -1153,6 +1188,15 @@ if ($hasStore) {
                         $resolvedNotes   = $matchingPH->remark;
                     }
                 }
+
+                // PH di tanggal biasa harus memakai saldo, dan itu hanya lewat input per tanggal
+                if ($request->day_type === 'Public Holiday' && !$isActualPH) {
+                    $phNoSaldo++;
+                    continue;
+                }
+
+                // Hari pengganti yang tertimpa: saldonya kembali tersedia
+                RosterPHCarryover::refundUsedOn($empId, $dateStr);
 
                 if ($date->isSaturday()) {
                     if ($request->saturday_shift && $request->saturday_shift_id) {
@@ -1186,6 +1230,11 @@ if ($hasStore) {
             }
         }
 
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         Log::info('=== BULK ASSIGN FINISHED ===', [
             'success_count' => $count,
@@ -1195,7 +1244,13 @@ if ($hasStore) {
         $message = "Assign schedule {$count} berhasil.";
 
         if ($skippedCount > 0) {
-            $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
+            $message .= " {$skippedCount} tanggal tetap TOIL Off karena ada TOIL Leave yang sudah Approved.";
+        }
+        if ($phNoSaldo > 0) {
+            $message .= " {$phNoSaldo} tanggal dilewati karena bukan Public Holiday (gunakan saldo PH lewat input per tanggal).";
+        }
+        if ($phProtected > 0) {
+            $message .= " {$phProtected} hari PH dilewati karena karyawan sudah masuk atau saldonya sudah dipakai.";
         }
 
         return response()->json([
@@ -1375,7 +1430,7 @@ if ($hasStore) {
         $employeeIds = $sourceRosters->pluck('employee_id')->unique()->toArray();
 
         $employees = Employee::with('store:id,name')
-            ->select('id', 'religion', 'store_id')
+            ->select('id', 'religion', 'store_id', 'status_employee')
             ->whereIn('id', $employeeIds)
             ->get()
             ->keyBy('id');
@@ -1391,9 +1446,15 @@ if ($hasStore) {
             $targetEndForCheck->toDateString()
         );
 
-        $count     = 0;
-        $toilCount = 0;
-        $phCount   = 0;
+        $count       = 0;
+        $toilCount   = 0;
+        $phCount     = 0;
+        $phNoSaldo   = 0; // sumber PH, tujuan bukan PH
+        $phProtected = 0; // hari PH yang sudah dikerjakan / saldonya sudah dipakai
+
+        // Satu transaksi: kalau gagal di tengah, tidak ada tanggal yang setengah tersimpan
+        DB::beginTransaction();
+        try {
 
         if ($request->filled('target_end')) {
             $targetEnd = Carbon::parse($request->target_end);
@@ -1408,7 +1469,6 @@ if ($hasStore) {
             $employeeIdsLoop  = array_keys($sourceMap);
 
             foreach ($employeeIdsLoop as $empId) {
-                $religion = $employees[$empId]?->religion ?? null;
                 $current  = $targetStart->copy();
                 $dayIndex = 0;
 
@@ -1422,21 +1482,25 @@ if ($hasStore) {
                             ['shift_id' => null, 'day_type' => 'TOIL Off']
                         );
                         $toilCount++;
-                    } elseif (
-                        $this->isPublicHolidayForEmployee($phMap, $dateStr, $religion)
-                        && !$this->isPhVoidedOnSunday($dateStr, optional($employees[$empId]?->store)->name)
-                    ) {
-                        Roster::updateOrCreate(
-                            ['employee_id' => $empId, 'date' => $dateStr],
-                            [
-                                'shift_id' => null,
-                                'day_type' => 'Public Holiday',
-                                'notes'    => $this->getPublicHolidayRemark($phMap, $dateStr),
-                            ]
-                        );
-                        $phCount++;
-                    } elseif (isset($sourceMap[$empId][$srcOffset])) {
+                    } elseif ($this->isActualPhFor($employees[$empId] ?? null, $phMap, $dateStr)) {
+                        if (RosterPHCarryover::enjoyPh($empId, $dateStr)) {
+                            Roster::updateOrCreate(
+                                ['employee_id' => $empId, 'date' => $dateStr],
+                                [
+                                    'shift_id' => null,
+                                    'day_type' => 'Public Holiday',
+                                    'notes'    => $this->getPublicHolidayRemark($phMap, $dateStr, $employees[$empId]?->religion),
+                                ]
+                            );
+                            $phCount++;
+                        } else {
+                            $phProtected++;
+                        }
+                    } elseif (($sourceMap[$empId][$srcOffset]->day_type ?? null) === 'Public Holiday') {
+                        $phNoSaldo++;
+                    } elseif (isset($sourceMap[$empId][$srcOffset]) && $sourceMap[$empId][$srcOffset]->day_type !== 'TOIL Off') {
                         $src = $sourceMap[$empId][$srcOffset];
+                        RosterPHCarryover::refundUsedOn($empId, $dateStr); // hari pengganti tertimpa
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
                             ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
@@ -1453,7 +1517,6 @@ if ($hasStore) {
 
             foreach ($sourceRosters as $src) {
                 $newDate  = Carbon::parse($src->date)->addDays($diffDays)->toDateString();
-                $religion = $employees[$src->employee_id]?->religion ?? null;
 
                 if ($this->hasToilApproved($toilApprovedMap, $src->employee_id, $newDate)) {
                     Roster::updateOrCreate(
@@ -1461,20 +1524,24 @@ if ($hasStore) {
                         ['shift_id' => null, 'day_type' => 'TOIL Off']
                     );
                     $toilCount++;
-                } elseif (
-                    $this->isPublicHolidayForEmployee($phMap, $newDate, $religion)
-                    && !$this->isPhVoidedOnSunday($newDate, optional($employees[$src->employee_id]?->store)->name)
-                ) {
-                    Roster::updateOrCreate(
-                        ['employee_id' => $src->employee_id, 'date' => $newDate],
-                        [
-                            'shift_id' => null,
-                            'day_type' => 'Public Holiday',
-                            'notes'    => $this->getPublicHolidayRemark($phMap, $newDate),
-                        ]
-                    );
-                    $phCount++;
-                } else {
+                } elseif ($this->isActualPhFor($employees[$src->employee_id] ?? null, $phMap, $newDate)) {
+                    if (RosterPHCarryover::enjoyPh($src->employee_id, $newDate)) {
+                        Roster::updateOrCreate(
+                            ['employee_id' => $src->employee_id, 'date' => $newDate],
+                            [
+                                'shift_id' => null,
+                                'day_type' => 'Public Holiday',
+                                'notes'    => $this->getPublicHolidayRemark($phMap, $newDate, $employees[$src->employee_id]?->religion),
+                            ]
+                        );
+                        $phCount++;
+                    } else {
+                        $phProtected++;
+                    }
+                } elseif ($src->day_type === 'Public Holiday') {
+                    $phNoSaldo++;
+                } elseif ($src->day_type !== 'TOIL Off') { // TOIL Off sumber tidak punya saldo di tanggal baru
+                    RosterPHCarryover::refundUsedOn($src->employee_id, $newDate); // hari pengganti tertimpa
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
                         ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
@@ -1484,12 +1551,24 @@ if ($hasStore) {
             }
         }
 
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
         $message = "Schedule copied {$count} berhasil.";
         if ($toilCount > 0) {
-            $message .= " {$toilCount} tanggal di-set Off karena ada TOIL Leave Approved.";
+            $message .= " {$toilCount} tanggal tetap TOIL Off karena ada TOIL Leave Approved.";
         }
         if ($phCount > 0) {
             $message .= " {$phCount} tanggal di-set Public Holiday otomatis.";
+        }
+        if ($phNoSaldo > 0) {
+            $message .= " {$phNoSaldo} tanggal dilewati karena sumbernya Public Holiday tetapi tujuannya bukan.";
+        }
+        if ($phProtected > 0) {
+            $message .= " {$phProtected} hari PH dilewati karena karyawan sudah masuk atau saldonya sudah dipakai.";
         }
 
         return response()->json([

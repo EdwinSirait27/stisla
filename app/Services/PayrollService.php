@@ -137,10 +137,10 @@ class PayrollService
             $warnings[] = 'Arsip absensi belum ada, attendance_days = 0 (isi via import/edit).';
         }
 
-        // Kehadiran tidak boleh melebihi hari kerja (non-DW) → cegah gaji > 100%
+        // Attendance > working days (non-DW) disimpan apa adanya, sama seperti import/edit.
+        // Gaji pokok tetap maksimal 100% karena Payroll::earnedSalary() memakai min(attendance, working days).
         if ($statusEmp !== 'DW' && $attendanceDays > $workingDays) {
-            $warnings[] = "Attendance {$attendanceDays} melebihi working days {$workingDays}, dibatasi ke {$workingDays}.";
-            $attendanceDays = $workingDays;
+            $warnings[] = "Attendance {$attendanceDays} melebihi working days {$workingDays}, gaji pokok dibayar maksimal {$workingDays}/{$workingDays} hari (100%).";
         }
 
 // ════════════════════════════════════════
@@ -172,6 +172,18 @@ if ($overtimeRate) {
     Log::info("PayrollService: overtime for {$employee->employee_name} = {$overtimeAmount} ({$totalOvertimeHours} hours × {$ratePerHour})");
 } else {
     Log::warning("PayrollService: no overtime rate for {$employee->employee_name}");
+
+    // Lembur Cash tanpa rate tidak ikut terbayar → beri tahu HR lewat warning payroll
+    $unpaidOvertimeHours = (float) \App\Models\Overtimesubmissions::where('employee_id', $employee->id)
+        ->where('compensation_type', 'Cash')
+        ->where('status', 'Approved')
+        ->whereDate('date', '>=', $period->period_start)
+        ->whereDate('date', '<=', $period->period_end)
+        ->sum('total_hours');
+
+    if ($unpaidOvertimeHours > 0) {
+        $warnings[] = "Ada lembur Cash {$unpaidOvertimeHours} jam yang belum terbayar karena rate lembur belum diisi.";
+    }
 }
 
         // ════════════════════════════════════════
@@ -342,17 +354,7 @@ foreach ($overtimeSubmissions as $submission) {
     // ════════════════════════════════════════
     private function getDefaultWorkingDays(string $periodStart, string $periodEnd): int
     {
-        $start   = Carbon::parse($periodStart);
-        $end     = Carbon::parse($periodEnd);
-        $working = 0;
-
-        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-            if ($date->dayOfWeek !== Carbon::SUNDAY) {
-                $working++;
-            }
-        }
-
-        return $working;
+        return Payroll::calendarWorkingDays($periodStart, $periodEnd);
     }
 
     // ════════════════════════════════════════
@@ -427,29 +429,11 @@ foreach ($overtimeSubmissions as $submission) {
             + (float) $payroll->debt
             + (float) $payroll->tax;
 
-        if ($statusEmp === 'DW') {
-            // DW: daily_rate × attendance_days
-            $grossActual = (float) $payroll->daily_rate
-                * (int) $payroll->attendance_days;
-        } else {
-            // PKWT/OJT: floor((basic+position) / working_days × attendance)
-            $workingDays = $payroll->working_days > 0
-                ? $payroll->working_days
-                : $this->getDefaultWorkingDays(
-                    $payroll->period_start,
-                    $payroll->period_end
-                );
+        // Gaji sesuai kehadiran: rumus tunggal di Payroll::earnedSalary()
+        // (dihitung dalam bilangan bulat supaya hadir penuh = gross persis)
+        $payroll->loadMissing('employee');
+        $grossActual = $payroll->earnedSalary();
 
-            // Attendance dibatasi max working_days → gaji pokok maksimal 100%
-            $attendance = min((int) $payroll->attendance_days, (int) $workingDays);
-
-            $grossActual = $attendance > 0
-                ? floor(
-                    ((float) $payroll->gross_salary / $workingDays)
-                        * $attendance
-                )
-                : 0;
-        }
         $totalIncome    = $incomeFromDetails + $manualIncome;
         $totalDeduction = $deductionFromDetails + $manualDeduction;
 

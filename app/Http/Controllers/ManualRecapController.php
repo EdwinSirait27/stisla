@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
-use App\Models\FingerprintRecap;
+use App\Models\Fingerprintrecap;
+use App\Models\Payroll;
 use App\Models\ManualRecapLog;
 use App\Models\Roster;
 use App\Models\Shifts;
@@ -25,24 +26,13 @@ class ManualRecapController extends Controller
     private const CHUNK_SIZE         = 1000;
 
     /**
-     * PKWT → Work, Leave, Cuti Melahirkan, Public Holiday
-     * OJT  → Work, Public Holiday
-     * DW   → Work saja
+     * Manual recap hanya untuk hari kerja (roster Work), untuk semua status karyawan.
+     * - Leave / Cuti Melahirkan / Sick / PH / TOIL Off sudah dibayar otomatis oleh
+     *   FingerprintRecapCalculator dari roster, jadi tidak perlu kehadiran manual.
+     * - Kehadiran manual di hari PH justru berbahaya: dianggap "sudah masuk di hari PH"
+     *   sehingga saldo PH pengganti bisa sah tanpa benar-benar bekerja.
      */
-    private function allowedDayTypes(?string $statusEmployee): array
-    {
-        $status = strtoupper($statusEmployee ?? '');
-
-        if ($status === 'DW') {
-            return ['Work'];
-        }
-
-        if ($status === 'On Job Training') {
-            return ['Work', 'Public Holiday'];
-        }
-
-        return ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'];
-    }
+    private const ALLOWED_DAY_TYPES = ['Work'];
 
     private function calculateShiftDuration(?string $timeIn, ?string $timeOut): ?int
     {
@@ -84,7 +74,8 @@ class ManualRecapController extends Controller
             'employee_ids'     => 'required|array|min:1',
             'employee_ids.*'   => 'exists:employees_tables,id',
             'scan_date'        => 'required|date',
-            'end_date'         => 'required|date|after_or_equal:scan_date',
+            // Kehadiran manual hanya untuk hari yang sudah terjadi
+            'end_date'         => 'required|date|after_or_equal:scan_date|before_or_equal:today',
             'shift_id'         => 'nullable|exists:shifts_tables,id',
             'reason'           => 'nullable|string|min:1|max:1000',
             'evidence_files'   => 'required|array|min:1',
@@ -99,6 +90,7 @@ class ManualRecapController extends Controller
             'end_date.required'       => 'End Date wajib diisi.',
             'end_date.date'           => 'Format End Date tidak valid.',
             'end_date.after_or_equal' => 'End Date tidak boleh sebelum Scan Date.',
+            'end_date.before_or_equal' => 'Manual recap tidak bisa untuk tanggal yang belum terjadi (maksimal hari ini).',
             'reason.required'         => 'Alasan wajib diisi.',
             'reason.string'           => 'Alasan harus berupa teks.',
             'evidence_files.required' => 'Upload minimal 1 file bukti.',
@@ -125,6 +117,31 @@ if ($totalIterations > self::MAX_BATCH_SIZE) {
         'success' => false,
         'message' => 'Warning (' . number_format($totalIterations) . ' entri). '
                    . 'Maksimal ' . number_format(self::MAX_BATCH_SIZE) . ' entri per submit.',
+    ], 422);
+}
+
+// 2b. Tolak kalau payroll periode ini sudah diproses (bukan draft) atau periodenya
+//     sudah closed/locked: kehadiran sudah dibayar dan tidak boleh berubah diam-diam.
+$lockedPayrolls = Payroll::with('employee:id,employee_name')
+    ->whereIn('employee_id', $request->employee_ids)
+    ->whereDate('period_start', '<=', $endDate->toDateString())
+    ->whereDate('period_end', '>=', $scanDate->toDateString())
+    ->where(function ($q) {
+        $q->where('status', '!=', 'draft')
+            ->orWhereHas('period', fn($p) => $p->where('status', '!=', 'open'));
+    })
+    ->get();
+
+if ($lockedPayrolls->isNotEmpty()) {
+    $names = $lockedPayrolls
+        ->map(fn($p) => ($p->employee?->employee_name ?? $p->employee_id)
+            . ' (' . Carbon::parse($p->period_start)->format('d M') . ' - ' . Carbon::parse($p->period_end)->format('d M Y')
+            . ', ' . $p->status . ')')
+        ->implode(', ');
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Payroll periode ini sudah diproses atau periodenya sudah ditutup, manual recap tidak bisa ditambahkan: ' . $names . '.',
     ], 422);
 }
 
@@ -197,7 +214,7 @@ if ($existingAttLogs->isNotEmpty()) {
 }
 
 // 6. Cek fingerprintrecap SEBELUM upload
-$existingRecaps = FingerprintRecap::whereIn('employee_id', $employeeIds)
+$existingRecaps = Fingerprintrecap::whereIn('employee_id', $employeeIds)
     ->whereIn('date', $dates)
     ->get(['employee_id', 'date']);
 
@@ -365,8 +382,6 @@ if ($existingAttLogs->isNotEmpty()) {
                     continue;
                 }
 
-                $allowedDayTypes = $this->allowedDayTypes($employee->status_employee);
-
                 foreach ($dates as $date) {
                     $rosterKey = $employee->id . '_' . $date;
                     $roster    = $rosters->get($rosterKey);
@@ -375,7 +390,7 @@ Log::info('ManualRecap debug', [
         'date'        => $date,
         'roster'      => $roster?->toArray(),
         'day_type'    => $roster?->day_type,
-        'allowed'     => $allowedDayTypes,
+        'allowed'     => self::ALLOWED_DAY_TYPES,
         'shift'       => $roster?->shift?->toArray(),
     ]);
                     if (!$roster) {
@@ -383,7 +398,7 @@ Log::info('ManualRecap debug', [
                         continue;
                     }
 
-                    if (!in_array($roster->day_type, $allowedDayTypes)) {
+                    if (!in_array($roster->day_type, self::ALLOWED_DAY_TYPES, true)) {
                         $skippedCount++;
                         continue;
                     }
@@ -397,11 +412,7 @@ Log::info('ManualRecap debug', [
                         $resolvedTimeOut  = $manualShiftTimeOut;
                         $resolvedDuration = $manualShiftDuration;
                     } else {
-                        if (in_array($roster->day_type, ['Leave', 'Cuti Melahirkan', 'Public Holiday'])) {
-                            $resolvedTimeIn   = null;
-                            $resolvedTimeOut  = null;
-                            $resolvedDuration = null;
-                        } elseif (!$roster->shift) {
+                        if (!$roster->shift) {
                             $skippedCount++;
                             continue;
                         } else {
@@ -515,7 +526,7 @@ Log::info('ManualRecap debug', [
 
             // ── 3. Bulk UPSERT fingerprints_recap (mysql utama) ──
             foreach (array_chunk($fingerprintRows, self::CHUNK_SIZE) as $chunk) {
-                FingerprintRecap::upsert(
+                Fingerprintrecap::upsert(
                     $chunk,
                     ['employee_id', 'date'],
                     [
@@ -559,7 +570,7 @@ Log::info('ManualRecap debug', [
             return response()->json([
                 'success'   => true,
                 'message'   => "Berhasil menambah manual recap untuk {$successCount} entri "
-                             . "({$skippedCount} tanggal dilewati karena Off/Libur/tidak ada roster/status tidak diizinkan) ",
+                             . "({$skippedCount} tanggal dilewati karena roster bukan Work, tidak ada roster, atau Work tanpa shift) ",
                 'count'     => $successCount,
                 'skipped'   => $skippedCount,
                 'log_count' => $logCount,
@@ -637,7 +648,16 @@ Log::info('ManualRecap debug', [
 public function signedUrl(Request $request)
 {
     $request->validate(['path' => 'required|string']);
-    
+
+    // Hanya file bukti manual recap yang tercatat di log. Tanpa ini endpoint bisa
+    // membuat link untuk file S3 apa saja (slip gaji, bukti sakit, dokumen karyawan).
+    $isEvidence = str_starts_with($request->path, 'manual-recap-evidence/')
+        && ManualRecapLog::where('file_path', $request->path)->exists();
+
+    if (!$isEvidence) {
+        return response()->json(['message' => 'File bukti tidak ditemukan.'], 404);
+    }
+
     $url = Storage::disk('s3')->temporaryUrl(
         $request->path,
         now()->addMinutes(30)

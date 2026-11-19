@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Leaverequest;
 use App\Models\Leavebalance;
+use App\Models\PublicHoliday;
 use App\Models\Roster;
+use App\Models\RosterPHCarryover;
 use App\Models\ToilLeaveRequests;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
@@ -227,7 +229,21 @@ class LeaverequestController extends Controller
         // 5. Hitung total hari
         $start     = Carbon::parse($validated['start_date']);
         $end       = Carbon::parse($validated['end_date']);
-        $totalDays = $start->diffInDays($end) + 1;
+
+        // Hari PH dalam rentang tidak memotong saldo cuti,
+        // kecuali cuti berdurasi tetap yang memang dihitung hari kalender
+        $phDates   = empty($rules->fixed_days)
+            ? PublicHoliday::datesForEmployee($balance->employees, $start->toDateString(), $end->toDateString())
+            : [];
+        $totalDays = $start->diffInDays($end) + 1 - count($phDates);
+
+        if ($totalDays <= 0) {
+            return response()->json([
+                'title' => 'Tidak Perlu Cuti',
+                'text'  => 'Semua tanggal yang dipilih adalah Public Holiday.',
+                'icon'  => 'warning',
+            ], 422);
+        }
 
         // 6. Cek saldo mencukupi
         if ($balance->balance_days < $totalDays) {
@@ -370,12 +386,33 @@ class LeaverequestController extends Controller
             $dayType = $this->resolveDayType($rules);
             $current = Carbon::parse($leaveRequest->start_date);
             $end     = Carbon::parse($leaveRequest->end_date);
+            // Sama dengan saat pengajuan: cuti berdurasi tetap dihitung hari kalender,
+            // jadi PH di dalamnya ikut jadi hari cuti (saldonya juga sudah terpotong)
+            $phDates = empty($rules?->fixed_days)
+                ? PublicHoliday::datesForEmployee($employee, $current->toDateString(), $end->toDateString())
+                : [];
 
-            while ($current->lte($end)) {
+            for (; $current->lte($end); $current->addDay()) {
+                $dateStr = $current->toDateString();
+
+                // Hari PH tetap PH, bukan cuti. Hari PH yang sudah dikerjakan tidak diubah.
+                if (array_key_exists($dateStr, $phDates)) {
+                    if (RosterPHCarryover::enjoyPh($rosterEmployeeId, $dateStr)) {
+                        Roster::updateOrCreate(
+                            ['employee_id' => $rosterEmployeeId, 'date' => $dateStr],
+                            ['shift_id' => null, 'day_type' => 'Public Holiday', 'notes' => $phDates[$dateStr]]
+                        );
+                    }
+                    continue;
+                }
+
+                // Hari pengganti yang tertimpa cuti: saldonya kembali tersedia
+                RosterPHCarryover::refundUsedOn($rosterEmployeeId, $dateStr);
+
                 Roster::updateOrCreate(
                     [
                         'employee_id' => $rosterEmployeeId,
-                        'date'        => $current->toDateString(),
+                        'date'        => $dateStr,
                     ],
                     [
                         'shift_id' => null,
@@ -383,7 +420,6 @@ class LeaverequestController extends Controller
                         'notes'    => $leaveRequest->employee_reason,
                     ]
                 );
-                $current->addDay();
             }
         }
 

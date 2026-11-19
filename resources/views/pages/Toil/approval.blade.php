@@ -320,11 +320,13 @@
 
                 var neededHours = days * HOURS_PER_DAY;
 
+                // Estimasi kalender: hari libur baru diketahui server dari roster,
+                // jadi tombol tetap aktif dan keputusan akhir ada di server.
+                $('#btn-submit').prop('disabled', false);
                 if (neededHours > availableBalance) {
                     $total.removeClass('text-muted')
-                        .html('<span class="text-danger">' + days + ' hari = ' + neededHours +
-                              ' jam — saldo tidak cukup (tersedia ' + availableBalance + ' jam)</span>');
-                    $('#btn-submit').prop('disabled', true);
+                        .html('<span class="text-danger">Maksimal ' + days + ' hari = ' + neededHours +
+                              ' jam — bisa kurang kalau ada hari libur (tersedia ' + availableBalance + ' jam)</span>');
                 } else {
                     $total.removeClass('text-muted text-danger')
                         .html('<strong>' + days + ' hari = ' + neededHours + ' jam</strong>');

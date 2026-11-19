@@ -8,11 +8,27 @@ use App\Models\Payrollcomponents;
 
 class PayrollcomponentsController extends Controller
 {
+    /**
+     * Otorisasi per aksi lewat permission (Spatie), bukan role.
+     * Route di web.php memakai permission yang sama; ini lapis kedua kalau
+     * controller dipanggil dari route lain.
+     */
+    public function __construct()
+    {
+        $this->middleware('permission:payroll.component.view')->only(['index', 'getPayrollcomponents']);
+        $this->middleware('permission:payroll.component.create')->only(['create', 'store']);
+        $this->middleware('permission:payroll.component.update')->only(['edit', 'update']);
+    }
+
     public function getPayrollcomponents(Request $request)
     {
         $query = Payrollcomponents::select('id',  'component_name', 'type', 'is_fixed','is_employer_burden');
         return DataTables::eloquent($query)
-            ->addColumn('action', function ($payroll) {
+            ->addColumn('action', function ($payroll) use ($request) {
+                // Tombol edit hanya untuk yang boleh update
+                if (!$request->user()?->can('payroll.component.update')) {
+                    return '';
+                }
                 $id =  $payroll->id;
                 $editBtn = '
                 <a href="' . route('editpayrollcomponents', $id) . '"

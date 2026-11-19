@@ -20,7 +20,7 @@ class RosterforSupervisorManagerController extends Controller
         if ($status === 'DW') {
             return ['Work', 'Off'];
         }
-        if ($status === 'On Job Training') {
+        if ($status === 'ON JOB TRAINING') {
             return ['Work', 'Off', 'Public Holiday'];
         }
         return ['Work', 'Off', 'Public Holiday', 'Leave', 'Cuti Melahirkan'];
@@ -228,8 +228,8 @@ class RosterforSupervisorManagerController extends Controller
             ->where('status', 'Approved')
             ->exists();
 
-        // Kalau ada TOIL approved & user coba set ke selain Off → tolak
-        if ($toilApproved && $request->day_type !== 'Off') {
+        // Kalau ada TOIL approved → tolak, roster-nya dikelola lewat menu Approval
+        if ($toilApproved) {
             return response()->json([
                 'success' => false,
                 'message' => "Karyawan punya TOIL Leave yang sudah Approved di tanggal ini. Cancel TOIL leave dulu via menu Approval kalau mau ubah jadwal.",
@@ -595,7 +595,7 @@ class RosterforSupervisorManagerController extends Controller
     if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
         Roster::updateOrCreate(
             ['employee_id' => $empId, 'date' => $dateStr],
-            ['shift_id' => null, 'day_type' => 'Off', 'notes' => null]
+            ['shift_id' => null, 'day_type' => 'TOIL Off']
         );
         $skippedCount++;
         continue;
@@ -662,7 +662,7 @@ class RosterforSupervisorManagerController extends Controller
         $message = "Assign schedule {$count} berhasil.";
 
         if ($skippedCount > 0) {
-            $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
+            $message .= " {$skippedCount} tanggal tetap TOIL Off karena ada TOIL Leave yang sudah Approved.";
         }
 
         return response()->json([
@@ -744,14 +744,14 @@ class RosterforSupervisorManagerController extends Controller
                     $srcOffset = $dayIndex % $sourceLengthDays;
                     $dateStr   = $current->toDateString();
 
-                    // Kalau ada TOIL approved, force Off
+                    // Kalau ada TOIL approved, tetap TOIL Off
                     if ($this->hasToilApproved($toilApprovedMap, $empId, $dateStr)) {
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
-                            ['shift_id' => null, 'day_type' => 'Off']
+                            ['shift_id' => null, 'day_type' => 'TOIL Off']
                         );
                         $skippedCount++;
-                    } elseif (isset($sourceMap[$empId][$srcOffset])) {
+                    } elseif (isset($sourceMap[$empId][$srcOffset]) && $sourceMap[$empId][$srcOffset]->day_type !== 'TOIL Off') {
                         $src = $sourceMap[$empId][$srcOffset];
                         Roster::updateOrCreate(
                             ['employee_id' => $empId, 'date' => $dateStr],
@@ -770,14 +770,14 @@ class RosterforSupervisorManagerController extends Controller
             foreach ($sourceRosters as $src) {
                 $newDate = Carbon::parse($src->date)->addDays($diffDays)->toDateString();
 
-                // Kalau ada TOIL approved di tanggal baru, force Off
+                // Kalau ada TOIL approved di tanggal baru, tetap TOIL Off
                 if ($this->hasToilApproved($toilApprovedMap, $src->employee_id, $newDate)) {
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
-                        ['shift_id' => null, 'day_type' => 'Off']
+                        ['shift_id' => null, 'day_type' => 'TOIL Off']
                     );
                     $skippedCount++;
-                } else {
+                } elseif ($src->day_type !== 'TOIL Off') { // TOIL Off sumber tidak punya saldo di tanggal baru
                     Roster::updateOrCreate(
                         ['employee_id' => $src->employee_id, 'date' => $newDate],
                         ['shift_id' => $src->shift_id, 'day_type' => $src->day_type]
@@ -790,7 +790,7 @@ class RosterforSupervisorManagerController extends Controller
         // Response message
         $message = "Schedule copied {$count} berhasil.";
         if ($skippedCount > 0) {
-            $message .= " {$skippedCount} tanggal di-set Off karena ada TOIL Leave yang sudah Approved.";
+            $message .= " {$skippedCount} tanggal tetap TOIL Off karena ada TOIL Leave yang sudah Approved.";
         }
 
         return response()->json([

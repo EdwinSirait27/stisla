@@ -1,1498 +1,2009 @@
 @extends('layouts.app')
-@section('title', 'Profile')
+@section('title', 'Profil saya')
 @push('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        .section-header {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            gap: 16px;
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: what is still missing from my profile, and what is waiting on HR · states: nothing uploaded, pending email/phone, signed, 2FA on/off/required, single/multi role
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: H, two columns of equal weight; answered by putting the checklist above both */
+        :root {
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .section-header-left {
+        html,
+        body {
+            overflow-x: clip;
+        }
+
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
+        }
+
+        .pr [hidden] {
+            display: none !important;
+        }
+
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .pr .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        /* ── Head ── */
+        .pr-head {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
         }
 
-        .section-header-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            background: #eff6ff;
+        .pr-crumbs {
             display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
+        }
+
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #3b82f6;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        .section-header h1 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #1e293b;
-            margin: 0 0 2px;
-            letter-spacing: -0.2px;
-        }
-
-        .section-header-subtitle {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin: 0;
-        }
-
-        .section-header-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .breadcrumb-item {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .breadcrumb-item a {
-            color: #3b82f6;
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
             text-decoration: none;
         }
 
-        .breadcrumb-item.active {
-            color: #1e293b;
-            font-weight: 500;
+        .pr-btn:active {
+            background: var(--pr-rule);
         }
 
-        .breadcrumb-sep {
-            font-size: 0.7rem;
-            color: #cbd5e1;
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
         }
 
-        .profile-card {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .07), 0 1px 2px rgba(0, 0, 0, .04);
-            background: #fff;
-            overflow: hidden;
+        .pr-btn i {
+            font-size: .85em;
         }
 
-        /* ─── Hero header ────────────────────────────────────── */
-        .profile-hero {
-            padding: 24px 24px 0;
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
+        }
+
+        .pr-btn-ghost {
+            border-color: transparent;
+            background: transparent;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-btn-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-danger {
+            color: var(--pr-error);
+        }
+
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        /* ── Toolbar ── */
+        .pr-toolbar {
             display: flex;
             align-items: flex-end;
-            gap: 18px;
-            border-bottom: 1px solid #f1f5f9;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        .profile-avatar-wrap {
-            position: relative;
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+            overflow-x: auto;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
+        }
+
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
+        }
+
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
+        }
+
+        .pr-mini {
+            min-width: 140px;
+        }
+
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
+        }
+
+        .pr-muted {
+            color: var(--pr-muted);
+        }
+
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
+        .action-wrap {
+            display: flex;
+            gap: var(--pr-space-2xs);
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .act-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .act-btn.act-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* DataTables chrome */
+        .pr-dt-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
+        }
+
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
+            font-weight: 600;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
+        }
+
+
+        /* ── Dashboard HR ── */
+        .pr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-hello {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+        }
+
+        .pr-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
             flex-shrink: 0;
-            margin-bottom: 15px;
+            border: 1px solid var(--pr-rule);
         }
 
-        .profile-avatar {
+        .pr-hello-date {
+            margin: 0 0 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-lede {
+            line-height: 1.5;
+        }
+
+        .pr-btn-sm {
+            min-height: 32px;
+            padding: 0 var(--pr-space-sm);
+            font-size: var(--pr-text-xs);
+        }
+
+        .pr-link {
+            border: 0;
+            background: none;
+            padding: 0;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            text-decoration: underline;
+            text-underline-offset: .16em;
+            cursor: pointer;
+        }
+
+        .pr-link:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-card-link {
+            display: inline-block;
+            margin: 0 var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        /* Action queue */
+        .pr-todo {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-todo li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            border-left: 3px solid var(--pr-warn);
+        }
+
+        .pr-todo li.is-ready {
+            border-left-color: var(--pr-success);
+        }
+
+        .pr-todo li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-todo-text {
+            font-size: var(--pr-text-md);
+            color: var(--pr-ink);
+        }
+
+        .pr-todo-text strong {
+            font-size: var(--pr-text-lg);
+            font-variant-numeric: tabular-nums;
+            margin-right: 2px;
+        }
+
+        /* Today */
+        .pr-today {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        .pr-today>.pr-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pr-big {
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-xs);
+        }
+
+        .pr-big strong {
+            display: block;
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-big strong small {
+            font-size: var(--pr-text-md);
+            color: var(--pr-muted);
+            font-weight: 600;
+            margin-right: 2px;
+        }
+
+        .pr-big span {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr-bar {
+            display: flex;
+            height: 8px;
+            margin: var(--pr-space-xs) var(--pr-space-lg);
+            border-radius: var(--pr-pill);
+            overflow: hidden;
+            background: var(--pr-paper-2);
+        }
+
+        .pr-bar span {
+            display: block;
+            height: 100%;
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-paid {
+            background: var(--pr-accent);
+        }
+
+        .pr-bar.is-stack .is-approved {
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-draft {
+            background: var(--pr-muted);
+        }
+
+        .pr-mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: var(--pr-space-xs);
+            margin: var(--pr-space-xs) 0 0;
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-mini-stats dt {
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-mini-stats dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-mini-stats dd.is-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-note {
+            margin: auto 0 0;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-note+.pr-note {
+            margin-top: 0;
+        }
+
+        .pr-note.is-warn {
+            background: var(--pr-warn-soft);
+            color: var(--pr-ink);
+        }
+
+        /* Charts */
+        .pr-range {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-field label {
+            display: block;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            margin-bottom: var(--pr-space-2xs);
+        }
+
+        .pr-field input {
+            min-height: 36px;
+            padding: 0 var(--pr-space-sm);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-field input:focus-visible {
+            outline-offset: -1px;
+        }
+
+        .pr-chart-body {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .pr-chart {
+            position: relative;
+        }
+
+        .pr-chart[hidden] {
+            display: none !important;
+        }
+
+        .pr-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        .pr-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        /* Lists */
+        .pr-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-list li {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-list li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-list-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pr-list-title {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pr-list-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-days {
+            width: 48px;
+            flex-shrink: 0;
+            text-align: center;
+            padding: var(--pr-space-2xs) 0;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-warn-soft);
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-warn);
+        }
+
+        .pr-days small {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .pr-days.is-urgent {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+        /* Announcements */
+        #users-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #users-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #users-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        .pr-modal-title {
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-preview-title {
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            margin: 0 0 var(--pr-space-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-facts {
+            margin: 0 0 var(--pr-space-md);
+        }
+
+        .pr-facts>div {
+            display: flex;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-2xs) 0;
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-facts dt {
+            width: 110px;
+            font-weight: 400;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-facts dd {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .pr-preview-content {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-top: var(--pr-space-md);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-md);
+            line-height: 1.7;
+        }
+
+        .pr-today,
+        .pr-grid-3,
+        .pr-grid-2 {
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-today .pr-panel,
+        .pr-grid-3 .pr-panel,
+        .pr-grid-2 .pr-panel {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 75rem) {
+            .pr-grid-3 {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            }
+
+            .pr-grid-3>.pr-panel:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 60rem) {
+
+            .pr-grid-3,
+            .pr-grid-2 {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 40rem) {
+
+            .pr-head,
+            .pr-panel-head,
+            .pr-big,
+            .pr-mini-stats,
+            .pr-note,
+            .pr-todo li,
+            .pr-list li,
+            .pr-chart-body,
+            .pr-table-wrap,
+            .pr-empty-note {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .pr-bar {
+                margin-left: var(--pr-space-md);
+                margin-right: var(--pr-space-md);
+            }
+
+            .pr-todo li {
+                flex-wrap: wrap;
+            }
+
+            .pr-actions .pr-btn,
+            .pr-field input {
+                min-height: 44px;
+                font-size: 16px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .pr *,
+            .pr *::before,
+            .pr *::after {
+                transition-duration: 0.01ms !important;
+            }
+        }
+        .status-badge.is-pending {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-approved {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-rejected {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+
+        /* ── Profil ── */
+        .pf-avatar {
             width: 72px;
             height: 72px;
             border-radius: 50%;
-            background: #eff6ff;
-            color: #1d4ed8;
-            font-size: 1.4rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #fff;
-            box-shadow: 0 0 0 1px #e2e8f0;
-            letter-spacing: .5px;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
             object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-accent-soft);
         }
 
-        .profile-avatar-verified {
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            width: 20px;
-            height: 20px;
-            background: #f0fdf4;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            display: flex;
+        .pf-initials {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: .55rem;
-            color: #16a34a;
+            font-size: var(--pr-text-xl);
+            font-weight: 800;
+            color: var(--pr-accent-deep);
         }
 
-        .profile-hero-info {
-            flex: 1;
-            padding-bottom: 16px;
-        }
-
-        .profile-hero-name {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1e293b;
-            line-height: 1.3;
-        }
-
-        .profile-hero-sub {
-            font-size: .78rem;
-            color: #64748b;
-            margin-top: 3px;
-        }
-
-        .profile-hero-tags {
+        .pf-chips {
             display: flex;
-            gap: 6px;
-            margin-top: 10px;
             flex-wrap: wrap;
+            gap: var(--pr-space-2xs);
+            margin-top: var(--pr-space-xs);
         }
 
-        .profile-tag {
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 9px;
-            border-radius: 20px;
-            font-size: .7rem;
+        .pf-chip {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: var(--pr-pill);
+            background: var(--pr-paper-2);
+            font-size: var(--pr-text-xs);
             font-weight: 600;
-            letter-spacing: .2px;
+            color: var(--pr-ink-2);
         }
 
-        .profile-tag-dept {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-        .profile-tag-status {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        .profile-tag-grade {
-            background: #fffbeb;
-            color: #92400e;
-        }
-
-        /* ─── Section groups ─────────────────────────────────── */
-        .profile-body {
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .profile-section-label {
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-section-label::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
-        }
-
-        .profile-section-label-kk {
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-section-label-kk::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
-        }
-
-        .profile-section-label-ktp {
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-section-label-ktp::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
-        }
-
-        /* ─── Field grid ─────────────────────────────────────── */
-        .field-grid {
+        /* Kelengkapan */
+        .pf-check {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .field-group label {
-            font-size: .72rem;
-            font-weight: 600;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
-        .field-group label i {
-            font-size: .68rem;
-            color: #94a3b8;
-            width: 12px;
-            text-align: center;
-        }
-
-        /* read-only field (display only) */
-        .field-readonly {
-            height: 36px;
-            background: #f8fafc;
-            border: 1px solid #f1f5f9;
-            border-radius: .5rem;
-            padding: 0 .75rem;
-            font-size: .825rem;
-            color: #475569;
-            display: flex;
-            align-items: center;
-        }
-
-        /* editable form-control override */
-        .field-group .form-control {
-            height: 36px;
-            font-size: .825rem;
-            border-color: #e2e8f0;
-            border-radius: .5rem;
-            color: #1e293b;
-            padding: 0 .75rem;
-            background: #fff;
-        }
-
-        .field-group .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
-        }
-
-        .field-group .form-control.is-invalid {
-            border-color: #ef4444;
-        }
-
-        .field-group .invalid-feedback {
-            font-size: .72rem;
-        }
-
-        /* ─── Photo upload ───────────────────────────────────── */
-        .photo-upload-wrap {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .photo-upload-wrap-kk {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .photo-upload-wrap-ktp {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .photo-thumb {
-            width: 56px;
-            height: 56px;
-            border-radius: .5rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .photo-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-thumb i {
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-
-        .photo-thumb-kk {
-            width: 56px;
-            height: 56px;
-            border-radius: .5rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .photo-thumb-kk img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-thumb-kk i {
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-
-        .photo-thumb-ktp {
-            width: 56px;
-            height: 56px;
-            border-radius: .5rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .photo-thumb-ktp img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-thumb-ktp i {
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-
-
-        .photo-upload-hint {
-            font-size: .72rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .photo-upload-hint-kk {
-            font-size: .72rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .photo-upload-hint-ktp {
-            font-size: .72rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .photo-upload-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px dashed #cbd5e1;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .775rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .photo-upload-btn:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .photo-upload-btn-kk {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px dashed #cbd5e1;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .775rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .photo-upload-btn-kk:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .photo-upload-btn-ktp {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px dashed #cbd5e1;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .775rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .photo-upload-btn-ktp:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        /* ─── Alert ──────────────────────────────────────────── */
-        .alert-success-custom {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 14px;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: .5rem;
-            font-size: .8rem;
-            color: #166534;
-            margin-bottom: 20px;
-        }
-
-        .alert-danger-custom {
-            padding: 9px 14px;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: .5rem;
-            font-size: .8rem;
-            color: #991b1b;
-            margin-bottom: 20px;
-        }
-
-        .alert-danger-custom ul {
-            margin: 0;
-            padding-left: 16px;
-        }
-
-        /* ─── Footer ─────────────────────────────────────────── */
-        .profile-footer {
-            padding: 14px 24px;
-            border-top: 1px solid #f1f5f9;
-            background: #fafafa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .profile-footer .btn {
-            height: 36px;
-            font-size: .825rem;
-            font-weight: 500;
-            padding: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            border-radius: .5rem;
-        }
-
-        .password-footer {
-            padding: 14px 24px;
-            border-top: 1px solid #f1f5f9;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .password-footer .btn {
-            height: 36px;
-            font-size: .825rem;
-            font-weight: 500;
-            padding: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            border-radius: .5rem;
-        }
-
-        .btn-back {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            color: #475569;
-        }
-
-        .btn-back:hover {
-            background: #f8fafc;
-            color: #1e293b;
-        }
-
-        .btn-save {
-            background: #1d4ed8;
-            border: none;
-            color: #fff;
-        }
-
-        .btn-save:hover {
-            background: #000000;
-            color: #000001;
-        }
-
-        /* ─── Responsive ─────────────────────────────────────── */
-        @media (max-width: 576px) {
-            .profile-hero {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-                padding: 16px 16px 0;
-            }
-
-            .profile-body {
-                padding: 16px;
-            }
-
-            .profile-footer {
-                padding: 12px 16px;
-            }
-
-            .field-grid {
-                grid-template-columns: 1fr;
+        @media (max-width: 64rem) {
+            .pf-check {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        .info-box {
-            background: linear-gradient(to right, rgba(59, 130, 246, 0.08), rgba(29, 78, 216, 0.06));
-            border: 1px solid rgba(59, 130, 246, 0.25);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 24px;
+        @media (max-width: 40rem) {
+            .pf-check {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
-        .info-content {
+        .pf-check li {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
         }
 
-        .info-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: rgba(59, 130, 246, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .icon-svg {
-            width: 20px;
-            height: 20px;
-            color: #1d4ed8;
-        }
-
-        .info-text h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1d4ed8;
-            margin-bottom: 4px;
-        }
-
-        .info-text p {
-            font-size: 12px;
-            color: #64748b;
-            line-height: 1.5;
-            margin: 0 0 4px 0;
-        }
-
-        /* ─── Document / SK chips ────────────────────────────── */
-        .doc-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .doc-chip {
+        .pf-check-icon {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px 8px 8px;
-            border: 1px solid #e2e8f0;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #334155;
-            font-size: .8rem;
-            font-weight: 500;
-            text-decoration: none;
-            max-width: 100%;
-            transition: all .15s;
-        }
-
-        .doc-chip:hover {
-            border-color: #3b82f6;
-            background: #eff6ff;
-            color: #1d4ed8;
-            text-decoration: none;
-        }
-
-        .doc-chip-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            background: #fee2e2;
-            color: #dc2626;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: .7rem;
             flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            margin-top: 1px;
+            border-radius: 50%;
+            font-size: 11px;
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
         }
 
-        .doc-chip-icon-sk {
-            background: #dbeafe;
-            color: #1d4ed8;
+        .pf-check li.is-missing .pf-check-icon {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
         }
 
-        .doc-chip-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 220px;
+        .pf-check li.is-pending .pf-check-icon {
+            background: var(--pr-accent-soft);
+            color: var(--pr-accent-strong);
         }
 
-        .doc-chip-download {
-            font-size: .68rem;
-            color: #cbd5e1;
+        .pf-check-name {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
         }
 
-        .doc-chip:hover .doc-chip-download {
-            color: #3b82f6;
+        .pf-check-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            line-height: 1.45;
+            color: var(--pr-ink-2);
+            overflow-wrap: anywhere;
         }
 
-        .doc-empty {
+        .pf-check-sub a {
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+        }
+
+        .pf-meter {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 14px;
-            border: 1px dashed #e2e8f0;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #94a3b8;
-            font-size: .8rem;
-            width: 100%;
+            gap: var(--pr-space-sm);
+            min-width: 180px;
         }
 
-        .signature-wrapper {
-            width: 100%;
+        .pf-meter-track {
+            flex: 1;
+            height: 8px;
+            border-radius: var(--pr-pill);
+            background: var(--pr-paper-2);
+            overflow: hidden;
         }
 
-        #signature-pad {
-            width: 100%;
-            height: 260px;
-            border: 1px dashed #d1d5db;
-            border-radius: 12px;
-            background: #fff;
-            cursor: crosshair;
+        .pf-meter-fill {
+            display: block;
+            height: 100%;
+            border-radius: var(--pr-pill);
+            background: var(--pr-accent);
         }
 
-        .signature-preview-wrapper {
-            width: 100%;
-            min-height: 220px;
-            border: 1px dashed #d1d5db;
-            border-radius: 12px;
-            padding: 1.5rem;
-            background: #fff;
+        .pf-meter-num {
+            font-size: var(--pr-text-sm);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
 
+        /* Layout dua kolom */
+        .pf-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: var(--pr-space-lg);
+            align-items: start;
+        }
+
+        .pf-grid > .pf-col {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            gap: var(--pr-space-lg);
+            min-width: 0;
         }
 
-        .signature-preview-image {
+        .pf-grid .pr-panel {
+            margin-bottom: 0;
+        }
+
+        /* Data read-only */
+        .pf-dl {
+            margin: 0;
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pf-dl-group + .pf-dl-group {
+            margin-top: var(--pr-space-sm);
+            padding-top: var(--pr-space-sm);
+            border-top: 1px solid var(--pr-rule);
+        }
+
+        .pf-dl-title {
+            margin: var(--pr-space-xs) 0 var(--pr-space-2xs);
+            font-size: var(--pr-text-sm);
+            font-weight: 800;
+            color: var(--pr-ink);
+        }
+
+        .pf-dl-row {
+            display: grid;
+            grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+            gap: var(--pr-space-sm);
+            padding: 5px 0;
+        }
+
+        .pf-dl-row dt {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .pf-dl-row dd {
+            margin: 0;
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink);
+            overflow-wrap: anywhere;
+        }
+
+        .pf-dl-row dd.is-empty {
+            font-weight: 500;
+            color: var(--pr-muted);
+        }
+
+        .pf-dl-row dd.is-num {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Form */
+        .pf-form-body {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .pf-field label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pf-input {
             width: 100%;
-            max-width: 900px;
-            max-height: 350px;
+            min-height: 40px;
+            padding: 8px 12px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-md);
+            color: var(--pr-ink);
+            transition: border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pf-input:hover {
+            border-color: var(--pr-muted);
+        }
+
+        .pf-input:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 0;
+            border-color: var(--pr-accent);
+        }
+
+        .pf-input.is-invalid {
+            border-color: var(--pr-error);
+        }
+
+        .pf-hint {
+            display: block;
+            margin-top: 4px;
+            font-size: var(--pr-text-xs);
+            line-height: 1.45;
+            color: var(--pr-muted);
+        }
+
+        .pf-hint.is-pending {
+            color: var(--pr-accent-deep);
+            font-weight: 600;
+        }
+
+        .pf-error {
+            display: block;
+            margin-top: 4px;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-error);
+        }
+
+        /* Upload foto */
+        .pf-uploads {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--pr-space-sm);
+        }
+
+        .pf-upload {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pr-space-xs);
+            min-width: 0;
+        }
+
+        .pf-upload-name {
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pf-thumb {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 4 / 3;
+            border: 1px dashed var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper);
+            overflow: hidden;
+            color: var(--pr-muted);
+        }
+
+        .pf-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: zoom-in;
+        }
+
+        .pf-thumb.is-portrait img {
+            object-fit: cover;
+        }
+
+        .pf-thumb-empty {
+            padding: var(--pr-space-xs);
+            text-align: center;
+            font-size: var(--pr-text-xs);
+            cursor: pointer;
+        }
+
+        .pf-thumb-empty i {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 20px;
+        }
+
+        .pf-file-label {
+            justify-content: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        .pf-file-state {
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            overflow-wrap: anywhere;
+        }
+
+        .pf-file-state.is-new {
+            font-weight: 700;
+            color: var(--pr-accent-deep);
+        }
+
+        .pf-visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .pf-file-label:has(+ .pf-visually-hidden:focus-visible),
+        .pf-upload:focus-within .pf-file-label {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .pf-form-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            background: var(--pr-paper);
+            border-radius: 0 0 var(--pr-radius) var(--pr-radius);
+        }
+
+        .pf-dirty {
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-warn);
+        }
+
+        /* Keamanan */
+        .pf-sec {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pf-sec li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+        }
+
+        .pf-sec li:first-child {
+            border-top: 0;
+        }
+
+        .pf-sec-main {
+            min-width: 0;
+        }
+
+        .pf-role-form {
+            display: flex;
+            gap: var(--pr-space-xs);
+            margin-top: var(--pr-space-xs);
+        }
+
+        .pf-role-form .pf-input {
+            min-height: 34px;
+            padding: 4px 10px;
+            font-size: var(--pr-text-sm);
+        }
+
+        /* Dokumen */
+        .pf-docs {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pf-docs li {
+            border-top: 1px solid var(--pr-rule);
+        }
+
+        .pf-docs li:first-child {
+            border-top: 0;
+        }
+
+        .pf-doc {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            color: var(--pr-ink);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pf-doc:hover {
+            background: var(--pr-paper);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .pf-doc:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: -2px;
+        }
+
+        .pf-doc-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+        .pf-doc-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pf-doc-name {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .pf-doc-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pf-doc-dl {
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            white-space: nowrap;
+        }
+
+        /* Tanda tangan */
+        .pf-sign-body {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .pf-sign-saved {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+            padding: var(--pr-space-md);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper);
+        }
+
+        .pf-sign-saved img {
+            max-width: 100%;
+            max-height: 140px;
             object-fit: contain;
         }
 
-        .image-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background: rgba(0, 0, 0, 0.85);
+        .pf-pad {
+            border: 1px dashed var(--pr-muted);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
         }
 
-        .image-modal-content {
-            margin: auto;
+        .pf-pad canvas {
             display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 12px;
-            animation: zoomIn .2s ease;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .image-modal-kk {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
             width: 100%;
-            height: 100%;
-            overflow: auto;
-            background: rgba(0, 0, 0, 0.85);
+            height: 200px;
+            cursor: crosshair;
+            touch-action: none;
         }
 
-        .image-modal-content-kk {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 12px;
-            animation: zoomIn .2s ease;
+        .pf-sign-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: var(--pr-space-xs);
+            margin-top: var(--pr-space-sm);
         }
 
-        .close-modal-kk {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
+        .pf-sign-import {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-md);
+            border: 1px dashed var(--pr-muted);
+            border-radius: var(--pr-radius-sm);
         }
 
-        .image-modal-ktp {
-            display: none;
+        .pf-sign-import img {
+            max-width: 200px;
+            height: 96px;
+            object-fit: contain;
+        }
+
+        /* Lightbox */
+        .pf-lightbox {
             position: fixed;
-            z-index: 9999;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background: rgba(0, 0, 0, 0.85);
+            inset: 0;
+            z-index: 1060;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--pr-space-lg);
+            background: oklch(20% 0.02 265 / .82);
+            cursor: zoom-out;
         }
 
-        .image-modal-content-ktp {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 12px;
-            animation: zoomIn .2s ease;
+        .pf-lightbox.is-open {
+            display: flex;
         }
 
-        .close-modal-ktp {
+        .pf-lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+        }
+
+        .pf-lightbox button {
             position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 50%;
+            background: var(--pr-panel);
+            font-size: 22px;
+            line-height: 1;
+            color: var(--pr-ink);
             cursor: pointer;
         }
 
-        .photo-thumb img {
-            cursor: pointer;
+        .pf-lightbox button:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
         }
 
-        .photo-thumb-kk img {
-            cursor: pointer;
-        }
-
-        .photo-thumb-ktp img {
-            cursor: pointer;
-        }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(.8);
-                opacity: 0;
+        @media (max-width: 64rem) {
+            .pf-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
 
-            to {
-                transform: scale(1);
-                opacity: 1;
+            /* Satu kolom: yang bisa diubah tampil lebih dulu */
+            .pf-grid > .pf-col:last-child {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 40rem) {
+            .pf-check li,
+            .pf-dl,
+            .pf-form-body,
+            .pf-form-foot,
+            .pf-sec li,
+            .pf-doc,
+            .pf-sign-body {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .pf-uploads {
+                gap: var(--pr-space-xs);
+            }
+
+            .pf-thumb {
+                aspect-ratio: 1;
+            }
+
+            .pf-dl-row {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 0;
+            }
+
+            .pf-sec li {
+                flex-wrap: wrap;
+            }
+
+            .pf-input {
+                font-size: 16px;
             }
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $emp = $user->employee;
+        $fmt = fn($v) => $v ? \Carbon\Carbon::parse($v)->locale('id')->translatedFormat('d F Y') : null;
+        $primary = fn($rel) => $rel?->firstWhere('pivot.is_primary', true) ?? $rel?->first();
+        // Utama dulu, sisanya menyusul
+        $names = fn($rel, $col) => $rel?->sortByDesc(fn($r) => (int) $r->pivot?->is_primary)->pluck($col)->filter()->unique()->implode(', ');
+        $position = $primary($emp?->position);
+        $department = $primary($emp?->department);
+        $store = $primary($emp?->store);
+        $joinRaw = $emp?->getRawOriginal('join_date');
+        $tenure = null;
+        if ($joinRaw) {
+            $j = \Carbon\Carbon::parse($joinRaw);
+            $y = (int) $j->diffInYears(now());
+            $m = (int) $j->copy()->addYears($y)->diffInMonths(now());
+            $tenure = trim(($y ? $y . ' tahun ' : '') . $m . ' bulan');
+        }
+        $acct = $emp?->bank_account_number;
+        $acctMasked = $acct ? str_repeat('•', max(0, strlen($acct) - 4)) . substr($acct, -4) : null;
+
+        $checks = [
+            ['Foto profil', !empty($emp?->photos), null, 'Dipakai di dashboard dan dokumen.'],
+            ['Foto KTP', !empty($emp?->ktp_photos), null, 'Untuk verifikasi data HR.'],
+            ['Foto KK', !empty($emp?->kk_photos), null, 'Untuk data tanggungan dan BPJS.'],
+            ['Tanda tangan', !empty($emp?->signature), null, 'Dipakai di SK dan surat. Sekali simpan, hanya HR yang bisa mengubah.'],
+            ['Email', !empty($emp?->email), $emp?->pending_email, 'Untuk slip gaji dan reset password.'],
+            ['Nomor telepon', !empty($emp?->telp_number), $emp?->pending_telp_number, 'Untuk notifikasi WhatsApp.'],
+        ];
+        $done = collect($checks)->filter(fn($c) => $c[1])->count();
+        $pct = (int) round($done / count($checks) * 100);
+        $documents = $emp?->documents ?? collect();
+        $skLetters = $emp?->skletters?->where('status', 'Draft') ?? collect();
+        $roles = Auth::user()->all_roles_hrx ?? [];
+        $row = function ($label, $value, $num = false) {
+            $empty = $value === null || trim((string) $value) === '' || in_array(trim((string) $value), ['-', '0'], true);
+            return '<div class="pf-dl-row"><dt>' . e($label) . '</dt><dd class="' . ($empty ? 'is-empty' : ($num ? 'is-num' : '')) . '">' . e($empty ? 'Belum diisi' : $value) . '</dd></div>';
+        };
+    @endphp
+    <div class="main-content pr">
         <section class="section">
 
-            <div class="section-header">
-                <div class="section-header-left">
-                    <div class="section-header-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <circle cx="12" cy="8" r="4" />
-                            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                        </svg>
-                    </div>
+            <header class="pr-head">
+                <div class="pr-hello">
+                    @if (!empty($emp?->photos))
+                        <img src="{{ route('useremployee.photo', basename($emp->photos)) }}" alt="" class="pf-avatar no-drag" width="72" height="72">
+                    @else
+                        <span class="pf-avatar pf-initials" aria-hidden="true">
+                            {{ collect(explode(' ', $emp->employee_name ?? ($user->username ?? 'U')))->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') }}
+                        </span>
+                    @endif
                     <div>
-                        <h1>Profile</h1>
-                        <p class="section-header-subtitle">Kelola informasi akun Anda</p>
-                    </div>
-                </div>
-                <nav class="section-header-breadcrumb">
-                    <div class="breadcrumb-item">
-                        <a href="{{ route(getDashboardRoute()) }}">Dashboard</a>
-                    </div>
-                    <span class="breadcrumb-sep">›</span>
-                    <div class="breadcrumb-item active">Profile</div>
-                </nav>
-            </div>
-
-            <div class="section-body">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-xl-10">
-                        <div class="info-box">
-                            <div class="info-content">
-                                <div class="info-icon">
-                                    <svg class="icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div class="info-text">
-                                    <h3>Information</h3>
-                                    <p>
-                                        - Email, phone number, profile photo, KTP, and KK can all be changed. However, email
-                                        and phone number must be requested and HR will be responsible for changing them.<br>
-                                        - To change Signature, please contact HR Admin.
-                                    </p>
-                                </div>
-                            </div>
+                        <h1 class="pr-title">{{ $emp->employee_name ?? $user->username }}</h1>
+                        <p class="pr-lede">
+                            {{ collect([$position?->name, $department?->department_name, $store?->name])->filter()->implode(', ') ?: 'Data jabatan belum diatur HR' }}
+                        </p>
+                        <div class="pf-chips">
+                            @if ($emp?->employee_pengenal)<span class="pf-chip">NIP {{ $emp->employee_pengenal }}</span>@endif
+                            @if ($emp?->status_employee)<span class="pf-chip">{{ $emp->status_employee }}</span>@endif
+                            @if ($emp?->grading?->grading_name)<span class="pf-chip">Grading {{ $emp->grading->grading_name }}</span>@endif
+                            @if ($tenure)<span class="pf-chip">Masa kerja {{ $tenure }}</span>@endif
                         </div>
                     </div>
                 </div>
-            </div>
+                <div class="pr-actions">
+                    <a href="{{ route('pages.change-password') }}" class="pr-btn"><i class="fas fa-key" aria-hidden="true"></i> Ganti password</a>
+                </div>
+            </header>
 
-            <div class="section-body">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-xl-10">
+            @if ($errors->any())
+                <div class="pr-panel" role="alert">
+                    <p class="pr-note is-warn" style="border-top:0">
+                        <strong>Perubahan belum tersimpan.</strong> {{ $errors->first() }}
+                    </p>
+                </div>
+            @endif
 
-                        <div class="profile-card">
-
-                            {{-- ── Hero ── --}}
-                            <div class="profile-hero">
-                                <div class="profile-avatar-wrap">
-                                    <div class="profile-avatar">
-
-                                        @if (!empty($user->employee->photos))
-                                            <img alt="image"
-                                                src="{{ route('useremployee.photo', basename($user->employee->photos)) }}">
-                                        @else
-                                            {{ collect(explode(' ', $user->employee->employee_name ?? ($user->username ?? 'U')))->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') }}
-                                        @endif
-                                    </div>
-
-                                    <div class="profile-avatar-verified">
-                                        <i class="fas fa-check" style="font-size:.5rem"></i>
-                                    </div>
-
-                                </div>
-
-                                <div class="profile-hero-info">
-                                    <div class="profile-hero-name">
-                                        {{ $user->employee->employee_name ?? ($user->username ?? '-') }}
-                                    </div>
-                                    <div class="profile-hero-sub">
-                                        NIP : {{ $user->employee->employee_pengenal ?? '' }}
-
-                                    </div>
-                                    <div class="profile-hero-tags">
-                                        @if (!empty($user->employee->department->department_name))
-                                            <span class="profile-tag profile-tag-dept">
-                                                Department : {{ $user->employee->department->department_name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->status_employee))
-                                            <span class="profile-tag profile-tag-status">
-                                                Status : {{ $user->employee->status_employee }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->grading->grading_name))
-                                            <span class="profile-tag profile-tag-grade">
-                                                Grading : {{ $user->employee->grading->grading_name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->group->group_name))
-                                            <span class="profile-tag profile-tag-grade">
-                                                Grouping : {{ $user->employee->group->group_name }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="password-footer">
-                                    <a href="{{ route('pages.change-password') }}" class="btn btn-lock">
-                                        <i class="fas fa-key"></i> Change Password
-                                    </a>
-                                </div>
-                            </div>
-
-
-
-
-
-                            <div class="profile-body">
-
-                                {{-- Flash messages --}}
-                                @if (session('status') || session('success'))
-                                    <div class="alert-success-custom">
-                                        <i class="fas fa-check-circle"></i>
-                                        {{ session('status') ?? session('success') }}
-                                    </div>
-                                @endif
-
-                                @if ($errors->any())
-                                    <div class="alert-danger-custom">
-                                        <ul>
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-                                {{-- Switch Active Role --}}
-                                @if (!empty(Auth::user()->all_roles_hrx) && count(Auth::user()->all_roles_hrx) > 1)
-                                    <form action="{{ route('profile.switchRole') }}" method="POST" class="mb-3">
-                                        @csrf
-                                        @method('PUT')
-
-                                        <div class="profile-section-label">Active Role</div>
-                                        <div class="field-grid">
-                                            <div class="field-group">
-                                                <label><i class="fas fa-shield-alt"></i> Switch Role</label>
-                                                <div class="d-flex gap-2 align-items-center">
-                                                    <select name="active_role_hrx" id="active_role_hrx"
-                                                        class="form-control @error('active_role_hrx') is-invalid @enderror">
-                                                        @foreach (Auth::user()->all_roles_hrx as $role)
-                                                            <option value="{{ $role }}"
-                                                                {{ Auth::user()->active_role_hrx === $role ? 'selected' : '' }}>
-                                                                {{ $role }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    {{-- <button type="submit" class="btn btn-primary btn-sm text-nowrap"> --}}
-                                                    <button type="submit" class="btn btn-primary btn-sm text-nowrap ms-6">
-                                                        <i class="fas fa-sync-alt"></i> Switch
-                                                    </button>
-                                                </div>
-                                                @error('active_role_hrx')
-                                                    <span class="text-danger small">{{ $message }}</span>
-                                                @enderror
-                                                <small class="text-muted">
-                                                    Active Role :
-                                                    <strong>{{ Auth::user()->active_role_hrx ?? '-' }}</strong>
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </form>
-                                @endif
-                                <form action="{{ route('feature-profile.update') }}" method="POST"
-                                    enctype="multipart/form-data">
-                                    @csrf
-                                    @method('PUT')
-
-                                    <div class="profile-fields">
-                                    <div>
-                                        <div class="profile-section-label">Account</div>
-                                        <div class="field-grid">
-                                            <div class="field-group">
-                                                <label><i class="fas fa-user"></i> Username</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->username ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-user-tie"></i> Employee Name</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->employee_name ?? '-' }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label">Identity</div>
-                                        <div class="field-grid">
-                                            <div class="field-group">
-                                                <label><i class="fas fa-id-card"></i> NIK</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->nik ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-id-card"></i> KK Number</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->kk_number ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-file-invoice"></i> NPWP</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->npwp ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-map-marker-alt"></i> Place of birth</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->place_of_birth ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-calendar"></i> Date of birth</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->date_of_birth
-                                                        ? \Carbon\Carbon::parse($user->employee->date_of_birth)->format('d F Y')
-                                                        : '-' }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- ── Section: Employment ── --}}
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label">Employment</div>
-                                        <div class="field-grid">
-                                            <div class="field-group">
-                                                <label><i class="fas fa-building"></i> Company</label>
-                                                <div class="field-readonly">
-                                                    {{-- {{ $user->Employee->company->pluck('name')->join(', ') }} --}}
-                                                    {{ $user->Employee->company->name }}
-
-                                                    {{-- {{ $user->employee->company->name ?? '-' }} --}}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-sitemap"></i> Department</label>
-                                                <div class="field-readonly">
-                                                    {{-- {{ $user->Employee->department->first()->department_name ?? '-'}} --}}
-                                                    {{ $user->Employee->department->pluck('department_name')->implode(', ') ?: '-' }}
-                                                    {{-- {{ $department->department_name ?? '-' }} --}}
-                                                </div>
-                                            </div>
-
-                                            <div class="field-group">
-                                                <label><i class="fas fa-briefcase"></i> Position</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->Employee->position->pluck('name')->implode(', ') ?: '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-store"></i> Location</label>
-                                                <div class="field-readonly">
-                                                    {{-- {{ $user->Employee->store->first()->name ?? '-'}} --}}
-                                                    {{ $user->Employee->store->pluck('name')->implode(', ') ?: '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-layer-group"></i> Grading</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->grading->grading_name ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-circle-dot"></i> Employee status</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->status_employee ?? '-' }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- ── Section: BPJS ── --}}
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label">Social Insurance</div>
-                                        <div class="field-grid">
-                                            <div class="field-group">
-                                                <label><i class="fas fa-heart-pulse"></i> BPJS Kesehatan</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->bpjs_kes ?? '-' }}
-                                                </div>
-                                            </div>
-                                            <div class="field-group">
-                                                <label><i class="fas fa-shield-halved"></i> BPJS Ketenagakerjaan</label>
-                                                <div class="field-readonly">
-                                                    {{ $user->employee->bpjs_ket ?? '-' }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- ── Section: Contact (editable) ── --}}
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label">Contact</div>
-                                        <div class="field-grid">
-                                            <div class="field-group">
-                                                <label for="email"><i class="fas fa-envelope"></i> Email *</label>
-                                                <input type="email" id="email" name="email"
-                                                    class="form-control @error('email') is-invalid @enderror"
-                                                    value="{{ old('email', $user->employee->email ?? '') }}"
-                                                    placeholder="Enter email" required>
-                                                @error('email')
-                                                    <span class="invalid-feedback">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                            <div class="field-group">
-                                                <label for="telp_number"><i class="fas fa-phone"></i> Phone Number
-                                                    *</label>
-                                                <input type="tel" id="telp_number" name="telp_number"
-                                                    class="form-control @error('telp_number') is-invalid @enderror"
-                                                    value="{{ old('telp_number', $user->employee->telp_number ?? '') }}"
-                                                    placeholder="Enter phone number" required>
-                                                @error('telp_number')
-                                                    <span class="invalid-feedback">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label">Profile Photo *</div>
-                                        <div class="photo-upload-wrap">
-                                            <div class="photo-thumb">
-                                                @if (!empty($user->employee->photos))
-                                                    <img id="preview-image"
-                                                        src="{{ route('useremployee.photo', basename($user->employee->photos)) }}"
-                                                        alt="Profile Photo" onclick="openImageModal(this.src)">
-                                                @else
-                                                    <img id="preview-image" src="https://via.placeholder.com/56"
-                                                        alt="No photo" style="display:none">
-
-                                                    <i class="fas fa-user" id="photo-placeholder"
-                                                        onclick="document.getElementById('photos').click()"></i>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <div class="photo-upload-hint">JPG, PNG or WEBP — max 2048 KB</div>
-                                                <label for="photos" class="photo-upload-btn">
-                                                    <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                                                    Upload photo
-                                                </label>
-                                                <input type="file" name="photos" id="photos"
-                                                    class="d-none @error('photos') is-invalid @enderror" accept="image/*"
-                                                    onchange="previewProfilePhoto(event)">
-                                                @error('photos')
-                                                    <div class="text-danger mt-1" style="font-size:.72rem">
-                                                        {{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label-kk">KK Photo *</div>
-                                        <div class="photo-upload-wrap-kk">
-                                            <div class="photo-thumb-kk">
-                                                @if (!empty($user->employee->kk_photos))
-                                                    <img id="preview-image-kk"
-                                                        src="{{ route('useremployeekk.photo', basename($user->employee->kk_photos)) }}"
-                                                        alt="Profile kk photo" onclick="openImageModalkk(this.src)">
-                                                @else
-                                                    <img id="preview-image-kk" src="https://via.placeholder.com/56"
-                                                        alt="No photo" style="display:none">
-
-                                                    <i class="fas fa-user" id="photo-placeholder-kk"
-                                                        onclick="document.getElementById('kk_photos').click()"></i>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <div class="photo-upload-hint-kk">JPG, PNG or WEBP — max 512 KB</div>
-                                                <label for="kk_photos" class="photo-upload-btn-kk">
-                                                    <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                                                    Upload kk Photo
-                                                </label>
-                                                <input type="file" name="kk_photos" id="kk_photos"
-                                                    class="d-none @error('kk_photos') is-invalid @enderror"
-                                                    accept="image/*" onchange="previewProfilePhotokk(event)">
-                                                @error('kk_photos')
-                                                    <div class="text-danger mt-1" style="font-size:.72rem">
-                                                        {{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label-ktp">KTP Photo *</div>
-                                        <div class="photo-upload-wrap-ktp">
-                                            <div class="photo-thumb-ktp">
-                                                @if (!empty($user->employee->ktp_photos))
-                                                    <img id="preview-image-ktp"
-                                                        src="{{ route('useremployeektp.photo', basename($user->employee->ktp_photos)) }}"
-                                                        alt="Profile ktp photo" onclick="openImageModalktp(this.src)">
-                                                @else
-                                                    <img id="preview-image-ktp" src="https://via.placeholder.com/56"
-                                                        alt="No photo" style="display:none">
-
-                                                    <i class="fas fa-user" id="photo-placeholder-ktp"
-                                                        onclick="document.getElementById('ktp_photos').click()"></i>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <div class="photo-upload-hint-ktp">JPG, PNG or WEBP — max 512 KB</div>
-                                                <label for="ktp_photos" class="photo-upload-btn-ktp">
-                                                    <i class="fas fa-arrow-up-from-bracket" style="font-size:.7rem"></i>
-                                                    Upload KTP Photo
-                                                </label>
-                                                <input type="file" name="ktp_photos" id="ktp_photos"
-                                                    class="d-none @error('ktp_photos') is-invalid @enderror"
-                                                    accept="image/*" onchange="previewProfilePhotoktp(event)">
-                                                @error('ktp_photos')
-                                                    <div class="text-danger mt-1" style="font-size:.72rem">
-                                                        {{ $message }}</div>
-                                                @enderror
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <br>
-                                    @php
-                                        $documents = $user->employee?->documents ?? collect();
-                                        $skLetters = $user->employee?->skletters?->where('status', 'Draft') ?? collect();
-                                    @endphp
-                                    <div>
-                                        <div class="profile-section-label"><i class="fas fa-folder-open"></i> Documents</div>
-                                        <div class="doc-list">
-                                            @forelse ($documents as $doc)
-                                                <a href="{{ route('profile.documents.download', $doc->id) }}" class="doc-chip">
-                                                    <span class="doc-chip-icon"><i class="fas fa-file-pdf"></i></span>
-                                                    <span class="doc-chip-name">{{ $doc->document_number }}</span>
-                                                    <i class="fas fa-arrow-down doc-chip-download"></i>
-                                                </a>
-                                            @empty
-                                                <div class="doc-empty"><i class="fas fa-folder-open"></i> No documents uploaded yet</div>
-                                            @endforelse
-                                        </div>
-                                    </div>
-                                    <br>
-                                    <div>
-                                        <div class="profile-section-label"><i class="fas fa-file-signature"></i> SK</div>
-                                        <div class="doc-list">
-                                            @forelse ($skLetters as $skletter)
-                                                <a href="{{ route('my-sk-letter.download', $skletter->id) }}" class="doc-chip doc-chip-sk">
-                                                    <span class="doc-chip-icon doc-chip-icon-sk"><i class="fas fa-file-pdf"></i></span>
-                                                    <span class="doc-chip-name">{{ $skletter->sk_number }}</span>
-                                                    <i class="fas fa-arrow-down doc-chip-download"></i>
-                                                </a>
-                                            @empty
-                                                <div class="doc-empty"><i class="fas fa-file-circle-xmark"></i> No SK letters available</div>
-                                            @endforelse
-                                        </div>
-                                    </div>
-                                    <div id="imagePreviewModal" class="image-modal" onclick="closeImageModal()">
-                                        <span class="close-modal">&times;</span>
-                                        <img class="image-modal-content" id="modalPreviewImage">
-                                    </div>
-                                    <div id="imagePreviewModalkk" class="image-modal-kk" onclick="closeImageModalkk()">
-                                        <span class="close-modal-kk">&times;</span>
-                                        <img class="image-modal-content-kk" id="modalPreviewImagekk">
-                                    </div>
-                                    <div id="imagePreviewModalktp" class="image-modal-ktp"
-                                        onclick="closeImageModalktp()">
-                                        <span class="close-modal-ktp">&times;</span>
-                                        <img class="image-modal-content-ktp" id="modalPreviewImagektp">
-                                    </div>
-                                    </div>
-
-                                <div class="profile-footer">
-                                    <a href="{{ route(getDashboardRoute()) }}" class="btn btn-back"><i
-                                            class="fas fa-arrow-left"></i> Back</a>
-
-                                    <button type="submit" class="btn btn-save">
-                                        <i class="fas fa-floppy-disk"></i> Save changes
-                                    </button>
-                                </div>
-                            </form>
-                            </div>
-
-                            <div class="profile-body" style="border-top: 1px solid #f1f5f9;">
-                                <div>
-                                    <div class="profile-section-label">
-                                        <i class="fas fa-signature"></i> Signature
-                                        @if (!empty($user->employee->signature))
-                                            <span class="profile-tag profile-tag-status">Signed</span>
-                                        @else
-                                            <span class="profile-tag" style="background:#fef2f2;color:#991b1b;">Not signed</span>
-                                        @endif
-                                    </div>
-                                    <p class="text-muted small mb-3">Please create your signature</p>
-
-                                    @if (!empty($user->employee->signature))
-                                        <div class="signature-preview-wrapper">
-                                            <img src="{{ route('useremployeesignature.photo', basename($user->employee->signature)) }}"
-                                                class="signature-preview-image" alt="Signature">
-                                            <p class="text-muted small mt-2 mb-0">This is your saved signature.</p>
-                                        </div>
+            {{-- Kelengkapan (signature: apa yang masih kurang dari profil saya) --}}
+            <section class="pr-panel" aria-labelledby="pf-check-title">
+                <div class="pr-panel-head">
+                    <div>
+                        <h2 class="pr-panel-title" id="pf-check-title">Kelengkapan profil</h2>
+                        <span class="pr-panel-sub">
+                            {{ $done === count($checks) ? 'Semua data yang Anda kelola sudah lengkap' : (count($checks) - $done) . ' hal masih perlu dilengkapi' }}
+                        </span>
+                    </div>
+                    <div class="pf-meter" aria-label="{{ $pct }} persen lengkap">
+                        <span class="pf-meter-track"><span class="pf-meter-fill" style="width: {{ $pct }}%"></span></span>
+                        <span class="pf-meter-num">{{ $done }}/{{ count($checks) }}</span>
+                    </div>
+                </div>
+                <ul class="pf-check">
+                    @foreach ($checks as [$name, $ok, $pending, $why])
+                        @php $state = $pending ? 'is-pending' : ($ok ? '' : 'is-missing'); @endphp
+                        <li class="{{ $state }}">
+                            <span class="pf-check-icon" aria-hidden="true">
+                                <i class="fas {{ $pending ? 'fa-clock' : ($ok ? 'fa-check' : 'fa-exclamation') }}"></i>
+                            </span>
+                            <span>
+                                <span class="pf-check-name">{{ $name }}</span>
+                                <span class="pf-check-sub">
+                                    @if ($pending)
+                                        Perubahan ke {{ $pending }} menunggu persetujuan HR.
+                                    @elseif ($ok)
+                                        Sudah ada.
                                     @else
-                                        <form method="POST" action="{{ route('save.signature') }}" id="form-signature"
-                                            enctype="multipart/form-data">
-                                            @csrf
-
-                                            {{-- Tab Navigation --}}
-                                            <div class="d-flex gap-2 mb-3">
-                                                <button type="button" class="btn btn-sm btn-primary" id="tab-draw"
-                                                    onclick="switchTab('draw')">
-                                                    <i class="fas fa-pen"></i> Draw
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-light border"
-                                                    id="tab-import" onclick="switchTab('import')">
-                                                    <i class="fas fa-upload"></i> Import File
-                                                </button>
-                                            </div>
-
-                                            {{-- Tab Draw --}}
-                                            <div id="section-draw">
-                                                <div class="border rounded p-3 bg-light mb-3"
-                                                    style="border-style: dashed !important;">
-                                                    <p class="text-muted small mb-2">Draw your signature below</p>
-                                                    {{-- <canvas id="signature-pad" class="w-100 bg-white rounded"
-                                                        style="height: 160px; cursor: crosshair;"></canvas> --}}
-                                                        {{-- <canvas id="signature-pad" class="w-100 rounded" style="height: 160px; cursor: crosshair; background: transparent;"></canvas> --}}
-                                                        <canvas id="signature-pad" class="w-100 rounded" style="height: 200px; cursor: crosshair;"></canvas>
-                                                </div>
-
-                                                <input type="hidden" name="signature" id="signature-input">
-
-                                                @error('signature')
-                                                    <div class="text-danger mt-1 mb-2" style="font-size:.72rem">
-                                                        {{ $message }}</div>
-                                                @enderror
-
-                                                <div class="d-flex gap-2 mb-3">
-                                                    <button type="button" class="btn btn-sm btn-light border"
-                                                        id="clear-signature">
-                                                        <i class="fas fa-eraser"></i> Clear
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {{-- Tab Import --}}
-                                            <div id="section-import" style="display:none;">
-                                                <div class="border rounded p-3 bg-light mb-3"
-                                                    style="border-style: dashed !important;">
-                                                    <p class="text-muted small mb-2">Upload signature image (JPG, PNG, WEBP
-                                                        — max 512KB)</p>
-
-                                                    <div class="photo-upload-wrap">
-                                                        <div class="photo-thumb">
-                                                            <img id="preview-signature-import" src=""
-                                                                alt=""
-                                                                style="display:none; height:96px; object-fit:contain;">
-                                                            <i class="fas fa-file-image" id="signature-import-placeholder"
-                                                                style="font-size:2rem; color:#cbd5e1;"></i>
-                                                        </div>
-                                                        <div>
-                                                            <label for="signature_file" class="photo-upload-btn">
-                                                                <i class="fas fa-arrow-up-from-bracket"
-                                                                    style="font-size:.7rem"></i>
-                                                                Choose file
-                                                            </label>
-                                                            <input type="file" name="signature_file"
-                                                                id="signature_file"
-                                                                class="d-none @error('signature_file') is-invalid @enderror"
-                                                                accept=".jpg,.jpeg,.png,.webp"
-                                                                onchange="previewSignatureImport(event)">
-                                                            <div class="photo-upload-hint mt-1" id="signature-file-name">
-                                                                No file chosen</div>
-                                                        </div>
-                                                    </div>
-
-                                                    @error('signature_file')
-                                                        <div class="text-danger mt-1" style="font-size:.72rem">
-                                                            {{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                            </div>
-
-                                            <button type="submit" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-floppy-disk"></i> Save Signature
-                                            </button>
-                                        </form>
+                                        Belum ada. {{ $why }}
                                     @endif
-                                </div>
+                                </span>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+
+            <div class="pf-grid">
+                {{-- Kolom kiri: data dari HR --}}
+                <div class="pf-col">
+                    <section class="pr-panel" aria-labelledby="pf-data-title">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="pf-data-title">Data karyawan</h2>
+                                <span class="pr-panel-sub">Diatur HR. Kalau ada yang salah, hubungi HR.</span>
                             </div>
                         </div>
-                    </div>
+                        <dl class="pf-dl">
+                            <div class="pf-dl-group">
+                                <h3 class="pf-dl-title">Pekerjaan</h3>
+                                {!! $row('Perusahaan', $emp?->company?->name) !!}
+                                {!! $row('Jabatan', $names($emp?->position, 'name')) !!}
+                                {!! $row('Departemen', $names($emp?->department, 'department_name')) !!}
+                                {!! $row('Lokasi', $names($emp?->store, 'name')) !!}
+                                {!! $row('Atasan langsung', $emp?->atasanList?->pluck('employee_name')->implode(', ')) !!}
+                                {!! $row('Status karyawan', $emp?->status_employee) !!}
+                                {!! $row('Grading', $emp?->grading?->grading_name) !!}
+                                {!! $row('Grouping', $emp?->group?->group_name) !!}
+                                {!! $row('Tanggal bergabung', $fmt($joinRaw)) !!}
+                                @if ($emp?->end_date)
+                                    {!! $row('Akhir kontrak', $fmt($emp->end_date)) !!}
+                                @endif
+                            </div>
+                            <div class="pf-dl-group">
+                                <h3 class="pf-dl-title">Akun</h3>
+                                {!! $row('Username', $user->username) !!}
+                                {!! $row('Email kantor', $emp?->company_email) !!}
+                            </div>
+                            <div class="pf-dl-group">
+                                <h3 class="pf-dl-title">Identitas</h3>
+                                {!! $row('NIK', $emp?->nik, true) !!}
+                                {!! $row('Nomor KK', $emp?->kk_number, true) !!}
+                                {!! $row('NPWP', $emp?->npwp, true) !!}
+                                {!! $row('Tempat, tanggal lahir', collect([$emp?->place_of_birth, $fmt($emp?->date_of_birth)])->filter()->implode(', ')) !!}
+                                {!! $row('Jenis kelamin', $emp?->gender) !!}
+                                {!! $row('Agama', $emp?->religion) !!}
+                            </div>
+                            <div class="pf-dl-group">
+                                <h3 class="pf-dl-title">BPJS dan gaji</h3>
+                                {!! $row('BPJS Kesehatan', $emp?->bpjs_kes, true) !!}
+                                {!! $row('BPJS Ketenagakerjaan', $emp?->bpjs_ket, true) !!}
+                                {!! $row('Rekening gaji', $acctMasked ? collect([$emp?->bank?->name, $acctMasked])->filter()->implode(', ') : null, true) !!}
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="pr-panel" aria-labelledby="pf-doc-title">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="pf-doc-title">Dokumen dan SK</h2>
+                                <span class="pr-panel-sub">{{ $documents->count() + $skLetters->count() }} file bisa diunduh</span>
+                            </div>
+                        </div>
+                        @if ($documents->isEmpty() && $skLetters->isEmpty())
+                            <p class="pr-empty-note">Belum ada dokumen atau SK untuk Anda. Dokumen yang diterbitkan HR akan muncul di sini.</p>
+                        @else
+                            <ul class="pf-docs">
+                                @foreach ($documents as $doc)
+                                    <li>
+                                        <a href="{{ route('profile.documents.download', $doc->id) }}" class="pf-doc">
+                                            <span class="pf-doc-icon" aria-hidden="true"><i class="fas fa-file-pdf"></i></span>
+                                            <span class="pf-doc-main">
+                                                <span class="pf-doc-name">{{ $doc->companydocumentconfigs?->documenttypes?->document_name ?? 'Dokumen' }}</span>
+                                                <span class="pf-doc-sub">{{ $doc->document_number }}</span>
+                                            </span>
+                                            <span class="pf-doc-dl">Unduh</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                                @foreach ($skLetters as $sk)
+                                    <li>
+                                        <a href="{{ route('my-sk-letter.download', $sk->id) }}" class="pf-doc">
+                                            <span class="pf-doc-icon" aria-hidden="true"><i class="fas fa-file-signature"></i></span>
+                                            <span class="pf-doc-main">
+                                                <span class="pf-doc-name">Surat keputusan</span>
+                                                <span class="pf-doc-sub">{{ $sk->sk_number }}</span>
+                                            </span>
+                                            <span class="pf-doc-dl">Unduh</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </section>
                 </div>
+
+                {{-- Kolom kanan: yang bisa saya ubah --}}
+                <div class="pf-col">
+                    <form action="{{ route('feature-profile.update') }}" method="POST" enctype="multipart/form-data" class="pr-panel" id="pf-form" aria-labelledby="pf-edit-title">
+                        @csrf
+                        @method('PUT')
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="pf-edit-title">Kontak dan foto</h2>
+                                <span class="pr-panel-sub">Foto langsung tersimpan. Email dan telepon baru berlaku setelah disetujui HR.</span>
+                            </div>
+                        </div>
+                        <div class="pf-form-body">
+                            <div class="pf-field">
+                                <label for="email">Email pribadi</label>
+                                <input type="email" id="email" name="email" maxlength="100" autocomplete="email"
+                                    class="pf-input @error('email') is-invalid @enderror"
+                                    value="{{ old('email', $emp->email ?? '') }}" placeholder="nama@contoh.com">
+                                @error('email')<span class="pf-error">{{ $message }}</span>@enderror
+                                @if ($emp?->pending_email)
+                                    <span class="pf-hint is-pending">Menunggu persetujuan HR: {{ $emp->pending_email }}</span>
+                                @endif
+                            </div>
+                            <div class="pf-field">
+                                <label for="telp_number">Nomor telepon</label>
+                                <input type="tel" id="telp_number" name="telp_number" maxlength="20" autocomplete="tel" inputmode="tel"
+                                    class="pf-input @error('telp_number') is-invalid @enderror"
+                                    value="{{ old('telp_number', $emp->telp_number ?? '') }}" placeholder="08xxxxxxxxxx">
+                                @error('telp_number')<span class="pf-error">{{ $message }}</span>@enderror
+                                @if ($emp?->pending_telp_number)
+                                    <span class="pf-hint is-pending">Menunggu persetujuan HR: {{ $emp->pending_telp_number }}</span>
+                                @endif
+                            </div>
+
+                            <div class="pf-uploads">
+                                @foreach ([
+                                    ['photos', 'Foto profil', 'preview-image', 'photo-placeholder', $emp?->photos ? route('useremployee.photo', basename($emp->photos)) : null, 2048],
+                                    ['ktp_photos', 'Foto KTP', 'preview-image-ktp', 'photo-placeholder-ktp', $emp?->ktp_photos ? route('useremployeektp.photo', basename($emp->ktp_photos)) : null, 512],
+                                    ['kk_photos', 'Foto KK', 'preview-image-kk', 'photo-placeholder-kk', $emp?->kk_photos ? route('useremployeekk.photo', basename($emp->kk_photos)) : null, 512],
+                                ] as [$field, $label, $imgId, $phId, $src, $maxKb])
+                                    <div class="pf-upload">
+                                        <span class="pf-upload-name">{{ $label }}</span>
+                                        <div class="pf-thumb">
+                                            <img id="{{ $imgId }}" src="{{ $src ?? '' }}" alt="{{ $label }}" onclick="openImageModal(this.src)" @if (!$src) hidden @endif>
+                                            <span class="pf-thumb-empty" id="{{ $phId }}" onclick="document.getElementById('{{ $field }}').click()" @if ($src) hidden @endif>
+                                                <i class="fas fa-image" aria-hidden="true"></i> Belum ada
+                                            </span>
+                                        </div>
+                                        <label for="{{ $field }}" class="pr-btn pr-btn-sm pf-file-label">
+                                            <i class="fas fa-upload" aria-hidden="true"></i> {{ $src ? 'Ganti' : 'Unggah' }}
+                                        </label>
+                                        <input type="file" name="{{ $field }}" id="{{ $field }}" class="pf-visually-hidden js-photo-input"
+                                            accept=".jpg,.jpeg,.png,.webp" data-max-kb="{{ $maxKb }}" data-img="{{ $imgId }}" data-ph="{{ $phId }}">
+                                        <span class="pf-file-state" id="{{ $field }}-state">JPG, PNG, WEBP, maks {{ $maxKb >= 1024 ? ($maxKb / 1024) . ' MB' : $maxKb . ' KB' }}</span>
+                                        @error($field)<span class="pf-error">{{ $message }}</span>@enderror
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="pf-form-foot">
+                            <span class="pf-dirty" id="pf-dirty" hidden>Ada perubahan yang belum disimpan</span>
+                            <button type="submit" class="pr-btn pr-btn-primary" style="margin-left:auto"><i class="fas fa-floppy-disk" aria-hidden="true"></i> Simpan perubahan</button>
+                        </div>
+                    </form>
+
+                    <section class="pr-panel" aria-labelledby="pf-sec-title">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="pf-sec-title">Keamanan akun</h2>
+                            </div>
+                        </div>
+                        <ul class="pf-sec">
+                            <li>
+                                <span class="pf-sec-main">
+                                    <span class="pf-check-name">Password</span>
+                                    <span class="pf-check-sub">Ganti secara berkala, jangan sama dengan NIP.</span>
+                                </span>
+                                <a href="{{ route('pages.change-password') }}" class="pr-btn pr-btn-sm">Ganti</a>
+                            </li>
+                            <li>
+                                <span class="pf-sec-main">
+                                    <span class="pf-check-name">Verifikasi dua langkah (2FA)</span>
+                                    <span class="pf-check-sub">
+                                        @if ($user->hasTwoFactorEnabled())
+                                            Aktif. Login butuh kode dari aplikasi Authenticator.
+                                        @elseif ($user->requiresTwoFactor())
+                                            Diwajibkan untuk akun Anda tapi belum diaktifkan.
+                                        @else
+                                            Belum aktif. Melindungi akun walau password bocor.
+                                        @endif
+                                    </span>
+                                </span>
+                                @if ($user->hasTwoFactorEnabled())
+                                    <span class="status-badge is-approved">Aktif</span>
+                                @else
+                                    <a href="{{ route('2fa.setup') }}" class="pr-btn pr-btn-sm {{ $user->requiresTwoFactor() ? 'pr-btn-primary' : '' }}">Aktifkan</a>
+                                @endif
+                            </li>
+                            @if (count($roles) > 1)
+                                <li>
+                                    <span class="pf-sec-main" style="flex:1">
+                                        <span class="pf-check-name">Role aktif</span>
+                                        <span class="pf-check-sub">Menu dan dashboard mengikuti role yang aktif.</span>
+                                        <form action="{{ route('profile.switchRole') }}" method="POST" class="pf-role-form">
+                                            @csrf
+                                            @method('PUT')
+                                            <label for="active_role_hrx" class="pf-visually-hidden">Pilih role</label>
+                                            <select name="active_role_hrx" id="active_role_hrx" class="pf-input">
+                                                @foreach ($roles as $role)
+                                                    <option value="{{ $role }}" @selected(Auth::user()->active_role_hrx === $role)>{{ $role }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="submit" class="pr-btn pr-btn-sm">Ganti role</button>
+                                        </form>
+                                        @error('active_role_hrx')<span class="pf-error">{{ $message }}</span>@enderror
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </section>
+
+                    <section class="pr-panel" aria-labelledby="pf-sign-title">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="pf-sign-title">Tanda tangan</h2>
+                                <span class="pr-panel-sub">
+                                    {{ !empty($emp?->signature) ? 'Tersimpan. Untuk mengubah, hubungi HR.' : 'Dipakai di SK dan surat resmi. Hanya bisa disimpan sekali.' }}
+                                </span>
+                            </div>
+                            <span class="status-badge {{ !empty($emp?->signature) ? 'is-approved' : 'is-pending' }}">
+                                {{ !empty($emp?->signature) ? 'Tersimpan' : 'Belum ada' }}
+                            </span>
+                        </div>
+                        <div class="pf-sign-body">
+                            @if (!empty($emp?->signature))
+                                <div class="pf-sign-saved">
+                                    <img src="{{ route('useremployeesignature.photo', basename($emp->signature)) }}" alt="Tanda tangan Anda">
+                                </div>
+                            @else
+                                <form method="POST" action="{{ route('save.signature') }}" id="form-signature" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="pr-tabs" role="group" aria-label="Cara membuat tanda tangan" style="margin-bottom: var(--pr-space-sm)">
+                                        <button type="button" id="tab-draw" aria-pressed="true" onclick="switchTab('draw')">Gambar</button>
+                                        <button type="button" id="tab-import" aria-pressed="false" onclick="switchTab('import')">Unggah file</button>
+                                    </div>
+
+                                    <div id="section-draw">
+                                        <div class="pf-pad">
+                                            <canvas id="signature-pad" aria-label="Area tanda tangan"></canvas>
+                                        </div>
+                                        <span class="pf-hint">Tanda tangani di kotak dengan mouse atau jari.</span>
+                                        <input type="hidden" name="signature" id="signature-input">
+                                        @error('signature')<span class="pf-error">{{ $message }}</span>@enderror
+                                    </div>
+
+                                    <div id="section-import" hidden>
+                                        <div class="pf-sign-import">
+                                            <img id="preview-signature-import" src="" alt="" hidden>
+                                            <i class="fas fa-file-image" id="signature-import-placeholder" aria-hidden="true" style="font-size:2rem;color:var(--pr-muted)"></i>
+                                            <div>
+                                                <label for="signature_file" class="pr-btn pr-btn-sm pf-file-label">Pilih file</label>
+                                                <input type="file" name="signature_file" id="signature_file" class="pf-visually-hidden"
+                                                    accept=".jpg,.jpeg,.png,.webp" onchange="previewSignatureImport(event)">
+                                                <span class="pf-hint" id="signature-file-name">JPG, PNG, WEBP, maks 512 KB. Latar putih atau transparan.</span>
+                                            </div>
+                                        </div>
+                                        @error('signature_file')<span class="pf-error">{{ $message }}</span>@enderror
+                                    </div>
+
+                                    <div class="pf-sign-actions">
+                                        <button type="button" class="pr-btn pr-btn-sm" id="clear-signature">Hapus coretan</button>
+                                        <button type="submit" class="pr-btn pr-btn-primary">Simpan tanda tangan</button>
+                                    </div>
+                                </form>
+                            @endif
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div class="pf-lightbox" id="imagePreviewModal" onclick="closeImageModal()" role="dialog" aria-modal="true" aria-label="Pratinjau gambar">
+                <button type="button" onclick="closeImageModal()" aria-label="Tutup">×</button>
+                <img id="modalPreviewImage" alt="">
             </div>
         </section>
     </div>
@@ -1503,77 +2014,75 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <script>
-        // ─── Password Toggle ───────────────────────────────────────────────
-        function togglePassword() {
-            const input = document.getElementById('password');
-            const icon  = document.getElementById('eyeIcon');
-            const isHidden = input.type === 'password';
-            input.type = isHidden ? 'text' : 'password';
-            icon.classList.replace(isHidden ? 'fa-eye' : 'fa-eye-slash', isHidden ? 'fa-eye-slash' : 'fa-eye');
+        // ─── Lightbox gambar ───────────────────────────────────────────────
+        function openImageModal(src) {
+            if (!src) return;
+            document.getElementById('modalPreviewImage').src = src;
+            document.getElementById('imagePreviewModal').classList.add('is-open');
         }
 
-        // ─── Image Modal Helpers ───────────────────────────────────────────
-        function openImageModal(src)    { document.getElementById('imagePreviewModal').style.display    = 'block'; document.getElementById('modalPreviewImage').src    = src; }
-        function closeImageModal()      { document.getElementById('imagePreviewModal').style.display    = 'none'; }
-        function openImageModalkk(src)  { document.getElementById('imagePreviewModalkk').style.display  = 'block'; document.getElementById('modalPreviewImagekk').src  = src; }
-        function closeImageModalkk()    { document.getElementById('imagePreviewModalkk').style.display  = 'none'; }
-        function openImageModalktp(src) { document.getElementById('imagePreviewModalktp').style.display = 'block'; document.getElementById('modalPreviewImagektp').src = src; }
-        function closeImageModalktp()   { document.getElementById('imagePreviewModalktp').style.display = 'none'; }
+        function closeImageModal() {
+            document.getElementById('imagePreviewModal').classList.remove('is-open');
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImageModal(); });
 
-        // ─── Photo Preview Helpers ─────────────────────────────────────────
-        function previewPhoto(fileInput, imgId, placeholderId, modalFn) {
-            const file = fileInput.files[0];
+        // ─── Pratinjau foto + cek ukuran sebelum upload ───────────────────
+        const dirty = document.getElementById('pf-dirty');
+        const markDirty = () => { if (dirty) dirty.hidden = false; };
+        document.querySelectorAll('#pf-form input[type="email"], #pf-form input[type="tel"]').forEach(i => i.addEventListener('input', markDirty));
+
+        document.querySelectorAll('.js-photo-input').forEach(input => input.addEventListener('change', function() {
+            const file = this.files[0];
+            const state = document.getElementById(this.id + '-state');
             if (!file) return;
-            const url = URL.createObjectURL(file);
-            const img = document.getElementById(imgId);
-            const ph  = document.getElementById(placeholderId);
-            img.src = url;
-            img.style.display = 'block';
-            if (ph) ph.style.display = 'none';
-            img.setAttribute('onclick', `${modalFn}(this.src)`);
-        }
+            const maxKb = Number(this.dataset.maxKb);
+            if (!/\.(jpe?g|png|webp)$/i.test(file.name) || file.size > maxKb * 1024) {
+                this.value = '';
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'File tidak bisa dipakai',
+                    text: `Gunakan JPG, PNG, atau WEBP dengan ukuran maksimal ${maxKb >= 1024 ? maxKb / 1024 + ' MB' : maxKb + ' KB'}. File Anda ${Math.ceil(file.size / 1024)} KB.`,
+                    confirmButtonColor: '#4f46e5'
+                });
+                return;
+            }
+            const img = document.getElementById(this.dataset.img);
+            img.src = URL.createObjectURL(file);
+            img.hidden = false;
+            document.getElementById(this.dataset.ph).hidden = true;
+            state.textContent = `Baru: ${file.name}, belum disimpan`;
+            state.classList.add('is-new');
+            markDirty();
+        }));
 
-        function previewProfilePhoto(event)    { previewPhoto(event.target, 'preview-image',     'photo-placeholder',     'openImageModal'); }
-        function previewProfilePhotokk(event)  { previewPhoto(event.target, 'preview-image-kk',  'photo-placeholder-kk',  'openImageModalkk'); }
-        function previewProfilePhotoktp(event) { previewPhoto(event.target, 'preview-image-ktp', 'photo-placeholder-ktp', 'openImageModalktp'); }
-
-        // ─── SweetAlert Session Flash ──────────────────────────────────────
+        // ─── Notifikasi flash ──────────────────────────────────────────────
         @if (session('success') || session('status'))
             Swal.fire({
                 icon: 'success',
-                title: 'Saved',
-                text: '{{ session('success') ?? session('status') }}',
-                confirmButtonColor: '#1d4ed8',
+                title: 'Tersimpan',
+                text: @json(session('success') ?? session('status')),
+                confirmButtonColor: '#4f46e5',
                 timer: 3000,
                 timerProgressBar: true
             });
         @endif
-
         @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#dc2626'
-            });
+            Swal.fire({ icon: 'error', title: 'Gagal', text: @json(session('error')), confirmButtonColor: '#dc2626' });
         @endif
 
-        // ─── Signature Pad ─────────────────────────────────────────────────
+        // ─── Signature pad ─────────────────────────────────────────────────
         const canvas = document.getElementById('signature-pad');
         let signaturePad = null;
 
         if (canvas) {
             function resizeCanvas() {
                 const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                const data  = signaturePad ? signaturePad.toData() : null;
-
-                canvas.width  = canvas.offsetWidth * ratio;
+                const data = signaturePad ? signaturePad.toData() : null;
+                canvas.width = canvas.offsetWidth * ratio;
                 canvas.height = canvas.offsetHeight * ratio;
-
                 const ctx = canvas.getContext('2d');
                 ctx.scale(ratio, ratio);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-
                 if (signaturePad && data) signaturePad.fromData(data);
             }
 
@@ -1591,11 +2100,10 @@
             document.getElementById('clear-signature').addEventListener('click', () => signaturePad.clear());
         }
 
-        // ─── Signature Export (crop + scale ke 800x300) ────────────────────
+        // ─── Export tanda tangan (crop + skala ke 800x300) ─────────────────
         function exportSignatureAsPNG() {
-            const imgData     = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            const imgData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
             const { data, width, height } = imgData;
-
             let minX = width, minY = height, maxX = 0, maxY = 0;
 
             for (let y = 0; y < height; y++) {
@@ -1609,104 +2117,98 @@
                 }
             }
 
-            const padding    = 20;
+            const padding = 20;
             minX = Math.max(0, minX - padding);
             minY = Math.max(0, minY - padding);
-            maxX = Math.min(width,  maxX + padding);
+            maxX = Math.min(width, maxX + padding);
             maxY = Math.min(height, maxY + padding);
 
             const cropW = maxX - minX;
             const cropH = maxY - minY;
-
             const targetW = 800;
             const targetH = 300;
-            const scale   = Math.min(targetW / cropW, targetH / cropH, 2);
+            const scale = Math.min(targetW / cropW, targetH / cropH, 2);
+            const drawW = cropW * scale;
+            const drawH = cropH * scale;
 
-            const drawW   = cropW * scale;
-            const drawH   = cropH * scale;
-            const offsetX = (targetW - drawW) / 2;
-            const offsetY = (targetH - drawH) / 2;
-
-            const exportCanvas    = document.createElement('canvas');
-            exportCanvas.width    = targetW;
-            exportCanvas.height   = targetH;
-            const exportCtx       = exportCanvas.getContext('2d');
-            exportCtx.clearRect(0, 0, targetW, targetH);
-            exportCtx.drawImage(canvas, minX, minY, cropW, cropH, offsetX, offsetY, drawW, drawH);
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = targetW;
+            exportCanvas.height = targetH;
+            exportCanvas.getContext('2d').drawImage(canvas, minX, minY, cropW, cropH, (targetW - drawW) / 2, (targetH - drawH) / 2, drawW, drawH);
 
             return exportCanvas.toDataURL('image/png');
         }
 
-        // ─── Tab Switch ────────────────────────────────────────────────────
+        // ─── Tab gambar / unggah ───────────────────────────────────────────
         function switchTab(tab) {
-            const isDrawTab    = tab === 'draw';
-            const drawSection  = document.getElementById('section-draw');
-            const importSection = document.getElementById('section-import');
-            const tabDraw      = document.getElementById('tab-draw');
-            const tabImport    = document.getElementById('tab-import');
+            const isDraw = tab === 'draw';
+            document.getElementById('section-draw').hidden = !isDraw;
+            document.getElementById('section-import').hidden = isDraw;
+            document.getElementById('tab-draw').setAttribute('aria-pressed', isDraw);
+            document.getElementById('tab-import').setAttribute('aria-pressed', !isDraw);
+            document.getElementById('clear-signature').hidden = !isDraw;
 
-            drawSection.style.display   = isDrawTab ? 'block' : 'none';
-            importSection.style.display = isDrawTab ? 'none'  : 'block';
-
-            tabDraw.classList.toggle('btn-primary', isDrawTab);
-            tabDraw.classList.toggle('btn-light',  !isDrawTab);
-            tabImport.classList.toggle('btn-primary', !isDrawTab);
-            tabImport.classList.toggle('btn-light',    isDrawTab);
-
-            if (isDrawTab) {
+            if (isDraw) {
                 document.getElementById('signature_file').value = '';
-                document.getElementById('preview-signature-import').style.display = 'none';
-                document.getElementById('signature-import-placeholder').style.display = 'inline';
-                document.getElementById('signature-file-name').textContent = 'No file chosen';
+                document.getElementById('preview-signature-import').hidden = true;
+                document.getElementById('signature-import-placeholder').hidden = false;
+                document.getElementById('signature-file-name').textContent = 'JPG, PNG, WEBP, maks 512 KB. Latar putih atau transparan.';
+                resizeCanvas();
             } else {
                 document.getElementById('signature-input').value = '';
                 if (signaturePad) signaturePad.clear();
             }
         }
 
-        // ─── Import File Preview ───────────────────────────────────────────
         function previewSignatureImport(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const url = URL.createObjectURL(file);
-            document.getElementById('preview-signature-import').src          = url;
-            document.getElementById('preview-signature-import').style.display = 'block';
-            document.getElementById('signature-import-placeholder').style.display = 'none';
-            document.getElementById('signature-file-name').textContent        = file.name;
+            if (file.size > 512 * 1024) {
+                event.target.value = '';
+                Swal.fire({ icon: 'warning', title: 'File terlalu besar', text: `Maksimal 512 KB, file Anda ${Math.ceil(file.size / 1024)} KB.`, confirmButtonColor: '#4f46e5' });
+                return;
+            }
+            const img = document.getElementById('preview-signature-import');
+            img.src = URL.createObjectURL(file);
+            img.hidden = false;
+            document.getElementById('signature-import-placeholder').hidden = true;
+            document.getElementById('signature-file-name').textContent = file.name;
         }
 
-        // ─── Form Submit ───────────────────────────────────────────────────
+        // ─── Submit tanda tangan ───────────────────────────────────────────
         const formSignature = document.getElementById('form-signature');
         if (formSignature) {
-            formSignature.addEventListener('submit', function (e) {
-                const isDrawTab = document.getElementById('section-draw').style.display !== 'none';
+            formSignature.addEventListener('submit', function(e) {
+                const isDraw = !document.getElementById('section-draw').hidden;
+                e.preventDefault();
 
-                if (isDrawTab) {
-                    if (!signaturePad || signaturePad.isEmpty()) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Signature kosong',
-                            text: 'Silakan buat tanda tangan terlebih dahulu.',
-                            confirmButtonColor: '#1d4ed8'
-                        });
-                        return;
-                    }
-                    document.getElementById('signature-input').value = exportSignatureAsPNG();
-                    document.getElementById('signature_file').value  = '';
-                } else {
-                    if (!document.getElementById('signature_file').files.length) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'File kosong',
-                            text: 'Silakan pilih file signature terlebih dahulu.',
-                            confirmButtonColor: '#1d4ed8'
-                        });
-                        return;
-                    }
-                    document.getElementById('signature-input').value = '';
+                if (isDraw && (!signaturePad || signaturePad.isEmpty())) {
+                    Swal.fire({ icon: 'warning', title: 'Tanda tangan kosong', text: 'Silakan buat tanda tangan terlebih dahulu.', confirmButtonColor: '#4f46e5' });
+                    return;
                 }
+                if (!isDraw && !document.getElementById('signature_file').files.length) {
+                    Swal.fire({ icon: 'warning', title: 'File kosong', text: 'Silakan pilih file tanda tangan terlebih dahulu.', confirmButtonColor: '#4f46e5' });
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Simpan tanda tangan?',
+                    text: 'Tanda tangan hanya bisa disimpan sekali. Setelah itu, perubahan harus lewat HR.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Simpan',
+                    cancelButtonText: 'Periksa lagi',
+                    confirmButtonColor: '#4f46e5'
+                }).then(r => {
+                    if (!r.isConfirmed) return;
+                    if (isDraw) {
+                        document.getElementById('signature-input').value = exportSignatureAsPNG();
+                        document.getElementById('signature_file').value = '';
+                    } else {
+                        document.getElementById('signature-input').value = '';
+                    }
+                    formSignature.submit();
+                });
             });
         }
     </script>

@@ -223,9 +223,19 @@ class AutoRosterController extends Controller
 
                     // Cek PH — hanya untuk karyawan yang eligible (PKWT & OJT)
                     $phForDate = null;
-                    if ($eligibleForPH && $allPublicHolidays->has($dateStr)) {
+                    // PH hari Minggu hangus untuk store statis → hari itu tetap Off
+                    $phVoided = $date->isSunday()
+                        && in_array($employee->primaryStore()->value('stores_tables.id'), PublicHoliday::STATIC_STORE_IDS, true);
+
+                    if ($eligibleForPH && !$phVoided && $allPublicHolidays->has($dateStr)) {
                         $phForDate = $allPublicHolidays->get($dateStr)
                             ->first(fn($ph) => in_array($ph->type, $relevantPhTypes));
+                    }
+
+                    // Hari PH yang sudah dikerjakan / saldonya sudah dipakai tidak boleh jadi PH lagi
+                    if ($phForDate && !RosterPHCarryover::enjoyPh($employee->id, $dateStr)) {
+                        $skipped++;
+                        continue;
                     }
 
                     $dayType = null;
@@ -253,14 +263,6 @@ class AutoRosterController extends Controller
                         'day_type'    => $dayType,
                         'notes'       => $notes,
                     ]);
-
-                    // ── Cancel carryover jika PH dinikmati langsung via auto generate ──
-                    if ($dayType === 'Public Holiday') {
-                        RosterPHCarryover::where('employee_id', $employee->id)
-                            ->where('ph_date', $dateStr)
-                            ->where('status', 'available')
-                            ->update(['status' => 'cancelled']);
-                    }
 
                     $created++;
                     $breakdown[$dayType] = ($breakdown[$dayType] ?? 0) + 1;

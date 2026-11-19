@@ -12,6 +12,9 @@ use App\Models\Contract;
 use App\Models\Submissions;
 use App\Models\Announcement;
 use App\Models\Submissionposition;
+use App\Models\Roster;
+use App\Models\Leaverequest;
+use App\Models\PayrollPeriod;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -25,176 +28,92 @@ use Illuminate\Support\Facades\Bus;
 
 class DashboardHRController extends Controller
 {
+    /** Status karyawan yang dihitung sebagai headcount aktif. */
+    private const ACTIVE_STATUSES = ['Active', 'Pending', 'Mutation', 'On Leave'];
+
     public function index(Request $request)
     {
-        $month = $request->get('month', now()->format('Y-m'));
-        $monthDate = Carbon::createFromFormat('Y-m', $month);
-        $startDate = $monthDate->copy()->startOfMonth();
-        $endDate   = $monthDate->copy()->endOfMonth();
-        $types = ['Annual Leave', 'Overtime', 'Cash Advances'];
-        $statussubmissions = ['Cash', 'TOIL'];
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending', 'Mutation'])->count();
-        $totalEmployeespending = Employee::whereIn('status', ['Pending'])->count();
-        $totalEmployeesinactive = Employee::whereIn('status', ['Inactive', 'Resign'])
-            ->where('end_date', '>=', now()->subWeek())
-            ->count();
-        // 🔹 Data kehadiran (fingerprint)
-        $data = Fingerprints::selectRaw('DAY(scan_date) as day, COUNT(DISTINCT pin) as total')
-            ->whereBetween('scan_date', [$startDate, $endDate])
-            ->groupBy('day')
-            ->orderBy('day')
-            ->get();
-        $days = $data->pluck('day');
-        $percentages = $data->pluck('total')->map(function ($value) use ($totalEmployees) {
-            return $totalEmployees > 0 ? round(($value / $totalEmployees) * 100, 2) : 0;
-        });
-        $announcements = Announcement::orderBy('created_at', 'desc')->get();
-        // 🔹 Ambil user & employee
         $user = Auth::user();
-        $employee = $user->employee ?? null;
-        // Ambil type yang dipilih (bisa dari query string atau form)
-        $selectedType = $request->get('type', null);
-        // Default nilai
-        $submissions = collect();
-        $managedEmployees = $employee ? collect([$employee]) : collect();
-        $canCreateOvertime = $employee && ($employee->is_manager == 1 || $employee->is_manager_store == 1);
-        if ($employee && ($employee->is_manager == 1 || $employee->is_manager_store == 1)) {
-            // 🔹 Ambil semua employee di department atau store yang sama
-            $query = Employee::query();
+        $today = Carbon::today();
+        $monthStart = $today->copy()->startOfMonth();
+        $monthEnd = $today->copy()->endOfMonth();
 
-            if ($employee->is_manager == 1) {
-                $query->where('department_id', $employee->department_id);
-            }
+        // ── Headcount ──
+        $headcount = [
+            'active'   => Employee::whereIn('status', self::ACTIVE_STATUSES)->count(),
+            'pending'  => Employee::where('status', 'Pending')->count(),
+            'joined'   => Employee::whereIn('status', self::ACTIVE_STATUSES)
+                ->whereBetween('join_date', [$monthStart, $monthEnd])->count(),
+            'resigned' => Employee::whereIn('status', ['Resign', 'Inactive'])
+                ->whereBetween('end_date', [$monthStart, $monthEnd])->count(),
+        ];
 
-            if ($employee->is_manager_store == 1) {
-                // gunakan orWhere supaya store manager bisa lihat berdasarkan store
-                $query->orWhere('store_id', $employee->store_id);
-            }
+        // ── Kehadiran hari ini: dibandingkan dengan jadwal roster hari ini ──
+        $activePins = Employee::whereIn('status', self::ACTIVE_STATUSES)->whereNotNull('pin')->pluck('pin')->all();
+        $rosterToday = Roster::whereDate('date', $today)
+            ->selectRaw('day_type, COUNT(*) as total')->groupBy('day_type')->pluck('total', 'day_type');
+        $scheduledPins = Roster::whereDate('date', $today)->where('day_type', 'Work')
+            ->join('employees_tables as e', 'e.id', '=', 'roster.employee_id')
+            ->whereIn('e.status', self::ACTIVE_STATUSES)->pluck('e.pin')->filter()->all();
+        $presentPins = Fingerprints::whereDate('scan_date', $today)
+            ->whereIn('pin', $activePins)->distinct()->pluck('pin')->all();
+        $presentYesterday = Fingerprints::whereDate('scan_date', $today->copy()->subDay())
+            ->whereIn('pin', $activePins)->distinct()->count('pin');
 
-            $managedIds = $query->pluck('id')->toArray();
-            $managedIds[] = $employee->id; // pastikan dirinya sendiri ikut
+        $scheduled = count($scheduledPins);
+        $attendance = [
+            'scheduled'        => $scheduled,
+            'present'          => count($presentPins),
+            'present_scheduled'=> count(array_intersect($scheduledPins, $presentPins)),
+            'not_in_yet'       => count(array_diff($scheduledPins, $presentPins)),
+            'yesterday'        => $presentYesterday,
+            'leave'            => (int) ($rosterToday['Leave'] ?? 0) + (int) ($rosterToday['Cuti Melahirkan'] ?? 0),
+            'sick'             => (int) ($rosterToday['Sick'] ?? 0),
+            'off'              => (int) ($rosterToday['Off'] ?? 0) + (int) ($rosterToday['TOIL Off'] ?? 0),
+            'holiday'          => (int) ($rosterToday['Public Holiday'] ?? 0),
+            'has_roster'       => $rosterToday->isNotEmpty(),
+            'last_scan'        => Fingerprints::max('scan_date'),
+            'last_roster'      => Roster::max('date'),
+        ];
+        $attendance['rate'] = $scheduled > 0 ? round($attendance['present_scheduled'] / $scheduled * 100) : null;
 
-            $submissions = Submissions::with(['employee', 'approver'])
-                ->whereIn('employee_id', $managedIds)
-                ->latest()
-                ->take(8)
-                ->get();
+        // ── Perlu tindakan ──
+        $contractsQuery = Contract::with('employee:id,employee_name,employee_pengenal')
+            ->whereDate('end_date', '>=', $today)
+            ->whereDate('end_date', '<=', $today->copy()->addDays(30));
+        $contractsExpiringCount = (clone $contractsQuery)->count();
+        $expiringContracts = $contractsQuery->orderBy('end_date')->limit(6)->get()
+            ->each(fn($c) => $c->days_left = $today->diffInDays(Carbon::parse($c->end_date), false));
 
-            // 🔹 Ambil semua bawahannya
-            $subordinates = Employee::whereIn('id', $managedIds)
-                ->where('id', '!=', $employee->id)
-                ->get();
+        $positionRequests = Submissionposition::with('submitter')->where('status', 'Sent')->latest()->limit(6)->get();
 
-            $managedEmployees = collect([$employee])
-                ->merge($subordinates)
-                ->unique('id')
-                ->values();
-        } else if ($employee) {
-            // 🔹 Non-manager hanya bisa lihat submissions miliknya
-            $submissions = Submissions::with(['employee', 'approver'])
-                ->where('employee_id', $employee->id)
-                ->latest()
-                ->take(8)
+        $actions = [
+            'leave'    => Leaverequest::where('status', 'Pending')->count(),
+            'position' => Submissionposition::where('status', 'Sent')->count(),
+            'contract' => $contractsExpiringCount,
+        ];
+
+        $payrollPeriods = collect();
+        if ($user->can('payroll.period.view') || $user->can('payroll.view')) {
+            $payrollPeriods = PayrollPeriod::whereIn('status', ['open', 'closed'])
+                ->withPayrollSummary()
+                ->orderByDesc('period_year')->orderByDesc('period_month')
                 ->get();
         }
-        // 🔹 Hitung durasi (Annual Leave dsb)
-        foreach ($submissions as $submission) {
-            if (!is_numeric($submission->duration)) {
-                $from = Carbon::parse($submission->leave_date_from);
-                $to   = Carbon::parse($submission->leave_date_to);
-                $submission->duration = $from->diffInDays($to) + 1;
-            }
 
-            if (!isset($submission->formattedDuration)) {
-                $submission->formattedDuration = $submission->duration . ' day(s)';
-            }
-        }
-        $leaveData = null;
-        if ($selectedType === 'Annual Leave' && $employee) {
-            $total = $employee->total ?? $employee->total ?? $employee->total ?? 12;
-            $pending = $employee->pending ?? $employee->pending ?? $employee->pending ?? 0;
-            $remaining = $employee->remaining ?? $employee->remaining ?? $employee->remaining ?? 0;
-
-            $leaveData = [
-                'total' => $total ?? 12,
-                'pending' => $pending ?? 0,
-                'remaining' => $remaining ?? 0,
-            ];
-        }
-        $today = now()->format('Y-m-d');
-        $employeePins = Employee::pluck('pin')->toArray();
-
-        $presentToday = Fingerprints::whereDate('scan_date', $today)
-            ->whereIn('inoutmode', [1])
-            ->whereIn('pin', $employeePins)
-            ->distinct('pin')  // 1 orang dihitung 1 kali
-            ->count('pin');
-        $yesterday = now()->subDay()->toDateString();
-
-        $presentYesterday = Fingerprints::whereDate('scan_date', $yesterday)
-            ->whereIn('inoutmode', [1])
-            ->whereIn('pin', $employeePins)
-            ->distinct('pin')
-            ->count('pin');
-
-        $trend = $presentToday - $presentYesterday;
-
-        // contracrt
-       // Controller - bersihkan, tanpa map()
-$todaycontract = Carbon::today();
-$limitDate = $todaycontract->copy()->addDays(30);
-
-$expiringContracts = Contract::with('employee')
-    ->whereDate('end_date', '>=', $todaycontract->toDateString())
-    ->whereDate('end_date', '<=', $limitDate->toDateString())
-    ->orderBy('end_date', 'asc')
-    ->limit(5)
-    ->get();
-
-$contractsExpiringCount = $expiringContracts->count();
-$expiringContracts = $expiringContracts->map(function ($c) {
-    $daysLeft = now()->diffInDays($c->end_date, false);
-    $c->days_left = $daysLeft;
-    $c->urgency_class = $daysLeft <= 7 ? 'urgent' : ($daysLeft <= 30 ? 'warning' : 'ok');
-    return $c;
-});
-// count
-$contractsExpiringCount = $expiringContracts->count();
-
-$positionRequests = Submissionposition::with('submitter') // kalau ada relasi
-  ->where('status', 'Sent')
-    ->latest() // urut terbaru
-    ->limit(10)
-    ->get();
-$positionRequests = $positionRequests->map(function ($p) {
-    $p->status_label = $p->status === 'Sent' ? 'Need Approval' : $p->status;
-    return $p;
-});
-// count total
-$positionRequestCount = Submissionposition::count();
+        $activeAnnouncements = Announcement::whereDate('publish_date', '<=', $today)
+            ->where(fn($q) => $q->whereNull('end_date')->orWhereDate('end_date', '>=', $today))
+            ->count();
 
         return view('pages.dashboardHR.dashboardHR', [
-            'month'              => $month,
-            'days'               => $days,
-            'types'              => $types,
-            'statussubmissions'  => $statussubmissions,
-            'percentages'        => $percentages,
-            'totalEmployeesinactive'        => $totalEmployeesinactive,
-            'pendingSubmissions' => $submissions,
-            'totalEmployees'     => $totalEmployees,
-            'trend'     => $trend,
-            'announcements'      => $announcements,
-            'presentToday'      => $presentToday,
-            'presentYesterday'      => $presentYesterday,
-            'canCreateOvertime'  => $canCreateOvertime,
-            'totalEmployeespending'  => $totalEmployeespending,
-            'managedEmployees'   => $managedEmployees,
-            'selectedType'       => $selectedType,
-            'leaveData'          => $leaveData,
-            'expiringContracts'          => $expiringContracts,
-            'contractsExpiringCount'          => $contractsExpiringCount,
-            'positionRequests' => $positionRequests,
-    'positionRequestCount' => $positionRequestCount,
+            'headcount'              => $headcount,
+            'attendance'             => $attendance,
+            'actions'                => $actions,
+            'expiringContracts'      => $expiringContracts,
+            'contractsExpiringCount' => $contractsExpiringCount,
+            'positionRequests'       => $positionRequests,
+            'payrollPeriods'         => $payrollPeriods,
+            'activeAnnouncements'    => $activeAnnouncements,
         ]);
     }
  public function employeeByDepartment()
@@ -389,6 +308,7 @@ foreach ($employees as $employee) {
     {
         $announcements = Announcement::with('user.Employee.department')
             ->select(['id', 'user_id', 'title', 'content', 'publish_date', 'end_date'])
+            ->orderByDesc('publish_date')
             ->get()
             ->map(function ($announcement) {
                 $announcement->id_hashed = substr(hash('sha256', $announcement->id . env('APP_KEY')), 0, 8);
@@ -402,6 +322,15 @@ foreach ($employees as $employee) {
                     ? $announcement->user->Employee->department->first()->department_name
                     : 'Empty';
             })
+            ->addColumn('state', function ($announcement) {
+                $today = Carbon::today();
+                if (Carbon::parse($announcement->publish_date)->gt($today)) {
+                    return 'scheduled';
+                }
+                return $announcement->end_date && Carbon::parse($announcement->end_date)->lt($today) ? 'ended' : 'active';
+            })
+            ->addColumn('publish_fmt', fn($a) => Carbon::parse($a->publish_date)->locale('id')->translatedFormat('d M Y'))
+            ->addColumn('end_fmt', fn($a) => $a->end_date ? Carbon::parse($a->end_date)->locale('id')->translatedFormat('d M Y') : 'Tanpa batas')
             ->addColumn('action', function ($announcement) {
                 $employee = $announcement->user->Employee->department->first()->department_name ?? 'Empty';
                 $date = Carbon::parse($announcement->publish_date)->locale('en')->isoFormat('D MMMM YYYY');
@@ -409,14 +338,14 @@ foreach ($employees as $employee) {
                     ? Carbon::parse($announcement->end_date)->locale('en')->isoFormat('D MMMM YYYY')
                     : 'Continuesly';
 
-                return '<button class="btn btn-sm btn-primary preview-btn"
+                return '<button type="button" class="pr-btn pr-btn-sm preview-btn"
                 data-id="' . $announcement->id . '"
                 data-title="' . e($announcement->title) . '"
                 data-content="' . e($announcement->content) . '"
                 data-date="' . $date . '"
                 data-enddate="' . $enddate . '"
                 data-employee="' . $employee . '">
-                Preview
+                Lihat
             </button>';
             })
 

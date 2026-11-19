@@ -1,1583 +1,1529 @@
 @extends('layouts.app')
 @section('title', 'Dashboard Manager')
-
 @push('styles')
-    <!-- CSS Libraries -->
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: leave requests waiting on me, then who on my store floor has not clocked in · states: no store, no team, nothing pending, full
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the old page invented attendance numbers, answered with the store's real roster and scans */
+
         :root {
-            /* Deep Indigo → Royal Blue */
-            --primary-gradient: linear-gradient(135deg, #25316D 0%, #3E497A 100%);
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
 
-            /* Emerald → Dark Teal */
-            --success-gradient: linear-gradient(135deg, #0A8A6A 0%, #096C57 100%);
-
-            /* Gold → Amber (lebih premium, bukan kuning norak) */
-            --warning-gradient: linear-gradient(135deg, #C7A845 0%, #A8862A 100%);
-
-            /* Steel Blue → Slate Cyan (soft, tidak neon) */
-            --info-gradient: linear-gradient(135deg, #4A7BA7 0%, #3F8DAE 100%);
-
-            /* Soft shadow */
-            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-            --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* ========== Personal Profile Card ========== */
-        .profile-header-card {
-            background: var(--primary-gradient);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-            margin-bottom: 32px;
-            position: relative;
-            overflow: hidden;
+        html,
+        body {
+            overflow-x: clip;
         }
 
-        .profile-header-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
         }
 
-        .profile-header-card::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
+        .pr [hidden] {
+            display: none !important;
         }
 
-        .profile-content {
-            position: relative;
-            z-index: 1;
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
         }
 
-        .profile-avatar-large {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            object-fit: cover;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .profile-info h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .profile-meta {
-            display: flex;
-            gap: 24px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .profile-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            opacity: 0.95;
-        }
-
-        .profile-meta-item i {
-            font-size: 1.1rem;
-        }
-
-        /* ========== Attendance Clock Card ========== */
-        .clock-card {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: var(--card-shadow);
-            text-align: center;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .clock-display {
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: #344767;
-            margin: 24px 0;
-            font-family: 'Courier New', monospace;
-        }
-
-        .clock-date {
-            font-size: 1.1rem;
-            color: #64748b;
-            margin-bottom: 24px;
-        }
-
-        .clock-in-btn {
-            background: var(--success-gradient);
-            border: none;
-            color: white;
-            padding: 16px 48px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
-        }
-
-        .clock-in-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
-            color: white;
-        }
-
-        .clock-out-btn {
-            background: var(--warning-gradient);
-            border: none;
-            color: white;
-            padding: 16px 48px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
-        }
-
-        .clock-out-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
-            color: white;
-        }
-
-        .clock-status {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #64748b;
-        }
-
-        .clock-status strong {
-            color: #344767;
-        }
-
-        /* ========== Quick Stats Mini Cards ========== */
-        .mini-stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: var(--card-shadow);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-left: 4px solid transparent;
-            height: 100%;
-        }
-
-        .mini-stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--card-hover-shadow);
-        }
-
-        .mini-stat-card.primary {
-            border-left-color: #667eea;
-        }
-
-        .mini-stat-card.success {
-            border-left-color: #11998e;
-        }
-
-        .mini-stat-card.warning {
-            border-left-color: #f59e0b;
-        }
-
-        .mini-stat-card.danger {
-            border-left-color: #f5576c;
-        }
-
-        .mini-stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-        }
-
-        .mini-stat-icon.primary {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .mini-stat-icon.success {
-            background: rgba(17, 153, 142, 0.1);
-            color: #11998e;
-        }
-
-        .mini-stat-icon.warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-        }
-
-        .mini-stat-icon.danger {
-            background: rgba(245, 87, 108, 0.1);
-            color: #f5576c;
-        }
-
-        .mini-stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #344767;
-            margin: 8px 0;
-        }
-
-        .mini-stat-label {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        /* ========== Leave Balance Card ========== */
-        .leave-balance-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .leave-balance-header {
-            background: var(--info-gradient);
-            color: white;
-            padding: 24px;
-        }
-
-        .leave-balance-header h4 {
-            margin: 0;
-            font-weight: 600;
-            color: white;
-        }
-
-        .leave-balance-body {
-            padding: 24px;
-        }
-
-        .leave-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #f1f3f5;
-        }
-
-        .leave-item:last-child {
-            border-bottom: none;
-        }
-
-        .leave-type {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .leave-type-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-
-        .leave-type-icon.annual {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .leave-type-icon.sick {
-            background: rgba(245, 87, 108, 0.1);
-            color: #f5576c;
-        }
-
-        .leave-type-icon.casual {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-        }
-
-        .leave-type-name {
-            font-weight: 600;
-            color: #344767;
-            margin-bottom: 4px;
-        }
-
-        .leave-type-period {
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .leave-days {
+        .pr .num {
             text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
         }
 
-        .leave-days-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #344767;
-        }
-
-        .leave-days-label {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .leave-progress {
-            margin-top: 8px;
-        }
-
-        .progress {
-            height: 8px;
-            border-radius: 10px;
-            background: #f1f3f5;
-        }
-
-        .progress-bar {
-            border-radius: 10px;
-        }
-
-        /* ========== My Submissions Card ========== */
-        .submissions-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .submissions-header {
-            background: white;
-            border-bottom: 2px solid #f1f3f5;
-            padding: 20px 24px;
+        /* ── Head ── */
+        .pr-head {
             display: flex;
-            justify-content: between;
             align-items: center;
-        }
-
-        .submissions-header h4 {
-            margin: 0;
-            font-weight: 600;
-            color: #344767;
-        }
-
-        .submission-item {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f3f5;
-            transition: background-color 0.2s;
-        }
-
-        .submission-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .submission-item:last-child {
-            border-bottom: none;
-        }
-
-        .submission-header-row {
-            display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
         }
 
-        .submission-type-badge {
+        .pr-crumbs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
+        }
+
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
             display: inline-flex;
             align-items: center;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .submission-type-badge.annual-leave {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .submission-type-badge.sick-leave {
-            background: rgba(245, 87, 108, 0.1);
-            color: #f5576c;
-        }
-
-        .submission-type-badge.overtime {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-        }
-
-        .submission-status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .submission-status.pending {
-            background: rgba(255, 171, 0, 0.15);
-            color: #f59e0b;
-        }
-
-        .submission-status.approved {
-            background: rgba(56, 239, 125, 0.15);
-            color: #11998e;
-        }
-
-        .submission-status.rejected {
-            background: rgba(245, 87, 108, 0.15);
-            color: #f5576c;
-        }
-
-        .submission-meta {
-            display: flex;
-            gap: 20px;
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-
-        .submission-meta i {
-            width: 14px;
-        }
-
-        .submission-notes {
-            font-size: 0.9rem;
-            color: #344767;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #e9ecef;
-        }
-
-        /* ========== Announcements Card ========== */
-        .announcements-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .announcements-header {
-            background: var(--orange-gradient);
-            color: white;
-            padding: 20px 24px;
-        }
-
-        .announcements-header h4 {
-            margin: 0;
-            font-weight: 600;
-            color: rgb(0, 0, 0);
-        }
-
-        .announcement-item {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f3f5;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .announcement-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .announcement-item:last-child {
-            border-bottom: none;
-        }
-
-        .announcement-title {
-            font-weight: 600;
-            color: #344767;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .announcement-badge-new {
-            background: #f5576c;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .announcement-excerpt {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 8px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .announcement-date {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        /* ========== Attendance History Card ========== */
-        .attendance-history-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .attendance-history-header {
-            background: white;
-            border-bottom: 2px solid #f1f3f5;
-            padding: 20px 24px;
-        }
-
-        .attendance-history-header h4 {
-            margin: 0;
-            font-weight: 600;
-            color: #344767;
-        }
-
-        .attendance-calendar {
-            padding: 24px;
-        }
-
-        .calendar-month {
-            text-align: center;
-            font-weight: 600;
-            color: #344767;
-            margin-bottom: 20px;
-            font-size: 1.1rem;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            padding: 8px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
             cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        .calendar-day.empty {
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .pr-btn:active {
+            background: var(--pr-rule);
+        }
+
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr-btn i {
+            font-size: .85em;
+        }
+
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
+        }
+
+        .pr-btn-ghost {
+            border-color: transparent;
             background: transparent;
-            cursor: default;
+            color: var(--pr-ink-2);
         }
 
-        .calendar-day.present {
-            background: rgba(56, 239, 125, 0.15);
-            color: #11998e;
+        .pr-btn-warn {
+            color: var(--pr-warn);
         }
 
-        .calendar-day.absent {
-            background: rgba(245, 87, 108, 0.15);
-            color: #f5576c;
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
         }
 
-        .calendar-day.leave {
-            background: rgba(255, 171, 0, 0.15);
-            color: #f59e0b;
+        .pr-btn-danger {
+            color: var(--pr-error);
         }
 
-        .calendar-day.weekend {
-            background: #f8f9fa;
-            color: #94a3b8;
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
         }
 
-        .calendar-day.today {
-            border: 2px solid #667eea;
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
             font-weight: 700;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
         }
 
-        .calendar-day:hover:not(.empty) {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
         }
 
-        .calendar-legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 24px;
-            flex-wrap: wrap;
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
         }
 
-        .legend-item {
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: #64748b;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-
-        /* ========== Empty State ========== */
-        .empty-state {
-            text-align: center;
-            padding: 48px 24px;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 16px;
-        }
-
-        .empty-state h6 {
-            color: #64748b;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .empty-state p {
-            color: #94a3b8;
-            font-size: 0.875rem;
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
             margin: 0;
         }
 
-        .calendar-day {
-            font-size: 0.75rem;
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
         }
 
-        .calendar-day {
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        /* ── Toolbar ── */
+        .pr-toolbar {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+            overflow-x: auto;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
+        }
+
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
+        }
+
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
+        }
+
+        .pr-mini {
+            min-width: 140px;
+        }
+
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
+        }
+
+        .pr-muted {
+            color: var(--pr-muted);
+        }
+
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
+        .action-wrap {
+            display: flex;
+            gap: var(--pr-space-2xs);
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .act-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .act-btn.act-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* DataTables chrome */
+        .pr-dt-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
+        }
+
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
+            font-weight: 600;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
+        }
+
+
+        /* ── Dashboard HR ── */
+        .pr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-hello {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+        }
+
+        .pr-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
+        }
+
+        .pr-hello-date {
+            margin: 0 0 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-lede {
+            line-height: 1.5;
+        }
+
+        .pr-btn-sm {
+            min-height: 32px;
+            padding: 0 var(--pr-space-sm);
+            font-size: var(--pr-text-xs);
+        }
+
+        .pr-link {
+            border: 0;
+            background: none;
+            padding: 0;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            text-decoration: underline;
+            text-underline-offset: .16em;
+            cursor: pointer;
+        }
+
+        .pr-link:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-card-link {
+            display: inline-block;
+            margin: 0 var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        /* Action queue */
+        .pr-todo {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-todo li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            border-left: 3px solid var(--pr-warn);
+        }
+
+        .pr-todo li.is-ready {
+            border-left-color: var(--pr-success);
+        }
+
+        .pr-todo li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-todo-text {
+            font-size: var(--pr-text-md);
+            color: var(--pr-ink);
+        }
+
+        .pr-todo-text strong {
+            font-size: var(--pr-text-lg);
+            font-variant-numeric: tabular-nums;
+            margin-right: 2px;
+        }
+
+        /* Today */
+        .pr-today {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: var(--pr-space-lg);
+        }
+
+        .pr-today>.pr-panel {
+            display: flex;
             flex-direction: column;
         }
 
-        .calendar-day-number {
-            font-weight: 600;
+        .pr-big {
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-xs);
         }
 
-        .calendar-day-label {
-            font-size: 0.65rem;
+        .pr-big strong {
+            display: block;
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-big strong small {
+            font-size: var(--pr-text-md);
+            color: var(--pr-muted);
+            font-weight: 600;
+            margin-right: 2px;
+        }
+
+        .pr-big span {
+            display: block;
             margin-top: 2px;
-            opacity: 0.85;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
         }
 
-        .calendar-day-remark {
-            font-size: 0.6rem;
-            opacity: 0.7;
+        .pr-bar {
+            display: flex;
+            height: 8px;
+            margin: var(--pr-space-xs) var(--pr-space-lg);
+            border-radius: var(--pr-pill);
+            overflow: hidden;
+            background: var(--pr-paper-2);
         }
 
-        /* ========== Modal Improvements ========== */
-        .modal-content {
-            border-radius: 16px;
-            border: none;
+        .pr-bar span {
+            display: block;
+            height: 100%;
+            background: var(--pr-success);
         }
 
-        .modal-header {
-            background: var(--primary-gradient);
-            color: white;
-            border-radius: 16px 16px 0 0;
-            padding: 20px 24px;
+        .pr-bar.is-stack .is-paid {
+            background: var(--pr-accent);
         }
 
-        .modal-header .modal-title {
+        .pr-bar.is-stack .is-approved {
+            background: var(--pr-success);
+        }
+
+        .pr-bar.is-stack .is-draft {
+            background: var(--pr-muted);
+        }
+
+        .pr-mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: var(--pr-space-xs);
+            margin: var(--pr-space-xs) 0 0;
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .pr-mini-stats dt {
+            font-size: var(--pr-text-xs);
             font-weight: 600;
-            color: white;
+            color: var(--pr-ink-2);
         }
 
-        .modal-header .close {
-            color: white;
-            opacity: 0.9;
+        .pr-mini-stats dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
         }
 
-        .modal-body {
-            padding: 24px;
+        .pr-mini-stats dd.is-warn {
+            color: var(--pr-warn);
         }
 
-        .modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        .pr-note {
+            margin: auto 0 0;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
         }
 
-        /* Override modal header putih khusus untuk modal reject */
-        #rejectLeaveModal .modal-header {
-            background: white;
+        .pr-note+.pr-note {
+            margin-top: 0;
         }
 
-        #rejectLeaveModal .modal-title {
-            color: #344767;
+        .pr-note.is-warn {
+            background: var(--pr-warn-soft);
+            color: var(--pr-ink);
         }
 
-        #rejectLeaveModal .btn-close {
-            filter: none;
+        /* Charts */
+        .pr-range {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
         }
 
-        .form-label {
+        .pr-field label {
+            display: block;
+            font-size: var(--pr-text-xs);
             font-weight: 600;
-            color: #344767;
-            margin-bottom: 8px;
-            font-size: 0.875rem;
+            color: var(--pr-ink-2);
+            margin-bottom: var(--pr-space-2xs);
         }
 
-        .form-control {
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            padding: 10px 14px;
-            transition: all 0.2s;
+        .pr-field input {
+            min-height: 36px;
+            padding: 0 var(--pr-space-sm);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
         }
 
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .pr-field input:focus-visible {
+            outline-offset: -1px;
         }
 
-        /* ========== Buttons ========== */
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            padding: 10px 20px;
-            transition: all 0.2s;
+        .pr-chart-body {
+            padding: var(--pr-space-md) var(--pr-space-lg);
         }
 
-        .btn-primary {
-            background: var(--primary-gradient);
-            border: none;
+        .pr-chart {
+            position: relative;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .pr-chart[hidden] {
+            display: none !important;
         }
 
-        .btn-reject-leave {
-            transition: all 0.2s;
+        .pr-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
         }
 
-        .btn-reject-leave:hover {
-            background-color: #D32F2F !important;
-            color: #fff !important;
-            border-color: #D32F2F !important;
+        .pr-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--pr-space-lg);
+            align-items: start;
         }
 
-        .btn-approve-leave {
-            transition: all 0.2s;
+        /* Lists */
+        .pr-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
-        .btn-approve-leave:hover {
-            background-color: #1565C0 !important;
-            color: #fff !important;
-            border-color: #1565C0 !important;
+        .pr-list li {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        /* ========== Responsive Design ========== */
-        @media (max-width: 768px) {
-            .profile-header-card {
-                padding: 24px;
+        .pr-list li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-list-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pr-list-title {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pr-list-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-days {
+            width: 48px;
+            flex-shrink: 0;
+            text-align: center;
+            padding: var(--pr-space-2xs) 0;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-warn-soft);
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-warn);
+        }
+
+        .pr-days small {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .pr-days.is-urgent {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+        /* Announcements */
+        #users-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #users-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #users-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        .pr-modal-title {
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-preview-title {
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            margin: 0 0 var(--pr-space-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-facts {
+            margin: 0 0 var(--pr-space-md);
+        }
+
+        .pr-facts>div {
+            display: flex;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-2xs) 0;
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-facts dt {
+            width: 110px;
+            font-weight: 400;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-facts dd {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .pr-preview-content {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-top: var(--pr-space-md);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-md);
+            line-height: 1.7;
+        }
+
+        .pr-today,
+        .pr-grid-3,
+        .pr-grid-2 {
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-today .pr-panel,
+        .pr-grid-3 .pr-panel,
+        .pr-grid-2 .pr-panel {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 75rem) {
+            .pr-grid-3 {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             }
 
-            .profile-info h2 {
-                font-size: 1.5rem;
+            .pr-grid-3>.pr-panel:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 60rem) {
+
+            .pr-grid-3,
+            .pr-grid-2 {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 40rem) {
+
+            .pr-head,
+            .pr-panel-head,
+            .pr-big,
+            .pr-mini-stats,
+            .pr-note,
+            .pr-todo li,
+            .pr-list li,
+            .pr-chart-body,
+            .pr-table-wrap,
+            .pr-empty-note {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
             }
 
-            .profile-meta {
+            .pr-bar {
+                margin-left: var(--pr-space-md);
+                margin-right: var(--pr-space-md);
+            }
+
+            .pr-todo li {
+                flex-wrap: wrap;
+            }
+
+            .pr-actions .pr-btn,
+            .pr-field input {
+                min-height: 44px;
+                font-size: 16px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .pr *,
+            .pr *::before,
+            .pr *::after {
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ── Dashboard karyawan ── */
+        .pr-big strong.is-muted {
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xl);
+        }
+
+        .pr-period {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+            margin: 0;
+        }
+
+        .pr-period>div {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-right: 1px solid var(--pr-rule);
+        }
+
+        .pr-period>div:last-child {
+            border-right: 0;
+        }
+
+        .pr-period dt {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-period dd {
+            margin: var(--pr-space-2xs) 0 0;
+            font-size: var(--pr-text-xl);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .pr-period dd small {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-muted);
+        }
+
+        .pr-period-note {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-note strong {
+            font-weight: 700;
+        }
+
+        /* Submissions */
+        .pr-sub {
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-sub:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-sub-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-sm);
+        }
+
+        .pr-sub-name {
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+        }
+
+        .pr-sub-meta {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-sub-note {
+            margin: var(--pr-space-xs) 0 0;
+            padding: var(--pr-space-xs) var(--pr-space-sm);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink);
+        }
+
+        .pr-sub-note span {
+            font-weight: 700;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-sub-note.is-rejected {
+            background: var(--pr-error-soft);
+        }
+
+        .status-badge.is-pending {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-approved {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-rejected {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+        /* Announcements */
+        .pr-ann {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            background: transparent;
+            font-family: var(--pr-font);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-ann:hover {
+            background: var(--pr-paper);
+        }
+
+        .pr-ann:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-ann-title {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .pr-ann-excerpt {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-ann-date {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-ann-byline {
+            margin: 0 0 var(--pr-space-sm);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        /* Calendar */
+        .pk-cal-wrap {
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-lg);
+            transition: opacity var(--pr-dur-short) var(--pr-ease);
+        }
+
+        .pk-cal-head {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-md);
+        }
+
+        .pk-cal-title {
+            min-width: 160px;
+            text-align: center;
+            font-size: var(--pr-text-lg);
+            font-weight: 700;
+        }
+
+        .pk-cal {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: var(--pr-space-2xs);
+        }
+
+        .pk-cal-dow {
+            padding: var(--pr-space-2xs) 0;
+            text-align: center;
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-ink-2);
+        }
+
+        .pk-cal-day {
+            min-height: 84px;
+            padding: var(--pr-space-xs);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            min-width: 0;
+        }
+
+        .pk-cal-day.is-empty {
+            border-color: transparent;
+            background: transparent;
+        }
+
+        .pk-cal-day.is-work {
+            background: var(--pr-success-soft);
+        }
+
+        .pk-cal-day.is-off {
+            background: var(--pr-paper-2);
+        }
+
+        .pk-cal-day.is-holiday {
+            background: var(--pr-warn-soft);
+        }
+
+        .pk-cal-day.is-leave {
+            background: var(--pr-accent-soft);
+        }
+
+        .pk-cal-day.is-sick {
+            background: var(--pr-error-soft);
+        }
+
+        .pk-cal-day.is-missing {
+            box-shadow: inset 0 0 0 2px var(--pr-warn);
+        }
+
+        .pk-cal-day.is-today {
+            box-shadow: inset 0 0 0 2px var(--pr-accent-strong);
+        }
+
+        .pk-cal-num {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pk-cal-label,
+        .pk-cal-shift,
+        .pk-cal-scan {
+            display: block;
+            font-size: 11px;
+            line-height: 1.35;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pk-cal-label {
+            font-weight: 600;
+            color: var(--pr-ink);
+        }
+
+        .pk-cal-shift {
+            color: var(--pr-ink-2);
+        }
+
+        .pk-cal-scan {
+            margin-top: 2px;
+            font-weight: 700;
+            color: var(--pr-success);
+        }
+
+        .pk-cal-scan.is-missing {
+            color: var(--pr-warn);
+        }
+
+        .pk-cal-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs) var(--pr-space-md);
+            margin: var(--pr-space-md) 0 0;
+            padding: 0;
+            list-style: none;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-ink-2);
+        }
+
+        .pk-cal-legend li {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--pr-space-xs);
+        }
+
+        .pk-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid var(--pr-rule);
+        }
+
+        .pk-swatch.is-work { background: var(--pr-success-soft); }
+        .pk-swatch.is-off { background: var(--pr-paper-2); }
+        .pk-swatch.is-holiday { background: var(--pr-warn-soft); }
+        .pk-swatch.is-leave { background: var(--pr-accent-soft); }
+        .pk-swatch.is-sick { background: var(--pr-error-soft); }
+        .pk-swatch.is-missing { background: var(--pr-panel); box-shadow: inset 0 0 0 2px var(--pr-warn); }
+
+        @media (max-width: 40rem) {
+            .pk-cal-wrap,
+            .pr-sub,
+            .pr-ann,
+            .pr-period>div {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .pk-cal-day {
+                min-height: 56px;
+                padding: 4px;
+            }
+
+            .pk-cal-label,
+            .pk-cal-shift {
+                display: none;
+            }
+
+            .pk-cal-scan {
+                font-size: 0;
+            }
+
+            .pk-cal-scan i {
+                font-size: 10px;
+            }
+
+            .pk-cal-scan.is-missing {
+                font-size: 0;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--pr-warn);
+            }
+
+            .pr-period>div {
+                border-right: 0;
+                border-bottom: 1px solid var(--pr-rule);
+            }
+        }
+
+        /* ── Dashboard supervisor ── */
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        .pr-appr {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            border-left: 3px solid var(--pr-warn);
+        }
+
+        .pr-appr:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-appr-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pr-appr-name {
+            display: block;
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+        }
+
+        .pr-appr-meta {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr-appr .pr-sub-note {
+            display: block;
+        }
+
+        .pr-appr-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+            flex-shrink: 0;
+        }
+
+        .pr-btn-danger {
+            color: var(--pr-error);
+        }
+
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        .is-warn-text {
+            color: var(--pr-warn) !important;
+        }
+
+        .pr-team {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            border-top: 1px solid var(--pr-rule);
+        }
+
+        .pr-team li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+            padding: var(--pr-space-xs) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-team li:last-child {
+            border-bottom: 0;
+        }
+
+        .pr-team-main {
+            min-width: 0;
+        }
+
+        .pr-team-name {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+        }
+
+        .pr-team-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .pr-team-state {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .status-badge.is-draft {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        @media (max-width: 40rem) {
+            .pr-appr {
                 flex-direction: column;
-                gap: 12px;
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
             }
 
-            .clock-display {
-                font-size: 2.5rem;
-            }
-
-            .clock-in-btn,
-            .clock-out-btn {
-                padding: 12px 32px;
-                font-size: 1rem;
-            }
-
-            .calendar-grid {
-                gap: 4px;
-            }
-
-            .mini-stat-card {
-                margin-bottom: 16px;
+            .pr-team li {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
             }
         }
 
-        /* ========== Animations ========== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        .pulse-animation {
-            animation: pulse 2s infinite;
+        /* Store list bisa panjang: batasi tinggi, tetap bisa di-scroll */
+        #store-title ~ * .pr-team,
+        section[aria-labelledby="store-title"] .pr-team {
+            max-height: 420px;
+            overflow-y: auto;
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $emp = Auth::user()->employee;
+        $hour = now()->hour;
+        $greeting = $hour < 11 ? 'Selamat pagi' : ($hour < 15 ? 'Selamat siang' : ($hour < 18 ? 'Selamat sore' : 'Selamat malam'));
+        $storeNames = $stores->pluck('name')->implode(', ');
+    @endphp
+    <div class="main-content pr">
         <section class="section">
-            <!-- Profile Header -->
-            {{-- <div class="profile-header-card animate-fade-in-up">
-                <div class="profile-content">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <div class="d-flex align-items-center gap-4">
-                                <img src="{{ Auth::user()->employee->photos
-                                    ? asset('storage/' . Auth::user()->employee->photos)
-                                    : asset('img/avatar/avatar-1.png') }}"
-                                    alt="Profile" class="profile-avatar-large">
-                                <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
-                                    <div class="profile-meta">
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-briefcase"></i>
-                                            <span>{{ Auth::user()->employee->position->name ?? 'Edwin Sirait' }} </span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->department_name ?? 'Edwin Sirait' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-id-badge"></i>
-                                            <span>{{ Auth::user()->employee->employee_pengenal ?? 'Edwin Sirait' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ now()->format('l, F d, Y') }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
+            <header class="pr-head">
+                <div class="pr-hello">
+                    <img src="{{ $emp?->photos ? route('useremployee.photo', basename($emp->photos)) : asset('img/avatar/avatar-1.png') }}"
+                        alt="" class="pr-avatar no-drag" width="56" height="56">
+                    <div>
+                        <p class="pr-hello-date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
+                        <h1 class="pr-title">{{ $greeting }}, {{ $emp->employee_name ?? Auth::user()->username }}</h1>
+                        <p class="pr-lede">
+                            {{ collect([$emp?->position->first()?->name, $storeNames ? 'Manager ' . $storeNames : null, $teamStats['total'] . ' bawahan langsung'])->filter()->implode(', ') }}
+                        </p>
                     </div>
                 </div>
-            </div> --}}
-               <div class="profile-header-card animate-fade-in-up">
-                <div class="profile-content">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <div class="d-flex align-items-center gap-4">
-                                <img src="{{ Auth::user()->employee->photos
-                                    ? route('useremployee.photo', basename(Auth::user()->employee->photos))
-                                    : asset('img/avatar/avatar-1.png') }}"
-                                    alt="Profile" class="profile-avatar-large no-drag">
-                                <div class="profile-info">
-                                    <h2>{{ Auth::user()->employee->employee_name ?? 'Edwin Sirait' }}</h2>
-                                    <div class="profile-meta">
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-briefcase"></i>
-                                            <span>{{ Auth::user()->employee->position->first()?->name ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-building"></i>
-                                            <span>{{ Auth::user()->employee->department->first()?->department_name ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-id-badge"></i>
-                                            <span>{{ Auth::user()->employee->employee_pengenal ?? '-' }}</span>
-                                        </div>
-                                        <div class="profile-meta-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ now()->format('l, F d, Y') }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mini Stat Cards -->
-            <div class="row mb-4">
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card primary">
-                        <div class="mini-stat-icon primary">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div class="mini-stat-value">{{ $presentCount ?? 0 }}</div>
-                        <div class="mini-stat-label">Days Present</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card success">
-                        <div class="mini-stat-icon success">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        <div class="mini-stat-value">95%</div>
-                        <div class="mini-stat-label">Attendance Rate</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card warning">
-                        <div class="mini-stat-icon warning">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="mini-stat-value">2</div>
-                        <div class="mini-stat-label">Times Late</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-12 mb-4">
-                    <div class="mini-stat-card danger">
-                        <div class="mini-stat-icon danger">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <div class="mini-stat-value">1</div>
-                        <div class="mini-stat-label">Days Absent</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Company Announcements -->
-            <div class="col-lg-12 col-12 mb-4">
-                <div class="announcements-card">
-                    <div class="announcements-header">
-                        <h4>
-                            <i class="fas fa-bullhorn me-2"></i>
-                            Company Announcements
-                        </h4>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                        @forelse($announcements as $a)
-                            <div class="announcement-item" data-toggle="modal" data-target="#previewModal"
-                                data-title="{{ $a->title }}"
-                                data-content="{{ str_replace('&nbsp;', ' ', $a->content) }}"
-                                data-publish="{{ \Carbon\Carbon::parse($a->publish_date)->format('d M Y') }}"
-                                data-end="{{ \Carbon\Carbon::parse($a->end_date)->format('d M Y') }}"
-                                {{-- data-employee="{{ $a->user->Employee->department->department_name ?? 'Unknown' }}"> --}}
-                                data-employee="{{ $a->user->Employee->department->first()?->department_name ?? 'Unknown' }}">
-
-                                <div class="announcement-title">
-                                    <i class="fas fa-star text-warning"></i>
-                                    {{ $a->title }}
-                                    @if (\Carbon\Carbon::parse($a->publish_date)->greaterThan(now()->subDays(3)))
-                                        <span class="announcement-badge-new">New</span>
-                                    @endif
-                                </div>
-                                <div class="announcement-excerpt">
-                                    {{ Str::limit(strip_tags($a->content), 120, '...') }}
-                                </div>
-                                <div class="announcement-date">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Posted {{ \Carbon\Carbon::parse($a->publish_date)->diffForHumans() }}
-                                </div>
-                            </div>
-                        @empty
-                            <div class="p-3 text-center text-muted">
-                                No announcements found.
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content Grid: Leave Balance + Leave Approval -->
-            <div class="row">
-
-                <!-- Leave Balance -->
-                <div class="col-lg-4 col-12 mb-4">
-                    <div class="leave-balance-card">
-                        <div class="leave-balance-header">
-                            <h4>
-                                <i class="fas fa-umbrella-beach me-2"></i>
-                                Leave Balance
-                            </h4>
-                        </div>
-                        <div class="leave-balance-body">
-                            <div class="leave-item">
-                                <div class="leave-type">
-                                    <div class="leave-type-icon annual">
-                                        <i class="fas fa-umbrella-beach"></i>
-                                    </div>
-                                    <div>
-                                        <div class="leave-type-name">Annual Leave</div>
-                                        <div class="leave-type-period">{{ $annualLeave->year ?? date('Y') }}</div>
-                                    </div>
-                                </div>
-                                <div class="leave-days">
-                                    <div class="leave-days-value">
-                                        {{ rtrim(rtrim(number_format($displayBalance, 2), '0'), '.') }}
-                                    </div>
-                                    <div class="leave-days-label">days remaining</div>
-                                </div>
-                            </div>
-
-                            @unless ($annualLeave)
-                                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    @if ($isNewbie)
-                                        Anda belum genap 1 tahun berada di perusahaan ini, sehingga saldo cuti belum tersedia.
-                                    @else
-                                        Saldo cuti tahunan belum tersedia untuk periode ini.
-                                    @endif
-                                </div>
-                            @endunless
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Leave Approval -->
-                <div class="col-lg-8 col-12 mb-4">
-                    <div class="submissions-card">
-                        <div class="submissions-header">
-                            <div class="d-flex justify-content-between align-items-center w-100">
-                                <h4>
-                                    <i class="fas fa-clipboard-check me-2"></i>
-                                    Leave Approval
-                                </h4>
-                                <span class="badge"
-                                    style="background-color:#FFF3CD; color:#856404; font-size:0.75rem; padding:6px 12px; border-radius:6px;">
-                                    {{ $pendingLeaves->count() }} Pending
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="card-body p-0">
-                            @forelse($pendingLeaves as $leave)
-                                <div class="submission-item leave-approval-item" id="leave-item-{{ $leave['id'] }}">
-                                    <div class="d-flex align-items-center">
-
-                                        <!-- Avatar -->
-                                        <div class="flex-shrink-0" style="margin-right: 24px;">
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                                style="width:44px; height:44px; background-color:{{ $leave['bgColor'] }}; font-size:1rem;">
-                                                {{ $leave['initial'] }}
-                                            </div>
-                                        </div>
-
-                                        <!-- Info -->
-                                        <div class="flex-grow-1">
-                                            <div class="fw-semibold mb-1" style="font-size:0.95rem; color:#344767;">
-                                                {{ $leave['employeeName'] }}
-                                            </div>
-                                            <div class="d-flex align-items-center flex-wrap"
-                                                style="font-size:0.82rem; color:#64748b; gap: 14px;">
-                                                <span><i class="fas fa-calendar me-1"></i>{{ $leave['dateLabel'] }}</span>
-                                                <span><i class="fas fa-clock me-1"></i>{{ $leave['ago'] }}</span>
-                                                <span class="badge fw-semibold"
-                                                    style="background-color:{{ $leave['typeBg'] }}; color:{{ $leave['typeText'] }};
-                                   font-size:0.7rem; padding:4px 10px; border-radius:6px;">
-                                                    {{ $leave['leaveTypeName'] }}
-                                                </span>
-                                            </div>
-                                            @if ($leave['employeeReason'])
-                                                <div class="mt-2" style="font-size:0.85rem; color:#344767;">
-                                                    <i class="fas fa-sticky-note me-1 text-muted"></i>
-                                                    <strong>Note:</strong> {{ $leave['employeeReason'] }}
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <!-- Tombol Approve & Reject -->
-                                        <div class="d-flex flex-column ms-2" style="gap: 10px;">
-                                            <button type="button" class="btn btn-sm fw-semibold btn-approve-leave"
-                                                data-id="{{ $leave['id'] }}" data-name="{{ $leave['employeeName'] }}"
-                                                data-url="{{ $leave['approveUrl'] }}"
-                                                style="background-color:#fff; color:#1976D2; border:1.5px solid #1976D2;
-                               border-radius:6px; font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
-                                                <i class="fas fa-check me-1"></i> Approve
-                                            </button>
-
-                                            <button type="button" class="btn btn-sm fw-semibold btn-reject-leave"
-                                                data-id="{{ $leave['id'] }}" data-name="{{ $leave['employeeName'] }}"
-                                                data-url="{{ $leave['rejectUrl'] }}"
-                                                style="background-color:#fff; color:#D32F2F; border:1.5px solid #D32F2F;
-                               border-radius:6px; font-size:0.75rem; padding:5px 14px; white-space:nowrap;">
-                                                <i class="fas fa-times me-1"></i> Reject
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-5 px-4" id="leave-empty-state">
-                                    <i class="fas fa-check-circle"
-                                        style="font-size:3rem; color:#11998e; opacity:0.5;"></i>
-                                    <h6 class="mt-3 mb-1" style="color:#344767;">Semua cuti sudah ditangani</h6>
-                                    <p class="text-muted mb-0" style="font-size:0.875rem;">
-                                        Tidak ada pengajuan cuti yang menunggu persetujuan.
-                                    </p>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        @if ($pendingLeaves->count() > 0)
-                            <div class="card-footer bg-light text-center" id="leave-footer">
-                                <a href="{{ route('leaverequest.index') }}" class="text-decoration-none">
-                                    View All Leave Requests
-                                    <i class="fas fa-arrow-right ms-2"></i>
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Schedule History Row -->
-            <div class="row">
-                <div class="col-lg-6 col-12 mb-4">
-                    <div class="attendance-history-card">
-                        <div class="attendance-history-header">
-                            <h4>
-                                <i class="fas fa-calendar-check me-2"></i>
-                                Schedule History
-                            </h4>
-                        </div>
-                        <div class="attendance-calendar">
-                            <div id="calendarContainer">
-                                @include('pages.dashboardManager.calendar')
-                            </div>
-
-                            <div class="calendar-legend">
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(56, 239, 125, 0.15);"></div>
-                                    <span>Work</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #f8f9fa;"></div>
-                                    <span>Off</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(255, 171, 0, 0.15);"></div>
-                                    <span>Public Holiday</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(245, 87, 108, 0.15);"></div>
-                                    <span>Leave</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: rgba(245, 87, 108, 0.15);"></div>
-                                    <span>Cuti Melahirkan</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    </div>
-    </div>
-    </section>
-    </div>
-
-    <!-- ═══════════ Modal Reject Leave ═══════════ -->
-    <div class="modal fade" id="rejectLeaveModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h6 class="modal-title fw-semibold">Tolak Pengajuan Cuti</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted mb-3" style="font-size:0.9rem;">
-                        Tolak cuti <strong id="rejectEmployeeName"></strong>?
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:0.85rem;">
-                            Alasan Penolakan
-                        </label>
-                        <textarea id="rejectReason" class="form-control" rows="3" placeholder="Isi alasan penolakan..."
-                            style="font-size:0.9rem;"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" id="btnConfirmReject" class="btn btn-sm fw-semibold"
-                        style="background-color:#D32F2F; color:#fff;">
-                        Tolak Cuti
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════ Request Leave Modal ═══════════ -->
-    <div class="modal fade" id="requestLeaveModal" tabindex="-1" aria-labelledby="requestLeaveLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <form action="{{ route('Submissions.store') }}" method="POST" id="leaveRequestForm">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="requestLeaveLabel">
-                            <i class="fas fa-paper-plane me-2"></i>
-                            Request Leave
-                        </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                <div class="pr-actions">
+                    @can('dashboardTeam')
+                        <a href="{{ route('pages.dashboardTeam') }}" class="pr-btn"><i class="fas fa-users" aria-hidden="true"></i> Tim</a>
+                    @endcan
+                    @can('ManageTeamfingerprint')
+                        <a href="{{ route('pages.Teamfingerprint') }}" class="pr-btn"><i class="fas fa-fingerprint" aria-hidden="true"></i> Absensi tim</a>
+                    @endcan
+                    @can('ManageRosterSPVManager')
+                        <a href="{{ route('roster.index') }}" class="pr-btn"><i class="fas fa-calendar-alt" aria-hidden="true"></i> Roster</a>
+                    @endcan
+                    @if ($hasPending)
+                        <button type="button" class="pr-btn" disabled title="Masih ada pengajuan yang menunggu persetujuan">
+                            <i class="fas fa-clock" aria-hidden="true"></i> Cuti saya menunggu approval
                         </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-4">
-                            <label class="form-label" for="leave_type">
-                                <i class="fas fa-clipboard-list me-1"></i> Leave Type
-                            </label>
-                            <select name="type" id="leave_type" class="form-control" required>
-                                <option value="">Choose leave type</option>
-                                <option value="Annual Leave">Annual Leave</option>
-                                <option value="Sick Leave">Sick Leave</option>
-                                <option value="Casual Leave">Casual Leave</option>
-                                <option value="Emergency Leave">Emergency Leave</option>
-                            </select>
-                        </div>
-
-                        <div class="alert alert-info mb-4" id="leaveBalanceInfo">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong>Available Balance:</strong>
-                                    <span id="availableBalance">12 days</span>
-                                </div>
-                                <div>
-                                    <strong>Total Allocation:</strong>
-                                    <span id="totalAllocation">14 days</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label" for="start_date">
-                                    <i class="fas fa-calendar-alt me-1"></i> Start Date
-                                </label>
-                                <input type="date" name="leave_date_from" id="start_date" class="form-control"
-                                    required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label" for="end_date">
-                                    <i class="fas fa-calendar-check me-1"></i> End Date
-                                </label>
-                                <input type="date" name="leave_date_to" id="end_date" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-light border mb-4" id="durationInfo">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-hourglass-half me-2"></i><strong>Duration:</strong></span>
-                                <span id="calculatedDuration" class="text-primary font-weight-bold">0 days</span>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="leave_reason">
-                                <i class="fas fa-sticky-note me-1"></i> Reason
-                            </label>
-                            <textarea name="notes" id="leave_reason" class="form-control" rows="4"
-                                placeholder="Please provide a brief reason for your leave request..." required></textarea>
-                        </div>
-
-                        <div class="mb-3" id="emergencyContactDiv" style="display: none;">
-                            <label class="form-label" for="emergency_contact">
-                                <i class="fas fa-phone me-1"></i> Emergency Contact (Optional)
-                            </label>
-                            <input type="text" name="emergency_contact" id="emergency_contact" class="form-control"
-                                placeholder="Contact number during leave">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                            <i class="fas fa-times me-1"></i> Cancel
+                    @else
+                        <button type="button" class="pr-btn pr-btn-primary" id="newSubmissionBtn" data-toggle="modal" data-target="#requestLeaveModal">
+                            <i class="fas fa-plus" aria-hidden="true"></i> Ajukan cuti
                         </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i> Submit Request
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                    @endif
+                </div>
+            </header>
+
+            @include('pages.dashboardSupervisor._approvals')
+
+            {{-- Store attendance (signature for a manager: the whole floor today) --}}
+            @include('pages.dashboardSupervisor._team', [
+                'teamToday' => $storeToday,
+                'teamStats' => $storeStats,
+                'teamId' => 'store',
+                'teamTitle' => 'Kehadiran store hari ini' . ($storeNames ? ', ' . $storeNames : ''),
+                'teamSub' => $storeStats['total'] . ' karyawan aktif' . ($storeStats['rate'] !== null ? ', ' . $storeStats['rate'] . '% dari yang dijadwalkan sudah absen' : ''),
+                'teamEmpty' => $stores->isEmpty()
+                    ? 'Store utama Anda belum diatur di data karyawan, jadi kehadiran store belum bisa ditampilkan.'
+                    : 'Belum ada karyawan aktif di store ini.',
+            ])
+
+            @if ($teamStats['total'] > 0)
+                @include('pages.dashboardSupervisor._team')
+            @endif
+
+            <h2 class="pr-section-title">Data saya</h2>
+            @include('pages.dashboardHuman._personal')
+        </section>
     </div>
 
-    <!-- ═══════════ Announcement Preview Modal ═══════════ -->
-    <div class="modal fade preview-modal" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="previewModalLabel">
-                        <i class="fas fa-eye me-2"></i>
-                        Announcement Preview
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body p-4">
-                    <table class="table table-sm preview-table mb-4">
-                        <tbody>
-                            <tr>
-                                <th style="width: 150px;">Publish Date</th>
-                                <td><span id="previewDate" class="fw-semibold"></span></td>
-                            </tr>
-                            <tr>
-                                <th>End Date</th>
-                                <td><span id="previewEndDate" class="fw-semibold"></span></td>
-                            </tr>
-                            <tr>
-                                <th>Created By</th>
-                                <td><span id="previewEmployee" class="fw-semibold"></span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <h5 id="previewTitle" class="fw-bold mb-3 text-center"></h5>
-
-                    <div id="previewContent" style="max-height: 400px; overflow-y: auto; line-height: 1.8;">
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light">
-                    <small class="text-muted text-center w-100">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        Official announcement from HR Department •
-                        <a href="https://wa.me/6281138310552" target="_blank" class="text-success">
-                            Contact HR
-                        </a>
-                    </small>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    @include('pages.dashboardHuman._modals')
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        function loadCalendar(month, year) {
-            const container = document.getElementById('calendarContainer');
-            container.style.opacity = '0.5';
-
-            fetch(`{{ url('/dashboardManager') }}?month=${month}&year=${year}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(res => res.text())
-                .then(html => {
-                    container.innerHTML = html;
-                    container.style.opacity = '1';
-                })
-                .catch(() => {
-                    window.location.href = `{{ url('/dashboardManager') }}?month=${month}&year=${year}`;
-                });
-        }
-    </script>
-
-    <!-- Script announcement preview -->
-
-    <!-- Script announcement preview -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            $('.announcement-item').on('click', function() {
-                $('#previewTitle').text($(this).data('title'));
-                $('#previewContent').html($(this).data('content'));
-                $('#previewDate').text($(this).data('publish'));
-                $('#previewEndDate').text($(this).data('end'));
-                $('#previewEmployee').text($(this).data('employee'));
-            });
-        });
-    </script>
-
-    <!-- SweetAlert session success/error -->
-    <script>
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: '{{ session('success') }}',
-            });
-        @endif
-        @if (session('error'))
-            Swal.fire({
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        @endif
-    </script>
-
-    <!-- AJAX Approve / Reject Leave -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-
-            function removeLeaveItem(id) {
-                const item = document.getElementById('leave-item-' + id);
-                if (item) {
-                    item.style.transition = 'opacity 0.4s';
-                    item.style.opacity = '0';
-                    setTimeout(() => {
-                        item.remove();
-                        const remaining = document.querySelectorAll('.leave-approval-item');
-                        if (remaining.length === 0) {
-                            const footer = document.getElementById('leave-footer');
-                            if (footer) footer.remove();
-                        }
-                    }, 400);
-                }
-            }
-
-            function sendDecision(url, reason, id, successMsg) {
-                return fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            approver_reason: reason
-                        }),
-                    })
-                    .then(async (res) => {
-                        const data = await res.json();
-                        return {
-                            ok: res.ok,
-                            data
-                        };
-                    })
-                    .then(({
-                        ok,
-                        data
-                    }) => {
-                        if (ok && data.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: successMsg,
-                                timer: 1500,
-                                showConfirmButton: false,
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: data.message ?? 'Terjadi kesalahan.',
-                            });
-                        }
-                    })
-                    .catch(() => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: 'Terjadi kesalahan, coba lagi.',
-                        });
-                    });
-            }
-
-            // ── APPROVE ──
-            document.querySelectorAll('.btn-approve-leave').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-                    const name = this.dataset.name;
-                    const url = this.dataset.url;
-
-                    Swal.fire({
-                        title: 'Setujui Cuti',
-                        html: `Setujui pengajuan cuti <strong>${name}</strong>?`,
-                        input: 'textarea',
-                        inputPlaceholder: 'Tulis alasan persetujuan...',
-                        showCancelButton: true,
-                        confirmButtonText: 'Setujui',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#1976D2',
-                        inputValidator: (value) => {
-                            if (!value || !value.trim()) {
-                                return 'Alasan persetujuan wajib diisi.';
-                            }
-                        }
-                    }).then((result) => {
-                        if (!result.isConfirmed) return;
-                        sendDecision(url, result.value.trim(), id,
-                            `Cuti ${name} berhasil disetujui.`);
-                    });
-                });
-            });
-
-            // ── REJECT ──
-            document.querySelectorAll('.btn-reject-leave').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-                    const name = this.dataset.name;
-                    const url = this.dataset.url;
-
-                    Swal.fire({
-                        title: 'Tolak Cuti',
-                        html: `Tolak pengajuan cuti <strong>${name}</strong>?`,
-                        input: 'textarea',
-                        inputPlaceholder: 'Tulis alasan penolakan...',
-                        showCancelButton: true,
-                        confirmButtonText: 'Tolak',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#D32F2F',
-                        inputValidator: (value) => {
-                            if (!value || !value.trim()) {
-                                return 'Alasan penolakan wajib diisi.';
-                            }
-                        }
-                    }).then((result) => {
-                        if (!result.isConfirmed) return;
-                        sendDecision(url, result.value.trim(), id,
-                            `Cuti ${name} berhasil ditolak.`);
-                    });
-                });
-            });
-        });
-    </script>
+    @include('pages.dashboardHuman._scripts')
+    @include('pages.dashboardSupervisor._approval_script')
 @endpush
