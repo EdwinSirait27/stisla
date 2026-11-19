@@ -21,8 +21,22 @@ class SendDocumentEmailJob implements ShouldQueue
     public int $timeout = 60;
     public array $backoff = [30, 90, 180];
 
-    public function __construct(public string $documentId)
+    /** @param string|null $causerId user yang menekan Kirim, untuk log aktivitas */
+    public function __construct(public string $documentId, public ?string $causerId = null)
     {
+    }
+
+    /** Catat pengiriman di log aktivitas dokumen (dipakai halaman Dokumen untuk kolom "Pengiriman"). */
+    private function logSend(?Documents $document, string $event, string $description, array $props = []): void
+    {
+        if (!$document) {
+            return;
+        }
+        $log = activity('document')->performedOn($document)->event($event)->withProperties($props);
+        if ($this->causerId && ($causer = \App\Models\User::find($this->causerId))) {
+            $log->causedBy($causer);
+        }
+        $log->log($description);
     }
 
     public function handle(DocumentPdfService $service): void
@@ -66,6 +80,8 @@ class SendDocumentEmailJob implements ShouldQueue
             Mail::to($document->employee->email)
                 ->send(new DocumentMail($document, $tempPath));
 
+            $this->logSend($document, 'sent', "dokumen {$document->document_number} dikirim ke {$document->employee->email}", ['to' => $document->employee->email]);
+
             Log::info("SendDocumentEmailJob: document sent successfully", [
                 'document_id' => $this->documentId,
                 'sent_to'     => $document->employee->email,
@@ -86,5 +102,7 @@ class SendDocumentEmailJob implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Log::error("SendDocumentEmailJob failed permanently for document {$this->documentId}: " . $exception->getMessage());
+        $document = Documents::find($this->documentId);
+        $this->logSend($document, 'send_failed', "pengiriman dokumen {$document?->document_number} gagal: " . \Illuminate\Support\Str::limit($exception->getMessage(), 150), ['error' => $exception->getMessage()]);
     }
 }

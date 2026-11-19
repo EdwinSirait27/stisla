@@ -1378,6 +1378,7 @@
                 data: field,
                 name: field,
                 className: 'num',
+                searchable: false,
                 render: (d, t, row) => {
                     if (t !== 'display') return d;
                     if (dwOnly === true && !isDw(row)) return dash;
@@ -1424,26 +1425,26 @@
                 },
                 columns: [{
                         data: 'employee_name',
-                        name: 'employee',
+                        name: 'employee_name',
                         defaultContent: '-',
                         render: (d, t, row) => t !== 'display' ? d :
                             `<span class="pr-cell-name">${esc(d)}</span>` +
                             `<span class="pr-cell-sub">${esc(row.employee_pengenal)} ${row.position_name && row.position_name !== '-' ? '<span class="pr-dash">/</span> ' + esc(row.position_name) : ''}</span>`,
                     },
-                    { data: 'company_name', name: 'company', defaultContent: '-' },
-                    { data: 'department_name', name: 'department', defaultContent: '-' },
-                    { data: 'store_name', name: 'store', defaultContent: '-' },
-                    { data: 'grading_name', name: 'grading', defaultContent: '-' },
+                    { data: 'company_name', name: 'company_name', defaultContent: '-' },
+                    { data: 'department_name', name: 'department_name', defaultContent: '-' },
+                    { data: 'store_name', name: 'store_name', defaultContent: '-' },
+                    { data: 'grading_name', name: 'grading_name', defaultContent: '-' },
                     {
                         data: 'status_employee',
-                        name: 'type',
+                        name: 'status_employee',
                         render: (d, t) => {
                             if (t !== 'display') return d;
                             const label = { 'On Job Training': 'OJT', 'DW': 'Daily worker' }[d] ?? d;
                             return `<span class="status-badge is-type">${esc(label)}</span>`;
                         }
                     },
-                    { data: 'status', name: 'emp_status', defaultContent: '-' },
+                    { data: 'status', name: 'status', defaultContent: '-' },
                     money('basic_salary', false),
                     money('position_allowance', false),
                     money('daily_rate', true),

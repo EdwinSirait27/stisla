@@ -1564,10 +1564,14 @@
                     'punish_so', 'debt', 'tax', 'deduction', 'net', 'status', 'action'
                 ],
             };
+            // Kolom yang bukan kolom tabel payrolls (dihitung dari detail) tidak bisa diurutkan di server
+            const computed = ['meal_allowance', 'transport_allowance', 'house_allowance', 'bpjs_kesehatan', 'bpjs_ketenagakerjaan'];
             const money = (field, extraClass = '') => ({
                 data: field + '_fmt',
                 name: field,
                 className: 'num',
+                searchable: false,
+                orderable: !computed.includes(field),
                 render: (d, t) => t === 'display' && extraClass ? `<span class="${extraClass}">${d}</span>` : d,
             });
             const esc = v => $('<div>').text(v ?? '-').html();
@@ -1627,7 +1631,7 @@
                     },
                     {
                         data: 'employee_name',
-                        name: 'employee',
+                        name: 'employee_name',
                         defaultContent: '-',
                         render: (d, t, row) => t !== 'display' ? d :
                             `<span class="pr-emp-name">${esc(d)}</span>` +
@@ -1635,36 +1639,36 @@
                     },
                     {
                         data: 'company_name',
-                        name: 'company',
+                        name: 'company_name',
                         defaultContent: '-'
                     },
                     {
                         data: 'department_name',
-                        name: 'department',
+                        name: 'department_name',
                         defaultContent: '-'
                     },
                     {
                         data: 'grading_name',
-                        name: 'grading',
+                        name: 'grading_name',
                         defaultContent: '-'
                     },
                     {
                         data: 'store_name',
-                        name: 'store',
+                        name: 'store_name',
                         defaultContent: '-'
                     },
                     {
                         data: 'position_name',
-                        name: 'position',
+                        name: 'position_name',
                         defaultContent: '-'
                     },
                     {
                         data: 'status_type_badge',
-                        name: 'type',
+                        name: 'status_type_badge',
                     },
                     {
                         data: 'status_employee',
-                        name: 'emp_status',
+                        name: 'status_employee',
                     },
                     {
                         data: null,
@@ -1701,7 +1705,7 @@
                     money('total_deduction', 'pr-deduction'),
                     {
                         data: 'net_salary_fmt',
-                        name: 'net',
+                        name: 'net_salary_fmt',
                         className: 'num',
                         render: (d, t, row) => t !== 'display' ? d :
                             `<span class="pr-net${Number(row.net_salary) < 0 ? ' is-negative' : ''}">${d}</span>`
@@ -1761,6 +1765,10 @@
                 income: 'total_income', bpjs_kes: 'bpjs_kesehatan', bpjs_tk: 'bpjs_ketenagakerjaan',
                 punish: 'punishment', punish_so: 'punishment_so', debt: 'debt', tax: 'tax',
                 deduction: 'total_deduction',
+                // nama kolom DataTables = nama kolom di controller (dipakai untuk sorting server)
+                employee: 'employee_name', company: 'company_name', department: 'department_name',
+                grading: 'grading_name', store: 'store_name', position: 'position_name',
+                type: 'status_type_badge', emp_status: 'status_employee', net: 'net_salary_fmt',
             };
 
             function syncUrl() {

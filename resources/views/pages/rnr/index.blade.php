@@ -1,1069 +1,919 @@
 @extends('layouts.app')
-@section('title', 'Roles and Responsibility')
+@section('title', 'Tugas dan tanggung jawab')
 @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        .section-header {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            gap: 16px;
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: what my job expects of me, and who I answer to · states: no position, position without description, multiple positions, no atasan, with team
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, 79 of 83 positions have no description yet; the empty state says who fills it */
+        :root {
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .section-header-left {
+        html,
+        body {
+            overflow-x: clip;
+        }
+
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
+        }
+
+        .pr [hidden] {
+            display: none !important;
+        }
+
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .pr .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        /* ── Head ── */
+        .pr-head {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
         }
 
-        .section-header-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            background: #eff6ff;
+        .pr-crumbs {
             display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
+        }
+
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
+        }
+
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #3b82f6;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        .section-header h1 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #1e293b;
-            margin: 0 0 2px;
-            letter-spacing: -0.2px;
-        }
-
-        .section-header-subtitle {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin: 0;
-        }
-
-        .section-header-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .breadcrumb-item {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .breadcrumb-item a {
-            color: #3b82f6;
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
             text-decoration: none;
         }
 
-        .breadcrumb-item.active {
-            color: #1e293b;
-            font-weight: 500;
+        .pr-btn:active {
+            background: var(--pr-rule);
         }
 
-        .breadcrumb-sep {
-            font-size: 0.7rem;
-            color: #cbd5e1;
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
         }
 
-        .profile-card {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .07), 0 1px 2px rgba(0, 0, 0, .04);
-            background: #fff;
-            overflow: hidden;
+        .pr-btn i {
+            font-size: .85em;
         }
 
-        /* ─── Hero header ────────────────────────────────────── */
-        .profile-hero {
-            padding: 24px 24px 0;
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
+        }
+
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
+        }
+
+        .pr-btn-ghost {
+            border-color: transparent;
+            background: transparent;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-btn-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-danger {
+            color: var(--pr-error);
+        }
+
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* ── Badges ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        /* ── Toolbar ── */
+        .pr-toolbar {
             display: flex;
             align-items: flex-end;
-            gap: 18px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .profile-avatar-wrap {
-            position: relative;
-            flex-shrink: 0;
-            margin-bottom: 15px;
-        }
-
-        .profile-avatar {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: #eff6ff;
-            color: #1d4ed8;
-            font-size: 1.4rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #fff;
-            box-shadow: 0 0 0 1px #e2e8f0;
-            letter-spacing: .5px;
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .profile-avatar-verified {
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            width: 20px;
-            height: 20px;
-            background: #f0fdf4;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .55rem;
-            color: #16a34a;
-        }
-
-        .profile-hero-info {
-            flex: 1;
-            padding-bottom: 16px;
-        }
-
-        .profile-hero-name {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1e293b;
-            line-height: 1.3;
-        }
-
-        .profile-hero-sub {
-            font-size: .78rem;
-            color: #64748b;
-            margin-top: 3px;
-        }
-
-        .profile-hero-tags {
-            display: flex;
-            gap: 6px;
-            margin-top: 10px;
             flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        .profile-tag {
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+            overflow-x: auto;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            white-space: nowrap;
+        }
+
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
+        }
+
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
+        }
+
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
+        }
+
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
+        }
+
+        .pr-mini {
+            min-width: 140px;
+        }
+
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
+        }
+
+        .pr-muted {
+            color: var(--pr-muted);
+        }
+
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
+        .action-wrap {
+            display: flex;
+            gap: var(--pr-space-2xs);
+            justify-content: center;
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
             display: inline-flex;
             align-items: center;
-            padding: 2px 9px;
-            border-radius: 20px;
-            font-size: .7rem;
+            justify-content: center;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            text-decoration: none;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .act-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .act-btn.act-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* DataTables chrome */
+        .pr-dt-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
+        }
+
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
             font-weight: 600;
-            letter-spacing: .2px;
         }
 
-        .profile-tag-dept {
-            background: #eff6ff;
-            color: #1d4ed8;
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
         }
 
-        .profile-tag-company {
-            background: #eff6ff;
-            color: #e7ac08;
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
         }
 
-        .profile-tag-position {
-            background: #eff6ff;
-            color: #00c3ff;
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
         }
 
-        .profile-tag-location {
-            background: #eff6ff;
-            color: #9d0ddb;
-        }
-
-        .profile-tag-status {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        .profile-tag-grade {
-            background: #fffbeb;
-            color: #92400e;
-        }
-
-        /* ─── Section groups ─────────────────────────────────── */
-        .profile-body {
-            padding: 24px;
+        .pr-actions {
             display: flex;
-            flex-direction: column;
-            gap: 24px;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
         }
 
-        .profile-section-label {
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
+        .pr-hello {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: var(--pr-space-md);
         }
 
-        .profile-section-label::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
+        .pr-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
         }
 
-        .profile-section-label-kk {
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
-            display: flex;
+        .pr-hello-date {
+            margin: 0 0 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+        .status-badge.is-pending {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-approved {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-rejected {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
+        }
+
+        .status-badge.is-draft {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Uraian jabatan ── */
+        .pf-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-accent-soft);
+        }
+
+        .pf-initials {
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            font-size: var(--pr-text-lg);
+            font-weight: 800;
+            color: var(--pr-accent-deep);
         }
 
-        .profile-section-label-kk::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
-        }
-
-        .profile-section-label-ktp {
-            font-size: .68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
+        .pf-chips {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: var(--pr-space-2xs);
+            margin-top: var(--pr-space-xs);
         }
 
-        .profile-section-label-ktp::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #f1f5f9;
+        .pf-chip {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: var(--pr-pill);
+            background: var(--pr-paper-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
         }
 
-        /* ─── Field grid ─────────────────────────────────────── */
-        .field-grid {
+        .rnr-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+            gap: var(--pr-space-lg);
+            align-items: start;
         }
 
-        .field-group {
+        .rnr-main,
+        .rnr-side {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: var(--pr-space-lg);
+            min-width: 0;
         }
 
-        .field-group label {
-            font-size: .72rem;
-            font-weight: 600;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .rnr-main .pr-panel,
+        .rnr-side .pr-panel {
+            margin-bottom: 0;
+        }
+
+        .rnr-h {
+            margin: 0 0 var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            font-weight: 800;
+            color: var(--pr-ink);
+        }
+
+        .rnr-summary {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .rnr-summary p {
+            max-width: 72ch;
             margin: 0;
+            font-size: var(--pr-text-md);
+            line-height: 1.65;
+            color: var(--pr-ink);
+            white-space: pre-line;
         }
 
-        .field-group label i {
-            font-size: .68rem;
-            color: #94a3b8;
-            width: 12px;
-            text-align: center;
+        .rnr-cols {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        /* read-only field (display only) */
-        .field-readonly {
-            height: 36px;
-            background: #f8fafc;
-            border: 1px solid #f1f5f9;
-            border-radius: .5rem;
-            padding: 0 .75rem;
-            font-size: .825rem;
-            color: #475569;
-            display: flex;
-            align-items: center;
+        .rnr-col {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            min-width: 0;
         }
 
-        /* editable form-control override */
-        .field-group .form-control {
-            height: 36px;
-            font-size: .825rem;
-            border-color: #e2e8f0;
-            border-radius: .5rem;
-            color: #1e293b;
-            padding: 0 .75rem;
-            background: #fff;
+        .rnr-col + .rnr-col {
+            border-left: 1px solid var(--pr-rule);
         }
 
-        .field-group .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
-        }
-
-        .field-group .form-control.is-invalid {
-            border-color: #ef4444;
-        }
-
-        .field-group .invalid-feedback {
-            font-size: .72rem;
-        }
-
-        /* ─── Photo upload ───────────────────────────────────── */
-        .photo-upload-wrap {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .photo-upload-wrap-kk {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .photo-upload-wrap-ktp {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .photo-thumb {
-            width: 56px;
-            height: 56px;
-            border-radius: .5rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .photo-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-thumb i {
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-
-        .photo-thumb-kk {
-            width: 56px;
-            height: 56px;
-            border-radius: .5rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .photo-thumb-kk img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-thumb-kk i {
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-
-        .photo-thumb-ktp {
-            width: 56px;
-            height: 56px;
-            border-radius: .5rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .photo-thumb-ktp img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-thumb-ktp i {
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-
-
-        .photo-upload-hint {
-            font-size: .72rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .photo-upload-hint-kk {
-            font-size: .72rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .photo-upload-hint-ktp {
-            font-size: .72rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .photo-upload-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px dashed #cbd5e1;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .775rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .photo-upload-btn:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .photo-upload-btn-kk {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px dashed #cbd5e1;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .775rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .photo-upload-btn-kk:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .photo-upload-btn-ktp {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            height: 32px;
-            padding: 0 12px;
-            border: 1px dashed #cbd5e1;
-            border-radius: .5rem;
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .775rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .photo-upload-btn-ktp:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        /* ─── Alert ──────────────────────────────────────────── */
-        .alert-success-custom {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 14px;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: .5rem;
-            font-size: .8rem;
-            color: #166534;
-            margin-bottom: 20px;
-        }
-
-        .alert-danger-custom {
-            padding: 9px 14px;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: .5rem;
-            font-size: .8rem;
-            color: #991b1b;
-            margin-bottom: 20px;
-        }
-
-        .alert-danger-custom ul {
+        .rnr-list {
             margin: 0;
-            padding-left: 16px;
+            padding-left: 1.4em;
+            font-size: var(--pr-text-sm);
+            line-height: 1.55;
+            color: var(--pr-ink);
         }
 
-        /* ─── Footer ─────────────────────────────────────────── */
-        .profile-footer {
-            padding: 14px 24px;
-            border-top: 1px solid #f1f5f9;
-            background: #fafafa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .rnr-list li {
+            padding: 4px 0;
+            overflow-wrap: break-word;
         }
 
-        .profile-footer .btn {
-            height: 36px;
-            font-size: .825rem;
-            font-weight: 500;
-            padding: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            border-radius: .5rem;
+        .rnr-list li::marker {
+            font-weight: 700;
+            color: var(--pr-accent-strong);
         }
 
-        .password-footer {
-            padding: 14px 24px;
-            border-top: 1px solid #f1f5f9;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .rnr-list.is-check {
+            list-style: none;
+            padding-left: 0;
         }
 
-        .password-footer .btn {
-            height: 36px;
-            font-size: .825rem;
-            font-weight: 500;
-            padding: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            border-radius: .5rem;
+        .rnr-list.is-check li {
+            position: relative;
+            padding-left: 1.5em;
         }
 
-        .btn-back {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            color: #475569;
+        .rnr-list.is-check li::before {
+            content: "\2713";
+            position: absolute;
+            left: 0;
+            font-weight: 800;
+            color: var(--pr-success);
         }
 
-        .btn-back:hover {
-            background: #f8fafc;
-            color: #1e293b;
+        .rnr-none {
+            margin: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
         }
 
-        .btn-save {
-            background: #1d4ed8;
-            border: none;
-            color: #fff;
+        .rnr-person {
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
         }
 
-        .btn-save:hover {
-            background: #1e40af;
-            color: #fff;
+        .rnr-person:first-of-type {
+            border-top: 0;
         }
 
-        /* ─── Responsive ─────────────────────────────────────── */
-        @media (max-width: 576px) {
-            .profile-hero {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-                padding: 16px 16px 0;
-            }
-
-            .profile-body {
-                padding: 16px;
-            }
-
-            .profile-footer {
-                padding: 12px 16px;
-            }
-
-            .field-grid {
-                grid-template-columns: 1fr;
-            }
+        .rnr-team {
+            max-height: 360px;
+            overflow-y: auto;
         }
 
-        .request-box {
-            background: linear-gradient(to right, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1));
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 24px;
+        .rnr-person-name {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
         }
 
-        .request-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
+        .rnr-person-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
         }
 
-        .request-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: rgba(245, 158, 11, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+        .rnr-main .pr-empty-note,
+        .rnr-side .pr-empty-note {
+            line-height: 1.55;
         }
 
-        .icon-svg {
-            width: 20px;
-            height: 20px;
-            color: #fbbf24;
-        }
-
-        .request-text h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #fbbf24;
-            margin-bottom: 4px;
-        }
-
-        .request-text p {
-            font-size: 12px;
-            color: #94a3b8;
+        .rnr-foot {
+            margin: 0;
+            font-size: var(--pr-text-xs);
             line-height: 1.5;
-            margin: 0 0 4px 0;
+            color: var(--pr-ink-2);
         }
 
-        .signature-wrapper {
-            width: 100%;
+        .empty-state {
+            padding: var(--pr-space-lg);
         }
 
-        #signature-pad {
-            width: 100%;
-            height: 260px;
-            border: 1px dashed #d1d5db;
-            border-radius: 12px;
-            background: #fff;
-            cursor: crosshair;
+        .empty-state p {
+            max-width: 56ch;
+            margin: var(--pr-space-xs) 0 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
         }
 
-        .signature-preview-wrapper {
-            width: 100%;
-            min-height: 220px;
-            border: 1px dashed #d1d5db;
-            border-radius: 12px;
-            padding: 1.5rem;
-            background: #fff;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        @media (max-width: 64rem) {
+            .rnr-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
-        .signature-preview-image {
-            width: 100%;
-            max-width: 900px;
-            max-height: 350px;
-            object-fit: contain;
-        }
-
-        .image-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background: rgba(0, 0, 0, 0.85);
-        }
-
-        .image-modal-content {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 12px;
-            animation: zoomIn .2s ease;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .image-modal-kk {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background: rgba(0, 0, 0, 0.85);
-        }
-
-        .image-modal-content-kk {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 12px;
-            animation: zoomIn .2s ease;
-        }
-
-        .close-modal-kk {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .image-modal-ktp {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            padding-top: 60px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background: rgba(0, 0, 0, 0.85);
-        }
-
-        .image-modal-content-ktp {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh;
-            border-radius: 12px;
-            animation: zoomIn .2s ease;
-        }
-
-        .close-modal-ktp {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .photo-thumb img {
-            cursor: pointer;
-        }
-
-        .photo-thumb-kk img {
-            cursor: pointer;
-        }
-
-        .photo-thumb-ktp img {
-            cursor: pointer;
-        }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(.8);
-                opacity: 0;
+        @media (max-width: 40rem) {
+            .rnr-cols {
+                grid-template-columns: minmax(0, 1fr);
             }
 
-            to {
-                transform: scale(1);
-                opacity: 1;
+            .rnr-col + .rnr-col {
+                border-left: 0;
+                border-top: 1px solid var(--pr-rule);
+            }
+
+            .rnr-summary,
+            .rnr-col,
+            .rnr-person {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
             }
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $primary = fn($rel) => $rel?->firstWhere('pivot.is_primary', true) ?? $rel?->first();
+        $mainPos = $positions->first();
+        $dept = $primary($employee?->department);
+        $store = $primary($employee?->store);
+        $filled = $positions->filter(fn($p) => $p->role_summary || $p->responsibilities->isNotEmpty() || $p->qualifications->isNotEmpty())->count();
+        $atasan = $employee?->atasanList ?? collect();
+        $bawahan = $employee?->bawahanList ?? collect();
+    @endphp
+    <div class="main-content pr">
         <section class="section">
 
-            <div class="section-header">
-                <div class="section-header-left">
-                    <div class="section-header-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <circle cx="12" cy="8" r="4" />
-                            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                        </svg>
-                    </div>
+            <header class="pr-head">
+                <div class="pr-hello">
+                    @if (!empty($employee?->photos))
+                        <img src="{{ route('useremployee.photo', basename($employee->photos)) }}" alt="" class="pf-avatar no-drag" width="64" height="64">
+                    @else
+                        <span class="pf-avatar pf-initials" aria-hidden="true">
+                            {{ collect(explode(' ', $employee->employee_name ?? ($user->username ?? 'U')))->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') }}
+                        </span>
+                    @endif
                     <div>
-                        <h1>Roles and Responsibility</h1>
-                        <p class="section-header-subtitle">Your Roles and Responsibility</p>
+                        <p class="pr-hello-date">Tugas dan tanggung jawab</p>
+                        <h1 class="pr-title">{{ $mainPos?->name ?? 'Jabatan belum diatur' }}</h1>
+                        <p class="pr-lede">
+                            {{ collect([$employee?->employee_name, $dept?->department_name, $store?->name, $employee?->company?->name])->filter()->implode(', ') }}
+                        </p>
+                        <div class="pf-chips">
+                            @if ($employee?->employee_pengenal)<span class="pf-chip">NIP {{ $employee->employee_pengenal }}</span>@endif
+                            @if ($employee?->status_employee)<span class="pf-chip">{{ $employee->status_employee }}</span>@endif
+                            @if ($employee?->grading?->grading_name)<span class="pf-chip">Grading {{ $employee->grading->grading_name }}</span>@endif
+                            @if ($positions->count() > 1)<span class="pf-chip">{{ $positions->count() }} jabatan</span>@endif
+                        </div>
                     </div>
                 </div>
-                <nav class="section-header-breadcrumb">
-                    <div class="breadcrumb-item">
-                        <a href="{{ route(getDashboardRoute()) }}">Dashboard</a>
-                    </div>
-                    <span class="breadcrumb-sep">›</span>
-                    <div class="breadcrumb-item active">Roles and Responsibility</div>
-                </nav>
-            </div>
+            </header>
 
-            <div class="section-body">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-xl-10">
-
-                        <div class="profile-card">
-
-                            <div class="profile-hero">
-                                <div class="profile-avatar-wrap">
-                                    <div class="profile-avatar">
-
-                                        @if (!empty($user->employee->photos))
-                                            <img alt="image"
-                                                src="{{ route('useremployee.photo', basename($user->employee->photos)) }}">
-                                        @else
-                                            {{ collect(explode(' ', $user->employee->employee_name ?? ($user->username ?? 'U')))->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') }}
-                                        @endif
-                                    </div>
-
-                                    <div class="profile-avatar-verified">
-                                        <i class="fas fa-check" style="font-size:.5rem"></i>
-                                    </div>
-
-                                </div>
-
-                                <div class="profile-hero-info">
-                                    <div class="profile-hero-name">
-                                        {{ $user->employee->employee_name ?? ($user->username ?? '-') }}
-                                    </div>
-                                    <div class="profile-hero-sub">
-                                        NIP : {{ $user->employee->employee_pengenal ?? '' }}
-
-                                    </div>
-                                    <div class="profile-hero-tags">
-                                        @if (!empty($user->employee->department->department_name))
-                                            <span class="profile-tag profile-tag-company">
-                                                Company : {{ $user->employee->company->name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->department->department_name))
-                                            <span class="profile-tag profile-tag-location">
-                                                Location : {{ $user->employee->store->name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->department->department_name))
-                                            <span class="profile-tag profile-tag-dept">
-                                                Department : {{ $user->employee->department->department_name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->position->name))
-                                            <span class="profile-tag profile-tag-position">
-                                                Position : {{ $user->employee->position->name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->status_employee))
-                                            <span class="profile-tag profile-tag-status">
-                                                Status : {{ $user->employee->status_employee }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->grading->grading_name))
-                                            <span class="profile-tag profile-tag-grade">
-                                                Grading : {{ $user->employee->grading->grading_name }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($user->employee->group->group_name))
-                                            <span class="profile-tag profile-tag-grade">
-                                                Grouping : {{ $user->employee->group->group_name }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="profile-body">
-
-                                @if (session('status') || session('success'))
-                                    <div class="alert-success-custom">
-                                        <i class="fas fa-check-circle"></i>
-                                        {{ session('status') ?? session('success') }}
-                                    </div>
-                                @endif
-
-                                @if ($errors->any())
-                                    <div class="alert-danger-custom">
-                                        <ul>
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @endif
-                              
-                                {{-- ganti bagian ini saja --}}
+            <div class="rnr-grid">
+                {{-- Uraian jabatan (signature: apa yang diharapkan dari saya) --}}
+                <div class="rnr-main">
+                    @forelse ($positions as $position)
+                        @php
+                            $resp = $position->responsibilities;
+                            $qual = $position->qualifications;
+                            $empty = !$position->role_summary && $resp->isEmpty() && $qual->isEmpty();
+                        @endphp
+                        <section class="pr-panel" aria-labelledby="pos-{{ $position->id }}">
+                            <div class="pr-panel-head">
                                 <div>
-                                    <div class="profile-section-label">
-                                        Roles & Responsibility
-                                    </div>
-
-                                    @php $employee = $user->employee; @endphp
-
-                                    @if (!$employee || $employee->position->isEmpty())
-                                        <div
-                                            style="padding: 12px 16px; background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; font-size: .825rem; color: #854d0e;">
-                                            <i class="fas fa-exclamation-circle mr-2"></i> Belum ada posisi yang di-assign.
-                                        </div>
-                                    @else
-                                        <div class="d-flex flex-column gap-3">
-                                            @foreach ($employee->position as $position)
-                                                <div
-                                                    style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
-
-                                                    {{-- Position Header --}}
-                                                    <div
-                                                        style="background: #eff6ff; padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e2e8f0;">
-                                                        <i class="fas fa-briefcase"
-                                                            style="color: #3b82f6; font-size: .8rem;"></i>
-                                                        <span
-                                                            style="font-weight: 600; font-size: .875rem; color: #1e293b;">{{ $position->name }}</span>
-                                                        @if ($position->pivot->is_primary)
-                                                            <span
-                                                                style="margin-left: auto; background: #dbeafe; color: #1d4ed8; border-radius: 20px; padding: 2px 10px; font-size: .68rem; font-weight: 600;">
-                                                                Primary
-                                                            </span>
-                                                        @endif
-                                                    </div>
-
-                                                    <div style="padding: 16px;">
-
-                                                        {{-- Role Summary --}}
-                                                        <div class="field-group mb-3">
-                                                            <label>
-                                                                <i class="fas fa-user-tag"></i> Role Summary
-                                                            </label>
-                                                            <div
-                                                                style="background: #f8fafc; border: 1px solid #f1f5f9; border-left: 3px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: .825rem; color: #475569; line-height: 1.6; min-height: 40px;">
-                                                                {{ $position->role_summary ?? '-' }}
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="row">
-                                                            {{-- Key Responsibilities --}}
-                                                            <div class="col-md-6">
-                                                                <div class="field-group">
-                                                                    <label>
-                                                                        <i class="fas fa-clipboard-check"></i> Key
-                                                                        Responsibilities
-                                                                    </label>
-                                                                    @if ($position->responsibilities->isEmpty())
-                                                                        <p
-                                                                            style="font-size: .78rem; color: #94a3b8; font-style: italic; margin: 8px 0 0;">
-                                                                            Belum ada data.</p>
-                                                                    @else
-                                                                        <ul
-                                                                            style="list-style: none; padding: 0; margin: 8px 0 0;">
-                                                                            @foreach ($position->responsibilities as $item)
-                                                                                <li
-                                                                                    style="display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: .825rem; color: #475569; border-bottom: 1px solid #f1f5f9;">
-                                                                                    <span
-                                                                                        style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; margin-top: 6px;"></span>
-                                                                                    <span>{{ $item->description }}</span>
-                                                                                </li>
-                                                                            @endforeach
-                                                                        </ul>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-
-                                                            {{-- Qualifications --}}
-                                                            <div class="col-md-6">
-                                                                <div class="field-group">
-                                                                    <label>
-                                                                        <i class="fas fa-graduation-cap"></i> Qualifications
-                                                                    </label>
-                                                                    @if ($position->qualifications->isEmpty())
-                                                                        <p
-                                                                            style="font-size: .78rem; color: #94a3b8; font-style: italic; margin: 8px 0 0;">
-                                                                            Belum ada data.</p>
-                                                                    @else
-                                                                        <ul
-                                                                            style="list-style: none; padding: 0; margin: 8px 0 0;">
-                                                                            @foreach ($position->qualifications as $item)
-                                                                                <li
-                                                                                    style="display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: .825rem; color: #475569; border-bottom: 1px solid #f1f5f9;">
-                                                                                    <span
-                                                                                        style="width: 6px; height: 6px; border-radius: 50%; background: #6777ef; flex-shrink: 0; margin-top: 6px;"></span>
-                                                                                    <span>{{ $item->description }}</span>
-                                                                                </li>
-                                                                            @endforeach
-                                                                        </ul>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+                                    <h2 class="pr-panel-title" id="pos-{{ $position->id }}">{{ $position->name }}</h2>
+                                    <span class="pr-panel-sub">
+                                        {{ $empty ? 'Uraian jabatan belum diisi HR' : $resp->count() . ' tanggung jawab utama, ' . $qual->count() . ' kualifikasi' }}
+                                    </span>
                                 </div>
+                                @if ($position->pivot->is_primary)
+                                    <span class="status-badge is-approved">Jabatan utama</span>
+                                @else
+                                    <span class="status-badge is-draft">Jabatan tambahan</span>
+                                @endif
                             </div>
-                            <div class="profile-footer">
-                                <a href="{{ route(getDashboardRoute()) }}"class="btn btn-back"><i
-                                        class="fas fa-arrow-left"></i> Back</a>
+
+                            @if ($empty)
+                                <p class="pr-empty-note">
+                                    HR belum menuliskan ringkasan peran, tanggung jawab, dan kualifikasi untuk jabatan ini.
+                                    Tanyakan ke atasan langsung atau HR kalau ada yang ingin Anda pastikan tentang tugas Anda.
+                                </p>
+                            @else
+                                @if ($position->role_summary)
+                                    <div class="rnr-summary">
+                                        <h3 class="rnr-h">Ringkasan peran</h3>
+                                        <p>{{ $position->role_summary }}</p>
+                                    </div>
+                                @endif
+                                <div class="rnr-cols">
+                                    <div class="rnr-col">
+                                        <h3 class="rnr-h">Tanggung jawab utama</h3>
+                                        @if ($resp->isEmpty())
+                                            <p class="rnr-none">Belum diisi.</p>
+                                        @else
+                                            <ol class="rnr-list">
+                                                @foreach ($resp as $item)
+                                                    <li>{{ $item->description }}</li>
+                                                @endforeach
+                                            </ol>
+                                        @endif
+                                    </div>
+                                    <div class="rnr-col">
+                                        <h3 class="rnr-h">Kualifikasi</h3>
+                                        @if ($qual->isEmpty())
+                                            <p class="rnr-none">Belum diisi.</p>
+                                        @else
+                                            <ul class="rnr-list is-check">
+                                                @foreach ($qual as $item)
+                                                    <li>{{ $item->description }}</li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+                        </section>
+                    @empty
+                        <section class="pr-panel">
+                            <div class="empty-state">
+                                <h2 class="pr-panel-title">Belum ada jabatan</h2>
+                                <p>Akun Anda belum punya jabatan di data karyawan, jadi uraian tugas belum bisa ditampilkan. Hubungi HR untuk mengaturnya.</p>
+                            </div>
+                        </section>
+                    @endforelse
+                </div>
+
+                {{-- Posisi di struktur --}}
+                <aside class="rnr-side">
+                    <section class="pr-panel" aria-labelledby="rnr-atasan">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="rnr-atasan">Atasan langsung</h2>
+                                <span class="pr-panel-sub">Yang menyetujui cuti dan lembur Anda</span>
                             </div>
                         </div>
-                        <br>
+                        @forelse ($atasan as $a)
+                            <div class="rnr-person">
+                                <span class="rnr-person-name">{{ $a->employee_name }}</span>
+                                <span class="rnr-person-sub">{{ $a->position->first()?->name ?? '-' }}</span>
+                            </div>
+                        @empty
+                            <p class="pr-empty-note">Belum diatur. Tanpa atasan, pengajuan cuti Anda tidak punya penyetuju. Hubungi HR.</p>
+                        @endforelse
+                    </section>
 
+                    <section class="pr-panel" aria-labelledby="rnr-tim">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="rnr-tim">Bawahan langsung</h2>
+                                <span class="pr-panel-sub">{{ $bawahan->count() ? $bawahan->count() . ' orang' : 'Tidak ada' }}</span>
+                            </div>
+                        </div>
+                        @if ($bawahan->isNotEmpty())
+                            <div class="rnr-team">
+                                @foreach ($bawahan as $b)
+                                    <div class="rnr-person">
+                                        <span class="rnr-person-name">{{ $b->employee_name }}</span>
+                                        <span class="rnr-person-sub">{{ $b->position->first()?->name ?? '-' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="pr-empty-note">Tidak ada karyawan yang tercatat melapor langsung ke Anda.</p>
+                        @endif
+                    </section>
 
-                    </div>
-                </div>
+                    @if ($filled < $positions->count())
+                        <p class="rnr-foot">
+                            Uraian jabatan diisi HR lewat menu Position. Kalau isinya sudah tidak sesuai dengan pekerjaan Anda sekarang, sampaikan ke HR.
+                        </p>
+                    @endif
+                </aside>
             </div>
         </section>
     </div>

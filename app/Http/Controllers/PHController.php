@@ -19,20 +19,39 @@ class PHController extends Controller
     private const TYPES = ['All', 'Hindu', 'Non Hindu'];
     private const CLOSED_PERIOD_MESSAGE = 'Public Holiday sebelum periode berjalan tidak bisa diubah, karena periode itu mungkin sudah masuk payroll.';
 
-    public function index()
+    public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
-    $user = auth()->user();
+        $years = Ph::selectRaw('DISTINCT YEAR(date) AS y')->pluck('y')
+            ->push((int) now()->year)->unique()->sortDesc()->values();
+        $year  = (int) $request->query('year', now()->year);
+        $type  = in_array($request->query('type'), self::TYPES, true) ? $request->query('type') : null;
 
-    if (!$user) {
-        abort(403);
+        $all = Ph::whereYear('date', $year)->orderBy('date')->orderBy('type')->get();
+        $phs = $type ? $all->where('type', $type)->values() : $all;
+
+        // Jumlah roster yang sudah tercatat sebagai PH di tiap tanggal (dampak nyata ke karyawan)
+        $rosterCounts = \App\Models\Roster::where('day_type', 'Public Holiday')
+            ->whereIn('date', $all->map(fn($p) => $p->date->toDateString())->unique()->all())
+            ->selectRaw('DATE(date) AS d, COUNT(*) AS c')
+            ->groupBy('d')
+            ->pluck('c', 'd');
+
+        $next = Ph::whereDate('date', '>=', today())->orderBy('date')->get()
+            ->groupBy(fn($p) => $p->date->toDateString())->first();
+
+        return view('pages.Pubholi.Pubholi', [
+            'phs'          => $phs,
+            'all'          => $all,
+            'years'        => $years,
+            'year'         => $year,
+            'type'         => $type,
+            'types'        => self::TYPES,
+            'rosterCounts' => $rosterCounts,
+            'next'         => $next,
+            'periodStart'  => PublicHolidayRosterSync::currentPeriodStart(),
+            'hash'         => fn($id) => self::hashId($id),
+        ]);
     }
-     if ($user->hasanyPermission(['ManagePH','ManagePHSPVManager','ViewPH'])) {
-     }
-        return view('pages.Pubholi.Pubholi');
-    }
-    
-    
 
 public function getPubholidays(Request $request)
 {
@@ -72,7 +91,10 @@ public function getPubholidays(Request $request)
 }
     public function create()
     {
-        return view('pages.Pubholi.create', ['status_type' => self::TYPES]);
+        return view('pages.Pubholi.create', [
+            'status_type' => self::TYPES,
+            'periodStart' => PublicHolidayRosterSync::currentPeriodStart(),
+        ]);
     }
 
     public function store(Request $request)
@@ -101,6 +123,8 @@ public function getPubholidays(Request $request)
             'pubholi'     => $pubholi,
             'hashedId'    => $hashedId,
             'status_type' => self::TYPES,
+            'periodStart' => PublicHolidayRosterSync::currentPeriodStart(),
+            'rosterCount' => \App\Models\Roster::where('day_type', 'Public Holiday')->whereDate('date', $pubholi->date)->count(),
         ]);
     }
 

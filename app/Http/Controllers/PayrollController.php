@@ -448,7 +448,8 @@ class PayrollController extends Controller
         }
         $period = PayrollPeriod::findOrFail($periodId);
 
-        $query = Payroll::with([
+        // select('payrolls.*') wajib: orderColumn di bawah memakai JOIN, tanpa ini id payroll tertimpa id karyawan
+        $query = Payroll::select('payrolls.*')->with([
             'employee:id,employee_name,employee_pengenal,status_employee,status,company_id,grading_id',
             'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
@@ -698,10 +699,22 @@ class PayrollController extends Controller
     $q->join('employees_tables as e', 'e.id', '=', 'payrolls.employee_id')
         ->orderBy('e.employee_name', $order);
 })
-// ->orderColumn('employee_pengenal', function ($q, $order) {
-//     $q->join('employees_tables as e_pen', 'e_pen.id', '=', 'payrolls.employee_id')
-//         ->orderBy('e_pen.employee_pengenal', $order);
-// })
+->orderColumn('employee_pengenal', function ($q, $order) {
+    $q->join('employees_tables as e_pen', 'e_pen.id', '=', 'payrolls.employee_id')
+        ->orderBy('e_pen.employee_pengenal', $order);
+})
+->orderColumn('status_type_badge', function ($q, $order) {
+    $q->join('employees_tables as e_t', 'e_t.id', '=', 'payrolls.employee_id')
+        ->orderBy('e_t.status_employee', $order);
+})
+->orderColumn('status_employee', function ($q, $order) {
+    $q->join('employees_tables as e_st', 'e_st.id', '=', 'payrolls.employee_id')
+        ->orderBy('e_st.status', $order);
+})
+// Pencarian sudah ditangani manual di atas (nama, NIP, store, departemen);
+// matikan pencarian global bawaan Yajra supaya tidak mencari ke kolom yang tidak ada.
+->filter(function () {
+}, false)
 ->orderColumn('company_name', function ($q, $order) {
     $q->join('employees_tables as e_c', 'e_c.id', '=', 'payrolls.employee_id')
         ->join('company_tables as c', 'c.id', '=', 'e_c.company_id')

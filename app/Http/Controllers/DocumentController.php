@@ -35,7 +35,36 @@ class DocumentController extends Controller
             ->unique()
             ->sort()
             ->values();
-        return view('pages.document.index', compact('gradings', 'documentNames'));
+
+        // Ringkasan untuk kartu di atas tabel (satu query agregat + satu query log kirim)
+        $base = Documents::query()
+            ->leftJoin('employees_tables as e', 'e.id', '=', 'documents.employee_id');
+        $totals = (clone $base)->selectRaw("
+                COUNT(*) AS total,
+                SUM(documents.status = 'draft') AS draft,
+                SUM(e.id IS NULL OR e.email IS NULL OR e.email = '') AS no_email,
+                SUM(e.status IS NOT NULL AND e.status <> 'Active') AS inactive
+            ")->first();
+        $sentIds = Activity::where('log_name', 'document')->where('event', 'sent')
+            ->where('subject_type', Documents::class)->distinct()->pluck('subject_id');
+        $byType = Documents::query()
+            ->join('company_document_configs as c', 'c.id', '=', 'documents.company_document_config_id')
+            ->join('document_types as t', 't.id', '=', 'c.document_type_id')
+            ->selectRaw('t.document_name, t.nickname, COUNT(*) AS c')
+            ->groupBy('t.document_name', 't.nickname')
+            ->orderByDesc('c')
+            ->get();
+
+        $stats = [
+            'total'    => (int) $totals->total,
+            'draft'    => (int) $totals->draft,
+            'no_email' => (int) $totals->no_email,
+            'inactive' => (int) $totals->inactive,
+            'sent'     => $sentIds->count(),
+            'by_type'  => $byType,
+        ];
+
+        return view('pages.document.index', compact('gradings', 'documentNames', 'stats'));
     }
 
     public function create()
@@ -116,18 +145,36 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        $lastSent = Activity::select('created_at')
+            ->whereColumn('subject_id', 'documents.id')
+            ->where('subject_type', Documents::class)
+            ->where('log_name', 'document')
+            ->where('event', 'sent')
+            ->latest()
+            ->limit(1);
+        $lastFailed = Activity::select('created_at')
+            ->whereColumn('subject_id', 'documents.id')
+            ->where('subject_type', Documents::class)
+            ->where('log_name', 'document')
+            ->where('event', 'send_failed')
+            ->latest()
+            ->limit(1);
+
         $query = Documents::with([
                 'companydocumentconfigs.documenttypes',
-                'employee:id,employee_name,grading_id',
+                'employee:id,employee_name,employee_pengenal,grading_id,email,status',
                 'employee.grading:id,grading_name',
             ])->select([
-                'id',
+                'documents.id',
                 'company_document_config_id',
                 'employee_id',
                 'issued_by',
+                'issued_date',
+                'expired_date',
                 'document_number',
                 'status',
-            ]);
+            ])
+            ->addSelect(['last_sent_at' => $lastSent, 'last_failed_at' => $lastFailed]);
 
         $query->when(request()->filled('filter_grading'), function ($q) {
             $q->whereHas('employee.grading', function ($gq) {
@@ -145,86 +192,109 @@ class DocumentController extends Controller
             $q->where('status', request('filter_status'));
         });
 
+        // Pengiriman: never | sent | failed | no_email
+        $query->when(request('filter_send'), function ($q, $v) use ($lastSent, $lastFailed) {
+            match ($v) {
+                'sent'     => $q->whereExists((clone $lastSent)->getQuery()),
+                'never'    => $q->whereNotExists((clone $lastSent)->getQuery())
+                                ->whereHas('employee', fn($e) => $e->whereNotNull('email')->where('email', '!=', '')),
+                'failed'   => $q->whereExists((clone $lastFailed)->getQuery()),
+                'no_email' => $q->where(fn($w) => $w->whereDoesntHave('employee')
+                                ->orWhereHas('employee', fn($e) => $e->whereNull('email')->orWhere('email', ''))),
+                default    => null,
+            };
+        });
+
+        $fmt = fn($v) => $v ? Carbon::parse($v)->locale('id')->translatedFormat('d M Y') : null;
+
         return DataTables::of($query)
             ->addColumn('checkbox', function ($document) {
-                $disabled = $document->status === 'draft' ? 'disabled title="Dokumen masih draft, belum bisa dikirim"' : '';
+                $reason = $this->unsendableReason($document);
+                $label  = 'Pilih dokumen ' . e($document->document_number);
 
-                return '<input type="checkbox" class="doc-checkbox" value="' . $document->id . '" ' . $disabled . '>';
+                return '<input type="checkbox" class="doc-checkbox" value="' . e($document->id) . '" aria-label="' . $label . '"'
+                    . ($reason ? ' disabled title="' . e($reason) . '"' : '') . '>';
             })
             ->addColumn('employee_name', function ($document) {
-                return $document->employee->employee_name ?? '-';
+                $emp = $document->employee;
+                if (!$emp) {
+                    return '<span class="pr-cell-name">-</span><span class="pr-cell-sub">Karyawan tidak ditemukan</span>';
+                }
+                $sub = collect([$emp->employee_pengenal, $emp->grading->grading_name ?? null])->filter()->implode(', ');
+                $inactive = $emp->status !== 'Active'
+                    ? ' <span class="status-badge is-draft">' . e($emp->status ?? 'Nonaktif') . '</span>' : '';
+
+                return '<span class="pr-cell-name">' . e($emp->employee_name) . $inactive . '</span>'
+                    . '<span class="pr-cell-sub">' . e($sub ?: '-') . '</span>';
             })
             ->addColumn('grading_name', function ($document) {
                 return $document->employee->grading->grading_name ?? '-';
             })
             ->addColumn('document_name', function ($document) {
-                return $document->companydocumentconfigs->documenttypes->document_name ?? '-';
+                $type = $document->companydocumentconfigs->documenttypes ?? null;
+
+                return '<span class="pr-cell-name">' . e($type->document_name ?? '-') . '</span>'
+                    . '<span class="pr-cell-sub">' . e($document->document_number ?? '-') . '</span>';
+            })
+            ->addColumn('issued', function ($document) use ($fmt) {
+                $html = '<span class="pr-cell-name">' . e($fmt($document->issued_date) ?? '-') . '</span>';
+                if ($document->expired_date) {
+                    $html .= '<span class="pr-cell-sub">berlaku sampai ' . e($fmt($document->expired_date)) . '</span>';
+                }
+                return $html;
+            })
+            ->addColumn('delivery', function ($document) use ($fmt) {
+                $email = $document->employee->email ?? null;
+                if (!$email) {
+                    return '<span class="status-badge is-rejected">Tidak ada email</span>'
+                        . '<span class="pr-cell-sub">Isi email karyawan dulu</span>';
+                }
+                $sent   = $document->last_sent_at;
+                $failed = $document->last_failed_at;
+                if ($failed && (!$sent || $failed > $sent)) {
+                    return '<span class="status-badge is-rejected">Gagal terkirim</span>'
+                        . '<span class="pr-cell-sub">' . e($fmt($failed)) . ', ' . e($email) . '</span>';
+                }
+                if ($sent) {
+                    return '<span class="status-badge is-approved">Terkirim</span>'
+                        . '<span class="pr-cell-sub">' . e(Carbon::parse($sent)->locale('id')->translatedFormat('d M Y H:i')) . '</span>';
+                }
+                return '<span class="status-badge is-draft">Belum dikirim</span>'
+                    . '<span class="pr-cell-sub">' . e($email) . '</span>';
             })
             ->editColumn('status', function ($document) {
                 $badges = [
-                    'draft'   => '<span class="badge badge-secondary">Draft</span>',
-                    'issued'  => '<span class="badge badge-primary">Issued</span>',
-                    'revoked' => '<span class="badge badge-danger">Revoked</span>',
-                    'expired' => '<span class="badge badge-warning">Expired</span>',
+                    'draft'   => ['is-draft', 'Draft'],
+                    'issued'  => ['is-approved', 'Terbit'],
+                    'revoked' => ['is-rejected', 'Dicabut'],
+                    'expired' => ['is-pending', 'Kedaluwarsa'],
                 ];
+                [$cls, $label] = $badges[$document->status] ?? ['is-draft', ucfirst((string) $document->status)];
 
-                return $badges[$document->status] ?? ucfirst($document->status);
+                return '<span class="status-badge ' . $cls . '">' . e($label) . '</span>';
             })
             ->addColumn('action', function ($document) {
+                $reason   = $this->unsendableReason($document);
+                $isDraft  = $document->status === 'draft';
+                $nickname = $document->companydocumentconfigs->documenttypes->nickname ?? null;
+                $number   = e($document->document_number);
 
-                $downloadUrl = route('documents.download', $document->id);
-                $sendUrl     = route('documents.send', $document->id);
-                $isDraft     = $document->status === 'draft';
-
-                $editButton = '';
-                $nickname   = $document->companydocumentconfigs->documenttypes->nickname ?? null;
-
+                $html = '<div class="action-wrap">';
+                $html .= $isDraft
+                    ? '<button type="button" class="act-btn" disabled title="Draft belum bisa diunduh"><i class="fas fa-download" aria-hidden="true"></i><span class="sr-only">Unduh</span></button>'
+                    : '<a href="' . route('documents.download', $document->id) . '" target="_blank" rel="noopener" class="act-btn" title="Unduh PDF ' . $number . '"><i class="fas fa-download" aria-hidden="true"></i><span class="sr-only">Unduh</span></a>';
+                $html .= $reason
+                    ? '<button type="button" class="act-btn" disabled title="' . e($reason) . '"><i class="fas fa-paper-plane" aria-hidden="true"></i><span class="sr-only">Kirim</span></button>'
+                    : '<button type="button" class="act-btn btn-send-document" data-url="' . route('documents.send', $document->id) . '" data-number="' . $number . '" data-email="' . e($document->employee->email) . '" title="Kirim ke email karyawan"><i class="fas fa-paper-plane" aria-hidden="true"></i><span class="sr-only">Kirim</span></button>';
                 if ($nickname === 'ST' && $document->status === SuratTugasService::ACTIVE_STATUS) {
-                    $editUrl    = route('documents.st.edit', $document->id);
-                    $editButton = '
-                <a href="' . $editUrl . '"
-                   class="btn btn-sm btn-warning"
-                   title="Edit Surat Tugas">
-                    <i class="fas fa-pen"></i> Edit
-                </a>';
+                    $html .= '<a href="' . route('documents.st.edit', $document->id) . '" class="act-btn act-warning" title="Edit surat tugas"><i class="fas fa-pen" aria-hidden="true"></i><span class="sr-only">Edit</span></a>';
                 }
-
-                if ($isDraft) {
-                    $downloadButton = '
-                <button type="button" class="btn btn-sm btn-primary" disabled
-                        title="Dokumen masih draft, belum bisa didownload">
-                    <i class="fas fa-download"></i> Download
-                </button>';
-                    $sendButton = '
-                <button type="button" class="btn btn-sm btn-success" disabled
-                        title="Dokumen masih draft, belum bisa dikirim">
-                    <i class="fas fa-paper-plane"></i> Send Email
-                </button>';
-                } else {
-                    $downloadButton = '
-                <a href="' . $downloadUrl . '"
-                   class="btn btn-sm btn-primary"
-                   target="_blank"
-                   title="Download document">
-                    <i class="fas fa-download"></i> Download
-                </a>';
-                    $sendButton = '
-                <button type="button"
-                        class="btn btn-sm btn-success btn-send-document"
-                        data-url="' . $sendUrl . '"
-                        title="Email this document">
-                    <i class="fas fa-paper-plane"></i> Send Email
-                </button>';
-                }
-
-                return '
-            <div class="btn-group" role="group">' . $downloadButton . $sendButton . $editButton . '
-            </div>
-        ';
+                return $html . '</div>';
             })
             ->filterColumn('employee_name', function ($query, $keyword) {
                 $query->whereHas('employee', function ($q) use ($keyword) {
-                    $q->where('employee_name', 'like', "%{$keyword}%");
+                    $q->where('employee_name', 'like', "%{$keyword}%")
+                        ->orWhere('employee_pengenal', 'like', "%{$keyword}%");
                 });
             })
             ->filterColumn('grading_name', function ($query, $keyword) {
@@ -233,16 +303,14 @@ class DocumentController extends Controller
                 });
             })
             ->filterColumn('document_name', function ($query, $keyword) {
-                $query->whereHas('companydocumentconfigs.documenttypes', function ($q) use ($keyword) {
-                    $q->where('document_name', 'like', "%{$keyword}%");
+                $query->where(function ($w) use ($keyword) {
+                    $w->where('document_number', 'like', "%{$keyword}%")
+                        ->orWhereHas('companydocumentconfigs.documenttypes', fn($q) => $q->where('document_name', 'like', "%{$keyword}%"));
                 });
             })
-            ->orderColumn('grading_name', function ($query, $order) {
+            ->orderColumn('employee_name', function ($query, $order) {
                 $query->orderBy(
-                    \App\Models\Employee::select('grading.grading_name')
-                        ->join('grading', 'grading.id', '=', 'employees_tables.grading_id')
-                        ->whereColumn('employees_tables.id', 'documents.employee_id')
-                        ->limit(1),
+                    Employee::select('employee_name')->whereColumn('employees_tables.id', 'documents.employee_id')->limit(1),
                     $order
                 );
             })
@@ -255,8 +323,28 @@ class DocumentController extends Controller
                     $order
                 );
             })
-            ->rawColumns(['checkbox', 'status', 'action'])
+            ->orderColumn('issued', 'issued_date $1')
+            ->orderColumn('delivery', 'last_sent_at $1')
+            ->rawColumns(['checkbox', 'employee_name', 'document_name', 'issued', 'delivery', 'status', 'action'])
             ->make(true);
+    }
+
+    /** Alasan dokumen tidak bisa dikirim lewat email, null kalau bisa. */
+    private function unsendableReason(Documents $document): ?string
+    {
+        if ($document->status === 'draft') {
+            return 'Dokumen masih draft, belum bisa dikirim';
+        }
+        if ($document->status === 'revoked') {
+            return 'Dokumen sudah dicabut';
+        }
+        if (!$document->employee) {
+            return 'Karyawan tidak ditemukan';
+        }
+        if (empty($document->employee->email)) {
+            return 'Karyawan belum punya email';
+        }
+        return null;
     }
 
     public function getDocumentActivities(Request $request)
@@ -272,19 +360,28 @@ class DocumentController extends Controller
             ->with(['causer.employee'])
             ->latest();
 
+        $events = [
+            'created'     => ['is-open', 'Dibuat'],
+            'updated'     => ['is-pending', 'Diubah'],
+            'deleted'     => ['is-rejected', 'Dihapus'],
+            'sent'        => ['is-approved', 'Dikirim'],
+            'send_failed' => ['is-rejected', 'Gagal kirim'],
+        ];
+
         return DataTables::of($query)
             ->addIndexColumn()
+            ->addColumn('event_badge', function ($row) use ($events) {
+                [$cls, $label] = $events[$row->event] ?? ['is-draft', ucfirst((string) ($row->event ?: 'lainnya'))];
+                return '<span class="status-badge ' . $cls . '">' . e($label) . '</span>';
+            })
             ->addColumn('description', function ($row) {
-                return $row->description ?? '-';
+                return e($row->description ?? '-');
             })
             ->addColumn('causer', function ($row) {
-                return $row->causer->employee->employee_name ?? ($row->causer->name ?? 'system');
+                return $row->causer->employee->employee_name ?? ($row->causer->name ?? 'Sistem');
             })
             ->addColumn('created_at', function ($row) {
-                return $row->created_at->format('d M Y H:i');
-            })
-            ->addColumn('changes', function ($row) {
-                return json_encode($row->properties['attributes'] ?? []);
+                return $row->created_at->locale('id')->translatedFormat('d M Y H:i');
             })
             ->filter(function ($instance) use ($request) {
                 if ($request->has('search') && $request->get('search')['value'] != '') {
@@ -298,7 +395,7 @@ class DocumentController extends Controller
                     });
                 }
             })
-            ->rawColumns(['description'])
+            ->rawColumns(['event_badge', 'description'])
             ->make(true);
     }
 
@@ -311,12 +408,16 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $document = Documents::findOrFail($documentId);
+        $document = Documents::with('employee:id,email,employee_name')->findOrFail($documentId);
 
-        SendDocumentEmailJob::dispatch($document->id);
+        if ($reason = $this->unsendableReason($document)) {
+            return response()->json(['message' => $reason . '.'], 422);
+        }
+
+        SendDocumentEmailJob::dispatch($document->id, $user->id);
 
         return response()->json([
-            'message' => 'Document has been queued for sending.',
+            'message' => "Dokumen {$document->document_number} masuk antrian kirim ke {$document->employee->email}. Status di tabel berubah jadi Terkirim setelah email benar-benar keluar.",
         ]);
     }
 
@@ -330,18 +431,31 @@ class DocumentController extends Controller
         }
 
         $validated = $request->validate([
-            'document_ids'   => 'required|array|min:1',
+            'document_ids'   => 'required|array|min:1|max:500',
             'document_ids.*' => 'required|string|exists:documents,id',
         ]);
 
-        foreach ($validated['document_ids'] as $documentId) {
-            SendDocumentEmailJob::dispatch($documentId);
+        $documents = Documents::with('employee:id,email')->whereIn('id', $validated['document_ids'])->get();
+        $queued = 0;
+        $skipped = [];
+
+        foreach ($documents as $document) {
+            if ($reason = $this->unsendableReason($document)) {
+                $skipped[$reason] = ($skipped[$reason] ?? 0) + 1;
+                continue;
+            }
+            SendDocumentEmailJob::dispatch($document->id, $user->id);
+            $queued++;
         }
 
-        return response()->json([
-            'message' => count($validated['document_ids']) . ' document(s) have been queued for sending.',
-        ]);
+        $message = "{$queued} dokumen masuk antrian kirim.";
+        if ($skipped) {
+            $message .= ' Dilewati: ' . collect($skipped)->map(fn($n, $r) => "{$n} ({$r})")->implode(', ') . '.';
+        }
+
+        return response()->json(['message' => $message, 'queued' => $queued, 'skipped' => array_sum($skipped)]);
     }
+
     public function downloadDocument(string $documentId)
     {
         /** @var \App\Models\User|null $user */
