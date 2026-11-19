@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
@@ -8,14 +9,12 @@
     <!-- General CSS Files -->
     <link rel="stylesheet" href="{{ asset('library/bootstrap/dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
-    
         integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="icon" type="image/png"
-        href="{{ asset('img/AsianBay logomark.ico') }}">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
-        @stack('styles')
+    <link rel="icon" type="image/png" href="{{ asset('img/AsianBay logomark.ico') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    @stack('styles')
     <!-- Template CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/mobile-nav.css') }}">
@@ -23,9 +22,10 @@
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
     <!-- Start GA -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-94034622-3"></script>
-    
+
     <script>
         window.dataLayer = window.dataLayer || [];
+
         function gtag() {
             dataLayer.push(arguments);
         }
@@ -34,6 +34,7 @@
     </script>
     <script src="{{ mix('js/app.js') }}" defer></script>
 </head>
+
 <body>
     <div id="app">
         <div class="main-wrapper">
@@ -74,17 +75,17 @@
             // Inactivity timer
             let inactivityTime = function() {
                 let time;
-    
+
                 // Reset timer on these events
                 window.onload = resetTimer;
                 document.onmousemove = resetTimer;
                 document.onkeypress = resetTimer;
-    
+
                 function logout() {
                     // Check if we're already logging out to prevent multiple calls
                     if (window.loggingOut) return;
                     window.loggingOut = true;
-    
+
                     // Panggil route logout
                     fetch('{{ route('logout') }}', {
                         method: 'POST',
@@ -98,7 +99,7 @@
                         window.loggingOut = false;
                     });
                 }
-    
+
                 function resetTimer() {
                     clearTimeout(time);
                     time = setTimeout(logout, 3600000);
@@ -115,7 +116,7 @@
 
     @stack('scripts')
 
-  
+
 </body>
 
 </html>

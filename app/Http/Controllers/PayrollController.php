@@ -458,17 +458,17 @@ class PayrollController extends Controller
             'employee.grading:id,grading_name',
             'details.component',
         ])
-            ->where('payroll_period_id', $period->id);
+            ->where('payrolls.payroll_period_id', $period->id);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('payrolls.status', $request->status);
         }
 
         // Penanda dari panel "perlu dicek" di halaman index
         if ($request->input('flag') === 'net_negative') {
-            $query->where('status', 'draft')->where('net_salary', '<', 0);
+            $query->where('payrolls.status', 'draft')->where('payrolls.net_salary', '<', 0);
         } elseif ($request->input('flag') === 'no_attendance') {
-            $query->where('status', 'draft')->where('attendance_days', 0);
+            $query->where('payrolls.status', 'draft')->where('payrolls.attendance_days', 0);
         }
 
         if ($request->filled('status_type')) {

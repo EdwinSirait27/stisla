@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
         /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
-         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
-         * nav: kept (Stisla shell) · signature: the period ledger, status flow bar beside the money totals · states: loading, empty, full, flagged
-         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+             * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+             * nav: kept (Stisla shell) · signature: the period ledger, status flow bar beside the money totals · states: loading, empty, full, flagged
+             * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
         /* Hallmark · pre-emit critique: P4 H4 E4 S4 R3 V4 · weakest: R, the 33-column table, answered with column views (Ringkas, Pendapatan, Potongan, Semua) */
 
         :root {
@@ -1114,6 +1114,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             .pr *,
             .pr *::before,
             .pr *::after {
@@ -1126,10 +1127,12 @@
 @section('main')
     @php
         $isOpen = $period->isOpen();
-        $pct = fn($n) => $stats['total'] > 0 ? round($n / $stats['total'] * 100, 2) : 0;
+        $pct = fn($n) => $stats['total'] > 0 ? round(($n / $stats['total']) * 100, 2) : 0;
         $rp = fn($n) => number_format($n, 0, ',', '.');
-        $statusLabel = ['open' => 'Open', 'closed' => 'Closed', 'locked' => 'Locked'][$period->status] ?? ucfirst($period->status);
-        $periodBadge = ['open' => 'is-approved', 'closed' => 'is-prorate', 'locked' => 'is-draft'][$period->status] ?? 'is-draft';
+        $statusLabel =
+            ['open' => 'Open', 'closed' => 'Closed', 'locked' => 'Locked'][$period->status] ?? ucfirst($period->status);
+        $periodBadge =
+            ['open' => 'is-approved', 'closed' => 'is-prorate', 'locked' => 'is-draft'][$period->status] ?? 'is-draft';
     @endphp
     <div class="main-content pr">
         <section class="section">
@@ -1144,7 +1147,9 @@
                     </ol>
                     <h1 class="pr-title">Payroll {{ $period->period_label }}</h1>
                     <div class="pr-meta">
-                        <span><i class="fas fa-calendar-alt" aria-hidden="true"></i>{{ $period->period_start->format('d M Y') }} sampai {{ $period->period_end->format('d M Y') }}</span>
+                        <span><i class="fas fa-calendar-alt"
+                                aria-hidden="true"></i>{{ $period->period_start->format('d M Y') }} sampai
+                            {{ $period->period_end->format('d M Y') }}</span>
                         <span class="status-badge {{ $periodBadge }}">Periode {{ $statusLabel }}</span>
                         @if ($period->note)
                             <span>{{ $period->note }}</span>
@@ -1158,9 +1163,12 @@
                             <i class="fas fa-file-excel" aria-hidden="true"></i> Export
                         </button>
                     @endcan
-                    @if ($isOpen && auth()->user()->canAny(['payroll.download.template', 'payroll.import']))
+                    @if (
+                        $isOpen &&
+                            auth()->user()->canAny(['payroll.download.template', 'payroll.import']))
                         <div class="dropdown">
-                            <button type="button" class="pr-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" class="pr-btn" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
                                 <i class="fas fa-file-import" aria-hidden="true"></i> Data eksternal
                                 <i class="fas fa-chevron-down" aria-hidden="true"></i>
                             </button>
@@ -1171,7 +1179,8 @@
                                     </a>
                                 @endcan
                                 @can('payroll.import')
-                                    <button type="button" class="dropdown-item" data-toggle="modal" data-target="#importAttendanceModal">
+                                    <button type="button" class="dropdown-item" data-toggle="modal"
+                                        data-target="#importAttendanceModal">
                                         <i class="fas fa-upload" aria-hidden="true"></i> Import file Excel
                                     </button>
                                 @endcan
@@ -1224,8 +1233,10 @@
                         <div>
                             <h2>Belum ada payroll di periode ini</h2>
                             <p>
-                                Generate payroll untuk menghitung gaji semua karyawan aktif dari data gaji, attendance, dan lembur
-                                periode {{ $period->period_start->format('d M') }} sampai {{ $period->period_end->format('d M Y') }}.
+                                Generate payroll untuk menghitung gaji semua karyawan aktif dari data gaji, attendance, dan
+                                lembur
+                                periode {{ $period->period_start->format('d M') }} sampai
+                                {{ $period->period_end->format('d M Y') }}.
                             </p>
                         </div>
                         @if ($isOpen && auth()->user()->can('payroll.generate'))
@@ -1250,19 +1261,22 @@
                             </div>
                             <ul class="pr-legend" aria-label="Filter berdasarkan status payroll">
                                 <li class="is-draft">
-                                    <button type="button" class="js-status-filter" data-status="draft" aria-pressed="false">
+                                    <button type="button" class="js-status-filter" data-status="draft"
+                                        aria-pressed="false">
                                         <span class="pr-legend-label"><span class="pr-swatch"></span>Draft</span>
                                         <span class="pr-legend-value">{{ $stats['draft'] }}</span>
                                     </button>
                                 </li>
                                 <li class="is-approved">
-                                    <button type="button" class="js-status-filter" data-status="approved" aria-pressed="false">
+                                    <button type="button" class="js-status-filter" data-status="approved"
+                                        aria-pressed="false">
                                         <span class="pr-legend-label"><span class="pr-swatch"></span>Approved</span>
                                         <span class="pr-legend-value">{{ $stats['approved'] }}</span>
                                     </button>
                                 </li>
                                 <li class="is-paid">
-                                    <button type="button" class="js-status-filter" data-status="paid" aria-pressed="false">
+                                    <button type="button" class="js-status-filter" data-status="paid"
+                                        aria-pressed="false">
                                         <span class="pr-legend-label"><span class="pr-swatch"></span>Paid</span>
                                         <span class="pr-legend-value">{{ $stats['paid'] }}</span>
                                     </button>
@@ -1296,19 +1310,24 @@
                             <span class="pr-checks-title">Perlu dicek sebelum approve</span>
                             @if ($stats['net_negative'] > 0)
                                 <span class="pr-check">
-                                    <span><strong>{{ $stats['net_negative'] }}</strong> draft net salary minus, tidak bisa di-approve</span>
-                                    <button type="button" class="pr-link js-flag" data-flag="net_negative" data-label="Net salary minus">Tampilkan</button>
+                                    <span><strong>{{ $stats['net_negative'] }}</strong> draft net salary minus, tidak bisa
+                                        di-approve</span>
+                                    <button type="button" class="pr-link js-flag" data-flag="net_negative"
+                                        data-label="Net salary minus">Tampilkan</button>
                                 </span>
                             @endif
                             @if ($stats['no_attendance'] > 0)
                                 <span class="pr-check">
-                                    <span><strong>{{ $stats['no_attendance'] }}</strong> draft tanpa attendance (0 hari)</span>
-                                    <button type="button" class="pr-link js-flag" data-flag="no_attendance" data-label="Attendance 0 hari">Tampilkan</button>
+                                    <span><strong>{{ $stats['no_attendance'] }}</strong> draft tanpa attendance (0
+                                        hari)</span>
+                                    <button type="button" class="pr-link js-flag" data-flag="no_attendance"
+                                        data-label="Attendance 0 hari">Tampilkan</button>
                                 </span>
                             @endif
                         </div>
                     @elseif (!$isOpen)
-                        <div class="pr-closed">Periode {{ strtolower($statusLabel) }}: payroll tidak bisa di-generate, diubah, atau di-approve lagi.</div>
+                        <div class="pr-closed">Periode {{ strtolower($statusLabel) }}: payroll tidak bisa di-generate,
+                            diubah, atau di-approve lagi.</div>
                     @endif
                 @endif
             </section>
@@ -1323,107 +1342,109 @@
                 </div>
 
                 <div class="pr-toolbar">
-                        <div class="pr-views" role="group" aria-label="Tampilan kolom">
-                            <button type="button" data-view="ringkas" aria-pressed="true">Ringkas</button>
-                            <button type="button" data-view="pendapatan" aria-pressed="false">Pendapatan</button>
-                            <button type="button" data-view="potongan" aria-pressed="false">Potongan</button>
-                            <button type="button" data-view="semua" aria-pressed="false">Semua kolom</button>
-                        </div>
-                        <div class="pr-toolbar-right">
-                            <label class="visually-hidden sr-only" for="pr-search">Cari payroll</label>
-                            <span class="pr-search">
-                                <i class="fas fa-search" aria-hidden="true"></i>
-                                <input type="search" id="pr-search" placeholder="Cari nama, NIP, location" autocomplete="off">
-                            </span>
-                            <span class="pr-chip" id="flag-chip" hidden>
-                                <span id="flag-chip-label"></span>
-                                <button type="button" id="flag-clear" aria-label="Hapus filter penanda">
-                                    <i class="fas fa-times" aria-hidden="true"></i>
-                                </button>
-                            </span>
-                            <button type="button" class="pr-btn pr-btn-sm" id="btn-toggle-filter"
-                                aria-expanded="false" aria-controls="filter-panel">
-                                <i class="fas fa-filter" aria-hidden="true"></i> Filter
-                                <span class="pr-filter-count" id="filter-count" hidden>0</span>
-                            </button>
-                        </div>
+                    <div class="pr-views" role="group" aria-label="Tampilan kolom">
+                        <button type="button" data-view="ringkas" aria-pressed="true">Ringkas</button>
+                        <button type="button" data-view="pendapatan" aria-pressed="false">Pendapatan</button>
+                        <button type="button" data-view="potongan" aria-pressed="false">Potongan</button>
+                        <button type="button" data-view="semua" aria-pressed="false">Semua kolom</button>
                     </div>
+                    <div class="pr-toolbar-right">
+                        <label class="visually-hidden sr-only" for="pr-search">Cari payroll</label>
+                        <span class="pr-search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="search" id="pr-search" placeholder="Cari nama, NIP, location"
+                                autocomplete="off">
+                        </span>
+                        <span class="pr-chip" id="flag-chip" hidden>
+                            <span id="flag-chip-label"></span>
+                            <button type="button" id="flag-clear" aria-label="Hapus filter penanda">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </span>
+                        <button type="button" class="pr-btn pr-btn-sm" id="btn-toggle-filter" aria-expanded="false"
+                            aria-controls="filter-panel">
+                            <i class="fas fa-filter" aria-hidden="true"></i> Filter
+                            <span class="pr-filter-count" id="filter-count" hidden>0</span>
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="pr-filter-body" id="filter-panel" hidden>
-                        <div class="pr-filter-grid">
-                            <div class="pr-field">
-                                <label for="filter-status">Status payroll</label>
-                                <select id="filter-status">
-                                    <option value="">Semua status</option>
-                                    <option value="draft">Draft</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="paid">Paid</option>
-                                </select>
-                            </div>
-                            <div class="pr-field">
-                                <label for="filter-company">Company</label>
-                                <select id="filter-company">
-                                    <option value="">Semua company</option>
-                                    @foreach ($companies as $company)
-                                        <option value="{{ $company->name }}">{{ $company->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="pr-field">
-                                <label for="filter-department">Department</label>
-                                <select id="filter-department">
-                                    <option value="">Semua department</option>
-                                    @foreach ($departments as $department)
-                                        <option value="{{ $department->department_name }}">{{ $department->department_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="pr-field">
-                                <label for="filter-store">Location</label>
-                                <select id="filter-store">
-                                    <option value="">Semua location</option>
-                                    @foreach ($stores as $store)
-                                        <option value="{{ $store->name }}">{{ $store->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="pr-field">
-                                <label for="filter-grading">Grading</label>
-                                <select id="filter-grading">
-                                    <option value="">Semua grading</option>
-                                    @foreach ($gradings as $grading)
-                                        <option value="{{ $grading->grading_name }}">{{ $grading->grading_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="pr-field">
-                                <label for="filter-status-employee">Tipe karyawan</label>
-                                <select id="filter-status-employee">
-                                    <option value="">Semua tipe</option>
-                                    <option value="PKWT">PKWT</option>
-                                    <option value="On Job Training">On Job Training</option>
-                                    <option value="DW">Daily Worker</option>
-                                </select>
-                            </div>
-                            <div class="pr-field">
-                                <label for="filter-untuk-active-inactive">Status karyawan</label>
-                                <select id="filter-untuk-active-inactive">
-                                    <option value="">Semua status karyawan</option>
-                                    @foreach ($statuses as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                <div class="pr-filter-body" id="filter-panel" hidden>
+                    <div class="pr-filter-grid">
+                        <div class="pr-field">
+                            <label for="filter-status">Status payroll</label>
+                            <select id="filter-status">
+                                <option value="">Semua status</option>
+                                <option value="draft">Draft</option>
+                                <option value="approved">Approved</option>
+                                <option value="paid">Paid</option>
+                            </select>
                         </div>
-                        <div class="pr-filter-actions">
-                            <button type="button" class="pr-btn pr-btn-ghost" id="btn-reset">
-                                <i class="fas fa-redo" aria-hidden="true"></i> Reset
-                            </button>
-                            <button type="button" class="pr-btn" id="btn-search">
-                                <i class="fas fa-search" aria-hidden="true"></i> Terapkan filter
-                            </button>
+                        <div class="pr-field">
+                            <label for="filter-company">Company</label>
+                            <select id="filter-company">
+                                <option value="">Semua company</option>
+                                @foreach ($companies as $company)
+                                    <option value="{{ $company->name }}">{{ $company->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="pr-field">
+                            <label for="filter-department">Department</label>
+                            <select id="filter-department">
+                                <option value="">Semua department</option>
+                                @foreach ($departments as $department)
+                                    <option value="{{ $department->department_name }}">{{ $department->department_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="pr-field">
+                            <label for="filter-store">Location</label>
+                            <select id="filter-store">
+                                <option value="">Semua location</option>
+                                @foreach ($stores as $store)
+                                    <option value="{{ $store->name }}">{{ $store->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="pr-field">
+                            <label for="filter-grading">Grading</label>
+                            <select id="filter-grading">
+                                <option value="">Semua grading</option>
+                                @foreach ($gradings as $grading)
+                                    <option value="{{ $grading->grading_name }}">{{ $grading->grading_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="pr-field">
+                            <label for="filter-status-employee">Tipe karyawan</label>
+                            <select id="filter-status-employee">
+                                <option value="">Semua tipe</option>
+                                <option value="PKWT">PKWT</option>
+                                <option value="On Job Training">On Job Training</option>
+                                <option value="DW">Daily Worker</option>
+                            </select>
+                        </div>
+                        <div class="pr-field">
+                            <label for="filter-untuk-active-inactive">Status karyawan</label>
+                            <select id="filter-untuk-active-inactive">
+                                <option value="">Semua status karyawan</option>
+                                @foreach ($statuses as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
+                    <div class="pr-filter-actions">
+                        <button type="button" class="pr-btn pr-btn-ghost" id="btn-reset">
+                            <i class="fas fa-redo" aria-hidden="true"></i> Reset
+                        </button>
+                        <button type="button" class="pr-btn" id="btn-search">
+                            <i class="fas fa-search" aria-hidden="true"></i> Terapkan filter
+                        </button>
+                    </div>
+                </div>
 
                 <div class="bulk-bar" id="bulk-bar" role="region" aria-label="Aksi untuk payroll terpilih">
                     <span class="bulk-bar-count"><span id="selected-count">0</span> dipilih</span>
@@ -1450,7 +1471,8 @@
                     <button type="button" class="pr-btn pr-btn-sm pr-btn-ghost" id="btn-clear-select">
                         Batal pilih
                     </button>
-                    <span class="bulk-bar-hint">Approve dan hapus hanya berlaku untuk draft. Slip hanya untuk payroll approved atau paid.</span>
+                    <span class="bulk-bar-hint">Approve dan hapus hanya berlaku untuk draft. Slip hanya untuk payroll
+                        approved atau paid.</span>
                 </div>
 
                 <div class="table-responsive pr-table-wrap">
@@ -1502,44 +1524,45 @@
 
 
     @can('payroll.import')
-    {{-- Modal --}}
-    <div class="modal fade" id="importAttendanceModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title pr-modal-title">Import data eksternal</h2>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        {{-- Modal --}}
+        <div class="modal fade" id="importAttendanceModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title pr-modal-title">Import data eksternal</h2>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
+                    <form action="{{ route('payroll.importAttendance', $period->id) }}" method="POST"
+                        enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="alert alert-info" style="font-size:.8rem">
+                                <i class="fas fa-info-circle"></i>
+                                Download template dulu, isi kolom <code>reamburse_amount, punishment, punishment_so, debt,
+                                    tax</code>,
+                                lalu upload di sini.
+                            </div>
+                            <div class="form-group">
+                                <label>File Excel</label>
+                                <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Import
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <form action="{{ route('payroll.importAttendance', $period->id) }}" method="POST"
-                    enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="alert alert-info" style="font-size:.8rem">
-                            <i class="fas fa-info-circle"></i>
-                            Download template dulu, isi kolom <code>reamburse_amount, punishment, punishment_so, debt,
-                                tax</code>,
-                            lalu upload di sini.
-                        </div>
-                        <div class="form-group">
-                            <label>File Excel</label>
-                            <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-upload"></i> Import
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
     @endcan
 @endsection
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @include('partials.datatables-error', ['permission' => 'payroll.view'])
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
@@ -1552,33 +1575,41 @@
                     'status', 'action'
                 ],
                 pendapatan: ['check', 'employee', 'attendance', 'basic', 'pos_allowance', 'daily_rate', 'gross',
-                    'meal', 'transport', 'house', 'overtime', 'reimburse', 'income', 'net', 'status', 'action'
+                    'meal', 'transport', 'house', 'overtime', 'reimburse', 'income', 'net', 'status',
+                    'action'
                 ],
                 potongan: ['check', 'employee', 'income', 'bpjs_kes', 'bpjs_tk', 'punish', 'punish_so', 'debt',
                     'tax', 'deduction', 'net', 'status', 'action'
                 ],
                 // NIP sudah tampil di bawah nama; kolom NIP tetap ada untuk sorting default
-                semua: ['check', 'no', 'employee', 'company', 'department', 'grading', 'store', 'position', 'type',
-                    'emp_status', 'work_days', 'attendance', 'basic', 'pos_allowance', 'daily_rate', 'gross', 'meal',
-                    'transport', 'house', 'overtime', 'reimburse', 'income', 'bpjs_kes', 'bpjs_tk', 'punish',
+                semua: ['check', 'no', 'employee', 'company', 'department', 'grading', 'store', 'position',
+                    'type',
+                    'emp_status', 'work_days', 'attendance', 'basic', 'pos_allowance', 'daily_rate',
+                    'gross', 'meal',
+                    'transport', 'house', 'overtime', 'reimburse', 'income', 'bpjs_kes', 'bpjs_tk',
+                    'punish',
                     'punish_so', 'debt', 'tax', 'deduction', 'net', 'status', 'action'
                 ],
             };
             // Kolom yang bukan kolom tabel payrolls (dihitung dari detail) tidak bisa diurutkan di server
-            const computed = ['meal_allowance', 'transport_allowance', 'house_allowance', 'bpjs_kesehatan', 'bpjs_ketenagakerjaan'];
+            const computed = ['meal_allowance', 'transport_allowance', 'house_allowance', 'bpjs_kesehatan',
+                'bpjs_ketenagakerjaan'
+            ];
             const money = (field, extraClass = '') => ({
                 data: field + '_fmt',
                 name: field,
                 className: 'num',
                 searchable: false,
                 orderable: !computed.includes(field),
-                render: (d, t) => t === 'display' && extraClass ? `<span class="${extraClass}">${d}</span>` : d,
+                render: (d, t) => t === 'display' && extraClass ?
+                    `<span class="${extraClass}">${d}</span>` : d,
             });
             const esc = v => $('<div>').text(v ?? '-').html();
 
             const params = new URLSearchParams(window.location.search);
             let currentView = VIEWS.hasOwnProperty(params.get('view')) ? params.get('view') : 'ringkas';
-            let currentFlag = ['net_negative', 'no_attendance'].includes(params.get('flag')) ? params.get('flag') : '';
+            let currentFlag = ['net_negative', 'no_attendance'].includes(params.get('flag')) ? params.get('flag') :
+                '';
             if (['draft', 'approved', 'paid'].includes(params.get('status'))) {
                 $('#filter-status').val(params.get('status'));
             }
@@ -1759,16 +1790,33 @@
 
             // Map nama kolom -> index (columns dengan money() memakai nama field)
             const colAlias = {
-                basic: 'basic_salary', pos_allowance: 'position_allowance', daily_rate: 'daily_rate',
-                gross: 'gross_salary', meal: 'meal_allowance', transport: 'transport_allowance',
-                house: 'house_allowance', overtime: 'overtime_amount', reimburse: 'reimburse_amount',
-                income: 'total_income', bpjs_kes: 'bpjs_kesehatan', bpjs_tk: 'bpjs_ketenagakerjaan',
-                punish: 'punishment', punish_so: 'punishment_so', debt: 'debt', tax: 'tax',
+                basic: 'basic_salary',
+                pos_allowance: 'position_allowance',
+                daily_rate: 'daily_rate',
+                gross: 'gross_salary',
+                meal: 'meal_allowance',
+                transport: 'transport_allowance',
+                house: 'house_allowance',
+                overtime: 'overtime_amount',
+                reimburse: 'reimburse_amount',
+                income: 'total_income',
+                bpjs_kes: 'bpjs_kesehatan',
+                bpjs_tk: 'bpjs_ketenagakerjaan',
+                punish: 'punishment',
+                punish_so: 'punishment_so',
+                debt: 'debt',
+                tax: 'tax',
                 deduction: 'total_deduction',
                 // nama kolom DataTables = nama kolom di controller (dipakai untuk sorting server)
-                employee: 'employee_name', company: 'company_name', department: 'department_name',
-                grading: 'grading_name', store: 'store_name', position: 'position_name',
-                type: 'status_type_badge', emp_status: 'status_employee', net: 'net_salary_fmt',
+                employee: 'employee_name',
+                company: 'company_name',
+                department: 'department_name',
+                grading: 'grading_name',
+                store: 'store_name',
+                position: 'position_name',
+                type: 'status_type_badge',
+                emp_status: 'status_employee',
+                net: 'net_salary_fmt',
             };
 
             function syncUrl() {
@@ -1801,7 +1849,8 @@
             });
 
             // ── Filter ──
-            const filterSelects = '#filter-status, #filter-status-employee, #filter-store, #filter-company, #filter-department, #filter-grading, #filter-untuk-active-inactive';
+            const filterSelects =
+                '#filter-status, #filter-status-employee, #filter-store, #filter-company, #filter-department, #filter-grading, #filter-untuk-active-inactive';
 
             function refreshFilterUi() {
                 const active = $(filterSelects).filter((i, el) => $(el).val()).length;
@@ -1844,7 +1893,9 @@
                 currentFlag = $(this).data('flag');
                 refreshFilterUi();
                 table.ajax.reload();
-                document.getElementById('table-title').scrollIntoView({ block: 'start' });
+                document.getElementById('table-title').scrollIntoView({
+                    block: 'start'
+                });
             });
 
             $('#flag-clear').on('click', () => {
@@ -1961,12 +2012,19 @@
                                     showConfirmButton: false
                                 });
                             } else {
-                                const list = $('<ul>').css({ textAlign: 'left', fontSize: '.85rem', maxHeight: '220px', overflowY: 'auto' });
+                                const list = $('<ul>').css({
+                                    textAlign: 'left',
+                                    fontSize: '.85rem',
+                                    maxHeight: '220px',
+                                    overflowY: 'auto'
+                                });
                                 skipped.forEach(item => list.append($('<li>').text(item)));
                                 Swal.fire({
                                     icon: res.approved > 0 ? 'warning' : 'error',
-                                    title: res.approved > 0 ? 'Sebagian di-approve' : 'Tidak ada yang di-approve',
-                                    html: $('<div>').append($('<p>').text(res.message), list).html(),
+                                    title: res.approved > 0 ? 'Sebagian di-approve' :
+                                        'Tidak ada yang di-approve',
+                                    html: $('<div>').append($('<p>').text(res.message),
+                                        list).html(),
                                 });
                             }
                             $('.row-check, #check-all').prop('checked', false);
