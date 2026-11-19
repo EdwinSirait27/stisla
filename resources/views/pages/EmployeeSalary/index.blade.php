@@ -948,6 +948,98 @@
             color: var(--pr-ink);
         }
 
+        /* Modal karyawan tanpa gaji */
+        .pr-missing-sub {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr-missing-tools {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-missing-tools .pr-search {
+            flex: 1 1 260px;
+        }
+
+        .pr-missing-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-2xs);
+        }
+
+        .js-missing-type[aria-pressed="true"] {
+            border-color: var(--pr-accent);
+            background: var(--pr-accent-soft);
+            color: var(--pr-accent-deep);
+        }
+
+        .pr-missing-n {
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-muted);
+        }
+
+        .pr-missing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-missing-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: var(--pr-space-xs) var(--pr-space-lg);
+            background: var(--pr-paper);
+            border-bottom: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-ink-2);
+            text-align: left;
+        }
+
+        .pr-missing-table td {
+            padding: var(--pr-space-xs) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+            vertical-align: middle;
+            color: var(--pr-ink);
+        }
+
+        .pr-missing-table tr:hover td {
+            background: var(--pr-paper);
+        }
+
+        .pr-missing-foot {
+            justify-content: space-between;
+            gap: var(--pr-space-md);
+        }
+
+        .pr-missing-foot p {
+            margin: 0;
+            max-width: 70ch;
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         /* Import modal */
         .pr-modal-title {
             font-size: var(--pr-text-lg);
@@ -1136,6 +1228,10 @@
                             </div>
                             @if ($stats['missing'] > 0)
                                 <div class="pr-gap-actions">
+                                    <button type="button" class="pr-btn pr-btn-sm" data-toggle="modal" data-target="#missingModal">Lihat semua {{ $stats['missing'] }}</button>
+                                    @can('employee.salary.export')
+                                        <a href="{{ route('employeesalary.export-missing') }}" class="pr-btn pr-btn-sm"><i class="fas fa-file-excel" aria-hidden="true"></i> Unduh Excel untuk diisi</a>
+                                    @endcan
                                     @can('employee.salary.import')
                                         <button type="button" class="pr-btn pr-btn-sm" data-toggle="modal" data-target="#importModal">Import Excel</button>
                                     @endcan
@@ -1363,6 +1459,83 @@
         </div>
     </div>
     @endcan
+
+    {{-- Daftar lengkap karyawan aktif tanpa gaji --}}
+    @if ($stats['missing'] > 0)
+        @php $primary = fn($rel) => $rel->firstWhere('pivot.is_primary', true) ?? $rel->first(); @endphp
+        <div class="modal fade" id="missingModal" tabindex="-1" aria-labelledby="missing-title">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h2 class="modal-title pr-modal-title" id="missing-title">{{ $stats['missing'] }} karyawan aktif belum punya data gaji</h2>
+                            <p class="pr-missing-sub">Payroll mereka tidak bisa di-generate sampai gajinya diisi.</p>
+                        </div>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="pr-missing-tools">
+                        <div class="pr-search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <label for="missing-search" class="sr-only">Cari</label>
+                            <input type="search" id="missing-search" placeholder="Cari nama, NIP, lokasi, departemen">
+                        </div>
+                        <div class="pr-missing-types" role="group" aria-label="Filter tipe">
+                            @foreach (['' => 'Semua', 'PKWT' => 'PKWT', 'On Job Training' => 'OJT', 'DW' => 'DW'] as $val => $lbl)
+                                <button type="button" class="pr-btn pr-btn-sm js-missing-type" data-type="{{ $val }}" aria-pressed="{{ $val === '' ? 'true' : 'false' }}">
+                                    {{ $lbl }} <span class="pr-missing-n">{{ $val === '' ? $missingAll->count() : $missingAll->where('status_employee', $val)->count() }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                        @can('employee.salary.export')
+                            <a href="{{ route('employeesalary.export-missing') }}" class="pr-btn pr-btn-sm pr-btn-primary"><i class="fas fa-file-excel" aria-hidden="true"></i> Unduh Excel untuk diisi</a>
+                        @endcan
+                    </div>
+                    <div class="modal-body p-0">
+                        <table class="pr-missing-table">
+                            <thead>
+                                <tr>
+                                    <th>Karyawan</th>
+                                    <th>Tipe</th>
+                                    <th>Lokasi</th>
+                                    <th>Departemen</th>
+                                    <th>Bergabung</th>
+                                    @can('employee.salary.create')<th class="text-right">Aksi</th>@endcan
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($missingAll as $m)
+                                    @php
+                                        $join = $m->getRawOriginal('join_date');
+                                        $loc = $primary($m->store)?->name;
+                                        $dep = $primary($m->department)?->department_name;
+                                        $pos = $primary($m->position)?->name;
+                                    @endphp
+                                    <tr data-type="{{ $m->status_employee }}" data-search="{{ strtolower($m->employee_name . ' ' . $m->employee_pengenal . ' ' . $loc . ' ' . $dep . ' ' . $pos) }}">
+                                        <td>
+                                            <span class="pr-cell-name">{{ $m->employee_name }}</span>
+                                            <span class="pr-cell-sub">{{ collect([$m->employee_pengenal, $pos])->filter()->implode(', ') }}</span>
+                                        </td>
+                                        <td>{{ $m->status_employee ?? '-' }}</td>
+                                        <td>{{ $loc ?? '-' }}</td>
+                                        <td>{{ $dep ?? '-' }}</td>
+                                        <td class="text-nowrap">{{ $join ? \Carbon\Carbon::parse($join)->locale('id')->translatedFormat('d M Y') : '-' }}</td>
+                                        @can('employee.salary.create')
+                                            <td class="text-right"><a href="{{ route('employeesalary.create', ['employee_id' => $m->id]) }}" class="pr-btn pr-btn-sm">Isi gaji</a></td>
+                                        @endcan
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <p class="pr-empty-note" id="missing-none" hidden>Tidak ada yang cocok dengan pencarian.</p>
+                    </div>
+                    <div class="modal-footer pr-missing-foot">
+                        <p>Di file Excel, isi kolom gaji lalu import lewat tombol Import Excel. Baris yang kolom gajinya dibiarkan kosong otomatis dilewati, jadi tidak perlu dihapus.</p>
+                        <button type="button" class="pr-btn" data-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')
@@ -1728,5 +1901,29 @@
                 });
             @endif
         });
+    </script>
+<script>
+        // ── Modal karyawan tanpa gaji: cari & filter tipe ──
+        (function() {
+            const rows = [...document.querySelectorAll('.pr-missing-table tbody tr')];
+            if (!rows.length) return;
+            let type = '';
+            const apply = () => {
+                const q = (document.getElementById('missing-search').value || '').toLowerCase().trim();
+                let shown = 0;
+                rows.forEach(r => {
+                    const ok = (!type || r.dataset.type === type) && (!q || r.dataset.search.includes(q));
+                    r.hidden = !ok;
+                    if (ok) shown++;
+                });
+                document.getElementById('missing-none').hidden = shown > 0;
+            };
+            document.getElementById('missing-search').addEventListener('input', apply);
+            document.querySelectorAll('.js-missing-type').forEach(b => b.addEventListener('click', function() {
+                type = this.dataset.type;
+                document.querySelectorAll('.js-missing-type').forEach(x => x.setAttribute('aria-pressed', x === this ? 'true' : 'false'));
+                apply();
+            }));
+        })();
     </script>
 @endpush

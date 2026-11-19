@@ -37,20 +37,46 @@ class EmployeeSalaryController extends Controller
         ];
 
         // Karyawan aktif yang belum punya data gaji sama sekali → payroll-nya tidak bisa di-generate
-        $missingQuery = Employee::where('status', 'Active')
-            ->whereNotNull('employee_pengenal')
-            ->whereNotIn('id', EmployeeSalary::select('employee_id'));
-        $stats['missing'] = (clone $missingQuery)->count();
-        $missingEmployees = $missingQuery->orderBy('employee_name')
-            ->limit(8)
-            ->get(['id', 'employee_name', 'employee_pengenal', 'status_employee']);
+        $missingAll = $this->missingSalaryEmployees();
+        $stats['missing'] = $missingAll->count();
+        $missingEmployees = $missingAll->take(8);
 
         $stores = Stores::orderBy('name')->get();
         $companies = Company::orderBy('name')->get();
         $gradings = Grading::orderBy('grading_name')->get();
         $departments = Departments::orderBy('department_name')->get();
 
-        return view('pages.EmployeeSalary.index', compact('companies', 'stats', 'stores', 'gradings', 'departments', 'missingEmployees'));
+        return view('pages.EmployeeSalary.index', compact('companies', 'stats', 'stores', 'gradings', 'departments', 'missingEmployees', 'missingAll'));
+    }
+
+    /** Karyawan aktif (punya NIP) yang belum punya satu pun data gaji. */
+    private function missingSalaryEmployees()
+    {
+        return Employee::where('status', 'Active')
+            ->whereNotNull('employee_pengenal')
+            ->whereNotIn('id', EmployeeSalary::select('employee_id'))
+            ->with([
+                'store' => fn($q) => $q->wherePivot('is_primary', true),
+                'department' => fn($q) => $q->wherePivot('is_primary', true),
+                'position' => fn($q) => $q->wherePivot('is_primary', true),
+            ])
+            ->orderBy('employee_name')
+            ->get(['id', 'employee_name', 'employee_pengenal', 'status_employee', 'status', 'join_date']);
+    }
+
+    /** Excel karyawan aktif tanpa gaji, format sama dengan template import. */
+    public function exportMissing()
+    {
+        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('employee.salary.export')) {
+            abort(403, 'Unauthorized');
+        }
+
+        return Excel::download(
+            new \App\Exports\MissingSalaryExport($this->missingSalaryEmployees()),
+            'karyawan_tanpa_gaji_' . now()->format('Ymd_His') . '.xlsx'
+        );
     }
 
     // ── DataTable ──
@@ -419,13 +445,14 @@ class EmployeeSalaryController extends Controller
         }
 
         return Excel::download(
+            // Argumen bernama: urutan constructor (store, company, grading, department) beda dengan urutan filter
             new EmployeeSalaryExport(
-                $request->effective_date,
-                $request->status,
-                $request->store_name,
-                $request->department_name,
-                $request->grading_name,
-                $request->company_name
+                effectiveDate: $request->effective_date,
+                status: $request->status,
+                storeName: $request->store_name,
+                companyName: $request->company_name,
+                gradingName: $request->grading_name,
+                departmentName: $request->department_name,
             ),
             'employee_salary_' . now()->format('Ymd_His') . '.xlsx'
         );
@@ -452,7 +479,32 @@ class EmployeeSalaryController extends Controller
             ->orderBy('employee_name')
             ->get();
 
-        return view('pages.EmployeeSalary.create', compact('employees'));
+        // Riwayat gaji per karyawan, untuk info "gaji saat ini" dan peringatan tanggal yang sama
+        $history = $this->salaryHistory($employees->pluck('id')->all());
+
+        return view('pages.EmployeeSalary.create', compact('employees', 'history'));
+    }
+
+    /** @return array<string, array<int, array>> employee_id => daftar gaji (terbaru dulu) */
+    private function salaryHistory(array $employeeIds): array
+    {
+        return EmployeeSalary::whereIn('employee_id', $employeeIds)
+            ->orderByDesc('effective_date')
+            ->get()
+            ->groupBy('employee_id')
+            ->map(fn($rows) => $rows->map(fn($r) => [
+                'id'        => $r->id,
+                'date'      => $r->effective_date?->format('Y-m-d'),
+                'basic'     => (float) $r->basic_salary,
+                'position'  => (float) $r->position_allowance,
+                'daily'     => (float) $r->daily_rate,
+                'meal'      => (float) $r->meal_allowance,
+                'house'     => (float) $r->house_allowance,
+                'transport' => (float) $r->transport_allowance,
+                'bpjs_kes'  => (float) $r->bpjs_kesehatan,
+                'bpjs_tk'   => (float) $r->bpjs_ketenagakerjaan,
+            ])->values()->all())
+            ->all();
     }
     private function normalizeCurrency(Request $request): void
     {
@@ -553,12 +605,10 @@ class EmployeeSalaryController extends Controller
         if (!$user->hasPermissionTo('employee.salary.update')) {
             abort(403, 'Unauthorized');
         }
-        $salary    = EmployeeSalary::with('employee')->findOrFail($id);
-        $employees = Employee::whereIn('status', ['Active', 'Mutation'])
-            ->orderBy('employee_name')
-            ->get();
+        $salary  = EmployeeSalary::with('employee')->findOrFail($id);
+        $history = $this->salaryHistory([$salary->employee_id])[$salary->employee_id] ?? [];
 
-        return view('pages.EmployeeSalary.edit', compact('salary', 'employees'));
+        return view('pages.EmployeeSalary.edit', compact('salary', 'history'));
     }
 
     // ── Update ──
@@ -583,7 +633,21 @@ class EmployeeSalaryController extends Controller
             'transport_allowance'  => 'nullable|numeric|min:0',
             'bpjs_kesehatan'       => 'nullable|numeric|min:0',
             'bpjs_ketenagakerjaan' => 'nullable|numeric|min:0',
-            'effective_date'     => 'required|date',
+            'effective_date'     => [
+                'required',
+                'date',
+                // Satu karyawan tidak boleh punya dua gaji di tanggal berlaku yang sama:
+                // payroll memakai gaji terakhir yang berlaku, dua baris sama tanggal jadi ambigu.
+                function ($attr, $value, $fail) use ($salary) {
+                    $clash = EmployeeSalary::where('employee_id', $salary->employee_id)
+                        ->whereDate('effective_date', $value)
+                        ->where('id', '!=', $salary->id)
+                        ->exists();
+                    if ($clash) {
+                        $fail('Karyawan ini sudah punya data gaji lain dengan tanggal berlaku yang sama. Ubah data itu, atau pilih tanggal lain.');
+                    }
+                },
+            ],
         ]);
         try {
             $salary->update([

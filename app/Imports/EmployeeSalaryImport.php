@@ -24,7 +24,19 @@ class EmployeeSalaryImport implements ToCollection, WithHeadingRow, WithValidati
 
     public function collection(Collection $rows)
     {
+        $moneyCols = ['basic_salary', 'position_allowance', 'daily_rate', 'meal_allowance', 'house_allowance', 'transport_allowance', 'bpjs_kesehatan', 'bpjs_ketenagakerjaan'];
+
+        $blank = 0;
+
         foreach ($rows as $row) {
+            // Baris dari export "karyawan tanpa gaji" yang tidak diisi: lewati, jangan dibuat gaji Rp0.
+            // Angka 0 yang diketik tetap dihitung sebagai isian.
+            $filled = collect($moneyCols)->contains(fn($c) => isset($row[$c]) && trim((string) $row[$c]) !== '');
+            if (!$filled) {
+                $blank++;
+                continue;
+            }
+
             $employee = Employee::where('employee_pengenal', $row['employee_pengenal'])
                 ->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave', 'Resign'])
                 ->first();
@@ -64,6 +76,10 @@ class EmployeeSalaryImport implements ToCollection, WithHeadingRow, WithValidati
     // 'bpjs_ketenagakerjaan' => $status === 'DW' ? 0 : (float) ($row['bpjs_ketenagakerjaan'] ?? 0), // ← DW = 0
                 'created_by'         => $this->createdBy,
             ]);
+        }
+
+        if ($blank) {
+            $this->skipped[] = "{$blank} baris dilewati karena kolom gajinya kosong (belum diisi).";
         }
     }
 

@@ -817,6 +817,9 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             Route::get('/export', [EmployeeSalaryController::class, 'export'])
                 ->middleware('permission:employee.salary.export')
                 ->name('export');
+            Route::get('/export-missing', [EmployeeSalaryController::class, 'exportMissing'])
+                ->middleware('permission:employee.salary.export')
+                ->name('export-missing');
 
             // Ubah gaji (route {id} paling bawah supaya tidak menangkap /create, /export, dst.)
             Route::middleware('permission:employee.salary.update')->group(function () {
