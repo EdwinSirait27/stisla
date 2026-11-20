@@ -23,17 +23,26 @@ class ApiController extends Controller
             return response()->json(['manager' => null], 404);
         }
 
+        // return response()->json([
+        //     'manager' => [
+        //         'id'            => $atasan->id,
+        //         'employee_name' => $atasan->employee_name,
+        //         'company_email' => $atasan->company_email,
+        //         'position'      => $atasan->primaryPosition()->first()?->name ?? null,
+        //         'signature'     => $atasan->signature
+        //             ? url('storage/' . $atasan->signature)
+        //             : null,
+        //     ]
+        // ]);
         return response()->json([
-            'manager' => [
-                'id'            => $atasan->id,
-                'employee_name' => $atasan->employee_name,
-                'company_email' => $atasan->company_email,
-                'position'      => $atasan->primaryPosition()->first()?->name ?? null,
-                'signature'     => $atasan->signature
-                    ? url('storage/' . $atasan->signature)
-                    : null,
-            ]
-        ]);
+              'manager' => [
+                  'id'            => $atasan->id,
+                  'employee_name' => $atasan->employee_name,
+                  'company_email' => $atasan->company_email,
+                  'position'      =>
+  $atasan->primaryPosition()->first()?->name ?? null,
+              ]
+          ]);
     }
     public function getPositionByEmployee($employeeId)
     {

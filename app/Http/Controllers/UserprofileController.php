@@ -623,6 +623,9 @@ public function servePhotokk($filename)
                     if (strtolower($value) === strtolower($user->username)) {
                         $fail('Password tidak boleh sama dengan username.');
                     }
+                    if ($user->employee?->employee_pengenal && strtolower($value) === strtolower($user->employee->employee_pengenal)) {
+                        $fail('Password tidak boleh sama dengan NIP.');
+                    }
                 },
             ],
         ], [], [], function ($validator) {
@@ -632,7 +635,7 @@ public function servePhotokk($filename)
         });
 
         try {
-            $isDefaultPassword = Hash::check(strtolower($user->username), $user->password);
+            $isDefaultPassword = \App\Services\LoginSessionService::hasDefaultPassword($user);
 
             $user->password = Hash::make($validated['password']);
             $user->save();

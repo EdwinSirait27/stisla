@@ -20,6 +20,13 @@ use Yajra\DataTables\DataTables;
 
 class OvertimeRateController extends Controller
 {
+    /** Periode gaji berjalan (26 bulan lalu s/d 25 bulan ini), sama dengan payroll & roster. */
+    private function currentPeriod(): array
+    {
+        $start = \App\Services\PublicHolidayRosterSync::currentPeriodStart();
+        return [$start->copy(), $start->copy()->addMonthNoOverflow()->day(25)];
+    }
+
     public function index()
     {
         /** @var \App\Models\User|null $user */
@@ -27,16 +34,36 @@ class OvertimeRateController extends Controller
         if (!$user->hasPermissionTo('ManageOvertimeRate')) {
             abort(403, 'Unauthorized');
         }
-        // ManageEmployee: semua data
-        $stores       = Stores::orderBy('name')->get();
-           $companies        = Company::pluck('name', 'id');
 
-        $departments  = Departments::get();
-        $gradings     = Grading::pluck('grading_name', 'id');
-        $groups       = Groups::pluck('remark', 'id');
-    $employeestatuses = Employee::getStatusEmployeeOptions();
-    $statuses         = Employee::getStatusOptions();
+        $stores           = Stores::orderBy('name')->get();
+        $companies        = Company::pluck('name', 'id');
+        $departments      = Departments::orderBy('department_name')->get();
+        $gradings         = Grading::pluck('grading_name', 'id');
+        $groups           = Groups::pluck('remark', 'id');
+        $employeestatuses = Employee::getStatusEmployeeOptions();
+        $statuses         = Employee::getStatusOptions();
 
+        // Ringkasan: siapa yang belum punya rate, dan lembur Cash periode ini yang terancam tidak terbayar
+        [$pStart, $pEnd] = $this->currentPeriod();
+        $active   = Employee::where('status', 'Active');
+        $rated    = EmployeeOvertimeRate::pluck('employee_id');
+        $cash     = \App\Models\Overtimesubmissions::where('compensation_type', 'Cash')->where('status', 'Approved')
+            ->whereBetween('date', [$pStart->toDateString(), $pEnd->toDateString()]);
+
+        $stats = [
+            'active'        => (clone $active)->count(),
+            'with_rate'     => (clone $active)->whereIn('id', $rated)->count(),
+            'without_rate'  => (clone $active)->whereNotIn('id', $rated)->count(),
+            'missing_dw'    => (clone $active)->whereNotIn('id', $rated)->where('status_employee', 'DW')->count(),
+            'rates'         => EmployeeOvertimeRate::whereIn('employee_id', (clone $active)->select('id'))
+                ->selectRaw('rate_per_hour, COUNT(*) AS c')->groupBy('rate_per_hour')->orderByDesc('c')->limit(4)->get(),
+            'cash_hours'    => (float) (clone $cash)->sum('total_hours'),
+            'cash_people'   => (clone $cash)->distinct('employee_id')->count('employee_id'),
+            'unpaid_hours'  => (float) (clone $cash)->whereNotIn('employee_id', $rated)->sum('total_hours'),
+            'unpaid_people' => (clone $cash)->whereNotIn('employee_id', $rated)->distinct('employee_id')->count('employee_id'),
+            'period_start'  => $pStart,
+            'period_end'    => $pEnd,
+        ];
 
         return view('pages.overtime-rate.index', compact(
             'companies',
@@ -45,7 +72,8 @@ class OvertimeRateController extends Controller
             'employeestatuses',
             'statuses',
             'gradings',
-            'groups'
+            'groups',
+            'stats'
         ));
     }
 
@@ -225,7 +253,17 @@ class OvertimeRateController extends Controller
             'company_tables.name as name_company',
             'employee_overtime_rates.rate_per_hour', // ← tambah ini
             'employee_overtime_rates.id as rate_id', // ← untuk update
-        ]);
+        ])
+        // Jam lembur Cash yang sudah approved di periode gaji berjalan
+        ->addSelect(['cash_hours' => \App\Models\Overtimesubmissions::selectRaw('COALESCE(SUM(total_hours), 0)')
+            ->whereColumn('employee_id', 'employees_tables.id')
+            ->where('compensation_type', 'Cash')
+            ->where('status', 'Approved')
+            ->whereBetween('date', array_map(fn($d) => $d->toDateString(), $this->currentPeriod()))]);
+
+    $query->whereNotNull('employees_tables.id');
+    $query->when($request->input('filter_rate') === 'unset', fn($q) => $q->whereNull('employee_overtime_rates.id'));
+    $query->when($request->input('filter_rate') === 'set', fn($q) => $q->whereNotNull('employee_overtime_rates.id'));
 
     // ── Filters ──
     $query->when($request->filled('filter_group'),      fn($q) => $q->where('groups_tables.remark', $request->filter_group));
@@ -238,19 +276,28 @@ class OvertimeRateController extends Controller
 
     return DataTables::of($query)
         ->addColumn('rate_display', fn($row) =>
-            $row->rate_per_hour
-                ? 'Rp ' . number_format($row->rate_per_hour, 0, ',', '.')
-                : '<span class="text-muted">Belum diset</span>'
+            $row->rate_per_hour !== null
+                ? '<span class="otr-rate">Rp' . number_format($row->rate_per_hour, 0, ',', '.') . '</span><span class="pr-cell-sub">per jam</span>'
+                : '<span class="status-badge is-rejected">Belum diset</span>'
         )
+        ->addColumn('cash_display', function ($row) {
+            $h = (float) $row->cash_hours;
+            if ($h <= 0) return '<span class="pr-muted">-</span>';
+            $hours = rtrim(rtrim(number_format($h, 2, ',', '.'), '0'), ',') . ' jam';
+            return $row->rate_per_hour !== null
+                ? '<span class="otr-rate">' . e($hours) . '</span><span class="pr-cell-sub">Rp' . number_format($h * $row->rate_per_hour, 0, ',', '.') . '</span>'
+                : '<span class="otr-rate">' . e($hours) . '</span><span class="pr-cell-sub otr-warn">tidak terbayar</span>';
+        })
         ->addColumn('action', fn($row) =>
-            '<button class="btn btn-sm btn-warning btn-edit-rate"
-                data-employee-id="' . $row->employee_id . '"
-                data-employee-name="' . htmlspecialchars($row->employee_name) . '"
-                data-rate="' . ($row->rate_per_hour ?? '') . '"
-                data-rate-id="' . ($row->rate_id ?? '') . '">
-                <i class="fas fa-edit"></i>
+            '<button type="button" class="act-btn act-warning btn-edit-rate" title="Ubah rate ' . e($row->employee_name) . '"
+                data-employee-id="' . e($row->employee_id) . '"
+                data-employee-name="' . e($row->employee_name) . '"
+                data-rate="' . e($row->rate_per_hour !== null ? (float) $row->rate_per_hour : '') . '">
+                <i class="fas fa-pen" aria-hidden="true"></i><span class="sr-only">Ubah rate</span>
             </button>'
         )
+        ->orderColumn('rate_display', fn($q, $o) => $q->orderBy('employee_overtime_rates.rate_per_hour', $o))
+        ->orderColumn('cash_display', fn($q, $o) => $q->orderBy('cash_hours', $o))
         ->filterColumn('employee_name',   fn($q, $k) => $q->where('employees_tables.employee_name', 'like', "%$k%"))
         ->filterColumn('employee_pengenal', fn($q, $k) => $q->where('employees_tables.employee_pengenal', 'like', "%$k%"))
         ->filterColumn('position_name',   fn($q, $k) => $q->where('position_tables.name', 'like', "%$k%"))
@@ -262,7 +309,7 @@ class OvertimeRateController extends Controller
         ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"))
             ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
 
-        ->rawColumns(['rate_display', 'action'])
+        ->rawColumns(['rate_display', 'cash_display', 'action'])
         ->make(true);
 }
 // public function store(Request $request)
@@ -346,7 +393,9 @@ public function store(Request $request)
     $request->validate([
         'employee_ids'   => 'required|array|min:1',
         'employee_ids.*' => 'exists:employees_tables,id',
-        'rate_per_hour'  => 'required|numeric|min:0',
+        'rate_per_hour'  => 'required|numeric|min:0|max:10000000',
+    ], [
+        'rate_per_hour.max' => 'Rate per jam terlalu besar. Periksa lagi angkanya.',
     ]);
 
     $count = 0;
@@ -365,7 +414,7 @@ public function store(Request $request)
         ]);
     }
 
-    return redirect()->route('overtime-rate.index')
+    return redirect()->route('overtime.rate')
         ->with('success', "Rate berhasil diset untuk {$count} karyawan.");
 }
 }

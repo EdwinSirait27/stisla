@@ -79,16 +79,17 @@ public function index()
     }
 
    
-   $today = now();
+    if (!$canManage && !$user->employee) {
+        return redirect()->back()->with('error', 'Akun Anda belum terhubung ke data karyawan.');
+    }
 
-if ($canManage) {
-    $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
-    $defaultEndDate   = $today->copy()->day(25)->toDateString();
-} else {
-    // Default: 26 bulan lalu → 25 bulan depan
-    $defaultStartDate = $today->copy()->subMonth()->day(26)->toDateString();
-    $defaultEndDate   = $today->copy()->addMonth()->day(25)->toDateString();
-}
+    // NoOverflow: tanggal 29–31 tidak boleh meloncat ke bulan berikutnya
+    $today = today();
+    $defaultStartDate = $today->copy()->startOfMonth()->subMonthNoOverflow()->day(26)->toDateString();
+    $defaultEndDate   = $canManage
+        ? $today->copy()->day(25)->toDateString()
+        : $today->copy()->startOfMonth()->addMonthNoOverflow()->day(25)->toDateString();
+    [$minAllowed, $maxAllowed] = $this->allowedRange();
 
     // ← ManageFingerspot: semua store
     if ($canManage) {
@@ -116,7 +117,10 @@ if ($canManage) {
         'canSpvManager',
         'canViewOwn',
         'lockedStore'
-    ));
+    ) + [
+        'minAllowed' => $minAllowed->toDateString(),
+        'maxAllowed' => $maxAllowed->toDateString(),
+    ]);
 }
     /**
      * Recap Absensi: sync raw scan dari att_log ke fingerprints_recap.
@@ -465,6 +469,131 @@ if ($roster && $roster->day_type === 'Public Holiday') {
             'errors'         => $errors,
         ]);
     }
+    /** Batas tanggal untuk non-HR: 26 dua bulan lalu sampai 25 bulan depan. */
+    private function allowedRange(): array
+    {
+        $first = today()->startOfMonth();
+        return [
+            $first->copy()->subMonthsNoOverflow(2)->day(26)->startOfDay(),
+            $first->copy()->addMonthNoOverflow()->day(25)->endOfDay(),
+        ];
+    }
+
+    /**
+     * Batasi query karyawan ke yang boleh dilihat SPV/Manager:
+     * satu company + store + departemen yang sama, ditambah bawahan langsung.
+     * Mengembalikan false kalau SPV tidak punya cakupan sama sekali.
+     */
+    private function applySpvScope($query, Employee $userEmployee): bool
+    {
+        $companyId    = $userEmployee->company_id;
+        $userStoreIds = $userEmployee->store()->pluck('stores_tables.id')->toArray();
+        $userDeptIds  = $userEmployee->department()->pluck('departments_tables.id')->toArray();
+        $bawahanIds   = $userEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
+
+        if (empty($userStoreIds) || empty($userDeptIds)) {
+            if (empty($bawahanIds)) return false;
+            $query->whereIn('employees_tables.id', $bawahanIds);
+            return true;
+        }
+
+        $query->where(function ($q) use ($companyId, $userStoreIds, $userDeptIds, $bawahanIds) {
+            $q->where(function ($q1) use ($companyId, $userStoreIds, $userDeptIds) {
+                $q1->where('company_id', $companyId)
+                    ->whereExists(fn($sq) => $sq->select(DB::raw(1))->from('employee_stores')
+                        ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                        ->whereIn('employee_stores.store_id', $userStoreIds))
+                    ->whereExists(fn($sq) => $sq->select(DB::raw(1))->from('employee_departments')
+                        ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                        ->whereIn('employee_departments.department_id', $userDeptIds));
+            });
+            if (!empty($bawahanIds)) {
+                $q->orWhereIn('employees_tables.id', $bawahanIds);
+            }
+        });
+
+        return true;
+    }
+
+    /** Boleh melihat data PIN ini? (HR semua, SPV cakupannya, karyawan miliknya sendiri) */
+    private function canAccessPin($user, string $pin, bool $canManage, bool $canSpvManager): bool
+    {
+        if ($canManage) return true;
+        $own = (string) ($user->employee?->pin ?? '');
+        if ($own !== '' && $own === $pin) return true;
+        if (!$canSpvManager || !$user->employee) return false;
+
+        $q = Employee::where('pin', $pin);
+        return $this->applySpvScope($q, $user->employee) && $q->exists();
+    }
+
+    /** Nama karyawan, store utama, jabatan utama berdasarkan PIN (untuk edit/show). */
+    private function employeeInfoByPin(string $pin): array
+    {
+        $employee = Employee::with([
+            'store'    => fn($q) => $q->wherePivot('is_primary', true),
+            'position' => fn($q) => $q->wherePivot('is_primary', true),
+        ])->where('pin', $pin)->first();
+
+        return [
+            'employee_name'     => $employee?->employee_name ?? '-',
+            'employee_pengenal' => $employee?->employee_pengenal ?? '-',
+            'status_employee'   => $employee?->status_employee ?? '-',
+            'store_name'        => $employee?->store->first()?->name ?? '-',
+            'position_name'     => $employee?->position->first()?->name ?? '-',
+            'employee'          => $employee,
+        ];
+    }
+
+    /** Scan mentah dari mesin (scan pertama per mode 1 = masuk, 2 = pulang) + roster hari itu. */
+    private function rawScansFor(string $pin, string $date, ?Employee $employee): array
+    {
+        $scans = Fingerprints::with('devicefingerprints')
+            ->where('pin', $pin)
+            ->whereDate('scan_date', $date)
+            ->orderBy('scan_date')
+            ->get();
+
+        $raw = ['count' => $scans->count(), 'all' => []];
+        foreach ([1, 2] as $mode) {
+            $first = $scans->where('inoutmode', $mode)->first();
+            $raw["in_$mode"]     = $first ? Carbon::parse($first->scan_date)->format('H:i:s') : null;
+            $raw["device_$mode"] = $first ? trim(optional($first->devicefingerprints)->device_name ?? '') : null;
+        }
+        $modeLabel = [1 => 'Masuk', 2 => 'Pulang', 3 => 'Istirahat', 4 => 'Istirahat', 5 => 'Lembur masuk', 6 => 'Lembur pulang'];
+        foreach ($scans as $sc) {
+            $raw['all'][] = [
+                'time'   => Carbon::parse($sc->scan_date)->format('H:i:s'),
+                'mode'   => $modeLabel[(int) $sc->inoutmode] ?? ('Mode ' . $sc->inoutmode),
+                'device' => trim(optional($sc->devicefingerprints)->device_name ?? '') ?: '-',
+            ];
+        }
+
+        $raw['roster'] = null;
+        if ($employee) {
+            $r = Roster::with('shift:id,shift_name,start_time,end_time')
+                ->where('employee_id', $employee->id)->whereDate('date', $date)->first();
+            if ($r) {
+                $raw['roster'] = [
+                    'day_type' => $r->day_type,
+                    'shift'    => $r->shift?->shift_name,
+                    'time'     => $r->shift ? substr($r->shift->start_time, 0, 5) . '–' . substr($r->shift->end_time, 0, 5) : null,
+                ];
+            }
+        }
+        return $raw;
+    }
+
+    private static function durationLabel(?string $in, ?string $out, string $date): ?string
+    {
+        if (!$in || !$out) return null;
+        $a = Carbon::parse("$date $in");
+        $b = Carbon::parse("$date $out");
+        if ($b->lt($a)) $b->addDay();
+        $m = (int) $a->diffInMinutes($b);
+        return sprintf('%d hour%s %d minute%s', intdiv($m, 60), intdiv($m, 60) !== 1 ? 's' : '', $m % 60, $m % 60 !== 1 ? 's' : '');
+    }
+
 private function buildFingerprintResult(
     $startDate,
     $endDate,
@@ -476,12 +605,6 @@ private function buildFingerprintResult(
     bool $canViewOwn
 ): \Illuminate\Support\Collection {
 
-    $editedFingerprints = EditedFingerprint::whereBetween('scan_date', [$startDate, $endDate])
-        ->get(['id', 'pin', 'scan_date', 'status'])
-        ->keyBy(fn($e) => $e->pin . '_' . Carbon::parse($e->scan_date)->toDateString());
-
-    $editedKeys = $editedFingerprints->keys()->toArray();
-
     $employeesQuery = Employee::with([
         'position' => fn($q) => $q->wherePivot('is_primary', true),
         'store'    => fn($q) => $q->wherePivot('is_primary', true),
@@ -489,64 +612,34 @@ private function buildFingerprintResult(
     ->select('id', 'pin', 'employee_name', 'employee_pengenal', 'status_employee', 'status', 'company_id')
     ->whereNotNull('pin');
 
-    if ($canViewOwn && !$canManage && !$canSpvManager) {
-        $employeesQuery->where('pin', $user->employee->pin);
-
-    } elseif ($canSpvManager && !$canManage) {
-        // ← Satu blok saja, hapus duplikat
-        $userEmployee = $user->employee;
-        $companyId    = $userEmployee->company_id;
-        $userStoreIds = $userEmployee->store()->pluck('stores_tables.id')->toArray();
-        $userDeptIds  = $userEmployee->department()->pluck('departments_tables.id')->toArray();
-        $bawahanIds   = $userEmployee->bawahanList()->pluck('employees_tables.id')->toArray();
-
-        if (empty($userStoreIds) || empty($userDeptIds)) {
-            if (empty($bawahanIds)) return collect();
-            $employeesQuery->whereIn('id', $bawahanIds);
-        } else {
-            $employeesQuery->where(function ($q) use ($companyId, $userStoreIds, $userDeptIds, $bawahanIds) {
-                $q->where(function ($q1) use ($companyId, $userStoreIds, $userDeptIds) {
-                    $q1->where('company_id', $companyId)
-                        ->whereExists(function ($sq) use ($userStoreIds) {
-                            $sq->select(DB::raw(1))
-                                ->from('employee_stores')
-                                ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                                ->whereIn('employee_stores.store_id', $userStoreIds);
-                        })
-                        ->whereExists(function ($sq) use ($userDeptIds) {
-                            $sq->select(DB::raw(1))
-                                ->from('employee_departments')
-                                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-                                ->whereIn('employee_departments.department_id', $userDeptIds);
-                        });
-                });
-
-                if (!empty($bawahanIds)) {
-                    $q->orWhereIn('id', $bawahanIds);
-                }
-            });
-
-            if ($storeName) {
-                $allowedStoreNames = $userEmployee->store()->pluck('stores_tables.name')->toArray();
-                if (in_array($storeName, $allowedStoreNames)) {
-                    $employeesQuery->whereHas('store', fn($q) =>
-                        $q->where('stores_tables.name', $storeName)
-                    );
-                }
-            }
-        }
-
-    } else {
+    if ($canManage) {
         // ManageFingerspot: bebas filter store
         if ($storeName) {
-            $employeesQuery->whereHas('store', fn($q) =>
-                $q->where('stores_tables.name', $storeName)
-            );
+            $employeesQuery->whereHas('store', fn($q) => $q->where('stores_tables.name', $storeName));
         }
+    } elseif ($canSpvManager) {
+        $userEmployee = $user->employee;
+        if (!$userEmployee || !$this->applySpvScope($employeesQuery, $userEmployee)) return collect();
+
+        // Filter store hanya untuk store yang memang dimiliki SPV
+        if ($storeName && in_array($storeName, $userEmployee->store()->pluck('stores_tables.name')->toArray(), true)) {
+            $employeesQuery->whereHas('store', fn($q) => $q->where('stores_tables.name', $storeName));
+        }
+    } else {
+        $ownPin = $user->employee?->pin;
+        if (!$ownPin) return collect();
+        $employeesQuery->where('pin', $ownPin);
     }
 
-    $employees   = $employeesQuery->get()->keyBy('pin');
+    $employees   = $employeesQuery->get()->keyBy(fn($e) => (string) $e->pin);
     $employeeIds = $employees->pluck('id')->filter()->values()->toArray();
+
+    $editedFingerprints = EditedFingerprint::whereBetween('scan_date', [$startDate->toDateString(), $endDate->toDateString()])
+        ->whereIn('pin', $employees->keys()->all())
+        ->get(['id', 'pin', 'scan_date', 'status', 'in_1', 'in_2'])
+        ->keyBy(fn($e) => $e->pin . '_' . Carbon::parse($e->scan_date)->toDateString());
+    $editedKeys = $editedFingerprints->keys()->toArray();
+
     $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
         ->select('id', 'employee_id', 'shift_id', 'date', 'day_type')
         ->whereIn('employee_id', $employeeIds)
@@ -630,9 +723,11 @@ private function buildFingerprintResult(
             'total_hari'        => $totalHari . ' Hari',
             'roster_name'       => $rosterName,
             'roster_time'       => $rosterTime,
-               'edited_fingerprint_id' => $editedRecord?->id,
-    'edited_status'         => $editedRecord?->status ?? null,
-    'can_action'            => $canManage || $canSpvManager,
+            'edited_fingerprint_id' => $editedRecord?->id,
+            'edited_status'         => $editedRecord?->status ?? null,
+            'edited_in_1'           => $editedRecord?->in_1,
+            'edited_in_2'           => $editedRecord?->in_2,
+            'day_type'              => $roster?->day_type,
         ];
 
         for ($i = 1; $i <= 10; $i++) {
@@ -738,8 +833,6 @@ if ($times->count() >= 2) {
             }
         }
 
-        $row['can_action'] = $canManage;
-
         return $row;
     })->filter()->values();
 
@@ -787,10 +880,7 @@ if ($times->count() >= 2) {
         $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()))->startOfDay();
         $endDate   = Carbon::parse($request->input('end_date', now()))->endOfDay();
       if (!$canManage && ($canSpvManager || $canViewOwn)) {
-    // ← Min: 26 dua bulan lalu (boleh lihat 1 periode ke belakang)
-    $minAllowedDate = now()->subMonths(2)->day(26)->startOfDay();
-    // ← Max: 25 bulan depan
-    $maxAllowedDate = now()->addMonth()->day(25)->endOfDay();
+    [$minAllowedDate, $maxAllowedDate] = $this->allowedRange();
 
     if ($startDate->lt($minAllowedDate)) {
         $startDate = $minAllowedDate;
@@ -820,10 +910,11 @@ if ($times->count() >= 2) {
             'on_time' => $result->where('is_late', false)->count(),
             'late'    => $result->where('is_late', true)->count(),
             'updated' => $result->where('is_updated', true)->count(),
-            'missing' => $result->filter(fn($r) => empty($r['in_2']))->count(),
+            'missing' => $result->filter(fn($r) => empty($r['in_2']) && $r['duration'] !== 'overnight')->count(),
+            'pending' => $result->filter(fn($r) => in_array($r['edited_status'], $canManage ? ['approved_spv'] : ['draft'], true))->count(),
         ];
 
-$spvPin = ($canSpvManager && !$canManage) ? $user->Employee?->pin : null;
+$spvPin = !$canManage ? $user->employee?->pin : null;
 
         return DataTables::of($result)
             ->with(['stats' => $stats])
@@ -834,57 +925,30 @@ $spvPin = ($canSpvManager && !$canManage) ? $user->Employee?->pin : null;
                     : '<span class="text-success">' . $row['in_1'] . '</span>';
             })
             
-->addColumn('action', function ($row) use ($canManage, $canSpvManager, $canViewOwn, $spvPin) {
-  $actions = '';
-
-    // ── Tombol show (semua permission bisa lihat) ──
-    if (!empty($row['edited_fingerprint_id'])) {
-        $showUrl = route('pages.Fingerprints.show', [
-            'pin'       => $row['pin'],
-            'scan_date' => $row['scan_date'],
-        ]);
-        $actions .= '<a href="' . $showUrl . '" class="btn btn-sm btn-info me-1" title="Detail">
-            <i class="fas fa-eye"></i>
-        </a>';
-    }
-
-    // ── Tombol edit ──
-    if ($row['is_updated']) {
-        $canEdit = $canManage
-            || ($canSpvManager && $row['pin'] === $spvPin && in_array($row['edited_status'], ['draft', 'rejected_spv']))
-            || ($canViewOwn && in_array($row['edited_status'], ['draft', 'rejected_spv']));
-
-        if ($canEdit) {
-            $editUrl = route('pages.Fingerprints.edit', [
-                'pin'       => $row['pin'],
-                'scan_date' => $row['scan_date'],
-            ]);
-            $actions .= '<a href="' . $editUrl . '" class="btn btn-sm btn-primary me-1" title="Edit">
-                <i class="fas fa-edit"></i>
-            </a>';
-        }
-        // ← hapus else disabled, kalau tidak bisa edit tidak tampil apapun
-
+->addColumn('show_url', fn($row) => !empty($row['edited_fingerprint_id'])
+    ? route('pages.Fingerprints.show', ['pin' => $row['pin'], 'scan_date' => $row['scan_date']]) : null)
+->addColumn('edit_url', function ($row) use ($canManage, $canSpvManager, $canViewOwn, $spvPin) {
+    $own    = $spvPin !== null && (string) $row['pin'] === (string) $spvPin;
+    $status = $row['edited_status'];
+    if ($status === 'approved_hr') return null; // sudah final
+    if ($canManage) {
+        $ok = true;
+    } elseif ($row['is_updated']) {
+        // Klarifikasi ulang hanya kalau masih draft / ditolak SPV
+        $ok = ($own || ($canViewOwn && !$canSpvManager)) && in_array($status, ['draft', 'rejected_spv'], true);
     } else {
-        // Belum pernah diedit
-        $canEditNew = $canManage
-            || ($canSpvManager && $row['pin'] === $spvPin) // ← SPV hanya pin sendiri
-            || $canViewOwn;
-
-        if ($canEditNew) {
-            $editUrl = route('pages.Fingerprints.edit', [
-                'pin'       => $row['pin'],
-                'scan_date' => $row['scan_date'],
-            ]);
-            $actions .= '<a href="' . $editUrl . '" class="btn btn-sm btn-outline-primary me-1" title="Edit">
-                <i class="fas fa-edit"></i>
-            </a>';
-        }
+        // Belum diklarifikasi: hanya milik sendiri, dan scan masuk/pulang belum lengkap
+        $ok = ($own || ($canViewOwn && !$canSpvManager)) && (empty($row['in_1']) || empty($row['in_2']));
     }
-
-    return $actions;
+    return $ok ? route('pages.Fingerprints.edit', ['pin' => $row['pin'], 'scan_date' => $row['scan_date']]) : null;
 })
-
+->addColumn('can_select', function ($row) use ($canManage, $canSpvManager, $spvPin) {
+    if (empty($row['edited_fingerprint_id'])) return false;
+    if ($canManage) return in_array($row['edited_status'], ['approved_spv', 'draft'], true);
+    // SPV tidak menyetujui klarifikasinya sendiri
+    return $canSpvManager && $row['edited_status'] === 'draft' && (string) $row['pin'] !== (string) $spvPin;
+})
+->addColumn('action', fn() => '')
 ->rawColumns(['action', 'in_1_colored'])
 ->make(true);
 
@@ -909,8 +973,7 @@ $spvPin = ($canSpvManager && !$canManage) ? $user->Employee?->pin : null;
 
     // ← Update date range validation sama seperti getFingerprints
     if (!$canManage && $canSpvManager) {
-        $minAllowedDate = now()->subMonths(2)->day(26)->startOfDay();
-        $maxAllowedDate = now()->addMonth()->day(25)->endOfDay();
+        [$minAllowedDate, $maxAllowedDate] = $this->allowedRange();
 
         if ($startDate->lt($minAllowedDate)) $startDate = $minAllowedDate;
         if ($endDate->gt($maxAllowedDate))   $endDate   = $maxAllowedDate;
@@ -1114,656 +1177,442 @@ $employeeId = $employee->id;
             ->make(true);
     }
     
+    private const EDITABLE_BY_EMPLOYEE = ['draft', 'rejected_spv'];
+
     public function editFingerprint($pin, Request $request)
     {
+        /** @var \App\Models\User|null $user */
         $user = auth()->user();
+        $pin  = (string) $pin;
 
-    /** @var \App\Models\User|null $user */
+        $canManage     = $user->hasPermissionTo('ManageFingerspot');
+        $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+        $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
+        if (!$canManage && !$canSpvManager && !$canViewOwn) abort(403, 'Unauthorized');
 
-    $canManage     = $user->hasPermissionTo('ManageFingerspot');
-    $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
-    $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
-
-    if (!$canManage && !$canSpvManager && !$canViewOwn) {
-        abort(403, 'Unauthorized');
-    }
-
-   
-    if ($canViewOwn && !$canManage && !$canSpvManager) {
-    $employeePin = $user->employee?->pin;
-    if ($pin !== $employeePin) {
-        abort(403, 'Anda hanya bisa edit data fingerprint milik sendiri.');
-    }
-}
-if ($canSpvManager && !$canManage) {
-    $employeePin = $user->employee?->pin;
-    if ($pin !== $employeePin) {
-        abort(403, 'Anda hanya bisa edit data fingerprint milik sendiri.');
-    }
-}
-
-    $request->merge(['pin' => $pin]);
-        $request->validate([
-            'pin'       => 'required|string|max:20',
-            'scan_date' => 'required|date',
-        ]);
-
-        $scanDate       = $request->input('scan_date');
-        $scanDateCarbon = Carbon::parse($scanDate)->toDateString();
-
-        // ── Ambil semua device untuk dropdown ──
-        $devices = Devicefingerprint::select('sn', 'device_name')
-            ->whereNotNull('device_name')
-            ->orderBy('device_name')
-            ->get();
-        //    dd($devices->pluck('device_name', 'sn'));
-        $data = EditedFingerprint::with('attachments')
-        // $data = EditedFingerprint::with('devicefingerprints','attachments')
-            ->where('pin', $pin)
-            ->whereDate('scan_date', $scanDateCarbon)
-            ->first();
-
-            if ($data && $data->status === 'approved_hr') {
-    return redirect()->route('pages.Fingerprints')
-        ->with('error', 'Data fingerprint sudah di-approve HR, sudah tidak bisa untuk klarifikasi.');
-}
-
-       
-        if ($data) {
-    // Guard: ViewFingerspot tidak bisa edit jika sudah approved_spv atau approved_hr
-    if ($canViewOwn && !$canManage && !$canSpvManager) {
-        if (!in_array($data->status, ['draft', 'rejected_spv'])) {
-            abort(403, 'Data sudah di-approve spv/manager, sudah tidak bisa untuk klarifikasi.');
-        }
-    }
-
-    // Guard: SPV tidak bisa edit jika sudah approved_spv
-    if ($canSpvManager && !$canManage) {
-        if ($data->status === 'approved_spv') {
-            abort(403, 'Data sudah di-approve SPV, tidak bisa klarifikasi.');
-        }
-    }
-
-    return view('pages.Fingerprints.edit', [
-        'data'     => $data,
-        'isEdited' => true,
-        'devices'  => $devices,
-    ]);
-}
-
-        $fingerprints = Fingerprints::with('devicefingerprints')
-            ->where('pin', $pin)
-            ->whereDate('scan_date', $scanDateCarbon)
-            ->orderBy('scan_date')
-            ->get();
-
-        if ($fingerprints->isEmpty()) {
-            return response()->json(['message' => 'Data not found'], 404);
+        // Selain HR, klarifikasi hanya untuk data milik sendiri
+        if (!$canManage && $pin !== (string) ($user->employee?->pin ?? '')) {
+            abort(403, 'Anda hanya bisa mengklarifikasi data fingerprint milik sendiri.');
         }
 
-        $first    = $fingerprints->first();
-        $employee = Employee::with(['store:id,name', 'position:id,name'])
-            ->where('pin', $pin)
-            ->first();
+        $request->merge(['pin' => $pin]);
+        $request->validate(['pin' => 'required|string|max:20', 'scan_date' => 'required|date']);
+        $date = Carbon::parse($request->input('scan_date'))->toDateString();
 
-        $row = [
-            'pin'               => $pin,
-            'employee_name'     => $employee->employee_name               ?? '-',
-            'status_employee'   => $employee->status_employee             ?? '-',
-            'employee_pengenal' => $employee->employee_pengenal           ?? '-',
-             'name'              => $employee->store->first()?->name       ?? '-', // ← fix
-    'position_name'     => $employee->position->first()?->name    ?? '-', // ← fix
-            'device_name'       => optional($first->devicefingerprints)->device_name ?? '-',
-            'scan_date'         => $scanDateCarbon,
-        ];
+        $data = EditedFingerprint::with('attachments')->where('pin', $pin)->whereDate('scan_date', $date)->first();
 
-        foreach (range(1, 2) as $i) {
-            $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
+        if ($data && $data->status === 'approved_hr') {
+            return redirect()->route('pages.Fingerprints')
+                ->with('error', 'Data fingerprint sudah di-approve HR, sudah tidak bisa untuk klarifikasi.');
+        }
+        if ($data && !$canManage && !in_array($data->status, self::EDITABLE_BY_EMPLOYEE, true)) {
+            return redirect()->route('pages.Fingerprints')
+                ->with('error', 'Klarifikasi ini sedang diproses atasan/HR, tidak bisa diubah lagi.');
         }
 
-        $fingerprints->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
-            if ($mode >= 1 && $mode <= 2) {
-                $firstItem = $items->sortBy('scan_date')->first();
-                $formatted = null;
-                try {
-                    $formatted = Carbon::parse($firstItem->scan_date)->format('H:i:s');
-                } catch (\Exception $e) {
-                    Log::error('Gagal parsing waktu', ['mode' => $mode, 'error' => $e->getMessage()]);
-                }
-                // $deviceName           = optional($firstItem->devicefingerprints)->device_name ?? '';
-                $deviceName           = trim(optional($firstItem->devicefingerprints)->device_name ?? '');
+        $info = $this->employeeInfoByPin($pin);
+        $raw  = $this->rawScansFor($pin, $date, $info['employee']);
 
-                $row["in_$mode"]      = $formatted;
-                $row["device_$mode"]  = $deviceName;
-                $row["combine_$mode"] = "{$formatted} {$deviceName}";
-            }
-        });
+        if (!$data && $raw['count'] === 0) {
+            return redirect()->route('pages.Fingerprints')->with('error', 'Tidak ada data scan pada tanggal tersebut.');
+        }
+        if (!$data && !$canManage && $raw['in_1'] && $raw['in_2']) {
+            return redirect()->route('pages.Fingerprints')
+                ->with('error', 'Scan masuk dan pulang Anda sudah lengkap, tidak perlu diedit.');
+        }
 
-
-if (!$canManage && ($canViewOwn || $canSpvManager)) {
-    Log::info('Guard scan check', [
-        'in_1' => $row['in_1'],
-        'in_2' => $row['in_2'],
-        'in_1_empty' => empty($row['in_1']),
-        'in_2_empty' => empty($row['in_2']),
-    ]);
-    if (!empty($row['in_1']) && !empty($row['in_2'])) {
-        return redirect()->route('pages.Fingerprints')
-            ->with('error', 'Scan masuk dan pulang Anda sudah lengkap, tidak perlu diedit.');
-    }
-}
+        $devices = Devicefingerprint::select('sn', 'device_name')->whereNotNull('device_name')->orderBy('device_name')->get();
 
         return view('pages.Fingerprints.edit', [
-            'data'     => (object) $row,
-            'isEdited' => false,
-            'devices'  => $devices,
+            'data'      => $data,
+            'isEdited'  => (bool) $data,
+            'pin'       => $pin,
+            'scanDate'  => $date,
+            'info'      => $info,
+            'raw'       => $raw,
+            'devices'   => $devices,
+            'canManage' => $canManage,
         ]);
     }
-  
-     public function showFingerprint($pin, Request $request)
-{
-    /** @var \App\Models\User|null $user */
 
-    $user = auth()->user();
+    public function showFingerprint($pin, Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $pin  = (string) $pin;
 
-    $canManage     = $user->hasPermissionTo('ManageFingerspot');
-    $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
-    $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
+        $canManage     = $user->hasPermissionTo('ManageFingerspot');
+        $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+        $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
+        if (!$canManage && !$canSpvManager && !$canViewOwn) abort(403, 'Unauthorized');
 
-    if (!$canManage && !$canSpvManager && !$canViewOwn) {
-        abort(403, 'Unauthorized');
-    }
-
-    // Guard ViewFingerspot — hanya bisa lihat data milik sendiri
-    if ($canViewOwn && !$canManage && !$canSpvManager) {
-        $employeePin = $user->employee?->pin;
-        if ($pin !== $employeePin) {
-            abort(403, 'Anda hanya bisa melihat data fingerprint milik sendiri.');
+        if (!$this->canAccessPin($user, $pin, $canManage, $canSpvManager)) {
+            abort(403, 'Anda tidak punya akses ke data fingerprint karyawan ini.');
         }
-    }
 
-    $request->merge(['pin' => $pin]);
-    $request->validate([
-        'pin'       => 'required|string|max:20',
-        'scan_date' => 'required|date',
-    ]);
+        $request->merge(['pin' => $pin]);
+        $request->validate(['pin' => 'required|string|max:20', 'scan_date' => 'required|date']);
+        $date = Carbon::parse($request->input('scan_date'))->toDateString();
 
-    $scanDate       = $request->input('scan_date');
-    $scanDateCarbon = Carbon::parse($scanDate)->toDateString();
+        $data = EditedFingerprint::with('attachments')->where('pin', $pin)->whereDate('scan_date', $date)->first();
+        $info = $this->employeeInfoByPin($pin);
+        $raw  = $this->rawScansFor($pin, $date, $info['employee']);
 
-    $devices = Devicefingerprint::select('sn', 'device_name')
-        ->whereNotNull('device_name')
-        ->orderBy('device_name')
-        ->get();
+        if (!$data && $raw['count'] === 0) {
+            return redirect()->route('pages.Fingerprints')->with('error', 'Tidak ada data scan pada tanggal tersebut.');
+        }
 
-    $data = EditedFingerprint::with('attachments')->where('pin', $pin)
-        ->whereDate('scan_date', $scanDateCarbon)
-        ->first();
+        $approver = null;
+        if ($data?->approved_by) {
+            $u = User::with('employee:id,employee_name')->find($data->approved_by);
+            $approver = $u?->employee?->employee_name ?? $u?->username;
+        }
 
-    if ($data) {
+        $own    = $pin === (string) ($user->employee?->pin ?? '');
+        $status = $data?->status;
+
+        $ownPin  = (string) ($user->employee?->pin ?? '');
+        $editUrl = null;
+        if ($data && $status !== 'approved_hr' && ($canManage || ($own && in_array($status, self::EDITABLE_BY_EMPLOYEE, true)))) {
+            $editUrl = route('pages.Fingerprints.edit', ['pin' => $pin, 'scan_date' => $date]);
+        }
+
+        $history = \Spatie\Activitylog\Models\Activity::with('causer.employee')
+            ->where('log_name', 'fingerprint')
+            ->when($data, fn($q) => $q->where('subject_type', EditedFingerprint::class)->where('subject_id', $data->id), fn($q) => $q->whereRaw('1=0'))
+            ->latest()->limit(20)->get();
+
         return view('pages.Fingerprints.show', [
-            'data'          => $data,
-            'isEdited'      => true,
-            'devices'       => $devices,
-            'canManage'     => $canManage,
-            'canSpvManager' => $canSpvManager,
+            'data'       => $data,
+            'isEdited'   => (bool) $data,
+            'pin'        => $pin,
+            'scanDate'   => $date,
+            'info'       => $info,
+            'raw'        => $raw,
+            'approver'   => $approver,
+            'history'    => $history,
+            'editUrl'    => $editUrl,
+            // SPV menyetujui draft orang lain; HR memproses yang sudah disetujui SPV
+            'canSpvAct'  => $data && !$canManage && $canSpvManager && !$own && $status === 'draft',
+            'canHrAct'   => $data && $canManage && in_array($status, ['approved_spv', 'draft'], true),
+            'canManage'  => $canManage,
         ]);
     }
 
-    $fingerprints = Fingerprints::with('devicefingerprints')
-        ->where('pin', $pin)
-        ->whereDate('scan_date', $scanDateCarbon)
-        ->orderBy('scan_date')
-        ->get();
+    public function updateFingerprint(Request $request, $pin = null, $scanDate = null)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
 
-    if ($fingerprints->isEmpty()) {
-        return response()->json(['message' => 'Data not found'], 404);
-    }
+        $canManage     = $user->hasPermissionTo('ManageFingerspot');
+        $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+        $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
+        if (!$canManage && !$canSpvManager && !$canViewOwn) abort(403, 'Unauthorized');
 
-    $first    = $fingerprints->first();
-    $employee = Employee::with(['store:id,name', 'position:id,name'])
-        ->where('pin', $pin)
-        ->first();
-
-    $row = [
-        'pin'               => $pin,
-        'employee_name'     => $employee->employee_name             ?? '-',
-        'status_employee'   => $employee->status_employee           ?? '-',
-        'employee_pengenal' => $employee->employee_pengenal         ?? '-',
-        'name'              => $employee->store->first()?->name     ?? '-',
-        'position_name'     => $employee->position->first()?->name  ?? '-',
-        'device_name'       => optional($first->devicefingerprints)->device_name ?? '-',
-        'scan_date'         => $scanDateCarbon,
-    ];
-
-    foreach (range(1, 2) as $i) {
-        $row["in_$i"] = $row["device_$i"] = $row["combine_$i"] = null;
-    }
-
-    $fingerprints->groupBy('inoutmode')->each(function ($items, $mode) use (&$row) {
-        if ($mode >= 1 && $mode <= 2) {
-            $firstItem = $items->sortBy('scan_date')->first();
-            $formatted = null;
-            try {
-                $formatted = Carbon::parse($firstItem->scan_date)->format('H:i:s');
-            } catch (\Exception $e) {
-                Log::error('Gagal parsing waktu', ['mode' => $mode, 'error' => $e->getMessage()]);
-            }
-            $deviceName           = trim(optional($firstItem->devicefingerprints)->device_name ?? '');
-            $row["in_$mode"]      = $formatted;
-            $row["device_$mode"]  = $deviceName;
-            $row["combine_$mode"] = "{$formatted} {$deviceName}";
-        }
-    });
-
-    return view('pages.Fingerprints.show', [
-        'data'          => (object) $row,
-        'isEdited'      => false,
-        'devices'       => $devices,
-        'canManage'     => $canManage,
-        'canSpvManager' => $canSpvManager,
-    ]);
-}
-   
-public function updateFingerprint(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-    $user = auth()->user();
-
-    $canManage     = $user->hasPermissionTo('ManageFingerspot');
-    $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
-    $canViewOwn    = $user->hasPermissionTo('ViewFingerspot');
-
-    if (!$canManage && !$canSpvManager && !$canViewOwn) {
-        abort(403, 'Unauthorized');
-    }
-
-    // ← 1. Cari existing record DULU sebelum apapun
-    $existing = EditedFingerprint::where('pin', $request->pin)
-        ->whereDate('scan_date', $request->scan_date)
-        ->first();
-
-    // Guard edit berdasarkan status & permission
-    if ($existing) {
-        if ($canViewOwn && !$canManage && !$canSpvManager) {
-            if (!in_array($existing->status, ['draft', 'rejected_spv'])) {
-                return back()->with('error', 'Data sudah di-approve SPV, tidak bisa diedit.');
-            }
-        } elseif ($canSpvManager && !$canManage) {
-            if ($existing->status !== 'draft') {
-                return back()->with('error', 'Hanya data berstatus draft yang bisa diedit SPV.');
-            }
-        }
-    }
-
-    // ← 2. Simpan old data sebelum update
-    $isNew   = !$existing;
-    $oldData = $isNew ? [] : [
-        'in_1'           => $existing->in_1,
-        'device_1'       => $existing->device_1,
-        'in_2'           => $existing->in_2,
-        'device_2'       => $existing->device_2,
-        'notes'          => $existing->notes,
-        'status'         => $existing->status,
-        'approved_by'    => $existing->approved_by,
-        'approved_at'    => $existing->approved_at,
-        'rejection_note' => $existing->rejection_note,
-    ];
-
-    try {
+        $timeRule = ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'];
         $validated = $request->validate([
-            'pin'           => 'required|string',
+            'pin'           => 'required|string|max:20',
             'scan_date'     => 'required|date',
-            'employee_name' => 'nullable|string',
-            'position_name' => 'nullable|string',
-            'store_name'    => 'nullable|string',
-            'duration'      => 'nullable|string',
-            'notes'         => 'required|string',
-            'attachments'   => 'nullable|array',
-            'attachments.*' => 'mimes:jpg,jpeg,png,webp|max:512',
+            'notes'         => 'required|string|min:5|max:1000',
+            'attachments'   => 'nullable|array|max:5',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,webp|max:512',
             ...collect(range(1, 10))->flatMap(fn($i) => [
-                "in_$i"     => 'nullable|string',
-                "device_$i" => 'nullable|string',
-            ])->toArray()
+                "in_$i"     => $timeRule,
+                "device_$i" => 'nullable|string|max:50',
+            ])->toArray(),
+        ], [
+            'notes.required'     => 'Alasan klarifikasi wajib diisi.',
+            'notes.min'          => 'Alasan minimal 5 karakter.',
+            'attachments.*.max'  => 'Ukuran tiap foto maksimal 512 KB.',
+            'attachments.*.mimes'=> 'Lampiran harus foto jpg, jpeg, png, atau webp.',
+            'in_1.regex'         => 'Format jam masuk harus HH:MM atau HH:MM:SS.',
+            'in_2.regex'         => 'Format jam pulang harus HH:MM atau HH:MM:SS.',
         ]);
 
-        $payload = collect($validated)
-            ->except(['pin', 'scan_date', 'attachments'])
-            ->toArray();
+        $pinValue = (string) $validated['pin'];
+        $date     = Carbon::parse($validated['scan_date'])->toDateString();
 
+        // URL dan isi form harus menunjuk data yang sama
+        if (($pin !== null && (string) $pin !== $pinValue) || ($scanDate !== null && Carbon::parse($scanDate)->toDateString() !== $date)) {
+            abort(422, 'Data form tidak sesuai dengan alamat halaman.');
+        }
+        // Selain HR, hanya data milik sendiri
+        if (!$canManage && $pinValue !== (string) ($user->employee?->pin ?? '')) {
+            abort(403, 'Anda hanya bisa mengklarifikasi data fingerprint milik sendiri.');
+        }
+
+        $existing = EditedFingerprint::where('pin', $pinValue)->whereDate('scan_date', $date)->first();
+        if ($existing && $existing->status === 'approved_hr') {
+            return back()->with('error', 'Data sudah di-approve HR, tidak bisa diubah lagi.');
+        }
+        if ($existing && !$canManage && !in_array($existing->status, self::EDITABLE_BY_EMPLOYEE, true)) {
+            return back()->with('error', 'Klarifikasi ini sedang diproses atasan/HR, tidak bisa diubah lagi.');
+        }
+
+        $info = $this->employeeInfoByPin($pinValue);
+        $raw  = $this->rawScansFor($pinValue, $date, $info['employee']);
+
+        // Scan asli dari mesin tidak boleh diganti lewat klarifikasi karyawan
         if (!$canManage) {
-            $payload['status'] = 'draft';
-        }
-
-        // ← 3. Update atau create
-        $editedFingerprint = EditedFingerprint::updateOrCreate(
-            ['pin' => $validated['pin'], 'scan_date' => $validated['scan_date']],
-            $payload
-        );
-
-        // Upload attachment
-        if ($canViewOwn && !$canManage && !$canSpvManager && $request->hasFile('attachments')) {
-            $existingAttachments = \App\Models\EditedFingerprintAttachment::where('edited_fingerprint_id', $editedFingerprint->id)->get();
-            foreach ($existingAttachments as $att) {
-                if (Storage::disk('s3')->exists($att->attachment)) {
-                    Storage::disk('s3')->delete($att->attachment);
+            foreach ([1, 2] as $i) {
+                if ($raw["in_$i"]) {
+                    $validated["in_$i"]     = $raw["in_$i"];
+                    $validated["device_$i"] = $raw["device_$i"] ?: ($validated["device_$i"] ?? null);
                 }
-                $att->delete();
             }
         }
-
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $safeName = Str::slug($request->input('employee_name', 'employee'));
-                $scanDate = Str::replace('-', '', $validated['scan_date']);
-                $fileName = $safeName . '-' . now()->timestamp . '-' . $scanDate . '-' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $folder   = 'employees-edited-fingerprints';
-                $path     = Storage::disk('s3')->putFileAs($folder, $file, $fileName);
-
-                \App\Models\EditedFingerprintAttachment::create([
-                    'edited_fingerprint_id' => $editedFingerprint->id,
-                    'attachment'            => $path,
-                ]);
-            }
+        foreach ([1, 2] as $i) {
+            if (!empty($validated["in_$i"]) && strlen($validated["in_$i"]) === 5) $validated["in_$i"] .= ':00';
+        }
+        if (empty($validated['in_1']) || empty($validated['in_2'])) {
+            return back()->withInput()->with('error', 'Jam masuk dan jam pulang wajib terisi.');
         }
 
-        // ← 4. Ambil data baru setelah save
-        $newData = [
-            'in_1'           => $editedFingerprint->in_1,
-            'device_1'       => $editedFingerprint->device_1,
-            'in_2'           => $editedFingerprint->in_2,
-            'device_2'       => $editedFingerprint->device_2,
-            'notes'          => $editedFingerprint->notes,
-            'status'         => $editedFingerprint->status,
-            'approved_by'    => $editedFingerprint->approved_by,
-            'approved_at'    => $editedFingerprint->approved_at,
-            'rejection_note' => $editedFingerprint->rejection_note,
-        ];
+        $isNew   = !$existing;
+        $fields  = ['in_1', 'device_1', 'in_2', 'device_2', 'notes', 'status', 'approved_by', 'approved_at', 'rejection_note'];
+        $oldData = $isNew ? [] : collect($fields)->mapWithKeys(fn($f) => [$f => $existing->{$f}])->all();
 
-        // ← 5. Hitung changes
-        $changes = [];
-        foreach ($newData as $field => $newValue) {
-            $oldValue = $oldData[$field] ?? null;
-            if ((string)$oldValue !== (string)$newValue) {
-                $changes[$field] = [
-                    'old' => $oldValue,
-                    'new' => $newValue,
-                ];
-            }
+        $payload = collect($validated)->except(['pin', 'scan_date', 'attachments'])->all();
+        // Identitas diambil dari data karyawan, bukan dari input form
+        $payload['employee_name'] = $info['employee_name'];
+        $payload['position_name'] = $info['position_name'];
+        $payload['store_name']    = $info['store_name'];
+        $payload['duration']      = self::durationLabel($validated['in_1'], $validated['in_2'], $date);
+
+        if (!$canManage || $isNew || $existing->status === null) {
+            // Masuk ke alur approval dari awal; catatan approval lama dikosongkan
+            $payload['status']         = 'draft';
+            $payload['approved_by']    = null;
+            $payload['approved_at']    = null;
+            $payload['rejection_note'] = null;
         }
-
-        // ← 6. Activity log
-        if (!empty($changes) || $isNew) {
-            activity('fingerprint')
-                ->causedBy($user)
-                ->performedOn($editedFingerprint)
-                ->withProperties([
-                    'pin'           => $validated['pin'],
-                    'scan_date'     => $validated['scan_date'],
-                    'employee_name' => $validated['employee_name'] ?? '-',
-                    'position_name' => $editedFingerprint->position_name ?? '-',
-                    'store_name'    => $editedFingerprint->store_name ?? '-',
-                    'action'        => $isNew ? 'created' : 'updated',
-                    'changes'       => $changes,
-                    'after'         => $newData,
-                ])
-                ->log(
-                    $isNew
-                        ? 'Edit fingerprint baru untuk ' . ($validated['employee_name'] ?? $validated['pin'])
-                        : 'Update fingerprint untuk ' . ($validated['employee_name'] ?? $validated['pin'])
-                          . ' — field diubah: ' . implode(', ', array_keys($changes))
-                );
-        }
-
-        return redirect()->route('pages.Fingerprints')
-            ->with('success', 'Fingerprint updated successfully.');
-
-    } catch (\Exception $e) {
-        Log::error('Gagal updateFingerprint', ['error' => $e->getMessage()]);
-        return back()->with('error', 'There is an error while updating fingerprints.');
-    }
-}
-public function updateStatus(Request $request, $id)
-{
-    /** @var \App\Models\User|null $user */
-    $user = auth()->user();
-
-    $canManage     = $user->hasPermissionTo('ManageFingerspot');
-    $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
-
-    if (!$canManage && !$canSpvManager) {
-        abort(403, 'Unauthorized');
-    }
-
-    $request->validate([
-        'status'         => 'required|string',
-        'rejection_note' => 'nullable|string|max:500',
-    ]);
-
-    $fingerprint = EditedFingerprint::findOrFail($id);
-
-    // Guard SPV — hanya bisa set approved_spv/rejected_spv dari status draft
-    if ($canSpvManager && !$canManage) {
-        if ($fingerprint->status !== 'draft') {
-            return back()->with('error', 'Hanya data draft yang bisa di-approve/reject SPV.');
-        }
-        if (!in_array($request->status, ['approved_spv', 'rejected_spv'])) {
-            abort(403, 'SPV hanya bisa set approved_spv atau rejected_spv.');
-        }
-    }
-
-    // Guard HR — hanya bisa set draft/approved_hr/rejected_hr, dari approved_spv
-    if ($canManage) {
-        if ($request->status === 'approved_hr' || $request->status === 'rejected_hr') {
-            if ($fingerprint->status !== 'approved_spv') {
-                return back()->with('error', 'Hanya data approved_spv yang bisa di-approve/reject HR.');
-            }
-        }
-        if (!in_array($request->status, ['draft', 'approved_hr', 'rejected_hr'])) {
-            abort(403, 'HR hanya bisa set draft, approved_hr, atau rejected_hr.');
-        }
-    }
-
-    $fingerprint->update([
-        'status'         => $request->status,
-        'approved_by'    => $user->id,
-        'approved_at'    => now(),
-        'rejection_note' => $request->rejection_note,
-    ]);
-
-    activity('fingerprint')
-        ->causedBy($user)
-        ->performedOn($fingerprint)
-        ->withProperties([
-            'old_status' => $fingerprint->getOriginal('status'),
-            'new_status' => $request->status,
-            'rejection_note' => $request->rejection_note,
-        ])
-        ->log('Status fingerprint diubah ke ' . $request->status);
-
-    return back()->with('success', 'Status berhasil diupdate.');
-}
-
-
-public function bulkStatus(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-    $user = auth()->user();
-    $canManage     = $user->hasPermissionTo('ManageFingerspot');
-    $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
-
-    if (!$canManage && !$canSpvManager) abort(403);
-
-    $request->validate([
-        'ids'    => 'required|array',
-        'ids.*'  => 'integer',
-        'status' => 'required|in:approved_spv,rejected_spv,approved_hr,rejected_hr',
-    ]);
-
-    if ($canSpvManager && !$canManage) {
-        if (!in_array($request->status, ['approved_spv', 'rejected_spv'])) abort(403);
-    }
-    if ($canManage) {
-        if (!in_array($request->status, ['approved_hr', 'rejected_hr'])) abort(403);
-    }
-
-    $fingerprints = EditedFingerprint::whereIn('id', $request->ids)->get();
-
-    foreach ($fingerprints as $fp) {
-        Log::info('BULK LOOP', [
-            'fp_id'     => $fp->id,
-            'fp_status' => $fp->status,
-        ]);
-
-        if ($canSpvManager && !$canManage && $fp->status !== 'draft') {
-            Log::info('SKIPPED SPV GUARD', ['fp_id' => $fp->id]);
-            continue;
-        }
-
-        if ($canManage && !in_array($fp->status, ['approved_spv', 'draft'])) {
-            Log::info('SKIPPED HR GUARD', ['fp_id' => $fp->id, 'status' => $fp->status]);
-            continue;
-        }
-
-        $oldStatus = $fp->status;
-
-        $fp->update([
-            'status'      => $request->status,
-            'approved_by' => $user->id,
-            'approved_at' => now(),
-        ]);
-
-        Log::info('BEFORE ACTIVITY', [
-            'fp_id'      => $fp->id,
-            'old_status' => $oldStatus,
-            'new_status' => $request->status,
-        ]);
 
         try {
-            activity('fingerprint')
-                ->causedBy($user)
-                ->performedOn($fp)
-                ->withProperties([
-                    'pin'           => $fp->pin,
-                    'scan_date'     => $fp->scan_date,
-                    'employee_name' => $fp->employee_name ?? '-',
-                    'position_name' => $fp->position_name ?? '-',
-                    'store_name'    => $fp->store_name ?? '-',
-                    'action'        => 'bulk_status',
-                    'changes'       => [
-                        'status' => [
-                            'old' => $oldStatus,
-                            'new' => $request->status,
-                        ],
-                        'approved_by' => [
-                            'old' => null,
-                            'new' => $user->employee?->employee_name ?? $user->username,
-                        ],
-                        'approved_at' => [
-                            'old' => null,
-                            'new' => now()->toDateTimeString(),
-                        ],
-                    ],
-                    'after' => [
-                        'status'      => $request->status,
-                        'approved_by' => $user->employee?->employee_name ?? $user->username,
-                        'approved_at' => now()->toDateTimeString(),
-                    ],
-                ])
-                ->log('Bulk status fingerprint ' . ($fp->employee_name ?? $fp->pin) . ' diubah dari ' . $oldStatus . ' ke ' . $request->status);
+            $editedFingerprint = DB::connection('mysql_second')->transaction(function () use ($pinValue, $date, $payload) {
+                return EditedFingerprint::updateOrCreate(['pin' => $pinValue, 'scan_date' => $date], $payload);
+            });
 
-            Log::info('ACTIVITY SUCCESS', ['fp_id' => $fp->id]);
+            if ($request->hasFile('attachments')) {
+                // Karyawan mengunggah ulang: lampiran lama diganti
+                if (!$canManage) {
+                    foreach (\App\Models\EditedFingerprintAttachment::where('edited_fingerprint_id', $editedFingerprint->id)->get() as $att) {
+                        if (Storage::disk('s3')->exists($att->attachment)) Storage::disk('s3')->delete($att->attachment);
+                        $att->delete();
+                    }
+                }
+                foreach ($request->file('attachments') as $file) {
+                    $fileName = Str::slug($info['employee_name'] ?: 'employee') . '-' . now()->timestamp . '-'
+                        . str_replace('-', '', $date) . '-' . uniqid() . '.' . strtolower($file->getClientOriginalExtension());
+                    $path = Storage::disk('s3')->putFileAs('employees-edited-fingerprints', $file, $fileName);
+                    \App\Models\EditedFingerprintAttachment::create(['edited_fingerprint_id' => $editedFingerprint->id, 'attachment' => $path]);
+                }
+            }
 
+            $editedFingerprint->refresh();
+            $newData = collect($fields)->mapWithKeys(fn($f) => [$f => $editedFingerprint->{$f}])->all();
+            $changes = [];
+            foreach ($newData as $field => $newValue) {
+                $oldValue = $oldData[$field] ?? null;
+                if ((string) $oldValue !== (string) $newValue) $changes[$field] = ['old' => $oldValue, 'new' => $newValue];
+            }
+
+            if (!empty($changes) || $isNew) {
+                activity('fingerprint')->causedBy($user)->performedOn($editedFingerprint)
+                    ->withProperties([
+                        'pin' => $pinValue, 'scan_date' => $date,
+                        'employee_name' => $info['employee_name'], 'position_name' => $info['position_name'], 'store_name' => $info['store_name'],
+                        'action' => $isNew ? 'created' : 'updated', 'changes' => $changes, 'after' => $newData,
+                    ])
+                    ->log(($isNew ? 'Edit fingerprint baru untuk ' : 'Update fingerprint untuk ') . $info['employee_name']
+                        . ($isNew ? '' : ' — field diubah: ' . implode(', ', array_keys($changes))));
+            }
+
+            return redirect()->route('pages.Fingerprints')->with('success', $canManage
+                ? 'Data fingerprint tersimpan.'
+                : 'Klarifikasi terkirim dan menunggu persetujuan atasan.');
         } catch (\Throwable $e) {
-            Log::error('ACTIVITY ERROR', [
-                'fp_id'   => $fp->id,
-                'message' => $e->getMessage(),
-            ]);
+            Log::error('Gagal updateFingerprint', ['error' => $e->getMessage(), 'pin' => $pinValue, 'date' => $date]);
+            return back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan. Coba lagi.');
         }
     }
 
-    return response()->json([
-        'message' => 'Status berhasil diupdate.',
-        'reload'  => true,
-    ]);
-}
-public function deleteAttachment(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-
-    $user = auth()->user();
-    if (!$user->hasAnyPermission(['ManageFingerspot', 'ManageFingerspotSPVManager', 'ViewFingerspot'])) {
-        abort(403);
+    /**
+     * Cek satu klarifikasi boleh diubah statusnya oleh user ini.
+     * Mengembalikan pesan error, atau null kalau boleh.
+     */
+    private function statusGuard($user, EditedFingerprint $fp, string $target, bool $canManage, bool $canSpvManager): ?string
+    {
+        if ($canManage) {
+            if (!in_array($target, ['draft', 'approved_hr', 'rejected_hr'], true)) return 'HR hanya bisa set draft, approved_hr, atau rejected_hr.';
+            if (in_array($target, ['approved_hr', 'rejected_hr'], true) && !in_array($fp->status, ['approved_spv', 'draft'], true)) {
+                return 'Hanya data draft / approved SPV yang bisa diproses HR.';
+            }
+            return null;
+        }
+        if (!$canSpvManager) return 'Tidak punya akses.';
+        if (!in_array($target, ['approved_spv', 'rejected_spv'], true)) return 'SPV hanya bisa set approved_spv atau rejected_spv.';
+        if ($fp->status !== 'draft') return 'Hanya data draft yang bisa di-approve/reject SPV.';
+        if ((string) $fp->pin === (string) ($user->employee?->pin ?? '')) return 'Klarifikasi milik sendiri tidak bisa Anda setujui sendiri.';
+        if (!$this->canAccessPin($user, (string) $fp->pin, false, true)) return 'Karyawan ini di luar cakupan Anda.';
+        return null;
     }
 
-    $attachment = \App\Models\EditedFingerprintAttachment::findOrFail($request->id);
+    public function updateStatus(Request $request, $id)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $canManage     = $user->hasPermissionTo('ManageFingerspot');
+        $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+        if (!$canManage && !$canSpvManager) abort(403, 'Unauthorized');
 
-    // Guard: hanya bisa hapus jika status draft
-    if ($attachment->editedFingerprint->status !== 'draft') {
-        return response()->json(['message' => 'Tidak bisa hapus attachment yang sudah di-approve.'], 403);
+        $request->validate([
+            'status'         => 'required|in:draft,approved_spv,rejected_spv,approved_hr,rejected_hr',
+            'rejection_note' => 'nullable|string|max:500|required_if:status,rejected_spv,rejected_hr',
+        ], ['rejection_note.required_if' => 'Alasan penolakan wajib diisi.']);
+
+        $fingerprint = EditedFingerprint::findOrFail($id);
+        if ($msg = $this->statusGuard($user, $fingerprint, $request->status, $canManage, $canSpvManager)) {
+            return $request->expectsJson() ? response()->json(['message' => $msg], 403) : back()->with('error', $msg);
+        }
+
+        $oldStatus = $fingerprint->status;
+        $fingerprint->update([
+            'status'         => $request->status,
+            'approved_by'    => $request->status === 'draft' ? null : $user->id,
+            'approved_at'    => $request->status === 'draft' ? null : now(),
+            'rejection_note' => str_starts_with($request->status, 'rejected') ? $request->rejection_note : null,
+        ]);
+
+        activity('fingerprint')->causedBy($user)->performedOn($fingerprint)
+            ->withProperties([
+                'pin' => $fingerprint->pin, 'scan_date' => $fingerprint->scan_date, 'employee_name' => $fingerprint->employee_name,
+                'action' => 'status',
+                'changes' => ['status' => ['old' => $oldStatus, 'new' => $request->status]] + ($request->rejection_note ? ['rejection_note' => ['old' => null, 'new' => $request->rejection_note]] : []),
+            ])
+            ->log('Status fingerprint ' . $fingerprint->employee_name . ' diubah dari ' . $oldStatus . ' ke ' . $request->status);
+
+        $msg = 'Status berhasil diperbarui.';
+        return $request->expectsJson() ? response()->json(['message' => $msg]) : back()->with('success', $msg);
     }
 
-    if (Storage::disk('s3')->exists($attachment->attachment)) {
-        Storage::disk('s3')->delete($attachment->attachment);
+    public function bulkStatus(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        $canManage     = $user->hasPermissionTo('ManageFingerspot');
+        $canSpvManager = $user->hasPermissionTo('ManageFingerspotSPVManager');
+        if (!$canManage && !$canSpvManager) abort(403);
+
+        $request->validate([
+            'ids'            => 'required|array|max:500',
+            'ids.*'          => 'integer',
+            'status'         => 'required|in:approved_spv,rejected_spv,approved_hr,rejected_hr',
+            'rejection_note' => 'nullable|string|max:500|required_if:status,rejected_spv,rejected_hr',
+        ], ['rejection_note.required_if' => 'Alasan penolakan wajib diisi.']);
+
+        if (!$canManage && !in_array($request->status, ['approved_spv', 'rejected_spv'], true)) abort(403);
+        if ($canManage && !in_array($request->status, ['approved_hr', 'rejected_hr'], true)) abort(403);
+
+        $approverName = $user->employee?->employee_name ?? $user->username;
+        $updated = 0;
+        $skipped = [];
+
+        foreach (EditedFingerprint::whereIn('id', $request->ids)->get() as $fp) {
+            if ($msg = $this->statusGuard($user, $fp, $request->status, $canManage, $canSpvManager)) {
+                $skipped[] = ($fp->employee_name ?? $fp->pin) . ' (' . Carbon::parse($fp->scan_date)->format('d M') . '): ' . $msg;
+                continue;
+            }
+            $oldStatus = $fp->status;
+            $isReject  = str_starts_with($request->status, 'rejected');
+            $fp->update([
+                'status'         => $request->status,
+                'approved_by'    => $user->id,
+                'approved_at'    => now(),
+                'rejection_note' => $isReject ? $request->rejection_note : null,
+            ]);
+            $updated++;
+
+            try {
+                activity('fingerprint')->causedBy($user)->performedOn($fp)
+                    ->withProperties([
+                        'pin' => $fp->pin, 'scan_date' => $fp->scan_date, 'employee_name' => $fp->employee_name ?? '-',
+                        'position_name' => $fp->position_name ?? '-', 'store_name' => $fp->store_name ?? '-',
+                        'action'  => 'bulk_status',
+                        'changes' => ['status' => ['old' => $oldStatus, 'new' => $request->status], 'approved_by' => ['old' => null, 'new' => $approverName]]
+                            + ($isReject ? ['rejection_note' => ['old' => null, 'new' => $request->rejection_note]] : []),
+                    ])
+                    ->log('Bulk status fingerprint ' . ($fp->employee_name ?? $fp->pin) . ' diubah dari ' . $oldStatus . ' ke ' . $request->status);
+            } catch (\Throwable $e) {
+                Log::error('Bulk status activity error', ['fp_id' => $fp->id, 'message' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json([
+            'message' => $updated . ' klarifikasi diperbarui' . ($skipped ? ', ' . count($skipped) . ' dilewati.' : '.'),
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'reload'  => true,
+        ]);
     }
 
-    $attachment->delete();
+    public function deleteAttachment(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (!$user->hasAnyPermission(['ManageFingerspot', 'ManageFingerspotSPVManager', 'ViewFingerspot'])) abort(403);
 
-    return response()->json(['message' => 'Attachment berhasil dihapus.']);
-}
+        $request->validate(['id' => 'required|integer']);
+        $attachment = \App\Models\EditedFingerprintAttachment::with('editedFingerprint')->findOrFail($request->id);
+        $fp = $attachment->editedFingerprint;
 
+        if (!$fp || !in_array($fp->status, self::EDITABLE_BY_EMPLOYEE, true)) {
+            return response()->json(['message' => 'Lampiran klarifikasi yang sedang/sudah diproses tidak bisa dihapus.'], 403);
+        }
+        if (!$user->hasPermissionTo('ManageFingerspot') && (string) $fp->pin !== (string) ($user->employee?->pin ?? '')) {
+            return response()->json(['message' => 'Anda hanya bisa menghapus lampiran milik sendiri.'], 403);
+        }
 
-public function getLog(Request $request)
-{
-    /** @var \App\Models\User|null $user */
-    $user = auth()->user();
+        if (Storage::disk('s3')->exists($attachment->attachment)) Storage::disk('s3')->delete($attachment->attachment);
+        $attachment->delete();
 
-    if (!$user->hasPermissionTo('ManageFingerspot')) {
-        abort(403);
+        return response()->json(['message' => 'Lampiran berhasil dihapus.']);
     }
 
-    $query = \Spatie\Activitylog\Models\Activity::with('causer.employee')
-        ->where('log_name', 'fingerprint')
-        ->latest();
+    public function getLog(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (!$user->hasPermissionTo('ManageFingerspot')) abort(403);
 
-    return DataTables::of($query)
-        ->addColumn('causer_name', fn($row) =>
-            $row->causer?->employee?->employee_name ?? $row->causer?->username ?? '-'
-        )
-        ->addColumn('employee_name', fn($row) =>
-            $row->properties['employee_name'] ?? '-'
-        )
-        ->addColumn('pin', fn($row) =>
-            $row->properties['pin'] ?? '-'
-        )
-        ->addColumn('scan_date', fn($row) =>
-            $row->properties['scan_date'] ?? '-'
-        )
-        ->addColumn('action_badge', fn($row) => match($row->properties['action'] ?? '') {
-            'created' => '<span class="badge bg-success">Created</span>',
-            'updated' => '<span class="badge bg-warning text-dark">Updated</span>',
-            default   => '-',
-        })
-        ->addColumn('changes', function ($row) {
-    $changes = $row->properties['changes'] ?? [];
-    if (empty($changes)) return '-';
+        $query = \Spatie\Activitylog\Models\Activity::with('causer.employee')
+            ->where('log_name', 'fingerprint')
+            ->latest();
 
-    $html = '<ul class="mb-0 ps-3" style="font-size:.8rem">';
-    foreach ($changes as $field => $change) {
-        $old = $change['old'] ?? '-';
-        $new = $change['new'] ?? '-';
-        $html .= "<li><strong>{$field}</strong>: 
-            <span class='text-danger'>{$old}</span> → 
-            <span class='text-success'>{$new}</span>
-        </li>";
+        $fmt = function ($v) {
+            if ($v === null || $v === '') return '-';
+            if (is_array($v)) $v = json_encode($v);
+            return e(Str::limit((string) $v, 80));
+        };
+
+        return DataTables::of($query)
+            ->addColumn('causer_name', fn($row) => $row->causer?->employee?->employee_name ?? $row->causer?->username ?? '-')
+            ->addColumn('employee_name', fn($row) => $row->properties['employee_name'] ?? '-')
+            ->addColumn('pin', fn($row) => $row->properties['pin'] ?? '-')
+            ->addColumn('scan_date', fn($row) => isset($row->properties['scan_date']) ? Carbon::parse($row->properties['scan_date'])->toDateString() : '-')
+            ->addColumn('action_key', fn($row) => $row->properties['action'] ?? '')
+            ->addColumn('action_badge', fn($row) => e($row->properties['action'] ?? '-'))
+            ->addColumn('changes', function ($row) use ($fmt) {
+                $changes = $row->properties['changes'] ?? [];
+                if (empty($changes)) return '-';
+                $html = '<ul class="fp-changes">';
+                foreach ($changes as $field => $change) {
+                    $html .= '<li><strong>' . e($field) . '</strong>: <del>' . $fmt($change['old'] ?? null) . '</del> <ins>' . $fmt($change['new'] ?? null) . '</ins></li>';
+                }
+                return $html . '</ul>';
+            })
+            ->editColumn('description', fn($row) => e($row->description))
+            ->editColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Makassar')->format('d M Y H:i'))
+            ->rawColumns(['changes'])
+            ->make(true);
     }
-    $html .= '</ul>';
-    return $html;
-})
-        ->editColumn('created_at', fn($row) =>
-            $row->created_at->timezone('Asia/Makassar')->format('d M Y H:i:s')
-        )
-        ->rawColumns(['action_badge','changes'])
-        ->make(true);
-}
 }

@@ -75,12 +75,12 @@ class LoginSessionService
                 ->with('warning', 'Akun Anda diwajibkan mengaktifkan 2FA sebelum bisa mengakses sistem.');
         }
 
-        // Password masih default: ForcePasswordChange mengunci semua halaman lain.
-        if (Hash::check(strtolower($user->username), $user->password)) {
-            Log::warning('User login with password same as username', ['user_id' => $user->id, 'ip' => $request->ip()]);
+        // Password masih default (username / NIP): ForcePasswordChange mengunci semua halaman lain.
+        if (self::hasDefaultPassword($user)) {
+            Log::warning('User login with default password', ['user_id' => $user->id, 'ip' => $request->ip()]);
 
             return redirect()->route('pages.change-password')
-                ->with('warning', 'Password Anda masih sama dengan username. Silakan ganti password terlebih dahulu.');
+                ->with('warning', 'Password Anda masih default (sama dengan username atau NIP). Silakan ganti password terlebih dahulu.');
         }
 
         $redirect = DashboardRedirectService::redirectForUser($user);
@@ -107,6 +107,30 @@ class LoginSessionService
         }
 
         return hash_equals($pending['token_hash'], hash('sha256', $token)) ? $pending : null;
+    }
+
+    /**
+     * Password masih default? Default = username atau NIP (employee_pengenal).
+     * Kalau $plain diberikan (password yang baru saja dicek benar), cukup dibandingkan teks, tanpa bcrypt.
+     */
+    public static function hasDefaultPassword(User $user, ?string $plain = null): bool
+    {
+        $candidates = array_values(array_unique(array_filter([
+            strtolower((string) $user->username),
+            (string) ($user->employee?->employee_pengenal ?? ''),
+        ], fn($v) => $v !== '')));
+
+        if ($plain !== null) {
+            foreach ($candidates as $c) {
+                if (hash_equals(strtolower($c), strtolower($plain))) return true;
+            }
+            return false;
+        }
+
+        foreach ($candidates as $c) {
+            if (Hash::check($c, $user->password)) return true;
+        }
+        return false;
     }
 
     /** Akun boleh login? (dipakai sebelum 2FA dan saat konfirmasi perangkat lain) */

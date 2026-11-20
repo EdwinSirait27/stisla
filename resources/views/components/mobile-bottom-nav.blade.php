@@ -327,11 +327,11 @@
         </a>
         @endcan
    
-    @can('ManageSummaries')
-        <a href="{{ route('pages.Summaries') }}" class="drawer-item">
+    @canany(['leave.list.view', 'leave.list.view.manager', 'leave.list.view.human'])
+        <a href="{{ route('leave.list.index') }}" class="drawer-item">
             <i class="fas fa-tachometer-alt"></i> Leave List
         </a>
-        @endcan
+        @endcanany
     </div>
 <div class="mobile-more-drawer" id="moreDrawerMasterData" role="dialog" aria-modal="true" aria-label="Master Data">
     <div class="drawer-handle"></div>

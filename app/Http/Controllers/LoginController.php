@@ -6,27 +6,14 @@ use App\Models\User;
 use App\Models\UserSession;
 use App\Rules\NoXSSInput;
 use App\Services\LoginSessionService;
+use App\Services\LoginThrottle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
-    /**
-     * Batas percobaan gagal: [key prefix, maks gagal, jendela detik].
-     * - pair : username + IP, mengerem tebak cepat dari satu mesin
-     * - user : per username dari IP mana pun (lockout bertingkat 15 menit lalu 1 jam)
-     * - ip   : per IP lintas username (password spraying)
-     */
-    private const LIMITS = [
-        'pair'      => [5, 60],
-        'user'      => [10, 900],
-        'user_long' => [25, 3600],
-        'ip'        => [30, 600],
-    ];
-
     private const GENERIC_FAIL = 'Username atau password salah.';
     private const BLOCKED_ACCOUNT = 'Akun ini tidak dapat digunakan untuk login. Hubungi HR.';
 
@@ -62,9 +49,9 @@ class LoginController extends Controller
         ]);
 
         $username = strtolower($request->username);
-        $keys = $this->limiterKeys($username, $request->ip());
+        $keys = LoginThrottle::keys($username, $request->ip());
 
-        if ($seconds = $this->lockedFor($keys)) {
+        if ($seconds = LoginThrottle::lockedFor($keys)) {
             Log::warning('Login rate limit hit', ['username' => $username, 'ip' => $request->ip()]);
 
             return back()->withInput($request->only('username'))->withErrors([
@@ -81,15 +68,24 @@ class LoginController extends Controller
                 : (Hash::check($request->password, Hash::make('timing-equaliser')) && false);
 
             if (!$passwordOk) {
-                $this->hitAll($keys);
+                LoginThrottle::hit($keys);
                 Log::warning('Failed login attempt', ['username' => $username, 'ip' => $request->ip()]);
+                if ($user) {
+                    // Muncul di Activity Log milik user itu (percobaan login dengan password salah)
+                    activity('auth')->causedBy($user)->performedOn($user)->event('login_failed')
+                        ->withProperties(['channel' => 'web', 'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)])
+                        ->log('Percobaan login web gagal: password salah');
+                }
 
                 return back()->withInput($request->only('username'))->withErrors(['/' => self::GENERIC_FAIL]);
             }
 
             if (!LoginSessionService::canLogin($user)) {
                 // Dihitung sebagai gagal juga, dan pesannya satu untuk semua alasan.
-                $this->hitAll($keys);
+                LoginThrottle::hit($keys);
+                activity('auth')->causedBy($user)->performedOn($user)->event('login_blocked')
+                    ->withProperties(['channel' => 'web', 'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)])
+                    ->log('Login web ditolak: ' . ($user->employee ? 'status karyawan ' . $user->employee->status : 'akun belum terhubung ke data karyawan'));
                 Log::warning('Login blocked: employee missing or not active', [
                     'user_id' => $user->id,
                     'status'  => $user->employee?->status,
@@ -99,7 +95,7 @@ class LoginController extends Controller
                 return back()->withInput($request->only('username'))->withErrors(['/' => self::BLOCKED_ACCOUNT]);
             }
 
-            $this->clearAll($keys);
+            LoginThrottle::clear($keys);
 
             // 2FA aktif: belum login sama sekali sampai kode valid.
             if ($user->hasTwoFactorEnabled()) {
@@ -155,45 +151,5 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login')->with('success', 'Anda berhasil logout');
-    }
-
-    // ── Rate limiting ──────────────────────────────────────────────
-
-    private function limiterKeys(string $username, string $ip): array
-    {
-        return [
-            'pair'      => 'login:pair:' . sha1($username . '|' . $ip),
-            'user'      => 'login:user:' . $username,
-            'user_long' => 'login:user-long:' . $username,
-            'ip'        => 'login:ip:' . $ip,
-        ];
-    }
-
-    /** Sisa detik terkunci (0 kalau tidak terkunci). */
-    private function lockedFor(array $keys): int
-    {
-        $wait = 0;
-        foreach ($keys as $name => $key) {
-            if (RateLimiter::tooManyAttempts($key, self::LIMITS[$name][0])) {
-                $wait = max($wait, RateLimiter::availableIn($key));
-            }
-        }
-
-        return $wait;
-    }
-
-    private function hitAll(array $keys): void
-    {
-        foreach ($keys as $name => $key) {
-            RateLimiter::hit($key, self::LIMITS[$name][1]);
-        }
-    }
-
-    /** Login sukses menghapus hitungan username & pasangan; hitungan per IP dibiarkan habis sendiri. */
-    private function clearAll(array $keys): void
-    {
-        RateLimiter::clear($keys['pair']);
-        RateLimiter::clear($keys['user']);
-        RateLimiter::clear($keys['user_long']);
     }
 }

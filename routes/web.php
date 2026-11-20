@@ -33,7 +33,7 @@ use App\Http\Controllers\StructureSubmissionController;
 use App\Http\Controllers\PHController;
 use App\Http\Controllers\GradinglistController;
 use App\Http\Controllers\CareerController;
-use App\Http\Controllers\SummaryController;
+use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\Editedfingerprints;
 use App\Http\Controllers\LeaverequestController;
 use App\Http\Controllers\DashboardHeadController;
@@ -168,12 +168,12 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/dashboardSupervisor', [DashboardSupervisorController::class, 'index'])
             ->name('pages.dashboardSupervisor');
     });
-    // ── Activity (catatan: tetap pakai permission:dashboardAdmin sesuai original) ──
-    Route::group(['middleware' => ['permission:dashboardAdmin']], function () {
-        // Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
-        // Route::get('/Activity/show/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
-        // Route::get('/activity/activity', [ActivityController::class, 'getActivity'])->name('activity.activity');
-        // Route::get('/activity1/activity1', [ActivityController::class, 'getActivity1'])->name('activity1.activity1');
+    // ── Activity log (Spatie) ──
+    Route::group(['middleware' => ['permission:activity.view']], function () {
+        Route::get('/Activity', [ActivityController::class, 'index'])->name('pages.Activity');
+        Route::get('/Activity/users', [ActivityController::class, 'getUsers'])->name('activity.users');
+        Route::get('/Activity/data', [ActivityController::class, 'getActivities'])->name('activity.data');
+        Route::get('/Activity/user/{hashedId}', [ActivityController::class, 'show'])->name('Activity.show');
     });
     // ── Submissions ──
     Route::middleware(['auth'])->group(function () {
@@ -499,6 +499,7 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             ->name('pages.AttendanceMobile');
         Route::get('/AttendanceMobile/show/{hashedId}', [AttendanceMobileController::class, 'show'])->name('attendancemobile.show');
         Route::post('attendancemobile/store', [AttendanceMobileController::class, 'store'])->name('attendancemobile.store');
+        Route::post('/AttendanceMobile/{hashedId}/status', [AttendanceMobileController::class, 'updateStatus'])->name('attendancemobile.status');
 // Route::put('attendancemobile/{idHashed}', [AttendanceMobileController::class, 'update'])->name('attendancemobile.update');
 // Route::get('attendancemobile/{idHashed}/edit-data', [AttendanceMobileController::class, 'editData'])->name('attendancemobile.editdata');
            Route::get('/attendancemobiles/attendancemobiles', [AttendanceMobileController::class, 'getAttendanceMobiles'])->name('attendancemobiles.attendancemobiles');
@@ -635,12 +636,15 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
 
 
 
-    // ── Summaries ──
-    Route::group(['middleware' => ['permission:ManageSummaries']], function () {
-        Route::get('/Summaries', [SummaryController::class, 'index'])
-            ->name('pages.Summaries');
-        Route::get('/summaries/summaries', [SummaryController::class, 'getSummaries'])->name('summaries.summaries');
+    // ── Daftar cuti (dulu Summaries) ──
+    // leave.list.view = semua, leave.list.view.manager = diri + bawahan, leave.list.view.human = diri sendiri
+    Route::group(['middleware' => ['permission:leave.list.view|leave.list.view.manager|leave.list.view.human']], function () {
+        Route::get('/leave-list', [LeaveController::class, 'index'])->name('leave.list.index');
+        Route::get('/leave-list/balances', [LeaveController::class, 'getBalances'])->name('leave.list.balances');
+        Route::get('/leave-list/requests', [LeaveController::class, 'getRequests'])->name('leave.list.requests');
     });
+    // URL lama tetap bisa dibuka (bookmark)
+    Route::redirect('/Summaries', '/leave-list');
 
     // ── Grading List ──
     Route::group(['middleware' => ['permission:ManageGradinglist']], function () {

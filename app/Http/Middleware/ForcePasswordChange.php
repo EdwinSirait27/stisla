@@ -5,10 +5,9 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 /**
- * Paksa ganti password kalau password masih sama dengan username.
+ * Paksa ganti password kalau password masih default (sama dengan username atau NIP).
  * Hasil Hash::check disimpan di session per hash password, jadi bcrypt hanya
  * dijalankan sekali per sesi (dan dihitung ulang otomatis begitu password berubah).
  */
@@ -27,7 +26,7 @@ class ForcePasswordChange
         $cached = $request->session()->get('pwd_default');
 
         if (!is_array($cached) || ($cached['fp'] ?? null) !== $fingerprint) {
-            $cached = ['fp' => $fingerprint, 'is' => Hash::check(strtolower($user->username), $user->password)];
+            $cached = ['fp' => $fingerprint, 'is' => \App\Services\LoginSessionService::hasDefaultPassword($user)];
             $request->session()->put('pwd_default', $cached);
         }
 

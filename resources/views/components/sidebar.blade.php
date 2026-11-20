@@ -89,36 +89,42 @@
                             <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
                         </li>
                     @endcan
-                    @can('ManageSummaries')
-                        <li class="{{ Request::is('Summaries') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Summaries') }}">Leaves List</a>
+                    @canany(['leave.list.view', 'leave.list.view.manager', 'leave.list.view.human'])
+                        <li class="{{ Request::is('leave-list') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('leave.list.index') }}">Leaves List</a>
                         </li>
-                    @endcan
+                    @endcanany
 
 
 
                 </ul>
             </li>
- @can('dashboardAdmin')
+ @canany(['dashboardAdmin', 'activity.view'])
             <li class="nav-item dropdown ">
                 <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
                     <span>Users</span></a>
                 <ul class="dropdown-menu">
+                    @can('dashboardAdmin')
                     <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('dashboardAdmin') }}">List Users</a>
                     </li>
-                    <li class="{{ Request::is('Activity') ? 'active' : '' }}">
+                    @endcan
+                    @can('activity.view')
+                    <li class="{{ Request::is('Activity*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('Activity') }}">Activity Logs</a>
                     </li>
+                    @endcan
+                    @can('dashboardAdmin')
                     <li class="{{ Request::is('roles') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('roles') }}">Roles</a>
                     </li>
                     <li class="{{ Request::is('permission') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ url('permissions') }}">Permission</a>
                     </li>
+                    @endcan
                 </ul>
             </li>
-                    @endcan
+                    @endcanany
 
             <li class="nav-item dropdown ">
                 <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-database"></i>

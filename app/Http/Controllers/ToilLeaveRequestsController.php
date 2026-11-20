@@ -64,7 +64,7 @@ class ToilLeaveRequestsController extends Controller
     // kalau manager pembuatnya sudah pindah / resign.
     $bawahanIds = $manager->bawahanList()->pluck('employees_tables.id');
 
-    $query = ToilLeaveRequests::with(['employee:id,employee_name,pin'])
+    $query = ToilLeaveRequests::with(['employee:id,employee_name,employee_pengenal,pin'])
         ->where(function ($q) use ($manager, $bawahanIds) {
             $q->where('approver_id', $manager->id)
                 ->orWhereIn('employee_id', $bawahanIds);
@@ -108,6 +108,8 @@ class ToilLeaveRequestsController extends Controller
             'employee_name'   => $first->employee->employee_name ?? '-',
             'employee_pin'    => $first->employee->pin ?? '-',
             'leave_date'      => $dateRange,
+            'start_raw'       => Carbon::parse($first->leave_date)->toDateString(),
+            'employee_pengenal' => $first->employee->employee_pengenal ?? '-',
             'total_days'      => $totalDays,
             'hours_used'      => number_format($totalHours, 2),
             'reason'          => $first->reason,

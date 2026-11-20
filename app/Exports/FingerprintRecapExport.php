@@ -45,7 +45,7 @@ class FingerprintRecapExport implements  FromCollection,
             ->select('id', 'employee_name', 'employee_pengenal','status_employee','status')
             ->whereNotNull('pin')
             // ->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave','Resign'])
-            ->whereIn('status', ['Active', 'Inactive', 'Mutation', 'Pending', 'On Leave'])
+            ->whereIn('status', \App\Http\Controllers\FingerprintrecapController::STATUSES)
             ->whereNull('deleted_at');
             if ($this->storeName) {
     $employeesQuery->whereHas('store', fn($q) =>

@@ -36,112 +36,123 @@ class FingerprintrecapController extends Controller
     //         ->pluck('name');
     //     return view('pages.FingerprintRecap.FingerprintRecap', compact('stores'));
     // }
+    /** Status karyawan yang ikut direkap (dipakai halaman & export supaya isinya sama) */
+    public const STATUSES = ['Active', 'Inactive', 'Mutation', 'Pending', 'On Leave', 'Resign'];
+
     public function index()
-{
-    Log::info('FingerprintRecap@index dipanggil');
-
-    $stores = Stores::select('stores_tables.id', 'stores_tables.name')
-        ->whereNotNull('stores_tables.name')
-        ->whereExists(function ($q) {
-            $q->select(DB::raw(1))
-                ->from('employee_stores')
+    {
+        $stores = Stores::select('stores_tables.id', 'stores_tables.name')
+            ->whereNotNull('stores_tables.name')
+            ->whereExists(fn($q) => $q->select(DB::raw(1))->from('employee_stores')
                 ->whereColumn('employee_stores.store_id', 'stores_tables.id')
-                ->where('employee_stores.is_primary', true);
-        })
-        ->distinct()
-        ->orderBy('stores_tables.name')
-        ->pluck('stores_tables.name');
-    $statuses         = Employee::getStatusOptions();
+                ->where('employee_stores.is_primary', true))
+            ->distinct()
+            ->orderBy('stores_tables.name')
+            ->pluck('stores_tables.name');
+        $statuses = self::STATUSES;
 
-
-
-
-    return view('pages.FingerprintRecap.FingerprintRecap', compact('stores','statuses'));
-}
-    public function getData(Request $request)
-{
-    Log::info('FingerprintRecap@getData dipanggil', [
-        'start_date' => $request->input('start_date'),
-        'end_date'   => $request->input('end_date'),
-        'store_name' => $request->input('store_name'),
-        'status_name' => $request->input('status_name'),
-    ]);
-
-    $request->validate([
-        'start_date' => 'nullable|date',
-        'end_date'   => 'nullable|date|after_or_equal:start_date',
-        'store_name' => 'nullable|string|max:100',
-        'status_name' => 'nullable|string|max:100',
-    ], [
-        'end_date.after_or_equal' => 'End date harus setelah atau sama dengan start date.',
-        'store_name.max'          => 'Nama store terlalu panjang.',
-    ]);
-
-    try {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date', Carbon::now()->toDateString());
-        $storeName = $request->input('store_name');
-        $statusName = $request->input('status_name');
-
-        // ← Hapus duplikat, satu query saja
-        $employeesQuery = Employee::with([
-            'store' => fn($q) => $q->wherePivot('is_primary', true),
-        ])
-            ->select('id', 'employee_name', 'employee_pengenal', 'status_employee','status')
-            ->whereNotNull('pin')
-            ->whereIn('status', ['Active', 'Mutation', 'Pending', 'On Leave', 'Resign'])
-            ->whereNull('deleted_at');
-
-       
-        if ($storeName) {
-    $employeesQuery->whereHas('store', fn($q) =>
-        $q->where('stores_tables.name', $storeName)
-          ->where('employee_stores.is_primary', true)
-    );
-}
-       if ($statusName) {
-    $employeesQuery->where('status', $statusName);
-}
-
-        $employees = $employeesQuery->get();
-
-        // ── Ambil arsip untuk periode ini ──
-        $archives = Fingerprintrecaparchive::where('period_start', $startDate)
-            ->where('period_end', $endDate)
+        // Periode yang sudah pernah direkap (arsip), terbaru dulu
+        $periods = Fingerprintrecaparchive::selectRaw('period_start, period_end, COUNT(*) as total, MAX(updated_at) as last_at')
+            ->groupBy('period_start', 'period_end')
+            ->orderByDesc('period_start')
+            ->limit(24)
             ->get()
-            ->keyBy('employee_id');
+            ->map(fn($p) => [
+                'start'   => Carbon::parse($p->period_start)->toDateString(),
+                'end'     => Carbon::parse($p->period_end)->toDateString(),
+                'label'   => Carbon::parse($p->period_start)->locale('id')->translatedFormat('d M Y') . ' sampai ' . Carbon::parse($p->period_end)->locale('id')->translatedFormat('d M Y'),
+                'total'   => (int) $p->total,
+                'last_at' => $p->last_at ? Carbon::parse($p->last_at)->timezone('Asia/Makassar')->format('d M Y H:i') : null,
+            ]);
 
-        $periodIn  = Carbon::parse($startDate)->format('d-m-Y');
-        $periodOut = Carbon::parse($endDate)->format('d-m-Y');
+        // Default: periode terakhir yang sudah direkap; kalau belum ada, periode payroll berjalan (26–25)
+        $first = today()->startOfMonth();
+        $defaultStart = $periods->first()['start'] ?? $first->copy()->subMonthNoOverflow()->day(26)->toDateString();
+        $defaultEnd   = $periods->first()['end'] ?? $first->copy()->day(25)->toDateString();
 
-        $result = $employees->map(function ($employee) use ($archives, $periodIn, $periodOut) {
-            $archive = $archives->get($employee->id);
-
-            return [
-                'employee_name'    => $employee->employee_name ?? '-',
-                'employee_pengenal'=> $employee->employee_pengenal ?? '-',
-                'store_name'       => $employee->store->first()?->name ?? '-',
-                'status_name'       => $employee->status ?? '-',
-                'total_hari'       => ($archive->total_hari_kerja ?? 0) . ' hari',
-                'total_hari_telat' => ($archive->total_hari_telat ?? 0) . ' hari',
-                'remarks'          => $archive->remarks ?? '-',
-                'period_in'        => $periodIn,
-                'period_out'       => $periodOut,
-            ];
-        });
-
-        return DataTables::of($result)->make(true);
-
-    } catch (\Exception $e) {
-        Log::error('FingerprintRecap@getData ERROR', [
-            'message' => $e->getMessage(),
-            'line'    => $e->getLine(),
-        ]);
-        return response()->json([
-            'error' => 'Terjadi kesalahan: ' . $e->getMessage()
-        ], 500);
+        return view('pages.FingerprintRecap.FingerprintRecap', compact('stores', 'statuses', 'periods', 'defaultStart', 'defaultEnd'));
     }
-}
+
+    public function getData(Request $request)
+    {
+        $request->validate([
+            'start_date'  => 'nullable|date',
+            'end_date'    => 'nullable|date|after_or_equal:start_date',
+            'store_name'  => 'nullable|string|max:100',
+            'status_name' => 'nullable|string|max:100',
+        ], [
+            'end_date.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
+            'store_name.max'          => 'Nama lokasi terlalu panjang.',
+        ]);
+
+        try {
+            $startDate  = Carbon::parse($request->input('start_date', today()->startOfMonth()))->toDateString();
+            $endDate    = Carbon::parse($request->input('end_date', today()))->toDateString();
+            $storeName  = $request->input('store_name');
+            $statusName = $request->input('status_name');
+
+            $employeesQuery = Employee::with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
+                ->select('id', 'employee_name', 'employee_pengenal', 'status_employee', 'status')
+                ->whereNotNull('pin')
+                ->whereIn('status', self::STATUSES)
+                ->whereNull('deleted_at');
+
+            if ($storeName) {
+                $employeesQuery->whereHas('store', fn($q) => $q->where('stores_tables.name', $storeName)->where('employee_stores.is_primary', true));
+            }
+            if ($statusName) {
+                $employeesQuery->where('status', $statusName);
+            }
+
+            $employees = $employeesQuery->get();
+
+            // Arsip hasil "Rekap absensi" untuk periode yang persis sama
+            $archives = Fingerprintrecaparchive::whereDate('period_start', $startDate)
+                ->whereDate('period_end', $endDate)
+                ->get()
+                ->keyBy('employee_id');
+
+            $result = $employees->map(function ($employee) use ($archives) {
+                $archive = $archives->get($employee->id);
+                return [
+                    'employee_name'     => $employee->employee_name ?? '-',
+                    'employee_pengenal' => $employee->employee_pengenal ?? '-',
+                    'status_employee'   => $employee->status_employee ?? '-',
+                    'store_name'        => $employee->store->first()?->name ?? ($archive->store_name ?? '-'),
+                    'status_name'       => $employee->status ?? '-',
+                    'has_archive'       => (bool) $archive,
+                    'total_hari_num'    => (int) ($archive->total_hari_kerja ?? 0),
+                    'total_telat_num'   => (int) ($archive->total_hari_telat ?? 0),
+                    // nama lama tetap dikirim
+                    'total_hari'        => ($archive->total_hari_kerja ?? 0) . ' hari',
+                    'total_hari_telat'  => ($archive->total_hari_telat ?? 0) . ' hari',
+                    'remarks'           => $archive->remarks ?? '-',
+                    'archived_at'       => $archive?->updated_at?->timezone('Asia/Makassar')->format('d M Y H:i'),
+                ];
+            });
+
+            $archived = $result->where('has_archive', true);
+            $lastArchive = $archives->max('updated_at');
+            $stats = [
+                'employees'   => $result->count(),
+                'archived'    => $archived->count(),
+                'missing'     => $result->count() - $archived->count(),
+                'avg_days'    => $archived->count() ? round($archived->avg('total_hari_num'), 1) : 0,
+                'late_people' => $archived->where('total_telat_num', '>', 0)->count(),
+                'late_days'   => (int) $archived->sum('total_telat_num'),
+                'zero_days'   => $archived->where('total_hari_num', 0)->count(),
+                'last_at'     => $lastArchive ? Carbon::parse($lastArchive)->timezone('Asia/Makassar')->format('d M Y H:i') : null,
+                'by'          => optional(\App\Models\User::with('employee:id,employee_name')->find($archives->sortByDesc('updated_at')->first()?->archived_by))->employee?->employee_name,
+                'period'      => Carbon::parse($startDate)->locale('id')->translatedFormat('d M Y') . ' sampai ' . Carbon::parse($endDate)->locale('id')->translatedFormat('d M Y'),
+            ];
+
+            return DataTables::of($result)->with(['stats' => $stats])->make(true);
+        } catch (\Exception $e) {
+            Log::error('FingerprintRecap@getData ERROR', ['message' => $e->getMessage(), 'line' => $e->getLine()]);
+            return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function export(Request $request)
     {
         $request->validate([

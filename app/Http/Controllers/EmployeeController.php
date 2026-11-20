@@ -877,6 +877,17 @@ class EmployeeController extends Controller
         return Excel::download(new EmployeesExport($filters), $fileName . '.xlsx');
     }
 
+
+    /** Cari user dari hashed id. Hanya kolom id yang dibaca untuk mencocokkan hash, relasi dimuat untuk satu baris saja. */
+    private function findUserByHash(string $hashedId, array $with = []): ?User
+    {
+        $id = User::query()->pluck('id')->first(
+            fn($uid) => substr(hash('sha256', $uid . env('APP_KEY')), 0, 8) === $hashedId
+        );
+
+        return $id ? User::with($with)->find($id) : null;
+    }
+
     public function edit($hashedId)
     {
         /** @var \App\Models\User|null $user */
@@ -884,10 +895,7 @@ class EmployeeController extends Controller
         if (!$user->hasPermissionTo('ManageEmployee')) {
             abort(403);
         }
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
+        $employee = $this->findUserByHash($hashedId, ['Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.company', 'Employee.atasanList', 'Employee.bawahanList']);
         if (!$employee) {
             abort(404, 'Employee not found.');
         }
@@ -975,93 +983,53 @@ class EmployeeController extends Controller
     }
     public function show($hashedId)
     {
+        /** @var \App\Models\User|null $viewer */
+        $viewer = auth()->user();
 
-        $employee = User::with('Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank', 'Employee.grading', 'Employee.group', 'Employee.employees')->get()->first(function ($u) use ($hashedId) {
-            $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-            return $expectedHash === $hashedId;
-        });
-        if (!$employee) {
+        $employee = $this->findUserByHash($hashedId, [
+            'Employee', 'Employee.store', 'Employee.department', 'Employee.position', 'Employee.bank',
+            'Employee.grading', 'Employee.group', 'Employee.company',
+            'Employee.atasanList' => fn($q) => $q->with(['position' => fn($p) => $p->wherePivot('is_primary', true)]),
+            'Employee.bawahanList' => fn($q) => $q->whereIn('employees_tables.status', ['Active', 'Pending', 'Mutation', 'On Leave'])
+                ->orderBy('employee_name')
+                ->with(['position' => fn($p) => $p->wherePivot('is_primary', true)]),
+        ]);
+
+        if (!$employee || !$employee->Employee) {
             abort(404, 'Employee not found.');
         }
-        $allStores = Stores::get();
-        $allPositions = Position::get();
-        $allDepartments = Departments::get();
-        $gradingLevel = $employee->Employee?->grading?->level;
-        $allEmployees = Employee::where('status', 'Active')
-            ->when($gradingLevel, function ($query) use ($gradingLevel) {
-                $query->whereHas('grading', function ($q) use ($gradingLevel) {
-                    $q->where('level', '<', $gradingLevel);
-                });
-            })
-            ->get();
-        $selectedStores = $employee->Employee->store->pluck('id')->toArray();
-        $selectedDepartments = $employee->Employee->department->pluck('id')->toArray();
-        $selectedPositions = $employee->Employee->position->pluck('id')->toArray();
-        $selectedAtasans = $employee->Employee->atasanList->pluck('id')->toArray();
-        $primaryStoreId = $employee->Employee->store()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $primaryPositionId = $employee->Employee->position()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $primaryDepartmentId = $employee->Employee->department()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $primaryEmployeeId = $employee->Employee->atasanList()
-            ->wherePivot('is_primary', true)
-            ->first()?->id;
-        $companys = Company::get();
-        $gradings = Grading::get();
-        $groups = Groups::get();
-        $employees = Employee::where('status', 'Active')->pluck('employee_name', 'id');
-        $status_employee = ['PKWT', 'DW', 'PKWTT', 'On Job Training'];
-        $child = ['0', '1', '2', '3', '4', '5'];
-        $marriage = ['Yes', 'No'];
-        $bloodtypes = Employee::getBloodTypeOptions();
-        $attendancetypes = Employee::getAttendanceTypeOptions();
 
-        $gender = ['Male', 'Female', 'MD'];
-        $status = ['Pending', 'On Leave', 'Mutation', 'Active', 'Resign'];
-        $banks = Banks::get();
-        $religion = ['Buddha', 'Catholic Christian', 'Christian', 'Confucian', 'Hindu', 'Islam'];
-        $last_education = ['Elementary School', 'Junior High School', 'Senior High School', 'Diploma I', 'Diploma II', 'Diploma III', 'Diploma IV', 'Bachelor Degree', 'Masters degree', 'Vocational School', 'Lord'];
-        // Tambahkan sebelum return view
-        $documents = Documents::with([
-            'companydocumentconfigs.documenttypes',
-            'companydocumentconfigs.company',
-        ])
-            ->where('employee_id', $employee->Employee->id)
-            ->get();
+        $emp = $employee->Employee;
+
+        $documents = $viewer->hasPermissionTo('ManageEmployee')
+            ? Documents::with(['companydocumentconfigs.documenttypes', 'companydocumentconfigs.company'])
+                ->where('employee_id', $emp->id)->get()
+            : collect();
+
+        // Gaji yang dipakai payroll sekarang: effective_date terakhir <= hari ini
+        $salary = $viewer->hasPermissionTo('employee.salary.view')
+            ? \App\Models\EmployeeSalary::where('employee_id', $emp->id)
+                ->whereDate('effective_date', '<=', today())
+                ->orderByDesc('effective_date')->first()
+            : null;
+        $scheduledSalary = $viewer->hasPermissionTo('employee.salary.view')
+            ? \App\Models\EmployeeSalary::where('employee_id', $emp->id)
+                ->whereDate('effective_date', '>', today())
+                ->orderBy('effective_date')->first()
+            : null;
+
+        $activities = $viewer->hasPermissionTo('ManageEmployee')
+            ? Activity::where('subject_type', Employee::class)->where('subject_id', $emp->id)
+                ->with('causer.employee')->latest()->limit(8)->get()
+            : collect();
+
         return view('pages.Employee.show', [
-            'documents' => $documents,
-            'allEmployees' => $allEmployees,
-            'selectedAtasans' => $selectedAtasans,
-            'primaryEmployeeId' => $primaryEmployeeId,
-            'employee' => $employee,
-            'status_employee' => $status_employee,
-            'child' => $child,
-            'employees' => $employees,
-            'bloodtypes' => $bloodtypes,
-            'companys' => $companys,
-            'marriage' => $marriage,
-            'status' => $status,
-            'gender' => $gender,
-            'gradings' => $gradings,
-            'attendancetypes' => $attendancetypes,
-            'groups' => $groups,
-            'banks' => $banks,
-            'religion' => $religion,
-            'last_education' => $last_education,
-            'allStores' => $allStores,
-            'allPositions' => $allPositions,
-            'allDepartments' => $allDepartments,
-            'selectedStores' => $selectedStores,
-            'selectedDepartments' => $selectedDepartments,
-            'selectedPositions' => $selectedPositions,
-            'primaryStoreId' => $primaryStoreId,
-            'primaryDepartmentId' => $primaryDepartmentId,
-            'primaryPositionId' => $primaryPositionId,
-            'hashedId' => $hashedId,
+            'employee'        => $employee,
+            'documents'       => $documents,
+            'salary'          => $salary,
+            'scheduledSalary' => $scheduledSalary,
+            'activities'      => $activities,
+            'hashedId'        => $hashedId,
         ]);
     }
 
@@ -1155,7 +1123,8 @@ class EmployeeController extends Controller
             'nik' => ['required', 'max:20', 'unique:employees_tables,nik', new NoXSSInput()],
             'kk_number' => ['nullable', 'max:20', new NoXSSInput()],
             'bank_account_number' => ['required', 'max:20', new NoXSSInput()],
-            'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_id', new NoXSSInput()],
+            'employee_pengenal' => ['nullable', 'string', 'max:30', 'unique:employees_tables,employee_pengenal', new NoXSSInput()],
+            'pin' => ['nullable', 'string', 'max:50', 'unique:employees_tables,pin', new NoXSSInput()],
             'last_education' => ['required', 'string', 'max:255', new NoXSSInput()],
             'religion' => ['required', 'string', new NoXSSInput()],
             'place_of_birth' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -1360,12 +1329,19 @@ class EmployeeController extends Controller
                 'id_card_address' => $validatedData['id_card_address'] ?? '',
                 'institution' => $validatedData['institution'] ?? '',
                 'npwp' => $validatedData['npwp'] ?? '',
+                'pin' => $validatedData['pin'] ?? null,
+                // kolom denormalisasi "utama" ikut diisi (lihat command SyncPrimary*ToEmployee)
+                'store_id' => $validatedData['store_id'],
+                'position_id' => $validatedData['position_id'],
+                'department_id' => $validatedData['department_id'],
             ]);
 
             $employees->store()->attach($validatedData['store_id'], ['is_primary' => true]);
             $employees->position()->attach($validatedData['position_id'], ['is_primary' => true]);
             $employees->department()->attach($validatedData['department_id'], ['is_primary' => true]);
-            $employees->atasanList()->attach($validatedData['atasan_id'], ['is_primary' => true]);
+            if (!empty($validatedData['atasan_id'])) {
+                $employees->atasanList()->attach($validatedData['atasan_id'], ['is_primary' => true]);
+            }
 
             // ← Log pivot saat create
             activity('employee')
@@ -1382,9 +1358,6 @@ class EmployeeController extends Controller
                 ->log('Employee pivot data ' . $employees->employee_name . ' has been created.');
 
 
-            if ($employees) {
-                Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
-            }
             $user = User::create([
                 'username' => $employeeId,
                 'password' => Hash::make($employeeId),
@@ -1392,10 +1365,21 @@ class EmployeeController extends Controller
             ]);
 
             $user->assignRole('Human');
+            $user->update(['active_role_hrx' => 'Human', 'all_roles_hrx' => ['Human']]);
 
             DB::commit();
 
-            return redirect()->route('pages.Employee')->with('success', 'Done!');
+            // Email selamat datang dikirim setelah data tersimpan: kalau email gagal, karyawan tetap tercatat.
+            try {
+                if ($employees->email) {
+                    Mail::to($employees->email)->send(new WelcomeEmployeeMail($employees));
+                }
+            } catch (\Throwable $mailError) {
+                Log::warning('Welcome email gagal dikirim', ['employee_id' => $employees->id, 'error' => $mailError->getMessage()]);
+                return redirect()->route('pages.Employee')->with('success', "Karyawan {$employees->employee_name} ({$employeeId}) tersimpan, tapi email selamat datang gagal dikirim.");
+            }
+
+            return redirect()->route('pages.Employee')->with('success', "Karyawan {$employees->employee_name} tersimpan dengan NIP {$employeeId}. Username dan password awal = NIP.");
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -1418,12 +1402,7 @@ class EmployeeController extends Controller
         if (!$user->hasPermissionTo('ManageEmployee')) {
             abort(403);
         }
-        $user = User::with('Employee')
-            ->get()
-            ->first(function ($u) use ($hashedId) {
-                $expectedHash = substr(hash('sha256', $u->id . env('APP_KEY')), 0, 8);
-                return $expectedHash === $hashedId;
-            });
+        $user = $this->findUserByHash($hashedId, ['Employee']);
 
         if (!$user) {
             return redirect()->route('pages.Employee')->with('error', 'ID tidak valid.');
@@ -1477,7 +1456,21 @@ class EmployeeController extends Controller
             'positions.*' => ['exists:position_tables,id', new NoXSSInput()],
             'departments'   => ['nullable', 'array'],
             'departments.*' => ['exists:departments_tables,id', new NoXSSInput()],
+            'can_approve'        => ['nullable', 'boolean'],
+            'primary_store'      => ['nullable', 'exists:stores_tables,id'],
+            'primary_position'   => ['nullable', 'exists:position_tables,id'],
+            'primary_department' => ['nullable', 'exists:departments_tables,id'],
+            'primary_atasan'     => ['nullable', 'exists:employees_tables,id'],
         ]);
+        // Checkbox yang tidak dicentang tidak terkirim: anggap false, bukan "tidak berubah"
+        $validatedData['can_approve'] = $request->boolean('can_approve');
+        $primaryPick = [
+            'stores'      => $validatedData['primary_store'] ?? null,
+            'positions'   => $validatedData['primary_position'] ?? null,
+            'departments' => $validatedData['primary_department'] ?? null,
+            'atasans'     => $validatedData['primary_atasan'] ?? null,
+        ];
+        unset($validatedData['primary_store'], $validatedData['primary_position'], $validatedData['primary_department'], $validatedData['primary_atasan']);
 
         $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
@@ -1521,7 +1514,7 @@ class EmployeeController extends Controller
 
         try {
 
-            DB::transaction(function () use ($user, &$validatedData, $oldPaths, $newPaths) {
+            DB::transaction(function () use ($user, &$validatedData, $oldPaths, $newPaths, $primaryPick) {
                 $employee = $user->Employee()->lockForUpdate()->first();
 
                 $oldStore      = $employee->store()->pluck('name')->sort()->values()->toArray();
@@ -1532,9 +1525,12 @@ class EmployeeController extends Controller
                 // ── Sync store ──
                 if (!empty($validatedData['stores'])) {
                     $currentPrimary = $employee->store()->wherePivot('is_primary', true)->first();
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
-                        ? $currentPrimary->id
-                        : $validatedData['stores'][0];
+                    // Utama: pilihan di form → utama lama kalau masih ada → item pertama
+                    $primaryId = $primaryPick['stores'] && in_array($primaryPick['stores'], $validatedData['stores'])
+                        ? $primaryPick['stores']
+                        : ($currentPrimary && in_array($currentPrimary->id, $validatedData['stores'])
+                            ? $currentPrimary->id
+                            : $validatedData['stores'][0]);
 
                     $syncData = [];
                     foreach ($validatedData['stores'] as $storeId) {
@@ -1549,9 +1545,12 @@ class EmployeeController extends Controller
 
                 if (!empty($validatedData['positions'])) {
                     $currentPrimary = $employee->position()->wherePivot('is_primary', true)->first();
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
-                        ? $currentPrimary->id
-                        : $validatedData['positions'][0];
+                    // Utama: pilihan di form → utama lama kalau masih ada → item pertama
+                    $primaryId = $primaryPick['positions'] && in_array($primaryPick['positions'], $validatedData['positions'])
+                        ? $primaryPick['positions']
+                        : ($currentPrimary && in_array($currentPrimary->id, $validatedData['positions'])
+                            ? $currentPrimary->id
+                            : $validatedData['positions'][0]);
 
                     $syncData = [];
                     foreach ($validatedData['positions'] as $positionId) {
@@ -1565,9 +1564,12 @@ class EmployeeController extends Controller
                 // Sync atasanList
                 if (!empty($validatedData['departments'])) {
                     $currentPrimary = $employee->department()->wherePivot('is_primary', true)->first();
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
-                        ? $currentPrimary->id
-                        : $validatedData['departments'][0];
+                    // Utama: pilihan di form → utama lama kalau masih ada → item pertama
+                    $primaryId = $primaryPick['departments'] && in_array($primaryPick['departments'], $validatedData['departments'])
+                        ? $primaryPick['departments']
+                        : ($currentPrimary && in_array($currentPrimary->id, $validatedData['departments'])
+                            ? $currentPrimary->id
+                            : $validatedData['departments'][0]);
 
                     $syncData = [];
                     foreach ($validatedData['departments'] as $departmentId) {
@@ -1580,9 +1582,12 @@ class EmployeeController extends Controller
                 }
                 if (!empty($validatedData['atasans'])) {
                     $currentPrimary = $employee->atasanList()->wherePivot('is_primary', true)->first();
-                    $primaryId = $currentPrimary && in_array($currentPrimary->id, $validatedData['atasans'])
-                        ? $currentPrimary->id
-                        : $validatedData['atasans'][0];
+                    // Utama: pilihan di form → utama lama kalau masih ada → item pertama
+                    $primaryId = $primaryPick['atasans'] && in_array($primaryPick['atasans'], $validatedData['atasans'])
+                        ? $primaryPick['atasans']
+                        : ($currentPrimary && in_array($currentPrimary->id, $validatedData['atasans'])
+                            ? $currentPrimary->id
+                            : $validatedData['atasans'][0]);
 
                     $syncData = [];
                     foreach ($validatedData['atasans'] as $atasanId) {
@@ -1647,6 +1652,10 @@ class EmployeeController extends Controller
                 );
 
                 // ── Update employee biasa ──
+                // kolom denormalisasi "utama" mengikuti pivot (lihat command SyncPrimary*ToEmployee)
+                $validatedData['store_id']      = $employee->store()->wherePivot('is_primary', true)->value('stores_tables.id');
+                $validatedData['position_id']   = $employee->position()->wherePivot('is_primary', true)->value('position_tables.id');
+                $validatedData['department_id'] = $employee->department()->wherePivot('is_primary', true)->value('departments_tables.id');
                 $employee->update($validatedData);
 
                 // ── Hapus file lama di S3 ──
@@ -1671,8 +1680,8 @@ class EmployeeController extends Controller
                 'employee_id' => $user->Employee->id ?? null,
             ]);
 
-            return redirect()->route('pages.Employee')
-                ->with('error', 'Update failed: ' . $th->getMessage());
+            return back()->withInput()
+                ->with('error', 'Gagal menyimpan: ' . $th->getMessage());
         }
     }
     public function downloadDocument(string $hashedId, string $documentId)

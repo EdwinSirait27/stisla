@@ -42,6 +42,10 @@ return [
 'deepface' => [
     'url' => env('DEEPFACE_SERVICE_URL', 'http://192.168.10.101:5000'),
 ],
+'api_keys' => [
+      'formrequest' => env('API_KEY_FORMREQUEST'),
+  ],
+
 
 
 ];

@@ -34,7 +34,7 @@ class OvertimesubmissionsController extends Controller
 
         // ── Query employee ──
         $employees = $this->assignableEmployeesQuery($manager, $canSelf)
-            ->select('id', 'employee_name', 'employee_pengenal')
+            ->select('id', 'employee_name', 'employee_pengenal', 'status_employee')
             ->with(['store' => fn($q) => $q->wherePivot('is_primary', true)])
             ->when(!$canSelf, fn($q) => $q->where('id', '!=', $manager->id))
             ->orderBy('employee_name')
@@ -59,7 +59,7 @@ class OvertimesubmissionsController extends Controller
         $bawahanIds = $manager->bawahanList()->pluck('employees_tables.id');
 
         $query = Overtimesubmissions::with([
-            'employees:id,employee_name,pin',
+            'employees:id,employee_name,employee_pengenal,pin,status_employee',
             'approver:id,employee_name',
             'balance',
         ])
@@ -95,7 +95,11 @@ class OvertimesubmissionsController extends Controller
                 'status'            => $row->status,
                 'reason'            => $row->reason,
                 'expires_at'        => $row->balance?->expires_at?->format('d M Y') ?? '-',
-                'balance_status'    => $row->balance?->status ?? '-',
+                'balance_status'    => $row->balance?->effectiveStatus($row->compensation_type) ?? '-',
+                'employee_pengenal' => $row->employees->employee_pengenal ?? '-',
+                'employee_type'     => $row->employees->status_employee ?? '-',
+                'approver_name'     => $row->approver->employee_name ?? '-',
+                'used_hours'        => $row->balance ? (float) $row->balance->used_hours : 0,
                 'remaining_hours'   => $row->balance ? number_format($row->balance->remaining_hours, 2) : '-',
             ];
         });

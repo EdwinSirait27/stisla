@@ -73,6 +73,7 @@ class Kernel extends HttpKernel
         'force.password.change' => \App\Http\Middleware\ForcePasswordChange::class,
         'require.2fa' => \App\Http\Middleware\RequireTwoFactor::class,
         'device.check' => \App\Http\Middleware\CheckDeviceBinding::class,
-
+        'mobile.access' => \App\Http\Middleware\EnsureMobileAccess::class,
+        'api.key'       => \App\Http\Middleware\VerifyApiKey::class,
     ];
 }

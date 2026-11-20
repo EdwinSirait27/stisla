@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
 // use App\Http\Controllers\StructuresnewController;
@@ -19,32 +18,20 @@ use App\Http\Controllers\Api\AttendanceController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+/*
+|--------------------------------------------------------------------------
+| Integrasi antar aplikasi (server ke server)
+|--------------------------------------------------------------------------
+| Dipanggil aplikasi formrequest, wajib header X-Api-Key (lihat VerifyApiKey).
+| Path tidak diubah supaya formrequest cukup menambah header.
+| Dihapus: /user (melewati device check mobile), /finance, /employee, /signature
+| (method tidak ada di ApiController dan tidak dipanggil aplikasi mana pun).
+*/
+Route::middleware(['api.key', 'throttle:60,1'])->group(function () {
+    Route::get('/company/{id}', [CompanyController::class, 'show']);
+    Route::get('/manager/{employeeId}', [ApiController::class, 'getManagerByEmployee']);
 });
-Route::get('/company/{id}', [CompanyController::class, 'show']);
-Route::get('/finance/{id}', [ApiController::class, 'show']);
-Route::get('/manager/{employeeId}', [ApiController::class, 'getManagerByEmployee']);
-Route::get('/employee/{employeeId}', [ApiController::class, 'getEmployeeById']);
-Route::get('/signature/{id}', [ApiController::class, 'showsignature'])
-    ->name('signature.show');
 
-// Route::post('/mobile/login', [AuthController::class, 'login']);
-// Route::get('/mobile/config', [AuthController::class, 'appConfig']);
-// Route::get('/mobile/photo/{path}', [AuthController::class, 'photo'])
-//     ->where('path', '.*')
-//     ->name('mobile.photo');
-// // Protected - wajib Bearer token valid
-// Route::middleware(['auth:sanctum','device.check'])->group(function () {
-//     Route::post('/mobile/logout', [AuthController::class, 'logout']);
-//     Route::get('/mobile/me', [AuthController::class, 'me']);
-//     Route::get('/mobile/profile', [AuthController::class, 'profile']);
-//     Route::post('/mobile/attendance/checkin', [AttendanceController::class, 'checkin']);
-//     Route::post('/mobile/attendance/checkout', [AttendanceController::class, 'checkout']);
-//     Route::get('/mobile/attendance/history', [AttendanceController::class, 'history']);
-//     Route::get('/mobile/attendance/today', [AttendanceController::class, 'today']);
-//     Route::get('/mobile/roster', [AttendanceController::class, 'myRoster']);
-// });
 // Public routes
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/mobile/login', [AuthController::class, 'login']);
@@ -58,7 +45,7 @@ Route::middleware('throttle:60,1')->group(function () {
 });
 
 // Protected routes
-Route::middleware(['auth:sanctum', 'device.check'])->group(function () {
+Route::middleware(['auth:sanctum', 'device.check', 'mobile.access'])->group(function () {
     Route::post('/mobile/logout', [AuthController::class, 'logout']);
     Route::get('/mobile/me', [AuthController::class, 'me']);
     Route::get('/mobile/profile', [AuthController::class, 'profile']);

@@ -1,924 +1,1876 @@
 @extends('layouts.app')
-@section('title', 'Employee Overtime Rates')
+@section('title', 'Rate lembur')
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-
     <style>
-        /* ─── Page header ────────────────────────────────────── */
-        .section-header h1 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin: 0;
+        /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: full
+         * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+         * nav: kept (Stisla shell) · signature: who has no rate, and how many Cash overtime hours this period will go unpaid because of it · states: all set, some missing, no cash overtime, selection across pages
+         * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+        /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: H, a wide table; answered by folding NIP and position under the name */
+        :root {
+            --pr-paper: oklch(98.4% 0.004 265);
+            --pr-panel: oklch(100% 0 0);
+            --pr-paper-2: oklch(96.6% 0.006 265);
+            --pr-ink: oklch(27% 0.03 265);
+            --pr-ink-2: oklch(42% 0.03 265);
+            --pr-muted: oklch(55% 0.025 265);
+            --pr-rule: oklch(91.5% 0.008 265);
+            --pr-accent: oklch(61% 0.17 276);
+            --pr-accent-strong: oklch(52% 0.18 276);
+            --pr-accent-deep: oklch(45% 0.17 276);
+            --pr-accent-soft: oklch(95% 0.03 276);
+            --pr-accent-ink: oklch(100% 0 0);
+            --pr-focus: oklch(61% 0.17 276);
+            --pr-success: oklch(50% 0.12 150);
+            --pr-success-soft: oklch(96% 0.035 150);
+            --pr-warn: oklch(52% 0.12 70);
+            --pr-warn-soft: oklch(96.5% 0.045 85);
+            --pr-error: oklch(52% 0.19 27);
+            --pr-error-soft: oklch(96.5% 0.025 27);
+            --pr-shadow-pressed: oklch(27% 0.03 265 / .12);
+            --pr-font: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+            --pr-text-xs: 0.75rem;
+            --pr-text-sm: 0.8125rem;
+            --pr-text-md: 0.9375rem;
+            --pr-text-lg: 1.125rem;
+            --pr-text-xl: 1.35rem;
+            --pr-text-2xl: 1.6rem;
+            --pr-space-2xs: 4px;
+            --pr-space-xs: 8px;
+            --pr-space-sm: 12px;
+            --pr-space-md: 16px;
+            --pr-space-lg: 24px;
+            --pr-radius: 8px;
+            --pr-radius-sm: 6px;
+            --pr-pill: 999px;
+            --pr-dur-micro: 120ms;
+            --pr-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .section-header {
+        html,
+        body {
+            overflow-x: clip;
+        }
+
+        .pr {
+            font-family: var(--pr-font);
+            color: var(--pr-ink);
+        }
+
+        .pr [hidden] {
+            display: none !important;
+        }
+
+        .pr :focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .pr .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        /* ── Head ── */
+        .pr-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 1.25rem;
+            gap: var(--pr-space-md);
+            margin-bottom: var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            position: relative;
+            z-index: 2;
         }
 
-        .page-actions {
+        .pr-crumbs {
             display: flex;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+            margin: 0 0 var(--pr-space-2xs);
+            padding: 0;
+            list-style: none;
         }
 
-        .page-actions .btn {
-            height: 36px;
-            font-size: .825rem;
-            padding: 0 1rem;
+        .pr-crumbs li+li::before {
+            content: "/";
+            margin-right: var(--pr-space-xs);
+            color: var(--pr-rule);
+        }
+
+        .pr-title {
+            font-size: var(--pr-text-2xl);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--pr-ink);
+            margin: 0;
+            overflow-wrap: break-word;
+            min-width: 0;
+            text-wrap: balance;
+        }
+
+        .pr-lede {
+            margin: var(--pr-space-xs) 0 0;
+            line-height: 1.5;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+            max-width: 72ch;
+        }
+
+        /* ── Buttons ── */
+        .pr-btn {
             display: inline-flex;
             align-items: center;
-            gap: .4rem;
-            border-radius: .5rem;
-        }
-
-        /* ─── Stat cards row ─────────────────────────────────── */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 1.25rem;
-        }
-
-        .stat-card {
-            background: #fff;
-            border: 1px solid #f1f5f9;
-            border-radius: .625rem;
-            padding: 14px 16px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
-        }
-
-        .stat-card-label {
-            font-size: .68rem;
-            font-weight: 700;
-            /* text-transform: uppercase; */
-            letter-spacing: .7px;
-            color: #94a3b8;
-            margin-bottom: 6px;
-        }
-
-        .stat-card-value {
-            font-size: 1.5rem;
+            justify-content: center;
+            gap: var(--pr-space-xs);
+            min-height: 36px;
+            padding: 0 var(--pr-space-md);
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
             font-weight: 600;
             line-height: 1;
-            color: #1e293b;
-        }
-
-        .stat-card-value.green {
-            color: #166534;
-        }
-
-        .stat-card-value.amber {
-            color: #92400e;
-        }
-
-        .stat-card-value.red {
-            color: #991b1b;
-        }
-
-        .stat-card-sub {
-            font-size: .7rem;
-            color: #94a3b8;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-        }
-
-        /* ─── Card shell ─────────────────────────────────────── */
-        .emp-card {
-            border: none;
-            border-radius: .625rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .07);
-            background: #fff;
-            overflow: hidden;
-            margin-bottom: 1.25rem;
-        }
-
-        .emp-card-header {
-            background: #f8fafc;
-            border-bottom: 1px solid #f1f5f9;
-            padding: .875rem 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-        }
-
-        .emp-card-header-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .8rem;
-            flex-shrink: 0;
-        }
-
-        .emp-card-header-icon.blue {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-        .emp-card-header-icon.green {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        .emp-card-header-title {
-            font-size: .9rem;
-            font-weight: 600;
-            color: #334155;
-            flex: 1;
-        }
-
-        .emp-card-header-count {
-            font-size: .72rem;
-            color: #64748b;
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: .15rem .7rem;
-        }
-
-        /* ─── Toolbar ────────────────────────────────────────── */
-        .dt-toolbar {
-            padding: .75rem 1.25rem;
-            border-bottom: 1px solid #f1f5f9;
-            background: #fafafa;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            flex-wrap: wrap;
-        }
-
-        .dt-toolbar .btn {
-            height: 32px;
-            font-size: .775rem;
-            padding: 0 .75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: .35rem;
-            border-radius: .4rem;
-        }
-
-        /* ─── Table ──────────────────────────────────────────── */
-        #employees-table,
-        #activityTable {
-            width: 100% !important;
-            font-size: .8rem;
-        }
-
-        #employees-table thead th,
-        #activityTable thead th {
-            background: #f8fafc;
-            color: #64748b;
-            font-size: .68rem;
-            font-weight: 700;
-            /* text-transform: uppercase; */
-            letter-spacing: .5px;
-            padding: .7rem .9rem;
-            border: none;
-            border-bottom: 1px solid #f1f5f9;
+            text-decoration: none;
             white-space: nowrap;
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
         }
 
-        #employees-table tbody td,
-        #activityTable tbody td {
-            padding: .75rem .9rem;
-            vertical-align: middle;
-            border: none;
-            border-bottom: 1px solid #f8fafc;
-            color: #334155;
+        .pr-btn:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
         }
 
-        #employees-table tbody tr:last-child td,
-        #activityTable tbody tr:last-child td {
-            border-bottom: none;
+        .pr-btn:active {
+            background: var(--pr-rule);
         }
 
-        #employees-table tbody tr:hover td,
-        #activityTable tbody tr:hover td {
-            background: #f8fafc;
+        .pr-btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
         }
 
-        /* employee name cell */
-        .emp-cell {
-            display: flex;
-            align-items: center;
-            gap: .6rem;
+        .pr-btn i {
+            font-size: .85em;
         }
 
-        .emp-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-size: .65rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+        .pr-btn-primary {
+            background: var(--pr-accent-strong);
+            border-color: var(--pr-accent-strong);
+            color: var(--pr-accent-ink);
         }
 
-        .emp-avatar-name {
-            font-weight: 600;
-            font-size: .8rem;
-            line-height: 1.2;
+        .pr-btn-primary:hover,
+        .pr-btn-primary:active {
+            background: var(--pr-accent-deep);
+            border-color: var(--pr-accent-deep);
+            color: var(--pr-accent-ink);
         }
 
-        .emp-avatar-nip {
-            font-size: .7rem;
-            color: #94a3b8;
+        .pr-btn-primary:disabled:hover {
+            background: var(--pr-accent-strong);
         }
 
-        /* status badges */
+        .pr-btn-ghost {
+            border-color: transparent;
+            background: transparent;
+            color: var(--pr-ink-2);
+        }
+
+        .pr-btn-warn {
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-warn:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
+        }
+
+        .pr-btn-danger {
+            color: var(--pr-error);
+        }
+
+        .pr-btn-danger:hover {
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
+        }
+
+        /* ── Badges ── */
         .status-badge {
             display: inline-flex;
             align-items: center;
-            padding: .18rem .6rem;
-            border-radius: 20px;
-            font-size: .7rem;
+            padding: 2px 8px;
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-xs);
             font-weight: 700;
+            white-space: nowrap;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        .status-badge.is-open {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
+        }
+
+        .status-badge.is-closed {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
+        }
+
+        .status-badge.is-locked {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink-2);
+        }
+
+        /* ── Panels ── */
+        .pr-panel {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            margin-bottom: var(--pr-space-lg);
+        }
+
+        .pr-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-panel-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0;
+        }
+
+        .pr-panel-sub {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        .pr-section-title {
+            font-size: var(--pr-text-md);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin: 0 0 var(--pr-space-sm);
+        }
+
+        /* ── Toolbar ── */
+        .pr-toolbar {
+            display: flex;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .pr-toolbar .pr-field {
+            margin: 0;
+            min-width: 140px;
+        }
+
+        .pr-toolbar-actions {
+            display: flex;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-tabs {
+            display: inline-flex;
+            padding: var(--pr-space-2xs);
+            gap: var(--pr-space-2xs);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper-2);
+        }
+
+        .pr-tabs button {
+            min-height: 30px;
+            padding: 0 var(--pr-space-sm);
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease);
+        }
+
+        .pr-tabs button:hover {
+            color: var(--pr-ink);
+        }
+
+        .pr-tabs button[aria-pressed="true"] {
+            background: var(--pr-panel);
+            color: var(--pr-ink);
+            box-shadow: 0 1px 2px var(--pr-shadow-pressed);
+        }
+
+        .pr-tabs .pr-tab-count {
+            margin-left: var(--pr-space-2xs);
+            color: var(--pr-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Table ── */
+        .pr-table-wrap {
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+            overflow-x: auto;
+        }
+
+        #period-table {
+            width: 100% !important;
+            font-size: var(--pr-text-sm);
+            border-collapse: collapse;
+        }
+
+        #period-table thead th {
+            background: var(--pr-panel);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
             white-space: nowrap;
         }
 
-        .badge-active {
-            background: #f0fdf4;
-            color: #166534;
+        #period-table thead th.sorting,
+        #period-table thead th.sorting_asc,
+        #period-table thead th.sorting_desc {
+            padding-right: var(--pr-space-lg);
         }
 
-        .badge-leave {
-            background: #fffbeb;
-            color: #92400e;
+        #period-table tbody td {
+            padding: var(--pr-space-sm) var(--pr-space-xs);
+            vertical-align: middle;
+            border: 0;
+            border-bottom: 1px solid var(--pr-rule);
+            color: var(--pr-ink);
         }
 
-        .badge-resign {
-            background: #fef2f2;
-            color: #991b1b;
+        #period-table tbody tr:hover td {
+            background: var(--pr-paper);
         }
 
-        .badge-mutation {
-            background: #eff6ff;
-            color: #1e40af;
+        .pr-cell-name {
+            display: block;
+            font-weight: 700;
         }
 
-        .badge-pending {
-            background: #f8fafc;
-            color: #475569;
+        .pr-cell-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            white-space: nowrap;
         }
 
-        .badge-permanent {
-            background: #eff6ff;
-            color: #1e40af;
+        .pr-mini {
+            min-width: 140px;
         }
 
-        .badge-contract {
-            background: #fffbeb;
-            color: #92400e;
+        .pr-mini .pr-bar {
+            height: 6px;
+            margin: 0 0 var(--pr-space-2xs);
         }
 
-        .badge-internship {
-            background: #fdf4ff;
-            color: #6b21a8;
+        .pr-muted {
+            color: var(--pr-muted);
         }
 
-        /* action buttons */
+        /* Row actions (HTML from PayrollPeriodController::getPayrollPeriod) */
         .action-wrap {
             display: flex;
-            gap: 5px;
+            gap: var(--pr-space-2xs);
             justify-content: center;
         }
 
         .act-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            background: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--pr-radius-sm);
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-panel);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            color: #64748b;
-            font-size: .75rem;
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-xs);
             text-decoration: none;
-            transition: all .15s;
+            transition: background-color var(--pr-dur-micro) var(--pr-ease), color var(--pr-dur-micro) var(--pr-ease), border-color var(--pr-dur-micro) var(--pr-ease);
         }
 
         .act-btn:hover {
-            background: #f8fafc;
-            color: #1e293b;
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
         }
 
-        .act-btn.act-danger {
-            border-color: #fecaca;
-            background: #fef2f2;
-            color: #dc2626;
+        .act-btn.act-warning:hover {
+            background: var(--pr-warn-soft);
+            border-color: var(--pr-warn);
+            color: var(--pr-warn);
         }
 
         .act-btn.act-danger:hover {
-            background: #fee2e2;
+            background: var(--pr-error-soft);
+            border-color: var(--pr-error);
+            color: var(--pr-error);
         }
 
-        /* ─── Hint bar ───────────────────────────────────────── */
-        .hint-bar {
-            padding: .65rem 1.25rem;
-            background: #fafafa;
-            border-top: 1px solid #f1f5f9;
+        /* DataTables chrome */
+        .pr-dt-bottom {
             display: flex;
             align-items: center;
-            gap: 1.25rem;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+            padding-top: var(--pr-space-md);
         }
 
-        .hint-item {
+        .pr .dataTables_wrapper .dataTables_info,
+        .pr .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            padding: 0;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink-2);
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button {
+            min-width: 32px;
+            min-height: 32px;
+            margin: 0 0 0 var(--pr-space-2xs) !important;
+            padding: 0 var(--pr-space-sm) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pr-rule) !important;
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel) !important;
+            color: var(--pr-ink) !important;
+            font-weight: 600;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--pr-accent-soft) !important;
+            border-color: var(--pr-accent) !important;
+            color: var(--pr-accent-strong) !important;
+        }
+
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .pr .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pr .dataTables_wrapper .dataTables_processing {
+            background: var(--pr-panel);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            color: var(--pr-ink-2);
+            font-size: var(--pr-text-sm);
+        }
+
+        .pr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+        }
+
+        .pr-hello {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: .72rem;
-            color: #94a3b8;
+            gap: var(--pr-space-md);
         }
 
-        /* ─── DataTables overrides ───────────────────────────── */
-        div.dataTables_wrapper div.dataTables_filter input,
-        div.dataTables_wrapper div.dataTables_length select {
-            height: 32px;
-            font-size: .775rem;
-            border: 1px solid #e2e8f0;
-            border-radius: .4rem;
+        .pr-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
         }
 
-        div.dataTables_wrapper div.dataTables_info {
-            font-size: .75rem;
-            color: #64748b;
-            padding-top: .5rem;
+        .pr-hello-date {
+            margin: 0 0 2px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
         }
 
-        div.dataTables_wrapper div.dataTables_paginate {
-            padding-top: .3rem;
+        .pr-btn-sm {
+            min-height: 32px;
+            padding: 0 var(--pr-space-sm);
+            font-size: var(--pr-text-xs);
+        }
+        .pr-empty-note {
+            margin: 0;
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+        .pr-note {
+            margin: auto 0 0;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            font-size: var(--pr-text-xs);
+            line-height: 1.5;
+            color: var(--pr-ink-2);
+        }
+        .status-badge.is-pending {
+            background: var(--pr-warn-soft);
+            color: var(--pr-warn);
         }
 
-        div.dataTables_wrapper div.dataTables_paginate .paginate_button {
-            font-size: .75rem;
-            border-radius: .375rem !important;
-            padding: .2rem .5rem;
+        .status-badge.is-approved {
+            background: var(--pr-success-soft);
+            color: var(--pr-success);
         }
 
-        .dataTables_wrapper {
-            padding: .75rem 1.25rem 1rem;
+        .status-badge.is-rejected {
+            background: var(--pr-error-soft);
+            color: var(--pr-error);
         }
 
-        .dt-buttons .btn {
-            height: 32px;
-            font-size: .775rem;
-            padding: 0 .75rem;
-        }
-
-        .dt-filter-bar .select2-container {
-            min-width: 140px;
-            flex: 1 1 140px;
-        }
-
-        .select2-container--default .select2-selection--single {
-            height: 32px !important;
-            display: flex;
+        .pr-search {
+            position: relative;
+            display: inline-flex;
             align-items: center;
         }
 
-        .select2-container--default .select2-selection__rendered {
-            font-size: .775rem;
+        .pr-search i {
+            position: absolute;
+            left: var(--pr-space-sm);
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+            pointer-events: none;
         }
 
-        /* ─── Responsive ─────────────────────────────────────── */
-        @media (max-width: 768px) {
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
+        .pr-search input {
+            width: 240px;
+            min-height: 32px;
+            padding: 0 var(--pr-space-sm) 0 32px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .pr-search input:focus-visible {
+            outline-offset: -1px;
+        }
+
+
+        /* ── Karyawan ── */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .status-badge.is-type { background: var(--pr-accent-soft); color: var(--pr-accent-deep); }
+        .status-badge.is-draft { background: var(--pr-paper-2); color: var(--pr-ink-2); }
+        .status-badge.is-open { background: var(--pr-accent-soft); color: var(--pr-accent-deep); }
+
+        /* Stat strip */
+        .emp-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+            margin: 0;
+        }
+
+        .emp-stats > div {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-right: 1px solid var(--pr-rule);
+        }
+
+        .emp-stats > div:last-child {
+            border-right: 0;
+        }
+
+        .emp-stats dt {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-stats dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-2xl);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .emp-stats button {
+            margin-top: 2px;
+            padding: 0;
+            border: 0;
+            background: none;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            cursor: pointer;
+        }
+
+        .emp-stats button:hover {
+            text-decoration: underline;
+        }
+
+        .emp-stats button:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        /* Toolbar & select */
+        .emp-filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .emp-filters .pr-field {
+            flex: 1 1 150px;
+            max-width: 220px;
+            min-width: 0;
+        }
+
+        .emp-filters .pr-field label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-select,
+        .emp-input {
+            width: 100%;
+            min-height: 36px;
+            padding: 0 var(--pr-space-sm);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-panel);
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .emp-select:focus-visible,
+        .emp-input:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 0;
+        }
+
+        .emp-filter-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            margin-left: auto;
+        }
+
+        .select2-container--default .select2-selection--single,
+        .select2-container--default .select2-selection--multiple {
+            min-height: 36px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            font-family: var(--pr-font);
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 34px;
+            padding-left: 12px;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 34px;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            border: 0;
+            border-radius: var(--pr-pill);
+            background: var(--pr-accent-soft);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-accent-deep);
+        }
+
+        /* Tabel */
+        .emp-cell {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-sm);
+            min-width: 200px;
+        }
+
+        .emp-avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--pr-accent-soft);
+            font-size: var(--pr-text-xs);
+            font-weight: 800;
+            color: var(--pr-accent-deep);
+        }
+
+        .emp-los {
+            font-size: var(--pr-text-xs);
+            color: var(--pr-ink-2);
+            white-space: nowrap;
+        }
+
+        /* Bagan */
+        .emp-chart-tools {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-bottom: 1px solid var(--pr-rule);
+        }
+
+        .emp-chart-tools .pr-field {
+            flex: 0 1 220px;
+        }
+
+        .emp-chart-tools .pr-field label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-zoom {
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-2xs);
+            margin-left: auto;
+        }
+
+        .emp-zoom span {
+            min-width: 44px;
+            text-align: center;
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink-2);
+        }
+
+        #chart-area {
+            position: relative;
+            height: 600px;
+            overflow: hidden;
+            background: var(--pr-paper);
+            cursor: grab;
+            border-radius: 0 0 var(--pr-radius) var(--pr-radius);
+        }
+
+        #chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: var(--pr-space-lg);
+            text-align: center;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-muted);
+        }
+
+        #svg-chart {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+        }
+
+        /* Profil (show) */
+        .emp-avatar-lg {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--pr-rule);
+            background: var(--pr-accent-soft);
+        }
+
+        .emp-initials-lg {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--pr-text-2xl);
+            font-weight: 800;
+            color: var(--pr-accent-deep);
+        }
+
+        .emp-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-2xs);
+            margin-top: var(--pr-space-xs);
+        }
+
+        .emp-chip {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: var(--pr-pill);
+            background: var(--pr-paper-2);
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-facts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+            margin: 0;
+        }
+
+        .emp-facts > div {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-right: 1px solid var(--pr-rule);
+        }
+
+        .emp-facts > div:last-child {
+            border-right: 0;
+        }
+
+        .emp-facts dt {
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-facts dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-md);
+            font-weight: 800;
+            color: var(--pr-ink);
+        }
+
+        .emp-facts dd small {
+            display: block;
+            font-size: var(--pr-text-xs);
+            font-weight: 500;
+            color: var(--pr-muted);
+        }
+
+        .emp-facts dd.is-warn {
+            color: var(--pr-warn);
+        }
+
+        .emp-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: var(--pr-space-lg);
+            align-items: start;
+        }
+
+        .emp-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pr-space-lg);
+            min-width: 0;
+        }
+
+        .emp-col .pr-panel {
+            margin-bottom: 0;
+        }
+
+        .emp-dl {
+            margin: 0;
+            padding: var(--pr-space-xs) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .emp-dl > div {
+            display: grid;
+            grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+            gap: var(--pr-space-sm);
+            padding: 5px 0;
+        }
+
+        .emp-dl dt {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-dl dd {
+            margin: 0;
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink);
+            overflow-wrap: anywhere;
+        }
+
+        .emp-dl dd.is-empty {
+            font-weight: 500;
+            color: var(--pr-muted);
+        }
+
+        .emp-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .emp-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+        }
+
+        .emp-list li:first-child {
+            border-top: 0;
+        }
+
+        .emp-list-name {
+            display: block;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .emp-list-sub {
+            display: block;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .emp-list a {
+            color: var(--pr-ink);
+        }
+
+        .emp-placement {
+            padding: var(--pr-space-sm) var(--pr-space-lg) var(--pr-space-md);
+        }
+
+        .emp-placement + .emp-placement {
+            border-top: 1px solid var(--pr-rule);
+        }
+
+        .emp-placement h3 {
+            margin: 0 0 var(--pr-space-xs);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-2xs);
+        }
+
+        .emp-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-pill);
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink);
+        }
+
+        .emp-pill.is-primary {
+            border-color: var(--pr-accent);
+            background: var(--pr-accent-soft);
+            color: var(--pr-accent-deep);
+        }
+
+        .emp-photos {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--pr-space-sm);
+            padding: var(--pr-space-md) var(--pr-space-lg);
+        }
+
+        .emp-photo span {
+            display: block;
+            margin-bottom: 4px;
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-photo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 4 / 3;
+            border: 1px dashed var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            background: var(--pr-paper);
+            overflow: hidden;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-muted);
+        }
+
+        .emp-photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .emp-photo-box a {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .emp-money {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Form */
+        .emp-form-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+            gap: var(--pr-space-lg);
+            align-items: start;
+        }
+
+        .emp-toc {
+            position: sticky;
+            top: 90px;
+            margin: 0;
+            padding: var(--pr-space-sm);
+            list-style: none;
+        }
+
+        .emp-toc a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--pr-space-xs);
+            padding: 8px 12px;
+            border-radius: var(--pr-radius-sm);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink-2);
+            text-decoration: none;
+        }
+
+        .emp-toc a:hover {
+            background: var(--pr-paper-2);
+            color: var(--pr-ink);
+            text-decoration: none;
+        }
+
+        .emp-toc a:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 1px;
+        }
+
+        .emp-toc .emp-toc-err {
+            min-width: 20px;
+            padding: 0 6px;
+            border-radius: var(--pr-pill);
+            background: var(--pr-error-soft);
+            font-size: var(--pr-text-xs);
+            text-align: center;
+            color: var(--pr-error);
+        }
+
+        .emp-sections {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pr-space-lg);
+            min-width: 0;
+        }
+
+        .emp-sections > .pr-panel {
+            margin-bottom: 0;
+            scroll-margin-top: 90px;
+        }
+
+        .emp-fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--pr-space-md) var(--pr-space-lg);
+            padding: var(--pr-space-md) var(--pr-space-lg) var(--pr-space-lg);
+        }
+
+        .emp-fields.is-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .emp-field {
+            min-width: 0;
+        }
+
+        .emp-field.is-wide {
+            grid-column: 1 / -1;
+        }
+
+        .emp-field > label,
+        .emp-field > .emp-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+        }
+
+        .emp-req {
+            color: var(--pr-error);
+        }
+
+        .emp-field .emp-input,
+        .emp-field .emp-select,
+        .emp-field textarea.emp-input {
+            min-height: 40px;
+            padding: 8px 12px;
+            font-size: var(--pr-text-md);
+        }
+
+        .emp-field textarea.emp-input {
+            min-height: 72px;
+            resize: vertical;
+        }
+
+        .emp-input.is-invalid,
+        .emp-select.is-invalid {
+            border-color: var(--pr-error);
+        }
+
+        .emp-help {
+            display: block;
+            margin-top: 4px;
+            font-size: var(--pr-text-xs);
+            line-height: 1.45;
+            color: var(--pr-muted);
+        }
+
+        .emp-error {
+            display: block;
+            margin-top: 4px;
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-error);
+        }
+
+        .emp-check {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--pr-space-xs);
+            margin: 0;
+            padding: var(--pr-space-sm);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius-sm);
+            cursor: pointer;
+        }
+
+        .emp-check:has(input:checked) {
+            border-color: var(--pr-accent);
+            background: var(--pr-accent-soft);
+        }
+
+        .emp-check input {
+            margin-top: 3px;
+            accent-color: var(--pr-accent-strong);
+        }
+
+        .emp-check strong {
+            display: block;
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .emp-check small {
+            display: block;
+            font-size: var(--pr-text-xs);
+            line-height: 1.45;
+            color: var(--pr-ink-2);
+        }
+
+        .emp-inline-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: var(--pr-text-xs);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+            cursor: pointer;
+        }
+
+        .emp-upload {
+            display: flex;
+            flex-direction: column;
+            gap: var(--pr-space-xs);
+        }
+
+        .emp-upload .emp-photo-box img {
+            cursor: zoom-in;
+        }
+
+        .emp-file {
+            font-size: var(--pr-text-sm);
+        }
+
+        .emp-errors {
+            margin: 0 0 var(--pr-space-lg);
+            padding: var(--pr-space-sm) var(--pr-space-md);
+            border-radius: var(--pr-radius);
+            background: var(--pr-error-soft);
+            font-size: var(--pr-text-sm);
+            color: var(--pr-ink);
+        }
+
+        .emp-errors ul {
+            margin: 4px 0 0;
+            padding-left: 1.2em;
+        }
+
+        .emp-note {
+            margin: 0;
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border-top: 1px solid var(--pr-rule);
+            background: var(--pr-accent-soft);
+            font-size: var(--pr-text-sm);
+            line-height: 1.5;
+            color: var(--pr-accent-deep);
+        }
+
+        .emp-savebar {
+            position: sticky;
+            bottom: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: var(--pr-space-xs);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            border: 1px solid var(--pr-rule);
+            border-radius: var(--pr-radius);
+            background: var(--pr-panel);
+            box-shadow: 0 -4px 16px var(--pr-shadow-pressed);
+        }
+
+        .emp-savebar span {
+            flex: 1;
+            font-size: var(--pr-text-xs);
+            color: var(--pr-ink-2);
+        }
+
+        .pr-empty-note,
+        .pr-note {
+            line-height: 1.55;
+        }
+
+        @media (max-width: 64rem) {
+            .emp-grid,
+            .emp-form-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
 
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
+            .emp-toc {
+                position: static;
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--pr-space-2xs);
+            }
+
+            .emp-fields.is-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        @media (max-width: 480px) {
-            .stats-row {
-                grid-template-columns: 1fr 1fr;
+        @media (max-width: 40rem) {
+            .emp-stats > div,
+            .emp-facts > div {
+                border-right: 0;
+                border-bottom: 1px solid var(--pr-rule);
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .emp-filters,
+            .emp-chart-tools,
+            .emp-dl,
+            .emp-list li,
+            .emp-placement,
+            .emp-photos,
+            .emp-fields,
+            .emp-savebar {
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
+
+            .emp-filters .pr-field {
+                max-width: none;
+                flex-basis: 100%;
+            }
+
+            .emp-fields,
+            .emp-fields.is-3,
+            .emp-photos {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .emp-dl > div {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 0;
+            }
+
+            .emp-zoom {
+                margin-left: 0;
+            }
+
+            .emp-input,
+            .emp-select {
+                font-size: 16px;
             }
         }
-
-        #filter-emp-status+.select2-container .select2-selection--multiple {
-            min-height: 32px !important;
-            height: auto !important;
-            /* expand otomatis */
-            font-size: .775rem !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: .4rem !important;
-            min-width: 125px;
-            max-width: 250px;
-            /* biar tidak terlalu lebar */
-            padding: 2px 4px;
+        .bulk-bar {
+            display: none;
+            position: sticky;
+            top: 70px;
+            z-index: 20;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs);
+            padding: var(--pr-space-sm) var(--pr-space-lg);
+            background: var(--pr-accent-soft);
+            border-bottom: 1px solid var(--pr-rule);
         }
 
-        #filter-emp-status+.select2-container .select2-selection__choice {
-            font-size: .7rem !important;
-            padding: 1px 6px !important;
-            margin: 2px !important;
-            border-radius: .3rem !important;
-            background-color: #4f46e5 !important;
-            /* sesuaikan warna badge */
-            border: none !important;
-            color: #fff !important;
+        .bulk-bar.show {
+            display: flex;
         }
 
-        #filter-emp-status+.select2-container .select2-selection__choice__remove {
-            color: #fff !important;
-            margin-right: 4px;
+        .bulk-bar-count {
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-ink);
+            margin-right: var(--pr-space-xs);
         }
 
-        #filter-emp-status+.select2-container .select2-selection__rendered {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            padding: 2px !important;
-            gap: 2px;
+        /* ── Rate lembur ── */
+        .otr-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+            margin: 0;
+        }
+
+        .otr-stats > div {
+            padding: var(--pr-space-md) var(--pr-space-lg);
+            border-right: 1px solid var(--pr-rule);
+        }
+
+        .otr-stats > div:last-child {
+            border-right: 0;
+        }
+
+        .otr-stats > div.is-warn {
+            background: var(--pr-warn-soft);
+        }
+
+        .otr-stats dt {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-ink-2);
+        }
+
+        .otr-stats dd {
+            margin: 2px 0 0;
+            font-size: var(--pr-text-2xl);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--pr-ink);
+        }
+
+        .otr-stats dd small {
+            font-size: var(--pr-text-sm);
+            font-weight: 600;
+            color: var(--pr-muted);
+        }
+
+        .otr-stats .is-warn dd {
+            color: var(--pr-warn);
+        }
+
+        .otr-rates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-xs) var(--pr-space-md);
+            font-size: var(--pr-text-lg) !important;
+        }
+
+        .otr-sub {
+            display: block;
+            margin-top: 2px;
+            font-size: var(--pr-text-xs);
+            line-height: 1.45;
+            color: var(--pr-ink-2);
+        }
+
+        .otr-link {
+            display: inline-block;
+            margin-top: 2px;
+            padding: 0;
+            border: 0;
+            background: none;
+            font-family: var(--pr-font);
+            font-size: var(--pr-text-xs);
+            font-weight: 700;
+            color: var(--pr-accent-strong);
+            cursor: pointer;
+        }
+
+        .otr-link:hover {
+            text-decoration: underline;
+        }
+
+        .otr-link:focus-visible {
+            outline: 2px solid var(--pr-focus);
+            outline-offset: 2px;
+        }
+
+        .otr-rate {
+            display: block;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .otr-warn {
+            font-weight: 700;
+            color: var(--pr-warn) !important;
+        }
+
+        .otr-col-check {
+            width: 40px;
+            text-align: center !important;
+        }
+
+        .otr-col-check input,
+        .chk-employee {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--pr-accent-strong);
+            cursor: pointer;
+        }
+
+        .otr-money {
+            position: relative;
+            width: 180px;
+        }
+
+        .otr-money span {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: var(--pr-text-sm);
+            font-weight: 700;
+            color: var(--pr-muted);
+        }
+
+        .otr-money .emp-input {
+            min-height: 32px;
+            padding-left: 34px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        @media (max-width: 40rem) {
+            .otr-stats > div {
+                border-right: 0;
+                border-bottom: 1px solid var(--pr-rule);
+                padding-left: var(--pr-space-md);
+                padding-right: var(--pr-space-md);
+            }
         }
     </style>
 @endpush
 
 @section('main')
-    <div class="main-content">
+    @php
+        $rp = fn($n) => 'Rp' . number_format((float) $n, 0, ',', '.');
+        $hours = fn($h) => rtrim(rtrim(number_format((float) $h, 2, ',', '.'), '0'), ',');
+        $period = $stats['period_start']->locale('id')->translatedFormat('d M') . ' sampai ' . $stats['period_end']->locale('id')->translatedFormat('d M Y');
+    @endphp
+    <div class="main-content pr">
         <section class="section">
 
-            {{-- ── Page Header ── --}}
-            <div class="section-header">
+            <header class="pr-head">
                 <div>
-                    <div style="font-size:.72rem;color:#94a3b8;margin-bottom:3px">
-                        Dashboard / <span style="color:#64748b">Employees</span>
-                    </div>
-                    <h1>Employees</h1>
+                    <h1 class="pr-title">Rate lembur</h1>
+                    <p class="pr-lede">Tarif per jam untuk lembur yang dibayar Cash. Lembur DW selalu Cash. Lembur Cash tanpa rate tidak ikut terbayar di payroll.</p>
                 </div>
+            </header>
 
-            </div>
-
-            <div class="section-body">
-
-                {{-- ── Stat Cards ── --}}
-
-                {{-- ── Employee Table Card ── --}}
-                <div class="emp-card">
-                    <div class="emp-card-header">
-                        <div class="emp-card-header-icon blue">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <span class="emp-card-header-title">List employees</span>
-                        <span class="emp-card-header-count" id="emp-count">Loading...</span>
-
+            {{-- Signature: apa yang akan tidak terbayar --}}
+            <section class="pr-panel" aria-label="Ringkasan rate lembur">
+                <dl class="otr-stats">
+                    <div class="{{ $stats['without_rate'] ? 'is-warn' : '' }}">
+                        <dt>Karyawan aktif tanpa rate</dt>
+                        <dd>{{ $stats['without_rate'] }} <small>dari {{ $stats['active'] }}</small></dd>
+                        @if ($stats['without_rate'])
+                            <button type="button" class="otr-link js-quick" data-rate="unset">Tampilkan dan isi</button>
+                            @if ($stats['missing_dw'])<span class="otr-sub">{{ $stats['missing_dw'] }} di antaranya DW</span>@endif
+                        @else
+                            <span class="otr-sub">Semua sudah punya rate</span>
+                        @endif
                     </div>
-                    {{-- ── Filter Bar ── --}}
+                    <div class="{{ $stats['unpaid_hours'] > 0 ? 'is-warn' : '' }}">
+                        <dt>Lembur Cash periode ini</dt>
+                        <dd>{{ $hours($stats['cash_hours']) }} <small>jam, {{ $stats['cash_people'] }} orang</small></dd>
+                        <span class="otr-sub">
+                            @if ($stats['unpaid_hours'] > 0)
+                                {{ $hours($stats['unpaid_hours']) }} jam milik {{ $stats['unpaid_people'] }} orang tidak akan terbayar karena belum ada rate
+                            @else
+                                {{ $period }}, approved
+                            @endif
+                        </span>
+                    </div>
+                    <div>
+                        <dt>Rate yang dipakai</dt>
+                        <dd class="otr-rates">
+                            @forelse ($stats['rates'] as $r)
+                                <span>{{ $rp($r->rate_per_hour) }} <small>× {{ $r->c }}</small></span>
+                            @empty
+                                <span>-</span>
+                            @endforelse
+                        </dd>
+                        <span class="otr-sub">per jam, karyawan aktif</span>
+                    </div>
+                </dl>
+            </section>
 
-                    <div class="dt-filter-bar"
-                        style="
-    padding: .75rem 1.25rem;
-    border-bottom: 1px solid #f1f5f9;
-    background: #fafafa;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    flex-wrap: wrap;
-">
-                        <select id="filter-company" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Companies</option>
+            <section class="pr-panel" aria-labelledby="otr-title">
+                <div class="pr-panel-head">
+                    <div>
+                        <h2 class="pr-panel-title" id="otr-title">Rate per karyawan</h2>
+                        <span class="pr-panel-sub" id="emp-count">Memuat</span>
+                    </div>
+                    <div class="pr-search">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <label for="emp-search" class="sr-only">Cari nama, NIP, atau jabatan</label>
+                        <input type="search" id="emp-search" placeholder="Cari nama, NIP, atau jabatan">
+                    </div>
+                </div>
+                <div class="emp-filters">
+                    <div class="pr-field">
+                        <label for="filter-rate">Rate</label>
+                        <select id="filter-rate" class="emp-select">
+                            <option value="">Semua</option>
+                            <option value="unset">Belum diset</option>
+                            <option value="set">Sudah diset</option>
+                        </select>
+                    </div>
+                    <div class="pr-field">
+                        <label for="filter-status">Status</label>
+                        <select id="filter-status" class="emp-select">
+                            <option value="">Semua status</option>
+                            @foreach ($statuses as $s)
+                                <option value="{{ $s }}" @selected($s === 'Active')>{{ $s }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="pr-field">
+                        <label for="filter-emp-status">Tipe</label>
+                        <select id="filter-emp-status" class="emp-select">
+                            <option value="">Semua tipe</option>
+                            @foreach ($employeestatuses as $es)
+                                <option value="{{ $es }}">{{ $es }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="pr-field">
+                        <label for="filter-company">Perusahaan</label>
+                        <select id="filter-company" class="emp-select js-s2">
+                            <option value="">Semua perusahaan</option>
                             @foreach ($companies as $company)
                                 <option value="{{ $company }}">{{ $company }}</option>
                             @endforeach
                         </select>
-                        <select id="filter-department" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Departments</option>
-                            @foreach ($departments as $dept)
-                                <option value="{{ $dept->department_name }}">{{ $dept->department_name }}</option>
-                            @endforeach
-                        </select>
-
-
-                        <select id="filter-store" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Locations</option>
+                    </div>
+                    <div class="pr-field">
+                        <label for="filter-store">Lokasi</label>
+                        <select id="filter-store" class="emp-select js-s2">
+                            <option value="">Semua lokasi</option>
                             @foreach ($stores as $store)
                                 <option value="{{ $store->name }}">{{ $store->name }}</option>
                             @endforeach
                         </select>
-
-                        <select id="filter-emp-status" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Emp. Status</option>
-                            @foreach ($employeestatuses as $employeestatuse)
-                                <option value="{{ $employeestatuse }}">{{ $employeestatuse }}</option>
-                            @endforeach
-
-                        </select>
-                        <select id="filter-grading" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Grd</option>
-                            @foreach ($gradings as $grading)
-                                <option value="{{ $grading }}">{{ $grading }}</option>
-                            @endforeach
-
-                        </select>
-                        <select id="filter-group" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Groups</option>
-                            @foreach ($groups as $group)
-                                <option value="{{ $group }}">{{ $group }}</option>
-                            @endforeach
-
-                        </select>
-
-
-
-                        <select id="filter-status" class="select2 form-select form-select-sm"
-                            style="height:32px;font-size:.775rem;border:1px solid #e2e8f0;border-radius:.4rem;min-width:125px;">
-                            <option value="">All Status</option>
-                            @foreach ($statuses as $status)
-                                <option value="{{ $status }}">{{ $status }}</option>
-                            @endforeach
-                        </select>
-
-                        <button id="btn-reset-filter" class="btn btn-sm btn-light"
-                            style="height:32px;font-size:.775rem;padding:0 .75rem;display:inline-flex;align-items:center;gap:.35rem;border-radius:.4rem;border:1px solid #e2e8f0">
-                            <i class="fas fa-rotate-left"></i> Reset
-                        </button>
-
                     </div>
-
-
-                    {{-- Bulk assign rate --}}
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="d-flex align-items-end" style="gap:12px">
-                                <div>
-                                    <label class="small text-muted d-block mb-1">Rate per Jam (Rp)</label>
-                                    <input type="number" id="bulk-rate" class="form-control form-control-sm"
-                                        placeholder="Contoh: 50000" min="0" style="width:200px">
-                                </div>
-                                <div>
-                                    <button class="btn btn-primary btn-sm" id="btn-bulk-assign">
-                                        <i class="fas fa-save"></i> Set Rate ke Terpilih
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm ms-1" id="btn-select-all">
-                                        <i class="fas fa-check-square"></i> Pilih Semua
-                                    </button>
-                                </div>
-                                <small class="text-muted align-self-end">
-                                    <span id="selected-count">0</span> karyawan dipilih
-                                </small>
-                            </div>
-                        </div>
+                    <div class="pr-field">
+                        <label for="filter-department">Departemen</label>
+                        <select id="filter-department" class="emp-select js-s2">
+                            <option value="">Semua departemen</option>
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->department_name }}">{{ $dept->department_name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="table-responsive">
-
-                        <table id="employees-table" class="table">
-                            <thead>
-                                <tr>
-                                    <th class="text-center">Check</th>
-                                    <th class="text-center">Employee</th>
-                                    <th class="text-center">NIP</th>
-                                    <th class="text-center">Company</th>
-                                    <th class="text-center">Department</th>
-                                    <th class="text-center">Location</th>
-                                    <th class="text-center">Position</th>
-                                    <th class="text-center">Grade</th>
-                                    <th class="text-center">Group</th>
-                                    <th class="text-center">Emp. status</th>
-                                    <th class="text-center">Status</th>
-                                    <th class="text-center">Rate</th>
-                                    <th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            {{-- tbody filled by DataTables --}}
-                        </table>
+                    <div class="pr-field">
+                        <label for="filter-grading">Grading</label>
+                        <select id="filter-grading" class="emp-select js-s2">
+                            <option value="">Semua grading</option>
+                            @foreach ($gradings as $g)
+                                <option value="{{ $g }}">{{ $g }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="pr-field">
+                        <label for="filter-group">Group</label>
+                        <select id="filter-group" class="emp-select js-s2">
+                            <option value="">Semua group</option>
+                            @foreach ($groups as $g)
+                                <option value="{{ $g }}">{{ $g }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="emp-filter-actions">
+                        <button type="button" id="btn-reset-filter" class="pr-btn pr-btn-sm" hidden>Hapus filter</button>
                     </div>
                 </div>
-            </div>
+
+                <div class="bulk-bar" id="bulk-bar" role="region" aria-live="polite" aria-label="Set rate untuk karyawan terpilih">
+                    <span class="bulk-bar-count"><span id="selected-count">0</span> karyawan dipilih</span>
+                    <label for="bulk-rate" class="sr-only">Rate per jam</label>
+                    <div class="otr-money">
+                        <span aria-hidden="true">Rp</span>
+                        <input type="text" id="bulk-rate" inputmode="numeric" class="emp-input" placeholder="Rate per jam" autocomplete="off">
+                    </div>
+                    <button type="button" class="pr-btn pr-btn-sm pr-btn-primary" id="btn-bulk-assign">Set rate</button>
+                    <button type="button" class="pr-btn pr-btn-sm" id="btn-clear-selection">Batal pilih</button>
+                </div>
+
+                <div class="pr-table-wrap">
+                    <table id="employees-table" class="table">
+                        <thead>
+                            <tr>
+                                <th class="otr-col-check"><input type="checkbox" id="check-all" aria-label="Pilih semua di halaman ini"></th>
+                                <th>Karyawan</th>
+                                <th>NIP</th>
+                                <th>Jabatan</th>
+                                <th>Perusahaan</th>
+                                <th>Lokasi</th>
+                                <th>Departemen</th>
+                                <th>Grading</th>
+                                <th>Tipe</th>
+                                <th>Status</th>
+                                <th class="text-right">Rate</th>
+                                <th class="text-right" title="Lembur Cash approved di periode gaji berjalan">Lembur Cash</th>
+                                <th class="text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </section>
         </section>
     </div>
 @endsection
 
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    @include('partials.datatables-error', ['permission' => 'ManageOvertimeRate'])
     <script>
         $(function() {
-            $('#filter-emp-status').select2({
-                placeholder: 'All Emp. Status',
-                allowClear: true,
-                width: 'resolve'
-            });
-        });
-    </script>
-    <script>
-        /* ── Helpers ── */
-        const AVATAR_COLORS = [{
-                bg: '#eff6ff',
-                color: '#1e40af'
-            },
-            {
-                bg: '#f5f3ff',
-                color: '#5b21b6'
-            },
-            {
-                bg: '#f0fdf4',
-                color: '#166534'
-            },
-            {
-                bg: '#fffbeb',
-                color: '#92400e'
-            },
-            {
-                bg: '#fdf2f8',
-                color: '#9d174d'
-            },
-        ];
+            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+            const esc = v => $('<div>').text(v ?? '').html();
+            const dash = v => (v === null || v === undefined || v === '') ? '<span class="pr-muted">-</span>' : esc(v);
+            const STATUS = { 'Active': 'is-approved', 'Pending': 'is-pending', 'Resign': 'is-rejected' };
+            const TYPE = { 'On Job Training': 'OJT', 'DW': 'Daily worker' };
+            const parseRp = s => Number(String(s ?? '').replace(/[^\d]/g, '')) || 0;
+            const fmtRp = n => n ? Number(n).toLocaleString('id-ID') : '';
+            const selected = new Set();
 
-        function avatarStyle(name, idx) {
-            const c = AVATAR_COLORS[idx % AVATAR_COLORS.length];
-            return `background:${c.bg};color:${c.color}`;
-        }
+            $('.js-s2').each(function() { $(this).select2({ width: '100%' }); });
+            const filters = ['#filter-rate', '#filter-status', '#filter-emp-status', '#filter-company', '#filter-store', '#filter-department', '#filter-grading', '#filter-group'];
 
-        function initials(name) {
-            if (!name) return '?';
-            return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-        }
-
-        const STATUS_BADGE = {
-            'Active': 'badge-active',
-            'On leave': 'badge-leave',
-            'Resign': 'badge-resign',
-            'Mutation': 'badge-mutation',
-            'Pending': 'badge-pending',
-        };
-
-        const EMP_STATUS_BADGE = {
-            'PKWT': 'badge-permanent',
-            'On Job Training': 'badge-contract',
-            'DW': 'badge-internship',
-        };
-
-        function statusBadge(val, map) {
-            if (!val) return '-';
-            const cls = map[val] || 'badge-pending';
-            return `<span class="status-badge ${cls}">${val}</span>`;
-        }
-
-        /* ── Employee DataTable ── */
-        $(function() {
-
-            var empTable = $('#employees-table').DataTable({
-
+            const table = $('#employees-table').DataTable({
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
-                dom: "<'row align-items-center mb-2'<'col-sm-6'l><'col-sm-6'f>>" +
-                    "<'row'<'col-sm-12'tr>>" +
-                    "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
+                dom: 'rt<"pr-dt-bottom"<"pr-dt-left"li>p>',
                 ajax: {
                     url: '{{ route('overtimerates.overtimerates') }}',
                     data: function(d) {
-                        d.filter_company = $('#filter-company').val();
-                        d.filter_department = $('#filter-department').val();
-                        d.filter_emp_status = $('#filter-emp-status').val();
+                        d.filter_rate = $('#filter-rate').val();
                         d.filter_status = $('#filter-status').val();
+                        d.filter_emp_status = $('#filter-emp-status').val();
+                        d.filter_company = $('#filter-company').val();
                         d.filter_store = $('#filter-store').val();
-                        d.filter_group = $('#filter-group').val();
+                        d.filter_department = $('#filter-department').val();
                         d.filter_grading = $('#filter-grading').val();
-                    },
-                    error: function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Failed to load employee data.'
-                        });
+                        d.filter_group = $('#filter-group').val();
                     }
                 },
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'All']
-                ],
-                pageLength: 10,
+                order: [[1, 'asc']],
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 language: {
-                    lengthMenu: 'Show _MENU_',
-                    search: '',
-                    searchPlaceholder: 'Search employee...',
-                    info: 'Showing _START_–_END_ of _TOTAL_',
-                    infoEmpty: 'No entries found',
-                    infoFiltered: '(filtered from _MAX_ total)',
-                    paginate: {
-                        previous: '‹',
-                        next: '›'
-                    }
+                    processing: 'Memuat',
+                    lengthMenu: 'Tampilkan _MENU_',
+                    info: '_START_ sampai _END_ dari _TOTAL_',
+                    infoEmpty: 'Tidak ada data',
+                    infoFiltered: '',
+                    zeroRecords: 'Tidak ada karyawan yang cocok dengan filter ini.',
+                    emptyTable: 'Belum ada karyawan.',
+                    paginate: { previous: 'Sebelumnya', next: 'Berikutnya' },
                 },
-
-                columns: [{
-                        data: 'employee_id',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        render: function(data) {
-                            return `<input type="checkbox" class="chk-employee" value="${data}">`;
-                        }
-                    },
-                    {
-                        data: 'employee_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'employee_pengenal',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'name_company',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'department_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'store_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'position_name',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'grading_name',
-                        className: 'text-center',
-                        render: d => d ? `<strong>${d}</strong>` : '-'
-                    },
-                    {
-                        data: 'remark',
-                        className: 'text-center',
-                        render: d => d ? `<strong>${d}</strong>` : '-'
-                    },
-                    {
-                        data: 'status_employee',
-                        className: 'text-center',
-                        render: d => statusBadge(d, EMP_STATUS_BADGE)
-                    },
-                    {
-                        data: 'status',
-                        className: 'text-center',
-                        render: d => statusBadge(d, STATUS_BADGE)
-                    },
-                    {
-                        data: 'rate_display',
-                        className: 'text-center',
-                        render: d => d || '-'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        render: function(data) {
-                            return `<div class="action-wrap">${data}</div>`;
-                        }
-                    }
+                columns: [
+                    { data: 'employee_id', name: 'employee_id', orderable: false, searchable: false, className: 'otr-col-check',
+                        render: (d, t, row) => `<input type="checkbox" class="chk-employee" value="${esc(d)}" aria-label="Pilih ${esc(row.employee_name)}">` },
+                    { data: 'employee_name', name: 'employee_name',
+                        render: (d, t, row) => t !== 'display' ? d : `<span class="pr-cell-name">${dash(d)}</span><span class="pr-cell-sub">${esc([row.employee_pengenal, row.position_name].filter(Boolean).join(', ') || '-')}</span>` },
+                    { data: 'employee_pengenal', name: 'employee_pengenal', visible: false },
+                    { data: 'position_name', name: 'position_name', visible: false },
+                    { data: 'name_company', name: 'name_company', render: d => dash(d) },
+                    { data: 'store_name', name: 'store_name', render: d => dash(d) },
+                    { data: 'department_name', name: 'department_name', render: d => dash(d) },
+                    { data: 'grading_name', name: 'grading_name', render: d => dash(d) },
+                    { data: 'status_employee', name: 'status_employee', render: d => d ? `<span class="status-badge is-draft">${esc(TYPE[d] ?? d)}</span>` : dash(d) },
+                    { data: 'status', name: 'status', render: d => d ? `<span class="status-badge ${STATUS[d] ?? 'is-draft'}">${esc(d)}</span>` : dash(d) },
+                    { data: 'rate_display', name: 'rate_display', searchable: false, className: 'text-right' },
+                    { data: 'cash_display', name: 'cash_display', searchable: false, className: 'text-right' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-right', render: d => `<div class="action-wrap">${d}</div>` },
                 ],
-                drawCallback: function(settings) {
-                    const info = settings.json;
-                    if (info && info.recordsTotal !== undefined) {
-                        $('#emp-count').text(info.recordsTotal + ' records');
-                        $('#stat-total').text(info.recordsTotal);
-                    }
-                    if (info && info.stats) {
-                        $('#stat-active').text(info.stats.active ?? '–');
-                        $('#stat-leave').text(info.stats.on_leave ?? '–');
-                        $('#stat-resign').text(info.stats.resign ?? '–');
-                    }
-                },
-                initComplete: function() {
-                    $('.dataTables_filter input').addClass('form-control form-control-sm');
-                    $('.dataTables_length select').addClass('form-select form-select-sm');
-                }
             });
-            $('#filter-company, #filter-department, #filter-emp-status, #filter-status, #filter-store, #filter-grading, #filter-group')
-                .on('change', function() {
-                    empTable.ajax.reload();
-                    updateExportLinks(); // ← tambahkan di sini
-                });
-            /* ── Reset filter ── */
+
+            table.on('xhr', function() {
+                const j = table.ajax.json();
+                if (j) $('#emp-count').text(`${Number(j.recordsFiltered).toLocaleString('id-ID')} karyawan`);
+            });
+
+            // ── Filter & pencarian ──
+            let timer;
+            const syncReset = () => {
+                const active = filters.some(f => f === '#filter-status' ? $(f).val() !== 'Active' : $(f).val()) || $('#emp-search').val();
+                $('#btn-reset-filter').prop('hidden', !active);
+            };
+            $(filters.join(',')).on('change', () => { table.ajax.reload(); syncReset(); });
+            $('#emp-search').on('input', function() { clearTimeout(timer); const v = this.value; timer = setTimeout(() => { table.search(v).draw(); syncReset(); }, 350); });
             $('#btn-reset-filter').on('click', function() {
-                $('#filter-company').val('').trigger('change');
-                $('#filter-department').val('').trigger('change');
-                $('#filter-emp-status').val('').trigger('change');
-                $('#filter-status').val('').trigger('change');
-                $('#filter-store').val('').trigger('change');
-                $('#filter-group').val('').trigger('change');
-                $('#filter-grading').val('').trigger('change');
-                empTable.ajax.reload();
+                filters.forEach(f => $(f).val(f === '#filter-status' ? 'Active' : '').trigger('change.select2'));
+                $('#emp-search').val('');
+                table.search('').ajax.reload();
+                syncReset();
+            });
+            $('.js-quick').on('click', function() {
+                $('#filter-rate').val(this.dataset.rate);
+                $('#filter-status').val('Active');
+                table.ajax.reload(); syncReset();
+                document.getElementById('otr-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
 
-        
-
-        // ── Checkbox per row ──
-        $(document).on('change', '.chk-employee', function() {
-            const count = $('.chk-employee:checked').length;
-            $('#selected-count').text(count);
-        });
-
-        // ── Select all ──
-        $('#btn-select-all').on('click', function() {
-            const allChecked = $('.chk-employee:checked').length === $('.chk-employee').length;
-            $('.chk-employee').prop('checked', !allChecked);
-            $('#selected-count').text(!allChecked ? $('.chk-employee').length : 0);
-        });
-
-        // ── Bulk assign ──
-        $('#btn-bulk-assign').on('click', function() {
-            const ids = $('.chk-employee:checked').map(function() {
-                return $(this).val();
-            }).get();
-            const rate = $('#bulk-rate').val();
-
-            if (!ids.length) return Swal.fire('Info', 'Pilih minimal 1 karyawan.', 'info');
-            if (!rate) return Swal.fire('Info', 'Masukkan rate per jam.', 'info');
-
-            Swal.fire({
-                title: 'Konfirmasi',
-                text: `Set rate Rp ${Number(rate).toLocaleString('id-ID')} untuk ${ids.length} karyawan?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, set',
-            }).then(result => {
-                if (!result.isConfirmed) return;
-
-                $.post('{{ route('overtime-rate.store') }}', {
-                        _token: '{{ csrf_token() }}',
-                        employee_ids: ids,
-                        rate_per_hour: rate,
-                    })
-                   .done(res => {
-    empTable.ajax.reload(); // ← ganti table ke empTable
-    Swal.fire('Berhasil!', res.message, 'success');
-})
-                    .fail(xhr => Swal.fire('Gagal!', xhr.responseJSON?.message ?? 'Error', 'error'));
+            // ── Pilihan (bertahan antar halaman) ──
+            const updateSel = () => {
+                $('#selected-count').text(selected.size);
+                $('#bulk-bar').toggleClass('show', selected.size > 0);
+                const $b = $('#employees-table tbody .chk-employee');
+                const n = $b.filter(':checked').length;
+                $('#check-all').prop('checked', $b.length > 0 && n === $b.length).prop('indeterminate', n > 0 && n < $b.length);
+            };
+            table.on('draw', () => { $('#employees-table tbody .chk-employee').each(function() { this.checked = selected.has(this.value); }); updateSel(); });
+            $('#employees-table').on('change', '.chk-employee', function() { this.checked ? selected.add(this.value) : selected.delete(this.value); updateSel(); });
+            $('#check-all').on('change', function() {
+                const on = this.checked;
+                $('#employees-table tbody .chk-employee').each(function() { this.checked = on; on ? selected.add(this.value) : selected.delete(this.value); });
+                updateSel();
             });
-        });
+            $('#btn-clear-selection').on('click', () => { selected.clear(); $('.chk-employee').prop('checked', false); updateSel(); });
+            $('#bulk-rate').on('input', function() { this.value = fmtRp(parseRp(this.value)); });
 
-        // ── Reset checkbox saat reload ──
-        empTable.on('draw', function() { // ← ganti table ke empTable
-        $('#selected-count').text(0);
-    });
+            // ── Simpan rate (satu atau banyak) ──
+            const save = (ids, rate, label) => $.post('{{ route('overtime-rate.store') }}', { employee_ids: ids, rate_per_hour: rate })
+                .done(res => {
+                    Swal.fire({ icon: 'success', title: 'Tersimpan', text: res.message, timer: 2200, showConfirmButton: false });
+                    table.ajax.reload(null, false);
+                })
+                .fail(xhr => Swal.fire({ icon: 'error', title: 'Gagal menyimpan', text: xhr.responseJSON?.message ?? 'Terjadi kesalahan.' }));
 
-    // ── Session flash ──
-    @if (session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: '{{ session('success') }}',
-            confirmButtonColor: '#1d4ed8',
-            timer: 3000,
-            timerProgressBar: true
-        });
-    @endif
+            $('#btn-bulk-assign').on('click', function() {
+                const ids = [...selected];
+                const rate = parseRp($('#bulk-rate').val());
+                if (!ids.length) return;
+                if (!rate) { $('#bulk-rate').focus(); return Swal.fire({ icon: 'info', title: 'Isi rate dulu', text: 'Masukkan rate lembur per jam.' }); }
+                Swal.fire({
+                    icon: 'question',
+                    title: `Set rate untuk ${ids.length} karyawan?`,
+                    text: `Rp${rate.toLocaleString('id-ID')} per jam. Rate lama karyawan terpilih akan diganti.`,
+                    showCancelButton: true, confirmButtonText: 'Set rate', cancelButtonText: 'Batal', confirmButtonColor: '#4f46e5'
+                }).then(r => {
+                    if (!r.isConfirmed) return;
+                    save(ids, rate).done(() => { selected.clear(); $('#bulk-rate').val(''); updateSel(); });
+                });
+            });
 
-    @if (session('error'))
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '{{ session('error') }}',
-            confirmButtonColor: '#dc2626'
+            $('#employees-table').on('click', '.btn-edit-rate', function() {
+                const { employeeId, employeeName, rate } = this.dataset;
+                Swal.fire({
+                    title: `Rate lembur ${employeeName}`,
+                    input: 'text',
+                    inputLabel: 'Rate per jam (Rp)',
+                    inputValue: fmtRp(rate),
+                    inputAttributes: { inputmode: 'numeric', autocomplete: 'off' },
+                    didOpen: () => { const i = Swal.getInput(); i.addEventListener('input', () => { i.value = fmtRp(parseRp(i.value)); }); },
+                    inputValidator: v => parseRp(v) ? undefined : 'Isi rate per jam',
+                    showCancelButton: true, confirmButtonText: 'Simpan', cancelButtonText: 'Batal', confirmButtonColor: '#4f46e5'
+                }).then(r => { if (r.isConfirmed) save([employeeId], parseRp(r.value)); });
+            });
+
+            @if (session('success'))
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: @json(session('success')) });
+            @endif
+            @if (session('error'))
+                Swal.fire({ icon: 'error', title: 'Gagal', text: @json(session('error')) });
+            @endif
         });
-    @endif
-    });
     </script>
 @endpush

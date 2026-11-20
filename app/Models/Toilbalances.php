@@ -135,7 +135,20 @@ class Toilbalances extends Model
     public function getDaysUntilExpiredAttribute(): int
     {
         if (!$this->expires_at) return 0;
-        return max(0, (int) now()->diffInDays($this->expires_at, false));
+        // Dihitung per tanggal (bukan jam sekarang): berlaku sampai akhir hari expires_at
+        return max(0, (int) today()->diffInDays($this->expires_at->copy()->startOfDay(), false));
+    }
+
+    /**
+     * Status untuk ditampilkan: saldo TOIL berstatus active yang tanggalnya sudah lewat
+     * dianggap expired walau command harian toil:expire-balances belum jalan.
+     * Cash tidak hangus (tetap dibayar lewat payroll), jadi statusnya apa adanya.
+     */
+    public function effectiveStatus(?string $compensationType = null): string
+    {
+        $type = $compensationType ?? $this->overtimeSubmission?->compensation_type;
+
+        return $this->status === 'active' && $type === 'Toil' && $this->isExpired() ? 'expired' : (string) $this->status;
     }
 
     /**
