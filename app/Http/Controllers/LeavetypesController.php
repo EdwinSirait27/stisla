@@ -80,7 +80,9 @@ class LeavetypesController extends Controller
             ];
         });
 
+        // Teks di-escape di browser (esc), jadi tidak di-escape dua kali.
         return DataTables::of($rows)
+            ->escapeColumns([])
             ->with('stats', [
                 'total'     => $types->count(),
                 'active'    => $types->where('is_active', true)->count(),

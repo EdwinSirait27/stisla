@@ -30,9 +30,6 @@
                         </li>
                     @endcan
                     @can('dashboardManager')
-                        <li class="{{ Request::is('dashboardTeam') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardTeam') }}">Dashboard Team</a>
-                        </li>
                         <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('dashboardManager') }}">Dashboard Manager</a>
                         </li>

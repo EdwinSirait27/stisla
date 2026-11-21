@@ -25,7 +25,8 @@ class DashboardRedirectService
     {
         foreach (self::routes() as $permission => $route) {
             // checkPermissionTo: false (bukan exception) kalau permission belum terdaftar
-            if ($user->checkPermissionTo($permission)) {
+            // Route yang belum terdaftar (mis. pages.dashboardTeam) dilewati supaya login tidak error.
+            if ($user->checkPermissionTo($permission) && \Illuminate\Support\Facades\Route::has($route)) {
                 return $route;
             }
         }

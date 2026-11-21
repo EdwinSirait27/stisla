@@ -697,6 +697,7 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::get('/Company/edit/{hashedId}', [CompanyController::class, 'edit'])->name('Company.edit');
         Route::put('/Company/{hashedId}', [CompanyController::class, 'update'])->name('Company.update');
         Route::get('/company/company', [CompanyController::class, 'getCompanys'])->name('company.company');
+        Route::get('/Company/logo/{hashedId}', [CompanyController::class, 'logo'])->name('Company.logo');
     });
     // ── Dashboard Human ──
     Route::group(['middleware' => ['auth', 'permission:dashboardHuman']], function () {
@@ -706,8 +707,6 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
 
     // ── Dashboard Manager & Team ──
     Route::group(['middleware' => ['auth', 'permission:dashboardManager']], function () {
-        Route::get('/dashboardTeam', [DashManagerController::class, 'indexteam'])
-            ->name('pages.dashboardTeam');
         Route::get('/dashboardManager', [DashManagerController::class, 'index'])
             ->name('pages.dashboardManager');
         Route::get('/leaverequest',              [LeaverequestController::class, 'index'])->name('leaverequest.index');
@@ -903,11 +902,11 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
     });
 
     // ── Team Fingerprint ──
-    Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], function () {
-        Route::get('/Teamfingerprint', [DashManagerController::class, 'indexteamfingerprint'])
-            ->name('pages.Teamfingerprint');
-        Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
-    });
+    // Route::group(['middleware' => ['auth', 'permission:ManageTeamfingerprint']], function () {
+    //     Route::get('/Teamfingerprint', [DashManagerController::class, 'indexteamfingerprint'])
+    //         ->name('pages.Teamfingerprint');
+    //     Route::match(['GET', 'POST'], '/teamfingerprints/teamfingerprints', [DashManagerController::class, 'getTeamfingerprints'])->name('teamfingerprints.teamfingerprints');
+    // });
     Route::middleware(['auth', 'permission:toil'])
         ->prefix('toil')
         ->name('toil.')

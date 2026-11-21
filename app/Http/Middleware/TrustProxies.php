@@ -15,6 +15,20 @@ class TrustProxies extends Middleware
     protected $proxies;
 
     /**
+     * Di production aplikasi berada di belakang reverse proxy di server yang sama, jadi tanpa ini
+     * $request->ip() selalu 127.0.0.1: log login salah dan batas login per IP berlaku untuk semua user.
+     *
+     * TRUSTED_PROXIES (pisahkan dengan koma) berisi alamat proxy yang meneruskan request,
+     * default hanya localhost. Jangan isi "*" kalau server bisa diakses langsung tanpa proxy,
+     * karena header X-Forwarded-For bisa dipalsukan.
+     */
+    public function __construct()
+    {
+        $list = array_values(array_filter(array_map('trim', explode(',', (string) config('app.trusted_proxies', '127.0.0.1,::1')))));
+        $this->proxies = $list === ['*'] ? '*' : $list;
+    }
+
+    /**
      * The headers that should be used to detect proxies.
      *
      * @var int

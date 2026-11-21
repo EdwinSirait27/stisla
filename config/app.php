@@ -69,6 +69,12 @@ return [
     |
     */
 
+    /*
+    | Reverse proxy yang dipercaya untuk membaca IP asli dari X-Forwarded-For
+    | (dipakai App\Http\Middleware\TrustProxies). Pisahkan dengan koma.
+    */
+    'trusted_proxies' => env('TRUSTED_PROXIES', '127.0.0.1,::1'),
+
     'timezone' => 'Asia/Makassar',
 
     /*

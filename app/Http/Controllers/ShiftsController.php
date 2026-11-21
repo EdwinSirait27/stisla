@@ -66,7 +66,9 @@ class ShiftsController extends Controller
 
         $canManage = $this->canManage();
 
+        // Teks di-escape di browser (esc), jadi tidak di-escape dua kali.
         return DataTables::of($query)
+            ->escapeColumns([])
             ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%{$k}%"))
             ->orderColumn('store_name', 'stores_tables.name $1, shifts_tables.start_time asc')
             ->orderColumn('roster_count', 'roster_count $1')
