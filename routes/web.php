@@ -1115,6 +1115,7 @@ Route::group(['middleware' => 'guest'], function () {
     // Aksi login: per IP; batas per username/IP yang lebih ketat ada di LoginController
     Route::middleware(['throttle:15,1'])->group(function () {
         Route::post('/session', [LoginController::class, 'store'])->name('session');
+        Route::post('/session/2fa-email', [LoginController::class, 'storeTwoFactorEmail'])->name('session.2fa-email');
         Route::post('/session/confirm', [LoginController::class, 'confirmForceLogin'])->name('session.confirm');
         Route::post('/two-factor/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify.post');
     });

@@ -1389,6 +1389,7 @@
                                 <th>Grading</th>
                                 <th>PIN</th>
                                 <th>Role</th>
+                                <th>All roles HRX</th>
                                 <th>Login</th>
                                 <th>2FA</th>
                                 <th>Mac Wifi</th>
@@ -1415,7 +1416,7 @@
             const dash = '<span class="pr-muted">-</span>';
             let flag = '';
             const selected = new Set();
-            const VIEWS = { ringkas: ['check', 'employee', 'placement', 'roles', 'login', 'twofa', 'session', 'action'], semua: null };
+            const VIEWS = { ringkas: ['check', 'employee', 'placement', 'roles', 'roles_hrx', 'login', 'twofa', 'session', 'action'], semua: null };
             let view = 'ringkas';
 
             const twofaCell = row => {
@@ -1456,6 +1457,13 @@
                     { data: 'pin', name: 'pin', orderable: false, render: d => d ? esc(d) : dash },
                     { data: 'roles', name: 'roles', orderable: false, render: (d, t) => t !== 'display' ? d.join(',') :
                         (d.length ? `<div class="pr-roles">${d.map(r => `<span class="pr-role">${esc(r)}</span>`).join('')}</div>` : '<span class="pr-flag">Tanpa role</span>') },
+                    { data: 'roles_hrx', name: 'roles_hrx', orderable: false, render: (d, t, row) => {
+                        if (t !== 'display') return (d || []).join(',');
+                        if (!d || !d.length) return dash;
+                        const same = [...d].sort().join('|') === [...(row.roles || [])].sort().join('|');
+                        return `<div class="pr-roles">${d.map(r => `<span class="pr-role">${esc(r)}</span>`).join('')}</div>`
+                            + `<span class="pr-cell-sub">${row.active_role_hrx ? 'aktif: ' + esc(row.active_role_hrx) : 'tanpa role aktif'}${same ? '' : ', beda dengan kolom Role'}</span>`;
+                    } },
                     { data: 'status', name: 'login', render: (d, t, row) => t !== 'display' ? (d ?? '') :
                         (row.can_login ? '<span class="status-badge is-open">Bisa login</span>' : `<span class="status-badge is-locked">Diblokir</span><span class="pr-cell-sub">karyawan ${esc(d ?? 'tidak ada')}</span>`) },
                     { data: 'twofa', name: 'twofa', orderable: false, render: (d, t, row) => t !== 'display' ? d : twofaCell(row) },

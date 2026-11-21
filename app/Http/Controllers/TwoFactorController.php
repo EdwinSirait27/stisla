@@ -15,6 +15,8 @@ use BaconQrCode\Writer;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Cache;
 use App\Services\LoginSessionService;
+use App\Services\LoginThrottle;
+use App\Services\DashboardRedirectService;
 use Ramsey\Uuid\Uuid;
 class TwoFactorController extends Controller
 {
@@ -25,23 +27,53 @@ class TwoFactorController extends Controller
         $this->google2fa = new Google2FA();
     }
 
+    /**
+     * Login lewat email (tanpa password) hanya punya satu faktor, jadi kodenya dijaga ketat:
+     * 5 kode salah per akun per 24 jam, setelah itu mode email terkunci dan harus pakai
+     * username + password. Recovery code juga tidak berlaku di mode ini.
+     */
+    private const EMAIL_MODE_MAX_FAILS = 5;
+    private const EMAIL_MODE_DECAY     = 86400;
+
     // ── Halaman verifikasi TOTP setelah login ─────────────────────
     public function showVerify()
     {
-        if (!$this->pending2faUserId()) {
+        $pending = $this->pending2fa();
+        if (!$pending) {
             return redirect()->route('login')->withErrors(['/' => 'Sesi verifikasi 2FA habis. Silakan login ulang.']);
         }
-        return view('auth.two-factor-verify');
+        return view('auth.two-factor-verify', ['viaEmail' => $pending['via'] === 'email']);
     }
 
     public function verify(Request $request, LoginSessionService $loginSession)
     {
-        $userId = $this->pending2faUserId();
-        if (!$userId) {
+        $pending = $this->pending2fa();
+        if (!$pending) {
             return redirect()->route('login')->withErrors(['/' => 'Sesi verifikasi 2FA habis. Silakan login ulang.']);
         }
 
-        $user           = User::with('employee')->findOrFail($userId);
+        $viaEmail = $pending['via'] === 'email';
+
+        $request->validate([
+            'code' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($viaEmail) {
+                    $len = strlen(trim($value));
+                    if ($viaEmail && $len !== 6) {
+                        $fail('Masukkan kode 6 digit dari aplikasi Authenticator.');
+                    } elseif ($len !== 6 && $len !== 10) {
+                        $fail('Kode tidak valid. Masukkan kode 6-digit dari Authenticator atau recovery code 10 karakter.');
+                    }
+                },
+            ],
+        ]);
+
+        if ($viaEmail) {
+            return $this->verifyEmailMode($request, $loginSession, $pending);
+        }
+
+        $user           = User::with('employee')->findOrFail($pending['user_id']);
         $rateLimiterKey = "2fa:{$user->id}";
 
         if (RateLimiter::tooManyAttempts($rateLimiterKey, 10)) {
@@ -49,19 +81,6 @@ class TwoFactorController extends Controller
             $minutes = max(1, (int) ceil(RateLimiter::availableIn($rateLimiterKey) / 60));
             return back()->withErrors(['code' => "Terlalu banyak percobaan. Coba lagi dalam {$minutes} menit."]);
         }
-
-        $request->validate([
-            'code' => [
-                'required',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $len = strlen(trim($value));
-                    if ($len !== 6 && $len !== 10) {
-                        $fail('Kode tidak valid. Masukkan kode 6-digit dari Authenticator atau recovery code 10 karakter.');
-                    }
-                },
-            ],
-        ]);
 
         $inputCode  = strtoupper(trim($request->code));
         $isRecovery = strlen($inputCode) === 10;
@@ -74,14 +93,7 @@ class TwoFactorController extends Controller
                 Log::warning('2FA recovery code used', ['user_id' => $user->id, 'ip' => $request->ip()]);
             }
         } else {
-            // Anti replay: kode yang sudah pernah dipakai (atau yang lebih lama) ditolak.
-            $tsKey  = "2fa:last-ts:{$user->id}";
-            $secret = decrypt($user->two_factor_secret);
-            $ts     = $this->google2fa->verifyKeyNewer($secret, $inputCode, (int) Cache::get($tsKey, 0), 1);
-            if ($ts !== false) {
-                Cache::put($tsKey, $ts, now()->addMinutes(10));
-                $valid = true;
-            }
+            $valid = $this->checkTotp($user, $inputCode);
         }
 
         if (!$valid) {
@@ -91,6 +103,70 @@ class TwoFactorController extends Controller
         }
 
         RateLimiter::clear($rateLimiterKey);
+
+        return $this->completeLogin($request, $loginSession, $user, 'verified');
+    }
+
+    /** Langkah kode untuk login email + 2FA. Sesi umpan (email tidak memenuhi syarat) diperlakukan sama persis. */
+    private function verifyEmailMode(Request $request, LoginSessionService $loginSession, array $pending)
+    {
+        $user = $pending['user_id'] ? User::with('employee')->find($pending['user_id']) : null;
+        $limitKey = $user ? "2fa-email:{$user->id}" : '2fa-email:decoy:' . $pending['decoy'];
+        $throttle = LoginThrottle::keys($user ? $user->username : 'mail:' . $pending['decoy'], $request->ip());
+
+        if (RateLimiter::tooManyAttempts($limitKey, self::EMAIL_MODE_MAX_FAILS)
+            || LoginThrottle::lockedFor($throttle)) {
+            $request->session()->forget('2fa');
+            if ($user) {
+                $this->log2FAEvent($user, 'failed', $request);
+            }
+            return redirect()->route('login')->withErrors([
+                'throttle' => 'Login dengan 2FA dikunci sementara karena terlalu banyak kode salah. Silakan login dengan username dan password.',
+            ]);
+        }
+
+        // Syarat dicek ulang: izin bisa dicabut admin di antara dua langkah.
+        $eligible = $user && $user->requiresTwoFactor() && $user->hasTwoFactorEnabled();
+        $valid    = $eligible && $this->checkTotp($user, strtoupper(trim($request->code)));
+
+        if (!$valid) {
+            RateLimiter::hit($limitKey, self::EMAIL_MODE_DECAY);
+            LoginThrottle::hit($throttle); // ikut dihitung di batas login username (dan IP) yang sama
+            if ($user) {
+                $this->log2FAEvent($user, 'failed', $request);
+                activity('auth')->causedBy($user)->performedOn($user)->event('login_failed')
+                    ->withProperties(['channel' => 'web-2fa-email', 'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)])
+                    ->log('Percobaan login email + 2FA gagal: kode salah');
+            }
+            return back()->withErrors(['code' => 'Kode tidak valid atau sudah dipakai. Tunggu kode berikutnya di aplikasi Authenticator.']);
+        }
+
+        RateLimiter::clear($limitKey);
+        LoginThrottle::clear($throttle);
+        activity('auth')->causedBy($user)->performedOn($user)->event('login_2fa_email')
+            ->withProperties(['channel' => 'web-2fa-email', 'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)])
+            ->log('Login dengan email + 2FA (tanpa password)');
+
+        return $this->completeLogin($request, $loginSession, $user, 'verified');
+    }
+
+    /** TOTP 6 digit dengan anti replay: kode yang sudah pernah dipakai (atau lebih lama) ditolak. */
+    private function checkTotp(User $user, string $code): bool
+    {
+        if (!preg_match('/^\d{6}$/', $code) || !$user->two_factor_secret) {
+            return false;
+        }
+        $tsKey = "2fa:last-ts:{$user->id}";
+        $ts    = $this->google2fa->verifyKeyNewer(decrypt($user->two_factor_secret), $code, (int) Cache::get($tsKey, 0), 1);
+        if ($ts === false) {
+            return false;
+        }
+        Cache::put($tsKey, $ts, now()->addMinutes(10));
+        return true;
+    }
+
+    private function completeLogin(Request $request, LoginSessionService $loginSession, User $user, string $event)
+    {
         $request->session()->forget('2fa');
 
         if (!LoginSessionService::canLogin($user)) {
@@ -99,20 +175,32 @@ class TwoFactorController extends Controller
 
         Auth::login($user); // tanpa "ingat saya": cookie remember akan melewati 2FA di kunjungan berikutnya
         $request->session()->regenerate();
-        $this->log2FAEvent($user, 'verified', $request);
+        $this->log2FAEvent($user, $event, $request);
 
         return $loginSession->finish($request, $user, false, false);
     }
 
-    /** user_id dari login yang menunggu 2FA, null kalau tidak ada atau sudah lewat 10 menit. */
-    private function pending2faUserId(): ?string
+    /**
+     * Login yang menunggu kode 2FA, null kalau tidak ada atau sudah lewat waktunya.
+     * via = 'password' (setelah username + password) atau 'email' (login email + 2FA).
+     */
+    private function pending2fa(): ?array
     {
         $pending = session('2fa');
-        if (!is_array($pending) || empty($pending['user_id']) || ($pending['expires_at'] ?? 0) < now()->timestamp) {
+        $valid = is_array($pending)
+            && ($pending['expires_at'] ?? 0) >= now()->timestamp
+            && (!empty($pending['user_id']) || (($pending['via'] ?? null) === 'email' && !empty($pending['decoy'])));
+
+        if (!$valid) {
             session()->forget('2fa');
             return null;
         }
-        return (string) $pending['user_id'];
+
+        return [
+            'user_id' => !empty($pending['user_id']) ? (string) $pending['user_id'] : null,
+            'via'     => ($pending['via'] ?? 'password') === 'email' ? 'email' : 'password',
+            'decoy'   => $pending['decoy'] ?? null,
+        ];
     }
 
     // ── Setup 2FA (user scan QR) ──────────────────────────────────
@@ -194,7 +282,22 @@ class TwoFactorController extends Controller
             return redirect()->route('pages.feature-profile'); // sudah pernah lihat
         }
         session()->forget('2fa.recovery_codes');
-        return view('auth.two-factor-recovery-codes', compact('codes'));
+
+        // Tujuan tombol "Lanjut": sama dengan aturan setelah login (password default dulu, lalu dashboard per permission).
+        /** @var User $user */
+        $user = Auth::user();
+        if (LoginSessionService::hasDefaultPassword($user)) {
+            $nextUrl   = route('pages.change-password');
+            $nextLabel = 'Lanjut ganti password';
+        } elseif ($route = DashboardRedirectService::routeNameFor($user)) {
+            $nextUrl   = route($route);
+            $nextLabel = 'Lanjut ke Dashboard';
+        } else {
+            $nextUrl   = route('pages.feature-profile');
+            $nextLabel = 'Lanjut ke Profil';
+        }
+
+        return view('auth.two-factor-recovery-codes', compact('codes', 'nextUrl', 'nextLabel'));
     }
 
     // ── Disable 2FA — dipanggil oleh admin ───────────────────────

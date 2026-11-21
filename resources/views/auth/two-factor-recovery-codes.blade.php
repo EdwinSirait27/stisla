@@ -258,8 +258,8 @@
         </li>
     </ul>
 
-    <a href="{{ url('/dashboard') }}" class="btn-primary">
-        <i class="fas fa-arrow-right-to-bracket" style="margin-right:8px"></i>Lanjut ke Dashboard
+    <a href="{{ $nextUrl ?? route('pages.feature-profile') }}" class="btn-primary">
+        <i class="fas fa-arrow-right-to-bracket" style="margin-right:8px"></i>{{ $nextLabel ?? 'Lanjut' }}
     </a>
 </div>
 

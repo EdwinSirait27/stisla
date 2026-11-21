@@ -88,7 +88,7 @@ public function getUsers(Request $request)
         'Employee.position' => fn($q) => $q->wherePivot('is_primary', true),
         'Employee.grading:id,grading_name',
     ])
-        ->select(['id', 'username', 'employee_id', 'terms_id', 'created_at',
+        ->select(['id', 'username', 'employee_id', 'terms_id', 'created_at', 'active_role_hrx', 'all_roles_hrx',
             'two_factor_secret', 'two_factor_confirmed_at', 'two_factor_required'])
         ->get();
 
@@ -111,6 +111,9 @@ public function getUsers(Request $request)
             'grading_name'   => $emp?->grading?->grading_name,
             'pin'            => $emp->pin ?? null,
             'roles'          => $user->roles->pluck('name')->values()->all(),
+            // Salinan nama role di kolom users (dipakai aplikasi lain); bisa tertinggal dari role Spatie.
+            'roles_hrx'      => array_values(array_filter((array) ($user->all_roles_hrx ?? []), 'is_string')),
+            'active_role_hrx'=> $user->active_role_hrx,
             'device_wifi_mac'=> $user->Terms->device_wifi_mac ?? null,
             'device_lan_mac' => $user->Terms->device_lan_mac ?? null,
             'twofa'          => $twofa,

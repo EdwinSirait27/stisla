@@ -20,13 +20,22 @@ class DashboardRedirectService
         ];
     }
 
-    public static function redirectForUser(User $user): ?\Illuminate\Http\RedirectResponse
+    /** Nama route dashboard pertama yang cocok dengan permission user, null kalau tidak ada. */
+    public static function routeNameFor(User $user): ?string
     {
         foreach (self::routes() as $permission => $route) {
-            if ($user->hasPermissionTo($permission)) {
-                return redirect()->route($route);
+            // checkPermissionTo: false (bukan exception) kalau permission belum terdaftar
+            if ($user->checkPermissionTo($permission)) {
+                return $route;
             }
         }
         return null;
+    }
+
+    public static function redirectForUser(User $user): ?\Illuminate\Http\RedirectResponse
+    {
+        $route = self::routeNameFor($user);
+
+        return $route ? redirect()->route($route) : null;
     }
 }

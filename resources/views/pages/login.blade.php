@@ -273,6 +273,49 @@
 
         .btn-login:active { transform: translateY(0); }
 
+        /* ── Pilihan login lain ── */
+        .login-alt {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0 14px;
+            font-size: 0.75rem;
+            color: var(--text-low);
+        }
+        .login-alt::before, .login-alt::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .btn-alt {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 13px 20px;
+            background: transparent;
+            border: 1px solid var(--border-hi);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.86rem;
+            color: var(--text-hi);
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .btn-alt:hover { border-color: var(--gold); background: rgba(201,168,76,0.06); color: var(--text-hi); text-decoration: none; }
+        .btn-alt:focus-visible, .btn-login:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+        .field-hint {
+            margin-top: 8px;
+            font-size: 0.76rem;
+            color: var(--text-low);
+            line-height: 1.5;
+        }
+
         /* ── Alerts ── */
         .alert-dark-danger {
             background: rgba(224,92,92,0.12);
@@ -443,10 +486,10 @@
                 <p>Access your workspace securely</p>
             </div>
 
-            <form action="{{ route('session') }}" method="POST" novalidate>
-                @csrf
+            @php($mode2fa = request('mode') === '2fa' || old('email') !== null)
 
-                {{-- Alerts --}}
+            <div>
+                {{-- Alerts (dipakai kedua mode) --}}
                 @if (session('success'))
                     <div class="alert-dark-success" role="status">{{ session('success') }}</div>
                 @endif
@@ -467,11 +510,17 @@
                     </div>
                 @endif
 
+            </div>
+
+            @if (!$mode2fa)
+            <form action="{{ route('session') }}" method="POST" novalidate>
+                @csrf
+
                 <!-- Username -->
                 <div class="field-group">
                     <label class="field-label" for="username">Username</label>
                     <div class="field-wrap">
-                        <input id="username" type="text" name="username" required autofocus
+                        <input id="username" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username"
                             placeholder="Enter your username">
                     </div>
                 </div>
@@ -480,7 +529,7 @@
                 <div class="field-group">
                     <label class="field-label" for="password">Password</label>
                     <div class="field-wrap">
-                        <input id="password" type="password" name="password" required
+                        <input id="password" type="password" name="password" required autocomplete="current-password"
                             placeholder="Enter your password" style="padding-right: 44px;">
                         <span class="toggle-eye" onclick="togglePassword()">
                             <i id="eyeIcon" class="fa fa-eye"></i>
@@ -496,6 +545,32 @@
 
                 <button type="submit" class="btn-login">Continue</button>
             </form>
+
+            <div class="login-alt">atau</div>
+            <a href="{{ route('login', ['mode' => '2fa']) }}" class="btn-alt">
+                <i class="fas fa-mobile-screen-button" aria-hidden="true"></i>Login dengan 2FA
+            </a>
+            @else
+            <form action="{{ route('session.2fa-email') }}" method="POST" novalidate>
+                @csrf
+
+                <div class="field-group">
+                    <label class="field-label" for="email">Email</label>
+                    <div class="field-wrap">
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                            autocomplete="email" placeholder="nama@perusahaan.com">
+                    </div>
+                    <p class="field-hint">Khusus akun yang sudah diizinkan HR dan sudah scan QR 2FA. Setelah ini masukkan kode 6 digit dari aplikasi Authenticator.</p>
+                </div>
+
+                <button type="submit" class="btn-login">Lanjut ke kode 2FA</button>
+            </form>
+
+            <div class="login-alt">atau</div>
+            <a href="{{ route('login') }}" class="btn-alt">
+                <i class="fas fa-key" aria-hidden="true"></i>Login dengan username dan password
+            </a>
+            @endif
         </div>
         <!-- Footer -->
         <div class="form-footer">

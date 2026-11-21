@@ -119,6 +119,64 @@ class LoginController extends Controller
         }
     }
 
+    /**
+     * Login dengan email + kode 2FA (tanpa password), hanya untuk akun yang:
+     * - diizinkan admin (users.two_factor_required = true),
+     * - sudah scan QR (2FA terkonfirmasi),
+     * - karyawan Active, dan email (kantor atau pribadi) cocok dengan tepat satu akun.
+     *
+     * Jawaban selalu sama (lanjut ke halaman kode) walau email tidak cocok, supaya halaman ini
+     * tidak bisa dipakai untuk menebak email siapa yang terdaftar. Batas percobaan kodenya
+     * jauh lebih ketat daripada login biasa (lihat TwoFactorController::EMAIL_MODE_MAX_FAILS).
+     */
+    public function storeTwoFactorEmail(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'string', 'email:rfc', 'max:150'],
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email'    => 'Format email tidak valid.',
+        ]);
+
+        // Kunci percobaan diperiksa di langkah kode (TwoFactorController), sama untuk email terdaftar
+        // maupun tidak; di sini cukup throttle route per IP.
+        $email = strtolower(trim($request->email));
+
+        // Satu email bisa tercatat di banyak karyawan (mis. email isian sementara), jadi yang dipakai
+        // hanya akun yang memang boleh login 2FA via email. Harus tepat satu; lebih dari itu ambigu.
+        $matches = User::with('employee')
+            ->whereHas('employee', fn($q) => $q->where(fn($w) => $w->whereRaw('LOWER(company_email) = ?', [$email])->orWhereRaw('LOWER(email) = ?', [$email])))
+            ->whereNotNull('two_factor_confirmed_at')
+            ->whereNotNull('two_factor_secret')
+            ->where('two_factor_required', true)
+            ->limit(10)
+            ->get()
+            ->filter(fn(User $u) => LoginSessionService::canLogin($u))
+            ->values();
+
+        $eligible = $matches->count() === 1;
+        $user     = $eligible ? $matches->first() : null;
+
+        $request->session()->regenerate();
+        $request->session()->put('2fa', [
+            'user_id'    => $eligible ? $user->id : null,
+            'via'        => 'email',
+            // Email tidak memenuhi syarat: halaman kode tetap tampil, tapi kode apa pun ditolak.
+            'decoy'      => $eligible ? null : sha1($email),
+            'expires_at' => now()->addMinutes(5)->timestamp,
+        ]);
+
+        if (!$eligible) {
+            Log::info('Login 2FA via email: email tidak memenuhi syarat', [
+                'email_hash' => substr(sha1($email), 0, 12),
+                'reason'     => $matches->isEmpty() ? 'tidak ada akun aktif ber-2FA yang diizinkan dengan email ini' : 'lebih dari satu akun memenuhi syarat (' . $matches->count() . ')',
+                'ip'         => $request->ip(),
+            ]);
+        }
+
+        return redirect()->route('2fa.verify');
+    }
+
     /** Konfirmasi "lanjutkan login & keluarkan perangkat lain" (token sekali pakai dari LoginSessionService). */
     public function confirmForceLogin(Request $request)
     {

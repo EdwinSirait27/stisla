@@ -224,6 +224,9 @@
 
     <h1>Verifikasi 2FA</h1>
     <p class="subtitle">Buka aplikasi Authenticator di HP Anda dan masukkan kode 6-digit yang ditampilkan.</p>
+    @if($viaEmail ?? false)
+        <p class="subtitle" style="margin-top:-12px">Login dengan email: recovery code tidak berlaku di sini. Kalau HP tidak ada, kembali dan login dengan username dan password.</p>
+    @endif
 
     @if($errors->any())
         <div class="alert-error">
@@ -256,6 +259,7 @@
         </button>
     </form>
 
+    @unless($viaEmail ?? false)
     <div class="divider">atau</div>
 
     {{-- Recovery code --}}
@@ -279,6 +283,7 @@
             </button>
         </form>
     </div>
+    @endunless
 
     <a href="{{ route('login') }}" class="back-link">
         <i class="fas fa-arrow-left"></i> Kembali ke halaman login
@@ -342,7 +347,7 @@
     startTimer();
 
     // ── Toggle recovery section ───────────────────────────────────
-    document.getElementById('toggleRecovery').addEventListener('click', function () {
+    document.getElementById('toggleRecovery')?.addEventListener('click', function () {
         const section = document.getElementById('recoverySection');
         const isVisible = section.classList.toggle('visible');
         this.innerHTML = isVisible
