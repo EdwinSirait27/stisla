@@ -1476,12 +1476,13 @@
                     </div>
                 </div>
                 <div class="pr-actions">
-                    @can('dashboardTeam')
-                        <a href="{{ route('pages.dashboardTeam') }}" class="pr-btn"><i class="fas fa-users" aria-hidden="true"></i> Tim</a>
+                    {{-- Route pages.dashboardTeam & pages.Teamfingerprint tidak ada lagi; diarahkan ke halaman Team dan Fingerprint (sudah dibatasi cakupan SPV/Manager). --}}
+                    @can('ManageTeam')
+                        <a href="{{ route('pages.Team') }}" class="pr-btn"><i class="fas fa-users" aria-hidden="true"></i> Tim</a>
                     @endcan
-                    @can('ManageTeamfingerprint')
-                        <a href="{{ route('pages.Teamfingerprint') }}" class="pr-btn"><i class="fas fa-fingerprint" aria-hidden="true"></i> Absensi tim</a>
-                    @endcan
+                    @canany(['ManageFingerspotSPVManager', 'ManageFingerspot', 'ViewFingerspot'])
+                        <a href="{{ route('pages.Fingerprints') }}" class="pr-btn"><i class="fas fa-fingerprint" aria-hidden="true"></i> Absensi tim</a>
+                    @endcanany
                     @can('ManageRosterSPVManager')
                         <a href="{{ route('roster.index') }}" class="pr-btn"><i class="fas fa-calendar-alt" aria-hidden="true"></i> Roster</a>
                     @endcan
