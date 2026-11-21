@@ -55,95 +55,95 @@ class DashManagerController extends Controller
         ]));
     }
 
-    public function indexteam()
-    {
-        $announcements = Announcement::with('user')
-            ->orderBy('publish_date', 'desc')
-            ->paginate(10);
+//     public function indexteam()
+//     {
+//         $announcements = Announcement::with('user')
+//             ->orderBy('publish_date', 'desc')
+//             ->paginate(10);
 
-        $employee   = Auth::user()->employee;
-        $companyId  = $employee->company_id;
+//         $employee   = Auth::user()->employee;
+//         $companyId  = $employee->company_id;
 
-        // Pakai primaryStore() dari Employee.php
-        $storeIds = $employee->primaryStore()->pluck('stores_tables.id')->toArray();
-        if (empty($storeIds)) {
-            $storeIds = [$employee->store_id];
-        }
+//         // Pakai primaryStore() dari Employee.php
+//         $storeIds = $employee->primaryStore()->pluck('stores_tables.id')->toArray();
+//         if (empty($storeIds)) {
+//             $storeIds = [$employee->store_id];
+//         }
 
-        // Pakai primaryDepartment() dari Employee.php
-        $departmentIds = $employee->primaryDepartment()->pluck('departments_tables.id')->toArray();
-        $departmentId  = $departmentIds[0] ?? $employee->department_id;
+//         // Pakai primaryDepartment() dari Employee.php
+//         $departmentIds = $employee->primaryDepartment()->pluck('departments_tables.id')->toArray();
+//         $departmentId  = $departmentIds[0] ?? $employee->department_id;
 
-        $totalEmployees = Employee::whereIn('status', ['Active', 'Pending','On Leave'])
-            ->where('company_id', $companyId)
-            ->whereIn('store_id', $storeIds)
-            ->whereIn('department_id', $departmentIds)
-            ->count();
+//         $totalEmployees = Employee::whereIn('status', ['Active', 'Pending','On Leave'])
+//             ->where('company_id', $companyId)
+//             ->whereIn('store_id', $storeIds)
+//             ->whereIn('department_id', $departmentIds)
+//             ->count();
 
-        $totalEmployeespending = Employee::where('status', 'Pending')
-            ->where('company_id', $companyId)
-            ->whereIn('store_id', $storeIds)
-            ->count();
+//         $totalEmployeespending = Employee::where('status', 'Pending')
+//             ->where('company_id', $companyId)
+//             ->whereIn('store_id', $storeIds)
+//             ->count();
 
-        $employeesPins = Employee::where('company_id', $companyId)
-            ->whereIn('store_id', $storeIds)
-            ->pluck('pin')
-            ->toArray();
+//         $employeesPins = Employee::where('company_id', $companyId)
+//             ->whereIn('store_id', $storeIds)
+//             ->pluck('pin')
+//             ->toArray();
 
-        $today = now()->format('Y-m-d');
+//         $today = now()->format('Y-m-d');
 
-        $presentToday = Fingerprints::whereDate('scan_date', $today)
-            ->whereIn('inoutmode', [1])
-            ->whereIn('pin', $employeesPins)
-            ->distinct('pin')
-            ->count('pin');
+//         $presentToday = Fingerprints::whereDate('scan_date', $today)
+//             ->whereIn('inoutmode', [1])
+//             ->whereIn('pin', $employeesPins)
+//             ->distinct('pin')
+//             ->count('pin');
 
-        $absentToday = count($employeesPins) - $presentToday;
+//         $absentToday = count($employeesPins) - $presentToday;
 
-        $submissions = \App\Models\Overtimesubmissions::with('employees:id,employee_name')
-            ->where('approver_id', $employee->id)
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
+//         $submissions = \App\Models\Overtimesubmissions::with('employees:id,employee_name')
+//             ->where('approver_id', $employee->id)
+//             ->orderBy('created_at', 'desc')
+//             ->limit(5)
+//             ->get();
 
-        // ── Pending Leave Approvals dari bawahan (employee_atasans) ──
-$subordinateIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
-$balanceIds = \App\Models\Leavebalance::whereIn('employee_id', $subordinateIds)->pluck('id');
+//         // ── Pending Leave Approvals dari bawahan (employee_atasans) ──
+// $subordinateIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
+// $balanceIds = \App\Models\Leavebalance::whereIn('employee_id', $subordinateIds)->pluck('id');
 
-$pendingLeaves = \App\Models\Leaverequest::whereIn('leave_balance_id', $balanceIds)
-    ->where('status', 'Pending')
-    ->with(['leavebalance.employees', 'leavebalance.leaves'])
-    ->latest()
-    ->get()
-    ->map(function ($leave) {
-        $emp       = $leave->leavebalance?->employees;
-        $leaveType = $leave->leavebalance?->leaves;
-        $start     = \Carbon\Carbon::parse($leave->start_date);
-        $end       = \Carbon\Carbon::parse($leave->end_date);
-        $dateLabel = $start->isSameDay($end)
-            ? $start->format('d M Y')
-            : $start->format('d M Y') . ' – ' . $end->format('d M Y');
+// $pendingLeaves = \App\Models\Leaverequest::whereIn('leave_balance_id', $balanceIds)
+//     ->where('status', 'Pending')
+//     ->with(['leavebalance.employees', 'leavebalance.leaves'])
+//     ->latest()
+//     ->get()
+//     ->map(function ($leave) {
+//         $emp       = $leave->leavebalance?->employees;
+//         $leaveType = $leave->leavebalance?->leaves;
+//         $start     = \Carbon\Carbon::parse($leave->start_date);
+//         $end       = \Carbon\Carbon::parse($leave->end_date);
+//         $dateLabel = $start->isSameDay($end)
+//             ? $start->format('d M Y')
+//             : $start->format('d M Y') . ' – ' . $end->format('d M Y');
 
-        return (object) [
-            'id'             => $leave->id,
-            'employeeName'   => $emp?->employee_name ?? 'Unknown',
-            'leaveTypeName'  => $leaveType?->name ?? 'Leave',
-            'dateLabel'      => $dateLabel,
-            'totalDays'      => $leave->total_days,
-            'ago'            => \Carbon\Carbon::parse($leave->created_at)->diffForHumans(),
-            'employeeReason' => $leave->employee_reason,
-        ];
-    });
+//         return (object) [
+//             'id'             => $leave->id,
+//             'employeeName'   => $emp?->employee_name ?? 'Unknown',
+//             'leaveTypeName'  => $leaveType?->name ?? 'Leave',
+//             'dateLabel'      => $dateLabel,
+//             'totalDays'      => $leave->total_days,
+//             'ago'            => \Carbon\Carbon::parse($leave->created_at)->diffForHumans(),
+//             'employeeReason' => $leave->employee_reason,
+//         ];
+//     });
 
-        return view('pages.dashboardTeam.dashboardTeam', compact(
-            'absentToday',
-            'presentToday',
-            'announcements',
-            'totalEmployees',
-            'totalEmployeespending',
-            'submissions'
-        ));
-    }
+//         return view('pages.dashboardTeam.dashboardTeam', compact(
+//             'absentToday',
+//             'presentToday',
+//             'announcements',
+//             'totalEmployees',
+//             'totalEmployeespending',
+//             'submissions'
+//         ));
+//     }
 
    
     public function team()
