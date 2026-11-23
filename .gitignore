@@ -4,7 +4,7 @@
 /public/storage
 /storage/*.key
 /vendor
-/hallmark
+/.hallmark
 .env
 .CLAUDE.md
 .env.backup
